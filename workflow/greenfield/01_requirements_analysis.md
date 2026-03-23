@@ -1,119 +1,119 @@
-# Phase 1-1: 要件分析・ScalarDB適用判断
+# Phase 1-1: Requirements Analysis and ScalarDB Applicability Assessment
 
-## 目的
+## Purpose
 
-システム要件を分析し、ScalarDBの適用が適切かを判断する。ビジネス要件と技術要件を体系的に整理し、複数データベースにまたがるトランザクション管理の必要性を評価した上で、ScalarDB導入の是非を決定する。
-
----
-
-## 入力
-
-| 入力物 | 説明 | 提供元 |
-|--------|------|--------|
-| ビジネス要件書 | 機能要件・非機能要件を含むビジネス要件 | プロダクトオーナー / ビジネスアナリスト |
-| 既存システム構成図 | 現行システムのアーキテクチャ、DB構成、ネットワーク構成 | インフラチーム / アーキテクト |
+Analyze system requirements and determine whether applying ScalarDB is appropriate. Systematically organize business and technical requirements, evaluate the need for transaction management across multiple databases, and decide whether to adopt ScalarDB.
 
 ---
 
-## 参照資料
+## Inputs
 
-| 資料 | 参照箇所 | 用途 |
-|------|----------|------|
-| [`../research/00_summary_report.md`](../research/00_summary_report.md) | Section 2 | ScalarDBの全体像とユースケースの概要把握 |
-| [`../research/02_scalardb_usecases.md`](../research/02_scalardb_usecases.md) | デシジョンツリー全体 | ScalarDB適用判断のデシジョンツリー |
-| [`../research/15_xa_heterogeneous_investigation.md`](../research/15_xa_heterogeneous_investigation.md) | 全体 | XAトランザクションとScalarDBの比較判断基準 |
-
----
-
-## ステップ
-
-### Step 1.1: ビジネス要件の整理
-
-機能要件と非機能要件を分類・整理する。
-
-#### 要件分類表テンプレート
-
-| 要件ID | カテゴリ | 要件名 | 説明 | 優先度 | 関連サービス | データ整合性要求 |
-|--------|----------|--------|------|--------|-------------|-----------------|
-| FR-001 | 機能要件 | （例: 注文処理） | | High/Mid/Low | | |
-| FR-002 | 機能要件 | | | | | |
-| NFR-001 | 非機能要件（性能） | | | | | |
-| NFR-002 | 非機能要件（可用性） | | | | | |
-| NFR-003 | 非機能要件（整合性） | | | | | |
-
-**確認ポイント:**
-- [ ] トランザクションの一貫性が求められるビジネスプロセスが明確か
-- [ ] レイテンシ・スループットの数値目標が定義されているか
-- [ ] データ損失許容度（RPO/RTO）が定義されているか
+| Input | Description | Source |
+|-------|-------------|--------|
+| Business Requirements Document | Business requirements including functional and non-functional requirements | Product Owner / Business Analyst |
+| Existing System Architecture Diagram | Current system architecture, DB configuration, network topology | Infrastructure Team / Architect |
 
 ---
 
-### Step 1.2: データベース要件の分析
+## Reference Materials
 
-現行DB構成を棚卸しし、データベースの種類と特性を特定する。
-
-#### 現行DB棚卸しテンプレート
-
-| DB名 | DB種類 | バージョン | 用途 | データ量 | 関連サービス | 備考 |
-|------|--------|-----------|------|---------|-------------|------|
-| | RDBMS (MySQL/PostgreSQL等) | | | | | |
-| | NoSQL (Cassandra/DynamoDB等) | | | | | |
-| | NewSQL (CockroachDB等) | | | | | |
-
-**確認ポイント:**
-- [ ] 使用中のDB種類を全て列挙したか
-- [ ] 同種DBのみか、異種DBが混在しているかを判定したか
-- [ ] 各DBの接続方式（直接接続 / ORM / DB Proxy等）を確認したか
+| Document | Section | Purpose |
+|----------|---------|---------|
+| [`../research/00_summary_report.md`](../research/00_summary_report.md) | Section 2 | Overview of ScalarDB and its use cases |
+| [`../research/02_scalardb_usecases.md`](../research/02_scalardb_usecases.md) | Full decision tree | Decision tree for ScalarDB applicability assessment |
+| [`../research/15_xa_heterogeneous_investigation.md`](../research/15_xa_heterogeneous_investigation.md) | Full document | Criteria for comparing XA transactions and ScalarDB |
 
 ---
 
-### Step 1.3: トランザクション要件の分析
+## Steps
 
-どのサービス間でACIDトランザクションが必要か、結果整合性で十分かを分析する。
+### Step 1.1: Organizing Business Requirements
 
-#### トランザクション要件マトリクス
+Classify and organize functional and non-functional requirements.
 
-| ビジネスプロセス | 関連サービス | 整合性要求レベル | 理由 | 頻度 |
-|-----------------|-------------|-----------------|------|------|
-| （例: 注文確定） | 注文、在庫、決済 | 強整合性（ACID） | 在庫と決済の不整合が許容不可 | 高 |
-| （例: ポイント付与） | 注文、ポイント | 結果整合性（Saga） | 遅延は許容可能 | 中 |
+#### Requirements Classification Table Template
 
-**整合性要求レベルの判定基準:**
+| Requirement ID | Category | Requirement Name | Description | Priority | Related Services | Data Consistency Requirement |
+|----------------|----------|------------------|-------------|----------|-----------------|------------------------------|
+| FR-001 | Functional Requirement | (e.g., Order Processing) | | High/Mid/Low | | |
+| FR-002 | Functional Requirement | | | | | |
+| NFR-001 | Non-Functional Requirement (Performance) | | | | | |
+| NFR-002 | Non-Functional Requirement (Availability) | | | | | |
+| NFR-003 | Non-Functional Requirement (Consistency) | | | | | |
 
-| レベル | 説明 | 適用条件 |
-|--------|------|---------|
-| 強整合性（ACID） | 即時の一貫性が必要 | 金銭取引、在庫管理等 |
-| 結果整合性（Saga） | 最終的に一貫すればよい | 通知、ポイント付与等 |
-| ローカルTx | 単一サービス内で完結 | サービス内部のCRUD |
+**Checkpoints:**
+- [ ] Are the business processes requiring transactional consistency clearly identified?
+- [ ] Are numerical targets for latency and throughput defined?
+- [ ] Are data loss tolerances (RPO/RTO) defined?
 
 ---
 
-### Step 1.4: ScalarDB適用判断
+### Step 1.2: Database Requirements Analysis
 
-以下のデシジョンツリーに従い、ScalarDBの適用可否を判断する。`02_scalardb_usecases.md` のデシジョンツリーを参照のこと。
+Inventory the current DB configuration and identify database types and characteristics.
+
+#### Current DB Inventory Template
+
+| DB Name | DB Type | Version | Purpose | Data Volume | Related Services | Notes |
+|---------|---------|---------|---------|-------------|-----------------|-------|
+| | RDBMS (MySQL/PostgreSQL, etc.) | | | | | |
+| | NoSQL (Cassandra/DynamoDB, etc.) | | | | | |
+| | NewSQL (CockroachDB, etc.) | | | | | |
+
+**Checkpoints:**
+- [ ] Have all DB types in use been enumerated?
+- [ ] Has it been determined whether only homogeneous DBs or heterogeneous DBs are present?
+- [ ] Has the connection method for each DB been confirmed (direct connection / ORM / DB Proxy, etc.)?
+
+---
+
+### Step 1.3: Transaction Requirements Analysis
+
+Analyze which services require ACID transactions and which can tolerate eventual consistency.
+
+#### Transaction Requirements Matrix
+
+| Business Process | Related Services | Consistency Requirement Level | Reason | Frequency |
+|-----------------|-----------------|-------------------------------|--------|-----------|
+| (e.g., Order Confirmation) | Order, Inventory, Payment | Strong Consistency (ACID) | Inconsistency between inventory and payment is unacceptable | High |
+| (e.g., Points Allocation) | Order, Points | Eventual Consistency (Saga) | Delay is acceptable | Medium |
+
+**Criteria for Consistency Requirement Levels:**
+
+| Level | Description | Applicable Conditions |
+|-------|-------------|----------------------|
+| Strong Consistency (ACID) | Immediate consistency required | Financial transactions, inventory management, etc. |
+| Eventual Consistency (Saga) | Eventually consistent is sufficient | Notifications, points allocation, etc. |
+| Local Tx | Completed within a single service | CRUD within a service |
+
+---
+
+### Step 1.4: ScalarDB Applicability Assessment
+
+Follow the decision tree below to assess ScalarDB applicability. Refer to the decision tree in `02_scalardb_usecases.md`.
 
 ```mermaid
 flowchart TD
-    A[開始: マイクロサービス間の<br/>データ整合性要件がある？] -->|Yes| B{複数種類のDBを<br/>使用している？}
-    A -->|No| Z1[ScalarDB不要<br/>ローカルTxで対応]
+    A["Start: Is there a data consistency<br/>requirement across microservices?"] -->|Yes| B{"Are multiple types of<br/>DBs in use?"}
+    A -->|No| Z1["ScalarDB not needed<br/>Handle with Local Tx"]
 
-    B -->|Yes: 異種DB混在| C{異種DB間で<br/>ACIDトランザクションが必要？}
-    B -->|No: 同種DBのみ| D{サービス間で<br/>ACIDトランザクションが必要？}
+    B -->|"Yes: Heterogeneous DBs"| C{"Is ACID transaction needed<br/>across heterogeneous DBs?"}
+    B -->|"No: Homogeneous DBs only"| D{"Is ACID transaction needed<br/>across services?"}
 
-    C -->|Yes| E{NoSQLを含む？}
-    C -->|No| F[結果整合性（Saga）で対応<br/>ScalarDB不要]
+    C -->|Yes| E{"Does it include NoSQL?"}
+    C -->|No| F["Handle with Eventual Consistency (Saga)<br/>ScalarDB not needed"]
 
-    E -->|Yes| G[ScalarDB推奨<br/>NoSQLにACID提供が必要]
-    E -->|No: RDBMS同士| H{XAトランザクションで<br/>対応可能か？<br/>→ Step 1.5へ}
+    E -->|Yes| G["ScalarDB recommended<br/>ACID support needed for NoSQL"]
+    E -->|"No: RDBMS only"| H{"Can XA transactions<br/>handle this?<br/>→ Go to Step 1.5"}
 
-    D -->|Yes| I{XAトランザクションで<br/>対応可能か？<br/>→ Step 1.5へ}
+    D -->|Yes| I{"Can XA transactions<br/>handle this?<br/>→ Go to Step 1.5"}
     D -->|No| F
 
-    H -->|XA適用困難| J[ScalarDB推奨]
-    H -->|XA適用可能| K[XAトランザクション採用<br/>ScalarDB不要]
+    H -->|"XA not feasible"| J["ScalarDB recommended"]
+    H -->|"XA feasible"| K["Adopt XA transactions<br/>ScalarDB not needed"]
 
-    I -->|XA適用困難| J
-    I -->|XA適用可能| K
+    I -->|"XA not feasible"| J
+    I -->|"XA feasible"| K
 
     style G fill:#4CAF50,color:#fff
     style J fill:#4CAF50,color:#fff
@@ -122,38 +122,38 @@ flowchart TD
     style F fill:#9E9E9E,color:#fff
 ```
 
-#### 判定基準チェック
+#### Assessment Criteria Checklist
 
-| # | 判定基準 | Yes/No | 備考 |
-|---|---------|--------|------|
-| 1 | 複数種類のDBを使用しているか？ | | |
-| 2 | 異種DB間でACIDトランザクションが必要か？ | | |
-| 3 | NoSQL（Cassandra, DynamoDB等）を含むか？ | | |
-| 4 | XAトランザクションで対応可能か？（Step 1.5で詳細判断） | | |
-| 5 | サービス間の強整合性が必須のビジネスプロセスがあるか？ | | |
+| # | Criterion | Yes/No | Notes |
+|---|-----------|--------|-------|
+| 1 | Are multiple types of DBs in use? | | |
+| 2 | Is ACID transaction needed across heterogeneous DBs? | | |
+| 3 | Does it include NoSQL (Cassandra, DynamoDB, etc.)? | | |
+| 4 | Can XA transactions handle this? (Detailed assessment in Step 1.5) | | |
+| 5 | Are there business processes requiring strong consistency across services? | | |
 
 ---
 
-### Step 1.5: XA vs ScalarDB判断
+### Step 1.5: XA vs ScalarDB Assessment
 
-`15_xa_heterogeneous_investigation.md` の調査結果に基づき、XAトランザクションとScalarDBのどちらが適切かを判断する。
+Based on the findings in `15_xa_heterogeneous_investigation.md`, determine whether XA transactions or ScalarDB is more appropriate.
 
 ```mermaid
 flowchart TD
-    START[XA vs ScalarDB 判断開始] --> Q1{データベース構成は？}
+    START["Start: XA vs ScalarDB Assessment"] --> Q1{"What is the database<br/>configuration?"}
 
-    Q1 -->|同種RDBMS間のみ<br/>例: MySQL同士| Q2{XAの制約は<br/>許容可能か？}
-    Q1 -->|異種RDBMS間<br/>例: MySQL + PostgreSQL| Q3{XAの異種DB間<br/>互換性は十分か？}
-    Q1 -->|NoSQLを含む<br/>例: MySQL + Cassandra| SCALAR1[ScalarDB推奨<br/>NoSQLはXA非対応]
+    Q1 -->|"Homogeneous RDBMS only<br/>e.g., MySQL to MySQL"| Q2{"Are XA constraints<br/>acceptable?"}
+    Q1 -->|"Heterogeneous RDBMS<br/>e.g., MySQL + PostgreSQL"| Q3{"Is cross-DB XA<br/>compatibility sufficient?"}
+    Q1 -->|"Includes NoSQL<br/>e.g., MySQL + Cassandra"| SCALAR1["ScalarDB recommended<br/>NoSQL does not support XA"]
 
-    Q2 -->|Yes| Q4{パフォーマンス要件は<br/>XAで満たせるか？}
-    Q2 -->|No| SCALAR2[ScalarDB推奨]
+    Q2 -->|Yes| Q4{"Can performance requirements<br/>be met with XA?"}
+    Q2 -->|No| SCALAR2["ScalarDB recommended"]
 
-    Q3 -->|互換性あり| Q4
-    Q3 -->|互換性不十分| SCALAR3[ScalarDB推奨<br/>異種DB間XAは不安定]
+    Q3 -->|"Sufficient compatibility"| Q4
+    Q3 -->|"Insufficient compatibility"| SCALAR3["ScalarDB recommended<br/>Cross-DB XA is unstable"]
 
-    Q4 -->|Yes| XA[XAトランザクション採用]
-    Q4 -->|No| SCALAR4[ScalarDB推奨<br/>パフォーマンス要件不適合]
+    Q4 -->|Yes| XA["Adopt XA transactions"]
+    Q4 -->|No| SCALAR4["ScalarDB recommended<br/>Performance requirements not met"]
 
     style SCALAR1 fill:#4CAF50,color:#fff
     style SCALAR2 fill:#4CAF50,color:#fff
@@ -162,61 +162,61 @@ flowchart TD
     style XA fill:#2196F3,color:#fff
 ```
 
-#### XA vs ScalarDB 比較判定表
+#### XA vs ScalarDB Comparison Table
 
-| 判定項目 | XAトランザクション | ScalarDB | 自システムの状況 |
-|---------|-------------------|----------|-----------------|
-| 同種RDBMS間のみ | 対応可 | 対応可 | |
-| 異種RDBMS間 | 限定的（互換性問題あり） | 対応可 | |
-| NoSQL含む | 非対応 | 対応可 | |
-| パフォーマンス | 2PC overhead大 | OCC方式によるロック競合の軽減。Group Commit最適化で高スループット（ただし2PC Interface利用時は調整コストあり） | |
-| 運用複雑度 | TMの管理が必要 | ScalarDB Clusterで管理 | |
-| 障害復旧 | Heuristic例外のリスク | 自動リカバリ | |
-| ベンダーロックイン | 標準仕様（JTA/XA） | ScalarDB依存 | |
+| Criterion | XA Transactions | ScalarDB | Your System's Situation |
+|-----------|----------------|----------|------------------------|
+| Homogeneous RDBMS only | Supported | Supported | |
+| Heterogeneous RDBMS | Limited (compatibility issues) | Supported | |
+| Includes NoSQL | Not supported | Supported | |
+| Performance | Large 2PC overhead | Reduced lock contention via OCC. High throughput with Group Commit optimization (though adjustment costs apply when using the 2PC Interface) | |
+| Operational complexity | TM management required | Managed by ScalarDB Cluster | |
+| Failure recovery | Risk of heuristic exceptions | Automatic recovery | |
+| Vendor lock-in | Standard specification (JTA/XA) | ScalarDB dependency | |
 
-**判定結果:**
+**Assessment Result:**
 
 ```
-[ ] XAトランザクションを採用
-[ ] ScalarDBを採用
-判定理由: _______________________________________________
+[ ] Adopt XA transactions
+[ ] Adopt ScalarDB
+Rationale: _______________________________________________
 ```
 
 ---
 
-## 成果物
+## Deliverables
 
-| 成果物 | 説明 | テンプレート |
-|--------|------|-------------|
-| 要件分析書 | 機能要件・非機能要件の分類、トランザクション要件の整理 | 上記テンプレートを使用 |
-| ScalarDB適用判定結果 | デシジョンツリーに基づく判定結果と根拠 | 判定基準チェック表 + 判定理由 |
-| XA vs ScalarDB判断結果 | XAとScalarDBの比較検討結果 | 比較判定表 |
-
----
-
-## 完了基準チェックリスト
-
-- [ ] 全てのビジネス要件が機能要件・非機能要件に分類されている
-- [ ] 現行DB構成の棚卸しが完了し、DB種類が全て特定されている
-- [ ] トランザクション要件が「強整合性」「結果整合性」「ローカルTx」に分類されている
-- [ ] デシジョンツリーに従いScalarDB適用判断が下されている
-- [ ] XA vs ScalarDBの比較判断が根拠とともに記録されている
-- [ ] 判定結果について関係者（アーキテクト、テックリード）の合意が得られている
-- [ ] 要件分析書が作成され、レビューが完了している
+| Deliverable | Description | Template |
+|-------------|-------------|----------|
+| Requirements Analysis Document | Classification of functional/non-functional requirements, organization of transaction requirements | Use the templates above |
+| ScalarDB Applicability Assessment Result | Assessment result and rationale based on the decision tree | Assessment criteria checklist + rationale |
+| XA vs ScalarDB Assessment Result | Comparative evaluation result of XA and ScalarDB | Comparison table |
 
 ---
 
-## 次のステップへの引き継ぎ事項
+## Completion Criteria Checklist
 
-### Phase 1-2: ドメインモデリング（`02_domain_modeling.md`）への引き継ぎ
+- [ ] All business requirements have been classified into functional and non-functional requirements
+- [ ] Current DB configuration inventory is complete and all DB types have been identified
+- [ ] Transaction requirements have been classified into "Strong Consistency," "Eventual Consistency," and "Local Tx"
+- [ ] ScalarDB applicability assessment has been made following the decision tree
+- [ ] XA vs ScalarDB comparison assessment has been documented with rationale
+- [ ] Assessment results have been agreed upon by stakeholders (architects, tech leads)
+- [ ] Requirements analysis document has been created and reviewed
 
-| 引き継ぎ項目 | 内容 |
-|-------------|------|
-| トランザクション要件マトリクス | どのサービス間で強整合性が必要かの情報 |
-| DB構成情報 | 使用するDB種類とその特性 |
-| ScalarDB適用判定結果 | ScalarDB導入する場合の前提条件 |
-| 非機能要件 | レイテンシ、スループット、可用性の目標値 |
+---
 
-**注意事項:**
-- ScalarDB適用判定が「不要」となった場合、以降のScalarDB関連ステップはスキップし、通常のマイクロサービス設計フローに移行する
-- ScalarDB適用判定が「推奨」となった場合、Phase 1-2ではサービス間トランザクション境界を特に意識したドメインモデリングが必要になる
+## Handoff Items for the Next Step
+
+### Handoff to Phase 1-2: Domain Modeling (`02_domain_modeling.md`)
+
+| Handoff Item | Content |
+|--------------|---------|
+| Transaction Requirements Matrix | Information on which services require strong consistency |
+| DB Configuration Information | DB types in use and their characteristics |
+| ScalarDB Applicability Assessment Result | Prerequisites for ScalarDB adoption |
+| Non-Functional Requirements | Target values for latency, throughput, and availability |
+
+**Notes:**
+- If the ScalarDB applicability assessment concludes "not needed," skip all subsequent ScalarDB-related steps and proceed with the standard microservice design flow
+- If the ScalarDB applicability assessment concludes "recommended," Phase 1-2 will require domain modeling with particular attention to inter-service transaction boundaries

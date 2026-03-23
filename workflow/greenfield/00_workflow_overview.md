@@ -8,29 +8,29 @@ This workflow is a guide for systematically developing an implementation plan fo
 
 ```mermaid
 flowchart TD
-    subgraph Phase1["Phase 1: 要件・判断"]
-        W01["01 要件分析・適用判断"]
-        W02["02 ドメインモデリング"]
-        W03["03 ScalarDB適用範囲決定"]
+    subgraph Phase1["Phase 1: Requirements & Decisions"]
+        W01["01 Requirements Analysis & Applicability Assessment"]
+        W02["02 Domain Modeling"]
+        W03["03 ScalarDB Scope Decision"]
     end
 
-    subgraph Phase2["Phase 2: 設計"]
-        W04["04 データモデル設計"]
-        W05["05 トランザクション設計"]
-        W06["06 API・インターフェース設計"]
+    subgraph Phase2["Phase 2: Design"]
+        W04["04 Data Model Design"]
+        W05["05 Transaction Design"]
+        W06["06 API & Interface Design"]
     end
 
-    subgraph Phase3["Phase 3: 基盤"]
-        W07["07 インフラストラクチャ設計"]
-        W08["08 セキュリティ設計"]
-        W09["09 オブザーバビリティ設計"]
-        W10["10 障害復旧・DR設計"]
+    subgraph Phase3["Phase 3: Infrastructure"]
+        W07["07 Infrastructure Design"]
+        W08["08 Security Design"]
+        W09["09 Observability Design"]
+        W10["10 Disaster Recovery Design"]
     end
 
-    subgraph Phase4["Phase 4: 実行"]
-        W11["11 実装ガイド"]
-        W12["12 テスト戦略"]
-        W13["13 デプロイ・ロールアウト"]
+    subgraph Phase4["Phase 4: Execution"]
+        W11["11 Implementation Guide"]
+        W12["12 Testing Strategy"]
+        W13["13 Deployment & Rollout"]
     end
 
     W01 --> W02 --> W03
@@ -52,62 +52,62 @@ flowchart TD
 
 ## Phase List
 
-| フェーズ | ステップ | ファイル | 入力（調査資料） | 成果物 |
+| Phase | Step | File | Input (Research Materials) | Deliverables |
 |---------|---------|---------|----------------|--------|
-| **Phase 1** | 01 要件分析・適用判断 | [01_requirements_analysis.md](./01_requirements_analysis.md) | `00_summary`, `02_usecases`, `15_xa` | 要件一覧、ScalarDB適用判定結果 |
-| | 02 ドメインモデリング | [02_domain_modeling.md](./02_domain_modeling.md) | `01_microservice`, `03_logical_data_model` | 境界コンテキスト図、集約設計 |
-| | 03 ScalarDB適用範囲決定 | [03_scalardb_scope_decision.md](./03_scalardb_scope_decision.md) | `02_usecases`, `07_transaction`, `15_xa` | ScalarDB管理対象テーブル一覧 |
-| **Phase 2** | 04 データモデル設計 | [04_data_model_design.md](./04_data_model_design.md) | `03_logical_data_model`, `04_physical_data_model`, `05_db_investigation` | スキーマ定義、DB選定結果 |
-| | 05 トランザクション設計 | [05_transaction_design.md](./05_transaction_design.md) | `07_transaction_model`, `09_batch`, `13_317_deep_dive` | トランザクション境界定義 |
-| | 06 API・インターフェース設計 | [06_api_interface_design.md](./06_api_interface_design.md) | `08_transparent_data_access`, `01_microservice` | API仕様、サービス間通信設計 |
-| **Phase 3** | 07 インフラ設計 | [07_infrastructure_design.md](./07_infrastructure_design.md) | `06_infrastructure`, `13_317_deep_dive` | K8sマニフェスト、Helm values |
-| | 08 セキュリティ設計 | [08_security_design.md](./08_security_design.md) | `10_security` | セキュリティポリシー、RBAC設計 |
-| | 09 オブザーバビリティ設計 | [09_observability_design.md](./09_observability_design.md) | `11_observability` | ダッシュボード定義、アラートルール |
-| | 10 障害復旧設計 | [10_disaster_recovery_design.md](./10_disaster_recovery_design.md) | `12_disaster_recovery` | DR計画、バックアップ設計 |
-| **Phase 4** | 11 実装ガイド | [11_implementation_guide.md](./11_implementation_guide.md) | 全設計成果物 | 実装タスク一覧、優先順位 |
-| | 12 テスト戦略 | [12_testing_strategy.md](./12_testing_strategy.md) | 全設計成果物 | テスト計画、品質基準 |
-| | 13 デプロイ・ロールアウト | [13_deployment_rollout.md](./13_deployment_rollout.md) | `06_infrastructure`, `12_disaster_recovery` | デプロイ手順、カナリア計画 |
+| **Phase 1** | 01 Requirements Analysis & Applicability Assessment | [01_requirements_analysis.md](./01_requirements_analysis.md) | `00_summary`, `02_usecases`, `15_xa` | Requirements list, ScalarDB applicability assessment results |
+| | 02 Domain Modeling | [02_domain_modeling.md](./02_domain_modeling.md) | `01_microservice`, `03_logical_data_model` | Bounded context diagram, aggregate design |
+| | 03 ScalarDB Scope Decision | [03_scalardb_scope_decision.md](./03_scalardb_scope_decision.md) | `02_usecases`, `07_transaction`, `15_xa` | List of ScalarDB-managed tables |
+| **Phase 2** | 04 Data Model Design | [04_data_model_design.md](./04_data_model_design.md) | `03_logical_data_model`, `04_physical_data_model`, `05_db_investigation` | Schema definitions, DB selection results |
+| | 05 Transaction Design | [05_transaction_design.md](./05_transaction_design.md) | `07_transaction_model`, `09_batch`, `13_317_deep_dive` | Transaction boundary definitions |
+| | 06 API & Interface Design | [06_api_interface_design.md](./06_api_interface_design.md) | `08_transparent_data_access`, `01_microservice` | API specifications, inter-service communication design |
+| **Phase 3** | 07 Infrastructure Design | [07_infrastructure_design.md](./07_infrastructure_design.md) | `06_infrastructure`, `13_317_deep_dive` | K8s manifests, Helm values |
+| | 08 Security Design | [08_security_design.md](./08_security_design.md) | `10_security` | Security policies, RBAC design |
+| | 09 Observability Design | [09_observability_design.md](./09_observability_design.md) | `11_observability` | Dashboard definitions, alert rules |
+| | 10 Disaster Recovery Design | [10_disaster_recovery_design.md](./10_disaster_recovery_design.md) | `12_disaster_recovery` | DR plan, backup design |
+| **Phase 4** | 11 Implementation Guide | [11_implementation_guide.md](./11_implementation_guide.md) | All design deliverables | Implementation task list, priorities |
+| | 12 Testing Strategy | [12_testing_strategy.md](./12_testing_strategy.md) | All design deliverables | Test plan, quality criteria |
+| | 13 Deployment & Rollout | [13_deployment_rollout.md](./13_deployment_rollout.md) | `06_infrastructure`, `12_disaster_recovery` | Deployment procedures, canary plan |
 
 ## Templates
 
-| テンプレート | ファイル | 用途 |
+| Template | File | Purpose |
 |------------|---------|------|
-| サービス設計書 | [templates/service_design_template.md](./templates/service_design_template.md) | 各マイクロサービスの設計書テンプレート |
-| データモデル定義書 | [templates/data_model_template.md](./templates/data_model_template.md) | テーブル設計・スキーマ定義テンプレート |
-| レビューチェックリスト | [templates/review_checklist.md](./templates/review_checklist.md) | 各フェーズ完了時のレビュー項目 |
+| Service Design Document | [templates/service_design_template.md](./templates/service_design_template.md) | Design document template for each microservice |
+| Data Model Definition Document | [templates/data_model_template.md](./templates/data_model_template.md) | Table design and schema definition template |
+| Review Checklist | [templates/review_checklist.md](./templates/review_checklist.md) | Review items for each phase completion |
 
 ## Research Document Mapping
 
 ```mermaid
 flowchart LR
-    subgraph 調査資料["調査資料 (research/)"]
-        D00["00 サマリーレポート"]
-        D01["01 MSAアーキテクチャ"]
-        D02["02 ユースケース"]
-        D03["03 論理データモデル"]
-        D04["04 物理データモデル"]
-        D05["05 DB調査"]
-        D06["06 インフラ前提条件"]
-        D07["07 トランザクションモデル"]
-        D08["08 透過的データアクセス"]
-        D09["09 バッチ処理"]
-        D10["10 セキュリティ"]
-        D11["11 オブザーバビリティ"]
-        D12["12 障害復旧"]
+    subgraph ResearchDocs["Research Documents (research/)"]
+        D00["00 Summary Report"]
+        D01["01 MSA Architecture"]
+        D02["02 Use Cases"]
+        D03["03 Logical Data Model"]
+        D04["04 Physical Data Model"]
+        D05["05 DB Investigation"]
+        D06["06 Infrastructure Prerequisites"]
+        D07["07 Transaction Model"]
+        D08["08 Transparent Data Access"]
+        D09["09 Batch Processing"]
+        D10["10 Security"]
+        D11["11 Observability"]
+        D12["12 Disaster Recovery"]
         D13["13 ScalarDB 3.17"]
-        D15["15 XA調査"]
+        D15["15 XA Investigation"]
     end
 
-    subgraph ワークフロー["ワークフロー (workflow/)"]
-        W01["01 要件分析"]
-        W02["02 ドメイン"]
-        W03["03 適用範囲"]
-        W04["04 データモデル"]
-        W05["05 トランザクション"]
-        W06["06 API設計"]
-        W07["07 インフラ"]
-        W08["08 セキュリティ"]
-        W09["09 監視"]
+    subgraph Workflow["Workflow (workflow/)"]
+        W01["01 Requirements Analysis"]
+        W02["02 Domain"]
+        W03["03 Scope"]
+        W04["04 Data Model"]
+        W05["05 Transaction"]
+        W06["06 API Design"]
+        W07["07 Infrastructure"]
+        W08["08 Security"]
+        W09["09 Monitoring"]
         W10["10 DR"]
     end
 

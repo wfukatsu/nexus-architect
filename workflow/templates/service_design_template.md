@@ -1,55 +1,55 @@
-# マイクロサービス設計書テンプレート
+# Microservice Design Document Template
 
-> 本テンプレートは、ScalarDB を利用するマイクロサービスごとに作成してください。
-> `[...]` の箇所をプロジェクト固有の情報で埋めてください。
+> Create this template for each microservice that uses ScalarDB.
+> Fill in the `[...]` placeholders with project-specific information.
 
 ---
 
-## 1. サービス概要
+## 1. Service Overview
 
-| 項目 | 内容 |
+| Item | Details |
 |------|------|
-| サービス名 | [サービス名] |
-| 責務 | [このサービスの責務を1-2文で記述] |
-| 境界コンテキスト | [所属する境界コンテキスト] |
-| オーナーチーム | [担当チーム] |
+| Service Name | [Service name] |
+| Responsibilities | [Describe this service's responsibilities in 1-2 sentences] |
+| Bounded Context | [Bounded context this service belongs to] |
+| Owner Team | [Responsible team] |
 
 ---
 
-## 2. ドメインモデル
+## 2. Domain Model
 
-| 項目 | 内容 |
+| Item | Details |
 |------|------|
-| 集約ルート | [集約ルートエンティティ名] |
-| エンティティ | [エンティティ一覧] |
-| 値オブジェクト | [VO一覧] |
-| ドメインイベント | [発行するイベント一覧] |
+| Aggregate Root | [Aggregate root entity name] |
+| Entities | [List of entities] |
+| Value Objects | [List of VOs] |
+| Domain Events | [List of published events] |
 
 ---
 
-## 3. データモデル
+## 3. Data Model
 
-| テーブル名 | Namespace | バックエンドDB | ScalarDB管理対象 | Partition Key | Clustering Key | Secondary Index |
+| Table Name | Namespace | Backend DB | ScalarDB Managed | Partition Key | Clustering Key | Secondary Index |
 |------------|-----------|---------------|-----------------|---------------|----------------|-----------------|
-| [テーブル名] | [namespace] | [MySQL / PostgreSQL / Cassandra / DynamoDB] | [Yes / No] | [カラム名] | [カラム名 ASC/DESC] | [カラム名] |
-| [テーブル名] | [namespace] | [MySQL / PostgreSQL / Cassandra / DynamoDB] | [Yes / No] | [カラム名] | [カラム名 ASC/DESC] | [カラム名] |
-| [テーブル名] | [namespace] | [MySQL / PostgreSQL / Cassandra / DynamoDB] | [Yes / No] | [カラム名] | [カラム名 ASC/DESC] | [カラム名] |
+| [Table name] | [namespace] | [MySQL / PostgreSQL / Cassandra / DynamoDB] | [Yes / No] | [Column name] | [Column name ASC/DESC] | [Column name] |
+| [Table name] | [namespace] | [MySQL / PostgreSQL / Cassandra / DynamoDB] | [Yes / No] | [Column name] | [Column name ASC/DESC] | [Column name] |
+| [Table name] | [namespace] | [MySQL / PostgreSQL / Cassandra / DynamoDB] | [Yes / No] | [Column name] | [Column name ASC/DESC] | [Column name] |
 
 ---
 
-## 4. トランザクション設計
+## 4. Transaction Design
 
-| 操作名 | パターン | スコープ | 分離レベル | 備考 |
+| Operation Name | Pattern | Scope | Isolation Level | Notes |
 |--------|---------|---------|-----------|------|
-| サービス内操作 | [Consensus Commit / JDBC] | [単一サービス] | [SNAPSHOT / SERIALIZABLE] | [...] |
-| サービス間操作（2PC） | [Two-Phase Commit] | [対象サービス一覧] | [SNAPSHOT / SERIALIZABLE] | [コーディネーター: ...] |
-| 非同期操作（Saga/Event） | [Saga / Event-Driven] | [対象サービス一覧] | [結果整合性] | [補償トランザクション: ...] |
+| Intra-service operation | [Consensus Commit / JDBC] | [Single service] | [SNAPSHOT / SERIALIZABLE] | [...] |
+| Cross-service operation (2PC) | [Two-Phase Commit] | [List of target services] | [SNAPSHOT / SERIALIZABLE] | [Coordinator: ...] |
+| Asynchronous operation (Saga/Event) | [Saga / Event-Driven] | [List of target services] | [Eventual consistency] | [Compensating transaction: ...] |
 
 ---
 
-## 5. API設計
+## 5. API Design
 
-| メソッド | エンドポイント | 説明 | 認証 | レート制限 |
+| Method | Endpoint | Description | Authentication | Rate Limit |
 |---------|--------------|------|------|-----------|
 | [GET / POST / PUT / DELETE] | [/api/v1/...] | [...] | [JWT / mTLS / API Key] | [req/sec] |
 | [GET / POST / PUT / DELETE] | [/api/v1/...] | [...] | [JWT / mTLS / API Key] | [req/sec] |
@@ -57,60 +57,60 @@
 
 ---
 
-## 6. サービス間通信
+## 6. Inter-Service Communication
 
-| 通信先サービス | プロトコル | パターン（同期/非同期） | 障害時の振る舞い |
+| Target Service | Protocol | Pattern (Sync/Async) | Failure Behavior |
 |--------------|-----------|----------------------|----------------|
-| [サービス名] | [gRPC / REST / メッセージキュー] | [同期 / 非同期] | [リトライ / サーキットブレーカー / フォールバック] |
-| [サービス名] | [gRPC / REST / メッセージキュー] | [同期 / 非同期] | [リトライ / サーキットブレーカー / フォールバック] |
-| [サービス名] | [gRPC / REST / メッセージキュー] | [同期 / 非同期] | [リトライ / サーキットブレーカー / フォールバック] |
+| [Service name] | [gRPC / REST / Message Queue] | [Sync / Async] | [Retry / Circuit Breaker / Fallback] |
+| [Service name] | [gRPC / REST / Message Queue] | [Sync / Async] | [Retry / Circuit Breaker / Fallback] |
+| [Service name] | [gRPC / REST / Message Queue] | [Sync / Async] | [Retry / Circuit Breaker / Fallback] |
 
 ---
 
-## 7. 非機能要件
+## 7. Non-Functional Requirements
 
-| 項目 | 目標値 | 計測方法 |
+| Item | Target Value | Measurement Method |
 |------|--------|---------|
-| 可用性 | [99.9% / 99.95% / 99.99%] | [外形監視 / ヘルスチェック] |
-| レイテンシ(P99) | [ms] | [APMツール / Prometheus histogram] |
-| スループット | [req/sec] | [負荷テスト / メトリクス] |
-| データ保持期間 | [日 / 月 / 年] | [TTL / バッチ削除 / アーカイブ] |
+| Availability | [99.9% / 99.95% / 99.99%] | [Synthetic monitoring / Health check] |
+| Latency (P99) | [ms] | [APM tool / Prometheus histogram] |
+| Throughput | [req/sec] | [Load testing / Metrics] |
+| Data Retention Period | [Days / Months / Years] | [TTL / Batch deletion / Archiving] |
 
 ---
 
-## 8. セキュリティ
+## 8. Security
 
-| 項目 | 内容 |
+| Item | Details |
 |------|------|
-| 認証方式 | [JWT / mTLS / ...] |
-| 必要なScalarDB RBACロール | [ロール名] |
-| 個人データの有無 | [有 / 無] |
-| 暗号化要件 | [フィールドレベル / 通信 / 保存時] |
+| Authentication Method | [JWT / mTLS / ...] |
+| Required ScalarDB RBAC Roles | [Role name] |
+| Contains Personal Data | [Yes / No] |
+| Encryption Requirements | [Field-level / In-transit / At-rest] |
 
 ---
 
-## 9. 監視・アラート
+## 9. Monitoring & Alerts
 
-| メトリクス名 | 閾値 | アラート先 |
+| Metric Name | Threshold | Alert Destination |
 |-------------|------|-----------|
-| [エラーレート] | [> 1%] | [Slack / PagerDuty / Email] |
-| [レイテンシP99] | [> 500ms] | [Slack / PagerDuty / Email] |
-| [CPU使用率] | [> 80%] | [Slack / PagerDuty / Email] |
-| [ScalarDBトランザクション競合率] | [> 5%] | [Slack / PagerDuty / Email] |
-| [2PCタイムアウト率] | [> 0.1%] | [Slack / PagerDuty / Email] |
+| [Error rate] | [> 1%] | [Slack / PagerDuty / Email] |
+| [Latency P99] | [> 500ms] | [Slack / PagerDuty / Email] |
+| [CPU utilization] | [> 80%] | [Slack / PagerDuty / Email] |
+| [ScalarDB transaction conflict rate] | [> 5%] | [Slack / PagerDuty / Email] |
+| [2PC timeout rate] | [> 0.1%] | [Slack / PagerDuty / Email] |
 
-**重要ログパターン:**
-- [トランザクションリトライ超過: WARN レベル]
-- [2PCコーディネーター障害: ERROR レベル]
-- [トランザクション競合（OCC Conflict）: WARN レベル]
+**Important Log Patterns:**
+- [Transaction retry exceeded: WARN level]
+- [2PC coordinator failure: ERROR level]
+- [Transaction conflict (OCC Conflict): WARN level]
 - [...]
 
 ---
 
-## 10. 依存関係
+## 10. Dependencies
 
-| 依存先 | 種類（同期/非同期） | 障害時影響 | フォールバック |
+| Dependency | Type (Sync/Async) | Impact on Failure | Fallback |
 |--------|-------------------|-----------|--------------|
-| [サービス名 / インフラ] | [同期 / 非同期] | [致命的 / 機能縮退 / 影響なし] | [キャッシュ返却 / デフォルト値 / エラー応答] |
-| [サービス名 / インフラ] | [同期 / 非同期] | [致命的 / 機能縮退 / 影響なし] | [キャッシュ返却 / デフォルト値 / エラー応答] |
-| [サービス名 / インフラ] | [同期 / 非同期] | [致命的 / 機能縮退 / 影響なし] | [キャッシュ返却 / デフォルト値 / エラー応答] |
+| [Service name / Infrastructure] | [Sync / Async] | [Critical / Degraded / No impact] | [Return cached value / Default value / Error response] |
+| [Service name / Infrastructure] | [Sync / Async] | [Critical / Degraded / No impact] | [Return cached value / Default value / Error response] |
+| [Service name / Infrastructure] | [Sync / Async] | [Critical / Degraded / No impact] | [Return cached value / Default value / Error response] |
