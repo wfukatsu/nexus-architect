@@ -9,7 +9,7 @@ Unified system architecture agent (~35 skills, 9 categories). Covers three workf
 - **Greenfield design**: requirements -> domain modeling -> ScalarDB design -> infra -> deploy
 - **Consulting deliverables**: reports, cost estimates, domain stories
 
-Use `/architect` for interactive selection or `/full-pipeline` for automated execution.
+Use `/architect:start` for interactive selection or `/architect:pipeline` for automated execution.
 
 ## Skill Categories
 

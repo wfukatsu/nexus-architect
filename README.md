@@ -6,15 +6,15 @@ Unified system architecture agent for Claude Code. Covers legacy system refactor
 
 ```bash
 # Interactive workflow (recommended)
-/architect ./path/to/target
+/architect:start ./path/to/target
 
 # Automated full pipeline
-/full-pipeline ./path/to/target
+/architect:pipeline ./path/to/target
 
 # Individual skills
-/investigate-system ./path/to/target
-/analyze-system ./path/to/target
-/evaluate-mmi ./path/to/target
+/architect:investigate ./path/to/target
+/architect:analyze ./path/to/target
+/architect:evaluate-mmi ./path/to/target
 ```
 
 ## Workflows

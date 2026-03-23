@@ -20,37 +20,37 @@ npm install -g @mermaid-js/mermaid-cli
 
 ```bash
 # 対話的ワークフロー（推奨）
-/architect ./path/to/legacy-project
+/architect:start ./path/to/legacy-project
 
 # または個別スキルで段階的に実行
-/investigate-system ./path/to/legacy-project
-/analyze-system ./path/to/legacy-project
-/evaluate-mmi ./path/to/legacy-project
-/evaluate-ddd ./path/to/legacy-project
-/integrate-evaluations
+/architect:investigate ./path/to/legacy-project
+/architect:analyze ./path/to/legacy-project
+/architect:evaluate-mmi ./path/to/legacy-project
+/architect:evaluate-ddd ./path/to/legacy-project
+/architect:integrate-evaluations
 ```
 
 ### 2. フルパイプライン実行
 
 ```bash
 # 全フェーズ自動実行
-/full-pipeline ./path/to/project
+/architect:pipeline ./path/to/project
 
 # ScalarDB無しで実行
-/full-pipeline ./path/to/project --no-scalardb
+/architect:pipeline ./path/to/project --no-scalardb
 
 # 分析のみ
-/full-pipeline ./path/to/project --analyze-only
+/architect:pipeline ./path/to/project --analyze-only
 
 # 特定フェーズから再開
-/full-pipeline ./path/to/project --resume-from=design-microservices
+/architect:pipeline ./path/to/project --resume-from=design-microservices
 ```
 
 ### 3. レビュー実行
 
 ```bash
 # 5視点並列レビュー（設計完了後）
-# workflow/full-pipeline が自動的に実行するが、個別実行も可能
+# workflow/architect:pipeline が自動的に実行するが、個別実行も可能
 ```
 
 ## 出力の確認
