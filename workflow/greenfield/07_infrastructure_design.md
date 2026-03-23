@@ -1,32 +1,32 @@
-# Phase 3-1: インフラストラクチャ設計
+# Phase 3-1: Infrastructure Design
 
-## 目的
+## Purpose
 
-ScalarDB Clusterを含むKubernetes基盤のインフラストラクチャを設計する。クラウド環境の選定からKubernetesクラスタ構成、ScalarDB Clusterのデプロイ戦略、ネットワークセキュリティ、CI/CD、キャパシティプランニングまでを網羅的に設計し、本番運用に耐える基盤を構築する。
-
----
-
-## 入力
-
-| 入力物 | 説明 | 提供元 |
-|--------|------|--------|
-| DB選定結果 | Step 04（データモデル設計）で決定したDB種類・構成 | Phase 2 成果物 |
-| 非機能要件 | Step 01（要件分析）で定義したレイテンシ・スループット・可用性目標 | Phase 1 成果物 |
-| トランザクション設計 | Step 05で設計したトランザクション境界とパターン | Phase 2 成果物 |
-| API設計 | Step 06で設計したサービス間通信方式 | Phase 2 成果物 |
+Design a Kubernetes-based infrastructure including ScalarDB Cluster. Comprehensively design from cloud environment selection to Kubernetes cluster configuration, ScalarDB Cluster deployment strategy, network security, CI/CD, and capacity planning, building a foundation that can withstand production operations.
 
 ---
 
-## 参照資料
+## Inputs
 
-| 資料 | 参照箇所 | 用途 |
-|------|----------|------|
-| [`../research/06_infrastructure_prerequisites.md`](../research/06_infrastructure_prerequisites.md) | 全体 | インフラ前提条件、環境別推奨構成、スケーリング計算式 |
-| [`../research/13_scalardb_317_deep_dive.md`](../research/13_scalardb_317_deep_dive.md) | クラスタ構成セクション | ScalarDB 3.17のクラスタ構成要件と推奨設定 |
+| Input | Description | Source |
+|-------|-------------|--------|
+| DB Selection Results | DB types and configurations determined in Step 04 (Data Model Design) | Phase 2 Deliverables |
+| Non-Functional Requirements | Latency, throughput, and availability targets defined in Step 01 (Requirements Analysis) | Phase 1 Deliverables |
+| Transaction Design | Transaction boundaries and patterns designed in Step 05 | Phase 2 Deliverables |
+| API Design | Inter-service communication methods designed in Step 06 | Phase 2 Deliverables |
 
 ---
 
-## 全体アーキテクチャ概要
+## Reference Materials
+
+| Document | Reference Section | Purpose |
+|----------|-------------------|---------|
+| [`../research/06_infrastructure_prerequisites.md`](../research/06_infrastructure_prerequisites.md) | Entire document | Infrastructure prerequisites, environment-specific recommended configurations, scaling formulas |
+| [`../research/13_scalardb_317_deep_dive.md`](../research/13_scalardb_317_deep_dive.md) | Cluster configuration section | ScalarDB 3.17 cluster configuration requirements and recommended settings |
+
+---
+
+## Overall Architecture Overview
 
 ```mermaid
 architecture-beta
@@ -72,27 +72,27 @@ architecture-beta
 
 ---
 
-## ステップ
+## Steps
 
-### Step 7.1: クラウド環境の選定と構成
+### Step 7.1: Cloud Environment Selection and Configuration
 
-クラウドプロバイダーの選定と基本的なネットワーク・DB構成を設計する。
+Select the cloud provider and design basic network and DB configurations.
 
-#### クラウド環境選定マトリクス
+#### Cloud Environment Selection Matrix
 
-`06_infrastructure_prerequisites.md` の環境別推奨構成を参照し、以下の観点で選定する。
+Refer to the environment-specific recommended configurations in `06_infrastructure_prerequisites.md` and select based on the following criteria.
 
-| 評価項目 | AWS | Azure | GCP | オンプレミス | 自システム評価 |
-|---------|-----|-------|-----|------------|--------------|
-| マネージドK8s | EKS | AKS | GKE | 自前構築 | |
-| マネージドDB選択肢 | RDS/Aurora (MySQL, PostgreSQL), DynamoDB | Azure Database for MySQL/PostgreSQL, Cosmos DB | Cloud SQL (MySQL/PostgreSQL), AlloyDB | 自前構築 | |
-| ScalarDB対応DB可用性 | 高 | 高 | 高（Cloud SQL (PostgreSQL/MySQL), AlloyDB対応） | 中 | |
-| ネットワーク制御 | VPC, Security Group | VNet, NSG | VPC, Firewall Rules | 完全制御 | |
-| コスト | 従量課金 | 従量課金 | 従量課金 | 初期投資大 | |
-| リージョン要件 | 東京あり | 東京あり | 東京あり | 自社DC | |
-| チームの習熟度 | | | | | |
+| Evaluation Criteria | AWS | Azure | GCP | On-Premises | System Evaluation |
+|--------------------|-----|-------|-----|-------------|-------------------|
+| Managed K8s | EKS | AKS | GKE | Self-built | |
+| Managed DB Options | RDS/Aurora (MySQL, PostgreSQL), DynamoDB | Azure Database for MySQL/PostgreSQL, Cosmos DB | Cloud SQL (MySQL/PostgreSQL), AlloyDB | Self-built | |
+| ScalarDB-Compatible DB Availability | High | High | High (Cloud SQL (PostgreSQL/MySQL), AlloyDB supported) | Medium | |
+| Network Control | VPC, Security Group | VNet, NSG | VPC, Firewall Rules | Full control | |
+| Cost | Pay-as-you-go | Pay-as-you-go | Pay-as-you-go | High initial investment | |
+| Region Requirements | Tokyo available | Tokyo available | Tokyo available | Own DC | |
+| Team Expertise | | | | | |
 
-#### VPC / ネットワーク設計テンプレート
+#### VPC / Network Design Template
 
 ```mermaid
 flowchart TB
@@ -123,102 +123,102 @@ flowchart TB
     style AZ_C fill:#fff3e0,stroke:#ff9800
 ```
 
-| ネットワーク項目 | 設計値 | 備考 |
-|----------------|-------|------|
+| Network Item | Design Value | Notes |
+|-------------|-------------|-------|
 | VPC CIDR | 10.0.0.0/16 | 65,536 IPs |
 | Public Subnet | /24 x 3 AZ | ALB, NAT Gateway, Bastion |
-| App Subnet | /24 x 3 AZ | アプリケーションPod |
-| ScalarDB Subnet | /24 x 3 AZ | ScalarDB Cluster Pod |
-| DB Subnet | /24 x 3 AZ | マネージドDB（Private） |
-| AZ数 | 最低 2、推奨 3 | |
-| NAT Gateway | AZごとに配置 | 高可用性確保 |
+| App Subnet | /24 x 3 AZ | Application Pods |
+| ScalarDB Subnet | /24 x 3 AZ | ScalarDB Cluster Pods |
+| DB Subnet | /24 x 3 AZ | Managed DBs (Private) |
+| Number of AZs | Minimum 2, recommended 3 | |
+| NAT Gateway | Deployed per AZ | Ensure high availability |
 
-#### マネージドDB選定テンプレート
+#### Managed DB Selection Template
 
-| DB用途 | DB種類 | マネージドサービス | バージョン | 構成 | 理由 |
-|--------|--------|----------------|-----------|------|------|
-| サービスA データ | | | | Primary + Read Replica | |
-| サービスB データ | | | | Primary + Read Replica | |
-| Coordinator テーブル | | | | Multi-AZ, 高可用性必須 | |
+| DB Purpose | DB Type | Managed Service | Version | Configuration | Rationale |
+|-----------|---------|-----------------|---------|---------------|-----------|
+| Service A Data | | | | Primary + Read Replica | |
+| Service B Data | | | | Primary + Read Replica | |
+| Coordinator Table | | | | Multi-AZ, high availability required | |
 
-**確認ポイント:**
-- [ ] 選定したクラウド環境がチームのスキルセットと整合しているか
-- [ ] ScalarDB対応DBがマネージドサービスとして利用可能か
-- [ ] AZ冗長構成が確保されているか
-- [ ] ネットワーク分離（Public/App/ScalarDB/DB）が設計されているか
-- [ ] Coordinator DBのAZ冗長構成を別途検討したか
-
----
-
-### Step 7.2: Kubernetes クラスタ設計
-
-ScalarDB Cluster、アプリケーション、監視系を分離したKubernetesクラスタを設計する。
-
-#### K8sクラスタ基本構成
-
-| 項目 | 設計値 | 備考 |
-|------|-------|------|
-| K8sバージョン | 1.31 - 1.34 | ScalarDB Cluster互換性を確認 |
-| マネージドK8s | EKS / AKS / GKE | Step 7.1の選定結果による |
-| コントロールプレーン | マネージド | 高可用性はクラウド側で保証 |
-| CNI | VPC CNI / Azure CNI / GKE VPC-native | Pod間通信の効率化 |
-
-#### ノードプール設計
-
-| ノードプール | 用途 | インスタンスタイプ | 最小 | 最大 | Taint | 備考 |
-|-------------|------|------------------|------|------|-------|------|
-| system | K8sシステムコンポーネント | m5.large 相当 | 2 | 4 | - | CoreDNS, kube-proxy等 |
-| scalardb | ScalarDB Cluster専用 | m5.xlarge 相当 | 3 | 10 | `dedicated=scalardb:NoSchedule` | **最小4GB RAM**（06_infrastructure参照） |
-| app | アプリケーションPod | m5.large 相当 | 2 | 20 | - | HPA対象 |
-| monitoring | Prometheus, Grafana等 | m5.large 相当 | 2 | 4 | `dedicated=monitoring:NoSchedule` | 永続ストレージ必要 |
-
-#### リソース見積もりテンプレート
-
-ScalarDB Cluster Pod（06_infrastructure参照: 最小4GB RAM）:
-
-> **注意: ライセンス制約**: ScalarDB Clusterの商用ライセンスは1ノードあたり2vCPU / 4GBメモリの制約があります。Limit値はこの制約を超えないように設定してください。
-
-| リソース | Request | Limit | 根拠 |
-|---------|---------|-------|------|
-| CPU | 2000m | 2000m | ライセンス制約: 2vCPU/ノード |
-| Memory | 4Gi | 4Gi | ライセンス制約: 4GB/ノード |
-| Ephemeral Storage | 1Gi | 2Gi | ログ、一時ファイル |
-
-アプリケーション Pod:
-
-| リソース | Request | Limit | 根拠 |
-|---------|---------|-------|------|
-| CPU | 500m | 1000m | 非機能要件に応じて調整 |
-| Memory | 512Mi | 1Gi | 非機能要件に応じて調整 |
-
-**確認ポイント:**
-- [ ] ScalarDB専用ノードプールが分離されているか
-- [ ] Taintによる他Podの混在防止が設定されているか
-- [ ] ノードのAZ分散が確保されているか
-- [ ] ScalarDB Cluster Podのメモリが最小4GB以上確保されているか
+**Checkpoints:**
+- [ ] Does the selected cloud environment align with the team's skill set?
+- [ ] Is the ScalarDB-compatible DB available as a managed service?
+- [ ] Is AZ-redundant configuration ensured?
+- [ ] Is network isolation (Public/App/ScalarDB/DB) designed?
+- [ ] Has AZ-redundant configuration for the Coordinator DB been separately considered?
 
 ---
 
-### Step 7.3: ScalarDB Cluster デプロイ設計
+### Step 7.2: Kubernetes Cluster Design
 
-Helm Chartを用いたScalarDB Clusterのデプロイ構成を設計する。
+Design a Kubernetes cluster with separation of ScalarDB Cluster, applications, and monitoring systems.
 
-#### Helm Chart 構成
+#### K8s Cluster Basic Configuration
+
+| Item | Design Value | Notes |
+|------|-------------|-------|
+| K8s Version | 1.31 - 1.34 | Verify ScalarDB Cluster compatibility |
+| Managed K8s | EKS / AKS / GKE | Based on Step 7.1 selection |
+| Control Plane | Managed | High availability guaranteed by cloud provider |
+| CNI | VPC CNI / Azure CNI / GKE VPC-native | Pod-to-pod communication optimization |
+
+#### Node Pool Design
+
+| Node Pool | Purpose | Instance Type | Min | Max | Taint | Notes |
+|-----------|---------|---------------|-----|-----|-------|-------|
+| system | K8s system components | m5.large equivalent | 2 | 4 | - | CoreDNS, kube-proxy, etc. |
+| scalardb | ScalarDB Cluster dedicated | m5.xlarge equivalent | 3 | 10 | `dedicated=scalardb:NoSchedule` | **Minimum 4GB RAM** (per 06_infrastructure) |
+| app | Application Pods | m5.large equivalent | 2 | 20 | - | HPA target |
+| monitoring | Prometheus, Grafana, etc. | m5.large equivalent | 2 | 4 | `dedicated=monitoring:NoSchedule` | Persistent storage required |
+
+#### Resource Estimation Template
+
+ScalarDB Cluster Pod (per 06_infrastructure: minimum 4GB RAM):
+
+> **Note: License Constraint**: The commercial license for ScalarDB Cluster has a constraint of 2 vCPU / 4GB memory per node. Set Limit values not to exceed this constraint.
+
+| Resource | Request | Limit | Rationale |
+|---------|---------|-------|-----------|
+| CPU | 2000m | 2000m | License constraint: 2 vCPU/node |
+| Memory | 4Gi | 4Gi | License constraint: 4GB/node |
+| Ephemeral Storage | 1Gi | 2Gi | Logs, temporary files |
+
+Application Pod:
+
+| Resource | Request | Limit | Rationale |
+|---------|---------|-------|-----------|
+| CPU | 500m | 1000m | Adjust according to non-functional requirements |
+| Memory | 512Mi | 1Gi | Adjust according to non-functional requirements |
+
+**Checkpoints:**
+- [ ] Is the ScalarDB dedicated node pool isolated?
+- [ ] Are Taints configured to prevent co-location of other Pods?
+- [ ] Is AZ distribution of nodes ensured?
+- [ ] Is ScalarDB Cluster Pod memory at least 4GB or more?
+
+---
+
+### Step 7.3: ScalarDB Cluster Deployment Design
+
+Design the ScalarDB Cluster deployment configuration using Helm Charts.
+
+#### Helm Chart Configuration
 
 ```yaml
-# ScalarDB Cluster Helm values.yaml（設計テンプレート）
+# ScalarDB Cluster Helm values.yaml (Design Template)
 # Chart: scalar-labs/scalardb-cluster
 
 scalardbCluster:
-  # レプリカ数設計
-  replicaCount: 5  # 最小3、推奨5以上
+  # Replica count design
+  replicaCount: 5  # Minimum 3, recommended 5 or more
 
-  # コンテナイメージ
+  # Container image
   image:
     repository: ghcr.io/scalar-labs/scalardb-cluster-node
-    tag: "3.17.x"  # バージョンはStep 05の選定結果に合わせる
+    tag: "3.17.x"  # Version aligned with Step 05 selection
 
-  # リソース設定（ライセンス制約: 2vCPU / 4GB per node）
+  # Resource settings (License constraint: 2 vCPU / 4GB per node)
   resources:
     requests:
       cpu: "2000m"
@@ -227,20 +227,20 @@ scalardbCluster:
       cpu: "2000m"
       memory: "4Gi"
 
-  # ScalarDB Cluster設定
+  # ScalarDB Cluster configuration
   scalardbClusterNodeProperties: |
-    # クラスタ設定
+    # Cluster settings
     scalar.db.cluster.node.decommissioning_duration_secs=30
-    # トランザクション設定
+    # Transaction settings
     scalar.db.consensus_commit.isolation_level=SERIALIZABLE
     scalar.db.consensus_commit.serializable_strategy=EXTRA_READ
-    # DB接続設定（Step 04の選定結果に合わせる）
+    # DB connection settings (aligned with Step 04 selection)
     scalar.db.contact_points=<DB_HOST>
     scalar.db.username=<DB_USER>
     scalar.db.password=<DB_PASSWORD>
     scalar.db.storage=<multi-storage or jdbc>
 
-  # Tolerations（ScalarDB専用ノードプールへの配置）
+  # Tolerations (placement on ScalarDB dedicated node pool)
   tolerations:
     - key: "dedicated"
       operator: "Equal"
@@ -252,15 +252,15 @@ scalardbCluster:
     dedicated: scalardb
 ```
 
-#### レプリカ数設計
+#### Replica Count Design
 
-| 環境 | レプリカ数 | 理由 |
-|------|-----------|------|
-| dev | 1 | 開発用最小構成 |
-| staging | 3 | 本番相当の最小可用性構成 |
-| prod | 5以上 | 高可用性・ローリングアップデート対応 |
+| Environment | Replica Count | Rationale |
+|-------------|--------------|-----------|
+| dev | 1 | Minimum configuration for development |
+| staging | 3 | Minimum availability configuration equivalent to production |
+| prod | 5 or more | High availability, rolling update support |
 
-#### PodDisruptionBudget 設計
+#### PodDisruptionBudget Design
 
 ```yaml
 apiVersion: policy/v1
@@ -275,15 +275,15 @@ spec:
       app.kubernetes.io/instance: scalardb-cluster
 ```
 
-| PDB項目 | 設計値 | 根拠 |
-|---------|-------|------|
-| maxUnavailable | 1 | ローリングアップデート時の可用性確保 |
-| 最小可用Pod数 | レプリカ数 - 1 | ローリングアップデート中のサービス可用性確保（ScalarDB Clusterはマスターレスのため、クォーラムは不要） |
+| PDB Item | Design Value | Rationale |
+|----------|-------------|-----------|
+| maxUnavailable | 1 | Ensure availability during rolling updates |
+| Minimum available Pods | Replica count - 1 | Ensure service availability during rolling updates (ScalarDB Cluster is masterless, so quorum is not required) |
 
-#### Anti-Affinity 設計
+#### Anti-Affinity Design
 
 ```yaml
-# Pod Anti-Affinity: 同一ノードへの配置を避ける
+# Pod Anti-Affinity: Avoid placement on the same node
 affinity:
   podAntiAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
@@ -306,12 +306,12 @@ affinity:
           topologyKey: "topology.kubernetes.io/zone"
 ```
 
-| Anti-Affinity | レベル | TopologyKey | 説明 |
-|--------------|-------|-------------|------|
-| Pod間（同一ノード回避） | Required | `kubernetes.io/hostname` | 必須: 同一ノードに配置しない |
-| AZ間分散 | Preferred | `topology.kubernetes.io/zone` | 推奨: AZを跨いで分散配置 |
+| Anti-Affinity | Level | TopologyKey | Description |
+|--------------|-------|-------------|-------------|
+| Inter-Pod (same node avoidance) | Required | `kubernetes.io/hostname` | Required: Do not place on the same node |
+| Inter-AZ distribution | Preferred | `topology.kubernetes.io/zone` | Recommended: Distribute across AZs |
 
-#### HPA（Horizontal Pod Autoscaler）設計
+#### HPA (Horizontal Pod Autoscaler) Design
 
 ```yaml
 apiVersion: autoscaling/v2
@@ -353,29 +353,29 @@ spec:
           periodSeconds: 120
 ```
 
-| HPA項目 | 設計値 | 根拠 |
-|---------|-------|------|
-| CPU閾値 | 70% | スパイク対応のためのバッファ |
-| メモリ閾値 | 80% | GCプレッシャーを考慮 |
-| スケールアップ安定化 | 60秒 | 急なスパイクへの素早い対応 |
-| スケールダウン安定化 | 300秒 | 不安定なスケーリングを防止 |
-| 最大レプリカ | 20 | キャパシティプランニング結果に基づき調整 |
+| HPA Item | Design Value | Rationale |
+|----------|-------------|-----------|
+| CPU threshold | 70% | Buffer for spike handling |
+| Memory threshold | 80% | Considering GC pressure |
+| Scale-up stabilization | 60 seconds | Quick response to sudden spikes |
+| Scale-down stabilization | 300 seconds | Prevent unstable scaling |
+| Max replicas | 20 | Adjust based on capacity planning results |
 
-**確認ポイント:**
-- [ ] Helm Chart のバージョンとScalarDB Clusterのバージョンが整合しているか
-- [ ] レプリカ数が可用性要件を満たしているか（本番最小3、推奨5以上）
-- [ ] PodDisruptionBudgetが設定されているか
-- [ ] Anti-Affinityでノード間・AZ間の分散が確保されているか
-- [ ] HPAの閾値がパフォーマンス要件に適合しているか
-- [ ] ScalarDB Cluster設定（Isolation Level等）がStep 05の設計と整合しているか
+**Checkpoints:**
+- [ ] Are the Helm Chart version and ScalarDB Cluster version aligned?
+- [ ] Does the replica count meet availability requirements (production minimum 3, recommended 5+)?
+- [ ] Is PodDisruptionBudget configured?
+- [ ] Is Anti-Affinity ensuring inter-node and inter-AZ distribution?
+- [ ] Are HPA thresholds appropriate for performance requirements?
+- [ ] Are ScalarDB Cluster settings (Isolation Level, etc.) aligned with Step 05 design?
 
 ---
 
-### Step 7.4: ネットワークセキュリティ設計
+### Step 7.4: Network Security Design
 
-Kubernetes NetworkPolicyとEnvoy Proxyによるネットワーク制御を設計する。
+Design network control using Kubernetes NetworkPolicy and Envoy Proxy.
 
-#### NetworkPolicy 設計
+#### NetworkPolicy Design
 
 ```mermaid
 flowchart LR
@@ -462,33 +462,33 @@ spec:
           port: 5432  # PostgreSQL
 ```
 
-#### Envoy Proxy 配置設計
+#### Envoy Proxy Deployment Design
 
-| 項目 | 設計値 | 備考 |
-|------|-------|------|
-| 配置方式 | Sidecar / Standalone | ScalarDB Cluster標準のEnvoy構成 |
-| gRPC通信 | port 60053 | ScalarDB Cluster標準ポート |
-| TLS終端 | Envoy側で実施 | クライアント→ScalarDB間の暗号化 |
-| ロードバランシング | Round Robin / Least Connection | gRPCに適したLB方式を選択 |
-| ヘルスチェック | gRPC Health Check | ScalarDB Clusterのヘルスチェックエンドポイント |
+| Item | Design Value | Notes |
+|------|-------------|-------|
+| Deployment method | Sidecar / Standalone | Standard Envoy configuration for ScalarDB Cluster |
+| gRPC communication | port 60053 | ScalarDB Cluster standard port |
+| TLS termination | Handled at Envoy | Encryption between client and ScalarDB |
+| Load balancing | Round Robin / Least Connection | Select LB method suitable for gRPC |
+| Health check | gRPC Health Check | ScalarDB Cluster health check endpoint |
 
-**確認ポイント:**
-- [ ] デフォルトDenyポリシーが設定されているか
-- [ ] 必要な通信のみがAllowされているか
-- [ ] ScalarDB Cluster→DB間の通信ポートが正しいか
-- [ ] メトリクス収集用ポート（Prometheus scrape）が開放されているか
+**Checkpoints:**
+- [ ] Is a default Deny policy configured?
+- [ ] Are only necessary communications Allowed?
+- [ ] Are communication ports between ScalarDB Cluster and DB correct?
+- [ ] Is the metrics collection port (Prometheus scrape) open?
 
 ---
 
-### Step 7.5: DevOps / CI/CD 設計
+### Step 7.5: DevOps / CI/CD Design
 
-CI/CDパイプラインと環境管理を設計する（06_infrastructure Section 7参照）。
+Design CI/CD pipelines and environment management (refer to 06_infrastructure Section 7).
 
-#### CI/CD パイプライン概要
+#### CI/CD Pipeline Overview
 
 ```mermaid
 flowchart LR
-    subgraph Source["ソース管理"]
+    subgraph Source["Source Control"]
         GIT["Git Repository"]
     end
 
@@ -502,7 +502,7 @@ flowchart LR
 
     subgraph CD["CD Pipeline (GitOps)"]
         ARGOCD["ArgoCD / Flux"]
-        MANIFESTS["K8s Manifests<br/>(Git管理)"]
+        MANIFESTS["K8s Manifests<br/>(Git-managed)"]
     end
 
     subgraph Envs["Environments"]
@@ -515,41 +515,41 @@ flowchart LR
     SCHEMA --> MANIFESTS
     MANIFESTS --> ARGOCD
     ARGOCD --> DEV
-    ARGOCD -->|"承認後"| STG
-    ARGOCD -->|"承認後"| PROD
+    ARGOCD -->|"After approval"| STG
+    ARGOCD -->|"After approval"| PROD
 ```
 
-#### 環境管理
+#### Environment Management
 
-| 環境 | 用途 | ScalarDB Cluster構成 | DB構成 | 備考 |
-|------|------|---------------------|--------|------|
-| dev | 開発・単体テスト | 1 Pod | 共有DB or コンテナDB | コスト最小化 |
-| staging | 結合テスト・性能テスト | 3 Pod | 本番相当の縮小構成 | 本番と同一設定 |
-| prod | 本番 | 5+ Pod | フルスペック | SLA適用 |
+| Environment | Purpose | ScalarDB Cluster Configuration | DB Configuration | Notes |
+|-------------|---------|-------------------------------|-------------------|-------|
+| dev | Development and unit testing | 1 Pod | Shared DB or containerized DB | Cost minimization |
+| staging | Integration and performance testing | 3 Pods | Scaled-down production-equivalent | Same settings as production |
+| prod | Production | 5+ Pods | Full spec | SLA applied |
 
-#### GitOpsパターン
+#### GitOps Pattern
 
-| 項目 | 設計方針 | 備考 |
-|------|---------|------|
-| GitOpsツール | ArgoCD / Flux（選定） | |
-| リポジトリ構成 | アプリリポジトリ + マニフェストリポジトリ | 分離管理 |
-| 同期方式 | 自動同期（dev）、手動承認（staging/prod） | |
-| ロールバック | Git revertによる自動ロールバック | |
-| Helm管理 | ArgoCD Application (Helm) | values.yamlの環境別管理 |
+| Item | Design Policy | Notes |
+|------|--------------|-------|
+| GitOps tool | ArgoCD / Flux (select) | |
+| Repository structure | App repository + manifest repository | Separate management |
+| Sync method | Auto-sync (dev), manual approval (staging/prod) | |
+| Rollback | Automatic rollback via Git revert | |
+| Helm management | ArgoCD Application (Helm) | Environment-specific values.yaml management |
 
-#### Schema Loader 統合
+#### Schema Loader Integration
 
-ScalarDBスキーマの管理をCI/CDに組み込む。
+Integrate ScalarDB schema management into CI/CD.
 
-| 項目 | 設計方針 | 備考 |
-|------|---------|------|
-| Schema定義 | Gitリポジトリで管理（JSON形式） | バージョン管理 |
-| Schema適用 | CI/CDパイプラインで自動実行 | Schema Loader Job |
-| マイグレーション | スキーマ変更はPRレビュー必須 | 破壊的変更チェック |
-| ロールバック | 前バージョンのスキーマを再適用 | |
+| Item | Design Policy | Notes |
+|------|--------------|-------|
+| Schema definition | Managed in Git repository (JSON format) | Version control |
+| Schema application | Automated execution in CI/CD pipeline | Schema Loader Job |
+| Migration | Schema changes require PR review | Breaking change checks |
+| Rollback | Reapply previous version schema | |
 
 ```yaml
-# Schema Loader Job テンプレート
+# Schema Loader Job Template
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -577,134 +577,134 @@ spec:
   backoffLimit: 3
 ```
 
-**確認ポイント:**
-- [ ] CI/CDパイプラインにセキュリティスキャンが含まれているか
-- [ ] 環境別のScalarDB Cluster構成が定義されているか
-- [ ] GitOpsツールの選定理由が明確か
-- [ ] Schema Loaderの自動実行手順が設計されているか
-- [ ] ロールバック手順が明確か
+**Checkpoints:**
+- [ ] Does the CI/CD pipeline include security scanning?
+- [ ] Are environment-specific ScalarDB Cluster configurations defined?
+- [ ] Is the rationale for GitOps tool selection clear?
+- [ ] Are Schema Loader automated execution procedures designed?
+- [ ] Are rollback procedures clear?
 
 ---
 
-### Step 7.6: キャパシティプランニング
+### Step 7.6: Capacity Planning
 
-同時接続数・トランザクション数からリソースを見積もる（06_infrastructure参照: 計算式）。
+Estimate resources from concurrent connections and transaction counts (refer to 06_infrastructure: formulas).
 
-#### スケーリング計算テンプレート
+#### Scaling Calculation Template
 
-**入力パラメータ:**
+**Input Parameters:**
 
-| パラメータ | 値 | 根拠 |
-|-----------|---|------|
-| ピーク時同時接続数 | | 非機能要件（Step 01） |
-| 1接続あたりの平均TPS | | トランザクション設計（Step 05） |
-| ピーク時目標TPS | | 上記2つの積 |
-| 平均トランザクション処理時間 | | ベンチマーク or 見積もり |
-| ScalarDB Pod 1台あたりのTPS | | ベンチマーク or 06_infrastructure参照値 |
+| Parameter | Value | Rationale |
+|-----------|-------|-----------|
+| Peak concurrent connections | | Non-functional requirements (Step 01) |
+| Average TPS per connection | | Transaction design (Step 05) |
+| Peak target TPS | | Product of the above two |
+| Average transaction processing time | | Benchmark or estimate |
+| TPS per ScalarDB Pod | | Benchmark or 06_infrastructure reference value |
 
-**ScalarDB Cluster Pod数計算（06_infrastructure参照）:**
+**ScalarDB Cluster Pod Count Calculation (per 06_infrastructure):**
 
 ```
-必要Pod数 = ceil(ピーク時目標TPS / Pod 1台あたりのTPS) + バッファ（20-30%）
+Required Pod count = ceil(Peak target TPS / TPS per Pod) + Buffer (20-30%)
 ```
 
-| 計算項目 | 計算式 | 算出値 |
-|---------|--------|-------|
-| 基本必要Pod数 | ピーク時目標TPS / Pod単位TPS | |
-| バッファ込みPod数 | 基本必要Pod数 x 1.3 | |
-| 最終Pod数 | max(バッファ込みPod数, 最小可用性要件Pod数) | |
+| Calculation Item | Formula | Calculated Value |
+|-----------------|---------|------------------|
+| Base required Pod count | Peak target TPS / Per-Pod TPS | |
+| Pod count with buffer | Base required Pod count x 1.3 | |
+| Final Pod count | max(Pod count with buffer, Minimum availability requirement Pod count) | |
 
-**ストレージ容量見積もり:**
+**Storage Capacity Estimation:**
 
-| 項目 | 計算式 | 見積もり値 | 備考 |
-|------|--------|-----------|------|
-| ビジネスデータ量 | レコード数 x 平均レコードサイズ | | |
-| ScalarDBメタデータオーバーヘッド | ビジネスデータ量 x 1.3〜1.5 | | Consensus Commitのメタデータカラム分 |
-| Coordinatorテーブル | TPS x 保持期間 x レコードサイズ | | トランザクション状態レコード |
-| DB WAL / Binlog | データ量 x 係数 | | DB種類による |
-| バックアップ | 合計 x 世代数 | | 保持ポリシーによる |
-| **合計** | | | |
+| Item | Formula | Estimated Value | Notes |
+|------|---------|-----------------|-------|
+| Business data volume | Record count x Average record size | | |
+| ScalarDB metadata overhead | Business data volume x 1.3-1.5 | | Consensus Commit metadata column overhead |
+| Coordinator table | TPS x Retention period x Record size | | Transaction state records |
+| DB WAL / Binlog | Data volume x Factor | | Depends on DB type |
+| Backup | Total x Number of generations | | Depends on retention policy |
+| **Total** | | | |
 
-#### コスト見積もりテンプレート
+#### Cost Estimation Template
 
-| リソース | スペック | 単価（月額） | 数量 | 月額コスト |
-|---------|---------|------------|------|-----------|
-| K8s コントロールプレーン | マネージド | | 1 | |
-| ScalarDB ノード | m5.xlarge相当 | | 5+ | |
-| App ノード | m5.large相当 | | 3+ | |
-| Monitoring ノード | m5.large相当 | | 2 | |
-| マネージドDB (Primary) | | | 2+ | |
-| マネージドDB (Coordinator) | | | 1 | |
-| ロードバランサー | ALB/NLB相当 | | 1 | |
-| ストレージ | EBS/PV | | | |
-| ネットワーク転送量 | | | | |
-| **合計** | | | | |
+| Resource | Spec | Unit Price (Monthly) | Quantity | Monthly Cost |
+|---------|------|---------------------|----------|-------------|
+| K8s control plane | Managed | | 1 | |
+| ScalarDB nodes | m5.xlarge equivalent | | 5+ | |
+| App nodes | m5.large equivalent | | 3+ | |
+| Monitoring nodes | m5.large equivalent | | 2 | |
+| Managed DB (Primary) | | | 2+ | |
+| Managed DB (Coordinator) | | | 1 | |
+| Load balancer | ALB/NLB equivalent | | 1 | |
+| Storage | EBS/PV | | | |
+| Network transfer | | | | |
+| **Total** | | | | |
 
-**確認ポイント:**
-- [ ] ピーク時トラフィックを基にスケーリング計算が実施されているか
-- [ ] ScalarDBメタデータのストレージオーバーヘッドが考慮されているか
-- [ ] Coordinatorテーブルの成長見積もりが含まれているか
-- [ ] コスト見積もりが予算内か
-- [ ] 成長率を加味した12ヶ月先の見積もりがあるか
-
----
-
-## 成果物
-
-| 成果物 | 説明 | フォーマット |
-|--------|------|-------------|
-| インフラ構成図 | クラウド環境、ネットワーク、K8sクラスタの全体構成図 | Mermaid / Draw.io |
-| K8sマニフェスト | Namespace, Deployment, Service, NetworkPolicy等の定義 | YAML |
-| Helm values.yaml | ScalarDB Cluster Helm Chartの環境別設定ファイル | YAML（dev/staging/prod） |
-| キャパシティプランニングシート | Pod数、ストレージ、コストの見積もり | スプレッドシート / Markdown表 |
-| CI/CDパイプライン定義 | パイプラインの構成と各ステージの定義 | GitHub Actions / GitLab CI YAML |
-| 環境構成一覧 | dev/staging/prod各環境の構成差分一覧 | Markdown表 |
+**Checkpoints:**
+- [ ] Has scaling calculation been performed based on peak traffic?
+- [ ] Is ScalarDB metadata storage overhead considered?
+- [ ] Is Coordinator table growth estimation included?
+- [ ] Is cost estimation within budget?
+- [ ] Is there a 12-month projection factoring in growth rate?
 
 ---
 
-## 完了基準チェックリスト
+## Deliverables
 
-- [ ] クラウド環境の選定理由が明確に文書化されている
-- [ ] VPC/ネットワーク設計がサブネット分離・AZ冗長を満たしている
-- [ ] マネージドDB選定がScalarDB対応DBと整合している
-- [ ] K8sノードプールがScalarDB専用・アプリ用・監視用に分離されている
-- [ ] ScalarDB Cluster Podのリソース設定が最小要件（4GB RAM）を満たしている
-- [ ] ScalarDB Clusterのレプリカ数が可用性要件を満たしている（本番5以上推奨）
-- [ ] PodDisruptionBudget（maxUnavailable=1）が設定されている
-- [ ] Anti-Affinityでノード間・AZ間の分散が確保されている
-- [ ] HPAの閾値と動作が設計されている
-- [ ] NetworkPolicyでデフォルトDeny + 必要通信のみAllowが設計されている
-- [ ] CI/CDパイプラインにSchema Loaderが統合されている
-- [ ] 環境別（dev/staging/prod）の構成差分が明確になっている
-- [ ] キャパシティプランニングが非機能要件に基づいて計算されている
-- [ ] コスト見積もりが予算制約を考慮している
-- [ ] 全ての設計がPhase 2の成果物（DB選定、トランザクション設計、API設計）と整合している
+| Deliverable | Description | Format |
+|-------------|-------------|--------|
+| Infrastructure Architecture Diagram | Overall architecture diagram of cloud environment, network, and K8s cluster | Mermaid / Draw.io |
+| K8s Manifests | Definitions for Namespace, Deployment, Service, NetworkPolicy, etc. | YAML |
+| Helm values.yaml | Environment-specific configuration files for ScalarDB Cluster Helm Chart | YAML (dev/staging/prod) |
+| Capacity Planning Sheet | Pod count, storage, and cost estimates | Spreadsheet / Markdown tables |
+| CI/CD Pipeline Definition | Pipeline configuration and stage definitions | GitHub Actions / GitLab CI YAML |
+| Environment Configuration List | Configuration differences across dev/staging/prod environments | Markdown tables |
 
 ---
 
-## 次のステップへの引き継ぎ事項
+## Completion Criteria Checklist
 
-### Phase 3-2: セキュリティ設計（`08_security_design.md`）への引き継ぎ
+- [ ] Cloud environment selection rationale is clearly documented
+- [ ] VPC/network design satisfies subnet isolation and AZ redundancy
+- [ ] Managed DB selection is aligned with ScalarDB-compatible DBs
+- [ ] K8s node pools are separated for ScalarDB dedicated, application, and monitoring
+- [ ] ScalarDB Cluster Pod resource settings meet minimum requirements (4GB RAM)
+- [ ] ScalarDB Cluster replica count meets availability requirements (production 5+ recommended)
+- [ ] PodDisruptionBudget (maxUnavailable=1) is configured
+- [ ] Anti-Affinity ensures inter-node and inter-AZ distribution
+- [ ] HPA thresholds and behavior are designed
+- [ ] NetworkPolicy is designed with default Deny + necessary communications Allow only
+- [ ] CI/CD pipeline integrates Schema Loader
+- [ ] Configuration differences across environments (dev/staging/prod) are clearly defined
+- [ ] Capacity planning is calculated based on non-functional requirements
+- [ ] Cost estimation considers budget constraints
+- [ ] All designs are aligned with Phase 2 deliverables (DB selection, transaction design, API design)
 
-| 引き継ぎ項目 | 内容 |
-|-------------|------|
-| ネットワーク構成 | VPC/サブネット構成、NetworkPolicy設計 |
-| K8sクラスタ構成 | Namespace分離、ノードプール構成 |
-| ScalarDB Cluster構成 | デプロイ構成、通信ポート |
-| Envoy Proxy構成 | TLS終端、gRPC通信設定 |
+---
 
-### Phase 3-3: オブザーバビリティ設計（`09_observability_design.md`）への引き継ぎ
+## Handoff to Next Steps
 
-| 引き継ぎ項目 | 内容 |
-|-------------|------|
-| 監視ノードプール | リソース割り当て、ストレージ構成 |
-| ScalarDB Clusterメトリクスポート | Prometheus scrape設定 |
-| ネットワークアクセス | 監視系→ScalarDB間の通信許可 |
+### Handoff to Phase 3-2: Security Design (`08_security_design.md`)
 
-### Phase 3-4: 障害復旧・DR設計（`10_disaster_recovery_design.md`）への引き継ぎ
+| Handoff Item | Content |
+|-------------|---------|
+| Network configuration | VPC/subnet configuration, NetworkPolicy design |
+| K8s cluster configuration | Namespace isolation, node pool configuration |
+| ScalarDB Cluster configuration | Deployment configuration, communication ports |
+| Envoy Proxy configuration | TLS termination, gRPC communication settings |
 
-| 引き継ぎ項目 | 内容 |
-|-------------|------|
-| AZ構成 | マルチAZ構成の詳細 |
-| DB構成 | マネージドDBのバックアップ機能 |
-| ScalarDB Cluster構成 | レプリカ数、PDB設定 |
+### Handoff to Phase 3-3: Observability Design (`09_observability_design.md`)
+
+| Handoff Item | Content |
+|-------------|---------|
+| Monitoring node pool | Resource allocation, storage configuration |
+| ScalarDB Cluster metrics port | Prometheus scrape configuration |
+| Network access | Communication permissions from monitoring to ScalarDB |
+
+### Handoff to Phase 3-4: Disaster Recovery Design (`10_disaster_recovery_design.md`)
+
+| Handoff Item | Content |
+|-------------|---------|
+| AZ configuration | Multi-AZ configuration details |
+| DB configuration | Managed DB backup capabilities |
+| ScalarDB Cluster configuration | Replica count, PDB settings |

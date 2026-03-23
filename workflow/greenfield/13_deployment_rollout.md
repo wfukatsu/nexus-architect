@@ -1,69 +1,69 @@
-# Phase 4-3: デプロイ・ロールアウト戦略
+# Phase 4-3: Deployment & Rollout Strategy
 
-## 目的
+## Purpose
 
-安全なデプロイ・ロールアウト手順を策定する。ScalarDB Cluster固有の考慮事項を踏まえ、ダウンタイムを最小化しつつ、問題発生時に迅速にロールバックできる手順を定義する。
-
----
-
-## 入力
-
-| 入力物 | 説明 | 提供元 |
-|--------|------|--------|
-| インフラ設計 | Phase 3-1（`07_infrastructure_design.md`）の成果物。K8sクラスタ構成、Helm Chart設定 | 前フェーズ |
-| DR設計 | Phase 3-4（`10_disaster_recovery_design.md`）の成果物。バックアップ・リストア手順 | 前フェーズ |
-| テスト戦略 | Phase 4-2（`12_testing_strategy.md`）の成果物。テスト合格基準、性能基準 | 前ステップ |
+Establish safe deployment and rollout procedures. Define procedures that minimize downtime while enabling rapid rollback when issues arise, taking into account ScalarDB Cluster-specific considerations.
 
 ---
 
-## 参照資料
+## Input
 
-| 資料 | 参照箇所 | 用途 |
-|------|----------|------|
-| [`../research/06_infrastructure_prerequisites.md`](../research/06_infrastructure_prerequisites.md) | Section 7 CI/CD | CI/CDパイプライン構成の参考 |
-| [`../research/12_disaster_recovery.md`](../research/12_disaster_recovery.md) | 全体 | DR手順、バックアップ・リストア手順の参考 |
+| Input | Description | Source |
+|-------|-------------|--------|
+| Infrastructure Design | Deliverables from Phase 3-1 (`07_infrastructure_design.md`). K8s cluster configuration, Helm Chart settings | Previous phase |
+| DR Design | Deliverables from Phase 3-4 (`10_disaster_recovery_design.md`). Backup and restore procedures | Previous phase |
+| Testing Strategy | Deliverables from Phase 4-2 (`12_testing_strategy.md`). Test pass criteria, performance criteria | Previous step |
 
 ---
 
-## ステップ
+## References
 
-### Step 13.1: デプロイ戦略の選定
+| Document | Reference Section | Purpose |
+|----------|-------------------|---------|
+| [`../research/06_infrastructure_prerequisites.md`](../research/06_infrastructure_prerequisites.md) | Section 7 CI/CD | Reference for CI/CD pipeline configuration |
+| [`../research/12_disaster_recovery.md`](../research/12_disaster_recovery.md) | Entire document | Reference for DR procedures, backup and restore procedures |
 
-システム特性に応じた最適なデプロイ戦略を選定する。
+---
 
-#### デプロイ戦略の比較
+## Steps
 
-| 戦略 | 概要 | メリット | デメリット | 推奨ケース |
-|------|------|---------|----------|-----------|
-| Rolling Update | Podを段階的に入れ替え | K8sデフォルト、シンプル | 新旧バージョンが混在する期間あり | ScalarDB Clusterのアップデート（推奨） |
-| Blue-Green Deploy | 新環境を構築し一括切り替え | ダウンタイムゼロ、完全な切り替え | リソースコスト2倍 | アプリケーションのメジャーバージョンアップ |
-| Canary Deploy | 一部トラフィックを新バージョンへ段階的に振り分け | リスク最小化、段階的検証 | 設定が複雑、長時間の混在 | アプリケーションの段階的ロールアウト |
+### Step 13.1: Deployment Strategy Selection
 
-#### ScalarDB Cluster固有の考慮事項
+Select the optimal deployment strategy based on system characteristics.
 
-| 考慮事項 | 説明 | 対応方針 |
-|---------|------|---------|
-| クラスタメンバーシップ | ScalarDB Clusterはノード間でクラスタを形成。ノードの入れ替え時にメンバーシップの更新が必要 | Rolling Updateで1ノードずつ入れ替え。maxUnavailable=1に設定 |
-| ノード可用性 | ScalarDB Clusterはマスターレス構成のため、各ノードが独立してリクエストを処理 | PodDisruptionBudgetで最小稼働Pod数を確保し、ローリングアップデート中もサービス継続。**注意**: PDBはローリングアップデート中のサービス可用性を維持するためのものであり、クォーラムの仕組みではない（ScalarDB Clusterはマスターレス構成でクォーラムメカニズムを持たない） |
-| 進行中のトランザクション | デプロイ中にトランザクションが進行中の場合がある | Graceful Shutdownで進行中Txの完了を待機（terminationGracePeriodSeconds設定） |
-| Envoy Proxy | クライアントはEnvoy Proxy経由で接続 | Envoy Proxyの更新はScalarDB Cluster更新後に実施 |
+#### Deployment Strategy Comparison
 
-#### デプロイ戦略フロー
+| Strategy | Overview | Advantages | Disadvantages | Recommended Cases |
+|----------|----------|------------|---------------|-------------------|
+| Rolling Update | Gradually replace Pods | K8s default, simple | Period where old and new versions coexist | ScalarDB Cluster updates (recommended) |
+| Blue-Green Deploy | Build new environment and switch at once | Zero downtime, complete switchover | 2x resource cost | Application major version upgrades |
+| Canary Deploy | Gradually route a portion of traffic to the new version | Minimized risk, incremental verification | Complex configuration, prolonged coexistence | Gradual application rollout |
+
+#### ScalarDB Cluster-Specific Considerations
+
+| Consideration | Description | Response Strategy |
+|--------------|-------------|-------------------|
+| Cluster Membership | ScalarDB Cluster forms a cluster among nodes. Membership update required during node replacement | Rolling Update one node at a time. Set maxUnavailable=1 |
+| Node Availability | ScalarDB Cluster uses a masterless architecture, so each node independently processes requests | Ensure minimum running Pod count with PodDisruptionBudget to maintain service continuity during rolling updates. **Note**: PDB is for maintaining service availability during rolling updates, not a quorum mechanism (ScalarDB Cluster is masterless and does not have a quorum mechanism) |
+| In-flight Transactions | Transactions may be in progress during deployment | Wait for in-flight Tx completion via Graceful Shutdown (terminationGracePeriodSeconds setting) |
+| Envoy Proxy | Clients connect via Envoy Proxy | Update Envoy Proxy after ScalarDB Cluster update |
+
+#### Deployment Strategy Flow
 
 ```mermaid
 flowchart TD
-    START["デプロイ戦略選定"] --> Q1{変更対象は？}
+    START["Deployment Strategy Selection"] --> Q1{What is the change target?}
 
-    Q1 -->|"ScalarDB Cluster"| Q2{バージョンの変更は？}
-    Q1 -->|"アプリケーション"| Q3{変更の規模は？}
-    Q1 -->|"スキーマ変更"| SCHEMA["Step 13.3へ<br/>スキーママイグレーション"]
+    Q1 -->|"ScalarDB Cluster"| Q2{Type of version change?}
+    Q1 -->|"Application"| Q3{Scale of change?}
+    Q1 -->|"Schema change"| SCHEMA["Go to Step 13.3<br/>Schema Migration"]
 
-    Q2 -->|"マイナーバージョンアップ"| ROLLING_SCALARDB["Rolling Update<br/>（推奨）"]
-    Q2 -->|"メジャーバージョンアップ"| BLUEGREEN_SCALARDB["Blue-Green Deploy<br/>+ 十分なテスト"]
+    Q2 -->|"Minor version upgrade"| ROLLING_SCALARDB["Rolling Update<br/>(Recommended)"]
+    Q2 -->|"Major version upgrade"| BLUEGREEN_SCALARDB["Blue-Green Deploy<br/>+ Thorough testing"]
 
-    Q3 -->|"小規模変更"| ROLLING_APP["Rolling Update"]
-    Q3 -->|"中規模変更"| CANARY_APP["Canary Deploy<br/>（段階的ロールアウト）"]
-    Q3 -->|"大規模変更<br/>（API互換性なし等）"| BLUEGREEN_APP["Blue-Green Deploy"]
+    Q3 -->|"Small change"| ROLLING_APP["Rolling Update"]
+    Q3 -->|"Medium change"| CANARY_APP["Canary Deploy<br/>(Gradual rollout)"]
+    Q3 -->|"Large change<br/>(No API compatibility, etc.)"| BLUEGREEN_APP["Blue-Green Deploy"]
 
     style ROLLING_SCALARDB fill:#4CAF50,color:#fff
     style BLUEGREEN_SCALARDB fill:#2196F3,color:#fff
@@ -75,25 +75,25 @@ flowchart TD
 
 ---
 
-### Step 13.2: ScalarDB Cluster アップグレード手順
+### Step 13.2: ScalarDB Cluster Upgrade Procedure
 
-ScalarDB Clusterのバージョンアップを安全に実施する手順を定義する。
+Define procedures for safely performing ScalarDB Cluster version upgrades.
 
-#### Helm Chart バージョンアップ手順
+#### Helm Chart Version Upgrade Procedure
 
 ```mermaid
 flowchart TD
-    A["1. 事前確認<br/>- バックアップ取得<br/>- リリースノート確認<br/>- 互換性確認"] --> B["2. ステージング環境で検証<br/>- Helm upgrade実行<br/>- 全テスト実行<br/>- 性能テスト実行"]
-    B --> C{"3. ステージング検証結果"}
-    C -->|"Pass"| D["4. 本番デプロイ準備<br/>- メンテナンスウィンドウ通知<br/>- 監視体制確認<br/>- ロールバック手順確認"]
-    C -->|"Fail"| E["問題調査・修正<br/>ステージングで再検証"]
+    A["1. Pre-checks<br/>- Obtain backup<br/>- Review release notes<br/>- Verify compatibility"] --> B["2. Verify in staging environment<br/>- Execute Helm upgrade<br/>- Run all tests<br/>- Run performance tests"]
+    B --> C{"3. Staging verification result"}
+    C -->|"Pass"| D["4. Production deploy preparation<br/>- Notify maintenance window<br/>- Confirm monitoring posture<br/>- Confirm rollback procedure"]
+    C -->|"Fail"| E["Investigate and fix issue<br/>Re-verify in staging"]
     E --> B
-    D --> PA["4.5. scalar-admin pause<br/>（メジャーバージョンアップ時推奨）<br/>scalar-admin-for-kubernetes<br/>でScalarDB Clusterを一時停止し<br/>進行中トランザクションを安全にドレイン"]
-    PA --> F["5. 本番Helm upgrade実行<br/>helm upgrade scalardb-cluster<br/>  scalar-labs/scalardb-cluster<br/>  --version {新バージョン}<br/>  -f values.yaml"]
-    F --> G["6. ヘルスチェック確認<br/>- 全Pod Ready<br/>- クラスタメンバーシップ確認<br/>- テストトランザクション実行"]
-    G --> H{"7. 結果判定"}
-    H -->|"正常"| I["8. デプロイ完了<br/>- 監視継続<br/>- 関係者通知"]
-    H -->|"異常"| J["9. ロールバック実行<br/>→ Step 13.4"]
+    D --> PA["4.5. scalar-admin pause<br/>(Recommended for major version upgrades)<br/>Pause ScalarDB Cluster using<br/>scalar-admin-for-kubernetes<br/>to safely drain in-flight transactions"]
+    PA --> F["5. Execute production Helm upgrade<br/>helm upgrade scalardb-cluster<br/>  scalar-labs/scalardb-cluster<br/>  --version {new-version}<br/>  -f values.yaml"]
+    F --> G["6. Verify health checks<br/>- All Pods Ready<br/>- Confirm cluster membership<br/>- Execute test transaction"]
+    G --> H{"7. Result assessment"}
+    H -->|"Normal"| I["8. Deployment complete<br/>- Continue monitoring<br/>- Notify stakeholders"]
+    H -->|"Abnormal"| J["9. Execute rollback<br/>-> Step 13.4"]
 
     style A fill:#E3F2FD,color:#000
     style F fill:#FF9800,color:#fff
@@ -101,59 +101,59 @@ flowchart TD
     style J fill:#F44336,color:#fff
 ```
 
-#### scalar-admin によるPause/Unpause（メジャーバージョンアップ時推奨）
+#### Pause/Unpause with scalar-admin (Recommended for Major Version Upgrades)
 
-メジャーバージョンアップ時は、`scalar-admin-for-kubernetes` を使用してScalarDB Clusterを一時停止し、進行中のトランザクションを安全にドレインすることを推奨する。
+For major version upgrades, it is recommended to use `scalar-admin-for-kubernetes` to pause ScalarDB Cluster and safely drain in-flight transactions.
 
 ```bash
-# 1. ScalarDB Clusterを一時停止（進行中トランザクションのドレインを待機）
+# 1. Pause ScalarDB Cluster (wait for in-flight transaction draining)
 docker run --rm ghcr.io/scalar-labs/scalar-admin-for-kubernetes:<TAG> pause \
   --namespace scalardb \
   --release-name scalardb-cluster \
   --max-pause-wait-time 60
 
-# 2. Helm upgradeを実行（上記フローのStep 5）
+# 2. Execute Helm upgrade (Step 5 from the flow above)
 helm upgrade scalardb-cluster scalar-labs/scalardb-cluster \
-  --version {新バージョン} -f values.yaml -n scalardb
+  --version {new-version} -f values.yaml -n scalardb
 
-# 3. アップグレード完了後、ScalarDB Clusterを再開
+# 3. Unpause ScalarDB Cluster after upgrade is complete
 docker run --rm ghcr.io/scalar-labs/scalar-admin-for-kubernetes:<TAG> unpause \
   --namespace scalardb \
   --release-name scalardb-cluster
 ```
 
-> **注意**: マイナーバージョンアップでは、Rolling Updateのみで十分な場合が多い。Pause/Unpauseはメジャーバージョンアップやスキーマ変更を伴うアップグレードなど、進行中トランザクションの安全なドレインが必要な場合に使用する。
+> **Note**: For minor version upgrades, Rolling Update alone is often sufficient. Pause/Unpause should be used for major version upgrades or upgrades that involve schema changes, where safe draining of in-flight transactions is required.
 
-#### ローリングアップデート中のトランザクション影響
+#### Transaction Impact During Rolling Update
 
-| フェーズ | 影響 | 対策 |
-|---------|------|------|
-| Pod終了前（PreStop） | Graceful Shutdownにより新規リクエスト受付停止 | terminationGracePeriodSecondsを十分に確保（デフォルト: 60秒） |
-| Pod終了中 | 進行中のトランザクションは完了を試みる | 長時間トランザクションはタイムアウトで失敗する可能性あり |
-| 新Pod起動中 | 新バージョンのPodが起動しReadyになるまでトラフィック受付不可 | readinessProbeの設定を適切に行う |
-| クラスタ再形成中 | 新Podがクラスタに参加し、メンバーシップが更新される | minReadySecondsで安定確認期間を確保 |
+| Phase | Impact | Mitigation |
+|-------|--------|------------|
+| Before Pod termination (PreStop) | Graceful Shutdown stops accepting new requests | Ensure sufficient terminationGracePeriodSeconds (default: 60 seconds) |
+| During Pod termination | In-flight transactions attempt to complete | Long-running transactions may fail due to timeout |
+| During new Pod startup | New version Pod cannot accept traffic until Ready | Configure readinessProbe appropriately |
+| During cluster reformation | New Pod joins the cluster and membership is updated | Use minReadySeconds to ensure a stability confirmation period |
 
-#### ダウンタイムゼロアップデートの条件
+#### Zero-Downtime Update Conditions
 
-| 条件 | 説明 |
-|------|------|
-| 最小レプリカ数の確保 | ScalarDB Clusterのレプリカ数が3以上で、maxUnavailable=1に設定 |
-| Readiness Probe設定 | 新Podが完全に起動しクラスタに参加してからトラフィックを受け付ける |
-| PDB（Pod Disruption Budget）設定 | minAvailable設定で最小稼働Pod数を保証。PDBはローリングアップデート中のサービス可用性維持が目的であり、クォーラムではない（ScalarDB Clusterはマスターレスでクォーラムメカニズムを持たない） |
-| Envoy Proxy設定 | ヘルスチェックベースのロードバランシングで障害Podへのルーティングを回避 |
-| 後方互換性の確保 | 新旧バージョンが混在しても正常に動作すること |
+| Condition | Description |
+|-----------|-------------|
+| Minimum replica count ensured | ScalarDB Cluster replicas are 3 or more with maxUnavailable=1 |
+| Readiness Probe configured | New Pod accepts traffic only after fully starting and joining the cluster |
+| PDB (Pod Disruption Budget) configured | minAvailable setting guarantees minimum running Pod count. PDB is for maintaining service availability during rolling updates, not a quorum mechanism (ScalarDB Cluster is masterless and does not have a quorum mechanism) |
+| Envoy Proxy configured | Health check-based load balancing avoids routing to failed Pods |
+| Backward compatibility ensured | Old and new versions coexisting must operate normally |
 
 ---
 
-### Step 13.3: スキーママイグレーション手順
+### Step 13.3: Schema Migration Procedure
 
-ScalarDBスキーマの変更を安全に実施する手順を定義する。
+Define procedures for safely performing ScalarDB schema changes.
 
-#### Schema Loader の実行手順
+#### Schema Loader Execution Procedure
 
 ```bash
-# 1. スキーマ定義ファイルの準備（JSON形式）
-# schema.json の例:
+# 1. Prepare schema definition file (JSON format)
+# schema.json example:
 # {
 #   "order_service.orders": {
 #     "transaction": true,
@@ -168,71 +168,71 @@ ScalarDBスキーマの変更を安全に実施する手順を定義する。
 #   }
 # }
 
-# 2. Schema Loaderの実行
+# 2. Execute Schema Loader
 java -jar scalardb-schema-loader-{version}.jar \
   --config database.properties \
   --schema-file schema.json \
   --coordinator
 ```
 
-#### スキーマ変更のバージョン管理
+#### Schema Change Version Management
 
-| 管理方法 | 説明 |
-|---------|------|
-| スキーマファイルのGit管理 | schema.jsonをGitリポジトリで管理し、変更履歴を追跡 |
-| マイグレーション番号 | V001_initial_schema.json、V002_add_column.json のように番号付きで管理 |
-| 変更ログ | 各マイグレーションの目的、変更内容、実行日時をCHANGELOGに記録 |
-| レビュープロセス | スキーマ変更はPull Requestでレビュー必須 |
+| Management Method | Description |
+|-------------------|-------------|
+| Git management of schema files | Manage schema.json in a Git repository and track change history |
+| Migration numbering | Manage with numbered files like V001_initial_schema.json, V002_add_column.json |
+| Change log | Record purpose, change details, and execution date/time for each migration in a CHANGELOG |
+| Review process | Schema changes require review via Pull Request |
 
-#### 後方互換性の確保
+#### Ensuring Backward Compatibility
 
-| 操作 | 互換性 | 推奨度 | 注意事項 |
-|------|--------|--------|---------|
-| カラム追加 | 後方互換あり | 推奨 | NULLable（デフォルト値なし）で追加 |
-| カラム削除 | 後方互換なし | 非推奨 | 旧バージョンのアプリがカラムを参照する可能性 |
-| カラム名変更 | 後方互換なし | 非推奨 | 新カラム追加 → データ移行 → 旧カラム削除の手順で対応 |
-| テーブル追加 | 後方互換あり | 推奨 | 新テーブルは新バージョンのアプリのみが使用 |
-| テーブル削除 | 後方互換なし | 非推奨 | 全アプリが参照していないことを確認後に削除 |
-| パーティションキー変更 | 後方互換なし | 不可 | 新テーブル作成 → データ移行 → 旧テーブル削除 |
+| Operation | Compatibility | Recommendation | Notes |
+|-----------|---------------|----------------|-------|
+| Add column | Backward compatible | Recommended | Add as NULLable (no default value) |
+| Remove column | Not backward compatible | Not recommended | Previous version apps may reference the column |
+| Rename column | Not backward compatible | Not recommended | Handle via: add new column -> migrate data -> remove old column |
+| Add table | Backward compatible | Recommended | New table is used only by the new version app |
+| Remove table | Not backward compatible | Not recommended | Remove only after confirming no apps reference it |
+| Change partition key | Not backward compatible | Not allowed | Create new table -> migrate data -> remove old table |
 
-**推奨フロー（後方互換性維持）:**
+**Recommended Flow (Maintaining Backward Compatibility):**
 
 ```
-1. Expand（拡張）: 新カラム/テーブルを追加
-2. Migrate（移行）: 新バージョンのアプリをデプロイし、新カラム/テーブルを使用開始
-3. Contract（収縮）: 旧バージョンのアプリが完全に置き換わった後、旧カラム/テーブルを削除
+1. Expand: Add new columns/tables
+2. Migrate: Deploy new version app and start using new columns/tables
+3. Contract: Remove old columns/tables after old version app is fully replaced
 ```
 
 ---
 
-### Step 13.4: ロールバック手順
+### Step 13.4: Rollback Procedure
 
-問題発生時に迅速にロールバックする手順を定義する。
+Define procedures for rapid rollback when issues arise.
 
-#### ロールバックフロー
+#### Rollback Flow
 
 ```mermaid
 flowchart TD
-    DETECT["問題検出<br/>- アラート発火<br/>- エラーレート急増<br/>- レイテンシ急増"] --> ASSESS{"影響評価"}
+    DETECT["Issue Detected<br/>- Alert fired<br/>- Error rate spike<br/>- Latency spike"] --> ASSESS{"Impact Assessment"}
 
-    ASSESS -->|"重大（データ不整合の可能性）"| IMMEDIATE["即時ロールバック<br/>（判断時間: 5分以内）"]
-    ASSESS -->|"中程度（一部機能障害）"| INVESTIGATE["調査（15分以内）<br/>修正可能か判断"]
-    ASSESS -->|"軽微（性能劣化等）"| MONITOR["監視継続<br/>次回デプロイで修正"]
+    ASSESS -->|"Severe (Potential data inconsistency)"| IMMEDIATE["Immediate Rollback<br/>(Decision within 5 minutes)"]
+    ASSESS -->|"Moderate (Partial feature failure)"| INVESTIGATE["Investigate (within 15 minutes)<br/>Determine if fix is possible"]
+    ASSESS -->|"Minor (Performance degradation, etc.)"| MONITOR["Continue Monitoring<br/>Fix in next deployment"]
 
-    INVESTIGATE -->|"修正不可"| IMMEDIATE
-    INVESTIGATE -->|"修正可能"| HOTFIX["ホットフィックス<br/>デプロイ"]
+    INVESTIGATE -->|"Cannot fix"| IMMEDIATE
+    INVESTIGATE -->|"Can fix"| HOTFIX["Hotfix<br/>Deployment"]
 
-    IMMEDIATE --> RB_TYPE{ロールバック対象}
+    IMMEDIATE --> RB_TYPE{Rollback Target}
 
-    RB_TYPE -->|"アプリケーション"| RB_APP["アプリケーション<br/>ロールバック"]
-    RB_TYPE -->|"ScalarDB Cluster"| RB_SCALARDB["ScalarDB Cluster<br/>ロールバック"]
-    RB_TYPE -->|"スキーマ"| RB_SCHEMA["スキーマ<br/>ロールバック"]
+    RB_TYPE -->|"Application"| RB_APP["Application<br/>Rollback"]
+    RB_TYPE -->|"ScalarDB Cluster"| RB_SCALARDB["ScalarDB Cluster<br/>Rollback"]
+    RB_TYPE -->|"Schema"| RB_SCHEMA["Schema<br/>Rollback"]
 
-    RB_APP --> VERIFY["ロールバック後検証<br/>- ヘルスチェック<br/>- テストトランザクション<br/>- メトリクス確認"]
+    RB_APP --> VERIFY["Post-rollback Verification<br/>- Health check<br/>- Test transaction<br/>- Metrics review"]
     RB_SCALARDB --> VERIFY
     RB_SCHEMA --> VERIFY
 
-    VERIFY --> POSTMORTEM["ポストモーテム<br/>- 根本原因分析<br/>- 再発防止策策定"]
+    VERIFY --> POSTMORTEM["Postmortem<br/>- Root cause analysis<br/>- Recurrence prevention measures"]
 
     style DETECT fill:#F44336,color:#fff
     style IMMEDIATE fill:#F44336,color:#fff
@@ -242,157 +242,157 @@ flowchart TD
     style VERIFY fill:#4CAF50,color:#fff
 ```
 
-#### アプリケーションのロールバック
+#### Application Rollback
 
 ```bash
-# Helm rollbackによるロールバック
+# Rollback via Helm rollback
 helm rollback {release-name} {revision-number} -n {namespace}
 
-# Kubernetesデプロイメントのロールバック
+# Kubernetes deployment rollback
 kubectl rollout undo deployment/{deployment-name} -n {namespace}
 
-# 特定リビジョンへのロールバック
+# Rollback to a specific revision
 kubectl rollout undo deployment/{deployment-name} --to-revision={revision} -n {namespace}
 
-# ロールバック状態の確認
+# Verify rollback status
 kubectl rollout status deployment/{deployment-name} -n {namespace}
 ```
 
-#### ScalarDB Clusterのロールバック
+#### ScalarDB Cluster Rollback
 
 ```bash
-# 1. 現在のリビジョン確認
+# 1. Check current revision
 helm history scalardb-cluster -n scalardb
 
-# 2. ロールバック実行
-helm rollback scalardb-cluster {前バージョンのrevision} -n scalardb
+# 2. Execute rollback
+helm rollback scalardb-cluster {previous-version-revision} -n scalardb
 
-# 3. Pod状態確認
+# 3. Verify Pod status
 kubectl get pods -n scalardb -w
 
-# 4. クラスタヘルスチェック
-# ScalarDB Clusterの全ノードがReadyかつクラスタ参加済みであることを確認
+# 4. Cluster health check
+# Verify all ScalarDB Cluster nodes are Ready and have joined the cluster
 kubectl exec -it $(kubectl get pod -n scalardb -l app.kubernetes.io/name=scalardb-cluster -o jsonpath='{.items[0].metadata.name}') -n scalardb -- grpc_health_probe -addr=localhost:60053
 ```
 
-**注意事項:**
-- ScalarDB Clusterのロールバック時は、進行中のトランザクションの完了を待機する
-- ロールバック後、Lazy Recoveryにより未完了トランザクションが自動解決される
-- Coordinatorテーブルの整合性は自動的に維持される
+**Important Notes:**
+- When rolling back ScalarDB Cluster, wait for in-flight transactions to complete
+- After rollback, incomplete transactions are automatically resolved via Lazy Recovery
+- Coordinator table integrity is maintained automatically
 
-#### スキーマロールバック
+#### Schema Rollback
 
-| 手順 | 内容 | 注意事項 |
-|------|------|---------|
-| 1. 影響範囲確認 | 変更されたテーブル・カラムの一覧を確認 | |
-| 2. アプリケーション停止 | 該当テーブルにアクセスするアプリケーションを停止 | データ不整合防止のため |
-| 3. スキーマロールバック実行 | 前バージョンのschema.jsonでSchema Loaderを実行 | カラム削除を含む場合はデータ消失に注意 |
-| 4. Coordinatorテーブル確認 | Coordinatorテーブルの状態が正常であることを確認 | スキーマ変更がCoordinatorテーブルに影響する場合は特に注意 |
-| 5. アプリケーション起動 | 前バージョンのアプリケーションを起動 | |
-| 6. データ整合性確認 | テストトランザクションを実行し、データ整合性を確認 | |
-
----
-
-### Step 13.5: 本番移行チェックリスト
-
-本番デプロイの前・中・後で確認すべき項目を定義する。
-
-#### Pre-deploy（デプロイ前）
-
-| # | 確認項目 | 確認者 | 確認結果 |
-|---|---------|--------|---------|
-| 1 | 全テストがPassしているか（ユニット、統合、E2E、性能、セキュリティ） | QAリード | |
-| 2 | ステージング環境で検証が完了しているか | テックリード | |
-| 3 | バックアップが直近で取得されているか | インフラ担当 | |
-| 4 | 監視ダッシュボード・アラートが正常動作しているか | SRE担当 | |
-| 5 | ロールバック手順が文書化され、リハーサル済みか | テックリード | |
-| 6 | メンテナンスウィンドウがチーム全員に通知されているか | プロジェクトリーダー | |
-| 7 | デプロイ手順書がレビュー済みか | テックリード | |
-| 8 | スキーマ変更がある場合、後方互換性が確認されているか | データベース担当 | |
-| 9 | 外部サービスへの影響が確認されているか | アーキテクト | |
-| 10 | 緊急連絡先リストが最新か | プロジェクトリーダー | |
-
-#### Deploy（デプロイ中）
-
-| # | 確認項目 | 担当者 | 確認結果 |
-|---|---------|--------|---------|
-| 1 | デプロイ開始時刻を記録 | デプロイ担当 | |
-| 2 | 段階的ロールアウト（Canary: 10% → 25% → 50% → 100%） | デプロイ担当 | |
-| 3 | 各段階でヘルスチェックがPassしているか | SRE担当 | |
-| 4 | 各段階でエラーレートが閾値以下か | SRE担当 | |
-| 5 | 各段階でレイテンシが閾値以下か | SRE担当 | |
-| 6 | ScalarDB Clusterのメンバーシップが正常か | インフラ担当 | |
-| 7 | 進行中のトランザクションが正常に完了しているか | テックリード | |
-| 8 | ログにERROR/CRITICALが異常増加していないか | SRE担当 | |
-
-#### Post-deploy（デプロイ後）
-
-| # | 確認項目 | 担当者 | 確認結果 |
-|---|---------|--------|---------|
-| 1 | 全Podが正常にRunningかつReadyか | インフラ担当 | |
-| 2 | メトリクスが正常範囲内か（CPU、メモリ、ディスク） | SRE担当 | |
-| 3 | エラーレートがデプロイ前と比較して悪化していないか | SRE担当 | |
-| 4 | スループット（TPS）がデプロイ前と比較して劣化していないか | SRE担当 | |
-| 5 | レイテンシ（P50/P95/P99）がデプロイ前と比較して劣化していないか | SRE担当 | |
-| 6 | OCC競合率がデプロイ前と比較して悪化していないか | テックリード | |
-| 7 | テストトランザクション（スモークテスト）が成功するか | QAリード | |
-| 8 | データ整合性チェックが正常か | データベース担当 | |
-| 9 | 外部サービスとの連携が正常か | テックリード | |
-| 10 | デプロイ完了をチーム全員に通知 | プロジェクトリーダー | |
+| Step | Details | Notes |
+|------|---------|-------|
+| 1. Confirm impact scope | Review the list of changed tables and columns | |
+| 2. Stop applications | Stop applications that access the affected tables | To prevent data inconsistency |
+| 3. Execute schema rollback | Run Schema Loader with the previous version of schema.json | Be aware of data loss if column removal is involved |
+| 4. Verify Coordinator table | Confirm the Coordinator table state is normal | Especially important if schema changes affect the Coordinator table |
+| 5. Start applications | Start the previous version of applications | |
+| 6. Verify data integrity | Execute test transactions and verify data integrity | |
 
 ---
 
-### Step 13.6: Go/No-Go判断基準
+### Step 13.5: Production Migration Checklist
 
-本番デプロイの実施可否を判断するための基準を定義する。
+Define items to verify before, during, and after production deployment.
 
-#### 性能基準
+#### Pre-deploy
 
-| 指標 | Go条件 | No-Go条件 |
-|------|--------|----------|
-| レイテンシ（P95） | ステージング環境でP95がSLA以内 | P95がSLAの120%以上 |
-| スループット | 目標TPSの90%以上を達成 | 目標TPSの80%未満 |
-| エラーレート | 0.1%以下 | 1%以上 |
-| OCC競合率 | 5%以下 | 10%以上 |
+| # | Verification Item | Verifier | Result |
+|---|-------------------|----------|--------|
+| 1 | Have all tests passed (unit, integration, E2E, performance, security)? | QA Lead | |
+| 2 | Has verification in the staging environment been completed? | Tech Lead | |
+| 3 | Has a recent backup been taken? | Infrastructure Engineer | |
+| 4 | Are monitoring dashboards and alerts functioning normally? | SRE Engineer | |
+| 5 | Has the rollback procedure been documented and rehearsed? | Tech Lead | |
+| 6 | Has the maintenance window been communicated to the entire team? | Project Leader | |
+| 7 | Has the deployment procedure document been reviewed? | Tech Lead | |
+| 8 | If there are schema changes, has backward compatibility been confirmed? | Database Engineer | |
+| 9 | Has the impact on external services been confirmed? | Architect | |
+| 10 | Is the emergency contact list up to date? | Project Leader | |
 
-#### データ整合性基準
+#### Deploy
 
-| 指標 | Go条件 | No-Go条件 |
-|------|--------|----------|
-| トランザクション成功率 | 99.9%以上 | 99%未満 |
-| データ不整合検出 | 不整合ゼロ | 1件以上の不整合検出 |
-| Coordinatorテーブル状態 | 全レコードが正常状態 | 未解決のPreparedレコードが残存 |
+| # | Verification Item | Owner | Result |
+|---|-------------------|-------|--------|
+| 1 | Record deployment start time | Deploy Engineer | |
+| 2 | Gradual rollout (Canary: 10% -> 25% -> 50% -> 100%) | Deploy Engineer | |
+| 3 | Are health checks passing at each stage? | SRE Engineer | |
+| 4 | Is the error rate below the threshold at each stage? | SRE Engineer | |
+| 5 | Is latency below the threshold at each stage? | SRE Engineer | |
+| 6 | Is ScalarDB Cluster membership normal? | Infrastructure Engineer | |
+| 7 | Are in-flight transactions completing normally? | Tech Lead | |
+| 8 | Is there no abnormal increase in ERROR/CRITICAL logs? | SRE Engineer | |
 
-#### ロールバック判断基準
+#### Post-deploy
 
-デプロイ後に以下の条件のいずれかに該当した場合、即時ロールバックを実施する。
+| # | Verification Item | Owner | Result |
+|---|-------------------|-------|--------|
+| 1 | Are all Pods in Running and Ready state? | Infrastructure Engineer | |
+| 2 | Are metrics within normal ranges (CPU, memory, disk)? | SRE Engineer | |
+| 3 | Has the error rate not worsened compared to pre-deployment? | SRE Engineer | |
+| 4 | Has throughput (TPS) not degraded compared to pre-deployment? | SRE Engineer | |
+| 5 | Has latency (P50/P95/P99) not degraded compared to pre-deployment? | SRE Engineer | |
+| 6 | Has the OCC conflict rate not worsened compared to pre-deployment? | Tech Lead | |
+| 7 | Do test transactions (smoke tests) succeed? | QA Lead | |
+| 8 | Is the data integrity check normal? | Database Engineer | |
+| 9 | Is integration with external services functioning normally? | Tech Lead | |
+| 10 | Notify the entire team of deployment completion | Project Leader | |
 
-| # | ロールバック条件 | 判断者 | 最大許容時間 |
-|---|----------------|--------|------------|
-| 1 | エラーレートが1%を超過し、5分間改善しない | SRE担当 | 5分 |
-| 2 | P95レイテンシがSLAの200%を超過 | SRE担当 | 5分 |
-| 3 | データ不整合が1件以上検出 | テックリード | 即時 |
-| 4 | ScalarDB Clusterのノードが50%以上ダウン | インフラ担当 | 即時 |
-| 5 | トランザクション成功率が95%を下回る | テックリード | 5分 |
-| 6 | Coordinatorテーブルに未解決のPreparedレコードが増加し続ける | テックリード | 10分 |
+---
 
-#### Go/No-Go判断フロー
+### Step 13.6: Go/No-Go Decision Criteria
+
+Define criteria for deciding whether to proceed with production deployment.
+
+#### Performance Criteria
+
+| Metric | Go Condition | No-Go Condition |
+|--------|-------------|-----------------|
+| Latency (P95) | P95 within SLA in staging environment | P95 at 120% or more of SLA |
+| Throughput | 90% or more of target TPS achieved | Below 80% of target TPS |
+| Error Rate | 0.1% or less | 1% or more |
+| OCC Conflict Rate | 5% or less | 10% or more |
+
+#### Data Integrity Criteria
+
+| Metric | Go Condition | No-Go Condition |
+|--------|-------------|-----------------|
+| Transaction Success Rate | 99.9% or higher | Below 99% |
+| Data Inconsistency Detection | Zero inconsistencies | 1 or more inconsistencies detected |
+| Coordinator Table State | All records in normal state | Unresolved Prepared records remain |
+
+#### Rollback Decision Criteria
+
+If any of the following conditions are met after deployment, execute an immediate rollback.
+
+| # | Rollback Condition | Decision Maker | Maximum Allowable Time |
+|---|-------------------|----------------|----------------------|
+| 1 | Error rate exceeds 1% and does not improve for 5 minutes | SRE Engineer | 5 minutes |
+| 2 | P95 latency exceeds 200% of SLA | SRE Engineer | 5 minutes |
+| 3 | 1 or more data inconsistencies detected | Tech Lead | Immediately |
+| 4 | 50% or more ScalarDB Cluster nodes are down | Infrastructure Engineer | Immediately |
+| 5 | Transaction success rate drops below 95% | Tech Lead | 5 minutes |
+| 6 | Unresolved Prepared records in the Coordinator table continue to increase | Tech Lead | 10 minutes |
+
+#### Go/No-Go Decision Flow
 
 ```mermaid
 flowchart TD
-    START["Go/No-Go判断開始"] --> CHECK1{"全テストPass？"}
-    CHECK1 -->|"No"| NOGO["No-Go<br/>リリース延期"]
-    CHECK1 -->|"Yes"| CHECK2{"性能基準達成？"}
+    START["Go/No-Go Decision Start"] --> CHECK1{"All tests passed?"}
+    CHECK1 -->|"No"| NOGO["No-Go<br/>Release postponed"]
+    CHECK1 -->|"Yes"| CHECK2{"Performance criteria met?"}
     CHECK2 -->|"No"| NOGO
-    CHECK2 -->|"Yes"| CHECK3{"データ整合性基準達成？"}
+    CHECK2 -->|"Yes"| CHECK3{"Data integrity criteria met?"}
     CHECK3 -->|"No"| NOGO
-    CHECK3 -->|"Yes"| CHECK4{"セキュリティテストPass？"}
+    CHECK3 -->|"Yes"| CHECK4{"Security tests passed?"}
     CHECK4 -->|"No"| NOGO
-    CHECK4 -->|"Yes"| CHECK5{"ロールバック手順<br/>リハーサル済み？"}
+    CHECK4 -->|"Yes"| CHECK5{"Rollback procedure<br/>rehearsed?"}
     CHECK5 -->|"No"| NOGO
-    CHECK5 -->|"Yes"| CHECK6{"関係者全員の<br/>承認取得済み？"}
+    CHECK5 -->|"Yes"| CHECK6{"All stakeholder<br/>approvals obtained?"}
     CHECK6 -->|"No"| NOGO
-    CHECK6 -->|"Yes"| GO["Go<br/>デプロイ実施"]
+    CHECK6 -->|"Yes"| GO["Go<br/>Proceed with deployment"]
 
     style GO fill:#4CAF50,color:#fff
     style NOGO fill:#F44336,color:#fff
@@ -400,45 +400,45 @@ flowchart TD
 
 ---
 
-## 成果物
+## Deliverables
 
-| 成果物 | 説明 | テンプレート |
-|--------|------|-------------|
-| デプロイ手順書 | デプロイ戦略の選定結果、Helm Chart更新手順、スキーママイグレーション手順 | Step 13.1〜13.3の手順 |
-| ロールバック手順書 | アプリケーション、ScalarDB Cluster、スキーマのロールバック手順 | Step 13.4のロールバック手順 |
-| Go/No-Goチェックリスト | デプロイ前・中・後のチェックリスト、Go/No-Go判断基準 | Step 13.5〜13.6のチェックリスト |
-
----
-
-## 完了基準チェックリスト
-
-- [ ] デプロイ戦略（Rolling Update / Blue-Green / Canary）が選定され、理由が記録されている
-- [ ] ScalarDB Cluster固有の考慮事項（クラスタメンバーシップ、ノード可用性、進行中トランザクション）が考慮されている
-- [ ] Helm Chartバージョンアップ手順が文書化されている
-- [ ] ローリングアップデート中のトランザクション影響が分析されている
-- [ ] ダウンタイムゼロアップデートの条件が定義されている
-- [ ] Schema Loaderの実行手順が文書化されている
-- [ ] スキーマ変更のバージョン管理方法が定義されている
-- [ ] 後方互換性の確保方針（Expand-Migrate-Contractパターン）が定義されている
-- [ ] アプリケーション、ScalarDB Cluster、スキーマのロールバック手順が文書化されている
-- [ ] Coordinatorテーブルの整合性に関する注意事項が記載されている
-- [ ] 本番移行チェックリスト（Pre-deploy / Deploy / Post-deploy）が作成されている
-- [ ] Go/No-Go判断基準（性能基準、データ整合性基準、ロールバック判断基準）が定義されている
-- [ ] 全手順についてステージング環境でリハーサルが完了している
-- [ ] 全手順について関係者（アーキテクト、テックリード、SRE、プロジェクトリーダー）の合意が得られている
+| Deliverable | Description | Template |
+|-------------|-------------|----------|
+| Deployment Procedure Document | Deployment strategy selection results, Helm Chart update procedure, schema migration procedure | Procedures from Step 13.1-13.3 |
+| Rollback Procedure Document | Rollback procedures for application, ScalarDB Cluster, and schema | Rollback procedures from Step 13.4 |
+| Go/No-Go Checklist | Pre-deploy, deploy, and post-deploy checklists, Go/No-Go decision criteria | Checklists from Step 13.5-13.6 |
 
 ---
 
-## ワークフロー完了後のアクション
+## Completion Criteria Checklist
 
-### Phase 4完了後のフォローアップ
+- [ ] Deployment strategy (Rolling Update / Blue-Green / Canary) is selected and the rationale is documented
+- [ ] ScalarDB Cluster-specific considerations (cluster membership, node availability, in-flight transactions) are addressed
+- [ ] Helm Chart version upgrade procedure is documented
+- [ ] Transaction impact during rolling update is analyzed
+- [ ] Zero-downtime update conditions are defined
+- [ ] Schema Loader execution procedure is documented
+- [ ] Schema change version management methods are defined
+- [ ] Backward compatibility assurance strategy (Expand-Migrate-Contract pattern) is defined
+- [ ] Rollback procedures for application, ScalarDB Cluster, and schema are documented
+- [ ] Notes regarding Coordinator table integrity are included
+- [ ] Production migration checklists (Pre-deploy / Deploy / Post-deploy) are created
+- [ ] Go/No-Go decision criteria (performance criteria, data integrity criteria, rollback decision criteria) are defined
+- [ ] All procedures have been rehearsed in the staging environment
+- [ ] Consensus on all procedures has been obtained from stakeholders (architect, tech lead, SRE, project leader)
 
-Phase 4（実行フェーズ）の全ステップ完了後、以下のアクションを実施する。
+---
 
-| アクション | 内容 | 担当 |
-|-----------|------|------|
-| 全成果物のレビュー | Phase 1〜4の全成果物を横断的にレビューし、整合性を確認 | アーキテクト |
-| 実装開始承認 | 全ステークホルダーの承認を得て、実装フェーズに移行 | プロジェクトリーダー |
-| スプリント計画 | 実装タスク一覧（Step 11成果物）をスプリントバックログに展開 | スクラムマスター |
-| リスク管理 | 各フェーズで識別されたリスクの一覧化と対策状況の確認 | プロジェクトリーダー |
-| 定期レビュー | 実装進捗に合わせて設計成果物を定期的に見直し・更新 | テックリード |
+## Actions After Workflow Completion
+
+### Follow-up After Phase 4 Completion
+
+After completing all steps of Phase 4 (Execution Phase), perform the following actions.
+
+| Action | Details | Owner |
+|--------|---------|-------|
+| Review all deliverables | Cross-review all deliverables from Phase 1-4 and verify consistency | Architect |
+| Approve implementation start | Obtain approval from all stakeholders and transition to the implementation phase | Project Leader |
+| Sprint planning | Expand the implementation task list (Step 11 deliverables) into the sprint backlog | Scrum Master |
+| Risk management | Compile a list of risks identified in each phase and verify mitigation status | Project Leader |
+| Regular reviews | Periodically review and update design deliverables as implementation progresses | Tech Lead |
