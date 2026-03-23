@@ -1,55 +1,55 @@
-# Phase 3-3: オブザーバビリティ設計
+# Phase 3-3: Observability Design
 
-## 目的
+## Purpose
 
-メトリクス、ログ、トレースの3本柱（Three Pillars of Observability）に基づく監視基盤を設計する。ScalarDB Cluster固有のメトリクスを含む包括的な監視体制を構築し、SLI/SLOに基づいた運用を実現する。
-
----
-
-## 入力
-
-| 入力物 | 説明 | 提供元 |
-|--------|------|--------|
-| インフラ設計 | Step 07で設計したK8sクラスタ構成、監視ノードプール | Phase 3-1 成果物 |
-| SLI/SLO定義 | Step 01で定義した非機能要件（可用性、レイテンシ、スループット目標） | Phase 1 成果物 |
-| トランザクション設計 | Step 05で設計したトランザクション境界・パターン | Phase 2 成果物 |
-| セキュリティ設計 | Step 08で設計したセキュリティ監視要件 | Phase 3-2 成果物 |
+Design a monitoring infrastructure based on the Three Pillars of Observability: Metrics, Logs, and Traces. Build a comprehensive monitoring system that includes ScalarDB Cluster-specific metrics and enables SLI/SLO-based operations.
 
 ---
 
-## 参照資料
+## Inputs
 
-| 資料 | 参照箇所 | 用途 |
-|------|----------|------|
-| [`../research/11_observability.md`](../research/11_observability.md) | 全体 | ScalarDB固有メトリクス、トレース設計、ダッシュボード階層、アラート設計 |
+| Input | Description | Source |
+|-------|-------------|--------|
+| Infrastructure Design | K8s cluster configuration and monitoring node pool designed in Step 07 | Phase 3-1 Deliverables |
+| SLI/SLO Definitions | Non-functional requirements defined in Step 01 (availability, latency, throughput targets) | Phase 1 Deliverables |
+| Transaction Design | Transaction boundaries and patterns designed in Step 05 | Phase 2 Deliverables |
+| Security Design | Security monitoring requirements designed in Step 08 | Phase 3-2 Deliverables |
 
 ---
 
-## オブザーバビリティ全体アーキテクチャ
+## References
+
+| Document | Section | Usage |
+|----------|---------|-------|
+| [`../research/11_observability.md`](../research/11_observability.md) | Entire document | ScalarDB-specific metrics, trace design, dashboard hierarchy, alert design |
+
+---
+
+## Overall Observability Architecture
 
 ```mermaid
 flowchart TB
-    subgraph Sources["データソース"]
+    subgraph Sources["Data Sources"]
         APP["Application Pods"]
         SDB["ScalarDB Cluster Pods"]
         K8S["Kubernetes"]
         DB["Databases"]
     end
 
-    subgraph Collection["収集レイヤー"]
+    subgraph Collection["Collection Layer"]
         PROM["Prometheus"]
         PROMTAIL["Promtail / Fluentd"]
         OTEL["OpenTelemetry Collector"]
     end
 
-    subgraph Storage["ストレージレイヤー"]
-        PROM_TSDB["Prometheus TSDB<br/>(短期: 15日)"]
-        THANOS["Thanos / Cortex<br/>(長期: 1年)"]
+    subgraph Storage["Storage Layer"]
+        PROM_TSDB["Prometheus TSDB<br/>(Short-term: 15 days)"]
+        THANOS["Thanos / Cortex<br/>(Long-term: 1 year)"]
         LOKI["Loki"]
         TEMPO["Tempo / Jaeger"]
     end
 
-    subgraph Visualization["可視化・アラート"]
+    subgraph Visualization["Visualization & Alerting"]
         GRAFANA["Grafana"]
         ALERTMGR["Alertmanager"]
         PAGER["PagerDuty / Slack"]
@@ -86,40 +86,40 @@ flowchart TB
 
 ---
 
-## ステップ
+## Steps
 
-### Step 9.1: メトリクス監視設計
+### Step 9.1: Metrics Monitoring Design
 
-ScalarDB Cluster固有メトリクスを含む包括的なメトリクス監視を設計する。
+Design comprehensive metrics monitoring including ScalarDB Cluster-specific metrics.
 
-#### ScalarDB Cluster 固有メトリクス
+#### ScalarDB Cluster-Specific Metrics
 
-`11_observability.md` を参照し、以下のScalarDB Cluster固有メトリクスを監視する。
+Refer to `11_observability.md` and monitor the following ScalarDB Cluster-specific metrics.
 
-> **注意: メトリクス名は例示です。** 以下の表に記載されているメトリクス名（`scalardb_cluster_transaction_commit_total` 等）は設計上の仮称であり、実際のメトリクス名とは異なります。ScalarDB Cluster公式のGrafanaダッシュボード（Scalar社提供）を参照し、実際のメトリクス名を確認してください。例えば、実際の命名パターンは `scalardb_cluster_distributed_transaction_commit_success` のような形式になります。
+> **Note: Metric names are illustrative.** The metric names listed in the table below (e.g., `scalardb_cluster_transaction_commit_total`) are provisional design names and may differ from actual metric names. Please refer to the official ScalarDB Cluster Grafana dashboard (provided by Scalar, Inc.) to confirm the actual metric names. For example, actual naming patterns may follow formats such as `scalardb_cluster_distributed_transaction_commit_success`.
 
-**トランザクション関連メトリクス:**
+**Transaction-Related Metrics:**
 
-| メトリクス名 | 種類 | 説明 | アラート閾値 |
-|-------------|------|------|-------------|
-| `scalardb_cluster_transaction_commit_total` | Counter | コミット成功/失敗の総数 | 失敗率 > 1% |
-| `scalardb_cluster_transaction_rollback_total` | Counter | ロールバック総数 | 急増時 |
-| `scalardb_cluster_transaction_latency_seconds` | Histogram | トランザクションレイテンシ分布 | P99 > 200ms |
-| `scalardb_cluster_active_transactions` | Gauge | 現在アクティブなトランザクション数 | 閾値超過時 |
-| `scalardb_cluster_transaction_retry_total` | Counter | リトライ総数 | 急増時 |
-| `scalardb_cluster_consensus_commit_duration_seconds` | Histogram | Consensus Commitの処理時間 | P99 > 500ms |
+| Metric Name | Type | Description | Alert Threshold |
+|-------------|------|-------------|-----------------|
+| `scalardb_cluster_transaction_commit_total` | Counter | Total number of commit successes/failures | Failure rate > 1% |
+| `scalardb_cluster_transaction_rollback_total` | Counter | Total number of rollbacks | On sudden increase |
+| `scalardb_cluster_transaction_latency_seconds` | Histogram | Transaction latency distribution | P99 > 200ms |
+| `scalardb_cluster_active_transactions` | Gauge | Number of currently active transactions | On threshold exceeded |
+| `scalardb_cluster_transaction_retry_total` | Counter | Total number of retries | On sudden increase |
+| `scalardb_cluster_consensus_commit_duration_seconds` | Histogram | Consensus Commit processing time | P99 > 500ms |
 
-**クラスタ関連メトリクス:**
+**Cluster-Related Metrics:**
 
-| メトリクス名 | 種類 | 説明 | アラート閾値 |
-|-------------|------|------|-------------|
-| `scalardb_cluster_node_count` | Gauge | クラスタノード数 | < 最小レプリカ数 |
-| `scalardb_cluster_grpc_request_total` | Counter | gRPCリクエスト総数 | N/A（ダッシュボード表示） |
-| `scalardb_cluster_grpc_request_latency_seconds` | Histogram | gRPCリクエストレイテンシ | P99 > 100ms |
-| `scalardb_cluster_db_connection_pool_active` | Gauge | DB接続プールのアクティブ数 | 上限の80%超過 |
-| `scalardb_cluster_db_connection_pool_idle` | Gauge | DB接続プールのアイドル数 | 0が継続 |
+| Metric Name | Type | Description | Alert Threshold |
+|-------------|------|-------------|-----------------|
+| `scalardb_cluster_node_count` | Gauge | Number of cluster nodes | < minimum replica count |
+| `scalardb_cluster_grpc_request_total` | Counter | Total gRPC request count | N/A (dashboard display) |
+| `scalardb_cluster_grpc_request_latency_seconds` | Histogram | gRPC request latency | P99 > 100ms |
+| `scalardb_cluster_db_connection_pool_active` | Gauge | Number of active DB connection pool connections | Exceeding 80% of limit |
+| `scalardb_cluster_db_connection_pool_idle` | Gauge | Number of idle DB connection pool connections | Sustained at 0 |
 
-#### Prometheus スクレイプ設定
+#### Prometheus Scrape Configuration
 
 ```yaml
 # Prometheus ServiceMonitor for ScalarDB Cluster
@@ -144,43 +144,43 @@ spec:
       scrapeTimeout: 10s
 ```
 
-**スクレイプ設定一覧:**
+**Scrape Configuration Summary:**
 
-| ターゲット | Namespace | Port | Interval | 備考 |
-|-----------|-----------|------|----------|------|
-| ScalarDB Cluster | scalardb | 9080 | 15s | ScalarDB固有メトリクス |
-| Application Pods | app | 8080 | 30s | カスタムメトリクス |
-| Node Exporter | monitoring | 9100 | 30s | ノードメトリクス |
-| kube-state-metrics | monitoring | 8080 | 30s | K8sオブジェクトメトリクス |
-| cAdvisor | - | - | 30s | コンテナメトリクス（kubelet統合） |
-| Database Exporter | monitoring | 9104/9187 | 30s | MySQL/PostgreSQLメトリクス |
+| Target | Namespace | Port | Interval | Notes |
+|--------|-----------|------|----------|-------|
+| ScalarDB Cluster | scalardb | 9080 | 15s | ScalarDB-specific metrics |
+| Application Pods | app | 8080 | 30s | Custom metrics |
+| Node Exporter | monitoring | 9100 | 30s | Node metrics |
+| kube-state-metrics | monitoring | 8080 | 30s | K8s object metrics |
+| cAdvisor | - | - | 30s | Container metrics (kubelet integration) |
+| Database Exporter | monitoring | 9104/9187 | 30s | MySQL/PostgreSQL metrics |
 
-#### カスタムメトリクス定義
+#### Custom Metrics Definition
 
-アプリケーション側で計測すべきカスタムメトリクスを定義する。
+Define custom metrics to be measured on the application side.
 
-| メトリクス名 | 種類 | 説明 | ラベル |
-|-------------|------|------|--------|
-| `app_business_transaction_total` | Counter | ビジネストランザクション数 | service, type, status |
-| `app_business_transaction_duration_seconds` | Histogram | ビジネストランザクション時間 | service, type |
-| `app_scalardb_operation_total` | Counter | ScalarDB API呼び出し数 | service, operation, status |
-| `app_scalardb_operation_duration_seconds` | Histogram | ScalarDB API呼び出し時間 | service, operation |
+| Metric Name | Type | Description | Labels |
+|-------------|------|-------------|--------|
+| `app_business_transaction_total` | Counter | Number of business transactions | service, type, status |
+| `app_business_transaction_duration_seconds` | Histogram | Business transaction duration | service, type |
+| `app_scalardb_operation_total` | Counter | Number of ScalarDB API calls | service, operation, status |
+| `app_scalardb_operation_duration_seconds` | Histogram | ScalarDB API call duration | service, operation |
 
-**確認ポイント:**
-- [ ] ScalarDB Cluster固有メトリクスが全て網羅されているか
-- [ ] Prometheus ServiceMonitorが正しく設定されているか
-- [ ] アプリケーションのカスタムメトリクスが定義されているか
-- [ ] DBエクスポーターが設定されているか
+**Verification Points:**
+- [ ] Are all ScalarDB Cluster-specific metrics covered?
+- [ ] Is the Prometheus ServiceMonitor correctly configured?
+- [ ] Are application custom metrics defined?
+- [ ] Are DB exporters configured?
 
 ---
 
-### Step 9.2: ログ管理設計
+### Step 9.2: Log Management Design
 
-構造化ログの設計とログ集約パイプラインを構築する。
+Design structured logging and build a log aggregation pipeline.
 
-#### 構造化ログフォーマット（JSON）
+#### Structured Log Format (JSON)
 
-**アプリケーションログ:**
+**Application Logs:**
 
 ```json
 {
@@ -202,42 +202,42 @@ spec:
 }
 ```
 
-**ScalarDB Clusterログ:**
+**ScalarDB Cluster Logs:**
 
-| ログカテゴリ | ログレベル | 監視重要度 | 備考 |
-|------------|-----------|-----------|------|
-| トランザクションコミット成功 | INFO | Low | 通常運用の確認用 |
-| トランザクションコミット失敗 | WARN | High | 失敗原因の調査が必要 |
-| Consensus Commit競合 | WARN | Medium | リトライで解決される場合が多い |
-| DB接続エラー | ERROR | Critical | 即時対応が必要 |
-| クラスタメンバーシップ変更 | INFO | Medium | スケーリングイベント |
-| グレースフルシャットダウン | INFO | Low | デプロイ時の正常動作 |
+| Log Category | Log Level | Monitoring Importance | Notes |
+|-------------|-----------|----------------------|-------|
+| Transaction commit success | INFO | Low | For confirming normal operation |
+| Transaction commit failure | WARN | High | Investigation of failure cause required |
+| Consensus Commit conflict | WARN | Medium | Often resolved by retry |
+| DB connection error | ERROR | Critical | Immediate action required |
+| Cluster membership change | INFO | Medium | Scaling event |
+| Graceful shutdown | INFO | Low | Normal behavior during deployment |
 
-#### ログ集約パイプライン
+#### Log Aggregation Pipeline
 
 ```mermaid
 flowchart LR
-    subgraph Sources["ログソース"]
+    subgraph Sources["Log Sources"]
         APP_LOG["Application Logs<br/>(stdout/stderr)"]
         SDB_LOG["ScalarDB Logs<br/>(stdout/stderr)"]
         K8S_LOG["K8s System Logs"]
         AUDIT_LOG["Audit Logs"]
     end
 
-    subgraph Collection["収集"]
+    subgraph Collection["Collection"]
         PROMTAIL["Promtail<br/>(DaemonSet)"]
     end
 
-    subgraph Processing["処理"]
-        LOKI["Loki<br/>(ログストレージ)"]
+    subgraph Processing["Processing"]
+        LOKI["Loki<br/>(Log Storage)"]
     end
 
-    subgraph Visualization["可視化"]
+    subgraph Visualization["Visualization"]
         GRAFANA["Grafana<br/>(LogQL)"]
     end
 
-    subgraph Storage["長期保存"]
-        S3["S3 / GCS<br/>(コンプライアンス用)"]
+    subgraph Storage["Long-term Storage"]
+        S3["S3 / GCS<br/>(For Compliance)"]
     end
 
     APP_LOG --> PROMTAIL
@@ -246,42 +246,42 @@ flowchart LR
     AUDIT_LOG --> PROMTAIL
     PROMTAIL --> LOKI
     LOKI --> GRAFANA
-    LOKI -->|"保持期間超過分"| S3
+    LOKI -->|"Retention exceeded"| S3
 ```
 
-#### ログレベル設計
+#### Log Level Design
 
-| 環境 | デフォルトログレベル | ScalarDB ログレベル | 備考 |
-|------|-------------------|-------------------|------|
-| dev | DEBUG | DEBUG | 詳細なデバッグ情報 |
-| staging | INFO | INFO | 通常の運用情報 |
-| prod | INFO | WARN | パフォーマンス考慮、WARNに集中 |
+| Environment | Default Log Level | ScalarDB Log Level | Notes |
+|-------------|-------------------|-------------------|-------|
+| dev | DEBUG | DEBUG | Detailed debugging information |
+| staging | INFO | INFO | Normal operational information |
+| prod | INFO | WARN | Performance consideration, focus on WARN |
 
-**ログ保持期間:**
+**Log Retention Period:**
 
-| ログ種類 | 短期保存（Loki） | 長期保存（S3/GCS） | 備考 |
-|---------|----------------|------------------|------|
-| アプリケーションログ | 30日 | 1年 | |
-| ScalarDB Clusterログ | 30日 | 1年 | |
-| 監査ログ | 90日 | 7年 | コンプライアンス要件に依存 |
-| K8sシステムログ | 14日 | 90日 | |
+| Log Type | Short-term Storage (Loki) | Long-term Storage (S3/GCS) | Notes |
+|----------|--------------------------|---------------------------|-------|
+| Application logs | 30 days | 1 year | |
+| ScalarDB Cluster logs | 30 days | 1 year | |
+| Audit logs | 90 days | 7 years | Depends on compliance requirements |
+| K8s system logs | 14 days | 90 days | |
 
-**確認ポイント:**
-- [ ] 構造化ログフォーマットが統一されているか
-- [ ] trace_idが全ログに含まれているか（トレースとの相関）
-- [ ] ログレベルが環境別に適切に設定されているか
-- [ ] ログ保持期間がコンプライアンス要件を満たしているか
-- [ ] PIIがログに含まれない設計になっているか（Step 08のデータ保護と整合）
+**Verification Points:**
+- [ ] Is the structured log format unified?
+- [ ] Is trace_id included in all logs (correlation with traces)?
+- [ ] Are log levels appropriately configured per environment?
+- [ ] Does the log retention period meet compliance requirements?
+- [ ] Is the design ensuring PII is not included in logs (consistent with Step 08 data protection)?
 
 ---
 
-### Step 9.3: 分散トレーシング設計
+### Step 9.3: Distributed Tracing Design
 
-2PCトランザクションを含む分散トレーシングを設計する。
+Design distributed tracing including 2PC transactions.
 
-#### 2PCトランザクショントレース設計
+#### 2PC Transaction Trace Design
 
-`11_observability.md` のCoordinatorスパン階層を参照し、ScalarDB Clusterの2PCトランザクションの全体フローを可視化するトレースを設計する。
+Refer to the Coordinator span hierarchy in `11_observability.md` and design traces to visualize the entire flow of ScalarDB Cluster 2PC transactions.
 
 ```mermaid
 gantt
@@ -319,10 +319,10 @@ gantt
     Status Write          :c1, 45, 50
 ```
 
-#### スパン階層設計
+#### Span Hierarchy Design
 
-| スパン名 | 親スパン | サービス | 属性 |
-|---------|---------|---------|------|
+| Span Name | Parent Span | Service | Attributes |
+|-----------|-------------|---------|------------|
 | `http.request` | - | API Gateway | method, url, status_code |
 | `app.business_operation` | `http.request` | App Service | operation_type |
 | `scalardb.transaction` | `app.business_operation` | App Service | transaction_id |
@@ -335,57 +335,57 @@ gantt
 | `scalardb.coordinator.write` | `scalardb.commit` | ScalarDB Cluster | coordinator_state |
 | `db.query` | `scalardb.get/put/prepare/commit` | DB Driver | db.system, db.statement |
 
-#### トレースID伝搬方式
+#### Trace ID Propagation Method
 
-| 項目 | 設計値 | 備考 |
-|------|-------|------|
-| 伝搬規格 | W3C Trace Context | 標準規格 |
-| ヘッダー | `traceparent`, `tracestate` | W3C標準 |
-| サンプリングレート（dev） | 100% | 全トレース |
-| サンプリングレート（staging） | 100% | テスト検証用 |
-| サンプリングレート（prod） | 10%（通常）/ 100%（エラー時） | コスト最適化 |
+| Item | Design Value | Notes |
+|------|-------------|-------|
+| Propagation Standard | W3C Trace Context | Standard specification |
+| Headers | `traceparent`, `tracestate` | W3C standard |
+| Sampling Rate (dev) | 100% | All traces |
+| Sampling Rate (staging) | 100% | For test verification |
+| Sampling Rate (prod) | 10% (normal) / 100% (on error) | Cost optimization |
 
-#### トレースバックエンド選定
+#### Trace Backend Selection
 
-| 項目 | Jaeger | Grafana Tempo | 選定 |
-|------|--------|---------------|------|
-| ストレージ | Elasticsearch / Cassandra | Object Storage (S3/GCS) | |
-| コスト | ストレージコスト高 | ストレージコスト低 | |
-| Grafana連携 | プラグイン | ネイティブ | |
-| スケーラビリティ | 中 | 高 | |
-| クエリ性能 | 高（インデックス） | 中（TraceID検索は高速） | |
+| Item | Jaeger | Grafana Tempo | Selection |
+|------|--------|---------------|-----------|
+| Storage | Elasticsearch / Cassandra | Object Storage (S3/GCS) | |
+| Cost | High storage cost | Low storage cost | |
+| Grafana Integration | Plugin | Native | |
+| Scalability | Medium | High | |
+| Query Performance | High (indexed) | Medium (TraceID search is fast) | |
 
-**判定:**
+**Decision:**
 ```
 [ ] Jaeger
 [ ] Grafana Tempo
-判定理由: _______________________________________________
+Decision rationale: _______________________________________________
 ```
 
-**確認ポイント:**
-- [ ] 2PCトランザクションの全フェーズがスパンとして設計されているか
-- [ ] W3C Trace Contextで伝搬方式が統一されているか
-- [ ] サンプリングレートが環境別に設定されているか
-- [ ] エラー時は100%サンプリングが設計されているか
+**Verification Points:**
+- [ ] Are all phases of 2PC transactions designed as spans?
+- [ ] Is the propagation method unified using W3C Trace Context?
+- [ ] Are sampling rates configured per environment?
+- [ ] Is 100% sampling designed for error cases?
 
 ---
 
-### Step 9.4: アラート設計
+### Step 9.4: Alert Design
 
-クリティカルアラートとセキュリティ異常検知アラートを設計する。
+Design critical alerts and security anomaly detection alerts.
 
-#### クリティカルアラート定義
+#### Critical Alert Definitions
 
-| アラート名 | 条件（PromQL概要） | 重要度 | 通知先 | 対応 |
-|-----------|-------------------|-------|-------|------|
-| ScalarDBTransactionFailureRateHigh | トランザクション失敗率 > 1%（5分間） | Critical | PagerDuty + Slack | 即時調査・トランザクションパターン確認 |
-| ScalarDBTransactionLatencyHigh | P99レイテンシ > 200ms（5分間） | Warning | Slack | パフォーマンス調査 |
-| ScalarDBClusterNodeDown | クラスタノード数 < 最小レプリカ数 | Critical | PagerDuty + Slack | Pod/ノード復旧確認 |
-| ScalarDBDBConnectionExhausted | DB接続プール使用率 > 90% | Warning | Slack | 接続プール設定見直し |
-| ScalarDBCoordinatorDBUnavailable | Coordinator DB接続失敗 | Critical | PagerDuty + Slack | DB復旧・フェイルオーバー |
-| ScalarDBConsensusCommitSlow | Consensus Commit P99 > 500ms | Warning | Slack | DB性能調査 |
+| Alert Name | Condition (PromQL Summary) | Severity | Notification Target | Response |
+|------------|---------------------------|----------|-------------------|----------|
+| ScalarDBTransactionFailureRateHigh | Transaction failure rate > 1% (5 min) | Critical | PagerDuty + Slack | Immediate investigation, check transaction patterns |
+| ScalarDBTransactionLatencyHigh | P99 latency > 200ms (5 min) | Warning | Slack | Performance investigation |
+| ScalarDBClusterNodeDown | Cluster node count < minimum replica count | Critical | PagerDuty + Slack | Verify Pod/node recovery |
+| ScalarDBDBConnectionExhausted | DB connection pool usage > 90% | Warning | Slack | Review connection pool settings |
+| ScalarDBCoordinatorDBUnavailable | Coordinator DB connection failure | Critical | PagerDuty + Slack | DB recovery/failover |
+| ScalarDBConsensusCommitSlow | Consensus Commit P99 > 500ms | Warning | Slack | DB performance investigation |
 
-**Prometheus アラートルール例:**
+**Prometheus Alert Rule Example:**
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1
@@ -398,7 +398,7 @@ spec:
     - name: scalardb-cluster
       rules:
         - alert: ScalarDBTransactionFailureRateHigh
-          # NOTE: メトリクス名は仮称です。実際の名前はScalarDB Cluster公式Grafanaダッシュボードで確認してください。
+          # NOTE: Metric names are provisional. Please verify actual names in the official ScalarDB Cluster Grafana dashboard.
           expr: |
             (
               rate(scalardb_cluster_transaction_rollback_total[5m])
@@ -414,7 +414,7 @@ spec:
             runbook_url: "https://wiki.example.com/runbooks/scalardb-tx-failure"
 
         - alert: ScalarDBTransactionLatencyHigh
-          # NOTE: メトリクス名は仮称です。実際の名前はScalarDB Cluster公式Grafanaダッシュボードで確認してください。
+          # NOTE: Metric names are provisional. Please verify actual names in the official ScalarDB Cluster Grafana dashboard.
           expr: |
             histogram_quantile(0.99, rate(scalardb_cluster_transaction_latency_seconds_bucket[5m])) > 0.2
           for: 5m
@@ -425,7 +425,7 @@ spec:
             description: "P99 latency is {{ $value }}s for the last 5 minutes."
 
         - alert: ScalarDBClusterNodeDown
-          # NOTE: メトリクス名は仮称です。実際の名前はScalarDB Cluster公式Grafanaダッシュボードで確認してください。
+          # NOTE: Metric names are provisional. Please verify actual names in the official ScalarDB Cluster Grafana dashboard.
           expr: |
             scalardb_cluster_node_count < 3
           for: 2m
@@ -436,74 +436,74 @@ spec:
             description: "Current node count: {{ $value }}. Minimum required: 3."
 ```
 
-#### セキュリティ異常検知アラート
+#### Security Anomaly Detection Alerts
 
-`11_observability.md` を参照し、以下の4つのセキュリティ異常検知アラートを設計する。
+Refer to `11_observability.md` and design the following 4 security anomaly detection alerts.
 
-| # | アラート名 | 検知条件 | 重要度 | 対応 |
-|---|-----------|---------|-------|------|
-| 1 | UnauthorizedScalarDBAccess | ScalarDB RBAC認証失敗が5分間に10回以上 | Critical | アクセス元の調査、必要に応じブロック |
-| 2 | AnomalousTransactionPattern | 通常パターンから逸脱するトランザクション量の急増/急減 | Warning | トラフィックパターンの調査 |
-| 3 | CoordinatorDBDirectAccess | Coordinator DBへのScalarDB以外からのアクセス検出 | Critical | 即時遮断、セキュリティインシデント対応 |
-| 4 | DataExfiltrationSuspect | 大量のSELECTクエリ（通常パターンの10倍以上） | Warning | データ持ち出しの疑い調査 |
+| # | Alert Name | Detection Condition | Severity | Response |
+|---|------------|-------------------|----------|----------|
+| 1 | UnauthorizedScalarDBAccess | 10+ ScalarDB RBAC authentication failures within 5 minutes | Critical | Investigate access source, block if necessary |
+| 2 | AnomalousTransactionPattern | Sudden increase/decrease in transaction volume deviating from normal patterns | Warning | Investigate traffic patterns |
+| 3 | CoordinatorDBDirectAccess | Detection of non-ScalarDB access to Coordinator DB | Critical | Immediate block, security incident response |
+| 4 | DataExfiltrationSuspect | Massive SELECT queries (10x or more above normal pattern) | Warning | Investigate suspected data exfiltration |
 
-#### エスカレーションフロー
+#### Escalation Flow
 
 ```mermaid
 flowchart TD
-    ALERT["アラート発生"] --> SEVERITY{重要度判定}
+    ALERT["Alert Triggered"] --> SEVERITY{Severity Assessment}
 
-    SEVERITY -->|"Critical"| PAGER["PagerDuty<br/>(オンコール担当に即時通知)"]
-    SEVERITY -->|"Warning"| SLACK["Slack #alerts チャネル"]
-    SEVERITY -->|"Info"| DASHBOARD["ダッシュボード表示のみ"]
+    SEVERITY -->|"Critical"| PAGER["PagerDuty<br/>(Immediate notification to on-call)"]
+    SEVERITY -->|"Warning"| SLACK["Slack #alerts Channel"]
+    SEVERITY -->|"Info"| DASHBOARD["Dashboard Display Only"]
 
-    PAGER --> ACK{15分以内に応答？}
-    ACK -->|"Yes"| INVESTIGATE["調査開始"]
-    ACK -->|"No"| ESCALATE["エスカレーション<br/>(次のオンコール担当)"]
+    PAGER --> ACK{Response within 15 min?}
+    ACK -->|"Yes"| INVESTIGATE["Begin Investigation"]
+    ACK -->|"No"| ESCALATE["Escalation<br/>(Next on-call responder)"]
 
-    SLACK --> REVIEW{1時間以内にレビュー？}
+    SLACK --> REVIEW{Reviewed within 1 hour?}
     REVIEW -->|"Yes"| INVESTIGATE
-    REVIEW -->|"No"| UPGRADE["Critical に昇格"]
+    REVIEW -->|"No"| UPGRADE["Upgrade to Critical"]
     UPGRADE --> PAGER
 
-    INVESTIGATE --> RESOLVE["解決 / インシデントレポート"]
+    INVESTIGATE --> RESOLVE["Resolution / Incident Report"]
 
     ESCALATE --> INVESTIGATE
 ```
 
-| エスカレーションレベル | タイムリミット | 通知先 |
-|--------------------|-------------|-------|
-| L1: オンコール担当 | 15分 | PagerDuty |
-| L2: チームリード | 30分 | PagerDuty + 電話 |
-| L3: エンジニアリングマネージャー | 1時間 | 電話 + メール |
+| Escalation Level | Time Limit | Notification Target |
+|-----------------|------------|-------------------|
+| L1: On-call responder | 15 min | PagerDuty |
+| L2: Team lead | 30 min | PagerDuty + Phone |
+| L3: Engineering manager | 1 hour | Phone + Email |
 
-**確認ポイント:**
-- [ ] ScalarDB固有のクリティカルアラートが全て定義されているか
-- [ ] セキュリティ異常検知アラート4項目が全て定義されているか
-- [ ] エスカレーションフローが明確に定義されているか
-- [ ] 各アラートにRunbook URLが紐付けられているか
-- [ ] アラートのしきい値が非機能要件と整合しているか
+**Verification Points:**
+- [ ] Are all ScalarDB-specific critical alerts defined?
+- [ ] Are all 4 security anomaly detection alerts defined?
+- [ ] Is the escalation flow clearly defined?
+- [ ] Is a Runbook URL linked to each alert?
+- [ ] Are alert thresholds consistent with non-functional requirements?
 
 ---
 
-### Step 9.5: ダッシュボード設計
+### Step 9.5: Dashboard Design
 
-4階層のダッシュボード構成を設計する。
+Design a 4-tier dashboard structure.
 
-#### ダッシュボード階層
+#### Dashboard Hierarchy
 
-`11_observability.md` のダッシュボード階層を参照。
+Refer to the dashboard hierarchy in `11_observability.md`.
 
 ```mermaid
 flowchart TB
-    L0["L0: ビジネスKPIダッシュボード<br/>- 注文成功率<br/>- 売上リアルタイム<br/>- ユーザーアクティビティ"]
-    L1["L1: サービスダッシュボード<br/>- サービス別レイテンシ/エラー率<br/>- ScalarDB トランザクション統計<br/>- サービス間依存関係"]
-    L2["L2: インフラダッシュボード<br/>- K8s クラスタリソース<br/>- DB パフォーマンス<br/>- ネットワーク帯域"]
-    L3["L3: 詳細ダッシュボード<br/>- ScalarDB Cluster詳細メトリクス<br/>- DB クエリ分析<br/>- 個別Pod詳細"]
+    L0["L0: Business KPI Dashboard<br/>- Order Success Rate<br/>- Real-time Revenue<br/>- User Activity"]
+    L1["L1: Service Dashboard<br/>- Per-service Latency/Error Rate<br/>- ScalarDB Transaction Statistics<br/>- Inter-service Dependencies"]
+    L2["L2: Infrastructure Dashboard<br/>- K8s Cluster Resources<br/>- DB Performance<br/>- Network Bandwidth"]
+    L3["L3: Detailed Dashboard<br/>- ScalarDB Cluster Detailed Metrics<br/>- DB Query Analysis<br/>- Individual Pod Details"]
 
-    L0 -->|"ドリルダウン"| L1
-    L1 -->|"ドリルダウン"| L2
-    L2 -->|"ドリルダウン"| L3
+    L0 -->|"Drill Down"| L1
+    L1 -->|"Drill Down"| L2
+    L2 -->|"Drill Down"| L3
 
     style L0 fill:#e8eaf6,stroke:#3f51b5
     style L1 fill:#e3f2fd,stroke:#2196f3
@@ -511,93 +511,93 @@ flowchart TB
     style L3 fill:#fff3e0,stroke:#ff9800
 ```
 
-#### Grafana ダッシュボード定義
+#### Grafana Dashboard Definitions
 
-**L0: ビジネスKPIダッシュボード:**
+**L0: Business KPI Dashboard:**
 
-| パネル名 | メトリクス | 種類 | リフレッシュ |
-|---------|-----------|------|------------|
-| 注文成功率 | `app_business_transaction_total{type="order",status="success"}` / total | Stat | 10s |
-| リアルタイムTPS | `rate(app_business_transaction_total[1m])` | Graph | 10s |
-| エラー率 | `rate(app_business_transaction_total{status="error"}[5m])` / total | Gauge | 30s |
-| レイテンシ P50/P95/P99 | `histogram_quantile(...)` | Graph | 10s |
+| Panel Name | Metrics | Type | Refresh |
+|-----------|---------|------|---------|
+| Order Success Rate | `app_business_transaction_total{type="order",status="success"}` / total | Stat | 10s |
+| Real-time TPS | `rate(app_business_transaction_total[1m])` | Graph | 10s |
+| Error Rate | `rate(app_business_transaction_total{status="error"}[5m])` / total | Gauge | 30s |
+| Latency P50/P95/P99 | `histogram_quantile(...)` | Graph | 10s |
 
-**L1: サービスダッシュボード（ScalarDB重点）:**
+**L1: Service Dashboard (ScalarDB Focus):**
 
-| パネル名 | メトリクス | 種類 | リフレッシュ |
-|---------|-----------|------|------------|
-| ScalarDB トランザクション成功率 | commit / (commit + rollback) | Stat | 15s |
-| ScalarDB トランザクションレイテンシ | `scalardb_cluster_transaction_latency_seconds` | Heatmap | 15s |
-| アクティブトランザクション数 | `scalardb_cluster_active_transactions` | Graph | 15s |
-| gRPCリクエストレート | `rate(scalardb_cluster_grpc_request_total[1m])` | Graph | 15s |
-| DB接続プール使用率 | active / (active + idle) | Gauge | 30s |
-| Consensus Commit時間 | `scalardb_cluster_consensus_commit_duration_seconds` | Graph | 15s |
+| Panel Name | Metrics | Type | Refresh |
+|-----------|---------|------|---------|
+| ScalarDB Transaction Success Rate | commit / (commit + rollback) | Stat | 15s |
+| ScalarDB Transaction Latency | `scalardb_cluster_transaction_latency_seconds` | Heatmap | 15s |
+| Active Transaction Count | `scalardb_cluster_active_transactions` | Graph | 15s |
+| gRPC Request Rate | `rate(scalardb_cluster_grpc_request_total[1m])` | Graph | 15s |
+| DB Connection Pool Utilization | active / (active + idle) | Gauge | 30s |
+| Consensus Commit Duration | `scalardb_cluster_consensus_commit_duration_seconds` | Graph | 15s |
 
-**L2: インフラダッシュボード:**
+**L2: Infrastructure Dashboard:**
 
-| パネル名 | メトリクス | 種類 | リフレッシュ |
-|---------|-----------|------|------------|
-| K8s ノードCPU使用率 | `node_cpu_seconds_total` | Graph | 30s |
-| K8s ノードメモリ使用率 | `node_memory_MemAvailable_bytes` | Graph | 30s |
+| Panel Name | Metrics | Type | Refresh |
+|-----------|---------|------|---------|
+| K8s Node CPU Usage | `node_cpu_seconds_total` | Graph | 30s |
+| K8s Node Memory Usage | `node_memory_MemAvailable_bytes` | Graph | 30s |
 | Pod CPU/Memory | `container_cpu_usage_seconds_total` | Graph | 30s |
-| DB CPU使用率 | DB Exporterメトリクス | Graph | 30s |
-| DB接続数 | DB Exporterメトリクス | Graph | 30s |
-| ネットワークI/O | `node_network_receive_bytes_total` | Graph | 30s |
+| DB CPU Usage | DB Exporter metrics | Graph | 30s |
+| DB Connection Count | DB Exporter metrics | Graph | 30s |
+| Network I/O | `node_network_receive_bytes_total` | Graph | 30s |
 
-**L3: 詳細ダッシュボード:**
+**L3: Detailed Dashboard:**
 
-| パネル名 | メトリクス | 種類 | リフレッシュ |
-|---------|-----------|------|------------|
-| ScalarDB Pod別メトリクス | Pod別のCPU/Memory/Network | Graph | 15s |
-| トランザクションリトライ詳細 | `scalardb_cluster_transaction_retry_total` | Graph | 15s |
-| DB スロークエリ | DB Exporterスロークエリメトリクス | Table | 60s |
-| GC Pause Time | JVM GC メトリクス | Graph | 15s |
-| Heap Memory Usage | JVM Heap メトリクス | Graph | 15s |
+| Panel Name | Metrics | Type | Refresh |
+|-----------|---------|------|---------|
+| ScalarDB Per-Pod Metrics | CPU/Memory/Network per Pod | Graph | 15s |
+| Transaction Retry Details | `scalardb_cluster_transaction_retry_total` | Graph | 15s |
+| DB Slow Queries | DB Exporter slow query metrics | Table | 60s |
+| GC Pause Time | JVM GC metrics | Graph | 15s |
+| Heap Memory Usage | JVM Heap metrics | Graph | 15s |
 
-**確認ポイント:**
-- [ ] 4階層（L0-L3）のダッシュボードが全て定義されているか
-- [ ] ScalarDB Cluster固有メトリクスがL1ダッシュボードに含まれているか
-- [ ] ドリルダウンの導線が設計されているか
-- [ ] ビジネスKPI（L0）がステークホルダーにとって意味のある指標か
+**Verification Points:**
+- [ ] Are all 4 tiers (L0-L3) of dashboards defined?
+- [ ] Are ScalarDB Cluster-specific metrics included in the L1 dashboard?
+- [ ] Are drill-down navigation paths designed?
+- [ ] Are business KPIs (L0) meaningful indicators for stakeholders?
 
 ---
 
-### Step 9.6: SLI/SLO 定義
+### Step 9.6: SLI/SLO Definition
 
-Step 01の非機能要件に基づき、具体的なSLI/SLOとエラーバジェットを定義する。
+Define specific SLIs/SLOs and error budgets based on the non-functional requirements from Step 01.
 
-#### SLI（Service Level Indicator）定義
+#### SLI (Service Level Indicator) Definitions
 
-| SLI名 | 計算式 | 計測方法 |
-|-------|--------|---------|
-| 可用性 | 成功リクエスト数 / 総リクエスト数 | Prometheus (HTTP/gRPC ステータスコード) |
-| レイテンシ | P99レイテンシ | Prometheus (Histogram) |
-| トランザクション成功率 | コミット成功数 / トランザクション開始数 | ScalarDB メトリクス |
-| エラー率 | 5xxエラー数 / 総リクエスト数 | Prometheus |
+| SLI Name | Formula | Measurement Method |
+|----------|---------|-------------------|
+| Availability | Successful requests / Total requests | Prometheus (HTTP/gRPC status codes) |
+| Latency | P99 latency | Prometheus (Histogram) |
+| Transaction Success Rate | Successful commits / Total transactions started | ScalarDB metrics |
+| Error Rate | 5xx errors / Total requests | Prometheus |
 
-#### SLO（Service Level Objective）定義
+#### SLO (Service Level Objective) Definitions
 
-| SLO | 目標値 | 計測期間 | エラーバジェット | 備考 |
-|-----|-------|---------|----------------|------|
-| 可用性 | 99.95% | 30日間 | 21.6分/月 | Step 01の非機能要件に基づく |
-| レイテンシ（P99） | < 200ms | 30日間 | 0.05%がSLO違反可能 | |
-| トランザクション成功率 | 99.9% | 30日間 | 0.1%が失敗可能 | |
-| エラー率 | < 0.1% | 30日間 | | |
+| SLO | Target Value | Measurement Period | Error Budget | Notes |
+|-----|-------------|-------------------|-------------|-------|
+| Availability | 99.95% | 30 days | 21.6 min/month | Based on Step 01 non-functional requirements |
+| Latency (P99) | < 200ms | 30 days | 0.05% may violate SLO | |
+| Transaction Success Rate | 99.9% | 30 days | 0.1% may fail | |
+| Error Rate | < 0.1% | 30 days | | |
 
-#### エラーバジェット管理
+#### Error Budget Management
 
 ```mermaid
 flowchart TD
-    BUDGET["エラーバジェット<br/>（月初リセット）"]
-    CONSUME["バジェット消費<br/>（SLO違反イベント）"]
-    CHECK{残りバジェット}
+    BUDGET["Error Budget<br/>(Reset at start of month)"]
+    CONSUME["Budget Consumption<br/>(SLO Violation Events)"]
+    CHECK{Remaining Budget}
 
     BUDGET --> CONSUME --> CHECK
 
-    CHECK -->|"> 50%"| GREEN["通常運用<br/>・機能開発優先<br/>・デプロイ制限なし"]
-    CHECK -->|"25-50%"| YELLOW["注意<br/>・リスクの高いデプロイを延期<br/>・安定性改善にフォーカス"]
-    CHECK -->|"< 25%"| ORANGE["警告<br/>・機能デプロイ凍結<br/>・安定性改善を最優先"]
-    CHECK -->|"0%"| RED["凍結<br/>・全デプロイ停止<br/>・インシデント対応に集中"]
+    CHECK -->|"> 50%"| GREEN["Normal Operations<br/>- Prioritize feature development<br/>- No deployment restrictions"]
+    CHECK -->|"25-50%"| YELLOW["Caution<br/>- Defer high-risk deployments<br/>- Focus on stability improvements"]
+    CHECK -->|"< 25%"| ORANGE["Warning<br/>- Freeze feature deployments<br/>- Prioritize stability improvements"]
+    CHECK -->|"0%"| RED["Frozen<br/>- Halt all deployments<br/>- Focus on incident response"]
 
     style GREEN fill:#4caf50,color:#fff
     style YELLOW fill:#ffeb3b,color:#000
@@ -605,60 +605,60 @@ flowchart TD
     style RED fill:#f44336,color:#fff
 ```
 
-**エラーバジェットレポート（月次）:**
+**Error Budget Report (Monthly):**
 
-| 項目 | 目標 | 実績 | バジェット残 | ステータス |
-|------|------|------|------------|-----------|
-| 可用性 SLO | 99.95% | | /21.6分 | |
-| レイテンシ SLO | P99 < 200ms | | | |
-| Tx成功率 SLO | 99.9% | | | |
+| Item | Target | Actual | Budget Remaining | Status |
+|------|--------|--------|-----------------|--------|
+| Availability SLO | 99.95% | | /21.6 min | |
+| Latency SLO | P99 < 200ms | | | |
+| Tx Success Rate SLO | 99.9% | | | |
 
-**確認ポイント:**
-- [ ] SLI/SLOがStep 01の非機能要件と整合しているか
-- [ ] エラーバジェットの計算が正しいか
-- [ ] エラーバジェットに基づく運用ポリシー（デプロイ凍結等）が定義されているか
-- [ ] SLOの目標値が現実的か（Step 01の要件を再確認）
-
----
-
-## 成果物
-
-| 成果物 | 説明 | フォーマット |
-|--------|------|-------------|
-| 監視設計書 | メトリクス、ログ、トレースの設計全体 | Markdown |
-| Prometheus設定 | ServiceMonitor、Recording Rules | YAML |
-| アラートルール | PrometheusRule（クリティカル + セキュリティ） | YAML |
-| Grafanaダッシュボード定義 | L0-L3の4階層ダッシュボード | JSON（Grafana Dashboard） |
-| SLI/SLO定義書 | SLI計算式、SLO目標、エラーバジェット管理ポリシー | Markdown |
-| ログ設計書 | ログフォーマット、パイプライン、保持期間 | Markdown |
+**Verification Points:**
+- [ ] Are SLI/SLOs consistent with Step 01 non-functional requirements?
+- [ ] Are error budget calculations correct?
+- [ ] Are operational policies based on error budgets (deployment freeze, etc.) defined?
+- [ ] Are SLO target values realistic (re-verify Step 01 requirements)?
 
 ---
 
-## 完了基準チェックリスト
+## Deliverables
 
-- [ ] ScalarDB Cluster固有メトリクス（トランザクション成功率、レイテンシ、アクティブTx数等）が全て定義されている
-- [ ] Prometheus ServiceMonitorが全ターゲットに対して設定されている
-- [ ] 構造化ログフォーマット（JSON）が統一されている
-- [ ] ログ集約パイプライン（Promtail→Loki→Grafana）が設計されている
-- [ ] 2PCトランザクションのスパン階層が設計されている
-- [ ] W3C Trace Contextによるトレース伝搬方式が定義されている
-- [ ] クリティカルアラート（トランザクション失敗率、レイテンシ、ノード数）が定義されている
-- [ ] セキュリティ異常検知アラート4項目が定義されている
-- [ ] エスカレーションフローが明確に定義されている
-- [ ] ダッシュボード4階層（L0: KPI → L1: サービス → L2: インフラ → L3: 詳細）が設計されている
-- [ ] SLI/SLOがStep 01の非機能要件に基づいて定義されている
-- [ ] エラーバジェット管理ポリシーが定義されている
-- [ ] 全設計がStep 07のインフラ設計、Step 08のセキュリティ設計と整合している
+| Deliverable | Description | Format |
+|-------------|-------------|--------|
+| Monitoring Design Document | Overall design for metrics, logs, and traces | Markdown |
+| Prometheus Configuration | ServiceMonitor, Recording Rules | YAML |
+| Alert Rules | PrometheusRule (Critical + Security) | YAML |
+| Grafana Dashboard Definitions | 4-tier dashboards L0-L3 | JSON (Grafana Dashboard) |
+| SLI/SLO Definition Document | SLI formulas, SLO targets, error budget management policy | Markdown |
+| Log Design Document | Log format, pipeline, retention period | Markdown |
 
 ---
 
-## 次のステップへの引き継ぎ事項
+## Completion Criteria Checklist
 
-### Phase 4-1: 実装ガイド（`11_implementation_guide.md`）への引き継ぎ
+- [ ] All ScalarDB Cluster-specific metrics (transaction success rate, latency, active Tx count, etc.) are defined
+- [ ] Prometheus ServiceMonitor is configured for all targets
+- [ ] Structured log format (JSON) is unified
+- [ ] Log aggregation pipeline (Promtail -> Loki -> Grafana) is designed
+- [ ] 2PC transaction span hierarchy is designed
+- [ ] Trace propagation method using W3C Trace Context is defined
+- [ ] Critical alerts (transaction failure rate, latency, node count) are defined
+- [ ] All 4 security anomaly detection alerts are defined
+- [ ] Escalation flow is clearly defined
+- [ ] 4-tier dashboards (L0: KPI -> L1: Service -> L2: Infrastructure -> L3: Detailed) are designed
+- [ ] SLI/SLOs are defined based on Step 01 non-functional requirements
+- [ ] Error budget management policy is defined
+- [ ] All designs are consistent with Step 07 infrastructure design and Step 08 security design
 
-| 引き継ぎ項目 | 内容 |
-|-------------|------|
-| カスタムメトリクス定義 | アプリケーション側で実装すべきメトリクス一覧 |
-| 構造化ログフォーマット | アプリケーション側で実装すべきログ出力仕様 |
-| トレース伝搬 | W3C Trace Contextのヘッダー伝搬実装 |
-| 監査ログ | アプリケーションレベルの監査ログ出力仕様（Step 08と連携） |
+---
+
+## Handoff to Next Steps
+
+### Handoff to Phase 4-1: Implementation Guide (`11_implementation_guide.md`)
+
+| Handoff Item | Content |
+|-------------|---------|
+| Custom Metrics Definitions | List of metrics to be implemented on the application side |
+| Structured Log Format | Log output specifications to be implemented on the application side |
+| Trace Propagation | W3C Trace Context header propagation implementation |
+| Audit Logs | Application-level audit log output specifications (in coordination with Step 08) |

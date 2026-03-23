@@ -1,88 +1,88 @@
-# Phase 1-3: ScalarDB適用範囲の決定
+# Phase 1-3: ScalarDB Scope Decision
 
-## 目的
+## Purpose
 
-ScalarDBで管理するテーブルおよびトランザクション境界を明確に定義する。最小化原則に基づき、サービス間トランザクションに参加するテーブルのみをScalarDB管理対象とし、それ以外はネイティブDB機能を活用する方針を確定させる。
-
----
-
-## 入力
-
-| 入力物 | 説明 | 提供元 |
-|--------|------|--------|
-| ドメインモデル | 境界コンテキスト図、コンテキストマップ、集約設計 | Phase 1-2（`02_domain_modeling.md`）の成果物 |
-| ScalarDB適用判定結果 | ScalarDB導入の是非判断とその根拠 | Phase 1-1（`01_requirements_analysis.md`）の成果物 |
-| 2PC Interface候補一覧 | サービス間2PCが必要なトランザクション境界 | Phase 1-2（`02_domain_modeling.md`）の成果物 |
+Clearly define the tables and transaction boundaries managed by ScalarDB. Based on the minimization principle, only tables participating in inter-service transactions are placed under ScalarDB management, while all others leverage native DB features.
 
 ---
 
-## 参照資料
+## Inputs
 
-| 資料 | 参照箇所 | 用途 |
-|------|----------|------|
-| [`../research/02_scalardb_usecases.md`](../research/02_scalardb_usecases.md) | ユースケースパターン全体 | トランザクションパターンの適用判断 |
-| [`../research/07_transaction_model.md`](../research/07_transaction_model.md) | Section 9.4（制限ガイドライン） | 2PC適用の制限評価 |
-| [`../research/15_xa_heterogeneous_investigation.md`](../research/15_xa_heterogeneous_investigation.md) | 全体 | XAとの比較、異種DB間の制約 |
-| [`../research/05_database_investigation.md`](../research/05_database_investigation.md) | ティアランキング | バックエンドDB選定 |
+| Input | Description | Source |
+|-------|-------------|--------|
+| Domain Model | Bounded context diagram, context map, aggregate design | Deliverables from Phase 1-2 (`02_domain_modeling.md`) |
+| ScalarDB Applicability Assessment Result | Decision on ScalarDB adoption and its rationale | Deliverables from Phase 1-1 (`01_requirements_analysis.md`) |
+| 2PC Interface Candidate List | Transaction boundaries requiring inter-service 2PC | Deliverables from Phase 1-2 (`02_domain_modeling.md`) |
 
 ---
 
-## ステップ
+## Reference Materials
 
-### Step 3.1: トランザクション境界の分類
+| Document | Section | Purpose |
+|----------|---------|---------|
+| [`../research/02_scalardb_usecases.md`](../research/02_scalardb_usecases.md) | Full use case patterns | Transaction pattern applicability assessment |
+| [`../research/07_transaction_model.md`](../research/07_transaction_model.md) | Section 9.4 (Limitation Guidelines) | 2PC applicability constraint evaluation |
+| [`../research/15_xa_heterogeneous_investigation.md`](../research/15_xa_heterogeneous_investigation.md) | Full document | Comparison with XA, constraints for heterogeneous DBs |
+| [`../research/05_database_investigation.md`](../research/05_database_investigation.md) | Tier ranking | Backend DB selection |
 
-全てのトランザクションを以下の3つのカテゴリに分類する。
+---
+
+## Steps
+
+### Step 3.1: Transaction Boundary Classification
+
+Classify all transactions into the following three categories.
 
 ```mermaid
 flowchart TD
-    TX[トランザクションの分類] --> LOCAL["サービス内ローカルTx<br/>（ネイティブDB機能）"]
-    TX --> TPC["サービス間2PC<br/>（ScalarDB管理）"]
-    TX --> SAGA["結果整合性Saga<br/>（ScalarDB管理外）"]
+    TX["Transaction Classification"] --> LOCAL["Intra-Service Local Tx<br/>(Native DB Features)"]
+    TX --> TPC["Inter-Service 2PC<br/>(ScalarDB Managed)"]
+    TX --> SAGA["Eventual Consistency Saga<br/>(Not ScalarDB Managed)"]
 
-    LOCAL --> L1["単一サービス内で完結"]
-    LOCAL --> L2["単一DBへのアクセス"]
-    LOCAL --> L3["ネイティブTx機能で十分"]
+    LOCAL --> L1["Completed within a single service"]
+    LOCAL --> L2["Accesses a single DB"]
+    LOCAL --> L3["Native Tx features are sufficient"]
 
-    TPC --> T1["複数サービスにまたがる"]
-    TPC --> T2["即時整合性が必須"]
-    TPC --> T3["ScalarDB 2PC Interfaceを使用"]
+    TPC --> T1["Spans multiple services"]
+    TPC --> T2["Immediate consistency is required"]
+    TPC --> T3["Uses ScalarDB 2PC Interface"]
 
-    SAGA --> S1["複数サービスにまたがる"]
-    SAGA --> S2["結果整合性で許容可能"]
-    SAGA --> S3["補償トランザクションで回復"]
+    SAGA --> S1["Spans multiple services"]
+    SAGA --> S2["Eventual consistency is acceptable"]
+    SAGA --> S3["Recovery via compensating transactions"]
 
     style LOCAL fill:#2196F3,color:#fff
     style TPC fill:#4CAF50,color:#fff
     style SAGA fill:#FF9800,color:#fff
 ```
 
-#### トランザクション分類テンプレート
+#### Transaction Classification Template
 
-| ビジネスプロセス | 関連サービス | 関連テーブル | 分類 | 分類理由 |
-|-----------------|-------------|-------------|------|---------|
-| （例: 注文確定） | order, inventory, payment | orders, order_items, stock_items, payments | サービス間2PC | 在庫引当と決済の原子性が必須 |
-| （例: ユーザー登録） | customer | customers, addresses | ローカルTx | 単一サービス内で完結 |
-| （例: 配送手配） | order, shipping | orders, shipments | Saga | 配送遅延は許容可能、補償Txで対応 |
-| （例: ポイント付与） | order, loyalty | orders, points | Saga | 遅延許容可能、リトライで対応 |
+| Business Process | Related Services | Related Tables | Classification | Classification Rationale |
+|-----------------|-----------------|----------------|---------------|--------------------------|
+| (e.g., Order Confirmation) | order, inventory, payment | orders, order_items, stock_items, payments | Inter-Service 2PC | Atomicity of inventory reservation and payment is required |
+| (e.g., User Registration) | customer | customers, addresses | Local Tx | Completed within a single service |
+| (e.g., Shipping Arrangement) | order, shipping | orders, shipments | Saga | Shipping delay is acceptable, handled by compensating Tx |
+| (e.g., Points Allocation) | order, loyalty | orders, points | Saga | Delay is acceptable, handled by retries |
 | | | | | |
 
 ---
 
-### Step 3.2: ScalarDB管理対象テーブルの選定
+### Step 3.2: Selecting ScalarDB Managed Tables
 
-**最小化原則:** サービス間2PCに参加するテーブルのみをScalarDB管理下に置く。それ以外のテーブルはネイティブDB機能を活用する。
+**Minimization Principle:** Only place tables participating in inter-service 2PC under ScalarDB management. All other tables leverage native DB features.
 
 ```mermaid
 flowchart TD
-    TABLE[テーブルの分類判断] --> Q1{サービス間2PCに<br/>参加するか？}
+    TABLE["Table Classification Decision"] --> Q1{"Does it participate in<br/>inter-service 2PC?"}
 
-    Q1 -->|Yes| SCALAR["ScalarDB管理対象<br/>・ScalarDB APIでアクセス<br/>・メタデータカラム付与<br/>・ScalarDBスキーマで定義"]
-    Q1 -->|No| Q2{サービス内ローカルTxで<br/>使用するか？}
+    Q1 -->|Yes| SCALAR["ScalarDB Managed<br/>- Access via ScalarDB API<br/>- Metadata columns added<br/>- Defined in ScalarDB schema"]
+    Q1 -->|No| Q2{"Is it used for intra-service<br/>Local Tx?"}
 
-    Q2 -->|Yes| NATIVE["ネイティブDB管理<br/>・ネイティブDB APIでアクセス<br/>・DB固有機能フル活用<br/>・既存ORMも使用可"]
-    Q2 -->|No| Q3{読み取り専用か？}
+    Q2 -->|Yes| NATIVE["Native DB Managed<br/>- Access via native DB API<br/>- Full use of DB-specific features<br/>- Existing ORMs can be used"]
+    Q2 -->|No| Q3{"Is it read-only?"}
 
-    Q3 -->|Yes| READONLY["ネイティブDB管理（読み取り専用）<br/>・Analytics/CDCで連携<br/>・マテリアライズドビュー活用可"]
+    Q3 -->|Yes| READONLY["Native DB Managed (Read-Only)<br/>- Sync via Analytics/CDC<br/>- Materialized views can be used"]
     Q3 -->|No| NATIVE
 
     style SCALAR fill:#4CAF50,color:#fff
@@ -90,55 +90,55 @@ flowchart TD
     style READONLY fill:#607D8B,color:#fff
 ```
 
-#### ScalarDB管理対象テーブル選定テンプレート
+#### ScalarDB Managed Table Selection Template
 
-| サービス | テーブル名 | ScalarDB管理 | 理由 | 参加する2PCトランザクション |
-|---------|-----------|-------------|------|--------------------------|
-| order-service | orders | Yes | 注文確定2PCのCoordinator側テーブル | 注文確定Tx |
-| order-service | order_items | Yes | 注文確定2PCに参加 | 注文確定Tx |
-| order-service | order_history | No | 履歴参照のみ、Tx不参加 | — |
-| inventory-service | stock_items | Yes | 注文確定2PCのParticipant側テーブル | 注文確定Tx |
-| inventory-service | warehouses | No | マスタデータ、Tx不参加 | — |
-| payment-service | payments | Yes | 注文確定2PCのParticipant側テーブル | 注文確定Tx |
-| payment-service | payment_methods | No | マスタデータ、Tx不参加 | — |
-| shipping-service | shipments | No | Sagaで対応、2PC不参加 | — |
+| Service | Table Name | ScalarDB Managed | Reason | Participating 2PC Transaction |
+|---------|-----------|-----------------|--------|-------------------------------|
+| order-service | orders | Yes | Coordinator-side table for Order Confirmation 2PC | Order Confirmation Tx |
+| order-service | order_items | Yes | Participates in Order Confirmation 2PC | Order Confirmation Tx |
+| order-service | order_history | No | Read-only history, does not participate in Tx | — |
+| inventory-service | stock_items | Yes | Participant-side table for Order Confirmation 2PC | Order Confirmation Tx |
+| inventory-service | warehouses | No | Master data, does not participate in Tx | — |
+| payment-service | payments | Yes | Participant-side table for Order Confirmation 2PC | Order Confirmation Tx |
+| payment-service | payment_methods | No | Master data, does not participate in Tx | — |
+| shipping-service | shipments | No | Handled by Saga, does not participate in 2PC | — |
 | | | | | |
 
 ---
 
-### Step 3.3: 2PC適用の制限評価
+### Step 3.3: 2PC Applicability Constraint Evaluation
 
-`07_transaction_model.md`（Section 9.4）の制限ガイドラインに基づき、2PC適用範囲が推奨範囲内かを評価する。
+Evaluate whether the 2PC scope is within recommended limits based on the limitation guidelines from `07_transaction_model.md` (Section 9.4).
 
-#### 制限ガイドライン
+#### Limitation Guidelines
 
-> **重要:** 以下の適用許可条件を**すべて同時に**満たす場合のみ2PCを適用すること（`07_transaction_model.md` Section 9.4）。1つでも満たさない場合はSagaパターン等の代替手段を検討する。
+> **Important:** Apply 2PC only when **all** of the following conditions are met simultaneously (`07_transaction_model.md` Section 9.4). If any condition is not met, consider alternative approaches such as the Saga pattern.
 
-| # | 制限項目 | 推奨値 | 自システムの値 | 評価 | 出典 |
-|---|---------|--------|--------------|------|------|
-| 1 | ビジネス上の必要性 | **一時的な不整合が法規制・金銭的損失に直結する** | | OK / NG | 公式ガイドライン |
-| 2 | 1つの2PCトランザクションに参加するサービス数 | **3サービス以下** | | OK / NG | 公式ガイドライン |
-| 3 | 参加サービスの管理体制 | **同一チーム内で管理されている** | | OK / NG | 公式ガイドライン |
-| 4 | 2PCトランザクションのタイムアウト | **実行時間100ms以下（数秒以内に完了）** | | OK / NG | 公式ガイドライン |
-| 5 | 1つの2PCトランザクションでアクセスするテーブル数 | **5テーブル以下** | | OK / NG | プロジェクト固有基準 |
-| 6 | 2PCトランザクションの頻度 | **全Txの少数派** | | OK / NG | プロジェクト固有基準 |
+| # | Constraint | Recommended Value | Your System's Value | Evaluation | Source |
+|---|-----------|-------------------|---------------------|------------|--------|
+| 1 | Business necessity | **Temporary inconsistency directly leads to regulatory violations or financial loss** | | OK / NG | Official guidelines |
+| 2 | Number of services participating in a single 2PC transaction | **3 services or fewer** | | OK / NG | Official guidelines |
+| 3 | Management structure of participating services | **Managed within the same team** | | OK / NG | Official guidelines |
+| 4 | 2PC transaction timeout | **Execution time under 100ms (completes within a few seconds)** | | OK / NG | Official guidelines |
+| 5 | Number of tables accessed per 2PC transaction | **5 tables or fewer** | | OK / NG | Project-specific criteria |
+| 6 | 2PC transaction frequency | **Minority of all transactions** | | OK / NG | Project-specific criteria |
 
-> **注:** #1〜#4は `07_transaction_model.md` の公式ガイドライン「適用許可条件（全て満たすこと）」に基づく。#5、#6はプロジェクト固有の追加基準であり、公式ガイドラインには含まれない。
+> **Note:** #1-#4 are based on the official guidelines "Application Conditions (all must be met)" from `07_transaction_model.md`. #5 and #6 are additional project-specific criteria and are not part of the official guidelines.
 
 ```mermaid
 flowchart TD
-    CHECK[2PC制限評価] --> S1{参加サービス数は<br/>3以下か？}
+    CHECK["2PC Constraint Evaluation"] --> S1{"Is the number of participating<br/>services 3 or fewer?"}
 
-    S1 -->|Yes| S2{アクセステーブル数は<br/>5以下か？}
-    S1 -->|No| WARN1["警告: サービス数超過<br/>→ トランザクション分割を検討<br/>→ 一部をSagaに変更"]
+    S1 -->|Yes| S2{"Is the number of accessed<br/>tables 5 or fewer?"}
+    S1 -->|No| WARN1["Warning: Service count exceeded<br/>→ Consider splitting the transaction<br/>→ Change some to Saga"]
 
-    S2 -->|Yes| S3{タイムアウト内に<br/>完了可能か？}
-    S2 -->|No| WARN2["警告: テーブル数超過<br/>→ テーブル統合を検討<br/>→ アクセス範囲を最小化"]
+    S2 -->|Yes| S3{"Can it complete<br/>within the timeout?"}
+    S2 -->|No| WARN2["Warning: Table count exceeded<br/>→ Consider table consolidation<br/>→ Minimize access scope"]
 
-    S3 -->|Yes| OK["2PC適用範囲: 適正"]
-    S3 -->|No| WARN3["警告: タイムアウトリスク<br/>→ 処理の最適化が必要<br/>→ 非同期処理への変更を検討"]
+    S3 -->|Yes| OK["2PC Scope: Appropriate"]
+    S3 -->|No| WARN3["Warning: Timeout risk<br/>→ Processing optimization needed<br/>→ Consider switching to async processing"]
 
-    WARN1 --> REDESIGN["設計見直し"]
+    WARN1 --> REDESIGN["Design Review"]
     WARN2 --> REDESIGN
     WARN3 --> REDESIGN
 
@@ -149,155 +149,155 @@ flowchart TD
     style REDESIGN fill:#FF9800,color:#fff
 ```
 
-#### 2PCトランザクション詳細評価テンプレート
+#### 2PC Transaction Detailed Evaluation Template
 
-| 2PC Tx名 | 参加サービス数 | アクセステーブル数 | 想定所要時間 | 頻度（/秒） | 評価 |
-|---------|-------------|-----------------|------------|-----------|------|
-| （例: 注文確定Tx） | 3（order, inventory, payment） | 4（orders, order_items, stock_items, payments） | 200ms | 100 | OK |
+| 2PC Tx Name | # Participating Services | # Accessed Tables | Estimated Duration | Frequency (/sec) | Evaluation |
+|------------|------------------------|-------------------|--------------------|-------------------|------------|
+| (e.g., Order Confirmation Tx) | 3 (order, inventory, payment) | 4 (orders, order_items, stock_items, payments) | 200ms | 100 | OK |
 | | | | | | |
 
-**制限超過時の対策:**
-1. トランザクション分割: 1つの2PCを複数の小さい2PCに分割
-2. Sagaへの変更: 一部のサービスを結果整合性で対応するよう変更
-3. テーブル統合: 関連テーブルの非正規化による統合
-4. 処理最適化: 2PCトランザクション内の処理を最小化
+**Countermeasures When Limits Are Exceeded:**
+1. Transaction splitting: Split a single 2PC into multiple smaller 2PCs
+2. Switch to Saga: Change some services to use eventual consistency
+3. Table consolidation: Merge related tables through denormalization
+4. Processing optimization: Minimize processing within the 2PC transaction
 
 ---
 
-### Step 3.4: 非ScalarDB管理テーブルとの統合パターン決定
+### Step 3.4: Determining Integration Patterns for Non-ScalarDB Managed Tables
 
-ScalarDB管理対象外のテーブルとの連携方法を決定する。
+Determine integration methods for tables not managed by ScalarDB.
 
-#### 統合パターン一覧
+#### Integration Pattern List
 
-| パターン | 説明 | 適用場面 | 参照資料 |
-|---------|------|---------|---------|
-| **ScalarDB Analytics** | ScalarDBが管理するデータを分析用に読み取り | レポーティング、BI | `../research/` 関連資料 |
-| **CDC（Change Data Capture）** | ScalarDB管理テーブルの変更を非管理テーブルに伝播 | データ同期、イベント駆動 | |
-| **API Composition** | 複数サービスのAPIを組み合わせてデータ取得 | クエリ、画面表示用データ取得 | |
-| **CQRS** | コマンド側（ScalarDB管理）とクエリ側（ネイティブDB）を分離 | 読み書きの特性が大きく異なる場合 | |
+| Pattern | Description | Applicable Situations | Reference |
+|---------|-------------|----------------------|-----------|
+| **ScalarDB Analytics** | Read ScalarDB-managed data for analytics purposes | Reporting, BI | Related materials in `../research/` |
+| **CDC (Change Data Capture)** | Propagate changes from ScalarDB-managed tables to non-managed tables | Data synchronization, event-driven | |
+| **API Composition** | Combine APIs from multiple services to retrieve data | Queries, screen display data retrieval | |
+| **CQRS** | Separate command side (ScalarDB managed) from query side (native DB) | When read/write characteristics differ significantly | |
 
-#### 統合パターン適用テンプレート
+#### Integration Pattern Application Template
 
-| 連携元 | 連携先 | 統合パターン | データフロー | 遅延許容 | 備考 |
-|--------|--------|-------------|------------|---------|------|
-| orders（ScalarDB管理） | order_history（ネイティブ） | CDC | orders -> CDC -> order_history | 数秒 | |
-| stock_items（ScalarDB管理） | inventory_dashboard（ネイティブ） | API Composition | API経由で集約 | リアルタイム | |
-| payments（ScalarDB管理） | payment_report（ネイティブ） | ScalarDB Analytics | バッチ集計 | 数時間 | |
+| Source | Destination | Integration Pattern | Data Flow | Latency Tolerance | Notes |
+|--------|-------------|--------------------|-----------|--------------------|-------|
+| orders (ScalarDB managed) | order_history (native) | CDC | orders -> CDC -> order_history | A few seconds | |
+| stock_items (ScalarDB managed) | inventory_dashboard (native) | API Composition | Aggregated via API | Real-time | |
+| payments (ScalarDB managed) | payment_report (native) | ScalarDB Analytics | Batch aggregation | A few hours | |
 | | | | | | |
 
 ---
 
-### Step 3.5: DB選定
+### Step 3.5: DB Selection
 
-テーブルごとのバックエンドDBを決定する。`05_database_investigation.md` のティアランキングを参照する。
+Determine the backend DB for each table. Refer to the tier ranking in `05_database_investigation.md`.
 
-#### DB選定基準
+#### DB Selection Criteria
 
-| 基準 | 説明 |
-|------|------|
-| ScalarDBサポートレベル | Tier 1（専用アダプタ/公式フルサポート）/ Tier 2（JDBC経由公式サポート）/ Tier 3（Private Preview）/ Tier 4（未サポート） |
-| データモデル適合性 | テーブルのデータ特性に合ったDB種類か |
-| 運用実績 | チーム内での運用経験 |
-| コスト | ライセンス、インフラ、運用コスト |
-| 可用性・スケーラビリティ | 非機能要件を満たすか |
+| Criterion | Description |
+|-----------|-------------|
+| ScalarDB Support Level | Tier 1 (Dedicated adapter / Official full support) / Tier 2 (JDBC official support) / Tier 3 (Private Preview) / Tier 4 (Unsupported) |
+| Data Model Fit | Is the DB type suitable for the table's data characteristics? |
+| Operational Track Record | Operational experience within the team |
+| Cost | License, infrastructure, and operational costs |
+| Availability and Scalability | Does it meet non-functional requirements? |
 
-#### DB選定テンプレート
+#### DB Selection Template
 
-| サービス | テーブル | ScalarDB管理 | 選定DB | Tier | 選定理由 |
-|---------|---------|-------------|--------|------|---------|
-| order-service | orders | Yes | PostgreSQL | Tier 1 | RDBMS適合、Tier 1サポート |
-| order-service | order_items | Yes | PostgreSQL | Tier 1 | ordersと同一DB |
-| order-service | order_history | No | PostgreSQL | — | ネイティブ機能でパーティショニング活用 |
-| inventory-service | stock_items | Yes | MySQL | Tier 1 | 高頻度更新に適合 |
-| payment-service | payments | Yes | PostgreSQL | Tier 1 | トランザクション信頼性 |
-| shipping-service | shipments | No | DynamoDB | — | ScalarDB管理外、NoSQLのスケーラビリティ活用 |
+| Service | Table | ScalarDB Managed | Selected DB | Tier | Selection Rationale |
+|---------|-------|-----------------|-------------|------|---------------------|
+| order-service | orders | Yes | PostgreSQL | Tier 1 | RDBMS fit, Tier 1 support |
+| order-service | order_items | Yes | PostgreSQL | Tier 1 | Same DB as orders |
+| order-service | order_history | No | PostgreSQL | — | Leverage native partitioning features |
+| inventory-service | stock_items | Yes | MySQL | Tier 1 | Suitable for high-frequency updates |
+| payment-service | payments | Yes | PostgreSQL | Tier 1 | Transaction reliability |
+| shipping-service | shipments | No | DynamoDB | — | Not ScalarDB managed, leverage NoSQL scalability |
 | | | | | | |
 
-> **注意:** ScalarDB管理対象テーブルのバックエンドDBは、ScalarDBがサポートするDB（Tier 1推奨）から選定すること。非管理テーブルは自由にDB選定可能。
+> **Note:** Backend DBs for ScalarDB-managed tables must be selected from ScalarDB-supported DBs (Tier 1 recommended). Non-managed tables can freely use any DB.
 
 ---
 
-## デシジョンマトリクス
+## Decision Matrix
 
-全テーブルについて、ScalarDB管理要否、トランザクションパターン、バックエンドDBを一覧化する。
+Compile a comprehensive list of ScalarDB management requirements, transaction patterns, and backend DBs for all tables.
 
-### デシジョンマトリクステンプレート
+### Decision Matrix Template
 
-| # | サービス | テーブル名 | ScalarDB管理 | Txパターン | バックエンドDB | DB Tier | 参加2PC Tx | 統合パターン | 備考 |
-|---|---------|-----------|-------------|-----------|--------------|---------|-----------|-------------|------|
-| 1 | order-service | orders | Yes | 2PC (Coordinator) | PostgreSQL | Tier 1 | 注文確定Tx | — | |
-| 2 | order-service | order_items | Yes | 2PC (Coordinator) | PostgreSQL | Tier 1 | 注文確定Tx | — | |
-| 3 | order-service | order_history | No | ローカルTx | PostgreSQL | — | — | CDC (orders -> order_history) | |
-| 4 | inventory-service | stock_items | Yes | 2PC (Participant) | MySQL | Tier 1 | 注文確定Tx | — | |
-| 5 | inventory-service | warehouses | No | ローカルTx | MySQL | — | — | — | マスタデータ |
-| 6 | payment-service | payments | Yes | 2PC (Participant) | PostgreSQL | Tier 1 | 注文確定Tx | — | |
-| 7 | payment-service | payment_methods | No | ローカルTx | PostgreSQL | — | — | — | マスタデータ |
-| 8 | shipping-service | shipments | No | Saga | DynamoDB | — | — | — | 結果整合性 |
-| 9 | notification-service | notifications | No | Event | DynamoDB | — | — | — | 非同期通知 |
+| # | Service | Table Name | ScalarDB Managed | Tx Pattern | Backend DB | DB Tier | Participating 2PC Tx | Integration Pattern | Notes |
+|---|---------|-----------|-----------------|-----------|------------|---------|---------------------|--------------------|----|
+| 1 | order-service | orders | Yes | 2PC (Coordinator) | PostgreSQL | Tier 1 | Order Confirmation Tx | — | |
+| 2 | order-service | order_items | Yes | 2PC (Coordinator) | PostgreSQL | Tier 1 | Order Confirmation Tx | — | |
+| 3 | order-service | order_history | No | Local Tx | PostgreSQL | — | — | CDC (orders -> order_history) | |
+| 4 | inventory-service | stock_items | Yes | 2PC (Participant) | MySQL | Tier 1 | Order Confirmation Tx | — | |
+| 5 | inventory-service | warehouses | No | Local Tx | MySQL | — | — | — | Master data |
+| 6 | payment-service | payments | Yes | 2PC (Participant) | PostgreSQL | Tier 1 | Order Confirmation Tx | — | |
+| 7 | payment-service | payment_methods | No | Local Tx | PostgreSQL | — | — | — | Master data |
+| 8 | shipping-service | shipments | No | Saga | DynamoDB | — | — | — | Eventual consistency |
+| 9 | notification-service | notifications | No | Event | DynamoDB | — | — | — | Async notification |
 
-> **記入方法:** 上記は記入例。実際のプロジェクトでは全テーブルについて記入する。
-
----
-
-## 前提条件・制約の確認
-
-ScalarDB導入にあたり、以下の前提条件と制約を関係者全員が理解し合意する必要がある。
-
-### ScalarDB管理対象テーブルの制約
-
-| # | 制約事項 | 影響 | 対策 |
-|---|---------|------|------|
-| 1 | **全データアクセスがScalarDB API経由** | ScalarDB管理テーブルへの直接SQL実行は不可（データ不整合の原因） | アプリケーション全体でScalarDB APIを使用するよう徹底 |
-| 2 | **DB固有機能の制限** | ストアドプロシージャ、トリガー、DB固有のデータ型等は使用不可 | 必要な処理はアプリケーション層で実装 |
-| 3 | **メタデータオーバーヘッド** | ScalarDBがトランザクション管理用のメタデータカラムを追加（各行にバージョン、状態等） | ストレージ容量の見積もりに含める |
-| 4 | **スキーマ管理** | ScalarDB独自のスキーマ定義が必要 | マイグレーションツールの整備 |
-| 5 | **クエリ制限** | 複雑なJOIN、サブクエリ等に制限がある場合あり | CQRSパターンで読み取り専用ビューを別途用意 |
-
-### 確認チェックリスト
-
-- [ ] ScalarDB管理対象テーブルへの直接SQLアクセスが禁止されることを全チームが理解している
-- [ ] DB固有機能の利用制限を把握し、代替手段を検討済み
-- [ ] メタデータオーバーヘッドをストレージ見積もりに含めている
-- [ ] ScalarDB管理対象テーブルと非管理テーブルの統合パターンが決定している
-- [ ] 開発チームがScalarDB APIの使用方法を理解している（または学習計画がある）
+> **Instructions:** The above is a sample. For actual projects, fill in entries for all tables.
 
 ---
 
-## 成果物
+## Prerequisites and Constraints Confirmation
 
-| 成果物 | 説明 |
-|--------|------|
-| ScalarDB管理対象テーブル一覧 | ScalarDB管理下に置くテーブルの一覧と根拠 |
-| トランザクション境界定義 | ローカルTx / 2PC / Saga の分類結果 |
-| デシジョンマトリクス | テーブルごとのScalarDB管理要否・Txパターン・バックエンドDB |
-| DB選定結果 | テーブルごとのバックエンドDB選定と根拠 |
-| 統合パターン定義 | ScalarDB管理外テーブルとの連携方式 |
-| 前提条件・制約合意書 | ScalarDB導入の制約に対する関係者合意 |
+The following prerequisites and constraints must be understood and agreed upon by all stakeholders before adopting ScalarDB.
 
----
+### Constraints for ScalarDB Managed Tables
 
-## 完了基準チェックリスト
+| # | Constraint | Impact | Countermeasure |
+|---|-----------|--------|----------------|
+| 1 | **All data access must go through ScalarDB API** | Direct SQL execution on ScalarDB-managed tables is not allowed (causes data inconsistency) | Ensure the entire application uses ScalarDB API |
+| 2 | **DB-specific feature restrictions** | Stored procedures, triggers, DB-specific data types, etc. cannot be used | Implement required processing at the application layer |
+| 3 | **Metadata overhead** | ScalarDB adds metadata columns for transaction management to each row (version, state, etc.) | Include in storage capacity estimates |
+| 4 | **Schema management** | ScalarDB-specific schema definitions are required | Establish migration tools |
+| 5 | **Query restrictions** | Complex JOINs, subqueries, etc. may have restrictions | Prepare separate read-only views using the CQRS pattern |
 
-- [ ] 全てのトランザクションが「ローカルTx」「サービス間2PC」「Saga」に分類されている
-- [ ] ScalarDB管理対象テーブルが最小化原則に基づき選定されている
-- [ ] 2PC適用範囲が制限ガイドライン（3サービス以下、5テーブル以下）内に収まっている（超過時は対策済み）
-- [ ] 非ScalarDB管理テーブルとの統合パターンが全て決定している
-- [ ] テーブルごとのバックエンドDBが選定され、Tierランキングが確認されている
-- [ ] デシジョンマトリクスが全テーブルについて記入されている
-- [ ] 前提条件・制約について関係者の合意が得られている
-- [ ] 設計結果についてアーキテクトレビューが完了している
+### Confirmation Checklist
+
+- [ ] All teams understand that direct SQL access to ScalarDB-managed tables is prohibited
+- [ ] DB-specific feature usage restrictions have been identified and alternatives considered
+- [ ] Metadata overhead has been included in storage estimates
+- [ ] Integration patterns between ScalarDB-managed and non-managed tables have been determined
+- [ ] Development teams understand how to use ScalarDB API (or have a learning plan)
 
 ---
 
-## 次のステップへの引き継ぎ事項
+## Deliverables
 
-### Phase 2: 設計フェーズへの引き継ぎ
+| Deliverable | Description |
+|-------------|-------------|
+| ScalarDB Managed Table List | List of tables under ScalarDB management with rationale |
+| Transaction Boundary Definition | Classification results of Local Tx / 2PC / Saga |
+| Decision Matrix | ScalarDB management requirements, Tx patterns, and backend DB for each table |
+| DB Selection Results | Backend DB selection and rationale for each table |
+| Integration Pattern Definition | Integration methods with non-ScalarDB managed tables |
+| Prerequisites and Constraints Agreement | Stakeholder agreement on ScalarDB adoption constraints |
 
-| 引き継ぎ項目 | 引き継ぎ先 | 内容 |
-|-------------|-----------|------|
-| デシジョンマトリクス | 04 データモデル設計（Phase 2） | テーブルごとのScalarDB管理要否とバックエンドDB |
-| トランザクション境界定義 | 05 トランザクション設計（Phase 2） | 2PC/Saga/ローカルTxの分類結果 |
-| 統合パターン定義 | 06 API・インターフェース設計（Phase 2） | CDC、API Composition等の連携方式 |
-| 前提条件・制約合意書 | 全設計フェーズ | ScalarDB導入の制約事項 |
-| DB選定結果 | 07 インフラストラクチャ設計（Phase 3） | バックエンドDBのプロビジョニング計画 |
+---
+
+## Completion Criteria Checklist
+
+- [ ] All transactions have been classified into "Local Tx," "Inter-Service 2PC," or "Saga"
+- [ ] ScalarDB-managed tables have been selected based on the minimization principle
+- [ ] 2PC scope is within the limitation guidelines (3 services or fewer, 5 tables or fewer) (countermeasures applied if exceeded)
+- [ ] Integration patterns for all non-ScalarDB managed tables have been determined
+- [ ] Backend DB has been selected for each table and tier ranking has been confirmed
+- [ ] Decision matrix has been filled in for all tables
+- [ ] Prerequisites and constraints have been agreed upon by stakeholders
+- [ ] Architect review of design results has been completed
+
+---
+
+## Handoff Items for the Next Step
+
+### Handoff to Phase 2: Design Phase
+
+| Handoff Item | Destination | Content |
+|--------------|-------------|---------|
+| Decision Matrix | 04 Data Model Design (Phase 2) | ScalarDB management requirements and backend DB per table |
+| Transaction Boundary Definition | 05 Transaction Design (Phase 2) | Classification results of 2PC / Saga / Local Tx |
+| Integration Pattern Definition | 06 API and Interface Design (Phase 2) | Integration methods including CDC, API Composition, etc. |
+| Prerequisites and Constraints Agreement | All design phases | ScalarDB adoption constraint items |
+| DB Selection Results | 07 Infrastructure Design (Phase 3) | Backend DB provisioning plan |

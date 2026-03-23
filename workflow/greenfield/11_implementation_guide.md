@@ -1,150 +1,150 @@
-# Phase 4-1: 実装ガイド
+# Phase 4-1: Implementation Guide
 
-## 目的
+## Purpose
 
-設計成果物をもとに、実装タスクを定義し優先順位をつける。Phase 1〜3で策定した要件分析、設計、基盤設計の全成果物を入力として、段階的かつ安全に実装を進めるためのガイドラインを策定する。
-
----
-
-## 入力
-
-| 入力物 | 説明 | 提供元 |
-|--------|------|--------|
-| Phase 1〜3の全設計成果物 | 要件分析、ドメインモデル、データモデル設計、トランザクション設計、API設計、インフラ設計、セキュリティ設計、オブザーバビリティ設計、DR設計 | 前フェーズ全体 |
-| 実装タスク一覧（ドラフト） | Phase 3完了時点で識別された実装タスク候補 | 前フェーズ |
+Define implementation tasks and prioritize them based on design artifacts. Using all deliverables from Phase 1-3 (requirements analysis, design, and infrastructure design) as input, establish guidelines for progressing implementation incrementally and safely.
 
 ---
 
-## 参照資料
+## Input
 
-| 資料 | 参照箇所 | 用途 |
-|------|----------|------|
-| [`../research/00_summary_report.md`](../research/00_summary_report.md) | Section 12 ロードマップ | 実装フェーズの全体スケジュール・マイルストーンの参考 |
-| [`../research/13_scalardb_317_deep_dive.md`](../research/13_scalardb_317_deep_dive.md) | 全体 | ScalarDB 3.17の新機能（Batch Operations、Write Buffering等）の実装方法 |
+| Input | Description | Source |
+|-------|-------------|--------|
+| All design artifacts from Phase 1-3 | Requirements analysis, domain model, data model design, transaction design, API design, infrastructure design, security design, observability design, DR design | All previous phases |
+| Implementation task list (draft) | Implementation task candidates identified at Phase 3 completion | Previous phase |
 
 ---
 
-## ステップ
+## References
 
-### Step 11.1: 実装フェーズの定義
+| Document | Reference Section | Purpose |
+|----------|-------------------|---------|
+| [`../research/00_summary_report.md`](../research/00_summary_report.md) | Section 12 Roadmap | Reference for overall schedule and milestones of the implementation phase |
+| [`../research/13_scalardb_317_deep_dive.md`](../research/13_scalardb_317_deep_dive.md) | Entire document | Implementation methods for ScalarDB 3.17 new features (Batch Operations, Write Buffering, etc.) |
 
-実装を5つのフェーズに分割し、段階的に進める。各フェーズは前フェーズの完了を前提とする。
+---
+
+## Steps
+
+### Step 11.1: Defining Implementation Phases
+
+Divide the implementation into 5 phases and proceed incrementally. Each phase assumes the completion of the previous phase.
 
 ```mermaid
 gantt
-    title ScalarDB × マイクロサービス 実装スケジュール
+    title ScalarDB x Microservices Implementation Schedule
     dateFormat  YYYY-MM-DD
     axisFormat  %m/%d
 
-    section Phase A: 基盤構築
-    K8sクラスタ構築               :a1, 2026-03-02, 5d
-    ScalarDB Cluster デプロイ     :a2, after a1, 5d
-    バックエンドDB構築             :a3, after a1, 5d
-    監視基盤構築                   :a4, after a2, 5d
+    section Phase A: Foundation Setup
+    K8s Cluster Setup               :a1, 2026-03-02, 5d
+    ScalarDB Cluster Deployment     :a2, after a1, 5d
+    Backend DB Setup                :a3, after a1, 5d
+    Monitoring Infrastructure Setup :a4, after a2, 5d
 
-    section Phase B: コアサービス実装
-    クリティカルサービス実装        :b1, after a4, 10d
-    ScalarDB SDK統合              :b2, after b1, 10d
-    サービス内トランザクション実装  :b3, after b2, 10d
+    section Phase B: Core Service Implementation
+    Critical Service Implementation :b1, after a4, 10d
+    ScalarDB SDK Integration        :b2, after b1, 10d
+    Intra-service Transaction Impl  :b3, after b2, 10d
 
-    section Phase C: サービス間連携
-    2PC Interface実装             :c1, after b3, 8d
-    Saga/イベント駆動実装         :c2, after c1, 7d
-    CDC/Outbox実装               :c3, after c2, 5d
+    section Phase C: Inter-service Integration
+    2PC Interface Implementation    :c1, after b3, 8d
+    Saga/Event-driven Implementation:c2, after c1, 7d
+    CDC/Outbox Implementation       :c3, after c2, 5d
 
-    section Phase D: 非機能要件
-    セキュリティ実装               :d1, after c3, 5d
-    監視・アラート設定             :d2, after d1, 5d
-    バックアップ・DR設定           :d3, after d2, 5d
+    section Phase D: Non-functional Requirements
+    Security Implementation         :d1, after c3, 5d
+    Monitoring & Alerting Setup     :d2, after d1, 5d
+    Backup & DR Setup               :d3, after d2, 5d
 
-    section Phase E: テスト
-    結合テスト                     :e1, after d3, 8d
-    性能テスト                     :e2, after e1, 7d
+    section Phase E: Testing
+    Integration Testing             :e1, after d3, 8d
+    Performance Testing             :e2, after e1, 7d
 ```
 
-#### Phase A: 基盤構築（3〜4週間）
+#### Phase A: Foundation Setup (3-4 weeks)
 
-プロジェクト全体のインフラ基盤を構築する。
+Build the infrastructure foundation for the entire project.
 
-| タスク | 内容 | 前提条件 | 完了基準 |
-|--------|------|---------|---------|
-| K8sクラスタ構築 | Kubernetes環境の構築（EKS/GKE/AKS等）。Namespace設計、RBAC設定、ネットワークポリシーの適用 | クラウドアカウント・権限の準備 | kubectlで全Namespaceにアクセス可能、RBAC適用済み |
-| ScalarDB Cluster デプロイ | Helm Chartを使ったScalarDB Clusterのデプロイ。Envoy Proxy設定、ScalarDB Cluster ノード構成 | K8sクラスタ稼働済み | ScalarDB Clusterの全ノードがReadyかつヘルスチェック通過 |
+| Task | Details | Prerequisites | Completion Criteria |
+|------|---------|---------------|---------------------|
+| K8s Cluster Setup | Build Kubernetes environment (EKS/GKE/AKS, etc.). Namespace design, RBAC configuration, network policy application | Cloud account and permissions ready | All Namespaces accessible via kubectl, RBAC applied |
+| ScalarDB Cluster Deployment | Deploy ScalarDB Cluster using Helm Chart. Envoy Proxy configuration, ScalarDB Cluster node configuration | K8s cluster operational | All ScalarDB Cluster nodes are Ready and pass health checks |
 
-> **注意**: ScalarDB Clusterの商用ライセンスでは1ノードあたり2vCPU / 4GBメモリの制約があります（詳細は `07_infrastructure_design.md` Step 7.3参照）。
+> **Note**: The ScalarDB Cluster commercial license has a constraint of 2 vCPU / 4GB memory per node (see `07_infrastructure_design.md` Step 7.3 for details).
 
-| バックエンドDB構築 | 各マイクロサービスが使用するバックエンドDBの構築（MySQL/PostgreSQL/Cassandra等） | K8sクラスタ稼働済み | 各DBへの接続確認、ScalarDBからの接続確認 |
-| 監視基盤構築 | Prometheus/Grafana/Loki等の監視スタックのデプロイ | K8sクラスタ稼働済み | メトリクス収集、ログ収集が動作確認済み |
+| Backend DB Setup | Build backend databases used by each microservice (MySQL/PostgreSQL/Cassandra, etc.) | K8s cluster operational | Connection to each DB confirmed, connection from ScalarDB confirmed |
+| Monitoring Infrastructure Setup | Deploy monitoring stack (Prometheus/Grafana/Loki, etc.) | K8s cluster operational | Metrics collection and log collection verified |
 
-#### Phase B: コアサービス実装（4〜6週間）
+#### Phase B: Core Service Implementation (4-6 weeks)
 
-最もクリティカルなサービスから実装を開始する。
+Start implementation with the most critical services.
 
-| タスク | 内容 | 前提条件 | 完了基準 |
-|--------|------|---------|---------|
-| クリティカルサービスの実装 | ドメインモデル（Step 02成果物）に基づき、最もビジネスインパクトが高いサービスから実装。基本的なCRUD操作とビジネスロジックの実装 | Phase A完了 | 単体テスト通過、基本APIが動作 |
-| ScalarDB SDK統合 | 各サービスにScalarDB SDKを統合。database.propertiesの設定、DistributedTransactionManagerの初期化 | クリティカルサービスの骨格完成 | ScalarDB経由のDB操作が動作確認済み |
-| サービス内トランザクション実装 | 各サービス内のローカルトランザクション実装。ScalarDB DistributedTransaction APIの使用 | ScalarDB SDK統合完了 | サービス内トランザクションの正常系・異常系テスト通過 |
+| Task | Details | Prerequisites | Completion Criteria |
+|------|---------|---------------|---------------------|
+| Critical Service Implementation | Implement services starting from those with the highest business impact based on the domain model (Step 02 deliverables). Implement basic CRUD operations and business logic | Phase A complete | Unit tests pass, basic APIs operational |
+| ScalarDB SDK Integration | Integrate ScalarDB SDK into each service. Configure database.properties, initialize DistributedTransactionManager | Critical service skeleton complete | DB operations via ScalarDB verified |
+| Intra-service Transaction Implementation | Implement local transactions within each service. Use ScalarDB DistributedTransaction API | ScalarDB SDK integration complete | Normal and error path tests for intra-service transactions pass |
 
-#### Phase C: サービス間連携（3〜4週間）
+#### Phase C: Inter-service Integration (3-4 weeks)
 
-サービス間のトランザクション連携を実装する。
+Implement transaction coordination between services.
 
-| タスク | 内容 | 前提条件 | 完了基準 |
-|--------|------|---------|---------|
-| 2PC Interfaceの実装 | ScalarDB TwoPhaseCommitTransaction APIを使用したサービス間2PC実装。Coordinator/Participant役割の実装 | Phase B完了 | 2PCの正常系シナリオが動作確認済み |
-| Saga/イベント駆動の実装 | 結果整合性が許容されるサービス間連携のSagaパターン実装。補償トランザクションの設計・実装 | Phase B完了 | Sagaの正常系・補償シナリオが動作確認済み |
-| CDC/Outboxの実装 | Outboxパターンによるイベント発行の実装。ScalarDB CDC機能の活用（該当する場合） | Phase B完了 | イベント発行・購読が動作確認済み |
+| Task | Details | Prerequisites | Completion Criteria |
+|------|---------|---------------|---------------------|
+| 2PC Interface Implementation | Implement inter-service 2PC using ScalarDB TwoPhaseCommitTransaction API. Implement Coordinator/Participant roles | Phase B complete | Normal path scenarios for 2PC verified |
+| Saga/Event-driven Implementation | Implement Saga pattern for inter-service integration where eventual consistency is acceptable. Design and implement compensation transactions | Phase B complete | Normal path and compensation scenarios for Saga verified |
+| CDC/Outbox Implementation | Implement event publishing via the Outbox pattern. Leverage ScalarDB CDC features (if applicable) | Phase B complete | Event publishing and subscription verified |
 
-#### Phase D: 非機能要件実装（2〜3週間）
+#### Phase D: Non-functional Requirements Implementation (2-3 weeks)
 
-セキュリティ、監視、バックアップ等の非機能要件を実装する。
+Implement non-functional requirements such as security, monitoring, and backup.
 
-| タスク | 内容 | 前提条件 | 完了基準 |
-|--------|------|---------|---------|
-| セキュリティ実装 | TLS/mTLS設定、RBAC権限設定、認証・認可の実装。ScalarDB Clusterの認証設定 | Phase C完了 | セキュリティテスト通過、脆弱性スキャン合格 |
-| 監視・アラート設定 | Grafanaダッシュボード作成、アラートルール定義。ScalarDB固有メトリクスの監視設定 | Phase C完了 | 全メトリクス収集確認、アラート発火テスト通過 |
-| バックアップ・DR設定 | バックアップジョブの設定、DR手順の実装・テスト | Phase C完了 | バックアップ・リストアの動作確認、RTO/RPO要件の達成確認 |
+| Task | Details | Prerequisites | Completion Criteria |
+|------|---------|---------------|---------------------|
+| Security Implementation | TLS/mTLS configuration, RBAC permissions, authentication and authorization implementation. ScalarDB Cluster authentication configuration | Phase C complete | Security tests pass, vulnerability scan passed |
+| Monitoring & Alerting Setup | Create Grafana dashboards, define alert rules. Configure monitoring for ScalarDB-specific metrics | Phase C complete | All metrics collection confirmed, alert firing tests pass |
+| Backup & DR Setup | Configure backup jobs, implement and test DR procedures | Phase C complete | Backup and restore verified, RTO/RPO requirements met |
 
-#### Phase E: 結合テスト・性能テスト（2〜3週間）
+#### Phase E: Integration Testing & Performance Testing (2-3 weeks)
 
-システム全体の結合テストおよび性能テストを実施する。
+Conduct system-wide integration testing and performance testing.
 
-| タスク | 内容 | 前提条件 | 完了基準 |
-|--------|------|---------|---------|
-| 結合テスト | 全サービスを統合した状態でのE2Eテスト。2PC/Sagaのシナリオテスト、障害シナリオテスト | Phase D完了 | 全結合テストケース通過 |
-| 性能テスト | スループット・レイテンシの計測。OCC競合率テスト、スケーラビリティテスト | Phase D完了 | 性能目標（目標TPS、P95レイテンシ）達成 |
+| Task | Details | Prerequisites | Completion Criteria |
+|------|---------|---------------|---------------------|
+| Integration Testing | E2E testing with all services integrated. 2PC/Saga scenario testing, failure scenario testing | Phase D complete | All integration test cases pass |
+| Performance Testing | Measure throughput and latency. OCC conflict rate testing, scalability testing | Phase D complete | Performance targets (target TPS, P95 latency) achieved |
 
 ---
 
-### Step 11.2: 各サービスの実装チェックリスト
+### Step 11.2: Implementation Checklist for Each Service
 
-各マイクロサービスの実装時に確認すべき項目を定義する。
+Define the items to verify when implementing each microservice.
 
-#### 11.2.1: ScalarDB設定ファイル（database.properties）の作成
+#### 11.2.1: Creating the ScalarDB Configuration File (database.properties)
 
 ```properties
-# ScalarDB Cluster接続設定
+# ScalarDB Cluster connection settings
 scalar.db.transaction_manager=cluster
 scalar.db.contact_points=indirect:scalardb-cluster-envoy.<namespace>.svc.cluster.local
 
-# トランザクション設定
+# Transaction settings
 scalar.db.consensus_commit.isolation_level=SNAPSHOT
 scalar.db.consensus_commit.serializable_strategy=EXTRA_READ
 
-# 接続プール設定
+# Connection pool settings
 scalar.db.cluster.grpc.deadline_duration_millis=60000
 ```
 
-**確認ポイント:**
-- [ ] contact_pointsがScalarDB Cluster Envoyのサービス名を指しているか
-- [ ] isolation_levelがトランザクション要件に合致しているか
-- [ ] タイムアウト値がSLAに適切か
+**Verification Points:**
+- [ ] Does contact_points point to the ScalarDB Cluster Envoy service name?
+- [ ] Does isolation_level match the transaction requirements?
+- [ ] Are timeout values appropriate for the SLA?
 
-#### 11.2.2: トランザクション管理クラスの実装
+#### 11.2.2: Implementing the Transaction Management Class
 
 ```java
-// トランザクション管理の基本パターン
+// Basic transaction management pattern
 public class TransactionService {
     private final DistributedTransactionManager manager;
 
@@ -158,7 +158,7 @@ public class TransactionService {
                 tx.commit();
                 return;
             } catch (CrudConflictException e) {
-                // OCC競合 → ロールバック後リトライ
+                // OCC conflict -> rollback then retry
                 if (tx != null) {
                     try { tx.rollback(); } catch (Exception re) { /* log */ }
                 }
@@ -168,7 +168,7 @@ public class TransactionService {
                 }
                 backoff(retryCount);
             } catch (CommitConflictException e) {
-                // コミット時競合 → ロールバック後リトライ
+                // Conflict at commit -> rollback then retry
                 if (tx != null) {
                     try { tx.rollback(); } catch (Exception re) { /* log */ }
                 }
@@ -178,7 +178,7 @@ public class TransactionService {
                 }
                 backoff(retryCount);
             } catch (UnknownTransactionStatusException e) {
-                // コミット結果不明 → ログ出力し調査
+                // Commit result unknown -> log and investigate
                 throw new TransactionUnknownException("Commit status unknown", e);
             } catch (Exception e) {
                 if (tx != null) {
@@ -191,16 +191,16 @@ public class TransactionService {
 }
 ```
 
-**確認ポイント:**
-- [ ] CrudConflictException/CommitConflictExceptionのリトライが実装されているか
-- [ ] UnknownTransactionStatusExceptionのハンドリングが適切か
-- [ ] rollbackが確実に呼ばれるか（finallyブロック or try-with-resources）
-- [ ] リトライ間隔にExponential Backoffが適用されているか
+**Verification Points:**
+- [ ] Is retry implemented for CrudConflictException/CommitConflictException?
+- [ ] Is UnknownTransactionStatusException handled appropriately?
+- [ ] Is rollback reliably called (via finally block or try-with-resources)?
+- [ ] Is Exponential Backoff applied to retry intervals?
 
-#### 11.2.3: リポジトリ層の実装（ScalarDB API経由）
+#### 11.2.3: Implementing the Repository Layer (via ScalarDB API)
 
 ```java
-// ScalarDB APIを使用したリポジトリパターン
+// Repository pattern using ScalarDB API
 public class OrderRepository {
     private static final String NAMESPACE = "order_service";
     private static final String TABLE = "orders";
@@ -229,28 +229,28 @@ public class OrderRepository {
 }
 ```
 
-**確認ポイント:**
-- [ ] トランザクション（tx）が外部から注入されているか（リポジトリ内でbegin/commitしない）
-- [ ] Namespace/Table名がスキーマ定義と一致しているか
-- [ ] パーティションキー・クラスタリングキーが正しく設定されているか
+**Verification Points:**
+- [ ] Is the transaction (tx) injected from outside (no begin/commit inside the repository)?
+- [ ] Do Namespace/Table names match the schema definition?
+- [ ] Are the partition key and clustering key correctly configured?
 
-#### 11.2.4: エラーハンドリング設計
+#### 11.2.4: Error Handling Design
 
-ScalarDB固有の例外を適切にハンドリングする。
+Handle ScalarDB-specific exceptions appropriately.
 
-| 例外クラス | 発生タイミング | 対応方針 |
-|-----------|-------------|---------|
-| `CrudConflictException` | Get/Put/Delete操作時のOCC競合 | リトライ（Exponential Backoff） |
-| `CommitConflictException` | コミット時のOCC競合 | トランザクション全体をリトライ |
-| `UnknownTransactionStatusException` | コミット結果が不明 | ログ記録し、Coordinatorテーブルで確認 |
-| `CrudException` | CRUD操作の一般的な失敗 | ロールバックしてエラー返却 |
-| `TransactionException` | トランザクション操作の一般的な失敗 | ロールバックしてエラー返却 |
-| `TransactionNotFoundException` | トランザクションIDが見つからない | 新規トランザクションで再実行 |
+| Exception Class | When It Occurs | Response Strategy |
+|----------------|----------------|-------------------|
+| `CrudConflictException` | OCC conflict during Get/Put/Delete operations | Retry (Exponential Backoff) |
+| `CommitConflictException` | OCC conflict at commit time | Retry the entire transaction |
+| `UnknownTransactionStatusException` | Commit result is unknown | Log and verify via Coordinator table |
+| `CrudException` | General CRUD operation failure | Rollback and return error |
+| `TransactionException` | General transaction operation failure | Rollback and return error |
+| `TransactionNotFoundException` | Transaction ID not found | Re-execute with a new transaction |
 
-#### 11.2.5: Spring Boot / Quarkus統合
+#### 11.2.5: Spring Boot / Quarkus Integration
 
 ```java
-// Spring Boot統合の例
+// Spring Boot integration example
 @Configuration
 public class ScalarDbConfig {
 
@@ -261,7 +261,7 @@ public class ScalarDbConfig {
     }
 }
 
-// Quarkus統合の例（CDI Producer）
+// Quarkus integration example (CDI Producer)
 @ApplicationScoped
 public class ScalarDbProducer {
 
@@ -274,43 +274,43 @@ public class ScalarDbProducer {
 }
 ```
 
-**確認ポイント:**
-- [ ] TransactionManagerがシングルトン（ApplicationScoped）で管理されているか
-- [ ] アプリケーション終了時にclose()が呼ばれるか（@PreDestroy）
-- [ ] database.propertiesのパスが正しいか
+**Verification Points:**
+- [ ] Is the TransactionManager managed as a singleton (ApplicationScoped)?
+- [ ] Is close() called on application shutdown (@PreDestroy)?
+- [ ] Is the database.properties path correct?
 
 ---
 
-### Step 11.3: ScalarDB固有の実装パターン
+### Step 11.3: ScalarDB-Specific Implementation Patterns
 
-ScalarDB APIの正しい使い方を整理する。
+Organize the correct usage of ScalarDB APIs.
 
-#### 11.3.1: DistributedTransaction APIの使い方
+#### 11.3.1: Using the DistributedTransaction API
 
-単一サービス内のトランザクションに使用する。
+Used for transactions within a single service.
 
 ```
-begin → 操作（Get/Put/Delete/Scan） → commit
-  |                                       |
-  +------------ rollback（異常時）---------+
+begin -> operations (Get/Put/Delete/Scan) -> commit
+  |                                            |
+  +------------ rollback (on error) -----------+
 ```
 
 ```java
 DistributedTransaction tx = manager.begin();
 try {
-    // 1. 読み取り
+    // 1. Read
     Optional<Result> result = tx.get(getOperation);
 
-    // 2. ビジネスロジック
+    // 2. Business logic
     // ...
 
-    // 3. 書き込み
+    // 3. Write
     tx.put(putOperation);
 
-    // 4. コミット
+    // 4. Commit
     tx.commit();
 } catch (CrudConflictException | CommitConflictException e) {
-    // OCC競合 → リトライ
+    // OCC conflict -> retry
     tx.rollback();
     // retry logic
 } catch (Exception e) {
@@ -319,55 +319,55 @@ try {
 }
 ```
 
-#### 11.3.2: TwoPhaseCommitTransaction APIの使い方
+#### 11.3.2: Using the TwoPhaseCommitTransaction API
 
-サービス間の分散トランザクションに使用する。
+Used for distributed transactions across services.
 
 ```
-【Coordinator】           【Participant】
-start() ──────────────→ join(txId)
-    |                        |
-  操作                      操作
-    |                        |
-prepare() ←──────────── prepare()
-    |                        |
-validate() ←─────────── validate()
-    |                        |
-commit() ──────────────→ commit()
+[Coordinator]              [Participant]
+start() -----------------> join(txId)
+    |                          |
+  operations                 operations
+    |                          |
+prepare() <--------------- prepare()
+    |                          |
+validate() <-------------- validate()
+    |                          |
+commit() -----------------> commit()
 ```
 
 ```java
-// Coordinator側
+// Coordinator side
 TwoPhaseCommitTransaction tx = manager.start();
 try {
     String txId = tx.getId();
 
-    // 1. ローカル操作
+    // 1. Local operations
     tx.put(localPutOperation);
 
-    // 2. Participantに txId を渡して操作を依頼（gRPC/REST）
+    // 2. Pass txId to Participant and request operations (gRPC/REST)
     participantClient.executeInTransaction(txId, request);
 
-    // 3. Prepare（全Participant + 自身）
+    // 3. Prepare (all Participants + self)
     tx.prepare();
 
-    // 4. Validate（全Participant + 自身）
+    // 4. Validate (all Participants + self)
     tx.validate();
 
-    // 5. Commit（全Participant + 自身）
+    // 5. Commit (all Participants + self)
     tx.commit();
 } catch (Exception e) {
     tx.rollback();
     throw e;
 }
 
-// Participant側
+// Participant side
 TwoPhaseCommitTransaction tx = manager.join(txId);
 try {
-    // ローカル操作
+    // Local operations
     tx.put(localPutOperation);
 
-    // Coordinator側でprepare/validate/commitが呼ばれる
+    // prepare/validate/commit are called from the Coordinator side
     tx.prepare();
     tx.validate();
     tx.commit();
@@ -377,9 +377,9 @@ try {
 }
 ```
 
-#### 11.3.3: Batch Operations APIの使い方（3.17新機能）
+#### 11.3.3: Using the Batch Operations API (3.17 New Feature)
 
-複数の操作をバッチで実行し、パフォーマンスを向上させる。
+Execute multiple operations in batch to improve performance.
 
 ```java
 // Batch Put
@@ -395,173 +395,174 @@ for (OrderItem item : order.getItems()) {
         .build();
     puts.add(put);
 }
-tx.mutate(puts);  // バッチ実行
+tx.mutate(puts);  // Batch execution
 ```
 
-**注意:** Batch Operationsは同一トランザクション内で実行される。個々のPut/Deleteを逐次実行するよりも効率的。
+**Note:** Batch Operations are executed within the same transaction. They are more efficient than executing individual Put/Delete operations sequentially.
 
-#### 11.3.4: Write Buffering / Piggyback Begin の設定方法
+#### 11.3.4: Configuring Write Buffering / Piggyback Begin
 
-ScalarDB 3.17で導入されたパフォーマンス最適化機能。
+Performance optimization features introduced in ScalarDB 3.17.
 
 ```properties
-# Write Buffering（書き込みバッファリング）
-# 非条件的な書込み操作（insert, upsert, 無条件put/update/delete）をバッファし、
-# Read時やCommit時にまとめて送信。条件付きミューテーション（updateIf, deleteIf等）は対象外。
+# Write Buffering
+# Buffers unconditional write operations (insert, upsert, unconditional put/update/delete)
+# and sends them together during Read or Commit. Conditional mutations (updateIf, deleteIf, etc.)
+# are not buffered.
 scalar.db.cluster.client.write_buffering.enabled=true
 
-# Piggyback Begin（トランザクション開始の最適化）
-# 最初の操作と同時にトランザクションを開始
+# Piggyback Begin (transaction start optimization)
+# Starts the transaction together with the first operation
 scalar.db.cluster.client.piggyback_begin.enabled=true
-# デフォルトOFF。明示的に有効化が必要
+# Off by default. Must be explicitly enabled
 ```
 
-**確認ポイント:**
-- [ ] Write Bufferingを有効にする場合、バッファサイズの上限を考慮しているか
-- [ ] 書き込みが多いワークロードでWrite Bufferingの効果を計測しているか
+**Verification Points:**
+- [ ] When enabling Write Buffering, has the buffer size limit been considered?
+- [ ] Has the effectiveness of Write Buffering been measured for write-heavy workloads?
 
 ---
 
-### Step 11.4: AI Coding エージェント活用ガイド
+### Step 11.4: AI Coding Agent Utilization Guide
 
-AI Codingエージェントを活用して実装を効率化する方法を定義する。
+Define methods for leveraging AI Coding agents to streamline implementation.
 
-#### 11.4.1: ScalarDB APIのコード生成テンプレート
+#### 11.4.1: Code Generation Templates for ScalarDB API
 
-AI Codingエージェントに以下のコンテキストを提供し、コード生成を依頼する。
+Provide the following context to the AI Coding agent and request code generation.
 
-**プロンプトテンプレート（リポジトリ層生成）:**
+**Prompt Template (Repository Layer Generation):**
 
 ```
-以下の仕様に基づき、ScalarDB APIを使用したリポジトリクラスを生成してください。
+Generate a repository class using ScalarDB API based on the following specification.
 
-- エンティティ名: {エンティティ名}
+- Entity name: {entity_name}
 - Namespace: {namespace}
 - Table: {table}
-- パーティションキー: {partition_key} ({型})
-- クラスタリングキー: {clustering_key} ({型}) ※あれば
-- カラム:
-  - {column1}: {型}
-  - {column2}: {型}
+- Partition key: {partition_key} ({type})
+- Clustering key: {clustering_key} ({type}) * if applicable
+- Columns:
+  - {column1}: {type}
+  - {column2}: {type}
   ...
 
-要件:
-- DistributedTransactionを外部から受け取るメソッド設計
-- findById, save, delete, findByConditionメソッドを実装
-- 全てのCrudExceptionをthrowsで宣言
-- Optionalを活用した戻り値設計
+Requirements:
+- Method design that receives DistributedTransaction from outside
+- Implement findById, save, delete, findByCondition methods
+- Declare all CrudExceptions in throws
+- Return value design utilizing Optional
 ```
 
-#### 11.4.2: トランザクションパターン実装のプロンプト設計
+#### 11.4.2: Prompt Design for Transaction Pattern Implementation
 
-**プロンプトテンプレート（2PCパターン）:**
-
-```
-以下の仕様に基づき、ScalarDB TwoPhaseCommitTransaction APIを使用した
-サービス間トランザクションを実装してください。
-
-- Coordinatorサービス: {coordinator_service}
-- Participantサービス: {participant_services}
-- ビジネスプロセス: {process_description}
-- 操作内容:
-  - Coordinator側: {coordinator_operations}
-  - Participant側: {participant_operations}
-
-要件:
-- start → 操作 → prepare → validate → commitのフロー
-- CrudConflictException/CommitConflictExceptionのリトライ（最大3回、Exponential Backoff）
-- UnknownTransactionStatusExceptionのハンドリング
-- rollbackの確実な実行
-- 各Participantへのトランザクション伝搬（gRPC推奨）
-```
-
-#### 11.4.3: テストコード自動生成
-
-**プロンプトテンプレート（テストコード）:**
+**Prompt Template (2PC Pattern):**
 
 ```
-以下のサービスクラスに対する単体テストと統合テストを生成してください。
+Implement an inter-service transaction using ScalarDB TwoPhaseCommitTransaction API
+based on the following specification.
 
-- テスト対象クラス: {class_name}
-- テストフレームワーク: JUnit 5 + Mockito
-- ScalarDBのモック化: DistributedTransactionManagerをモック
+- Coordinator service: {coordinator_service}
+- Participant services: {participant_services}
+- Business process: {process_description}
+- Operation details:
+  - Coordinator side: {coordinator_operations}
+  - Participant side: {participant_operations}
 
-テストケース:
-- 正常系: トランザクション成功
-- 異常系: CrudConflictException発生時のリトライ
-- 異常系: CommitConflictException発生時のリトライ
-- 異常系: UnknownTransactionStatusException発生時の処理
-- 異常系: 最大リトライ回数超過
+Requirements:
+- Flow: start -> operations -> prepare -> validate -> commit
+- Retry for CrudConflictException/CommitConflictException (max 3 retries, Exponential Backoff)
+- Handling of UnknownTransactionStatusException
+- Reliable execution of rollback
+- Transaction propagation to each Participant (gRPC recommended)
+```
+
+#### 11.4.3: Automated Test Code Generation
+
+**Prompt Template (Test Code):**
+
+```
+Generate unit tests and integration tests for the following service class.
+
+- Target class: {class_name}
+- Test framework: JUnit 5 + Mockito
+- ScalarDB mocking: Mock DistributedTransactionManager
+
+Test cases:
+- Normal path: Transaction success
+- Error path: Retry on CrudConflictException
+- Error path: Retry on CommitConflictException
+- Error path: Handling of UnknownTransactionStatusException
+- Error path: Maximum retry count exceeded
 ```
 
 ---
 
-### Step 11.5: コードレビュー観点
+### Step 11.5: Code Review Perspectives
 
-実装のコードレビュー時に確認すべき観点を定義する。
+Define perspectives to verify during code review of the implementation.
 
-#### 11.5.1: ScalarDB固有のレビュー観点
+#### 11.5.1: ScalarDB-Specific Review Perspectives
 
-| # | レビュー観点 | 確認内容 | 重要度 |
-|---|------------|---------|--------|
-| 1 | トランザクションスコープ | トランザクションが必要以上に長くないか。長時間トランザクションはOCC競合率を上げる | Critical |
-| 2 | エラーハンドリング | CrudConflictException、CommitConflictExceptionのリトライが実装されているか | Critical |
-| 3 | UnknownTransactionStatus | UnknownTransactionStatusExceptionが適切にハンドリングされているか | Critical |
-| 4 | リソースクリーンアップ | TransactionManagerのclose()、トランザクションのrollback()が確実に呼ばれるか | High |
-| 5 | トランザクション伝搬 | リポジトリメソッドがDistributedTransactionを引数で受け取っているか（内部でbegin/commitしていないか） | High |
-| 6 | キー設計 | パーティションキー・クラスタリングキーがスキーマ定義と一致しているか | High |
-| 7 | Namespace/Table名 | ハードコードされていないか、定数化されているか | Medium |
-| 8 | バッチ操作 | 複数の同種操作がある場合、Batch Operations APIが活用されているか | Medium |
+| # | Review Perspective | Verification Details | Severity |
+|---|-------------------|----------------------|----------|
+| 1 | Transaction Scope | Is the transaction longer than necessary? Long-running transactions increase OCC conflict rates | Critical |
+| 2 | Error Handling | Are retries implemented for CrudConflictException and CommitConflictException? | Critical |
+| 3 | UnknownTransactionStatus | Is UnknownTransactionStatusException handled appropriately? | Critical |
+| 4 | Resource Cleanup | Is TransactionManager.close() and transaction rollback() reliably called? | High |
+| 5 | Transaction Propagation | Do repository methods receive DistributedTransaction as a parameter (not begin/commit internally)? | High |
+| 6 | Key Design | Do partition keys and clustering keys match the schema definition? | High |
+| 7 | Namespace/Table Names | Are they not hardcoded? Are they defined as constants? | Medium |
+| 8 | Batch Operations | When there are multiple operations of the same type, is the Batch Operations API being utilized? | Medium |
 
-#### 11.5.2: パフォーマンスレビュー観点
+#### 11.5.2: Performance Review Perspectives
 
-| # | レビュー観点 | 確認内容 | 重要度 |
-|---|------------|---------|--------|
-| 1 | N+1問題 | ループ内でGet操作を繰り返していないか | Critical |
-| 2 | Scan範囲 | Scanの範囲が必要以上に広くないか。Limitは設定されているか | High |
-| 3 | トランザクション粒度 | 1トランザクション内の操作数が適切か（多すぎるとOCC競合率上昇） | High |
-| 4 | インデックス設計 | セカンダリインデックスが適切に定義されているか | High |
-| 5 | 接続プール | ScalarDB Cluster接続のタイムアウトとプール設定が適切か | Medium |
-| 6 | Write Buffering | 書き込みが多い場合、Write Bufferingが活用されているか | Medium |
-
----
-
-## 成果物
-
-| 成果物 | 説明 | テンプレート |
-|--------|------|-------------|
-| 実装タスク一覧（優先順位付き） | Phase A〜Eの全タスクを優先順位付きでリスト化 | Step 11.1の各フェーズのタスク表 |
-| 実装ガイドライン | ScalarDB APIの使用方法、エラーハンドリング、実装パターン集 | Step 11.2〜11.3のコードテンプレート |
-| コーディング規約 | ScalarDB固有のコーディング規約、レビュー観点 | Step 11.5のレビュー観点表 |
-| AI Codingエージェント活用ガイド | コード生成テンプレート、プロンプト設計 | Step 11.4のプロンプトテンプレート |
+| # | Review Perspective | Verification Details | Severity |
+|---|-------------------|----------------------|----------|
+| 1 | N+1 Problem | Are Get operations being repeated inside loops? | Critical |
+| 2 | Scan Range | Is the Scan range wider than necessary? Is a Limit set? | High |
+| 3 | Transaction Granularity | Is the number of operations within a single transaction appropriate (too many increases OCC conflict rate)? | High |
+| 4 | Index Design | Are secondary indexes appropriately defined? | High |
+| 5 | Connection Pool | Are timeout and pool settings for ScalarDB Cluster connections appropriate? | Medium |
+| 6 | Write Buffering | For write-heavy cases, is Write Buffering being utilized? | Medium |
 
 ---
 
-## 完了基準チェックリスト
+## Deliverables
 
-- [ ] 実装フェーズ（Phase A〜E）が定義され、各フェーズのタスク・前提条件・完了基準が明確である
-- [ ] 各サービスの実装チェックリストが作成されている
-- [ ] ScalarDB設定ファイル（database.properties）のテンプレートが作成されている
-- [ ] トランザクション管理クラスの実装テンプレートが作成されている
-- [ ] リポジトリ層の実装テンプレートが作成されている
-- [ ] エラーハンドリング（CrudConflictException、CommitConflictException、UnknownTransactionStatusException）の対応方針が定義されている
-- [ ] DistributedTransaction APIの使い方がサンプルコード付きで文書化されている
-- [ ] TwoPhaseCommitTransaction APIの使い方がサンプルコード付きで文書化されている
-- [ ] Batch Operations API（3.17新機能）の使い方がサンプルコード付きで文書化されている
-- [ ] AI Codingエージェント活用のためのプロンプトテンプレートが作成されている
-- [ ] コードレビュー観点（ScalarDB固有、パフォーマンス）が定義されている
-- [ ] 実装タスク一覧について関係者（アーキテクト、テックリード、開発チーム）の合意が得られている
-- [ ] ガントチャートによるスケジュールが関係者に共有されている
+| Deliverable | Description | Template |
+|-------------|-------------|----------|
+| Implementation Task List (Prioritized) | All tasks from Phase A-E listed with priorities | Task tables for each phase in Step 11.1 |
+| Implementation Guidelines | ScalarDB API usage, error handling, implementation pattern collection | Code templates from Step 11.2-11.3 |
+| Coding Standards | ScalarDB-specific coding standards and review perspectives | Review perspective tables from Step 11.5 |
+| AI Coding Agent Utilization Guide | Code generation templates, prompt design | Prompt templates from Step 11.4 |
 
 ---
 
-## 次のステップへの引き継ぎ事項
+## Completion Criteria Checklist
 
-### Phase 4-2: テスト戦略（`12_testing_strategy.md`）への引き継ぎ
+- [ ] Implementation phases (Phase A-E) are defined with clear tasks, prerequisites, and completion criteria for each phase
+- [ ] Implementation checklists for each service have been created
+- [ ] ScalarDB configuration file (database.properties) template has been created
+- [ ] Transaction management class implementation template has been created
+- [ ] Repository layer implementation template has been created
+- [ ] Error handling strategies for CrudConflictException, CommitConflictException, and UnknownTransactionStatusException are defined
+- [ ] DistributedTransaction API usage is documented with sample code
+- [ ] TwoPhaseCommitTransaction API usage is documented with sample code
+- [ ] Batch Operations API (3.17 new feature) usage is documented with sample code
+- [ ] Prompt templates for AI Coding agent utilization have been created
+- [ ] Code review perspectives (ScalarDB-specific, performance) are defined
+- [ ] Consensus on the implementation task list has been obtained from stakeholders (architect, tech lead, development team)
+- [ ] The Gantt chart schedule has been shared with stakeholders
 
-| 引き継ぎ項目 | 内容 |
-|-------------|------|
-| 実装フェーズ定義 | Phase A〜Eの各タスクとスケジュール |
-| エラーハンドリング設計 | ScalarDB例外の分類とリトライ設計（テストシナリオの入力） |
-| ScalarDB実装パターン | DistributedTransaction / 2PC / Batch Operationsの実装パターン（テスト対象の入力） |
-| コーディング規約 | レビュー観点に基づくテスト観点の導出 |
+---
+
+## Handoff Items to the Next Step
+
+### Handoff to Phase 4-2: Testing Strategy (`12_testing_strategy.md`)
+
+| Handoff Item | Details |
+|-------------|---------|
+| Implementation Phase Definition | All tasks and schedules for Phase A-E |
+| Error Handling Design | ScalarDB exception classification and retry design (input for test scenarios) |
+| ScalarDB Implementation Patterns | DistributedTransaction / 2PC / Batch Operations implementation patterns (input for test targets) |
+| Coding Standards | Derivation of test perspectives based on review perspectives |
