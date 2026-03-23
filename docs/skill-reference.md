@@ -4,7 +4,7 @@
 
 | スキル | モデル | 説明 |
 |-------|--------|------|
-| `/workflow` | sonnet | 対話的ワークフロー選択・実行 |
+| `/architect` | sonnet | 対話的ワークフロー選択・実行 |
 | `/full-pipeline` | sonnet | 自動パイプライン実行（--resume, --skip対応） |
 
 ## Investigation

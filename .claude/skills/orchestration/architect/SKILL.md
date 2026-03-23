@@ -1,17 +1,18 @@
 ---
-name: workflow
+name: architect
 description: |
-  対話的ワークフロー選択。プロジェクトコンテキストを判断し、最適な分析パスを実行する。
-  /workflow [target_path] で呼び出し。
+  対話的にシステム分析・設計を開始する。プロジェクトコンテキストを判断し、最適なパスを実行する。
+  /architect [target_path] で呼び出し。
+  「分析を始めたい」「設計を開始」「アーキテクチャ分析」などで起動。
 model: sonnet
 user_invocable: true
 ---
 
-# ワークフローオーケストレーター
+# Nexus Architect オーケストレーター
 
 ## あなたの役割
 
-nexus-architectワークフローオーケストレーターとして、プロジェクトと目的を評価し、適切な分析パスを決定・実行する。
+nexus-architectのメインオーケストレーターとして、プロジェクトと目的を評価し、適切な分析・設計パスを決定・実行する。
 
 ## ワークフロー選択の判断基準
 

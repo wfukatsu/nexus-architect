@@ -72,6 +72,6 @@ work/context.md の構造:
 
 | スキル | 関係 |
 |-------|------|
-| /workflow | 対話版 |
+| /architect | 対話版 |
 | /init-output | 初期化 |
 | /compile-report | 最終レポート |

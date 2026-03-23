@@ -20,7 +20,7 @@ npm install -g @mermaid-js/mermaid-cli
 
 ```bash
 # 対話的ワークフロー（推奨）
-/workflow ./path/to/legacy-project
+/architect ./path/to/legacy-project
 
 # または個別スキルで段階的に実行
 /investigate-system ./path/to/legacy-project
