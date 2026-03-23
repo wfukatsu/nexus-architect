@@ -50,7 +50,7 @@ npm install -g @mermaid-js/mermaid-cli
 
 ```bash
 # 5視点並列レビュー（設計完了後）
-# workflow/architect:pipeline が自動的に実行するが、個別実行も可能
+# /architect:pipeline が自動的に実行するが、個別実行も可能
 ```
 
 ## 出力の確認
@@ -65,7 +65,7 @@ work/             # パイプライン状態
 
 統合HTMLレポート:
 ```bash
-/compile-report
+/architect:report
 # → reports/00_summary/full-report.html
 ```
 
