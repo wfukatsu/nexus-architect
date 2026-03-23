@@ -1,45 +1,52 @@
 ---
 name: analyze-data-model
 description: |
-  データモデル分析、DB設計分析、ER図生成を統合的に行う。
-  /architect:analyze-data-model [target_path] で呼び出し。
-  analyze-system の出力を前提条件とする。
+  Comprehensive data layer analysis including entity/relationship analysis, DB design evaluation, and ER diagram generation.
+  /architect:analyze-data-model [target_path] to invoke.
+  Requires analyze-system output as a prerequisite.
 model: sonnet
 user_invocable: true
 ---
 
-# データモデル分析
+# Data Model Analysis
 
-## 達成すべき結果
+## Outcome
 
-対象システムのデータ層を包括的に分析し、以下を生成する:
-1. **データモデル分析** — エンティティ、リレーションシップ、ドメインルール、正規化状態
-2. **ER図（現状）** — Mermaid erDiagram 形式の現行ER図
+Perform a comprehensive analysis of the target system's data layer and generate the following:
+1. **Data Model Analysis** — Entities, relationships, domain rules, normalization status
+2. **ER Diagram (Current State)** — Current ER diagram in Mermaid erDiagram format
 
-## 判断基準
+## Judgment Criteria
 
-- エンティティの識別はドメイン用語と照合する
-- 正規化の逸脱がある場合、意図的なものか問題かを判断する
-- インデックス設計の妥当性を評価する
-- データ整合性制約（FK、UNIQUE、CHECK）の網羅性を確認する
+- Cross-reference entity identification with domain terms
+- When normalization deviations exist, determine whether they are intentional or problematic
+- Evaluate the appropriateness of index design
+- Verify the completeness of data integrity constraints (FK, UNIQUE, CHECK)
 
-## 前提条件
+## Prerequisites
 
-| ファイル | 必須/推奨 | 生成元 |
-|---------|----------|--------|
-| reports/01_analysis/ | 推奨 | /architect:analyze |
+| File | Required/Recommended | Source |
+|------|---------------------|--------|
+| reports/01_analysis/ | Recommended | /architect:analyze |
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/01_analysis/data-model-analysis.md` | エンティティ一覧、リレーション、正規化評価、インデックス分析 |
-| `reports/01_analysis/er-diagram-current.md` | Mermaid ER図 |
+| File | Content |
+|------|---------|
+| `reports/01_analysis/data-model-analysis.md` | Entity list, relationships, normalization assessment, index analysis |
+| `reports/01_analysis/er-diagram-current.md` | Mermaid ER diagram |
 
-## 関連スキル
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-| スキル | 関係 |
-|-------|------|
-| /architect:analyze | 入力元 |
-| /architect:redesign | 出力先 |
-| /architect:design-scalardb | 出力先 |
+## Completion
+
+1. Both output files have been written
+2. Report a summary of findings and any unresolved concerns
+
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:analyze | Upstream (input source) |
+| /architect:redesign | Downstream |
+| /architect:design-scalardb | Downstream |

@@ -1,50 +1,52 @@
 ---
 name: design-implementation
 description: |
-  ドメインサービス、リポジトリインターフェース、値オブジェクト、例外マッピングの実装仕様を策定する。
-  /architect:design-implementation で呼び出し。設計フェーズ完了後に使用。
+  Define implementation specifications for domain services, repository interfaces, value objects, and exception mapping.
+  Invoked via /architect:design-implementation. Used after the design phase is complete.
 model: opus
 user_invocable: true
 ---
 
-# 実装設計
+# Implementation Design
 
-## 達成すべき結果
+## Desired Outcome
 
-設計ドキュメントからコーディング可能な詳細実装仕様を生成する:
-- ドメインサービスのメソッドシグネチャと責務定義
-- リポジトリインターフェース仕様（CRUD + カスタムクエリ）
-- 値オブジェクトの定義と不変条件
-- 例外階層と外部例外マッピング
-- サービス間通信のインターフェース契約
+Generate detailed, coding-ready implementation specifications from design documents:
+- Method signatures and responsibility definitions for domain services
+- Repository interface specifications (CRUD + custom queries)
+- Value object definitions and invariant conditions
+- Exception hierarchy and external exception mapping
+- Interface contracts for inter-service communication
 
-## 判断基準
+## Acceptance Criteria
 
-- 設計ドキュメントの全エンティティ・集約がカバーされていること
-- インターフェースは実装技術に依存しない抽象度で記述
-- ScalarDB利用時は @rules/scalardb-coding-patterns.md に準拠
+- All entities and aggregates in the design documents are covered
+- Interfaces are described at an abstraction level independent of implementation technology
+- When using ScalarDB, comply with @rules/scalardb-coding-patterns.md
 
-## 前提条件
+## Prerequisites
 
-| ファイル | 必須/推奨 | 生成元 |
-|---------|----------|--------|
-| reports/03_design/ | 必須 | design-* スキル群 |
-| reports/02_evaluation/ | 推奨 | integrate-evaluations |
+| File | Required/Recommended | Source |
+|------|---------------------|--------|
+| reports/03_design/ | Required | design-* skill group |
+| reports/02_evaluation/ | Recommended | integrate-evaluations |
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/06_implementation/domain-services-spec.md` | サービス仕様 |
-| `reports/06_implementation/repository-interfaces-spec.md` | リポジトリ仕様 |
-| `reports/06_implementation/value-objects-spec.md` | 値オブジェクト定義 |
-| `reports/06_implementation/exception-mapping-spec.md` | 例外マッピング |
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-## 関連スキル
+| File | Content |
+|------|---------|
+| `reports/06_implementation/domain-services-spec.md` | Service specifications |
+| `reports/06_implementation/repository-interfaces-spec.md` | Repository specifications |
+| `reports/06_implementation/value-objects-spec.md` | Value object definitions |
+| `reports/06_implementation/exception-mapping-spec.md` | Exception mapping |
 
-| スキル | 関係 |
-|-------|------|
-| /architect:design-microservices | 入力元 |
-| /architect:design-scalardb | 入力元 |
-| /architect:generate-test-specs | 出力先 |
-| /architect:generate-scalardb-code | 出力先 |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:design-microservices | Input source |
+| /architect:design-scalardb | Input source |
+| /architect:generate-test-specs | Output consumer |
+| /architect:generate-scalardb-code | Output consumer |

@@ -1,43 +1,50 @@
 ---
 name: investigate-security
 description: |
-  OWASP Top 10対応状況、アクセス制御、ゼロトラスト準備状況を評価する。
-  /architect:investigate-security [target_path] で呼び出し。
+  Evaluate security posture including OWASP Top 10, access control, and zero-trust readiness.
+  /architect:investigate-security [target_path] to invoke.
 model: sonnet
 user_invocable: true
 ---
 
-# セキュリティ分析
+# Security Analysis
 
-## 達成すべき結果
+## Outcome
 
-対象システムのセキュリティ態勢を評価し、脆弱性と改善点を報告する:
-- OWASP Top 10 各項目の対応状況
-- 認証・認可メカニズムの評価
-- アクセス制御マトリクス（ゼロトラスト観点）
-- シークレット管理、暗号化、監査ログの状況
+Evaluate the security posture of the target system and report vulnerabilities and areas for improvement:
+- OWASP Top 10 compliance status for each item
+- Authentication and authorization mechanism assessment
+- Access control matrix (from a zero-trust perspective)
+- Status of secret management, encryption, and audit logging
 
-## 判断基準
+## Judgment Criteria
 
-- OWASP Top 10の各項目について、コード内の具体的な対応/非対応箇所を特定する
-- セキュリティ上のリスクはCRITICAL/HIGH/MEDIUM/LOWで分類する
-- 即座に対応すべき脆弱性と、設計改善で対応すべき課題を区別する
+- For each OWASP Top 10 item, identify specific compliant/non-compliant locations in the code
+- Classify security risks as CRITICAL/HIGH/MEDIUM/LOW
+- Distinguish between vulnerabilities requiring immediate action and issues requiring design improvements
 
-## 前提条件
+## Prerequisites
 
-| ファイル | 必須/推奨 | 生成元 |
-|---------|----------|--------|
-| reports/before/{project}/ | 推奨 | /architect:investigate |
+| File | Required/Recommended | Source |
+|------|---------------------|--------|
+| reports/before/{project}/ | Recommended | /architect:investigate |
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/before/{project}/architect:investigate-security.md` | OWASP評価、アクセス制御、脆弱性一覧 |
+| File | Content |
+|------|---------|
+| `reports/before/{project}/architect:investigate-security.md` | OWASP assessment, access control, vulnerability list |
 
-## 関連スキル
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-| スキル | 関係 |
-|-------|------|
-| /architect:investigate | 関連（並行実行可能） |
-| /architect:review-operations | レビュー時に参照 |
+## Completion
+
+1. Output file has been written
+2. Report a summary of findings and any unresolved concerns
+
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:investigate | Related (can be run in parallel) |
+| /architect:review-operations | Referenced during review |

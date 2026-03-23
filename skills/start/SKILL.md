@@ -1,62 +1,69 @@
 ---
 name: start
 description: |
-  対話的にシステム分析・設計を開始する。プロジェクトコンテキストを判断し、最適なパスを実行する。
-  /architect:start [target_path] で呼び出し。
-  「分析を始めたい」「設計を開始」「アーキテクチャ分析」などで起動。
+  Interactively start system analysis and design. Assesses project context and determines the optimal path.
+  /architect:start [target_path].
 model: sonnet
 user_invocable: true
 ---
 
-# Nexus Architect オーケストレーター
+# Nexus Architect Orchestrator
 
-## あなたの役割
+## Your Role
 
-nexus-architectのメインオーケストレーターとして、プロジェクトと目的を評価し、適切な分析・設計パスを決定・実行する。
+As the main orchestrator of nexus-architect, evaluate the project and its objectives, then determine and execute the appropriate analysis and design path.
 
-## ワークフロー選択の判断基準
+## Language Selection
 
-- ユーザーが既存コードベースを提示した場合 → **レガシーリファクタリングパス**
-- ユーザーが要件のみを記述した場合 → **グリーンフィールド設計パス**
-- 不明確な場合 → 1つの明確化質問を行い、その後実行に進む
+Ask the user which language to use for output documents:
+- English (default)
+- Japanese
 
-## ScalarDB利用判断
+Record the selection in work/pipeline-progress.json under options.output_language.
 
-- マルチDB分散トランザクションが必要 → ScalarDBスキル含む
-- ユーザーがScalarDB/Scalar/分散トランザクションに言及 → 含む
-- それ以外 → design-data-layer代替パス
+## Workflow Selection Criteria
 
-## 実行フロー
+- User presents an existing codebase -> **Legacy refactoring path**
+- User describes requirements only -> **Greenfield design path**
+- Unclear -> Ask one clarifying question, then proceed with execution
 
-1. プロジェクトコンテキストを評価（提供資料の読み込み、コードベース確認）
-2. パスと関連フェーズを判断
-3. `/architect:init-output` で出力ディレクトリを初期化
-4. `skill-dependencies.yaml` の依存順にスキルを実行
-5. フェーズ間で `work/context.md` に発見事項を蓄積
-6. 適用外のフェーズはスキップを判断
+## ScalarDB Usage Decision
 
-## エラー処理
+- Multi-DB distributed transactions required -> Include ScalarDB skills
+- User mentions ScalarDB / Scalar / distributed transactions -> Include
+- Otherwise -> Use the design-data-layer alternative path
 
-フェーズ失敗時はAskUserQuestionで選択肢を提示:
-1. リトライ
-2. スキップして続行
-3. ワークフロー中断
+## Execution Flow
 
-## コンテキスト管理
+1. Evaluate project context (read provided materials, inspect codebase)
+2. Determine the path and relevant phases
+3. Run `/architect:init-output` to initialize the output directory
+4. Execute skills in dependency order per `skill-dependencies.yaml`
+5. Accumulate findings in `work/context.md` between phases
+6. Determine which phases to skip if not applicable
 
-長いパイプラインでは定期的に `work/context.md` を更新:
-- 調査からの主要発見
-- 分析からのドメイン洞察
-- 設計で行った重要な決定
-- 未解決の質問事項
+## Error Handling
 
-## 依存マニフェスト
+On phase failure, present choices to the user via AskUserQuestion:
+1. Retry
+2. Skip and continue
+3. Abort workflow
 
-@skills/common/skill-dependencies.yaml を読み込んで実行順序を決定する。
+## Context Management
 
-## 関連スキル
+For long pipelines, periodically update `work/context.md`:
+- Key findings from investigation
+- Domain insights from analysis
+- Important decisions made during design
+- Unresolved questions
 
-| スキル | 関係 |
-|-------|------|
-| /architect:pipeline | 自動実行版 |
-| /architect:init-output | 初期化 |
+## Dependency Manifest
+
+Read @skills/common/skill-dependencies.yaml to determine execution order.
+
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:pipeline | Automated execution version |
+| /architect:init-output | Initialization |

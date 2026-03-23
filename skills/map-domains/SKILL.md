@@ -1,36 +1,38 @@
 ---
 name: map-domains
 description: |
-  ドメイン分類、境界コンテキストマッピング、ビジネス構造タイプを識別する。
-  /architect:map-domains で呼び出し。
+  Domain classification, bounded context mapping, and business structure identification.
+  /architect:map-domains to invoke.
 model: opus
 user_invocable: true
 ---
 
-# ドメインマッピング
+# Domain Mapping
 
-## 達成すべき結果
+## Desired Outcome
 
-- ドメイン分類（Core/Supporting/Generic サブドメイン）
-- ビジネス構造タイプ識別（Pipeline/Blackboard/Dialogue/Hybrid）
-- マイクロサービス境界分類（Process/Master/Integration/Supporting）
-- 境界コンテキスト間の関係マップ
+- Domain classification (Core/Supporting/Generic subdomains)
+- Business structure type identification (Pipeline/Blackboard/Dialogue/Hybrid)
+- Microservice boundary classification (Process/Master/Integration/Supporting)
+- Relationship map between bounded contexts
 
-## 前提条件
+## Prerequisites
 
-| ファイル | 必須/推奨 | 生成元 |
-|---------|----------|--------|
-| reports/01_analysis/ | 推奨 | /architect:analyze |
+| File | Required/Recommended | Source |
+|------|---------------------|--------|
+| reports/01_analysis/ | Recommended | /architect:analyze |
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/03_design/domain-analysis.md` | ドメイン分類、構造タイプ、境界マップ |
+| File | Content |
+|------|---------|
+| `reports/03_design/domain-analysis.md` | Domain classification, structure types, boundary map |
 
-## 関連スキル
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-| スキル | 関係 |
-|-------|------|
-| /architect:analyze | 入力元 |
-| /architect:redesign | 出力先 |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:analyze | Input source |
+| /architect:redesign | Output destination |

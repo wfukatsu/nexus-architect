@@ -1,45 +1,47 @@
 ---
 name: evaluate-ddd
 description: |
-  DDD原則への適合度を戦略・戦術・アーキテクチャの3レイヤー12基準で評価する。
-  /architect:evaluate-ddd [target_path] で呼び出し。
-  analyze-system の出力を前提条件とする。evaluate-mmi と並行実行可能。
+  Evaluate DDD principle conformance across 3 layers and 12 criteria.
+  /architect:evaluate-ddd [target_path] to invoke.
+  Requires analyze-system output as a prerequisite. Can run in parallel with evaluate-mmi.
 model: sonnet
 user_invocable: true
 ---
 
-# DDD評価
+# DDD Evaluation
 
-## 達成すべき結果
+## Desired Outcome
 
-対象システムのDDD原則への適合度を3レイヤー12基準で定量評価する。
+Quantitatively evaluate the target system's conformance to DDD principles across 3 layers and 12 criteria.
 
-## 判断基準
+## Decision Criteria
 
-評価の詳細な基準は以下を参照:
+For detailed scoring criteria, refer to:
 @rules/evaluation-frameworks.md
 
-- 戦略的設計(30%): ユビキタス言語、境界コンテキスト、サブドメイン分類
-- 戦術的設計(45%): 値オブジェクト、エンティティ、集約、リポジトリ、ドメインサービス、ドメインイベント
-- アーキテクチャ(25%): レイヤリング、依存方向、ポート&アダプター
+- Strategic Design (30%): Ubiquitous language, bounded contexts, subdomain classification
+- Tactical Design (45%): Value objects, entities, aggregates, repositories, domain services, domain events
+- Architecture (25%): Layering, dependency direction, ports & adapters
 
-## 前提条件
+## Prerequisites
 
-| ファイル | 必須/推奨 | 生成元 |
-|---------|----------|--------|
-| reports/01_analysis/ | 必須 | /architect:analyze |
+| File | Required/Recommended | Source |
+|------|---------------------|--------|
+| reports/01_analysis/ | Required | /architect:analyze |
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/02_evaluation/ddd-strategic-evaluation.md` | 戦略的設計評価 |
-| `reports/02_evaluation/ddd-tactical-evaluation.md` | 戦術的設計 + アーキテクチャ評価 |
+| File | Content |
+|------|---------|
+| `reports/02_evaluation/ddd-strategic-evaluation.md` | Strategic design evaluation |
+| `reports/02_evaluation/ddd-tactical-evaluation.md` | Tactical design + architecture evaluation |
 
-## 関連スキル
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-| スキル | 関係 |
-|-------|------|
-| /architect:analyze | 入力元 |
-| /architect:evaluate-mmi | 並行実行 |
-| /architect:integrate-evaluations | 出力先 |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:analyze | Input source |
+| /architect:evaluate-mmi | Parallel execution |
+| /architect:integrate-evaluations | Output destination |

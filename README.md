@@ -24,49 +24,49 @@ All 36 skills are invoked as `/architect:skill-name`.
 | Command | Description |
 |---------|-------------|
 | **Orchestration** | |
-| `/architect:start` | 対話的にシステム分析・設計を開始 |
-| `/architect:pipeline` | 自動パイプライン実行（--resume, --skip対応） |
-| `/architect:init-output` | 出力ディレクトリ初期化 |
+| `/architect:start` | Interactively start system analysis and design |
+| `/architect:pipeline` | Automated pipeline execution (supports --resume, --skip) |
+| `/architect:init-output` | Initialize output directories |
 | **Investigation & Analysis** | |
-| `/architect:investigate` | 技術スタック、構造、負債、DDD準備度調査 |
-| `/architect:investigate-security` | OWASP Top 10、アクセス制御評価 |
-| `/architect:analyze` | ユビキタス言語、アクター、ドメインマッピング |
-| `/architect:analyze-data-model` | データモデル、DB設計、ER図 |
+| `/architect:investigate` | Tech stack, structure, debt, DDD readiness survey |
+| `/architect:investigate-security` | OWASP Top 10, access control assessment |
+| `/architect:analyze` | Ubiquitous language, actors, domain mapping |
+| `/architect:analyze-data-model` | Data model, DB design, ER diagrams |
 | **Evaluation** | |
-| `/architect:evaluate-mmi` | MMI 4軸定性評価 |
-| `/architect:evaluate-ddd` | DDD 12基準3レイヤー評価 |
-| `/architect:integrate-evaluations` | MMI+DDD統合、改善計画 |
+| `/architect:evaluate-mmi` | MMI 4-axis qualitative evaluation |
+| `/architect:evaluate-ddd` | DDD 12-criteria 3-layer evaluation |
+| `/architect:integrate-evaluations` | MMI+DDD integration, improvement plan |
 | **Design** | |
-| `/architect:map-domains` | ドメイン分類、BCマッピング |
-| `/architect:redesign` | 境界コンテキスト再設計 |
-| `/architect:design-microservices` | ターゲットアーキテクチャ |
-| `/architect:select-scalardb-edition` | ScalarDBエディション選定 |
-| `/architect:design-scalardb` | ScalarDBスキーマ・トランザクション設計 |
-| `/architect:design-scalardb-analytics` | HTAP分析基盤設計 |
-| `/architect:design-data-layer` | 汎用DB設計（非ScalarDB） |
-| `/architect:design-api` | REST/GraphQL/gRPC/AsyncAPI仕様 |
+| `/architect:map-domains` | Domain classification, BC mapping |
+| `/architect:redesign` | Bounded context redesign |
+| `/architect:design-microservices` | Target architecture |
+| `/architect:select-scalardb-edition` | ScalarDB edition selection |
+| `/architect:design-scalardb` | ScalarDB schema and transaction design |
+| `/architect:design-scalardb-analytics` | HTAP analytics platform design |
+| `/architect:design-data-layer` | Generic DB design (non-ScalarDB) |
+| `/architect:design-api` | REST/GraphQL/gRPC/AsyncAPI specifications |
 | **Implementation** | |
-| `/architect:design-implementation` | 実装仕様 |
-| `/architect:generate-test-specs` | BDD/ユニット/統合テスト仕様 |
-| `/architect:generate-scalardb-code` | Spring Boot + ScalarDBコード生成 |
-| `/architect:generate-infra-code` | K8s/Terraform/Helmコード生成 |
+| `/architect:design-implementation` | Implementation specifications |
+| `/architect:generate-test-specs` | BDD/unit/integration test specifications |
+| `/architect:generate-scalardb-code` | Spring Boot + ScalarDB code generation |
+| `/architect:generate-infra-code` | K8s/Terraform/Helm code generation |
 | **Infrastructure** | |
-| `/architect:design-infrastructure` | K8s、IaC、マルチ環境 |
-| `/architect:design-security` | 認証・認可、シークレット管理 |
-| `/architect:design-observability` | 監視、トレーシング、アラート |
-| `/architect:design-disaster-recovery` | RTO/RPO、バックアップ、DR |
+| `/architect:design-infrastructure` | K8s, IaC, multi-environment |
+| `/architect:design-security` | Authentication, authorization, secrets management |
+| `/architect:design-observability` | Monitoring, tracing, alerting |
+| `/architect:design-disaster-recovery` | RTO/RPO, backup, DR |
 | **Review** | |
-| `/architect:review-consistency` | 構造的一貫性 |
-| `/architect:review-scalardb` | ScalarDB制約 |
-| `/architect:review-data-integrity` | データ整合性（非ScalarDB） |
-| `/architect:review-operations` | 運用準備 |
-| `/architect:review-risk` | 分散システムリスク |
-| `/architect:review-business` | ビジネス要件 |
-| `/architect:review-synthesizer` | 統合・品質ゲート判定 |
+| `/architect:review-consistency` | Structural coherence |
+| `/architect:review-scalardb` | ScalarDB constraints |
+| `/architect:review-data-integrity` | Data integrity (non-ScalarDB) |
+| `/architect:review-operations` | Operational readiness |
+| `/architect:review-risk` | Distributed system risks |
+| `/architect:review-business` | Business requirements |
+| `/architect:review-synthesizer` | Consolidation and quality gate |
 | **Reporting** | |
-| `/architect:report` | Markdown → HTML統合レポート |
-| `/architect:render-mermaid` | Mermaid → PNG/SVG + 構文修正 |
-| `/architect:estimate-cost` | インフラ・ライセンス・運用コスト |
+| `/architect:report` | Markdown to HTML consolidated report |
+| `/architect:render-mermaid` | Mermaid to PNG/SVG + syntax fix |
+| `/architect:estimate-cost` | Infrastructure, license, and operational costs |
 
 ## Workflows
 

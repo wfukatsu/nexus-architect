@@ -1,46 +1,48 @@
 ---
 name: generate-test-specs
 description: |
-  BDDシナリオ、ユニットテスト、統合テスト、パフォーマンステストの仕様を生成する。
-  /architect:generate-test-specs で呼び出し。design-implementation の出力を前提条件とする。
+  Generate BDD scenarios, unit test, integration test, and performance test specifications.
+  Invoked via /architect:generate-test-specs. Requires output from design-implementation as a prerequisite.
 model: sonnet
 user_invocable: true
 ---
 
-# テスト仕様生成
+# Test Specification Generation
 
-## 達成すべき結果
+## Desired Outcome
 
-実装仕様に基づき、包括的なテスト仕様を生成する:
-- **BDDシナリオ**: Gherkin形式のフィーチャーファイル
-- **ユニットテスト仕様**: サービス・リポジトリ・値オブジェクトのテストケース
-- **統合テスト仕様**: サービス間連携、DB操作の統合テスト
-- **パフォーマンステスト仕様**: 負荷条件とSLO検証
+Generate comprehensive test specifications based on implementation specs:
+- **BDD scenarios**: Feature files in Gherkin format
+- **Unit test specs**: Test cases for services, repositories, and value objects
+- **Integration test specs**: Integration tests for inter-service communication and DB operations
+- **Performance test specs**: Load conditions and SLO verification
 
-## 判断基準
+## Acceptance Criteria
 
-- 各集約のCRUD操作が最低1つのBDDシナリオでカバーされること
-- 境界値、エラーケース、並行処理のテストケースを含むこと
-- ScalarDB利用時はOCC競合シナリオのテストを含むこと
+- Every aggregate's CRUD operations are covered by at least one BDD scenario
+- Includes test cases for boundary values, error cases, and concurrent processing
+- When using ScalarDB, includes OCC conflict scenario tests
 
-## 前提条件
+## Prerequisites
 
-| ファイル | 必須/推奨 | 生成元 |
-|---------|----------|--------|
-| reports/06_implementation/ | 必須 | /architect:design-implementation |
+| File | Required/Recommended | Source |
+|------|---------------------|--------|
+| reports/06_implementation/ | Required | /architect:design-implementation |
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/07_test-specs/bdd-scenarios/` | Gherkin .feature ファイル |
-| `reports/07_test-specs/unit-test-specs.md` | ユニットテストケース |
-| `reports/07_test-specs/integration-test-specs.md` | 統合テストケース |
-| `reports/07_test-specs/performance-test-specs.md` | パフォーマンステスト条件 |
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-## 関連スキル
+| File | Content |
+|------|---------|
+| `reports/07_test-specs/bdd-scenarios/` | Gherkin .feature files |
+| `reports/07_test-specs/unit-test-specs.md` | Unit test cases |
+| `reports/07_test-specs/integration-test-specs.md` | Integration test cases |
+| `reports/07_test-specs/performance-test-specs.md` | Performance test conditions |
 
-| スキル | 関係 |
-|-------|------|
-| /architect:design-implementation | 入力元 |
-| /architect:generate-scalardb-code | 関連（テストコード生成） |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:design-implementation | Input source |
+| /architect:generate-scalardb-code | Related (test code generation) |

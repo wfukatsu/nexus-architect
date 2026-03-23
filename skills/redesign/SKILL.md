@@ -1,45 +1,47 @@
 ---
 name: redesign
 description: |
-  境界コンテキストの再設計、集約定義、コンテキストマップを生成する。
-  /architect:redesign で呼び出し。integrate-evaluations の出力を前提条件とする。
+  Redesign bounded contexts, define aggregates, and generate context maps.
+  /architect:redesign to invoke. Requires integrate-evaluations output as a prerequisite.
 model: opus
 user_invocable: true
 ---
 
-# DDD再設計
+# DDD Redesign
 
-## 達成すべき結果
+## Desired Outcome
 
-評価結果に基づき、新しい境界コンテキスト設計を策定する:
-1. **境界コンテキスト再設計** — 各BCの責務、含まれる集約、公開インターフェース
-2. **コンテキストマップ** — BC間の関係パターン（ACL, OHS, Conformist等）をMermaid図で
+Based on evaluation results, formulate a new bounded context design:
+1. **Bounded Context Redesign** -- Responsibilities of each BC, contained aggregates, public interfaces
+2. **Context Map** -- Relationship patterns between BCs (ACL, OHS, Conformist, etc.) as Mermaid diagrams
 
-## 判断基準
+## Decision Criteria
 
-- 各BCが単一の明確な責務を持つこと
-- BC間の依存は最小限に保つ
-- コアドメインに最も投資するサブドメイン分類を反映する
-- 既存システムからの段階的移行パスを考慮する
+- Each BC must have a single, clear responsibility
+- Minimize dependencies between BCs
+- Reflect subdomain classification that invests most in the core domain
+- Consider incremental migration paths from the existing system
 
-## 前提条件
+## Prerequisites
 
-| ファイル | 必須/推奨 | 生成元 |
-|---------|----------|--------|
-| reports/02_evaluation/unified-improvement-plan.md | 必須 | /architect:integrate-evaluations |
-| reports/01_analysis/ubiquitous-language.md | 推奨 | /architect:analyze |
+| File | Required/Recommended | Source |
+|------|---------------------|--------|
+| reports/02_evaluation/unified-improvement-plan.md | Required | /architect:integrate-evaluations |
+| reports/01_analysis/ubiquitous-language.md | Recommended | /architect:analyze |
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/03_design/bounded-contexts-redesign.md` | BC定義、集約一覧、責務 |
-| `reports/03_design/context-map.md` | コンテキストマップ（Mermaid図） |
+| File | Content |
+|------|---------|
+| `reports/03_design/bounded-contexts-redesign.md` | BC definitions, aggregate list, responsibilities |
+| `reports/03_design/context-map.md` | Context map (Mermaid diagram) |
 
-## 関連スキル
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-| スキル | 関係 |
-|-------|------|
-| /architect:integrate-evaluations | 入力元 |
-| /architect:design-microservices | 出力先 |
-| /architect:map-domains | 関連 |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:integrate-evaluations | Input source |
+| /architect:design-microservices | Output destination |
+| /architect:map-domains | Related |

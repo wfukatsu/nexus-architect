@@ -1,46 +1,48 @@
 ---
 name: evaluate-mmi
 description: |
-  モジュラリティ成熟度指標（MMI）を4軸で定性評価する。凝集度、結合度、独立性、再利用性。
-  /architect:evaluate-mmi [target_path] で呼び出し。
-  analyze-system の出力を前提条件とする。evaluate-ddd と並行実行可能。
+  Qualitative evaluation of Modularity Maturity Index across 4 axes: cohesion, coupling, independence, reusability.
+  /architect:evaluate-mmi [target_path] to invoke.
+  Requires analyze-system output as a prerequisite. Can run in parallel with evaluate-ddd.
 model: sonnet
 user_invocable: true
 ---
 
-# MMI評価
+# MMI Evaluation
 
-## 達成すべき結果
+## Desired Outcome
 
-対象システムの各モジュールをMMI 4軸で評価し、マイクロサービス化の準備度を判定する。
+Evaluate each module of the target system across the 4 MMI axes and determine microservice readiness.
 
-## 判断基準
+## Decision Criteria
 
-評価の詳細な基準とスコアリングアルゴリズムは以下を参照:
+For detailed scoring criteria and algorithms, refer to:
 @rules/evaluation-frameworks.md
 
-- 4軸: 凝集度(30%), 結合度(30%), 独立性(20%), 再利用性(20%)
-- 各軸1-5スコア
-- MMI = (0.3×C + 0.3×K + 0.2×I + 0.2×R) / 5 × 100
-- 成熟度: 80-100(準備完了), 60-80(中程度), 40-60(要改善), 0-40(未成熟)
+- 4 axes: Cohesion (30%), Coupling (30%), Independence (20%), Reusability (20%)
+- Each axis scored 1-5
+- MMI = (0.3 x C + 0.3 x K + 0.2 x I + 0.2 x R) / 5 x 100
+- Maturity: 80-100 (Ready), 60-80 (Moderate), 40-60 (Needs Improvement), 0-40 (Immature)
 
-## 前提条件
+## Prerequisites
 
-| ファイル | 必須/推奨 | 生成元 |
-|---------|----------|--------|
-| reports/01_analysis/ | 必須 | /architect:analyze |
+| File | Required/Recommended | Source |
+|------|---------------------|--------|
+| reports/01_analysis/ | Required | /architect:analyze |
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/02_evaluation/mmi-overview.md` | 全体MMIスコア、成熟度判定、改善優先度 |
-| `reports/02_evaluation/mmi-by-module.md` | モジュール別4軸スコア詳細 |
+| File | Content |
+|------|---------|
+| `reports/02_evaluation/mmi-overview.md` | Overall MMI score, maturity assessment, improvement priorities |
+| `reports/02_evaluation/mmi-by-module.md` | Per-module 4-axis score details |
 
-## 関連スキル
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-| スキル | 関係 |
-|-------|------|
-| /architect:analyze | 入力元 |
-| /architect:evaluate-ddd | 並行実行 |
-| /architect:integrate-evaluations | 出力先 |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:analyze | Input source |
+| /architect:evaluate-ddd | Parallel execution |
+| /architect:integrate-evaluations | Output destination |

@@ -1,40 +1,42 @@
 ---
 name: estimate-cost
 description: |
-  クラウドインフラ、ScalarDBライセンス、運用コストの見積もりを作成する。
-  /estimate-cost で呼び出し。サイジング見積もりも統合。
+  Estimate cloud infrastructure, ScalarDB licensing, and operational costs.
+  Invoked via /estimate-cost. Also integrates sizing estimates.
 model: sonnet
 user_invocable: true
 ---
 
-# コスト見積もり
+# Cost Estimation
 
-## 達成すべき結果
+## Desired Outcome
 
-プロジェクトの総コストを多角的に見積もる:
-- クラウドインフラコスト（AWS/Azure/GCP、コンピュート/ストレージ/ネットワーク）
-- ScalarDBライセンスコスト（エディション別、直接契約 vs AWS Marketplace）
-- 運用コスト（監視ツール、サポート、人件費）
-- ScalarDBサイジング（Pod数、クラスタ構成、DB容量）
+Produce a multi-dimensional cost estimate for the project:
+- Cloud infrastructure costs (AWS/Azure/GCP: compute, storage, network)
+- ScalarDB licensing costs (by edition, direct contract vs. AWS Marketplace)
+- Operational costs (monitoring tools, support, personnel)
+- ScalarDB sizing (pod count, cluster configuration, DB capacity)
 
-## 判断基準
+## Acceptance Criteria
 
-AskUserQuestion で以下を確認:
-- 環境タイプ（dev/staging/prod）
-- 想定TPS、データ量、可用性目標
-- 通貨（USD/JPY）
+Confirm the following via AskUserQuestion:
+- Environment type (dev/staging/prod)
+- Expected TPS, data volume, availability targets
+- Currency (USD/JPY)
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/05_estimate/cost-summary.md` | コスト概要 |
-| `reports/05_estimate/infrastructure-detail.md` | インフラ詳細見積もり |
-| `reports/05_estimate/scalardb-sizing.md` | ScalarDBサイジング |
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-## 関連スキル
+| File | Content |
+|------|---------|
+| `reports/05_estimate/cost-summary.md` | Cost overview |
+| `reports/05_estimate/infrastructure-detail.md` | Detailed infrastructure estimate |
+| `reports/05_estimate/scalardb-sizing.md` | ScalarDB sizing |
 
-| スキル | 関係 |
-|-------|------|
-| /architect:design-infrastructure | 入力元 |
-| /architect:design-scalardb | 入力元（サイジング情報） |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:design-infrastructure | Input source |
+| /architect:design-scalardb | Input source (sizing information) |

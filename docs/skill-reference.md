@@ -1,89 +1,89 @@
-# Nexus Architect スキルリファレンス
+# Nexus Architect Skill Reference
 
-全スキルは `/architect:skill-name` で呼び出し可能。
+All skills are invoked as `/architect:skill-name`.
 
 ## Orchestration
 
-| コマンド | モデル | 説明 |
-|---------|--------|------|
-| `/architect:start` | sonnet | 対話的にシステム分析・設計を開始 |
-| `/architect:pipeline` | sonnet | 自動パイプライン実行（--resume, --skip対応） |
+| Command | Model | Description |
+|---------|-------|-------------|
+| `/architect:start` | sonnet | Interactively start system analysis and design |
+| `/architect:pipeline` | sonnet | Automated pipeline execution (supports --resume, --skip) |
 
 ## Investigation
 
-| コマンド | モデル | 説明 |
-|---------|--------|------|
-| `/architect:investigate` | sonnet | 技術スタック、構造、負債、DDD準備度調査 |
-| `/architect:investigate-security` | sonnet | OWASP Top 10、アクセス制御評価 |
+| Command | Model | Description |
+|---------|-------|-------------|
+| `/architect:investigate` | sonnet | Tech stack, structure, debt, DDD readiness survey |
+| `/architect:investigate-security` | sonnet | OWASP Top 10, access control assessment |
 
 ## Analysis
 
-| コマンド | モデル | 説明 |
-|---------|--------|------|
-| `/architect:analyze` | opus | ユビキタス言語、アクター、ドメインマッピング |
-| `/architect:analyze-data-model` | sonnet | データモデル、DB設計、ER図 |
+| Command | Model | Description |
+|---------|-------|-------------|
+| `/architect:analyze` | opus | Ubiquitous language, actors, domain mapping |
+| `/architect:analyze-data-model` | sonnet | Data model, DB design, ER diagrams |
 
 ## Evaluation
 
-| コマンド | モデル | 説明 |
-|---------|--------|------|
-| `/architect:evaluate-mmi` | sonnet | MMI 4軸定性評価 |
-| `/architect:evaluate-ddd` | sonnet | DDD 12基準3レイヤー評価 |
-| `/architect:integrate-evaluations` | sonnet | MMI+DDD統合、改善計画 |
+| Command | Model | Description |
+|---------|-------|-------------|
+| `/architect:evaluate-mmi` | sonnet | MMI 4-axis qualitative evaluation |
+| `/architect:evaluate-ddd` | sonnet | DDD 12-criteria 3-layer evaluation |
+| `/architect:integrate-evaluations` | sonnet | MMI+DDD integration, improvement plan |
 
 ## Design
 
-| コマンド | モデル | 条件 | 説明 |
-|---------|--------|------|------|
-| `/architect:map-domains` | opus | - | ドメイン分類、BCマッピング |
-| `/architect:redesign` | opus | - | 境界コンテキスト再設計 |
-| `/architect:design-microservices` | opus | - | ターゲットアーキテクチャ |
-| `/architect:select-scalardb-edition` | sonnet | ScalarDB | エディション選定 |
-| `/architect:design-scalardb` | opus | ScalarDB | スキーマ、トランザクション設計 |
-| `/architect:design-scalardb-analytics` | sonnet | Premium | HTAP分析基盤設計 |
-| `/architect:design-data-layer` | opus | 非ScalarDB | 汎用DB設計 |
+| Command | Model | Condition | Description |
+|---------|-------|-----------|-------------|
+| `/architect:map-domains` | opus | - | Domain classification, BC mapping |
+| `/architect:redesign` | opus | - | Bounded context redesign |
+| `/architect:design-microservices` | opus | - | Target architecture |
+| `/architect:select-scalardb-edition` | sonnet | ScalarDB | Edition selection |
+| `/architect:design-scalardb` | opus | ScalarDB | Schema and transaction design |
+| `/architect:design-scalardb-analytics` | sonnet | Premium | HTAP analytics platform design |
+| `/architect:design-data-layer` | opus | Non-ScalarDB | Generic DB design |
 | `/architect:design-api` | opus | - | REST/GraphQL/gRPC/AsyncAPI |
 
 ## Implementation
 
-| コマンド | モデル | 説明 |
-|---------|--------|------|
-| `/architect:design-implementation` | opus | 実装仕様（サービス、リポジトリ、VO） |
-| `/architect:generate-test-specs` | sonnet | BDD/ユニット/統合テスト仕様 |
-| `/architect:generate-scalardb-code` | opus | Spring Boot + ScalarDB コード生成 |
-| `/architect:generate-infra-code` | sonnet | K8s/Terraform/Helm コード生成 |
+| Command | Model | Description |
+|---------|-------|-------------|
+| `/architect:design-implementation` | opus | Implementation specifications (services, repositories, VOs) |
+| `/architect:generate-test-specs` | sonnet | BDD/unit/integration test specifications |
+| `/architect:generate-scalardb-code` | opus | Spring Boot + ScalarDB code generation |
+| `/architect:generate-infra-code` | sonnet | K8s/Terraform/Helm code generation |
 
 ## Review
 
-| コマンド | モデル | IDプレフィックス | 説明 |
-|---------|--------|----------------|------|
-| `/architect:review-consistency` | sonnet | CON- | 構造的一貫性 |
-| `/architect:review-scalardb` | sonnet | SDB- | ScalarDB制約 |
-| `/architect:review-data-integrity` | sonnet | DIN- | データ整合性（非ScalarDB） |
-| `/architect:review-operations` | sonnet | OPS- | 運用準備 |
-| `/architect:review-risk` | opus | RSK- | 分散システムリスク |
-| `/architect:review-business` | sonnet | BIZ- | ビジネス要件 |
-| `/architect:review-synthesizer` | sonnet | SYN- | 統合・品質ゲート判定 |
+| Command | Model | ID Prefix | Description |
+|---------|-------|-----------|-------------|
+| `/architect:review-consistency` | sonnet | CON- | Structural coherence |
+| `/architect:review-scalardb` | sonnet | SDB- | ScalarDB constraints |
+| `/architect:review-data-integrity` | sonnet | DIN- | Data integrity (non-ScalarDB) |
+| `/architect:review-operations` | sonnet | OPS- | Operational readiness |
+| `/architect:review-risk` | opus | RSK- | Distributed system risks |
+| `/architect:review-business` | sonnet | BIZ- | Business requirements |
+| `/architect:review-synthesizer` | sonnet | SYN- | Consolidation and quality gate |
 
 ## Infrastructure
 
-| コマンド | モデル | 説明 |
-|---------|--------|------|
-| `/architect:design-infrastructure` | opus | K8s、IaC、マルチ環境 |
-| `/architect:design-security` | sonnet | 認証・認可、シークレット管理 |
-| `/architect:design-observability` | sonnet | 監視、トレーシング、アラート |
-| `/architect:design-disaster-recovery` | sonnet | RTO/RPO、バックアップ、DR |
+| Command | Model | Description |
+|---------|-------|-------------|
+| `/architect:design-infrastructure` | opus | K8s, IaC, multi-environment |
+| `/architect:design-security` | sonnet | Authentication, authorization, secrets management |
+| `/architect:design-observability` | sonnet | Monitoring, tracing, alerting |
+| `/architect:design-disaster-recovery` | sonnet | RTO/RPO, backup, DR |
 
 ## Reporting
 
-| コマンド | モデル | 説明 |
-|---------|--------|------|
-| `/architect:report` | haiku | Markdown → HTML統合レポート |
-| `/architect:render-mermaid` | haiku | Mermaid → PNG/SVG + 構文修正 |
-| `/architect:estimate-cost` | sonnet | インフラ・ライセンス・運用コスト |
+| Command | Model | Description |
+|---------|-------|-------------|
+| `/architect:report` | haiku | Markdown to HTML consolidated report |
+| `/architect:render-mermaid` | haiku | Mermaid to PNG/SVG + syntax fix |
+| `/architect:estimate-cost` | sonnet | Infrastructure, license, and operational costs |
 
 ## Utility
 
-| コマンド | モデル | 説明 |
-|---------|--------|------|
-| `/architect:init-output` | haiku | 出力ディレクトリ初期化 |
+| Command | Model | Description |
+|---------|-------|-------------|
+| `/architect:init-output` | haiku | Initialize output directories |

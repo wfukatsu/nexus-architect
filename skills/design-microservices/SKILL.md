@@ -1,43 +1,45 @@
 ---
 name: design-microservices
 description: |
-  ターゲットマイクロサービスアーキテクチャ、変換計画を設計する。
-  /architect:design-microservices で呼び出し。ddd-redesign の出力を前提条件とする。
+  Design target microservices architecture and transformation plan.
+  /architect:design-microservices to invoke. Requires ddd-redesign output as a prerequisite.
 model: opus
 user_invocable: true
 ---
 
-# マイクロサービス設計
+# Microservices Design
 
-## 達成すべき結果
+## Desired Outcome
 
-1. **ターゲットアーキテクチャ** — サービス一覧、分類、通信パターン、Mermaid図
-2. **変換計画** — レガシーからの段階的移行ロードマップ
+1. **Target Architecture** -- Service catalog, classification, communication patterns, Mermaid diagrams
+2. **Transformation Plan** -- Incremental migration roadmap from legacy
 
-サービス分類:
-- **Process**: ステートフル、Saga/2PC対象
-- **Master**: CRUD中心、マスターデータ管理
-- **Integration**: 外部システム連携アダプター
-- **Supporting**: 横断的関心事（認証、通知等）
+Service classification:
+- **Process**: Stateful, subject to Saga/2PC
+- **Master**: CRUD-centric, master data management
+- **Integration**: External system integration adapters
+- **Supporting**: Cross-cutting concerns (authentication, notifications, etc.)
 
-## 前提条件
+## Prerequisites
 
-| ファイル | 必須/推奨 | 生成元 |
-|---------|----------|--------|
-| reports/03_design/bounded-contexts-redesign.md | 必須 | /architect:redesign |
-| reports/03_design/context-map.md | 推奨 | /architect:redesign |
+| File | Required/Recommended | Source |
+|------|---------------------|--------|
+| reports/03_design/bounded-contexts-redesign.md | Required | /architect:redesign |
+| reports/03_design/context-map.md | Recommended | /architect:redesign |
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/03_design/target-architecture.md` | サービス一覧、アーキテクチャ図 |
-| `reports/03_design/transformation-plan.md` | 段階的移行ロードマップ |
+| File | Content |
+|------|---------|
+| `reports/03_design/target-architecture.md` | Service catalog, architecture diagrams |
+| `reports/03_design/transformation-plan.md` | Incremental migration roadmap |
 
-## 関連スキル
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-| スキル | 関係 |
-|-------|------|
-| /architect:redesign | 入力元 |
-| /architect:design-scalardb | 出力先 |
-| /architect:design-api | 出力先 |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:redesign | Input source |
+| /architect:design-scalardb | Output destination |
+| /architect:design-api | Output destination |

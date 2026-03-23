@@ -1,28 +1,28 @@
 # Getting Started
 
-## セットアップ
+## Setup
 
 ```bash
-# リポジトリをクローン
+# Clone the repository
 git clone https://github.com/wfukatsu/nexus-architect.git
 cd nexus-architect
 
-# Python依存関係（オプション）
+# Python dependencies (optional)
 pip install -r requirements.txt
 
-# Mermaid CLI（オプション、図のレンダリング用）
+# Mermaid CLI (optional, for diagram rendering)
 npm install -g @mermaid-js/mermaid-cli
 ```
 
-## 基本的な使い方
+## Basic Usage
 
-### 1. レガシーシステムの分析
+### 1. Analyzing a Legacy System
 
 ```bash
-# 対話的ワークフロー（推奨）
+# Interactive workflow (recommended)
 /architect:start ./path/to/legacy-project
 
-# または個別スキルで段階的に実行
+# Or run individual skills step by step
 /architect:investigate ./path/to/legacy-project
 /architect:analyze ./path/to/legacy-project
 /architect:evaluate-mmi ./path/to/legacy-project
@@ -30,46 +30,46 @@ npm install -g @mermaid-js/mermaid-cli
 /architect:integrate-evaluations
 ```
 
-### 2. フルパイプライン実行
+### 2. Full Pipeline Execution
 
 ```bash
-# 全フェーズ自動実行
+# Run all phases automatically
 /architect:pipeline ./path/to/project
 
-# ScalarDB無しで実行
+# Run without ScalarDB
 /architect:pipeline ./path/to/project --no-scalardb
 
-# 分析のみ
+# Analysis only
 /architect:pipeline ./path/to/project --analyze-only
 
-# 特定フェーズから再開
+# Resume from a specific phase
 /architect:pipeline ./path/to/project --resume-from=design-microservices
 ```
 
-### 3. レビュー実行
+### 3. Running Reviews
 
 ```bash
-# 5視点並列レビュー（設計完了後）
-# /architect:pipeline が自動的に実行するが、個別実行も可能
+# 5-perspective parallel review (after design is complete)
+# /architect:pipeline runs this automatically, but you can also run it individually
 ```
 
-## 出力の確認
+## Checking Output
 
-全出力は以下のディレクトリに生成:
+All outputs are generated in the following directories:
 
 ```
-reports/          # 分析・設計ドキュメント（Markdown）
-generated/        # 生成コード（Java, K8s manifests等）
-work/             # パイプライン状態
+reports/          # Analysis and design documents (Markdown)
+generated/        # Generated code (Java, K8s manifests, etc.)
+work/             # Pipeline state
 ```
 
-統合HTMLレポート:
+Consolidated HTML report:
 ```bash
 /architect:report
-# → reports/00_summary/full-report.html
+# -> reports/00_summary/full-report.html
 ```
 
-## MCP サーバー（推奨）
+## MCP Servers (Recommended)
 
-- **Serena**: コードのAST解析、シンボル検索に最適
-- **Context7**: ScalarDB最新ドキュメントの動的取得
+- **Serena**: Ideal for AST-level code analysis and symbol search
+- **Context7**: Dynamic retrieval of the latest ScalarDB documentation

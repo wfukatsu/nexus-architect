@@ -1,10 +1,10 @@
-# ScalarDB × マイクロサービス 実装計画ワークフロー
+# ScalarDB x Microservices Implementation Planning Workflow
 
-## 概要
+## Overview
 
-本ワークフローは、ScalarDB Clusterを活用したマイクロサービスアーキテクチャの実装計画を、段階的かつ体系的に策定するためのガイドである。調査フェーズ（`research/`ディレクトリ）の成果物を入力として、実装可能な計画を出力する。
+This workflow is a guide for systematically developing an implementation plan for a microservices architecture using ScalarDB Cluster, proceeding phase by phase. It takes the deliverables from the investigation phase (`research/` directory) as input and produces an actionable implementation plan as output.
 
-## 全体フロー
+## Overall Flow
 
 ```mermaid
 flowchart TD
@@ -50,7 +50,7 @@ flowchart TD
     style Phase4 fill:#fce4ec,stroke:#e91e63
 ```
 
-## フェーズ一覧
+## Phase List
 
 | フェーズ | ステップ | ファイル | 入力（調査資料） | 成果物 |
 |---------|---------|---------|----------------|--------|
@@ -68,7 +68,7 @@ flowchart TD
 | | 12 テスト戦略 | [12_testing_strategy.md](./12_testing_strategy.md) | 全設計成果物 | テスト計画、品質基準 |
 | | 13 デプロイ・ロールアウト | [13_deployment_rollout.md](./13_deployment_rollout.md) | `06_infrastructure`, `12_disaster_recovery` | デプロイ手順、カナリア計画 |
 
-## テンプレート
+## Templates
 
 | テンプレート | ファイル | 用途 |
 |------------|---------|------|
@@ -76,7 +76,7 @@ flowchart TD
 | データモデル定義書 | [templates/data_model_template.md](./templates/data_model_template.md) | テーブル設計・スキーマ定義テンプレート |
 | レビューチェックリスト | [templates/review_checklist.md](./templates/review_checklist.md) | 各フェーズ完了時のレビュー項目 |
 
-## 調査資料との対応関係
+## Research Document Mapping
 
 ```mermaid
 flowchart LR
@@ -134,10 +134,10 @@ flowchart LR
     D12 --> W10
 ```
 
-## 利用方法
+## How to Use
 
-1. **Phase 1から順に進める**: 各ステップのワークフローファイルを開き、記載された手順に従って作業を進める
-2. **デシジョンポイントで判断**: 各ステップ内のデシジョンツリーやチェックリストで判断を行い、結果を記録する
-3. **テンプレートを活用**: `templates/`内のテンプレートをコピーして、各サービス・各テーブルの設計書を作成する
-4. **レビューチェックリスト**: 各フェーズ完了時にレビューチェックリストで品質を確認する
-5. **参照先を確認**: 各ステップ内で参照される調査資料（`research/`ディレクトリ）の該当セクションを確認する
+1. **Proceed from Phase 1 in order**: Open each step's workflow file and follow the documented procedures.
+2. **Make decisions at decision points**: Use the decision trees and checklists within each step to make and record your decisions.
+3. **Use templates**: Copy the templates from `templates/` to create design documents for each service and table.
+4. **Review checklists**: Verify quality using the review checklist at the end of each phase.
+5. **Check references**: Review the relevant sections of the research materials (`research/` directory) referenced within each step.

@@ -1,28 +1,28 @@
 ---
 name: review-operations
 description: |
-  運用準備状態をレビューする。監視、DR、セキュリティ、デプロイ安全性。
-  並列レビューシステムの一視点。
+  Review operational readiness: monitoring, disaster recovery, security posture, and deployment safety.
+  Used as one perspective within the parallel review system.
 model: sonnet
 user_invocable: true
 ---
 
-# 運用準備レビュー
+# Operational Readiness Review
 
-## レビュー次元
+## Review Dimensions
 
-### 1. 監視・可観測性 (weight: 0.30)
-- SLI/SLO定義、分散トレーシング、アラート閾値、ヘルスチェック
+### 1. Monitoring and Observability (weight: 0.30)
+- SLI/SLO definitions, distributed tracing, alert thresholds, health checks
 
-### 2. 災害復旧 (weight: 0.30)
-- RTO/RPO定義、バックアップ戦略、フェイルオーバー設計、リカバリ手順
+### 2. Disaster Recovery (weight: 0.30)
+- RTO/RPO definitions, backup strategy, failover design, recovery procedures
 
-### 3. セキュリティ態勢 (weight: 0.20)
-- 認証・認可設計、シークレット管理、ネットワーク分離、監査ログ
+### 3. Security Posture (weight: 0.20)
+- Authentication and authorization design, secret management, network isolation, audit logging
 
-### 4. デプロイ安全性 (weight: 0.20)
-- デプロイ戦略（blue-green/canary）、ロールバック手順、DB migration安全性
+### 4. Deployment Safety (weight: 0.20)
+- Deployment strategy (blue-green/canary), rollback procedures, DB migration safety
 
-## 出力形式
+## Output Format
 
-JSON（review-consistency と同一スキーマ）。Finding IDプレフィックス: **OPS-**
+JSON (same schema as review-consistency). Finding ID prefix: **OPS-**

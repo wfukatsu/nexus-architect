@@ -1,6 +1,6 @@
-# Spring Boot + ScalarDB 統合ガイド
+# Spring Boot + ScalarDB Integration Guide
 
-## Gradle依存関係
+## Gradle Dependencies
 
 ```groovy
 dependencies {
@@ -10,27 +10,27 @@ dependencies {
 }
 ```
 
-## ScalarDBプロパティ設定
+## ScalarDB Property Configuration
 
 ```properties
-# storage設定
+# Storage configuration
 scalar.db.storage=jdbc
 scalar.db.contact_points=jdbc:postgresql://localhost:5432/scalardb
 scalar.db.username=postgres
 scalar.db.password=postgres
 
-# トランザクションマネージャ
+# Transaction manager
 scalar.db.transaction_manager=consensus-commit
 
-# デフォルトネームスペース
+# Default namespace
 scalar.db.default_namespace_name=app
 
-# Cluster接続（Enterprise）
+# Cluster connection (Enterprise)
 scalar.db.transaction_manager=cluster
 scalar.db.contact_points=indirect:lb.scalardb-cluster.svc.cluster.local
 ```
 
-## Spring Data統合パターン
+## Spring Data Integration Pattern
 
 ```java
 @Configuration
@@ -47,10 +47,9 @@ public class ScalarDbConfig {
 }
 ```
 
-## トランザクションアノテーション
+## Transaction Annotations
 
-ScalarDBはSpringの `@Transactional` と直接統合しないため、
-明示的なトランザクション管理パターンを使用:
+ScalarDB does not integrate directly with Spring's `@Transactional`, so use an explicit transaction management pattern:
 
 ```java
 @Service
@@ -60,7 +59,7 @@ public class OrderService {
     public void placeOrder(OrderRequest request) {
         DistributedTransaction tx = manager.begin();
         try {
-            // ビジネスロジック
+            // Business logic
             tx.commit();
         } catch (CommitConflictException e) {
             tx.rollback();

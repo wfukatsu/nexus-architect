@@ -1,6 +1,6 @@
-# 出力構造とファイル依存関係
+# Output Structure and File Dependencies
 
-## ディレクトリ構造
+## Directory Structure
 
 ```
 reports/
@@ -31,10 +31,10 @@ reports/
 │   ├── context-map.md
 │   ├── target-architecture.md
 │   ├── transformation-plan.md
-│   ├── scalardb-schema.md         # ScalarDB有効時のみ
-│   ├── scalardb-transaction.md    # ScalarDB有効時のみ
-│   ├── scalardb-migration.md      # ScalarDB有効時のみ
-│   ├── data-layer-design.md       # ScalarDB無効時のみ
+│   ├── scalardb-schema.md         # Only when ScalarDB is enabled
+│   ├── scalardb-transaction.md    # Only when ScalarDB is enabled
+│   ├── scalardb-migration.md      # Only when ScalarDB is enabled
+│   ├── data-layer-design.md       # Only when ScalarDB is disabled
 │   ├── api-gateway-design.md
 │   └── api-specifications/
 │       ├── openapi/
@@ -62,7 +62,7 @@ work/                              # pipeline state
 └── context.md
 ```
 
-## 依存関係フロー
+## Dependency Flow
 
 ```
 investigate-system → analyze-system → analyze-data-model

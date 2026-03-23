@@ -1,37 +1,39 @@
 ---
 name: select-scalardb-edition
 description: |
-  対話形式で最適なScalarDBエディション（OSS/Enterprise Standard/Premium）を選定する。
-  /select-scalardb-edition で呼び出し。
+  Interactive selection of the optimal ScalarDB edition (OSS/Enterprise Standard/Premium).
+  /architect:select-scalardb-edition to invoke.
 model: sonnet
 user_invocable: true
 ---
 
-# ScalarDBエディション選定
+# ScalarDB Edition Selection
 
-## 達成すべき結果
+## Desired Outcome
 
-プロジェクト要件に基づき、最適なScalarDBエディションとデプロイモードを選定する。
+Select the optimal ScalarDB edition and deployment mode based on project requirements.
 
-## 判断基準
+## Decision Criteria
 
-AskUserQuestion で以下を段階的に確認:
-1. マルチDB分散トランザクションの必要性
-2. SQLインターフェースの要否
-3. 分析クエリ（HTAP）の要否
-4. SLA要件（99.9% vs 99.99%）
-5. サポートレベル要件
+Use AskUserQuestion to confirm the following step by step:
+1. Need for multi-DB distributed transactions
+2. Whether an SQL interface is required
+3. Whether analytical queries (HTAP) are required
+4. SLA requirements (99.9% vs 99.99%)
+5. Support level requirements
 
-エディション比較: @rules/scalardb-edition-profiles.md
+Edition comparison: @rules/scalardb-edition-profiles.md
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/03_design/scalardb-edition-selection.md` | 選定結果と根拠 |
+| File | Content |
+|------|---------|
+| `reports/03_design/scalardb-edition-selection.md` | Selection result and rationale |
 
-## 関連スキル
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-| スキル | 関係 |
-|-------|------|
-| /architect:design-scalardb | 出力先（エディション情報を入力として使用） |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:design-scalardb | Output destination (uses edition information as input) |

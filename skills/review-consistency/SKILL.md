@@ -1,40 +1,40 @@
 ---
 name: review-consistency
 description: |
-  設計ドキュメントの構造的一貫性、トレーサビリティ、用語統一をレビューする。
-  並列レビューシステムの一視点として使用。
+  Review design documents for structural coherence, traceability, and terminology consistency.
+  Used as one perspective within the parallel review system.
 model: sonnet
 user_invocable: true
 ---
 
-# 一貫性レビュー
+# Consistency Review
 
-## 達成すべき結果
+## Expected Outcome
 
-設計ドキュメント群の構造的な一貫性を検証し、JSON形式で指摘事項を出力する。
+Verify the structural consistency of design documents and output findings in JSON format.
 
-## レビュー次元
+## Review Dimensions
 
-### 1. 構造的整合性 (weight: 0.35)
-- ドキュメント間の構造・見出しレベルの一貫性
-- 孤立セクションや参照切れの検出
-- 階層構造の論理性
+### 1. Structural Coherence (weight: 0.35)
+- Consistency of structure and heading levels across documents
+- Detection of orphaned sections and broken references
+- Logical soundness of the hierarchical structure
 
-### 2. トレーサビリティ (weight: 0.35)
-- 要件→設計→実装の追跡可能性
-- 前方・後方参照の存在
-- ギャップの文書化有無
+### 2. Traceability (weight: 0.35)
+- Ability to trace from requirements to design to implementation
+- Presence of forward and backward references
+- Whether gaps are documented
 
-### 3. 用語統一 (weight: 0.30)
-- ユビキタス言語の一貫使用
-- 同一概念への異なる名称の検出
-- 略語の初出時定義と一貫使用
+### 3. Terminology Consistency (weight: 0.30)
+- Consistent use of ubiquitous language
+- Detection of different names for the same concept
+- Abbreviations defined at first occurrence and used consistently
 
-## スコアリング
+## Scoring
 
-各次元1-5スコア（5:模範的、4:良好、3:許容可、2:懸念あり、1:重大問題）
+Each dimension scored 1-5 (5: Exemplary, 4: Good, 3: Acceptable, 2: Concerning, 1: Critical)
 
-## 出力形式
+## Output Format
 
 ```json
 {
@@ -51,16 +51,16 @@ user_invocable: true
           "id": "CON-001",
           "severity": "critical|major|minor|info",
           "location": "file:section",
-          "title": "指摘タイトル",
-          "description": "問題の説明と影響",
-          "recommendation": "具体的な修正案"
+          "title": "Finding title",
+          "description": "Description of the issue and its impact",
+          "recommendation": "Specific remediation proposal"
         }
       ]
     }
   ],
   "weighted_score": 3.8,
-  "summary": "レビューサマリー"
+  "summary": "Review summary"
 }
 ```
 
-Finding IDプレフィックス: **CON-**
+Finding ID prefix: **CON-**

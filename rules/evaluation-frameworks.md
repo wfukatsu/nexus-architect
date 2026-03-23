@@ -1,73 +1,73 @@
-# 評価フレームワーク
+# Evaluation Frameworks
 
-## MMI（モジュラリティ成熟度指標）- 4軸定性評価
+## MMI (Modularity Maturity Index) - 4-Axis Qualitative Evaluation
 
-### 評価軸と重み
+### Evaluation Axes and Weights
 
-| 軸 | 重み | 評価観点 |
-|----|------|---------|
-| 凝集度 (Cohesion) | 30% | モジュール内の機能的まとまり |
-| 結合度 (Coupling) | 30% | モジュール間の依存度の低さ |
-| 独立性 (Independence) | 20% | 独立デプロイ・テスト可能性 |
-| 再利用性 (Reusability) | 20% | コンポーネントの再利用可能性 |
+| Axis | Weight | Evaluation Criteria |
+|------|--------|---------------------|
+| Cohesion | 30% | Functional coherence within a module |
+| Coupling | 30% | Low degree of inter-module dependencies |
+| Independence | 20% | Ability to deploy and test independently |
+| Reusability | 20% | Component reusability |
 
-### スコアリング（1-5）
+### Scoring (1-5)
 
-| スコア | レベル | 説明 |
-|--------|--------|------|
-| 5 | Exemplary | 問題なし、ベストプラクティス準拠 |
-| 4 | Good | 軽微な改善点のみ |
-| 3 | Acceptable | いくつかの課題あり |
-| 2 | Concerning | 重要な課題あり |
-| 1 | Critical | 根本的な問題あり |
+| Score | Level | Description |
+|-------|-------|-------------|
+| 5 | Exemplary | No issues, follows best practices |
+| 4 | Good | Only minor improvements needed |
+| 3 | Acceptable | Some issues present |
+| 2 | Concerning | Significant issues present |
+| 1 | Critical | Fundamental problems exist |
 
-### 計算式
+### Formula
 
 ```
 MMI = (0.3 × Cohesion + 0.3 × Coupling + 0.2 × Independence + 0.2 × Reusability) / 5 × 100
 ```
 
-### 成熟度レベル
+### Maturity Levels
 
-| MMI | レベル | 判定 |
-|-----|--------|------|
-| 80-100 | 成熟 | マイクロサービス化準備完了 |
-| 60-80 | 中程度 | 部分的なリファクタリング後に移行可能 |
-| 40-60 | 要改善 | 大規模リファクタリングが必要 |
-| 0-40 | 未成熟 | 根本的な再設計が必要 |
+| MMI | Level | Verdict |
+|-----|-------|---------|
+| 80-100 | Mature | Ready for microservices migration |
+| 60-80 | Moderate | Migration possible after partial refactoring |
+| 40-60 | Needs Improvement | Major refactoring required |
+| 0-40 | Immature | Fundamental redesign required |
 
 ---
 
-## DDD評価 - 12基準3レイヤー
+## DDD Evaluation - 12 Criteria, 3 Layers
 
-### 戦略的設計（30%）
+### Strategic Design (30%)
 
-| # | 基準 | 評価観点 |
-|---|------|---------|
-| 1 | ユビキタス言語 | ドメイン用語の一貫性、コードとの対応 |
-| 2 | 境界コンテキスト | コンテキスト境界の明確さ、責務の分離 |
-| 3 | サブドメイン分類 | Core/Supporting/Generic の識別と投資配分 |
+| # | Criterion | Evaluation Criteria |
+|---|-----------|---------------------|
+| 1 | Ubiquitous Language | Consistency of domain terminology, correspondence with code |
+| 2 | Bounded Context | Clarity of context boundaries, separation of responsibilities |
+| 3 | Subdomain Classification | Identification of Core/Supporting/Generic and investment allocation |
 
-### 戦術的設計（45%）
+### Tactical Design (45%)
 
-| # | 基準 | 評価観点 |
-|---|------|---------|
-| 4 | 値オブジェクト | 不変性、等価性、ドメインルールのカプセル化 |
-| 5 | エンティティ | 識別子、ライフサイクル管理 |
-| 6 | 集約 | トランザクション境界、整合性保証 |
-| 7 | リポジトリ | 永続化の抽象化、コレクションセマンティクス |
-| 8 | ドメインサービス | ステートレス操作、複数集約の協調 |
-| 9 | ドメインイベント | イベント駆動、状態変更の通知 |
+| # | Criterion | Evaluation Criteria |
+|---|-----------|---------------------|
+| 4 | Value Objects | Immutability, equality, encapsulation of domain rules |
+| 5 | Entities | Identifiers, lifecycle management |
+| 6 | Aggregates | Transaction boundaries, consistency guarantees |
+| 7 | Repositories | Persistence abstraction, collection semantics |
+| 8 | Domain Services | Stateless operations, coordination across multiple aggregates |
+| 9 | Domain Events | Event-driven design, state change notifications |
 
-### アーキテクチャ（25%）
+### Architecture (25%)
 
-| # | 基準 | 評価観点 |
-|---|------|---------|
-| 10 | レイヤリング | 層構造の明確さ、依存方向 |
-| 11 | 依存方向 | 内側への依存、DIPの適用 |
-| 12 | ポート&アダプター | 外部システムとの接続の抽象化 |
+| # | Criterion | Evaluation Criteria |
+|---|-----------|---------------------|
+| 10 | Layering | Clarity of layer structure, dependency direction |
+| 11 | Dependency Direction | Inward dependencies, application of DIP |
+| 12 | Ports & Adapters | Abstraction of connections to external systems |
 
-### DDD総合スコア計算
+### DDD Composite Score Calculation
 
 ```
 DDD Score = (0.30 × Strategic_Avg + 0.45 × Tactical_Avg + 0.25 × Architecture_Avg) / 5 × 100

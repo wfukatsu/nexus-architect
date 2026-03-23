@@ -1,39 +1,41 @@
 ---
 name: design-data-layer
 description: |
-  ScalarDB非依存の汎用データベース設計を行う。
-  /architect:design-data-layer で呼び出し。ScalarDB不使用プロジェクト向け。
+  Generic database design for non-ScalarDB projects.
+  /architect:design-data-layer to invoke. For projects not using ScalarDB.
   Do NOT use for ScalarDB projects (use /architect:design-scalardb instead).
 model: opus
 user_invocable: true
 ---
 
-# データ層設計
+# Data Layer Design
 
-## 達成すべき結果
+## Desired Outcome
 
-ScalarDBを使用しないプロジェクト向けの汎用データ層設計:
-- DB選定と構成（RDB/NoSQL/ハイブリッド）
-- コネクションプール設計
-- マイグレーション戦略
-- トランザクション管理パターン
-- ORM/データアクセスパターン
+Generic data layer design for projects not using ScalarDB:
+- Database selection and configuration (RDB/NoSQL/hybrid)
+- Connection pool design
+- Migration strategy
+- Transaction management patterns
+- ORM/data access patterns
 
-## 前提条件
+## Prerequisites
 
-| ファイル | 必須/推奨 | 生成元 |
-|---------|----------|--------|
-| reports/03_design/target-architecture.md | 必須 | /architect:design-microservices |
+| File | Required/Recommended | Source |
+|------|---------------------|--------|
+| reports/03_design/target-architecture.md | Required | /architect:design-microservices |
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/03_design/data-layer-design.md` | DB設計、トランザクション管理、マイグレーション |
+| File | Content |
+|------|---------|
+| `reports/03_design/data-layer-design.md` | DB design, transaction management, migration |
 
-## 関連スキル
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-| スキル | 関係 |
-|-------|------|
-| /architect:design-microservices | 入力元 |
-| /architect:review-data-integrity | レビュー対象 |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:design-microservices | Input source |
+| /architect:review-data-integrity | Review target |

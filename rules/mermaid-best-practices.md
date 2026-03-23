@@ -1,13 +1,21 @@
-# Mermaid ベストプラクティス
+# Mermaid Best Practices
 
-## 有効な図タイプ
+## Valid Diagram Types
 
 graph, flowchart, sequenceDiagram, classDiagram, stateDiagram, erDiagram,
 journey, gantt, pie, mindmap, timeline, C4Context
 
-## 日本語テキスト
+## Non-ASCII Text
 
-日本語テキストを含むノードは必ずクォートで囲む:
+Nodes containing non-ASCII text (e.g., Japanese) must be wrapped in quotes:
+
+```mermaid
+graph TD
+    A["Order Service"] --> B["Inventory Service"]
+    A --> C["Payment Service"]
+```
+
+Japanese example:
 
 ```mermaid
 graph TD
@@ -15,23 +23,23 @@ graph TD
     A --> C["決済サービス"]
 ```
 
-## ノードID命名
+## Node ID Naming
 
-- 英語の短縮形を使用: `OrderSvc`, `InventoryDB`
-- 日本語はラベルに使用、IDには使用しない
-- 一意で説明的なID
+- Use short English identifiers: `OrderSvc`, `InventoryDB`
+- Use the configured language for labels, never for IDs
+- IDs must be unique and descriptive
 
-## よくある構文エラー
+## Common Syntax Errors
 
-| エラー | 原因 | 修正 |
-|--------|------|------|
-| 括弧の不一致 | `[` と `]` の数が合わない | 開閉を確認 |
-| 矢印構文 | `->` ではなく `-->` | 正しい矢印を使用 |
-| 特殊文字 | ラベル内の `(`, `)` | クォートで囲む |
-| 空ブロック | `\`\`\`mermaid` の直後に `\`\`\`` | 内容を追加 |
+| Error | Cause | Fix |
+|-------|-------|-----|
+| Mismatched brackets | Unbalanced `[` and `]` | Verify opening and closing brackets |
+| Arrow syntax | Using `->` instead of `-->` | Use the correct arrow syntax |
+| Special characters | `(`, `)` inside labels | Wrap in quotes |
+| Empty block | `\`\`\`mermaid` immediately followed by `\`\`\`` | Add content |
 
-## 複雑度ガイドライン
+## Complexity Guidelines
 
-- 1つの図に含めるノード: 最大20個
-- 複雑な図は分割して参照関係を示す
-- サブグラフを活用して論理グループ化
+- Maximum of 20 nodes per diagram
+- Split complex diagrams and show cross-references
+- Use subgraphs for logical grouping

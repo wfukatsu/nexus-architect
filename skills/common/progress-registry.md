@@ -1,6 +1,6 @@
-# パイプライン進捗レジストリ
+# Pipeline Progress Registry
 
-## JSONスキーマ: `work/pipeline-progress.json`
+## JSON Schema: `work/pipeline-progress.json`
 
 ```json
 {
@@ -12,6 +12,7 @@
   "options": {
     "scalardb_enabled": true,
     "workflow_type": "legacy|greenfield",
+    "output_language": "en",
     "skip_phases": []
   },
   "phases": {
@@ -28,26 +29,26 @@
 }
 ```
 
-## ステータス値
+## Status Values
 
-| ステータス | 意味 |
-|-----------|------|
-| pending | 未実行 |
-| in_progress | 実行中 |
-| completed | 正常完了 |
-| failed | 実行失敗 |
-| skipped | スキップ（条件不一致またはユーザー指定） |
+| Status | Meaning |
+|--------|---------|
+| pending | Not yet executed |
+| in_progress | Currently running |
+| completed | Finished successfully |
+| failed | Execution failed |
+| skipped | Skipped (condition not met or user-specified) |
 
-## レジューム動作
+## Resume Behavior
 
-- `--resume-from=phase-N`: phase-N以降で status != completed のフェーズを実行
-- `--rerun-from=phase-N`: phase-N以降を全て pending にリセットして再実行
-- 自然なレジューム: completed フェーズは自動スキップ（冪等）
+- `--resume-from=phase-N`: Execute phases from phase-N onward where status != completed
+- `--rerun-from=phase-N`: Reset all phases from phase-N onward to pending and re-execute
+- Natural resume: Completed phases are automatically skipped (idempotent)
 
-## オーケストレーターの利用パターン
+## Orchestrator Usage Patterns
 
-1. パイプライン開始時に全フェーズを pending で初期化
-2. 各スキル実行前に status を in_progress に更新
-3. 完了時に outputs と summary を記録し completed に更新
-4. 失敗時に errors に詳細を記録し failed に更新
-5. 下流フェーズの依存が failed の場合、自動 skipped
+1. Initialize all phases as pending at pipeline start
+2. Update status to in_progress before each skill execution
+3. Record outputs and summary upon completion, then update to completed
+4. Record details in errors upon failure and update to failed
+5. Automatically skip downstream phases when a dependency has failed

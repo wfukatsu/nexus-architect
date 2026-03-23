@@ -1,32 +1,34 @@
 ---
 name: design-observability
 description: |
-  監視、分散トレーシング、ログ集約、アラート設計を行う。
-  /design-observability で呼び出し。
+  Design monitoring, distributed tracing, log aggregation, and alerting.
+  Invoked via /design-observability.
 model: sonnet
 user_invocable: true
 ---
 
-# 可観測性設計
+# Observability Design
 
-## 達成すべき結果
+## Desired Outcome
 
-- SLI/SLO定義（サービス別、ビジネスKPI紐づけ）
-- 分散トレーシング設計（OpenTelemetry、相関ID伝搬）
-- ログ集約戦略（構造化ログ、集中管理）
-- メトリクス設計（RED/USE メソッド）
-- アラート設計（閾値、エスカレーション、ダッシュボード）
-- ScalarDB固有メトリクス（トランザクション成功率、OCC競合率）
+- SLI/SLO definitions (per service, linked to business KPIs)
+- Distributed tracing design (OpenTelemetry, correlation ID propagation)
+- Log aggregation strategy (structured logging, centralized management)
+- Metrics design (RED/USE methods)
+- Alerting design (thresholds, escalation, dashboards)
+- ScalarDB-specific metrics (transaction success rate, OCC conflict rate)
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/08_infrastructure/observability-design.md` | 可観測性全体設計 |
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-## 関連スキル
+| File | Content |
+|------|---------|
+| `reports/08_infrastructure/observability-design.md` | Overall observability design |
 
-| スキル | 関係 |
-|-------|------|
-| /architect:design-infrastructure | 関連 |
-| /architect:review-operations | レビュー時に参照 |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:design-infrastructure | Related |
+| /architect:review-operations | Referenced during review |

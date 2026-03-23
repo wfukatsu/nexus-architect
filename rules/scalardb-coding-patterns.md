@@ -1,6 +1,6 @@
-# ScalarDB コーディングパターン
+# ScalarDB Coding Patterns
 
-## エンティティクラス
+## Entity Class
 
 ```java
 public class Order {
@@ -10,7 +10,7 @@ public class Order {
     private int totalAmount;
     private Instant createdAt;
 
-    // ScalarDB Get結果からの構築
+    // Construct from ScalarDB Get result
     public static Order fromResult(Result result) {
         return new Order(
             result.getText("order_id"),
@@ -23,7 +23,7 @@ public class Order {
 }
 ```
 
-## リポジトリパターン
+## Repository Pattern
 
 ```java
 public class OrderRepository {
@@ -54,9 +54,9 @@ public class OrderRepository {
 }
 ```
 
-## トランザクション管理
+## Transaction Management
 
-### Consensus Commit（単一サービス）
+### Consensus Commit (Single Service)
 
 ```java
 DistributedTransaction tx = manager.begin();
@@ -68,22 +68,22 @@ try {
     tx.commit();
 } catch (CommitConflictException e) {
     tx.rollback();
-    // リトライ（指数バックオフ、最大3-5回）
+    // Retry with exponential backoff, max 3-5 attempts
 } catch (UnknownTransactionStatusException e) {
-    // コミット状態不明 - 手動確認が必要
+    // Commit status unknown - manual verification required
 } catch (TransactionException e) {
     tx.rollback();
     throw e;
 }
 ```
 
-### Two-Phase Commit（マイクロサービス間）
+### Two-Phase Commit (Cross-Microservice)
 
 ```java
 // Coordinator
 TwoPhaseCommitTransaction tx = manager.begin();
 String txId = tx.getId();
-// Participantに txId を送信
+// Send txId to participants
 
 // Participant
 TwoPhaseCommitTransaction tx = manager.join(txId);
@@ -96,10 +96,10 @@ tx.validate();
 tx.commit();
 ```
 
-## 制約事項
+## Constraints
 
-- 2PC: 最大2-3サービスに制限
-- OCC競合率: 5%未満を目標
-- Coordinatorテーブル: 保護必須（直接操作禁止）
-- メタデータオーバーヘッド: レコードあたり約200バイト
-- DB固有機能: ScalarDB管理テーブルでは使用不可
+- 2PC: Limit to a maximum of 2-3 services
+- OCC conflict rate: Target below 5%
+- Coordinator table: Must be protected (direct manipulation prohibited)
+- Metadata overhead: Approximately 200 bytes per record
+- DB-specific features: Cannot be used on ScalarDB-managed tables

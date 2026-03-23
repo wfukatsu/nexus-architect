@@ -12,59 +12,67 @@ Unified system architecture agent (36 skills). Covers three workflows:
 All skills are invoked as `/architect:skill-name`.
 Use `/architect:start` for interactive selection or `/architect:pipeline` for automated execution.
 
+## Output Language
+
+Output language is configurable per project. Set in `work/pipeline-progress.json`:
+```json
+{ "options": { "output_language": "ja" } }
+```
+Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orchestrator asks the user to select a language at project initialization.
+
 ## Command Reference
 
 ### Orchestration
-- `/architect:start [target_path]` — 対話的にシステム分析・設計を開始
-- `/architect:pipeline [target_path]` — 自動パイプライン実行（--resume, --skip対応）
-- `/architect:init-output [project]` — 出力ディレクトリ初期化
+- `/architect:start [target_path]` — Interactively start system analysis and design
+- `/architect:pipeline [target_path]` — Automated pipeline execution (--resume, --skip)
+- `/architect:init-output [project]` — Initialize output directories
 
 ### Investigation & Analysis
-- `/architect:investigate [target_path]` — 技術スタック、構造、負債、DDD準備度調査
-- `/architect:investigate-security [target_path]` — OWASP Top 10、アクセス制御
-- `/architect:analyze [target_path]` — ユビキタス言語、アクター、ドメインマッピング
-- `/architect:analyze-data-model [target_path]` — データモデル、DB設計、ER図
+- `/architect:investigate [target_path]` — Tech stack, structure, debt, DDD readiness
+- `/architect:investigate-security [target_path]` — OWASP Top 10, access control
+- `/architect:analyze [target_path]` — Ubiquitous language, actors, domain mapping
+- `/architect:analyze-data-model [target_path]` — Data model, DB design, ER diagrams
 
 ### Evaluation
-- `/architect:evaluate-mmi [target_path]` — MMI 4軸定性評価
-- `/architect:evaluate-ddd [target_path]` — DDD 12基準3レイヤー評価
-- `/architect:integrate-evaluations` — MMI+DDD統合、改善計画
+- `/architect:evaluate-mmi [target_path]` — MMI 4-axis qualitative evaluation
+- `/architect:evaluate-ddd [target_path]` — DDD 12-criteria 3-layer evaluation
+- `/architect:integrate-evaluations` — Merge MMI+DDD, improvement plan
 
 ### Design
-- `/architect:map-domains` — ドメイン分類、BCマッピング
-- `/architect:redesign` — 境界コンテキスト再設計
-- `/architect:design-microservices` — ターゲットアーキテクチャ
-- `/architect:select-scalardb-edition` — ScalarDBエディション選定
-- `/architect:design-scalardb` — ScalarDBスキーマ・トランザクション設計
-- `/architect:design-scalardb-analytics` — HTAP分析基盤設計
-- `/architect:design-data-layer` — 汎用DB設計（非ScalarDB）
-- `/architect:design-api` — REST/GraphQL/gRPC/AsyncAPI仕様
+- `/architect:map-domains` — Domain classification, BC mapping
+- `/architect:redesign` — Bounded context redesign
+- `/architect:design-microservices` — Target architecture
+- `/architect:select-scalardb-edition` — ScalarDB edition selection
+- `/architect:design-scalardb` — ScalarDB schema and transaction design
+- `/architect:design-scalardb-analytics` — HTAP analytics platform design
+- `/architect:design-data-layer` — Generic DB design (non-ScalarDB)
+- `/architect:design-api` — REST/GraphQL/gRPC/AsyncAPI specs
 
 ### Implementation & Codegen
-- `/architect:design-implementation` — 実装仕様
-- `/architect:generate-test-specs` — BDD/ユニット/統合テスト仕様
-- `/architect:generate-scalardb-code` — Spring Boot + ScalarDBコード生成
-- `/architect:generate-infra-code` — K8s/Terraform/Helmコード生成
+- `/architect:design-implementation` — Implementation specs
+- `/architect:generate-test-specs` — BDD/unit/integration test specs
+- `/architect:generate-scalardb-code` — Spring Boot + ScalarDB code generation
+- `/architect:generate-infra-code` — K8s/Terraform/Helm code generation
 
 ### Infrastructure
-- `/architect:design-infrastructure` — K8s、IaC、マルチ環境
-- `/architect:design-security` — 認証・認可、シークレット管理
-- `/architect:design-observability` — 監視、トレーシング、アラート
-- `/architect:design-disaster-recovery` — RTO/RPO、バックアップ、DR
+- `/architect:design-infrastructure` — K8s, IaC, multi-environment
+- `/architect:design-security` — Auth, secrets management
+- `/architect:design-observability` — Monitoring, tracing, alerting
+- `/architect:design-disaster-recovery` — RTO/RPO, backup, DR
 
 ### Review (5-perspective parallel)
-- `/architect:review-consistency` — 構造的一貫性 (CON-)
-- `/architect:review-scalardb` — ScalarDB制約 (SDB-)
-- `/architect:review-data-integrity` — データ整合性 (DIN-, 非ScalarDB)
-- `/architect:review-operations` — 運用準備 (OPS-)
-- `/architect:review-risk` — 分散システムリスク (RSK-)
-- `/architect:review-business` — ビジネス要件 (BIZ-)
-- `/architect:review-synthesizer` — 統合・品質ゲート判定
+- `/architect:review-consistency` — Structural coherence (CON-)
+- `/architect:review-scalardb` — ScalarDB constraints (SDB-)
+- `/architect:review-data-integrity` — Data integrity (DIN-, non-ScalarDB)
+- `/architect:review-operations` — Operational readiness (OPS-)
+- `/architect:review-risk` — Distributed system risks (RSK-)
+- `/architect:review-business` — Business requirements (BIZ-)
+- `/architect:review-synthesizer` — Consolidation and quality gate
 
 ### Reporting
-- `/architect:report` — Markdown → HTML統合レポート
-- `/architect:render-mermaid [target_path]` — Mermaid → PNG/SVG + 構文修正
-- `/architect:estimate-cost` — インフラ・ライセンス・運用コスト
+- `/architect:report` — Markdown to HTML consolidated report
+- `/architect:render-mermaid [target_path]` — Mermaid to PNG/SVG + syntax fix
+- `/architect:estimate-cost` — Infrastructure, license, operational costs
 
 ## Pipeline Dependencies
 
@@ -98,10 +106,10 @@ Naming and frontmatter rules: @rules/output-conventions.md
 
 ## Tool Priority
 
-1. **Serena MCP** (get_symbols_overview, find_symbol) -- structural understanding
-2. **Glob/Grep** -- file discovery and pattern search
-3. **Read** -- targeted file reading
-4. **Task (sub-agent)** -- large-scale exploration across many files
+1. **Serena MCP** (get_symbols_overview, find_symbol) — structural understanding
+2. **Glob/Grep** — file discovery and pattern search
+3. **Read** — targeted file reading
+4. **Task (sub-agent)** — large-scale exploration across many files
 
 ## Rules & References
 
@@ -117,7 +125,7 @@ Naming and frontmatter rules: @rules/output-conventions.md
 
 ## Conventions
 
-- **Language**: All output documents in Japanese
+- **Output language**: Configurable per project (`en` default, `ja` supported)
 - **File naming**: kebab-case for all generated files
 - **Frontmatter**: Every output file must include YAML frontmatter with `schema_version`
 - **Diagrams**: All diagrams use Mermaid syntax (validated by hook)

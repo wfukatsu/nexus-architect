@@ -1,48 +1,48 @@
 ---
 name: review-synthesizer
 description: |
-  並列レビュー結果を統合する。重複排除、優先度分類、品質ゲート判定を行う。
-  2-5視点の可変入力数に対応。
+  Consolidate parallel review results. Deduplicate findings, classify priorities, and determine quality gate verdict.
+  Handles variable input of 2-5 perspectives.
 model: sonnet
 user_invocable: true
 ---
 
-# レビュー統合
+# Review Synthesis
 
-## 達成すべき結果
+## Expected Outcome
 
-複数のレビュー視点からのJSON出力を受け取り、統合レビューレポートを生成する。
+Receive JSON outputs from multiple review perspectives and produce a consolidated review report.
 
-## Step 1: 重複排除
+## Step 1: Deduplication
 
-複数のレビューアが同じ根本原因の問題を異なる角度から指摘することがある。
+Multiple reviewers may flag the same root cause from different angles.
 
-- **同一ロケーション + 同一根本原因** → 1つに統合、全視点IDを記録（例: "CON-003, BIZ-007"）
-- **同一根本原因 + 異なるロケーション** → 個別維持、`related_to` でリンク
-- **異なる根本原因 + 同一ロケーション** → 個別維持
-- 統合時は最も高い重大度を採用
-- 推奨事項を1つの具体的なアクションに統合
+- **Same location + same root cause** -> Merge into one, record all perspective IDs (e.g., "CON-003, BIZ-007")
+- **Same root cause + different locations** -> Keep separate, link via `related_to`
+- **Different root causes + same location** -> Keep separate
+- When merging, adopt the highest severity
+- Consolidate recommendations into a single actionable item
 
-## Step 2: 優先度分類
+## Step 2: Priority Classification
 
-| 優先度 | 条件 |
-|--------|------|
-| **P0 - ブロッカー** | critical重大度、データ損失・セキュリティ侵害・システム障害を引き起こす |
-| **P1 - 要修正** | 2+視点からのmajor、riskまたはscalardb視点のmajor |
-| **P2 - 推奨修正** | 1視点のみのmajor、3+視点に共通するminor |
-| **P3 - 検討** | minor/info重大度 |
+| Priority | Criteria |
+|----------|----------|
+| **P0 - Blocker** | Critical severity; causes data loss, security breach, or system failure |
+| **P1 - Must Fix** | Major from 2+ perspectives; major from risk or scalardb perspective |
+| **P2 - Should Fix** | Major from only 1 perspective; minor common across 3+ perspectives |
+| **P3 - Consider** | Minor/info severity |
 
-## Step 3: 品質ゲート判定
+## Step 3: Quality Gate Verdict
 
-`review-registry.json` の閾値に基づき判定:
+Determined based on thresholds in `review-registry.json`:
 
-- **PASS**: aggregate >= 3.5、critical: 0、major <= 3、全視点 >= 3.0
-- **CONDITIONAL PASS**: aggregate >= 2.5、critical <= 2（緩和策あり）、major <= 8
-- **FAIL**: 上記未満
+- **PASS**: aggregate >= 3.5, critical: 0, major <= 3, all perspectives >= 3.0
+- **CONDITIONAL PASS**: aggregate >= 2.5, critical <= 2 (with mitigations), major <= 8
+- **FAIL**: Below the above thresholds
 
-## Step 4: レポート生成
+## Step 4: Report Generation
 
-### JSON出力 (`reports/review/review-synthesis.json`)
+### JSON Output (`reports/review/review-synthesis.json`)
 
 ```json
 {
@@ -56,11 +56,11 @@ user_invocable: true
 }
 ```
 
-### Markdown出力 (`reports/review/review-synthesis.md`)
+### Markdown Output (`reports/review/review-synthesis.md`)
 
-見出し: Verdict → Score Summary → P0 Blockers → P1 Must Fix → P2 Should Fix → P3 Consider
+Headings: Verdict -> Score Summary -> P0 Blockers -> P1 Must Fix -> P2 Should Fix -> P3 Consider
 
-## 可変入力対応
+## Variable Input Handling
 
-2-5視点のいずれの組み合わせでも動作する。
-`review-registry.json` から有効化された視点の重みを読み込み、正規化して集計する。
+Operates with any combination of 2-5 perspectives.
+Reads the weights of enabled perspectives from `review-registry.json`, normalizes them, and aggregates scores.

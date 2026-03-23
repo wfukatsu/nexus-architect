@@ -1,21 +1,21 @@
 ---
 name: init-output
 description: |
-  出力ディレクトリとpipeline-progress.jsonを初期化する。
-  /architect:init-output [project_name] で呼び出し。--reset で再初期化。
+  Initialize output directories and pipeline-progress.json.
+  /architect:init-output [project_name]. Use --reset to reinitialize.
 model: haiku
 user_invocable: true
 ---
 
-# 出力初期化
+# Output Initialization
 
-## 達成すべき結果
+## Expected Outcome
 
-パイプライン実行に必要なディレクトリ構造と進捗管理ファイルを作成する。
+Create the directory structure and progress management files required for pipeline execution.
 
-## 実行内容
+## Execution Steps
 
-1. 以下のディレクトリを作成:
+1. Create the following directories:
    - `reports/before/{project}/`
    - `reports/00_summary/`
    - `reports/01_analysis/`
@@ -25,14 +25,14 @@ user_invocable: true
    - `generated/`
    - `work/`
 
-2. `work/pipeline-progress.json` を初期化（skill-dependencies.yaml の全フェーズを "pending" で登録）
+2. Initialize `work/pipeline-progress.json` (register all phases from skill-dependencies.yaml as "pending"). Include the `output_language` field under options, defaulting to `"en"`.
 
-3. `work/context.md` を空で作成
+3. Create `work/context.md` as an empty file.
 
-## オプション
+## Options
 
-- `--reset`: 既存の pipeline-progress.json をバックアップしてから再初期化
+- `--reset`: Back up the existing pipeline-progress.json before reinitializing.
 
-## 完了条件
+## Completion Criteria
 
-ディレクトリ構造と pipeline-progress.json が存在すること。
+The directory structure and pipeline-progress.json exist.

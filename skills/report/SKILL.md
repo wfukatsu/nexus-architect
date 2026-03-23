@@ -1,29 +1,31 @@
 ---
 name: report
 description: |
-  全Markdownレポートを統合HTMLレポートにコンパイルする。
-  /architect:report で呼び出し。
+  Compile all Markdown reports into a consolidated HTML report.
+  Invoked via /architect:report.
 model: haiku
 user_invocable: true
 ---
 
-# レポートコンパイル
+# Report Compilation
 
-## 達成すべき結果
+## Desired Outcome
 
-reports/ 配下の全Markdownファイルを統合したHTMLレポートを生成する。
+Generate a consolidated HTML report from all Markdown files under reports/.
 
-## 機能
+## Features
 
-- Markdown → HTML変換
-- Mermaid図のインラインレンダリング
-- 自動目次生成
-- フェーズ別セクション構成
-- ライト/ダークテーマ対応
-- レスポンシブデザイン（モバイル/印刷対応）
+- Markdown to HTML conversion
+- Inline rendering of Mermaid diagrams
+- Automatic table of contents generation
+- Section structure organized by phase
+- Light/dark theme support
+- Responsive design (mobile and print friendly)
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/00_summary/full-report.html` | 統合HTMLレポート |
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+
+| File | Content |
+|------|---------|
+| `reports/00_summary/full-report.html` | Consolidated HTML report |

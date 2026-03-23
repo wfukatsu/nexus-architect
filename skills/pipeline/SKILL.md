@@ -1,77 +1,78 @@
 ---
 name: pipeline
 description: |
-  依存関係順に全フェーズを自動実行するパイプライン。
-  /architect:pipeline [target_path] で呼び出し。
-  --skip-*, --resume-from, --rerun-from フラグ対応。
+  Automated pipeline that executes all phases in dependency order.
+  /architect:pipeline [target_path].
+  Supports --skip-*, --resume-from, --rerun-from, --lang flags.
 model: sonnet
 user_invocable: true
 disable-model-invocation: true
 ---
 
-# フルパイプライン実行
+# Full Pipeline Execution
 
-## 達成すべき結果
+## Expected Outcome
 
-対象プロジェクトの包括的なアーキテクチャ分析・設計を完成させる。
-最終成果物は reports/ 配下の完全なレポートセット。
+Complete a comprehensive architecture analysis and design for the target project.
+The final deliverables are a complete set of reports under reports/.
 
-## 利用可能なスキル
+## Available Skills
 
-@skills/common/skill-dependencies.yaml の全スキルを依存順に実行可能。
+All skills defined in @skills/common/skill-dependencies.yaml can be executed in dependency order.
 
-## 実行戦略
+## Execution Strategy
 
-1. `skill-dependencies.yaml` から依存グラフを読み込む
-2. `/architect:init-output` で出力ディレクトリを初期化
-3. 各スキルを実行し、出力を検証してから次に進む
-4. `parallel_with` が指定されたスキルは並列 Task で実行
-5. `conditions` フィールドに基づき ScalarDB関連スキルの有効/無効を判断
-6. 進捗を `work/pipeline-progress.json` に記録
-7. フェーズ間で `work/context.md` に発見事項を蓄積
+1. Load the dependency graph from `skill-dependencies.yaml`
+2. Initialize output directories with `/architect:init-output`
+3. Execute each skill and verify its output before proceeding to the next
+4. Execute skills with `parallel_with` in parallel via Task
+5. Enable or disable ScalarDB-related skills based on the `conditions` field
+6. Record progress in `work/pipeline-progress.json`
+7. Accumulate findings in `work/context.md` between phases
 
-## コマンドラインオプション
+## Command-Line Options
 
-- `--skip-{phase}`: 指定フェーズをスキップ
-- `--resume-from=phase-N`: 指定フェーズから再開（完了済みフェーズはスキップ）
-- `--rerun-from=phase-N`: 指定フェーズ以降を全て "pending" にリセットして再実行
-- `--analyze-only`: 分析フェーズのみ実行
-- `--no-scalardb`: ScalarDB関連スキルを全てスキップ
+- `--skip-{phase}`: Skip the specified phase
+- `--resume-from=phase-N`: Resume from the specified phase (completed phases are skipped)
+- `--rerun-from=phase-N`: Reset all phases from the specified phase onward to "pending" and re-execute
+- `--analyze-only`: Execute analysis phases only
+- `--no-scalardb`: Skip all ScalarDB-related skills
+- `--lang=en|ja`: Set the output language (default: en). Stored in pipeline-progress.json options.output_language
 
-## エラー処理
+## Error Handling
 
-- **必須前提ファイル欠損**: エラーログを記録し、下流フェーズを自動スキップ
-- **スキル実行失敗**: pipeline-progress.json に status: "failed" を記録
-- **依存フェーズ失敗**: 下流フェーズも自動スキップ
+- **Missing required prerequisite files**: Log the error and automatically skip downstream phases
+- **Skill execution failure**: Record status: "failed" in pipeline-progress.json
+- **Dependency phase failure**: Automatically skip downstream phases
 
-## コンテキスト管理
+## Context Management
 
-長いパイプラインではコンテキストウィンドウの制限を超える。
-各フェーズ完了時に `work/context.md` を更新し、次のフェーズ開始時に読み込む。
+Long pipelines may exceed context window limits.
+Update `work/context.md` upon each phase completion and read it at the start of the next phase.
 
 ```
-work/context.md の構造:
-- 調査結果サマリー
-- 分析で抽出したドメイン知識
-- 評価スコアと改善優先度
-- 設計で行った重要な決定
-- 未解決の問題
+work/context.md structure:
+- Investigation results summary
+- Domain knowledge extracted from analysis
+- Evaluation scores and improvement priorities
+- Important decisions made during design
+- Unresolved issues
 ```
 
-## 進捗レジストリ
+## Progress Registry
 
-@skills/common/progress-registry.md のスキーマに準拠。
+Conforms to the schema defined in @skills/common/progress-registry.md.
 
-## 完了条件
+## Completion Criteria
 
-1. 全フェーズが completed または skipped
-2. `reports/00_summary/executive-summary.md` が生成されている
-3. pipeline-progress.json の status が "completed"
+1. All phases are either completed or skipped
+2. `reports/00_summary/executive-summary.md` has been generated
+3. pipeline-progress.json status is "completed"
 
-## 関連スキル
+## Related Skills
 
-| スキル | 関係 |
-|-------|------|
-| /architect | 対話版 |
-| /architect:init-output | 初期化 |
-| /architect:report | 最終レポート |
+| Skill | Relationship |
+|-------|-------------|
+| /architect | Interactive version |
+| /architect:init-output | Initialization |
+| /architect:report | Final report |

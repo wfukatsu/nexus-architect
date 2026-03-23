@@ -1,65 +1,67 @@
 ---
 name: investigate
 description: |
-  現行システムの技術スタック、コードベース構造、技術的負債、DDD準備度を包括的に調査する。
-  /architect:investigate [target_path] で呼び出し。
-  レガシーシステム分析の最初のステップとして使用。
+  Comprehensive investigation of the target system covering technology stack, codebase structure, technical debt, and DDD readiness.
+  /architect:investigate [target_path] to invoke.
+  Used as the first step in legacy system analysis.
 model: sonnet
 user_invocable: true
 ---
 
-# システム調査
+# System Investigation
 
-## 達成すべき結果
+## Outcome
 
-対象システムの全体像を把握し、以下の4つの調査レポートを生成する:
-1. **技術スタック分析** — 使用言語、フレームワーク、ライブラリ、外部サービス
-2. **コードベース構造** — ディレクトリ構成、モジュール構造、エントリポイント
-3. **課題と技術的負債** — 問題点の特定と重要度分類（CRITICAL/High/Medium/Low）
-4. **DDD準備度** — ドメイン駆動設計への移行準備度の評価
+Gain a comprehensive understanding of the target system and generate the following four investigation reports:
+1. **Technology Stack Analysis** — Languages, frameworks, libraries, external services
+2. **Codebase Structure** — Directory layout, module structure, entry points
+3. **Issues and Technical Debt** — Problem identification and severity classification (CRITICAL/High/Medium/Low)
+4. **DDD Readiness** — Assessment of readiness for migration to domain-driven design
 
-## 判断基準
+## Judgment Criteria
 
-- 技術的負債が最も集中している領域を優先的に深掘りする
-- ドメイン分解を阻害する結合の問題を特にフラグする
-- DDD準備度はエビデンスに基づいて評価する（推測ではなく）
-- セキュリティ上の懸念があれば記録する
+- Prioritize deep-diving into areas where technical debt is most concentrated
+- Especially flag coupling issues that hinder domain decomposition
+- Evaluate DDD readiness based on evidence (not speculation)
+- Record any security concerns found
 
-## 前提条件
+## Prerequisites
 
-| ファイル | 必須/推奨 | 説明 |
-|---------|----------|------|
-| target_path（引数） | 必須 | 調査対象のコードベースパス |
+| File | Required/Recommended | Description |
+|------|---------------------|-------------|
+| target_path (argument) | Required | Path to the codebase under investigation |
 
-## 利用可能なリソース
+## Available Resources
 
-- **Serena MCP** — `get_symbols_overview`, `find_symbol` でAST解析（優先）
-- **Glob/Grep** — ファイルパターン検索、コード内キーワード検索
-- **Read** — 設定ファイル、依存定義ファイルの読み込み
-- **Task(Explore)** — 大規模コードベースの並列調査
+- **Serena MCP** — AST analysis via `get_symbols_overview`, `find_symbol` (preferred)
+- **Glob/Grep** — File pattern search, keyword search within code
+- **Read** — Reading configuration files and dependency definition files
+- **Task(Explore)** — Parallel investigation of large codebases
 
-## 出力
+## Output
 
-各セクション完了時に即座にファイル出力:
+Write output files immediately upon completing each section:
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/before/{project}/technology-stack.md` | 技術スタック一覧と評価 |
-| `reports/before/{project}/codebase-structure.md` | ディレクトリ・モジュール構造 |
-| `reports/before/{project}/issues-and-debt.md` | 技術的負債と課題一覧 |
-| `reports/before/{project}/ddd-readiness.md` | DDD準備度評価 |
+| File | Content |
+|------|---------|
+| `reports/before/{project}/technology-stack.md` | Technology stack inventory and assessment |
+| `reports/before/{project}/codebase-structure.md` | Directory and module structure |
+| `reports/before/{project}/issues-and-debt.md` | Technical debt and issues list |
+| `reports/before/{project}/ddd-readiness.md` | DDD readiness assessment |
 
-全出力にYAML frontmatter（title, schema_version: 1, phase, skill, generated_at）を含める。
+All output files must include YAML frontmatter (title, schema_version: 1, phase, skill, generated_at).
 
-## 完了条件
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-1. 4つの出力ファイルが全て書き込まれている
-2. pipeline-progress.json の investigate-system を "completed" に更新
-3. 発見事項のサマリーと未解決の懸念点を報告
+## Completion
 
-## 関連スキル
+1. All four output files have been written
+2. Update investigate-system in pipeline-progress.json to "completed"
+3. Report a summary of findings and any unresolved concerns
 
-| スキル | 関係 |
-|-------|------|
-| /architect:analyze | 出力先（この調査結果を入力として使用） |
-| /architect:investigate-security | 関連（セキュリティ詳細調査） |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:analyze | Downstream (uses these investigation results as input) |
+| /architect:investigate-security | Related (detailed security investigation) |

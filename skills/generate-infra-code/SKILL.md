@@ -1,40 +1,42 @@
 ---
 name: generate-infra-code
 description: |
-  Kubernetes manifests、Terraform modules、Helm chartsなどのインフラコードを生成する。
-  /generate-infra-code で呼び出し。
+  Generate Kubernetes manifests, Terraform modules, and Helm charts.
+  Invoked via /generate-infra-code.
 model: sonnet
 user_invocable: true
 ---
 
-# インフラコード生成
+# Infrastructure Code Generation
 
-## 達成すべき結果
+## Desired Outcome
 
-インフラ設計に基づきIaCコードを生成する:
-- Kubernetes manifests（Kustomize base + overlays）
-- Terraform modules（マルチクラウド対応）
-- Helm values（ScalarDB Cluster用）
-- NetworkPolicy、PodDisruptionBudget
-- マルチ環境設定（dev/staging/prod）
+Generate IaC code based on the infrastructure design:
+- Kubernetes manifests (Kustomize base + overlays)
+- Terraform modules (multi-cloud support)
+- Helm values (for ScalarDB Cluster)
+- NetworkPolicy and PodDisruptionBudget
+- Multi-environment configuration (dev/staging/prod)
 
-## 前提条件
+## Prerequisites
 
-| ファイル | 必須/推奨 | 生成元 |
-|---------|----------|--------|
-| reports/08_infrastructure/ | 必須 | /architect:design-infrastructure |
-| reports/03_design/target-architecture.md | 推奨 | /architect:design-microservices |
+| File | Required/Recommended | Source |
+|------|---------------------|--------|
+| reports/08_infrastructure/ | Required | /architect:design-infrastructure |
+| reports/03_design/target-architecture.md | Recommended | /architect:design-microservices |
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+
+| File | Content |
+|------|---------|
 | `generated/infrastructure/k8s/` | Kubernetes manifests |
 | `generated/infrastructure/terraform/` | Terraform modules |
 | `generated/infrastructure/helm/` | Helm values |
 
-## 関連スキル
+## Related Skills
 
-| スキル | 関係 |
-|-------|------|
-| /architect:design-infrastructure | 入力元 |
+| Skill | Relationship |
+|-------|-------------|
+| /architect:design-infrastructure | Input source |

@@ -1,31 +1,31 @@
 ---
 name: review-scalardb
 description: |
-  ScalarDB固有の制約（2PCスコープ、OCC競合、スキーマ互換性）をレビューする。
-  ScalarDB利用プロジェクト専用。並列レビューシステムの一視点。
+  Review ScalarDB-specific constraints (2PC scope, OCC contention, schema compatibility).
+  For ScalarDB-enabled projects only. Used as one perspective within the parallel review system.
 model: sonnet
 user_invocable: true
 ---
 
-# ScalarDB制約レビュー
+# ScalarDB Constraint Review
 
-## レビュー次元
+## Review Dimensions
 
-### 1. 2PCスコープ準拠 (weight: 0.40)
-- 2PCトランザクションが最大2-3サービスに収まるか
-- 4+サービスにまたがるトランザクションの検出
-- Sagaパターンの適用箇所
+### 1. 2PC Scope Compliance (weight: 0.40)
+- Whether 2PC transactions are contained within a maximum of 2-3 services
+- Detection of transactions spanning 4+ services
+- Application points for the Saga pattern
 
-### 2. OCC競合分析 (weight: 0.35)
-- 書き込みホットスポットの識別
-- OCC競合率5%未満を達成できる設計か
-- 競合緩和策（パーティショニング、CQRS等）
+### 2. OCC Contention Analysis (weight: 0.35)
+- Identification of write hotspots
+- Whether the design can achieve an OCC conflict rate below 5%
+- Contention mitigation strategies (partitioning, CQRS, etc.)
 
-### 3. スキーマ・API互換性 (weight: 0.25)
-- パーティション/クラスタリングキー設計の妥当性
-- セカンダリインデックスの必要性と性能影響
-- ScalarDB v3.17+制約の遵守
+### 3. Schema and API Compatibility (weight: 0.25)
+- Validity of partition/clustering key design
+- Necessity of secondary indexes and their performance impact
+- Compliance with ScalarDB v3.17+ constraints
 
-## 出力形式
+## Output Format
 
-JSON（review-consistency と同一スキーマ）。Finding IDプレフィックス: **SDB-**
+JSON (same schema as review-consistency). Finding ID prefix: **SDB-**

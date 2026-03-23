@@ -1,49 +1,51 @@
 ---
 name: design-api
 description: |
-  REST/GraphQL/gRPC/AsyncAPI仕様を生成する。
-  /architect:design-api で呼び出し。design-microservices の出力を前提条件とする。
+  Generate REST/GraphQL/gRPC/AsyncAPI specifications.
+  /architect:design-api to invoke. Requires design-microservices output as a prerequisite.
 model: opus
 user_invocable: true
 ---
 
-# API設計
+# API Design
 
-## 達成すべき結果
+## Desired Outcome
 
-マイクロサービス間およびクライアント向けのAPI仕様を設計する:
-- REST API (OpenAPI 3.0仕様)
-- GraphQL スキーマ（必要に応じて）
-- gRPC protobuf定義（サービス間通信）
-- AsyncAPI（イベント駆動通信）
-- API Gateway設計（ルーティング、認証、レート制限）
+Design API specifications for inter-service and client-facing communication:
+- REST API (OpenAPI 3.0 specification)
+- GraphQL schema (as needed)
+- gRPC protobuf definitions (inter-service communication)
+- AsyncAPI (event-driven communication)
+- API Gateway design (routing, authentication, rate limiting)
 
-## 判断基準
+## Decision Criteria
 
-- サービス分類に応じたプロトコル選択（Process→gRPC, Master→REST, Integration→AsyncAPI）
-- 認証・認可パターン（OAuth2/OIDC + RBAC/ABAC）
-- APIバージョニング戦略
-- エラーレスポンス標準化
+- Select protocol based on service classification (Process -> gRPC, Master -> REST, Integration -> AsyncAPI)
+- Authentication/authorization patterns (OAuth2/OIDC + RBAC/ABAC)
+- API versioning strategy
+- Error response standardization
 
-## 前提条件
+## Prerequisites
 
-| ファイル | 必須/推奨 | 生成元 |
-|---------|----------|--------|
-| reports/03_design/target-architecture.md | 必須 | /architect:design-microservices |
+| File | Required/Recommended | Source |
+|------|---------------------|--------|
+| reports/03_design/target-architecture.md | Required | /architect:design-microservices |
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/03_design/api-specifications/openapi/` | REST API仕様 |
-| `reports/03_design/api-specifications/graphql/` | GraphQLスキーマ |
-| `reports/03_design/api-specifications/grpc/` | protobuf定義 |
-| `reports/03_design/api-specifications/asyncapi/` | イベント仕様 |
-| `reports/03_design/api-gateway-design.md` | Gateway設計 |
+| File | Content |
+|------|---------|
+| `reports/03_design/api-specifications/openapi/` | REST API specifications |
+| `reports/03_design/api-specifications/graphql/` | GraphQL schemas |
+| `reports/03_design/api-specifications/grpc/` | Protobuf definitions |
+| `reports/03_design/api-specifications/asyncapi/` | Event specifications |
+| `reports/03_design/api-gateway-design.md` | Gateway design |
 
-## 関連スキル
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-| スキル | 関係 |
-|-------|------|
-| /architect:design-microservices | 入力元 |
-| /architect:review-consistency | レビュー対象 |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:design-microservices | Input source |
+| /architect:review-consistency | Review target |

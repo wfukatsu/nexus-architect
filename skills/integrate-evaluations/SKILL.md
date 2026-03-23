@@ -1,42 +1,44 @@
 ---
 name: integrate-evaluations
 description: |
-  MMI評価とDDD評価の結果を統合し、優先度付き改善計画を策定する。
-  /architect:integrate-evaluations で呼び出し。
+  Merge MMI and DDD evaluation results into a unified improvement plan.
+  /architect:integrate-evaluations to invoke.
 model: sonnet
 user_invocable: true
 ---
 
-# 評価統合
+# Evaluation Integration
 
-## 達成すべき結果
+## Desired Outcome
 
-MMIとDDDの評価結果を統合し、マイクロサービス化に向けた統一的な改善計画を策定する。
+Integrate the MMI and DDD evaluation results and formulate a unified improvement plan for microservice transformation.
 
-## 判断基準
+## Decision Criteria
 
-- 両評価で共通して低スコアの領域を最優先改善対象とする
-- 改善項目はビジネスインパクトと技術的実現性の両面で優先度付けする
-- 短期（クイックウイン）と中長期（構造改善）に分類する
+- Prioritize areas that scored low in both evaluations as top improvement targets
+- Rank improvement items by both business impact and technical feasibility
+- Classify into short-term (quick wins) and medium-to-long-term (structural improvements)
 
-## 前提条件
+## Prerequisites
 
-| ファイル | 必須/推奨 | 生成元 |
-|---------|----------|--------|
-| reports/02_evaluation/mmi-overview.md | 必須 | /architect:evaluate-mmi |
-| reports/02_evaluation/ddd-strategic-evaluation.md | 必須 | /architect:evaluate-ddd |
+| File | Required/Recommended | Source |
+|------|---------------------|--------|
+| reports/02_evaluation/mmi-overview.md | Required | /architect:evaluate-mmi |
+| reports/02_evaluation/ddd-strategic-evaluation.md | Required | /architect:evaluate-ddd |
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/02_evaluation/integrated-evaluation.md` | 統合評価結果 |
-| `reports/02_evaluation/unified-improvement-plan.md` | 優先度付き改善計画 |
+| File | Content |
+|------|---------|
+| `reports/02_evaluation/integrated-evaluation.md` | Integrated evaluation results |
+| `reports/02_evaluation/unified-improvement-plan.md` | Prioritized improvement plan |
 
-## 関連スキル
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-| スキル | 関係 |
-|-------|------|
-| /architect:evaluate-mmi | 入力元 |
-| /architect:evaluate-ddd | 入力元 |
-| /architect:redesign | 出力先 |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:evaluate-mmi | Input source |
+| /architect:evaluate-ddd | Input source |
+| /architect:redesign | Output destination |

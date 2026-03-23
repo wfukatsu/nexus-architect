@@ -1,36 +1,38 @@
 ---
 name: design-scalardb-analytics
 description: |
-  ScalarDB Analyticsを使用したHTAP分析基盤を設計する。Apache Sparkベースの分析クエリ設計。
-  /architect:design-scalardb-analytics で呼び出し。Enterprise Premium専用。
+  Design HTAP analytics platform using ScalarDB Analytics with Apache Spark.
+  /architect:design-scalardb-analytics to invoke. Enterprise Premium only.
 model: sonnet
 user_invocable: true
 ---
 
-# ScalarDB Analytics設計
+# ScalarDB Analytics Design
 
-## 達成すべき結果
+## Desired Outcome
 
-- HTAP（Hybrid Transactional/Analytical Processing）アーキテクチャ設計
-- Apache Spark統合設定
-- 異種DB横断の分析クエリ設計
-- データカタログ（論理-物理マッピング）
-- タイムライン一貫性読み取り設定
+- HTAP (Hybrid Transactional/Analytical Processing) architecture design
+- Apache Spark integration configuration
+- Cross-database analytical query design across heterogeneous DBs
+- Data catalog (logical-to-physical mapping)
+- Timeline-consistent read configuration
 
-## 前提条件
+## Prerequisites
 
-| ファイル | 必須/推奨 | 生成元 |
-|---------|----------|--------|
-| reports/03_design/scalardb-schema.md | 必須 | /architect:design-scalardb |
+| File | Required/Recommended | Source |
+|------|---------------------|--------|
+| reports/03_design/scalardb-schema.md | Required | /architect:design-scalardb |
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/03_design/scalardb-analytics-design.md` | Analytics全体設計 |
+| File | Content |
+|------|---------|
+| `reports/03_design/scalardb-analytics-design.md` | Overall Analytics design |
 
-## 関連スキル
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-| スキル | 関係 |
-|-------|------|
-| /architect:design-scalardb | 入力元 |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:design-scalardb | Input source |

@@ -1,31 +1,31 @@
 ---
 name: review-data-integrity
 description: |
-  ScalarDB非依存のデータ整合性、トランザクション安全性、スキーマ設計品質をレビューする。
-  ScalarDB不使用プロジェクト向け。並列レビューシステムの一視点。
+  Review data integrity, transaction safety, and schema design quality independent of ScalarDB.
+  For projects not using ScalarDB. Used as one perspective within the parallel review system.
 model: sonnet
 user_invocable: true
 ---
 
-# データ整合性レビュー
+# Data Integrity Review
 
-## レビュー次元
+## Review Dimensions
 
-### 1. トランザクション安全性 (weight: 0.40)
-- トランザクション境界の適切さ
-- ACID特性の保証
-- デッドロック回避設計
+### 1. Transaction Safety (weight: 0.40)
+- Appropriateness of transaction boundaries
+- ACID property guarantees
+- Deadlock avoidance design
 
-### 2. データ一貫性 (weight: 0.35)
-- 結果整合性の許容範囲
-- 競合解決戦略
-- 参照整合性制約
+### 2. Data Consistency (weight: 0.35)
+- Acceptable range for eventual consistency
+- Conflict resolution strategies
+- Referential integrity constraints
 
-### 3. スキーマ設計品質 (weight: 0.25)
-- 正規化レベルの妥当性
-- インデックス設計
-- マイグレーション安全性
+### 3. Schema Design Quality (weight: 0.25)
+- Appropriateness of normalization level
+- Index design
+- Migration safety
 
-## 出力形式
+## Output Format
 
-JSON（review-consistency と同一スキーマ）。Finding IDプレフィックス: **DIN-**
+JSON (same schema as review-consistency). Finding ID prefix: **DIN-**

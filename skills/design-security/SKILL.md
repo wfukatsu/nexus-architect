@@ -1,32 +1,34 @@
 ---
 name: design-security
 description: |
-  認証・認可、シークレット管理、ネットワークセキュリティ、監査ログを設計する。
-  /design-security で呼び出し。
+  Design authentication, authorization, secrets management, and network security.
+  Invoked via /design-security.
 model: sonnet
 user_invocable: true
 ---
 
-# セキュリティ設計
+# Security Design
 
-## 達成すべき結果
+## Desired Outcome
 
-- 認証基盤設計（OAuth2/OIDC、サービス間mTLS）
-- 認可モデル（RBAC/ABAC、ポリシーエンジン）
-- シークレット管理（Vault/KMS、ローテーション戦略）
-- ネットワークセキュリティ（ゼロトラスト、セグメンテーション）
-- 監査ログ設計（誰が、何を、いつ）
-- コンプライアンス対応チェックリスト
+- Authentication infrastructure design (OAuth2/OIDC, inter-service mTLS)
+- Authorization model (RBAC/ABAC, policy engine)
+- Secrets management (Vault/KMS, rotation strategy)
+- Network security (zero trust, segmentation)
+- Audit log design (who, what, when)
+- Compliance checklist
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/08_infrastructure/security-design.md` | セキュリティ全体設計 |
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-## 関連スキル
+| File | Content |
+|------|---------|
+| `reports/08_infrastructure/security-design.md` | Overall security design |
 
-| スキル | 関係 |
-|-------|------|
-| /architect:investigate-security | 入力元（既存システムの脆弱性情報） |
-| /architect:design-infrastructure | 関連 |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:investigate-security | Input source (vulnerability information from existing systems) |
+| /architect:design-infrastructure | Related |

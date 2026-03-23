@@ -1,104 +1,104 @@
-# サブエージェントパターン集
+# Sub-Agent Pattern Library
 
-スキル実行中にTask toolで呼び出すサブエージェントの8つの再利用パターン。
+Eight reusable patterns for sub-agents invoked via the Task tool during skill execution.
 
-## Pattern 1: コードベース探索
+## Pattern 1: Codebase Exploration
 
-大規模コードベースの構造調査に使用。
-
-```
-Task(subagent_type="Explore",
-  prompt="調査対象 {target_path} のパッケージ構造を探索し、
-    主要モジュール一覧と依存関係をJSON形式でまとめてください。",
-  description="コードベース構造調査")
-```
-
-## Pattern 2: 前フェーズ出力読み込み
-
-コンテキストウィンドウ保護のため、前フェーズの出力をサブエージェントで要約。
+Used for surveying the structure of large codebases.
 
 ```
 Task(subagent_type="Explore",
-  prompt="以下のファイルを読み込み、{current_skill}に必要な情報を抽出:
-    必須: reports/02_evaluation/mmi-overview.md
-    抽出項目: 1. モジュール別MMIスコア 2. BC候補 3. 主要改善点
-    結果をMarkdown形式で返してください。",
-  description="前フェーズ出力読み込み")
+  prompt="Explore the package structure of {target_path},
+    and compile a list of major modules and their dependencies in JSON format.",
+  description="Codebase structure survey")
 ```
 
-## Pattern 3: アーキテクチャ分析
+## Pattern 2: Previous Phase Output Ingestion
 
-マイクロサービスパターンの検出と評価。
-
-```
-Task(subagent_type="general-purpose",
-  prompt="対象システムのアーキテクチャパターンを分析:
-    - 通信パターン（同期/非同期）
-    - データ所有パターン
-    - 障害伝搬パス",
-  description="アーキテクチャパターン分析")
-```
-
-## Pattern 4: コード生成
-
-設計仕様からのコード合成。
-
-```
-Task(subagent_type="general-purpose",
-  prompt="以下の設計仕様に基づきSpring Boot + ScalarDBコードを生成:
-    - エンティティ: {entities}
-    - リポジトリ: {repositories}
-    @rules/scalardb-coding-patterns.md を参照",
-  description="ScalarDBコード生成")
-```
-
-## Pattern 5: エンティティ抽出
-
-ドメインモデルの自動識別。
+Summarize previous phase outputs via a sub-agent to protect the context window.
 
 ```
 Task(subagent_type="Explore",
-  prompt="{target_path} からドメインエンティティを抽出:
-    - クラス名、属性、関連
-    - ビジネスルール（バリデーション）
-    結果をテーブル形式で返してください。",
-  description="エンティティ抽出")
+  prompt="Read the following files and extract the information needed for {current_skill}:
+    Required: reports/02_evaluation/mmi-overview.md
+    Items to extract: 1. MMI scores by module 2. BC candidates 3. Key improvement areas
+    Return the results in Markdown format.",
+  description="Previous phase output ingestion")
 ```
 
-## Pattern 6: 比較分析
+## Pattern 3: Architecture Analysis
 
-複数ドキュメントの横断的比較。
-
-```
-Task(subagent_type="general-purpose",
-  prompt="以下の2つの設計案を比較分析:
-    - 案A: {file_a}
-    - 案B: {file_b}
-    比較軸: 性能、保守性、移行コスト、リスク",
-  description="設計案比較")
-```
-
-## Pattern 7: マルチドキュメント統合
-
-複数の分析結果を1つのレポートに統合。
+Detection and evaluation of microservice patterns.
 
 ```
 Task(subagent_type="general-purpose",
-  prompt="以下の分析結果を統合レポートにまとめてください:
+  prompt="Analyze the architecture patterns of the target system:
+    - Communication patterns (synchronous/asynchronous)
+    - Data ownership patterns
+    - Failure propagation paths",
+  description="Architecture pattern analysis")
+```
+
+## Pattern 4: Code Generation
+
+Code synthesis from design specifications.
+
+```
+Task(subagent_type="general-purpose",
+  prompt="Generate Spring Boot + ScalarDB code based on the following design specification:
+    - Entities: {entities}
+    - Repositories: {repositories}
+    Refer to @rules/scalardb-coding-patterns.md",
+  description="ScalarDB code generation")
+```
+
+## Pattern 5: Entity Extraction
+
+Automatic identification of domain models.
+
+```
+Task(subagent_type="Explore",
+  prompt="Extract domain entities from {target_path}:
+    - Class names, attributes, and relationships
+    - Business rules (validations)
+    Return the results in table format.",
+  description="Entity extraction")
+```
+
+## Pattern 6: Comparative Analysis
+
+Cross-cutting comparison of multiple documents.
+
+```
+Task(subagent_type="general-purpose",
+  prompt="Perform a comparative analysis of the following two design proposals:
+    - Proposal A: {file_a}
+    - Proposal B: {file_b}
+    Comparison axes: performance, maintainability, migration cost, risk",
+  description="Design proposal comparison")
+```
+
+## Pattern 7: Multi-Document Integration
+
+Consolidate multiple analysis results into a single report.
+
+```
+Task(subagent_type="general-purpose",
+  prompt="Consolidate the following analysis results into an integrated report:
     {file_list}
-    重複を排除し、優先度順に整理してください。",
-  description="分析結果統合")
+    Eliminate duplicates and organize by priority.",
+  description="Analysis result integration")
 ```
 
-## Pattern 8: 制約充足確認
+## Pattern 8: Constraint Satisfaction Verification
 
-設計の実現可能性検証。
+Feasibility verification of a design.
 
 ```
 Task(subagent_type="general-purpose",
-  prompt="以下の設計が制約条件を満たすか検証:
-    設計: {design_file}
-    制約: 2PC最大3サービス、OCC競合率5%未満、レイテンシ100ms以下
-    違反箇所と代替案を報告してください。",
-  description="制約充足検証")
+  prompt="Verify whether the following design satisfies the constraint conditions:
+    Design: {design_file}
+    Constraints: 2PC max 3 services, OCC conflict rate below 5%, latency under 100ms
+    Report any violations and suggest alternatives.",
+  description="Constraint satisfaction verification")
 ```

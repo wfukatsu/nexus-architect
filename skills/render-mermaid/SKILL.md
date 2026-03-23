@@ -1,31 +1,33 @@
 ---
 name: render-mermaid
 description: |
-  Mermaid図をPNG/SVG/PDFに変換し、構文エラーも修正する。
-  /render-mermaid [target_path] で呼び出し。
+  Render Mermaid diagrams to PNG/SVG/PDF and fix syntax errors.
+  Invoked via /render-mermaid [target_path].
 model: haiku
 user_invocable: true
 ---
 
-# Mermaidレンダリング・修正
+# Mermaid Rendering and Repair
 
-## 達成すべき結果
+## Desired Outcome
 
-指定されたMarkdownファイルまたはディレクトリ内のMermaid図を画像に変換する。
-構文エラーがある場合は自動修正する。
+Convert Mermaid diagrams in the specified Markdown file or directory to images.
+Automatically fix any syntax errors found.
 
-## 機能
+## Features
 
-- Mermaid → PNG/SVG/PDF変換（mmdcコマンド使用）
-- 構文エラーの自動検出・修正
-- 日本語テキストのクォート修正
-- 括弧の不一致修正
+- Mermaid to PNG/SVG/PDF conversion (using the mmdc command)
+- Automatic syntax error detection and repair
+- Quote correction for non-ASCII text
+- Mismatched bracket repair
 
-## ツール
+## Tools
 
-- `mmdc` (mermaid-cli) がインストールされている場合は利用
-- 未インストールの場合は構文検証のみ実行
+- Uses `mmdc` (mermaid-cli) if installed
+- Falls back to syntax validation only if not installed
 
-## 出力
+## Output
 
-レンダリング結果は元ファイルと同じディレクトリに配置。
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+
+Rendered output is placed in the same directory as the source file.

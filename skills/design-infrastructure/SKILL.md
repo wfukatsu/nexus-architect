@@ -1,41 +1,43 @@
 ---
 name: design-infrastructure
 description: |
-  Kubernetes、IaC（Terraform）、ネットワーク、マルチ環境構成を設計する。
-  /architect:design-infrastructure で呼び出し。
+  Design Kubernetes, IaC (Terraform), networking, and multi-environment configuration.
+  Invoked via /architect:design-infrastructure.
 model: opus
 user_invocable: true
 ---
 
-# インフラ設計
+# Infrastructure Design
 
-## 達成すべき結果
+## Desired Outcome
 
-本番運用に耐えるインフラ構成を設計する:
-- Kubernetesクラスタ構成（ノードプール、リソースクォータ、名前空間戦略）
-- コンテナオーケストレーション（デプロイ戦略、HPA、PDB）
-- ネットワーク設計（mTLS、NetworkPolicy、Ingress/Gateway）
-- IaC構成（Terraform modules、状態管理）
-- マルチ環境戦略（dev/staging/prod、Kustomize overlays）
-- ScalarDB Cluster利用時: Helm chart設定、Coordinator配置
+Design a production-grade infrastructure configuration:
+- Kubernetes cluster configuration (node pools, resource quotas, namespace strategy)
+- Container orchestration (deployment strategy, HPA, PDB)
+- Network design (mTLS, NetworkPolicy, Ingress/Gateway)
+- IaC configuration (Terraform modules, state management)
+- Multi-environment strategy (dev/staging/prod, Kustomize overlays)
+- When using ScalarDB Cluster: Helm chart configuration, Coordinator placement
 
-## 前提条件
+## Prerequisites
 
-| ファイル | 必須/推奨 | 生成元 |
-|---------|----------|--------|
-| reports/03_design/target-architecture.md | 必須 | /architect:design-microservices |
+| File | Required/Recommended | Source |
+|------|---------------------|--------|
+| reports/03_design/target-architecture.md | Required | /architect:design-microservices |
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/08_infrastructure/infrastructure-architecture.md` | インフラ全体設計 |
-| `reports/08_infrastructure/deployment-guide.md` | デプロイ手順 |
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-## 関連スキル
+| File | Content |
+|------|---------|
+| `reports/08_infrastructure/infrastructure-architecture.md` | Overall infrastructure design |
+| `reports/08_infrastructure/deployment-guide.md` | Deployment procedures |
 
-| スキル | 関係 |
-|-------|------|
-| /architect:design-microservices | 入力元 |
-| /design-security | 関連 |
-| /generate-infra-code | 出力先 |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:design-microservices | Input source |
+| /design-security | Related |
+| /generate-infra-code | Output consumer |

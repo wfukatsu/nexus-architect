@@ -1,32 +1,34 @@
 ---
 name: design-disaster-recovery
 description: |
-  RTO/RPO定義、バックアップ戦略、フェイルオーバー設計、復旧手順を策定する。
-  /design-disaster-recovery で呼び出し。
+  Define RTO/RPO, backup strategies, failover design, and recovery procedures.
+  Invoked via /design-disaster-recovery.
 model: sonnet
 user_invocable: true
 ---
 
-# 災害復旧設計
+# Disaster Recovery Design
 
-## 達成すべき結果
+## Desired Outcome
 
-- サービスティア別RTO/RPO定義
-- バックアップ戦略（頻度、保持期間、テスト計画）
-- フェイルオーバー設計（リージョン間、AZ間）
-- データリカバリ手順（ScalarDB Coordinatorテーブル含む）
-- ランブック（障害シナリオ別の復旧手順）
-- 復旧テスト計画（カオスエンジニアリング含む）
+- RTO/RPO definitions by service tier
+- Backup strategy (frequency, retention period, test plan)
+- Failover design (cross-region, cross-AZ)
+- Data recovery procedures (including ScalarDB Coordinator table)
+- Runbooks (recovery procedures per failure scenario)
+- Recovery test plan (including chaos engineering)
 
-## 出力
+## Output
 
-| ファイル | 内容 |
-|---------|------|
-| `reports/08_infrastructure/disaster-recovery-design.md` | DR全体設計 |
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
-## 関連スキル
+| File | Content |
+|------|---------|
+| `reports/08_infrastructure/disaster-recovery-design.md` | Overall DR design |
 
-| スキル | 関係 |
-|-------|------|
-| /architect:design-infrastructure | 関連 |
-| /architect:review-operations | レビュー時に参照 |
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:design-infrastructure | Related |
+| /architect:review-operations | Referenced during review |

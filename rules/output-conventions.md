@@ -1,14 +1,22 @@
-# 出力規約
+# Output Conventions
 
-## YAML Frontmatter（必須）
+## Output Language
 
-全出力ファイルは以下のfrontmatterを含むこと:
+The output language is configured per project in `work/pipeline-progress.json`:
+- `options.output_language`: "en" (default) or "ja"
+- All report documents, analysis text, and descriptions use the configured language
+- YAML frontmatter keys remain in English regardless of output language
+- Mermaid node IDs remain in English; labels use the configured language
+
+## YAML Frontmatter (Required)
+
+All output files must include the following frontmatter:
 
 ```yaml
 ---
-title: "ドキュメントタイトル"
+title: "Document Title"
 schema_version: 1
-phase: "Phase N: カテゴリ名"
+phase: "Phase N: Category Name"
 skill: skill-name
 generated_at: "ISO8601"
 input_files:
@@ -16,30 +24,30 @@ input_files:
 ---
 ```
 
-## ファイル命名規約
+## File Naming Conventions
 
-- **kebab-case限定**: `ubiquitous-language.md`（NOT `ubiquitous_language.md`）
-- ディレクトリがフェーズを示すため、ファイル名にフェーズプレフィックス不要
-- サフィックス例: `-analysis.md`, `-evaluation.md`, `-design.md`, `-specs.md`
+- **kebab-case only**: `ubiquitous-language.md` (NOT `ubiquitous_language.md`)
+- Directories indicate the phase, so no phase prefix is needed in file names
+- Suffix examples: `-analysis.md`, `-evaluation.md`, `-design.md`, `-specs.md`
 
-## 即時出力ルール
+## Immediate Output Rule
 
-**重要**: 各ステップ完了時に即座にファイル出力すること。最後にまとめて出力しない。
+**Important**: Output files immediately upon completion of each step. Do not batch outputs at the end.
 
-理由:
-- パイプラインを中断・再開可能にするため
-- 中間成果を可視化するため
-- スキル並列化を可能にするため
+Reasons:
+- To allow pipeline interruption and resumption
+- To make intermediate artifacts visible
+- To enable skill parallelization
 
-## 言語
+## Language
 
-- 全出力ドキュメント: 日本語
-- YAML frontmatter: 英語キー、日本語値
-- Mermaidノード: 日本語テキストはクォートで囲む
+- All output documents: Use the configured language (see Output Language above)
+- YAML frontmatter: English keys, values in the configured language
+- Mermaid nodes: Wrap non-ASCII text in quotes
 
-## ドキュメント構造
+## Document Structure
 
-- 見出しレベルは `##` から開始（`#` はタイトル用）
-- Mermaid図は適切な箇所に配置
-- テーブルは Markdown 標準形式
-- コードブロックには言語指定を含める
+- Heading levels start at `##` (`#` is reserved for the title)
+- Place Mermaid diagrams at appropriate locations
+- Tables use standard Markdown format
+- Code blocks must include language specification
