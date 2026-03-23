@@ -69,6 +69,40 @@ Consolidated HTML report:
 # -> reports/00_summary/full-report.html
 ```
 
+## 4. ScalarDB Application Development
+
+```bash
+# Design a schema interactively
+/architect:scalardb-model
+
+# Generate a complete starter project
+/architect:scalardb-scaffold
+
+# Build a full application from requirements
+/architect:scalardb-build-app
+
+# Review code for ScalarDB correctness
+/architect:scalardb-review-code
+```
+
+See [ScalarDB Development Guide](scalardb-development.md) for details.
+
+## 5. Database Migration to ScalarDB
+
+```bash
+# Unified entry point (asks which database)
+/architect:migrate-database
+
+# Or go directly to a specific database
+/architect:migrate-oracle
+/architect:migrate-mysql
+/architect:migrate-postgresql
+```
+
+Prerequisites: Python 3.9+, database client tools, `pip install python-dotenv mysql-connector-python psycopg2-binary`
+
+See [Database Migration Guide](database-migration.md) for details.
+
 ## MCP Servers (Recommended)
 
 - **Serena**: Ideal for AST-level code analysis and symbol search
