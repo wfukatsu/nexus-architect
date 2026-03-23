@@ -1,0 +1,3 @@
+# MySQL Schema Analysis - Python Dependencies
+python-dotenv>=1.0.0
+mysql-connector-python>=8.0.0

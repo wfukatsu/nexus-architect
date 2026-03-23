@@ -70,7 +70,7 @@ If the skill is recognized, the installation is successful.
 
 ## Commands
 
-All 47 skills are invoked as `/architect:skill-name`.
+All 51 skills are invoked as `/architect:skill-name`.
 
 | Command | Description |
 |---------|-------------|
@@ -130,6 +130,11 @@ All 47 skills are invoked as `/architect:skill-name`.
 | `/architect:scalardb-build-app` | Build complete app from requirements |
 | `/architect:scalardb-review-code` | Java code review (16 check categories) |
 | `/architect:scalardb-migrate` | Migration advisor (Core/Cluster, CRUD/JDBC, 1PC/2PC) |
+| **Database Migration** | |
+| `/architect:migrate-database` | Unified migration router (Oracle/MySQL/PostgreSQL) |
+| `/architect:migrate-oracle` | Oracle → ScalarDB (schema, analysis, AQ, SP/trigger) |
+| `/architect:migrate-mysql` | MySQL → ScalarDB (schema, analysis, SP/trigger) |
+| `/architect:migrate-postgresql` | PostgreSQL → ScalarDB (schema, analysis, SP/trigger) |
 
 ## Workflows
 
@@ -155,6 +160,14 @@ Build ScalarDB applications with guided schema design, code generation, and code
 
 ```
 scalardb-model -> scalardb-config -> scalardb-scaffold -> scalardb-review-code
+```
+
+### Database Migration to ScalarDB
+
+Migrate existing Oracle, MySQL, or PostgreSQL databases to ScalarDB with automated schema analysis, migration planning, and Java code generation.
+
+```
+migrate-database -> schema extraction -> migration analysis -> SP/trigger conversion -> (AQ integration)
 ```
 
 ## Output Language

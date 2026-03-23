@@ -87,6 +87,12 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 - `/architect:scalardb-review-code` — Review Java code for ScalarDB correctness (16 checks)
 - `/architect:scalardb-migrate` — Migration advisor (Core→Cluster, CRUD→JDBC, 1PC→2PC)
 
+### Database Migration (Oracle/MySQL/PostgreSQL → ScalarDB)
+- `/architect:migrate-database` — Unified migration router (detects DB type, delegates)
+- `/architect:migrate-oracle` — Oracle → ScalarDB (schema extraction, analysis, AQ integration, SP/trigger Java conversion)
+- `/architect:migrate-mysql` — MySQL → ScalarDB (schema extraction, analysis, SP/trigger Java conversion)
+- `/architect:migrate-postgresql` — PostgreSQL → ScalarDB (schema extraction, analysis, SP/trigger Java conversion)
+
 ## Pipeline Dependencies
 
 ```

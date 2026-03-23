@@ -1,0 +1,23 @@
+# Oracle Database Schema Analysis Tool
+# Python dependencies
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# JSON handling (included in Python stdlib, listed for documentation)
+# json - stdlib
+
+# Path handling (included in Python stdlib, listed for documentation)
+# pathlib - stdlib
+
+# Date/time handling (included in Python stdlib, listed for documentation)
+# datetime - stdlib
+
+# Argument parsing (included in Python stdlib, listed for documentation)
+# argparse - stdlib
+
+# Optional: For enhanced output formatting
+# rich>=13.0.0
+
+# Optional: For progress bars during long operations
+# tqdm>=4.65.0

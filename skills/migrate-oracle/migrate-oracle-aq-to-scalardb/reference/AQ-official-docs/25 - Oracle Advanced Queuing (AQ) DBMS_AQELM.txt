@@ -1,0 +1,91 @@
+Previous Next JavaScript must be enabled to correctly display this content
+
+25 DBMS_AQELM
+
+The package provides subprograms to manage the configuration of Oracle Advanced Queuing (AQ) asynchronous notification by e-mail and HTTP.
+
+See Also: Oracle Database Advanced Queuing User's Guide for detailed information about DBMS_AQELM
+
+This chapter contains the following topics:DBMS_AQELM
+
+Security Model
+
+Summary of DBMS_AQELM Subprograms
+
+25.1 DBMS_AQELM Security Model
+
+You need the administrator role AQ_ADMINISTRATOR_ROLE to run all procedures in DBMS_AQELM.
+
+25.2 Summary of DBMS_AQELM Subprograms
+
+This section lists and briefly describes the DBMS_AQELM subprograms.
+
+Table 25-1 DBMS_AQELM Package Subprograms
+
+Subprogram Description
+
+SET_MAILHOST Procedure
+
+Sets the host name for the SMTP server that the database will uses send out e-mail notifications
+
+SET_MAILPORT Procedure
+
+Sets the port number for the SMTP server
+
+SET_SENDFROM Procedure
+
+Sets the sent-from e-mail address
+
+25.2.1 SET_MAILHOST Procedure
+
+This procedure sets the host name for the SMTP server. The database uses this SMTP server host name to send out e-mail notifications.
+
+Syntax DBMS_AQELM.SET_MAILHOST ( mailhost IN VARCHAR2);
+
+Parameters
+
+Table 25-2 SET_MAILHOST Procedure Parameters
+
+Parameter Description
+
+mailhost
+
+SMTP server host name.
+
+Usage Notes As part of the configuration for e-mail notifications, a user with AQ_ADMINISTRATOR_ROLE or with EXECUTE permissions on the DBMS_AQELM package needs to set the host name before registering for e-mail notifications.
+
+25.2.2 SET_MAILPORT Procedure
+
+This procedure sets the port number for the SMTP server.
+
+Syntax DBMS_AQELM.SET_MAILPORT ( mailport IN NUMBER);
+
+Parameters
+
+Table 25-3 SET_MAILPORT Procedure Parameters
+
+Parameter Description
+
+mailport
+
+SMTP server port number.
+
+Usage Notes As part of the configuration for e-mail notifications, a user with AQ_ADMINISTRATOR_ROLE or with EXECUTE permissions on DBMS_AQELM package needs to set the port number before registering for e-mail notifications. The database uses this SMTP server port number to send out e-mail notifications. If not set, the SMTP mailport defaults to 25
+
+25.2.3 SET_SENDFROM Procedure
+
+This procedure sets the sent-from e-mail address. This e-mail address is used in the sent-from field in all the e-mail notifications sent out by the database to the registered e-mail addresses.
+
+Syntax DBMS_AQELM.SET_SENDFROM ( sendfrom IN VARCHAR2);
+
+Parameters
+
+Table 25-4 SET_SENDFROM Procedure Parameters
+
+Parameter Description
+
+sendfrom
+
+The sent-from e-mail address.
+
+Usage Notes As part of the configuration for e-mail notifications, a user with AQ_ADMINISTRATOR_ROLE or with EXECUTE permissions on the DBMS_AQELM package should set the sent-from address before registering for e-mail notifications
