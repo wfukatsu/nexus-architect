@@ -1,7 +1,7 @@
 {
   "name": "architect",
-  "description": "Unified system architecture agent. 36 skills for legacy refactoring, greenfield ScalarDB design, and consulting deliverables. 5-perspective parallel review system with quality gates. All commands: /architect:skill-name.",
-  "version": "0.2.0",
+  "description": "Unified system architecture agent. 47 skills for legacy refactoring, greenfield ScalarDB design, ScalarDB application development, and consulting deliverables. 5-perspective parallel review system. 11 ScalarDB development skills with code generation, scaffolding, and code review. All commands: /architect:skill-name.",
+  "version": "0.3.0",
   "author": {
     "name": "Wataru Fukatsu"
   },
@@ -17,6 +17,9 @@
     "code-analysis",
     "mmi",
     "review",
-    "code-generation"
+    "code-generation",
+    "scaffolding",
+    "jdbc",
+    "2pc"
   ]
 }

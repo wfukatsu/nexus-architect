@@ -74,6 +74,19 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 - `/architect:render-mermaid [target_path]` — Mermaid to PNG/SVG + syntax fix
 - `/architect:estimate-cost` — Infrastructure, license, operational costs
 
+### ScalarDB Development
+- `/architect:scalardb-model` — Interactive schema design wizard (keys, indexes, data types)
+- `/architect:scalardb-config` — Configuration file generator (Core/Cluster, CRUD/JDBC, 1PC/2PC)
+- `/architect:scalardb-scaffold` — Complete starter project generator (all 6 interface combos)
+- `/architect:scalardb-error-handler` — Exception handling code generator and code reviewer
+- `/architect:scalardb-crud-ops` — CRUD API operation patterns (Get, Scan, Insert, Upsert, Update, Delete)
+- `/architect:scalardb-jdbc-ops` — JDBC/SQL operation patterns (SELECT, INSERT, JOIN, aggregates)
+- `/architect:scalardb-local-env` — Local Docker Compose environment setup
+- `/architect:scalardb-docs` — ScalarDB documentation search and lookup
+- `/architect:scalardb-build-app` — Build complete ScalarDB application from requirements
+- `/architect:scalardb-review-code` — Review Java code for ScalarDB correctness (16 checks)
+- `/architect:scalardb-migrate` — Migration advisor (Core→Cluster, CRUD→JDBC, 1PC→2PC)
+
 ## Pipeline Dependencies
 
 ```
@@ -115,13 +128,24 @@ Naming and frontmatter rules: @rules/output-conventions.md
 
 | Resource | Location | When to Read |
 |----------|----------|--------------|
-| ScalarDB coding patterns | @rules/scalardb-coding-patterns.md | Generating ScalarDB code |
+| ScalarDB exception handling | @rules/scalardb-exception-handling.md | Exception handling, retry logic |
+| ScalarDB CRUD patterns | @rules/scalardb-crud-patterns.md | CRUD API operations |
+| ScalarDB JDBC patterns | @rules/scalardb-jdbc-patterns.md | JDBC/SQL operations |
+| ScalarDB 2PC patterns | @rules/scalardb-2pc-patterns.md | Two-phase commit protocol |
+| ScalarDB config validation | @rules/scalardb-config-validation.md | Configuration correctness |
+| ScalarDB schema design | @rules/scalardb-schema-design.md | Schema and key design |
+| ScalarDB Java best practices | @rules/scalardb-java-best-practices.md | Java coding standards |
 | ScalarDB edition profiles | @rules/scalardb-edition-profiles.md | Edition selection |
 | Evaluation frameworks | @rules/evaluation-frameworks.md | MMI/DDD scoring |
 | Mermaid best practices | @rules/mermaid-best-practices.md | Creating diagrams |
 | Spring Boot integration | @rules/spring-boot-integration.md | Java code generation |
 | Output structure contract | @templates/output-structure.md | File dependencies |
 | Sub-agent patterns | @skills/common/sub-agent-patterns.md | Spawning sub-agents |
+| API reference | @skills/common/references/api-reference.md | ScalarDB API details |
+| Interface matrix | @skills/common/references/interface-matrix.md | 6 interface combinations |
+| Exception hierarchy | @skills/common/references/exception-hierarchy.md | Exception decision tree |
+| SQL reference | @skills/common/references/sql-reference.md | SQL grammar and limitations |
+| Schema format | @skills/common/references/schema-format.md | JSON/SQL schema format |
 
 ## Conventions
 
