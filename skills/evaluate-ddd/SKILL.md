@@ -17,7 +17,7 @@ user_invocable: true
 ## 判断基準
 
 評価の詳細な基準は以下を参照:
-@.claude/rules/evaluation-frameworks.md
+@rules/evaluation-frameworks.md
 
 - 戦略的設計(30%): ユビキタス言語、境界コンテキスト、サブドメイン分類
 - 戦術的設計(45%): 値オブジェクト、エンティティ、集約、リポジトリ、ドメインサービス、ドメインイベント

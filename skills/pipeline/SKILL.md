@@ -18,7 +18,7 @@ disable-model-invocation: true
 
 ## 利用可能なスキル
 
-@.claude/skills/common/skill-dependencies.yaml の全スキルを依存順に実行可能。
+@skills/common/skill-dependencies.yaml の全スキルを依存順に実行可能。
 
 ## 実行戦略
 
@@ -60,7 +60,7 @@ work/context.md の構造:
 
 ## 進捗レジストリ
 
-@.claude/skills/common/progress-registry.md のスキーマに準拠。
+@skills/common/progress-registry.md のスキーマに準拠。
 
 ## 完了条件
 

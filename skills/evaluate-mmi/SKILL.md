@@ -17,7 +17,7 @@ user_invocable: true
 ## 判断基準
 
 評価の詳細な基準とスコアリングアルゴリズムは以下を参照:
-@.claude/rules/evaluation-frameworks.md
+@rules/evaluation-frameworks.md
 
 - 4軸: 凝集度(30%), 結合度(30%), 独立性(20%), 再利用性(20%)
 - 各軸1-5スコア

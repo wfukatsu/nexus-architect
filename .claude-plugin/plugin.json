@@ -1,10 +1,12 @@
 {
   "name": "architect",
-  "description": "Unified system architecture agent. ~35 skills across 9 categories for legacy refactoring, greenfield ScalarDB design, and consulting deliverables. 5-perspective parallel review system.",
-  "version": "0.1.0",
+  "description": "Unified system architecture agent. 36 skills for legacy refactoring, greenfield ScalarDB design, and consulting deliverables. 5-perspective parallel review system with quality gates. All commands: /architect:skill-name.",
+  "version": "0.2.0",
   "author": {
     "name": "Wataru Fukatsu"
   },
+  "repository": "https://github.com/wfukatsu/nexus-architect",
+  "license": "MIT",
   "keywords": [
     "architecture",
     "refactoring",
@@ -14,6 +16,7 @@
     "system-design",
     "code-analysis",
     "mmi",
-    "review"
+    "review",
+    "code-generation"
   ]
 }

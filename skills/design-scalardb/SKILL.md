@@ -25,8 +25,8 @@ ScalarDBを活用したデータアーキテクチャを設計する:
 - ストレージバックエンドは要件に基づいて選択（JDBC/Cassandra/DynamoDB等）
 - ScalarDB管理テーブルではDB固有機能を使用しない
 
-詳細パターン: @.claude/rules/scalardb-coding-patterns.md
-エディション比較: @.claude/rules/scalardb-edition-profiles.md
+詳細パターン: @rules/scalardb-coding-patterns.md
+エディション比較: @rules/scalardb-edition-profiles.md
 
 ## 前提条件
 

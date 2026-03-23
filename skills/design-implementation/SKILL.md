@@ -22,7 +22,7 @@ user_invocable: true
 
 - 設計ドキュメントの全エンティティ・集約がカバーされていること
 - インターフェースは実装技術に依存しない抽象度で記述
-- ScalarDB利用時は @.claude/rules/scalardb-coding-patterns.md に準拠
+- ScalarDB利用時は @rules/scalardb-coding-patterns.md に準拠
 
 ## 前提条件
 

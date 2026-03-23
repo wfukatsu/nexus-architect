@@ -21,8 +21,8 @@ user_invocable: true
 
 ## 判断基準
 
-- @.claude/rules/scalardb-coding-patterns.md のパターンに完全準拠
-- @.claude/rules/spring-boot-integration.md の設定パターン適用
+- @rules/scalardb-coding-patterns.md のパターンに完全準拠
+- @rules/spring-boot-integration.md の設定パターン適用
 - トランザクション例外の適切なハンドリング（リトライ、ロールバック）
 - エンティティは不変設計、値オブジェクトはイミュータブル
 

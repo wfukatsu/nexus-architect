@@ -22,7 +22,7 @@ AskUserQuestion で以下を段階的に確認:
 4. SLA要件（99.9% vs 99.99%）
 5. サポートレベル要件
 
-エディション比較: @.claude/rules/scalardb-edition-profiles.md
+エディション比較: @rules/scalardb-edition-profiles.md
 
 ## 出力
 

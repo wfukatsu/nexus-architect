@@ -48,7 +48,7 @@ Task(subagent_type="general-purpose",
   prompt="以下の設計仕様に基づきSpring Boot + ScalarDBコードを生成:
     - エンティティ: {entities}
     - リポジトリ: {repositories}
-    @.claude/rules/scalardb-coding-patterns.md を参照",
+    @rules/scalardb-coding-patterns.md を参照",
   description="ScalarDBコード生成")
 ```
 

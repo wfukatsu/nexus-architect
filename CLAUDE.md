@@ -74,7 +74,7 @@ investigate -> analyze -> [evaluate-mmi, evaluate-ddd] -> integrate-evaluations
   -> implementation -> review -> report
 ```
 
-Dependency manifest: @.claude/skills/common/skill-dependencies.yaml
+Dependency manifest: @skills/common/skill-dependencies.yaml
 
 ## Output Conventions
 
@@ -86,7 +86,7 @@ generated/                  # Generated code per service
 work/                       # Pipeline state, intermediate files
 ```
 
-Naming and frontmatter rules: @.claude/rules/output-conventions.md
+Naming and frontmatter rules: @rules/output-conventions.md
 
 ## Model Assignment
 
@@ -107,13 +107,13 @@ Naming and frontmatter rules: @.claude/rules/output-conventions.md
 
 | Resource | Location | When to Read |
 |----------|----------|--------------|
-| ScalarDB coding patterns | @.claude/rules/scalardb-coding-patterns.md | Generating ScalarDB code |
-| ScalarDB edition profiles | @.claude/rules/scalardb-edition-profiles.md | Edition selection |
-| Evaluation frameworks | @.claude/rules/evaluation-frameworks.md | MMI/DDD scoring |
-| Mermaid best practices | @.claude/rules/mermaid-best-practices.md | Creating diagrams |
-| Spring Boot integration | @.claude/rules/spring-boot-integration.md | Java code generation |
-| Output structure contract | @.claude/templates/output-structure.md | File dependencies |
-| Sub-agent patterns | @.claude/skills/common/sub-agent-patterns.md | Spawning sub-agents |
+| ScalarDB coding patterns | @rules/scalardb-coding-patterns.md | Generating ScalarDB code |
+| ScalarDB edition profiles | @rules/scalardb-edition-profiles.md | Edition selection |
+| Evaluation frameworks | @rules/evaluation-frameworks.md | MMI/DDD scoring |
+| Mermaid best practices | @rules/mermaid-best-practices.md | Creating diagrams |
+| Spring Boot integration | @rules/spring-boot-integration.md | Java code generation |
+| Output structure contract | @templates/output-structure.md | File dependencies |
+| Sub-agent patterns | @skills/common/sub-agent-patterns.md | Spawning sub-agents |
 
 ## Conventions
 
