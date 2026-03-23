@@ -1,104 +1,104 @@
-# Phase 1-2: ドメインモデリング
+# Phase 1-2: Domain Modeling
 
-## 目的
+## Purpose
 
-DDD（Domain-Driven Design）に基づきドメインを分析し、マイクロサービスの境界を決定する。ビジネスドメインの構造を正確に反映したサービス分割を行い、ScalarDBによるサービス間トランザクション管理が必要となる境界を特定する。
-
----
-
-## 入力
-
-| 入力物 | 説明 | 提供元 |
-|--------|------|--------|
-| 要件分析書 | Phase 1-1（`01_requirements_analysis.md`）の成果物 | 前ステップ |
-| ScalarDB適用判定結果 | Phase 1-1で決定したScalarDB導入の是非 | 前ステップ |
-| トランザクション要件マトリクス | サービス間の整合性要件 | 前ステップ |
+Analyze the domain based on DDD (Domain-Driven Design) and determine microservice boundaries. Perform service decomposition that accurately reflects the structure of the business domain, and identify boundaries where inter-service transaction management with ScalarDB is needed.
 
 ---
 
-## 参照資料
+## Inputs
 
-| 資料 | 参照箇所 | 用途 |
-|------|----------|------|
-| [`../research/01_microservice_architecture.md`](../research/01_microservice_architecture.md) | コンテキストマッピング、サービス分割パターン | マイクロサービス設計の指針 |
-| [`../research/03_logical_data_model.md`](../research/03_logical_data_model.md) | 論理データモデル全体 | エンティティ設計、テーブル設計の参考 |
+| Input | Description | Source |
+|-------|-------------|--------|
+| Requirements Analysis Document | Deliverable from Phase 1-1 (`01_requirements_analysis.md`) | Previous step |
+| ScalarDB Applicability Assessment Result | Decision on ScalarDB adoption made in Phase 1-1 | Previous step |
+| Transaction Requirements Matrix | Consistency requirements between services | Previous step |
 
 ---
 
-## ステップ
+## Reference Materials
 
-### Step 2.1: ユビキタス言語の定義
+| Document | Section | Purpose |
+|----------|---------|---------|
+| [`../research/01_microservice_architecture.md`](../research/01_microservice_architecture.md) | Context mapping, service decomposition patterns | Guidelines for microservice design |
+| [`../research/03_logical_data_model.md`](../research/03_logical_data_model.md) | Full logical data model | Reference for entity and table design |
 
-ドメインエキスパートとの対話を通じて、プロジェクト内で統一的に使用する用語（ユビキタス言語）を定義する。
+---
 
-#### ユビキタス言語辞書テンプレート
+## Steps
 
-| 用語（日本語） | 用語（英語） | 定義 | 使用コンテキスト | 備考 |
-|---------------|-------------|------|-----------------|------|
-| （例: 注文） | Order | 顧客が商品を購入する意思表示 | 注文コンテキスト | 「発注」「オーダー」は使用しない |
-| （例: 在庫） | Inventory | 倉庫内の販売可能な商品数量 | 在庫コンテキスト | 「ストック」は使用しない |
+### Step 2.1: Defining the Ubiquitous Language
+
+Define terms (ubiquitous language) to be used consistently within the project through dialogue with domain experts.
+
+#### Ubiquitous Language Dictionary Template
+
+| Term (Japanese) | Term (English) | Definition | Usage Context | Notes |
+|----------------|----------------|------------|---------------|-------|
+| (e.g., Order) | Order | A customer's intent to purchase a product | Order Context | Do not use "purchase order" or other synonyms |
+| (e.g., Inventory) | Inventory | Quantity of sellable products in a warehouse | Inventory Context | Do not use "stock" as an alternative |
 | | | | | |
 
-**確認ポイント:**
-- [ ] ドメインエキスパートと全用語について合意しているか
-- [ ] 同じ概念に対して複数の用語が使われていないか
-- [ ] コンテキストによって意味が異なる用語が識別されているか（例: 「商品」が注文と在庫で異なる意味を持つ場合）
+**Checkpoints:**
+- [ ] Have all terms been agreed upon with domain experts?
+- [ ] Are there no cases where multiple terms are used for the same concept?
+- [ ] Have terms with different meanings across contexts been identified? (e.g., "product" having different meanings in Order vs. Inventory)
 
 ---
 
-### Step 2.2: 境界コンテキスト（Bounded Context）の識別
+### Step 2.2: Identifying Bounded Contexts
 
-ビジネスドメインを境界コンテキストに分割する。各コンテキストは独立したモデルとユビキタス言語を持つ。
+Divide the business domain into bounded contexts. Each context has its own independent model and ubiquitous language.
 
-#### 境界コンテキスト識別テンプレート
+#### Bounded Context Identification Template
 
-| コンテキスト名 | 責務 | 主要概念 | 主要ユースケース | チーム |
-|---------------|------|---------|-----------------|--------|
-| （例: 注文管理） | 注文のライフサイクル管理 | Order, OrderItem, OrderStatus | 注文作成、注文確定、注文取消 | |
-| （例: 在庫管理） | 商品在庫の管理 | Inventory, StockItem, Warehouse | 在庫確認、在庫引当、入庫 | |
-| （例: 決済） | 支払い処理 | Payment, PaymentMethod, Transaction | 決済実行、返金 | |
+| Context Name | Responsibilities | Key Concepts | Key Use Cases | Team |
+|-------------|-----------------|--------------|---------------|------|
+| (e.g., Order Management) | Order lifecycle management | Order, OrderItem, OrderStatus | Create order, Confirm order, Cancel order | |
+| (e.g., Inventory Management) | Product inventory management | Inventory, StockItem, Warehouse | Check inventory, Reserve inventory, Receive goods | |
+| (e.g., Payment) | Payment processing | Payment, PaymentMethod, Transaction | Execute payment, Refund | |
 | | | | | |
 
-**識別のヒント:**
-- 異なるユビキタス言語が必要になる領域を境界とする
-- 組織構造（コンウェイの法則）を考慮する
-- データの所有権が明確に分かれる単位を識別する
+**Identification Hints:**
+- Use areas where different ubiquitous languages are needed as boundaries
+- Consider organizational structure (Conway's Law)
+- Identify units where data ownership is clearly separated
 
 ---
 
-### Step 2.3: コンテキストマップの作成
+### Step 2.3: Creating the Context Map
 
-境界コンテキスト間の関係を定義する。サービス間の依存関係と統合パターンを明確にする。
+Define relationships between bounded contexts. Clarify inter-service dependencies and integration patterns.
 
-#### コンテキスト間関係パターン
+#### Context Relationship Patterns
 
-| パターン | 説明 | 適用場面 |
-|---------|------|---------|
-| Shared Kernel | 共有モデルを持つ | 密結合を許容できるコンテキスト間 |
-| Customer-Supplier | 上流（Supplier）が下流（Customer）にサービス提供 | 明確な依存関係がある場合 |
-| Conformist | 下流が上流のモデルにそのまま従う | 上流を変更できない場合 |
-| Anti-Corruption Layer (ACL) | 下流が変換層で上流モデルを自モデルに変換 | モデルの独立性を保ちたい場合 |
-| Open Host Service / Published Language | 上流が標準的なAPIを提供 | 複数の下流が存在する場合 |
+| Pattern | Description | Applicable Situations |
+|---------|-------------|----------------------|
+| Shared Kernel | Shared model between contexts | Between contexts where tight coupling is acceptable |
+| Customer-Supplier | Upstream (Supplier) provides services to downstream (Customer) | When there is a clear dependency relationship |
+| Conformist | Downstream conforms to the upstream model as-is | When the upstream cannot be changed |
+| Anti-Corruption Layer (ACL) | Downstream converts the upstream model to its own model via a translation layer | When model independence needs to be maintained |
+| Open Host Service / Published Language | Upstream provides a standardized API | When multiple downstream consumers exist |
 
-#### サンプルコンテキストマップ（ECサイトの例）
+#### Sample Context Map (E-Commerce Example)
 
 ```mermaid
 graph TB
-    subgraph "ECサイト コンテキストマップ"
+    subgraph "E-Commerce Context Map"
 
-        ORDER["注文管理<br/>（Order Context）"]
-        INVENTORY["在庫管理<br/>（Inventory Context）"]
-        PAYMENT["決済<br/>（Payment Context）"]
-        SHIPPING["配送<br/>（Shipping Context）"]
-        CUSTOMER["顧客管理<br/>（Customer Context）"]
-        NOTIFICATION["通知<br/>（Notification Context）"]
+        ORDER["Order Management<br/>(Order Context)"]
+        INVENTORY["Inventory Management<br/>(Inventory Context)"]
+        PAYMENT["Payment<br/>(Payment Context)"]
+        SHIPPING["Shipping<br/>(Shipping Context)"]
+        CUSTOMER["Customer Management<br/>(Customer Context)"]
+        NOTIFICATION["Notification<br/>(Notification Context)"]
 
         ORDER -->|"Customer-Supplier<br/>[2PC: ScalarDB]"| INVENTORY
         ORDER -->|"Customer-Supplier<br/>[2PC: ScalarDB]"| PAYMENT
-        ORDER -->|"Customer-Supplier<br/>[Saga: 結果整合性]"| SHIPPING
+        ORDER -->|"Customer-Supplier<br/>[Saga: Eventual Consistency]"| SHIPPING
         ORDER -->|"ACL"| CUSTOMER
-        ORDER -->|"Published Language<br/>[Event: 非同期]"| NOTIFICATION
-        SHIPPING -->|"Published Language<br/>[Event: 非同期]"| NOTIFICATION
+        ORDER -->|"Published Language<br/>[Event: Async]"| NOTIFICATION
+        SHIPPING -->|"Published Language<br/>[Event: Async]"| NOTIFICATION
     end
 
     style ORDER fill:#FF9800,color:#fff
@@ -109,86 +109,86 @@ graph TB
     style NOTIFICATION fill:#607D8B,color:#fff
 ```
 
-#### コンテキストマップ定義テンプレート
+#### Context Map Definition Template
 
-| 上流コンテキスト | 下流コンテキスト | 関係パターン | 統合方式 | 整合性要求 |
-|----------------|----------------|-------------|---------|-----------|
-| （例: 注文管理） | （例: 在庫管理） | Customer-Supplier | 2PC（ScalarDB） | 強整合性 |
-| （例: 注文管理） | （例: 配送） | Customer-Supplier | Saga | 結果整合性 |
-| （例: 注文管理） | （例: 通知） | Published Language | Event（非同期） | 結果整合性 |
+| Upstream Context | Downstream Context | Relationship Pattern | Integration Method | Consistency Requirement |
+|-----------------|--------------------|---------------------|-------------------|------------------------|
+| (e.g., Order Management) | (e.g., Inventory Management) | Customer-Supplier | 2PC (ScalarDB) | Strong Consistency |
+| (e.g., Order Management) | (e.g., Shipping) | Customer-Supplier | Saga | Eventual Consistency |
+| (e.g., Order Management) | (e.g., Notification) | Published Language | Event (Async) | Eventual Consistency |
 | | | | | |
 
 ---
 
-### Step 2.4: 集約（Aggregate）の設計
+### Step 2.4: Aggregate Design
 
-各境界コンテキスト内のエンティティ、値オブジェクト、集約ルートを設計する。
+Design entities, value objects, and aggregate roots within each bounded context.
 
-#### 集約設計テンプレート
+#### Aggregate Design Template
 
-| 境界コンテキスト | 集約名 | 集約ルート | エンティティ | 値オブジェクト | 不変条件（ビジネスルール） |
-|----------------|--------|-----------|-------------|--------------|------------------------|
-| 注文管理 | Order集約 | Order | OrderItem | Money, Address, OrderStatus | 注文合計は0以上 |
-| 在庫管理 | Inventory集約 | StockItem | — | Quantity, SKU | 在庫数は0以上 |
-| 決済 | Payment集約 | Payment | — | Money, PaymentMethod | 決済額は注文合計と一致 |
+| Bounded Context | Aggregate Name | Aggregate Root | Entities | Value Objects | Invariants (Business Rules) |
+|----------------|---------------|----------------|----------|---------------|----------------------------|
+| Order Management | Order Aggregate | Order | OrderItem | Money, Address, OrderStatus | Order total must be >= 0 |
+| Inventory Management | Inventory Aggregate | StockItem | — | Quantity, SKU | Inventory count must be >= 0 |
+| Payment | Payment Aggregate | Payment | — | Money, PaymentMethod | Payment amount must match order total |
 | | | | | | |
 
-**設計原則:**
-- 集約はトランザクション整合性の境界である
-- 集約間の参照はIDのみで行う（直接参照しない）
-- 集約は可能な限り小さく保つ
-- 1つのトランザクションで更新する集約は1つが理想
+**Design Principles:**
+- An aggregate is a boundary of transactional consistency
+- References between aggregates use IDs only (no direct references)
+- Keep aggregates as small as possible
+- Ideally, update only one aggregate per transaction
 
 ---
 
-### Step 2.5: ドメインイベントの特定
+### Step 2.5: Identifying Domain Events
 
-サービス間で伝播するドメインイベントを特定する。
+Identify domain events that propagate between services.
 
-#### ドメインイベント一覧テンプレート
+#### Domain Event List Template
 
-| イベント名 | 発行元コンテキスト | 購読先コンテキスト | トリガー | ペイロード（主要属性） | 配信保証 |
-|-----------|-------------------|-------------------|---------|---------------------|---------|
-| OrderCreated | 注文管理 | 在庫管理, 決済 | 注文作成時 | orderId, items[], totalAmount | At-least-once |
-| PaymentCompleted | 決済 | 注文管理, 配送 | 決済完了時 | paymentId, orderId, amount | At-least-once |
-| InventoryReserved | 在庫管理 | 注文管理 | 在庫引当完了時 | orderId, reservedItems[] | At-least-once |
+| Event Name | Source Context | Subscriber Contexts | Trigger | Payload (Key Attributes) | Delivery Guarantee |
+|------------|---------------|--------------------|---------|--------------------------|--------------------|
+| OrderCreated | Order Management | Inventory Management, Payment | When order is created | orderId, items[], totalAmount | At-least-once |
+| PaymentCompleted | Payment | Order Management, Shipping | When payment is completed | paymentId, orderId, amount | At-least-once |
+| InventoryReserved | Inventory Management | Order Management | When inventory reservation is completed | orderId, reservedItems[] | At-least-once |
 | | | | | | |
 
-**注意:** 2PC（ScalarDB）で処理する場合、イベント駆動ではなく同期的なトランザクションとなるため、該当するサービス間通信はイベントではなく2PC Interfaceとして管理する。
+**Note:** When processing via 2PC (ScalarDB), the communication between the relevant services becomes a synchronous transaction rather than event-driven, so it is managed as a 2PC Interface rather than an event.
 
 ---
 
-### Step 2.6: サービス分割の決定
+### Step 2.6: Determining Service Decomposition
 
-境界コンテキストに基づき、マイクロサービスの分割を決定する。
+Determine the microservice decomposition based on bounded contexts.
 
-#### マイクロサービス一覧テンプレート
+#### Microservice List Template
 
-| サービス名 | 境界コンテキスト | 責務 | 所有データ | API（主要エンドポイント） | 依存サービス |
-|-----------|----------------|------|-----------|------------------------|-------------|
-| order-service | 注文管理 | 注文ライフサイクル管理 | orders, order_items | POST /orders, GET /orders/{id} | inventory-service, payment-service |
-| inventory-service | 在庫管理 | 在庫数量管理 | stock_items, warehouses | GET /inventory/{sku}, PUT /inventory/reserve | — |
-| payment-service | 決済 | 決済処理 | payments, payment_methods | POST /payments, GET /payments/{id} | — |
+| Service Name | Bounded Context | Responsibilities | Owned Data | API (Key Endpoints) | Dependent Services |
+|-------------|----------------|-----------------|------------|---------------------|-------------------|
+| order-service | Order Management | Order lifecycle management | orders, order_items | POST /orders, GET /orders/{id} | inventory-service, payment-service |
+| inventory-service | Inventory Management | Inventory quantity management | stock_items, warehouses | GET /inventory/{sku}, PUT /inventory/reserve | — |
+| payment-service | Payment | Payment processing | payments, payment_methods | POST /payments, GET /payments/{id} | — |
 | | | | | | |
 
 ---
 
-## ScalarDB考慮事項
+## ScalarDB Considerations
 
-### サービス間トランザクション境界の特定（2PC Interface候補）
+### Identifying Inter-Service Transaction Boundaries (2PC Interface Candidates)
 
-ScalarDBの2PC Interfaceを使用してサービス間トランザクションを管理する候補を特定する。
+Identify candidates for managing inter-service transactions using ScalarDB's 2PC Interface.
 
 ```mermaid
 flowchart LR
-    subgraph "2PC Transaction Boundary（ScalarDB管理）"
+    subgraph "2PC Transaction Boundary (ScalarDB Managed)"
         direction TB
-        A["order-service<br/>（Coordinator: 上流）"]
-        B["inventory-service<br/>（Participant: 下流）"]
-        C["payment-service<br/>（Participant: 下流）"]
+        A["order-service<br/>(Coordinator: Upstream)"]
+        B["inventory-service<br/>(Participant: Downstream)"]
+        C["payment-service<br/>(Participant: Downstream)"]
     end
 
-    subgraph "Saga / Event（ScalarDB管理外）"
+    subgraph "Saga / Event (Not ScalarDB Managed)"
         direction TB
         D["shipping-service"]
         E["notification-service"]
@@ -196,8 +196,8 @@ flowchart LR
 
     A -->|"2PC: begin/join/prepare/validate/commit"| B
     A -->|"2PC: begin/join/prepare/validate/commit"| C
-    A -.->|"Saga: 結果整合性"| D
-    A -.->|"Event: 非同期通知"| E
+    A -.->|"Saga: Eventual Consistency"| D
+    A -.->|"Event: Async Notification"| E
 
     style A fill:#FF9800,color:#fff
     style B fill:#4CAF50,color:#fff
@@ -206,73 +206,73 @@ flowchart LR
     style E fill:#607D8B,color:#fff
 ```
 
-> **ScalarDB 2PC Interfaceのフェーズ:**
-> - **Coordinator（上流）:** `begin` → [CRUD操作] → `prepare` → `validate` → `commit`
-> - **Participant（下流）:** `join` → [CRUD操作] → `prepare` → `validate` → `commit`
+> **ScalarDB 2PC Interface Phases:**
+> - **Coordinator (Upstream):** `begin` -> [CRUD operations] -> `prepare` -> `validate` -> `commit`
+> - **Participant (Downstream):** `join` -> [CRUD operations] -> `prepare` -> `validate` -> `commit`
 >
-> `validate` フェーズは `prepare` と `commit` の間で必須であり、トランザクションの整合性検証を行う。省略するとトランザクションが正しく完了しない。
+> The `validate` phase is mandatory between `prepare` and `commit` and performs transaction consistency verification. Omitting it will prevent the transaction from completing correctly.
 
-#### 2PC Interface候補一覧
+#### 2PC Interface Candidate List
 
-| トランザクション名 | Coordinator（上流） | Participant（下流） | ビジネスプロセス | 必要性の根拠 |
-|-------------------|--------------------|--------------------|-----------------|-------------|
-| （例: 注文確定Tx） | order-service | inventory-service, payment-service | 注文確定時に在庫引当と決済を同時実行 | 在庫と決済の不整合は許容不可 |
+| Transaction Name | Coordinator (Upstream) | Participant (Downstream) | Business Process | Justification |
+|-----------------|----------------------|-------------------------|-----------------|---------------|
+| (e.g., Order Confirmation Tx) | order-service | inventory-service, payment-service | Simultaneously execute inventory reservation and payment at order confirmation | Inconsistency between inventory and payment is unacceptable |
 | | | | | |
 
-> **参照:** `01_microservice_architecture.md` のコンテキストマッピングでは、Coordinator=上流サービス、Participant=下流サービスとして役割を定義する。
+> **Reference:** In the context mapping from `01_microservice_architecture.md`, roles are defined as Coordinator = upstream service and Participant = downstream service.
 
-### ScalarDB管理対象の最小化原則
+### Principle of Minimizing ScalarDB Managed Scope
 
-ScalarDBで管理するテーブルは、サービス間トランザクションに参加するテーブルのみに限定する。
+Tables managed by ScalarDB should be limited to only those participating in inter-service transactions.
 
-| 原則 | 説明 |
-|------|------|
-| **最小管理原則** | サービス間2PCに参加するテーブルのみをScalarDB管理下に置く |
-| **ローカルTx優先** | サービス内で完結するトランザクションはネイティブDB機能を使用 |
-| **段階的導入** | まず最も重要なサービス間Txから導入し、段階的に拡大 |
+| Principle | Description |
+|-----------|-------------|
+| **Minimum Management Principle** | Only place tables participating in inter-service 2PC under ScalarDB management |
+| **Local Tx First** | Use native DB features for transactions completed within a single service |
+| **Gradual Adoption** | Start with the most critical inter-service Tx and expand gradually |
 
-**判定基準:**
-- サービス間2PCに参加する -> ScalarDB管理対象
-- サービス内ローカルTxのみ -> ネイティブDB機能を使用
-- 結果整合性（Saga）で対応 -> ScalarDB管理対象外
-
----
-
-## 成果物
-
-| 成果物 | 説明 |
-|--------|------|
-| 境界コンテキスト図 | 識別した全境界コンテキストとその責務 |
-| コンテキストマップ | コンテキスト間の関係パターンと統合方式 |
-| サービス一覧 | マイクロサービスの一覧と各サービスの責務定義 |
-| 集約設計書 | 各コンテキスト内の集約、エンティティ、値オブジェクト |
-| ドメインイベント一覧 | サービス間で伝播するイベントの定義 |
-| 2PC Interface候補一覧 | ScalarDB 2PCが必要なサービス間トランザクション境界 |
+**Assessment Criteria:**
+- Participates in inter-service 2PC -> ScalarDB managed
+- Local Tx within a service only -> Use native DB features
+- Handled by eventual consistency (Saga) -> Not ScalarDB managed
 
 ---
 
-## 完了基準チェックリスト
+## Deliverables
 
-- [ ] ユビキタス言語辞書が作成され、ドメインエキスパートの承認を得ている
-- [ ] 全ての境界コンテキストが識別され、責務が明確に定義されている
-- [ ] コンテキストマップが作成され、全てのコンテキスト間関係が定義されている
-- [ ] 各コンテキスト内の集約が設計され、不変条件が定義されている
-- [ ] ドメインイベントが特定され、発行元・購読先が明確になっている
-- [ ] マイクロサービス一覧が作成され、各サービスの責務・所有データ・APIが定義されている
-- [ ] ScalarDB 2PC Interface候補が特定され、Coordinator/Participantの役割が決定されている
-- [ ] ScalarDB管理対象テーブルの候補が最小化原則に基づいて選定されている
-- [ ] 設計結果について関係者（アーキテクト、テックリード、ドメインエキスパート）の合意が得られている
+| Deliverable | Description |
+|-------------|-------------|
+| Bounded Context Diagram | All identified bounded contexts and their responsibilities |
+| Context Map | Relationship patterns and integration methods between contexts |
+| Service List | List of microservices and responsibility definitions for each service |
+| Aggregate Design Document | Aggregates, entities, and value objects within each context |
+| Domain Event List | Definition of events propagated between services |
+| 2PC Interface Candidate List | Inter-service transaction boundaries requiring ScalarDB 2PC |
 
 ---
 
-## 次のステップへの引き継ぎ事項
+## Completion Criteria Checklist
 
-### Phase 1-3: ScalarDB適用範囲の決定（`03_scalardb_scope_decision.md`）への引き継ぎ
+- [ ] Ubiquitous language dictionary has been created and approved by domain experts
+- [ ] All bounded contexts have been identified with clearly defined responsibilities
+- [ ] Context map has been created with all inter-context relationships defined
+- [ ] Aggregates within each context have been designed with invariants defined
+- [ ] Domain events have been identified with source and subscriber clearly specified
+- [ ] Microservice list has been created with responsibilities, owned data, and APIs defined for each service
+- [ ] ScalarDB 2PC Interface candidates have been identified with Coordinator/Participant roles determined
+- [ ] Candidate ScalarDB managed tables have been selected based on the minimum management principle
+- [ ] Design results have been agreed upon by stakeholders (architects, tech leads, domain experts)
 
-| 引き継ぎ項目 | 内容 |
-|-------------|------|
-| コンテキストマップ | サービス間の関係パターンと統合方式 |
-| 2PC Interface候補一覧 | ScalarDB管理が必要なトランザクション境界 |
-| サービス一覧と所有データ | 各サービスのテーブル一覧 |
-| 集約設計 | トランザクション整合性の境界 |
-| ドメインイベント一覧 | Saga/イベント駆動で対応する箇所の情報 |
+---
+
+## Handoff Items for the Next Step
+
+### Handoff to Phase 1-3: ScalarDB Scope Decision (`03_scalardb_scope_decision.md`)
+
+| Handoff Item | Content |
+|--------------|---------|
+| Context Map | Relationship patterns and integration methods between services |
+| 2PC Interface Candidate List | Transaction boundaries requiring ScalarDB management |
+| Service List and Owned Data | Table list for each service |
+| Aggregate Design | Transactional consistency boundaries |
+| Domain Event List | Information on areas handled by Saga/event-driven approaches |

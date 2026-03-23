@@ -1,88 +1,88 @@
-# データモデル定義書テンプレート
+# Data Model Definition Document Template
 
-> 本テンプレートは、ScalarDB 管理対象テーブルごとに作成してください。
-> `[...]` の箇所をプロジェクト固有の情報で埋めてください。
+> Create this template for each ScalarDB-managed table.
+> Fill in the `[...]` placeholders with project-specific information.
 
 ---
 
-## 1. テーブル概要
+## 1. Table Overview
 
-| 項目 | 内容 |
+| Item | Details |
 |------|------|
-| テーブル名 | [namespace.table_name] |
-| 所属サービス | [サービス名] |
-| バックエンドDB | [MySQL / PostgreSQL / Cassandra / DynamoDB] |
-| ScalarDB管理 | [Yes / No] |
-| 想定レコード数 | [件数] |
-| 想定成長率 | [月間: +X件 / 年間: +X件] |
+| Table Name | [namespace.table_name] |
+| Owning Service | [Service name] |
+| Backend DB | [MySQL / PostgreSQL / Cassandra / DynamoDB] |
+| ScalarDB Managed | [Yes / No] |
+| Estimated Record Count | [Count] |
+| Estimated Growth Rate | [Monthly: +X records / Annually: +X records] |
 
 ---
 
-## 2. カラム定義
+## 2. Column Definitions
 
-| カラム名 | ScalarDB型 | NULL許可 | デフォルト | 説明 |
+| Column Name | ScalarDB Type | Nullable | Default | Description |
 |---------|-----------|---------|-----------|------|
-| [カラム名] | [型] | [Yes / No] | [値 / なし] | [...] |
-| [カラム名] | [型] | [Yes / No] | [値 / なし] | [...] |
-| [カラム名] | [型] | [Yes / No] | [値 / なし] | [...] |
-| [カラム名] | [型] | [Yes / No] | [値 / なし] | [...] |
+| [Column name] | [Type] | [Yes / No] | [Value / None] | [...] |
+| [Column name] | [Type] | [Yes / No] | [Value / None] | [...] |
+| [Column name] | [Type] | [Yes / No] | [Value / None] | [...] |
+| [Column name] | [Type] | [Yes / No] | [Value / None] | [...] |
 
-> **ScalarDB サポート型一覧:** INT, BIGINT, FLOAT, DOUBLE, TEXT, BOOLEAN, BLOB
+> **ScalarDB Supported Types:** INT, BIGINT, FLOAT, DOUBLE, TEXT, BOOLEAN, BLOB
 >
-> - `INT`: 32ビット整数
-> - `BIGINT`: 64ビット整数
-> - `FLOAT`: 単精度浮動小数点
-> - `DOUBLE`: 倍精度浮動小数点
-> - `TEXT`: 文字列（サイズ制限はバックエンドDBに依存）
-> - `BOOLEAN`: 真偽値
-> - `BLOB`: バイナリデータ
+> - `INT`: 32-bit integer
+> - `BIGINT`: 64-bit integer
+> - `FLOAT`: Single-precision floating point
+> - `DOUBLE`: Double-precision floating point
+> - `TEXT`: String (size limit depends on the backend DB)
+> - `BOOLEAN`: Boolean value
+> - `BLOB`: Binary data
 
 ---
 
-## 3. キー設計
+## 3. Key Design
 
-| キー種別 | カラム名 | 選定理由 |
+| Key Type | Column Name | Selection Rationale |
 |---------|---------|---------|
-| Partition Key | [カラム名] | [...] |
-| Clustering Key | [カラム名 ASC/DESC] | [...] |
-| Secondary Index | [カラム名] | 用途: [...] |
+| Partition Key | [Column name] | [...] |
+| Clustering Key | [Column name ASC/DESC] | [...] |
+| Secondary Index | [Column name] | Usage: [...] |
 
 ---
 
-## 4. キー設計チェックリスト
+## 4. Key Design Checklist
 
-- [ ] Partition Keyのカーディナリティは十分か（ホットスポット回避）
-- [ ] Clustering Keyの順序は主要クエリパターンに合致しているか
-- [ ] Secondary Indexはスキャン範囲が限定されるか（フルスキャン回避）
-- [ ] Partition Key + Clustering Keyでレコードを一意に特定できるか
+- [ ] Is the Partition Key cardinality sufficient (hotspot avoidance)?
+- [ ] Does the Clustering Key order match the primary query patterns?
+- [ ] Is the Secondary Index scan range limited (full scan avoidance)?
+- [ ] Can a record be uniquely identified by Partition Key + Clustering Key?
 
 ---
 
-## 5. アクセスパターン
+## 5. Access Patterns
 
-| パターン名 | 操作(CRUD) | 条件(WHERE) | 頻度 | レイテンシ要件 |
+| Pattern Name | Operation (CRUD) | Condition (WHERE) | Frequency | Latency Requirement |
 |-----------|-----------|------------|------|-------------|
-| [パターン名] | [Create / Read / Update / Delete] | [条件式] | [高 / 中 / 低 または req/sec] | [ms] |
-| [パターン名] | [Create / Read / Update / Delete] | [条件式] | [高 / 中 / 低 または req/sec] | [ms] |
-| [パターン名] | [Create / Read / Update / Delete] | [条件式] | [高 / 中 / 低 または req/sec] | [ms] |
+| [Pattern name] | [Create / Read / Update / Delete] | [Condition expression] | [High / Medium / Low or req/sec] | [ms] |
+| [Pattern name] | [Create / Read / Update / Delete] | [Condition expression] | [High / Medium / Low or req/sec] | [ms] |
+| [Pattern name] | [Create / Read / Update / Delete] | [Condition expression] | [High / Medium / Low or req/sec] | [ms] |
 
 ---
 
-## 6. メタデータオーバーヘッド見積もり
+## 6. Metadata Overhead Estimation
 
-| 項目 | 値 |
+| Item | Value |
 |------|-----|
-| 1レコードあたりのユーザーデータサイズ | [バイト] |
-| Consensus Commitメタデータサイズ | 約200-300バイト（tx_id, tx_version, tx_state, tx_prepared_at, before_*カラム） |
-| オーバーヘッド率 | [メタデータサイズ / ユーザーデータサイズ × 100]% |
+| User data size per record | [bytes] |
+| Consensus Commit metadata size | Approximately 200-300 bytes (tx_id, tx_version, tx_state, tx_prepared_at, before_* columns) |
+| Overhead ratio | [Metadata size / User data size x 100]% |
 
-> **Transaction Metadata Decoupling 使用時:**
-> メタデータは別テーブルに分離されるため、本テーブルのオーバーヘッドは削減されます。
-> ただし、READオペレーションで追加のテーブル参照が発生するため、READレイテンシへの影響を評価してください。
+> **When using Transaction Metadata Decoupling:**
+> Metadata is separated into a different table, reducing the overhead on this table.
+> However, since additional table lookups occur during READ operations, evaluate the impact on READ latency.
 
 ---
 
-## 7. ScalarDBスキーマ定義（出力）
+## 7. ScalarDB Schema Definition (Output)
 
 ```json
 {
@@ -101,28 +101,28 @@
 
 ---
 
-## 8. バックエンドDB固有の最適化
+## 8. Backend DB-Specific Optimizations
 
 ### Cassandra
 
-| 項目 | 設定値 | 理由 |
+| Item | Setting | Rationale |
 |------|--------|------|
 | Compaction Strategy | [SizeTiered / Leveled / TimeWindow] | [...] |
-| TTL | [秒数 / 無効] | [...] |
-| Bucketing | [バケット戦略] | [...] |
+| TTL | [Seconds / Disabled] | [...] |
+| Bucketing | [Bucketing strategy] | [...] |
 
 ### DynamoDB
 
-| 項目 | 設定値 | 理由 |
+| Item | Setting | Rationale |
 |------|--------|------|
-| GSI (Global Secondary Index) | [GSI定義] | [...] |
+| GSI (Global Secondary Index) | [GSI definition] | [...] |
 | Capacity Mode | [On-Demand / Provisioned] | [...] |
-| TTL | [属性名 / 無効] | [...] |
+| TTL | [Attribute name / Disabled] | [...] |
 
 ### MySQL / PostgreSQL
 
-| 項目 | 設定値 | 理由 |
+| Item | Setting | Rationale |
 |------|--------|------|
-| 追加インデックス（ScalarDB SI以外） | [インデックス定義] | [...] |
-| パーティショニング | [RANGE / HASH / LIST / なし] | [...] |
-| その他の最適化 | [...] | [...] |
+| Additional Indexes (other than ScalarDB SI) | [Index definition] | [...] |
+| Partitioning | [RANGE / HASH / LIST / None] | [...] |
+| Other Optimizations | [...] | [...] |
