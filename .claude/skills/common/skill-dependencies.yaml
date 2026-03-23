@@ -1,0 +1,180 @@
+# Nexus Architect Skill Dependency Graph
+# Single source of truth for pipeline execution order
+# Orchestrators read this to determine phase sequencing
+
+schema_version: 1
+
+phases:
+  # Phase: Investigation
+  investigate-system:
+    category: investigation
+    depends_on: []
+    outputs:
+      - reports/before/{project}/technology-stack.md
+      - reports/before/{project}/codebase-structure.md
+      - reports/before/{project}/issues-and-debt.md
+      - reports/before/{project}/ddd-readiness.md
+    model: sonnet
+
+  # Phase: Analysis
+  analyze-system:
+    category: analysis
+    depends_on: [investigate-system]
+    outputs:
+      - reports/01_analysis/system-overview.md
+      - reports/01_analysis/ubiquitous-language.md
+      - reports/01_analysis/actors-roles-permissions.md
+      - reports/01_analysis/domain-code-mapping.md
+    model: opus
+
+  analyze-data-model:
+    category: analysis
+    depends_on: [analyze-system]
+    optional: true
+    outputs:
+      - reports/01_analysis/data-model-analysis.md
+      - reports/01_analysis/er-diagram-current.md
+    model: sonnet
+
+  # Phase: Evaluation (parallel)
+  evaluate-mmi:
+    category: evaluation
+    depends_on: [analyze-system]
+    parallel_with: [evaluate-ddd]
+    outputs:
+      - reports/02_evaluation/mmi-overview.md
+      - reports/02_evaluation/mmi-by-module.md
+    model: sonnet
+
+  evaluate-ddd:
+    category: evaluation
+    depends_on: [analyze-system]
+    parallel_with: [evaluate-mmi]
+    outputs:
+      - reports/02_evaluation/ddd-strategic-evaluation.md
+      - reports/02_evaluation/ddd-tactical-evaluation.md
+    model: sonnet
+
+  integrate-evaluations:
+    category: evaluation
+    depends_on: [evaluate-mmi, evaluate-ddd]
+    outputs:
+      - reports/02_evaluation/integrated-evaluation.md
+      - reports/02_evaluation/unified-improvement-plan.md
+    model: sonnet
+
+  # Phase: Design
+  ddd-redesign:
+    category: design
+    depends_on: [integrate-evaluations]
+    outputs:
+      - reports/03_design/bounded-contexts-redesign.md
+      - reports/03_design/context-map.md
+    model: opus
+
+  map-domains:
+    category: design
+    depends_on: [analyze-system]
+    outputs:
+      - reports/03_design/domain-analysis.md
+    model: opus
+
+  design-microservices:
+    category: design
+    depends_on: [ddd-redesign]
+    outputs:
+      - reports/03_design/target-architecture.md
+      - reports/03_design/transformation-plan.md
+    model: opus
+
+  design-scalardb:
+    category: design
+    depends_on: [design-microservices]
+    conditions: [scalardb_enabled]
+    outputs:
+      - reports/03_design/scalardb-schema.md
+      - reports/03_design/scalardb-transaction.md
+      - reports/03_design/scalardb-migration.md
+    model: opus
+
+  design-data-layer:
+    category: design
+    depends_on: [design-microservices]
+    conditions: [scalardb_disabled]
+    outputs:
+      - reports/03_design/data-layer-design.md
+    model: opus
+
+  design-api:
+    category: design
+    depends_on: [design-microservices]
+    outputs:
+      - reports/03_design/api-specifications/
+    model: opus
+
+  # Phase: Review (parallel)
+  review-consistency:
+    category: review
+    depends_on: [design-api]
+    parallel_with: [review-scalardb, review-operations, review-risk, review-business]
+    outputs:
+      - reports/review/individual/review-consistency.json
+    model: sonnet
+
+  review-scalardb:
+    category: review
+    depends_on: [design-scalardb]
+    conditions: [scalardb_enabled]
+    parallel_with: [review-consistency, review-operations, review-risk, review-business]
+    outputs:
+      - reports/review/individual/review-scalardb.json
+    model: sonnet
+
+  review-data-integrity:
+    category: review
+    depends_on: [design-data-layer]
+    conditions: [scalardb_disabled]
+    parallel_with: [review-consistency, review-operations, review-risk, review-business]
+    outputs:
+      - reports/review/individual/review-data-integrity.json
+    model: sonnet
+
+  review-operations:
+    category: review
+    depends_on: [design-api]
+    parallel_with: [review-consistency, review-scalardb, review-risk, review-business]
+    outputs:
+      - reports/review/individual/review-operations.json
+    model: sonnet
+
+  review-risk:
+    category: review
+    depends_on: [design-api]
+    parallel_with: [review-consistency, review-scalardb, review-operations, review-business]
+    outputs:
+      - reports/review/individual/review-risk.json
+    model: opus
+
+  review-business:
+    category: review
+    depends_on: [design-api]
+    parallel_with: [review-consistency, review-scalardb, review-operations, review-risk]
+    outputs:
+      - reports/review/individual/review-business.json
+    model: sonnet
+
+  review-synthesizer:
+    category: review
+    depends_on: [review-consistency, review-operations, review-risk, review-business]
+    outputs:
+      - reports/review/review-synthesis.md
+      - reports/review/review-synthesis.json
+    model: sonnet
+
+  # Phase: Reporting
+  compile-report:
+    category: reporting
+    depends_on: [review-synthesizer]
+    outputs:
+      - reports/00_summary/full-report.html
+    model: haiku

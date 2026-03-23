@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "perspectives": [
+    {
+      "name": "consistency",
+      "skill": "review-consistency",
+      "weight": 0.15,
+      "id_prefix": "CON",
+      "conditions": "always",
+      "model": "sonnet"
+    },
+    {
+      "name": "scalardb",
+      "skill": "review-scalardb",
+      "weight": 0.25,
+      "id_prefix": "SDB",
+      "conditions": "scalardb_enabled",
+      "model": "sonnet"
+    },
+    {
+      "name": "data-integrity",
+      "skill": "review-data-integrity",
+      "weight": 0.25,
+      "id_prefix": "DIN",
+      "conditions": "scalardb_disabled",
+      "model": "sonnet"
+    },
+    {
+      "name": "operations",
+      "skill": "review-operations",
+      "weight": 0.20,
+      "id_prefix": "OPS",
+      "conditions": "always",
+      "model": "sonnet"
+    },
+    {
+      "name": "risk",
+      "skill": "review-risk",
+      "weight": 0.25,
+      "id_prefix": "RSK",
+      "conditions": "always",
+      "model": "opus"
+    },
+    {
+      "name": "business",
+      "skill": "review-business",
+      "weight": 0.15,
+      "id_prefix": "BIZ",
+      "conditions": "always",
+      "model": "sonnet"
+    }
+  ],
+  "quality_gates": {
+    "PASS": {
+      "min_aggregate": 3.5,
+      "max_critical": 0,
+      "max_major": 3,
+      "all_perspectives_min": 3.0
+    },
+    "CONDITIONAL_PASS": {
+      "min_aggregate": 2.5,
+      "max_critical": 2,
+      "max_major": 8,
+      "min_perspective_floor": 2.0
+    },
+    "FAIL": "below CONDITIONAL_PASS thresholds"
+  },
+  "severity_definitions": {
+    "critical": "Blocks progress; will cause data loss, security breach, or system failure",
+    "major": "Must fix before implementation; significant risk or inconsistency",
+    "minor": "Should fix; low risk but reduces quality",
+    "info": "Suggestion for improvement; no risk"
+  }
+}

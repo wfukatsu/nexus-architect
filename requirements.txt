@@ -1,0 +1,9 @@
+# Core dependencies
+pyyaml>=6.0
+markdown>=3.4
+pymdown-extensions>=9.0
+
+# Knowledge graph (Phase C - optional)
+# ryugraph>=0.3.0
+# networkx>=3.0
+# pandas>=1.5
