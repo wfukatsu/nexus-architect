@@ -1,78 +1,78 @@
-# Phase 2-2: トランザクション設計
+# Phase 2-2: Transaction Design
 
-## 目的
+## Purpose
 
-各サービス/機能のトランザクションパターンを決定し、トランザクション境界を詳細設計する。Step 04で策定したデータモデルとStep 03で定義したトランザクション境界をもとに、Consensus Commit、2PC、Saga、CQRS、Outbox等のパターンを適材適所で適用し、パフォーマンスとスケーラビリティを考慮した実装可能なトランザクション設計を策定する。
-
----
-
-## 入力
-
-| 入力 | ソース | 説明 |
-|------|--------|------|
-| データモデル（論理/物理） | Step 04 成果物 | ScalarDBスキーマ定義、テーブル一覧 |
-| トランザクション境界定義 | Step 03 成果物 | ScalarDB管理対象テーブル、サービス間Tx対象 |
-| ドメインモデル | Step 02 成果物 | 境界コンテキスト図、集約設計 |
-
-## 参照資料
-
-| 資料 | パス | 主な参照セクション |
-|------|------|-------------------|
-| トランザクションモデル | `../research/07_transaction_model.md` | Consensus Commit、2PC Interface、Saga、CQRS、デシジョンツリー |
-| バッチ処理パターン | `../research/09_batch_processing.md` | チャンクサイズ、Spring Batch/Airflow統合 |
-| ScalarDB 3.17 Deep Dive | `../research/13_scalardb_317_deep_dive.md` | Batch Operations API、Piggyback Begin、Write Buffering、Group Commit |
-| 物理データモデル | `../research/04_physical_data_model.md` | OCC競合率モデリング |
+Determine transaction patterns for each service/function and design transaction boundaries in detail. Based on the data model developed in Step 04 and the transaction boundaries defined in Step 03, apply patterns such as Consensus Commit, 2PC, Saga, CQRS, and Outbox as appropriate, and develop an implementable transaction design that considers performance and scalability.
 
 ---
 
-## ステップ
+## Inputs
 
-### Step 5.1: トランザクションパターンの選定
+| Input | Source | Description |
+|-------|--------|-------------|
+| Data Model (Logical/Physical) | Step 04 Deliverables | ScalarDB schema definitions, table list |
+| Transaction Boundary Definitions | Step 03 Deliverables | ScalarDB-managed tables, inter-service Tx targets |
+| Domain Model | Step 02 Deliverables | Bounded context diagram, aggregate design |
 
-#### 5.1.1 パターン一覧と特性
+## Reference Materials
 
-| パターン | API | 整合性レベル | レイテンシ | 適用場面 |
-|---------|-----|------------|-----------|---------|
-| **サービス内Tx** | `DistributedTransaction` API | 強整合性（ACID） | 低 | 単一サービス内の複数テーブル操作 |
-| **サービス間Tx（2PC）** | `TwoPhaseCommitTransaction` API | 強整合性（ACID） | 中〜高 | 2-3サービス間の原子的操作 |
-| **Saga** | アプリケーション実装 | 結果整合性 | 低（非同期） | 3サービス以上、長時間Tx |
-| **CQRS** | Command: ScalarDB / Query: Analytics or CDC | 結果整合性（Query側） | 読み取り: 低 | 読み書き比率が偏るドメイン |
-| **Outbox** | ScalarDB + メッセージブローカー | 結果整合性 | 低〜中 | イベント駆動アーキテクチャ |
+| Document | Path | Key Sections |
+|----------|------|--------------|
+| Transaction Model | `../research/07_transaction_model.md` | Consensus Commit, 2PC Interface, Saga, CQRS, Decision Tree |
+| Batch Processing Patterns | `../research/09_batch_processing.md` | Chunk size, Spring Batch/Airflow integration |
+| ScalarDB 3.17 Deep Dive | `../research/13_scalardb_317_deep_dive.md` | Batch Operations API, Piggyback Begin, Write Buffering, Group Commit |
+| Physical Data Model | `../research/04_physical_data_model.md` | OCC conflict rate modeling |
 
-#### 5.1.2 分離レベルの選定
+---
 
-ScalarDBは **SNAPSHOT**（デフォルト）、**SERIALIZABLE**、**READ_COMMITTED** の3つの分離レベルをサポートする。トランザクションパターン選定と合わせて、適切な分離レベルを選定する。
+## Steps
 
-| 分離レベル | 特徴 | 推奨場面 | 設定値 |
-|-----------|------|---------|--------|
-| **SNAPSHOT**（デフォルト） | Write Skew Anomalyが発生しうるが、パフォーマンスが高い | 大半のユースケースで十分。読み取り中心のワークロードや、Write Skewが問題にならない操作 | `scalar.db.consensus_commit.isolation_level=SNAPSHOT` |
-| **SERIALIZABLE** | 厳密な直列化可能性を保証。EXTRA_READ戦略により追加の読み取りチェックを実施 | 金融・決済など、厳密な整合性が求められるトランザクション。残高計算や在庫の正確性が必須の操作 | `scalar.db.consensus_commit.isolation_level=SERIALIZABLE` |
-| **READ_COMMITTED** | Read Committed分離レベルを提供。軽量な分離で十分な場面に適合 | 厳密なSnapshot Isolationが不要で、パフォーマンスを優先する読み取り中心のワークロード | `scalar.db.consensus_commit.isolation_level=READ_COMMITTED` |
+### Step 5.1: Transaction Pattern Selection
 
-> **選定ガイドライン:**
-> - SNAPSHOTがデフォルトであり、多くのユースケースでは十分な整合性を提供する。
-> - SERIALIZABLEは追加のオーバーヘッド（EXTRA_READ戦略による追加読み取り）があるため、厳密な直列化可能性が必要な場合にのみ選択する。
-> - READ_COMMITTEDは軽量な分離レベルであり、Snapshot Isolationほどの整合性が不要な場面で選択する。
-> - 分離レベルはScalarDB Cluster全体の設定であり、トランザクション単位での切り替えはできない。システム内で最も厳しい要件に合わせて選定する。
+#### 5.1.1 Pattern List and Characteristics
 
-#### 5.1.3 パターン選定デシジョンツリー
+| Pattern | API | Consistency Level | Latency | Use Case |
+|---------|-----|-------------------|---------|----------|
+| **Intra-service Tx** | `DistributedTransaction` API | Strong consistency (ACID) | Low | Multi-table operations within a single service |
+| **Inter-service Tx (2PC)** | `TwoPhaseCommitTransaction` API | Strong consistency (ACID) | Medium to High | Atomic operations across 2-3 services |
+| **Saga** | Application implementation | Eventual consistency | Low (async) | 3+ services, long-running Tx |
+| **CQRS** | Command: ScalarDB / Query: Analytics or CDC | Eventual consistency (Query side) | Read: Low | Domains with skewed read/write ratios |
+| **Outbox** | ScalarDB + Message Broker | Eventual consistency | Low to Medium | Event-driven architecture |
 
-`07_transaction_model.md` のデシジョンツリーを基に、以下のフローで各操作のパターンを選定する。
+#### 5.1.2 Isolation Level Selection
+
+ScalarDB supports three isolation levels: **SNAPSHOT** (default), **SERIALIZABLE**, and **READ_COMMITTED**. Select the appropriate isolation level in conjunction with transaction pattern selection.
+
+| Isolation Level | Characteristics | Recommended Scenarios | Configuration Value |
+|-----------------|----------------|----------------------|---------------------|
+| **SNAPSHOT** (default) | Write Skew Anomaly can occur, but offers high performance | Sufficient for most use cases. Read-heavy workloads or operations where Write Skew is not a concern | `scalar.db.consensus_commit.isolation_level=SNAPSHOT` |
+| **SERIALIZABLE** | Guarantees strict serializability. Performs additional read checks via the EXTRA_READ strategy | Transactions requiring strict consistency, such as finance and payments. Operations where balance calculations or inventory accuracy are essential | `scalar.db.consensus_commit.isolation_level=SERIALIZABLE` |
+| **READ_COMMITTED** | Provides Read Committed isolation level. Suitable for scenarios where lightweight isolation is sufficient | Read-heavy workloads where strict Snapshot Isolation is unnecessary and performance is prioritized | `scalar.db.consensus_commit.isolation_level=READ_COMMITTED` |
+
+> **Selection Guidelines:**
+> - SNAPSHOT is the default and provides sufficient consistency for many use cases.
+> - SERIALIZABLE has additional overhead (extra reads via the EXTRA_READ strategy), so choose it only when strict serializability is required.
+> - READ_COMMITTED is a lightweight isolation level, suitable for scenarios where Snapshot Isolation-level consistency is unnecessary.
+> - The isolation level is a cluster-wide setting for ScalarDB Cluster and cannot be switched on a per-transaction basis. Select based on the strictest requirement within the system.
+
+#### 5.1.3 Pattern Selection Decision Tree
+
+Based on the decision tree from `07_transaction_model.md`, select patterns for each operation using the following flow.
 
 ```mermaid
 flowchart TD
-    A["操作対象のテーブルは\n単一サービス内か？"] -->|"Yes"| B["サービス内Tx\n（Consensus Commit）"]
-    A -->|"No"| C{"強整合性は\n必須か？"}
-    C -->|"Yes"| D{"参加サービス数は\n2-3以下か？"}
-    C -->|"No"| E{"補償可能な\n操作か？"}
-    D -->|"Yes"| F{"トランザクションの\n所要時間は短いか？\n（数百ms以下）"}
-    D -->|"No"| G["Sagaパターン\n+ 各ステップをScalarDB Txで強化"]
+    A["Are the target tables\nwithin a single service?"] -->|"Yes"| B["Intra-service Tx\n(Consensus Commit)"]
+    A -->|"No"| C{"Is strong consistency\nrequired?"}
+    C -->|"Yes"| D{"Is the number of\nparticipating services\n2-3 or fewer?"}
+    C -->|"No"| E{"Is the operation\ncompensatable?"}
+    D -->|"Yes"| F{"Is the transaction\nduration short?\n(under a few hundred ms)"}
+    D -->|"No"| G["Saga Pattern\n+ Strengthen each step with ScalarDB Tx"]
     F -->|"Yes"| H["2PC Interface"]
     F -->|"No"| G
     E -->|"Yes"| G
-    E -->|"No"| I{"読み取り最適化が\n主目的か？"}
-    I -->|"Yes"| J["CQRS\n（Command: ScalarDB, Query: Analytics/CDC）"]
-    I -->|"No"| K["Outboxパターン\n（ScalarDBで原子性保証）"]
+    E -->|"No"| I{"Is read optimization\nthe primary goal?"}
+    I -->|"Yes"| J["CQRS\n(Command: ScalarDB, Query: Analytics/CDC)"]
+    I -->|"No"| K["Outbox Pattern\n(Atomicity guaranteed by ScalarDB)"]
 
     style B fill:#c8e6c9,stroke:#4caf50
     style H fill:#bbdefb,stroke:#2196f3
@@ -81,49 +81,49 @@ flowchart TD
     style K fill:#ffe0b2,stroke:#ff9800
 ```
 
-#### 5.1.4 各操作のパターン割当表
+#### 5.1.4 Pattern Assignment Table for Each Operation
 
-以下のテンプレートに従い、各操作にパターンを割り当てる。
+Assign patterns to each operation according to the following template.
 
-| # | 操作名 | 対象サービス | 対象テーブル | パターン | 根拠 |
-|---|--------|------------|------------|---------|------|
-| 1 | （例）注文確定 | Order, Inventory, Payment | orders, stocks, accounts | 2PC | 3サービス間で即時整合性必須 |
-| 2 | （例）注文履歴参照 | Order (Query) | orders_read_model | CQRS | 読み取り90%以上、非正規化で高速化 |
+| # | Operation Name | Target Services | Target Tables | Pattern | Rationale |
+|---|----------------|-----------------|---------------|---------|-----------|
+| 1 | (Example) Order Confirmation | Order, Inventory, Payment | orders, stocks, accounts | 2PC | Immediate consistency required across 3 services |
+| 2 | (Example) Order History Lookup | Order (Query) | orders_read_model | CQRS | 90%+ reads, denormalized for high performance |
 | 3 | - | - | - | - | - |
 
 ---
 
-### Step 5.2: 2PC設計の詳細
+### Step 5.2: 2PC Design Details
 
-#### 5.2.1 Coordinator/Participantサービスの決定
+#### 5.2.1 Determining Coordinator/Participant Services
 
 ```mermaid
 sequenceDiagram
-    participant Client as クライアント
+    participant Client as Client
     participant Coord as Coordinator Service
     participant P1 as Participant Service A
     participant P2 as Participant Service B
     participant ScalarDB as ScalarDB Cluster
 
-    Client->>Coord: リクエスト
+    Client->>Coord: Request
 
-    Note over Coord: トランザクション開始
+    Note over Coord: Begin Transaction
     Coord->>ScalarDB: begin()
     ScalarDB-->>Coord: TxId
 
-    Note over Coord: Coordinator操作
-    Coord->>ScalarDB: CRUD操作（Coordinator側）
+    Note over Coord: Coordinator Operations
+    Coord->>ScalarDB: CRUD operations (Coordinator side)
 
-    Note over Coord,P2: Participantの参加
-    Coord->>P1: join(TxId) + 操作依頼
+    Note over Coord,P2: Participant Joining
+    Coord->>P1: join(TxId) + Operation Request
     P1->>ScalarDB: join(TxId)
-    P1->>ScalarDB: CRUD操作（Participant A側）
-    P1-->>Coord: 操作完了
+    P1->>ScalarDB: CRUD operations (Participant A side)
+    P1-->>Coord: Operation Complete
 
-    Coord->>P2: join(TxId) + 操作依頼
+    Coord->>P2: join(TxId) + Operation Request
     P2->>ScalarDB: join(TxId)
-    P2->>ScalarDB: CRUD操作（Participant B側）
-    P2-->>Coord: 操作完了
+    P2->>ScalarDB: CRUD operations (Participant B side)
+    P2-->>Coord: Operation Complete
 
     Note over Coord: Prepare Phase
     Coord->>ScalarDB: prepare()
@@ -146,67 +146,67 @@ sequenceDiagram
     Coord->>P2: commit()
     P2->>ScalarDB: commit()
 
-    Coord-->>Client: レスポンス
+    Coord-->>Client: Response
 ```
 
-**Coordinator選定基準:**
+**Coordinator Selection Criteria:**
 
-| 基準 | 説明 |
-|------|------|
-| **ビジネスプロセスの起点** | トランザクションを開始するユースケースのオーナーサービス |
-| **障害影響の最小化** | Coordinatorの障害は全Participantに波及するため、最も安定したサービスを選定 |
-| **ネットワークトポロジ** | Participantとのレイテンシが低い位置に配置 |
+| Criterion | Description |
+|-----------|-------------|
+| **Business process originator** | The service that owns the use case initiating the transaction |
+| **Minimize failure impact** | Since Coordinator failure propagates to all Participants, select the most stable service |
+| **Network topology** | Place in a position with low latency to Participants |
 
-#### 5.2.2 トランザクションスコープの定義
+#### 5.2.2 Transaction Scope Definition
 
-各2PCトランザクションについて以下を定義する。
+Define the following for each 2PC transaction.
 
-| 定義項目 | 説明 | 制約・推奨値 |
-|---------|------|-------------|
-| **参加サービス数** | Coordinator + Participant数 | **2-3サービスを推奨**。4以上はSagaを検討 |
-| **操作テーブル数** | トランザクション内で操作するテーブルの総数 | 最小限に抑える |
-| **最大レコード数** | トランザクション内で読み書きするレコードの総数 | 数十レコード以下を推奨 |
-| **タイムアウト** | トランザクション全体の最大所要時間 | 後述のタイムアウト設計参照 |
+| Definition Item | Description | Constraints / Recommended Values |
+|-----------------|-------------|----------------------------------|
+| **Number of participating services** | Coordinator + number of Participants | **2-3 services recommended**. Consider Saga for 4 or more |
+| **Number of operated tables** | Total number of tables operated within the transaction | Keep to a minimum |
+| **Maximum record count** | Total number of records read/written within the transaction | Recommended: tens of records or fewer |
+| **Timeout** | Maximum duration for the entire transaction | See timeout design below |
 
-#### 5.2.3 タイムアウト設計
+#### 5.2.3 Timeout Design
 
-| パラメータ | 設定項目 | 推奨値 | 説明 |
-|-----------|---------|--------|------|
-| `scalar.db.consensus_commit.coordinator.timeout_millis` | CoordinatorのCommitタイムアウト | 60000 (60s) | Coordinatorテーブルへの書き込みタイムアウト |
-| gRPCクライアントタイムアウト | Participant呼び出しのタイムアウト | 5000-10000 (5-10s) | 各ParticipantへのgRPC呼び出し |
-| 全体タイムアウト | トランザクション全体 | 90000 (90s) | クライアント側のタイムアウト（Coordinatorタイムアウトより大きく設定） |
+| Parameter | Configuration Item | Recommended Value | Description |
+|-----------|--------------------|-------------------|-------------|
+| `scalar.db.consensus_commit.coordinator.timeout_millis` | Coordinator Commit timeout | 60000 (60s) | Timeout for writing to the Coordinator table |
+| gRPC client timeout | Participant call timeout | 5000-10000 (5-10s) | gRPC call to each Participant |
+| Overall timeout | Entire transaction | 90000 (90s) | Client-side timeout (set larger than Coordinator timeout) |
 
-**タイムアウト階層の原則:**
+**Timeout Hierarchy Principle:**
 ```
-クライアント全体タイムアウト > Coordinatorタイムアウト > 個別RPC タイムアウトの合計
+Client overall timeout > Coordinator timeout > Sum of individual RPC timeouts
 ```
 
-#### 5.2.4 障害時の振る舞い
+#### 5.2.4 Failure Behavior
 
-| 障害シナリオ | 発生フェーズ | 振る舞い | リカバリ |
-|-------------|------------|---------|---------|
-| Participant障害 | CRUD操作中 | Coordinatorがabort | クライアントがリトライ |
-| Participant障害 | Prepare後 | Lazy Recoveryが処理 | ScalarDBが自動リカバリ |
-| Coordinator障害 | Prepare前 | 各Participantのレコードがpending状態 | Lazy Recoveryでabort |
-| Coordinator障害 | Commit後 | Participantが未commitでも次回アクセス時にリカバリ | Lazy Recovery |
-| ネットワーク分断 | 任意 | タイムアウト後にabort | クライアントがリトライ |
+| Failure Scenario | Phase | Behavior | Recovery |
+|------------------|-------|----------|----------|
+| Participant failure | During CRUD operations | Coordinator aborts | Client retries |
+| Participant failure | After Prepare | Lazy Recovery handles it | ScalarDB auto-recovery |
+| Coordinator failure | Before Prepare | Records on each Participant remain in pending state | Abort via Lazy Recovery |
+| Coordinator failure | After Commit | Even if Participants are uncommitted, recovery occurs on next access | Lazy Recovery |
+| Network partition | Any | Abort after timeout | Client retries |
 
-> **Lazy Recovery**: ScalarDBは、pendingまたはprepared状態のレコードに次回アクセスがあった時点で、Coordinatorテーブルの状態を確認し、自動的にcommitまたはabortを行う。明示的なリカバリプロセスは不要。
+> **Lazy Recovery**: When ScalarDB encounters records in pending or prepared state on next access, it checks the Coordinator table state and automatically commits or aborts. No explicit recovery process is required.
 
 ---
 
-### Step 5.3: Sagaパターンの詳細設計（必要な場合）
+### Step 5.3: Saga Pattern Detailed Design (If Needed)
 
-#### 5.3.1 補償トランザクションの設計
+#### 5.3.1 Compensating Transaction Design
 
-各Sagaステップに対し、正常時の操作と補償操作を対で定義する。
+Define the normal operation and compensating operation as a pair for each Saga step.
 
-| Step | サービス | 正常操作 | 補償操作 | 補償の冪等性 |
-|------|---------|---------|---------|------------|
-| 1 | Order | 注文作成（PENDING） | 注文キャンセル（CANCELLED） | order_idで重複チェック |
-| 2 | Inventory | 在庫引当 | 在庫引当解除 | reservation_idで重複チェック |
-| 3 | Payment | 決済実行 | 返金処理 | payment_idで重複チェック |
-| 4 | Order | 注文確定（CONFIRMED） | （Step 1の補償に統合） | - |
+| Step | Service | Normal Operation | Compensating Operation | Compensation Idempotency |
+|------|---------|-----------------|----------------------|--------------------------|
+| 1 | Order | Create order (PENDING) | Cancel order (CANCELLED) | Duplicate check by order_id |
+| 2 | Inventory | Reserve stock | Release stock reservation | Duplicate check by reservation_id |
+| 3 | Payment | Execute payment | Process refund | Duplicate check by payment_id |
+| 4 | Order | Confirm order (CONFIRMED) | (Consolidated with Step 1 compensation) | - |
 
 ```mermaid
 sequenceDiagram
@@ -215,104 +215,104 @@ sequenceDiagram
     participant Inv as Inventory Service
     participant Pay as Payment Service
 
-    Note over Orch: 正常フロー
-    Orch->>Order: 1. 注文作成（PENDING）
+    Note over Orch: Normal Flow
+    Orch->>Order: 1. Create Order (PENDING)
     Order-->>Orch: OK
 
-    Orch->>Inv: 2. 在庫引当
+    Orch->>Inv: 2. Reserve Stock
     Inv-->>Orch: OK
 
-    Orch->>Pay: 3. 決済実行
-    Pay-->>Orch: FAIL（残高不足）
+    Orch->>Pay: 3. Execute Payment
+    Pay-->>Orch: FAIL (Insufficient Balance)
 
-    Note over Orch: 補償フロー（逆順）
-    Orch->>Inv: 2'. 在庫引当解除（補償）
+    Note over Orch: Compensation Flow (Reverse Order)
+    Orch->>Inv: 2'. Release Stock Reservation (Compensation)
     Inv-->>Orch: OK
 
-    Orch->>Order: 1'. 注文キャンセル（補償）
+    Orch->>Order: 1'. Cancel Order (Compensation)
     Order-->>Orch: OK
 
-    Note over Orch: Saga完了（失敗）
+    Note over Orch: Saga Complete (Failed)
 ```
 
-#### 5.3.2 Choreography vs Orchestration の選定
+#### 5.3.2 Choreography vs Orchestration Selection
 
-| 比較項目 | Choreography | Orchestration |
-|---------|-------------|---------------|
-| **制御方式** | イベント駆動、各サービスが次のステップを判断 | 中央オーケストレーターが制御 |
-| **結合度** | 低い（イベント経由のみ） | オーケストレーターへの依存 |
-| **可視性** | 低い（フロー全体の把握が困難） | 高い（オーケストレーターにフロー定義） |
-| **エラーハンドリング** | 各サービスで個別実装 | オーケストレーターで集中管理 |
-| **推奨ステップ数** | 2-3ステップ | 4ステップ以上 |
-| **推奨場面** | シンプルなフロー、チーム独立性重視 | 複雑なフロー、補償ロジックが多い |
+| Comparison Item | Choreography | Orchestration |
+|-----------------|-------------|---------------|
+| **Control method** | Event-driven, each service determines the next step | Central orchestrator controls |
+| **Coupling** | Low (via events only) | Dependency on orchestrator |
+| **Visibility** | Low (difficult to grasp the entire flow) | High (flow defined in orchestrator) |
+| **Error handling** | Individually implemented in each service | Centrally managed in orchestrator |
+| **Recommended step count** | 2-3 steps | 4+ steps |
+| **Recommended scenarios** | Simple flows, emphasis on team independence | Complex flows, many compensation logic |
 
-**ScalarDBによる各ステップの強化:**
+**Strengthening Each Step with ScalarDB:**
 
-各Sagaステップ内で、ScalarDB Consensus Commitによるローカルトランザクションを使用し、ステップ内の操作はACIDを保証する。
+Use ScalarDB Consensus Commit local transactions within each Saga step to guarantee ACID for intra-step operations.
 
 ```java
-// Sagaの各ステップ内ではScalarDB Txで原子性を保証
+// Guarantee atomicity within each Saga step using ScalarDB Tx
 DistributedTransaction tx = transactionManager.start();
 try {
-    // ステータステーブル更新とビジネスデータ更新を原子的に実行
-    tx.put(/* saga_status更新: step=2, status=COMPLETED */);
-    tx.put(/* inventory.stocks更新: reserved_quantity増加 */);
+    // Atomically execute status table update and business data update
+    tx.put(/* saga_status update: step=2, status=COMPLETED */);
+    tx.put(/* inventory.stocks update: increase reserved_quantity */);
     tx.commit();
 } catch (Exception e) {
     tx.abort();
-    // Saga補償トリガー
+    // Trigger Saga compensation
 }
 ```
 
 ---
 
-### Step 5.4: バッチ処理のトランザクション設計
+### Step 5.4: Batch Processing Transaction Design
 
-#### 5.4.1 チャンクサイズ決定
+#### 5.4.1 Chunk Size Determination
 
-`09_batch_processing.md` を参照し、バッチ処理のチャンクサイズを決定する。
+Refer to `09_batch_processing.md` to determine batch processing chunk sizes.
 
-| パラメータ | 推奨値 | 根拠 |
-|-----------|--------|------|
-| **チャンクサイズ** | 100-1,000レコード/チャンク | メモリ管理とトランザクションスコープのバランス |
-| **並列度** | 2-4スレッド | ScalarDB Cluster側の負荷とOCC競合のトレードオフ |
-| **リトライ回数** | 3-5回 | OCC競合時の指数バックオフリトライ |
-| **バックオフ間隔** | 初期100ms、最大5s | 競合が多い場合に段階的に待機 |
+| Parameter | Recommended Value | Rationale |
+|-----------|-------------------|-----------|
+| **Chunk size** | 100-1,000 records/chunk | Balance between memory management and transaction scope |
+| **Parallelism** | 2-4 threads | Trade-off between ScalarDB Cluster load and OCC conflicts |
+| **Retry count** | 3-5 times | Exponential backoff retry on OCC conflicts |
+| **Backoff interval** | Initial 100ms, max 5s | Gradually increase wait time when conflicts are frequent |
 
-**チャンクサイズ決定フロー:**
+**Chunk Size Determination Flow:**
 
 ```mermaid
 flowchart TD
-    A["バッチ対象レコード数\nを確認"] --> B{"10,000件以下か？"}
-    B -->|"Yes"| C["単一トランザクションで\n処理可能か検討"]
-    B -->|"No"| D["チャンク分割必須"]
-    C -->|"メモリ・時間的にOK"| E["チャンクサイズ = 全件"]
-    C -->|"NG"| D
-    D --> F{"レコードサイズは\n大きいか？"}
-    F -->|"1KB以上"| G["チャンクサイズ: 100"]
-    F -->|"1KB未満"| H["チャンクサイズ: 1,000"]
-    G --> I["OCC競合率を確認"]
+    A["Check the number of\nbatch target records"] --> B{"10,000 records\nor fewer?"}
+    B -->|"Yes"| C["Consider processing\nin a single transaction"]
+    B -->|"No"| D["Chunk splitting required"]
+    C -->|"Memory/time OK"| E["Chunk size = all records"]
+    C -->|"Not OK"| D
+    D --> F{"Is the record size\nlarge?"}
+    F -->|"1KB or more"| G["Chunk size: 100"]
+    F -->|"Less than 1KB"| H["Chunk size: 1,000"]
+    G --> I["Check OCC conflict rate"]
     H --> I
-    I --> J{"競合率 > 5%？"}
-    J -->|"Yes"| K["チャンクサイズを半減\n並列度を下げる"]
-    J -->|"No"| L["設定確定"]
+    I --> J{"Conflict rate > 5%?"}
+    J -->|"Yes"| K["Halve chunk size\nReduce parallelism"]
+    J -->|"No"| L["Configuration confirmed"]
     K --> L
 ```
 
-#### 5.4.2 Spring Batch / Airflow統合パターン
+#### 5.4.2 Spring Batch / Airflow Integration Patterns
 
-| フレームワーク | 統合方式 | トランザクション制御 |
-|--------------|---------|-------------------|
-| **Spring Batch** | ChunkOrientedTaskletでScalarDB Txを使用 | ItemWriter内でcommit/abort |
-| **Airflow** | PythonOperatorからScalarDB gRPC APIを呼び出し | タスク単位でチャンク処理 |
-| **カスタム** | 独自ループでチャンク処理 | try-catch-retryパターン |
+| Framework | Integration Method | Transaction Control |
+|-----------|-------------------|---------------------|
+| **Spring Batch** | Use ScalarDB Tx in ChunkOrientedTasklet | commit/abort within ItemWriter |
+| **Airflow** | Call ScalarDB gRPC API from PythonOperator | Chunk processing per task |
+| **Custom** | Chunk processing in custom loop | try-catch-retry pattern |
 
-#### 5.4.3 Batch Operations API活用（ScalarDB 3.17）
+#### 5.4.3 Batch Operations API Usage (ScalarDB 3.17)
 
-`13_scalardb_317_deep_dive.md` のBatch Operations APIを活用し、チャンク内の複数操作を1回のRPCで実行する。
+Leverage the Batch Operations API from `13_scalardb_317_deep_dive.md` to execute multiple operations within a chunk in a single RPC.
 
 ```java
-// Batch Operations APIによる効率的なチャンク処理
+// Efficient chunk processing using Batch Operations API
 DistributedTransaction tx = transactionManager.start();
 try {
     List<Operation> operations = new ArrayList<>();
@@ -325,175 +325,175 @@ try {
             .textValue("status", "GENERATED")
             .build());
     }
-    // 1回のRPCで全操作を送信
+    // Send all operations in a single RPC
     tx.batch(operations);
     tx.commit();
 } catch (Exception e) {
     tx.abort();
-    // リトライロジック
+    // Retry logic
 }
 ```
 
 ---
 
-### Step 5.5: パフォーマンス最適化設計
+### Step 5.5: Performance Optimization Design
 
-#### 5.5.1 Piggyback Begin / Write Bufferingの適用判断
+#### 5.5.1 Piggyback Begin / Write Buffering Application Decision
 
-`13_scalardb_317_deep_dive.md` の最適化機能を評価し、適用可否を判断する。
+Evaluate the optimization features from `13_scalardb_317_deep_dive.md` and determine applicability.
 
-| 最適化 | 効果 | 適用条件 | 設定 |
-|--------|------|---------|------|
-| **Piggyback Begin** | トランザクション開始のRPC 1往復を削減 | ScalarDB Cluster利用時（デフォルトOFF（明示的に `scalar.db.cluster.client.piggyback_begin.enabled=true` の設定が必要）） | `scalar.db.cluster.client.piggyback_begin.enabled=true` |
-| **Write Buffering** | 非条件的な書き込み（insert, upsert, 無条件put/update/delete）をクライアントにバッファリングし、Read時やCommit時に一括送信。条件付きミューテーション（updateIf, deleteIf等）はバッファ対象外 | 書き込みが多いワークロード | `scalar.db.cluster.client.write_buffering.enabled=true` |
-| **Batch Operations** | 複数操作を1 RPCに集約 | 独立した複数操作を同一Tx内で実行 | API利用（設定不要） |
+| Optimization | Effect | Application Conditions | Configuration |
+|-------------|--------|----------------------|---------------|
+| **Piggyback Begin** | Eliminates one RPC round-trip for transaction start | When using ScalarDB Cluster (OFF by default; requires explicit setting `scalar.db.cluster.client.piggyback_begin.enabled=true`) | `scalar.db.cluster.client.piggyback_begin.enabled=true` |
+| **Write Buffering** | Buffers unconditional writes (insert, upsert, unconditional put/update/delete) on the client and sends them in bulk at Read time or Commit time. Conditional mutations (updateIf, deleteIf, etc.) are not buffered | Write-heavy workloads | `scalar.db.cluster.client.write_buffering.enabled=true` |
+| **Batch Operations** | Consolidates multiple operations into 1 RPC | Independent multiple operations executed within the same Tx | API usage (no configuration needed) |
 
-**Write Buffering使用時の注意:**
+**Write Buffering Usage Notes:**
 
-| 注意事項 | 説明 |
-|---------|------|
-| 対象は非条件的な書込みのみ | insert, upsert, 無条件のput/update/deleteのみバッファされる。条件付きミューテーション（updateIf, deleteIf等）は即座にサーバーに送信される |
-| Write後のReadが古い値を返す | バッファがフラッシュされるまでDBに書き込まれない |
-| エラーがPrepare時に集約される | 個別Write時にはエラーが検出されない |
-| メモリ使用量 | バッファサイズに応じてクライアントメモリが必要 |
+| Note | Description |
+|------|-------------|
+| Only unconditional writes are targeted | Only insert, upsert, unconditional put/update/delete are buffered. Conditional mutations (updateIf, deleteIf, etc.) are sent to the server immediately |
+| Read after Write returns stale values | Data is not written to the DB until the buffer is flushed |
+| Errors are aggregated at Prepare time | Errors are not detected at individual Write time |
+| Memory usage | Client memory is required depending on buffer size |
 
-#### 5.5.2 Group Commit設定
+#### 5.5.2 Group Commit Configuration
 
-| パラメータ | 設定項目 | 推奨値 | 説明 |
-|-----------|---------|--------|------|
-| `scalar.db.consensus_commit.coordinator.group_commit.enabled` | Group Commit有効化 | `true` | 複数Txのコミットをグループ化してバッチ書き込み |
-| `scalar.db.consensus_commit.coordinator.group_commit.slot_capacity` | スロット容量 | 20-40 | 同時に待機するTx数 |
-| `scalar.db.consensus_commit.coordinator.group_commit.group_size_fix_timeout_millis` | グループ確定タイムアウト | 40 | グループサイズを確定するまでの待機時間 |
-| `scalar.db.consensus_commit.coordinator.group_commit.delayed_slot_move_timeout_millis` | 遅延スロット移動タイムアウト | 800 | 遅延スロットの移動タイムアウト |
+| Parameter | Configuration Item | Recommended Value | Description |
+|-----------|--------------------|-------------------|-------------|
+| `scalar.db.consensus_commit.coordinator.group_commit.enabled` | Enable Group Commit | `true` | Groups commits of multiple Tx for batch writing |
+| `scalar.db.consensus_commit.coordinator.group_commit.slot_capacity` | Slot capacity | 20-40 | Number of Tx waiting concurrently |
+| `scalar.db.consensus_commit.coordinator.group_commit.group_size_fix_timeout_millis` | Group size fix timeout | 40 | Wait time until group size is fixed |
+| `scalar.db.consensus_commit.coordinator.group_commit.delayed_slot_move_timeout_millis` | Delayed slot move timeout | 800 | Timeout for moving delayed slots |
 
-> **制約**: Group Commitは2PC Interfaceとの併用不可。2PCトランザクションを使用するサービスではGroup Commitを有効化しないこと（公式ドキュメント明記）。
+> **Constraint**: Group Commit cannot be used together with 2PC Interface. Do not enable Group Commit for services that use 2PC transactions (explicitly stated in official documentation).
 
-#### 5.5.3 OCC競合率のモデリング
+#### 5.5.3 OCC Conflict Rate Modeling
 
-`04_physical_data_model.md` の競合率計算式を用いて、想定されるワークロードでのOCC競合率を見積もる。
+Use the conflict rate formula from `04_physical_data_model.md` to estimate OCC conflict rates under expected workloads.
 
-**競合率計算の近似式:**
+**Conflict Rate Approximation Formula:**
 
 ```
-P(競合) ≈ 1 - (1 - 1/N)^(T * R)
+P(conflict) ≈ 1 - (1 - 1/N)^(T * R)
 
-  N = 同時にアクセスされうるレコード数（≈ パーティション数 × パーティション内レコード数）
-  T = 同時実行トランザクション数
-  R = 1トランザクションあたりの読み書きレコード数
+  N = Number of records that can be accessed concurrently (≈ number of partitions x records per partition)
+  T = Number of concurrent transactions
+  R = Number of records read/written per transaction
 ```
 
-> ※ 本ワークフローの近似式は概算用です。`../research/04_physical_data_model.md` Section 6 の式 `P(conflict) ≈ 1 - (1 - k/N)^(C-1)` も参照してください。
+> *Note: The approximation formula in this workflow is for rough estimation. Also refer to the formula `P(conflict) ≈ 1 - (1 - k/N)^(C-1)` in Section 6 of `../research/04_physical_data_model.md`.*
 
-**見積もりテンプレート:**
+**Estimation Template:**
 
-| 操作 | N（対象レコード数） | T（同時Tx数） | R（操作レコード数） | 推定競合率 | 評価 |
-|------|-------------------|--------------|-------------------|-----------|------|
-| 注文確定 | 100,000 | 100 | 5 | 約0.5% | OK |
-| 在庫引当（人気商品） | 10 | 50 | 1 | 約99.5% | NG: バケッティング必要 |
-| 残高更新 | 1,000,000 | 200 | 2 | 約0.04% | OK |
+| Operation | N (Target Record Count) | T (Concurrent Tx Count) | R (Operated Record Count) | Estimated Conflict Rate | Evaluation |
+|-----------|------------------------|------------------------|--------------------------|------------------------|------------|
+| Order confirmation | 100,000 | 100 | 5 | Approx. 0.5% | OK |
+| Stock reservation (popular item) | 10 | 50 | 1 | Approx. 99.5% | NG: Bucketing required |
+| Balance update | 1,000,000 | 200 | 2 | Approx. 0.04% | OK |
 
-> **目安**: 競合率5%以上の場合は、Partition Key設計の見直し（バケッティング）、トランザクションスコープの縮小、またはSagaパターンへの変更を検討する。
+> **Guideline**: If the conflict rate is 5% or higher, consider reviewing the Partition Key design (bucketing), reducing transaction scope, or switching to the Saga pattern.
 
 ---
 
-### Step 5.6: CDCメタデータの取り扱い設計
+### Step 5.6: CDC Metadata Handling Design
 
-#### 5.6.1 tx_stateフィルタリング設計
+#### 5.6.1 tx_state Filtering Design
 
-ScalarDBのConsensus Commitでは、各レコードに`tx_state`メタデータカラムが付加される。CDCで下流にデータを伝搬する際、コミット済みデータのみを流す必要がある。
+In ScalarDB's Consensus Commit, a `tx_state` metadata column is appended to each record. When propagating data downstream via CDC, only committed data should be forwarded.
 
-| tx_state値 | 意味 | CDCでの取り扱い |
-|-----------|------|----------------|
-| 1 | PREPARED | **フィルタリング（除外）** |
-| 2 | DELETED | **フィルタリング（除外）** |
-| 3 | COMMITTED | **下流に伝搬** |
-| 4 | ABORTED | **フィルタリング（除外）** |
+| tx_state Value | Meaning | CDC Handling |
+|---------------|---------|--------------|
+| 1 | PREPARED | **Filter out (exclude)** |
+| 2 | DELETED | **Filter out (exclude)** |
+| 3 | COMMITTED | **Propagate downstream** |
+| 4 | ABORTED | **Filter out (exclude)** |
 
-**CDCパイプライン設計:**
+**CDC Pipeline Design:**
 
 ```mermaid
 flowchart LR
-    A["ScalarDB\n管理テーブル"] -->|CDC| B["Change Stream\n/ Debezium"]
-    B --> C{"tx_state = 3？"}
-    C -->|"Yes（COMMITTED）"| D["下流システム\n（Kafka, Analytics等）"]
-    C -->|"No"| E["破棄"]
+    A["ScalarDB\nManaged Tables"] -->|CDC| B["Change Stream\n/ Debezium"]
+    B --> C{"tx_state = 3?"}
+    C -->|"Yes (COMMITTED)"| D["Downstream Systems\n(Kafka, Analytics, etc.)"]
+    C -->|"No"| E["Discard"]
 
     style D fill:#c8e6c9,stroke:#4caf50
     style E fill:#ffcdd2,stroke:#e53935
 ```
 
-#### 5.6.2 Transaction Metadata Decoupling使用時のCDC設定
+#### 5.6.2 CDC Configuration When Using Transaction Metadata Decoupling
 
-> **注意**: Transaction Metadata Decouplingは**Private Preview**段階の機能であり、JDBC接続のみサポートされている。利用にはScalar Labsへの事前連絡が必要。
+> **Note**: Transaction Metadata Decoupling is a **Private Preview** feature and only supports JDBC connections. Prior contact with Scalar Labs is required for use.
 
-ScalarDB 3.17のTransaction Metadata Decouplingを使用する場合、メタデータが別テーブルに分離されるため、CDC設定が異なる。
+When using ScalarDB 3.17's Transaction Metadata Decoupling, metadata is separated into a different table, so CDC configuration differs.
 
-| 設定項目 | 従来方式 | Metadata Decoupling方式 |
-|---------|---------|------------------------|
-| **CDCソーステーブル** | メインテーブル（メタデータ含む） | メインテーブル（メタデータなし） |
-| **tx_stateフィルタ** | 必要（tx_state=3のみ伝搬） | 不要（メインテーブルにtx_stateなし） |
-| **コミット確認方法** | tx_stateカラムで判定 | メタデータテーブルを参照して判定 |
-| **CDCの複雑性** | 中（フィルタリングロジック必要） | 高（2テーブル結合が必要）or 低（フィルタ不要で直接利用） |
-| **推奨** | tx_stateフィルタを確実に設定 | Debezium等でメタデータテーブルのCOMMITTEDイベントをトリガーにする |
+| Configuration Item | Conventional Method | Metadata Decoupling Method |
+|-------------------|--------------------|-----------------------------|
+| **CDC source table** | Main table (including metadata) | Main table (no metadata) |
+| **tx_state filter** | Required (propagate only tx_state=3) | Not required (no tx_state in main table) |
+| **Commit confirmation method** | Determined by tx_state column | Determined by referencing metadata table |
+| **CDC complexity** | Medium (filtering logic required) | High (2-table join required) or Low (direct use without filter) |
+| **Recommendation** | Ensure tx_state filter is properly configured | Use Debezium etc. to trigger on COMMITTED events from the metadata table |
 
-> **注意**: Transaction Metadata Decoupling使用時は、メインテーブルにコミット前のデータが一時的に見える可能性がある。CDCパイプラインの設計時に、メタデータテーブルとの整合性を確認するロジックを組み込むこと。
-
----
-
-## 成果物
-
-| 成果物 | 形式 | 内容 |
-|--------|------|------|
-| **トランザクション設計書** | 設計書 | パターン割当表、2PC設計、Saga設計、タイムアウト設計 |
-| **パフォーマンス見積もり** | 計算シート | OCC競合率モデリング、レイテンシ見積もり |
-| **バッチ処理設計書** | 設計書 | チャンクサイズ、並列度、リトライ設計 |
-| **CDC設計書** | 設計書 | tx_stateフィルタリング設定、下流システム連携設計 |
-| **最適化設定一覧** | 設定ファイル | Group Commit、Piggyback Begin、Write Buffering等の設定値 |
+> **Note**: When using Transaction Metadata Decoupling, uncommitted data may be temporarily visible in the main table. Incorporate logic to verify consistency with the metadata table when designing the CDC pipeline.
 
 ---
 
-## 完了基準チェックリスト
+## Deliverables
 
-### トランザクションパターン選定
+| Deliverable | Format | Content |
+|-------------|--------|---------|
+| **Transaction Design Document** | Design document | Pattern assignment table, 2PC design, Saga design, timeout design |
+| **Performance Estimates** | Calculation sheet | OCC conflict rate modeling, latency estimates |
+| **Batch Processing Design Document** | Design document | Chunk size, parallelism, retry design |
+| **CDC Design Document** | Design document | tx_state filtering configuration, downstream system integration design |
+| **Optimization Configuration List** | Configuration file | Configuration values for Group Commit, Piggyback Begin, Write Buffering, etc. |
 
-- [ ] 全操作（ユースケース）にトランザクションパターンが割り当てられている
-- [ ] パターン選定の根拠がデシジョンツリーに基づいて記録されている
-- [ ] 強整合性が必要な操作が明確に識別されている
-- [ ] 結果整合性で許容される操作と整合性ウィンドウが定義されている
+---
 
-### 2PC設計
+## Completion Criteria Checklist
 
-- [ ] 全2PCトランザクションのCoordinator/Participantが決定されている
-- [ ] 参加サービス数が2-3に収まっている（超過の場合はSagaへの変更を検討済み）
-- [ ] トランザクションスコープ（操作テーブル、最大レコード数）が定義されている
-- [ ] タイムアウト値が階層的に設定されている
-- [ ] 障害シナリオごとのリカバリ方法が定義されている
-- [ ] Lazy Recoveryへの依存可能性が評価されている
+### Transaction Pattern Selection
 
-### Saga設計（該当する場合）
+- [ ] A transaction pattern has been assigned to all operations (use cases)
+- [ ] Pattern selection rationale is recorded based on the decision tree
+- [ ] Operations requiring strong consistency are clearly identified
+- [ ] Operations where eventual consistency is acceptable and consistency windows are defined
 
-- [ ] 全Sagaステップの正常操作と補償操作が対で定義されている
-- [ ] 補償操作の冪等性が保証されている
-- [ ] Choreography/Orchestrationの選定根拠が記録されている
-- [ ] 各ステップ内でScalarDB Txによる原子性が保証されている
-- [ ] Sagaステータス管理テーブルが設計されている
+### 2PC Design
 
-### バッチ処理
+- [ ] Coordinator/Participant roles are determined for all 2PC transactions
+- [ ] Number of participating services is within 2-3 (change to Saga has been considered if exceeded)
+- [ ] Transaction scope (operated tables, maximum record count) is defined
+- [ ] Timeout values are set hierarchically
+- [ ] Recovery methods are defined for each failure scenario
+- [ ] Dependency on Lazy Recovery has been evaluated
 
-- [ ] チャンクサイズが決定されている
-- [ ] 並列度とリトライ戦略が定義されている
-- [ ] Batch Operations API活用の要否が判断されている
-- [ ] Spring Batch/Airflow等の統合方式が定義されている
+### Saga Design (If Applicable)
 
-### パフォーマンス
+- [ ] Normal operations and compensating operations are defined as pairs for all Saga steps
+- [ ] Idempotency of compensating operations is guaranteed
+- [ ] Rationale for Choreography/Orchestration selection is recorded
+- [ ] Atomicity within each step is guaranteed by ScalarDB Tx
+- [ ] Saga status management table is designed
 
-- [ ] OCC競合率が全主要操作で5%以下に収まっている
-- [ ] Piggyback Begin/Write Bufferingの適用可否が判断されている
-- [ ] Group Commitの設定値が決定されている
-- [ ] レイテンシ要件が全操作で満たされる見込みである
+### Batch Processing
+
+- [ ] Chunk size is determined
+- [ ] Parallelism and retry strategy are defined
+- [ ] Need for Batch Operations API usage has been determined
+- [ ] Integration method with Spring Batch/Airflow etc. is defined
+
+### Performance
+
+- [ ] OCC conflict rate is within 5% for all major operations
+- [ ] Applicability of Piggyback Begin/Write Buffering has been determined
+- [ ] Group Commit configuration values are determined
+- [ ] Latency requirements are expected to be met for all operations
 
 ### CDC
 
-- [ ] tx_stateフィルタリングが全CDCパイプラインに設計されている
-- [ ] Transaction Metadata Decoupling使用時のCDC設定が定義されている
-- [ ] コミット済みデータのみが下流に伝搬されることが保証されている
+- [ ] tx_state filtering is designed for all CDC pipelines
+- [ ] CDC configuration when using Transaction Metadata Decoupling is defined
+- [ ] It is guaranteed that only committed data is propagated downstream
