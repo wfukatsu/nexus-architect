@@ -7,11 +7,20 @@ Unified system architecture agent for Claude Code. Covers legacy system refactor
 ### As a Claude Code Plugin (Recommended)
 
 ```bash
-# Install from GitHub
-claude plugin add --scope user github:wfukatsu/nexus-architect
+# 1. Add the marketplace
+claude plugin marketplace add wfukatsu/nexus-architect
+
+# 2. Install the plugin
+claude plugin install architect@nexus-architect --scope user
 ```
 
 After installation, all commands are available as `/architect:skill-name` in any Claude Code session.
+
+To update to the latest version:
+
+```bash
+claude plugin update architect@nexus-architect
+```
 
 ### Manual Installation
 
@@ -19,23 +28,11 @@ After installation, all commands are available as `/architect:skill-name` in any
 # 1. Clone the repository
 git clone https://github.com/wfukatsu/nexus-architect.git
 
-# 2. Copy to the plugin cache
-mkdir -p ~/.claude/plugins/cache/scalar-plugins/nexus-architect/0.3.0
-cp -r nexus-architect/* ~/.claude/plugins/cache/scalar-plugins/nexus-architect/0.3.0/
-cp -r nexus-architect/.claude-plugin ~/.claude/plugins/cache/scalar-plugins/nexus-architect/0.3.0/
+# 2. Add as a local marketplace
+claude plugin marketplace add ./nexus-architect
 
-# 3. Register in installed_plugins.json
-# Add the following entry to ~/.claude/plugins/installed_plugins.json under "plugins":
-#
-#   "architect@scalar-plugins": [{
-#     "scope": "user",
-#     "installPath": "<HOME>/.claude/plugins/cache/scalar-plugins/nexus-architect/0.3.0",
-#     "version": "0.3.0",
-#     "installedAt": "<ISO8601>",
-#     "lastUpdated": "<ISO8601>"
-#   }]
-
-# 4. Restart Claude Code to load the plugin
+# 3. Install the plugin
+claude plugin install architect@nexus-architect --scope user
 ```
 
 ### Verify Installation
