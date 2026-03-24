@@ -1,0 +1,40 @@
+{
+  "name": "nexus-architect",
+  "owner": {
+    "name": "Wataru Fukatsu",
+    "url": "https://github.com/wfukatsu"
+  },
+  "metadata": {
+    "description": "Unified system architecture agent for Claude Code",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "architect",
+      "description": "Unified system architecture agent with 51 skills for legacy refactoring, greenfield ScalarDB design, ScalarDB application development, database migration (Oracle/MySQL/PostgreSQL to ScalarDB), and consulting deliverables. Includes 5-perspective parallel review system, MMI/DDD evaluation frameworks, and full code generation pipeline.",
+      "version": "0.4.0",
+      "author": {
+        "name": "Wataru Fukatsu",
+        "url": "https://github.com/wfukatsu"
+      },
+      "homepage": "https://github.com/wfukatsu/nexus-architect",
+      "tags": [
+        "architecture",
+        "system-design",
+        "refactoring",
+        "microservices",
+        "ddd",
+        "scalardb",
+        "code-analysis",
+        "code-generation",
+        "database-migration",
+        "oracle",
+        "mysql",
+        "postgresql",
+        "review",
+        "consulting"
+      ],
+      "source": "./"
+    }
+  ]
+}
