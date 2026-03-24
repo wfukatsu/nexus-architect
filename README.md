@@ -1,8 +1,9 @@
 # Nexus Architect
 
-System architecture toolkit for Claude Code. Two plugins:
-- **architect** — Legacy refactoring, greenfield design, database migration, consulting deliverables
-- **scalardb** — ScalarDB application development toolkit
+System architecture toolkit for Claude Code. Two plugins, 49 skills:
+
+- **architect** (38 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
+- **scalardb** (11 skills) — ScalarDB application development toolkit
 
 ## Installation
 
@@ -73,24 +74,35 @@ If the skills are recognized, the installation is successful.
 
 ## Commands
 
-Architecture skills use `/architect:skill-name`. ScalarDB tools use `/scalardb:skill-name`.
+### Orchestration
 
 | Command | Description |
 |---------|-------------|
-| **Orchestration** | |
 | `/architect:start` | Interactively start system analysis and design |
-| `/architect:pipeline` | Automated pipeline execution (supports --resume, --skip) |
+| `/architect:pipeline` | Automated pipeline execution (supports `--resume`, `--skip`) |
 | `/architect:init-output` | Initialize output directories |
-| **Investigation & Analysis** | |
+
+### Investigation & Analysis
+
+| Command | Description |
+|---------|-------------|
 | `/architect:investigate` | Tech stack, structure, debt, DDD readiness survey |
 | `/architect:investigate-security` | OWASP Top 10, access control assessment |
 | `/architect:analyze` | Ubiquitous language, actors, domain mapping |
 | `/architect:analyze-data-model` | Data model, DB design, ER diagrams |
-| **Evaluation** | |
+
+### Evaluation
+
+| Command | Description |
+|---------|-------------|
 | `/architect:evaluate-mmi` | MMI 4-axis qualitative evaluation |
 | `/architect:evaluate-ddd` | DDD 12-criteria 3-layer evaluation |
 | `/architect:integrate-evaluations` | MMI+DDD integration, improvement plan |
-| **Design** | |
+
+### Design
+
+| Command | Description |
+|---------|-------------|
 | `/architect:map-domains` | Domain classification, BC mapping |
 | `/architect:redesign` | Bounded context redesign |
 | `/architect:design-microservices` | Target architecture |
@@ -99,17 +111,29 @@ Architecture skills use `/architect:skill-name`. ScalarDB tools use `/scalardb:s
 | `/architect:design-scalardb-analytics` | HTAP analytics platform design |
 | `/architect:design-data-layer` | Generic DB design (non-ScalarDB) |
 | `/architect:design-api` | REST/GraphQL/gRPC/AsyncAPI specifications |
-| **Implementation & Codegen** | |
+
+### Implementation & Codegen
+
+| Command | Description |
+|---------|-------------|
 | `/architect:design-implementation` | Implementation specifications |
 | `/architect:generate-test-specs` | BDD/unit/integration test specifications |
 | `/architect:generate-scalardb-code` | Spring Boot + ScalarDB code generation |
 | `/architect:generate-infra-code` | K8s/Terraform/Helm code generation |
-| **Infrastructure** | |
+
+### Infrastructure
+
+| Command | Description |
+|---------|-------------|
 | `/architect:design-infrastructure` | K8s, IaC, multi-environment |
 | `/architect:design-security` | Authentication, authorization, secrets management |
 | `/architect:design-observability` | Monitoring, tracing, alerting |
 | `/architect:design-disaster-recovery` | RTO/RPO, backup, DR |
-| **Review (5-perspective parallel)** | |
+
+### Review (5-perspective parallel)
+
+| Command | Description |
+|---------|-------------|
 | `/architect:review-consistency` | Structural coherence |
 | `/architect:review-scalardb` | ScalarDB constraints |
 | `/architect:review-data-integrity` | Data integrity (non-ScalarDB) |
@@ -117,11 +141,28 @@ Architecture skills use `/architect:skill-name`. ScalarDB tools use `/scalardb:s
 | `/architect:review-risk` | Distributed system risks |
 | `/architect:review-business` | Business requirements |
 | `/architect:review-synthesizer` | Consolidation and quality gate |
-| **Reporting** | |
+
+### Reporting
+
+| Command | Description |
+|---------|-------------|
 | `/architect:report` | Markdown to HTML consolidated report |
 | `/architect:render-mermaid` | Mermaid to PNG/SVG + syntax fix |
 | `/architect:estimate-cost` | Infrastructure, license, and operational costs |
-| **ScalarDB Development (`/scalardb:*`)** | |
+
+### Database Migration
+
+| Command | Description |
+|---------|-------------|
+| `/architect:migrate-database` | Unified migration router (Oracle/MySQL/PostgreSQL) |
+| `/architect:migrate-oracle` | Oracle to ScalarDB (schema, analysis, AQ, SP/trigger) |
+| `/architect:migrate-mysql` | MySQL to ScalarDB (schema, analysis, SP/trigger) |
+| `/architect:migrate-postgresql` | PostgreSQL to ScalarDB (schema, analysis, SP/trigger) |
+
+### ScalarDB Development (`/scalardb:*`)
+
+| Command | Description |
+|---------|-------------|
 | `/scalardb:model` | Interactive schema design wizard |
 | `/scalardb:config` | Configuration file generator (6 interface combos) |
 | `/scalardb:scaffold` | Complete starter project generator |
@@ -133,11 +174,6 @@ Architecture skills use `/architect:skill-name`. ScalarDB tools use `/scalardb:s
 | `/scalardb:build-app` | Build complete app from requirements |
 | `/scalardb:review-code` | Java code review (16 check categories) |
 | `/scalardb:migrate` | Migration advisor (Core/Cluster, CRUD/JDBC, 1PC/2PC) |
-| **Database Migration** | |
-| `/architect:migrate-database` | Unified migration router (Oracle/MySQL/PostgreSQL) |
-| `/architect:migrate-oracle` | Oracle → ScalarDB (schema, analysis, AQ, SP/trigger) |
-| `/architect:migrate-mysql` | MySQL → ScalarDB (schema, analysis, SP/trigger) |
-| `/architect:migrate-postgresql` | PostgreSQL → ScalarDB (schema, analysis, SP/trigger) |
 
 ## Workflows
 
@@ -173,6 +209,16 @@ Migrate existing Oracle, MySQL, or PostgreSQL databases to ScalarDB with automat
 migrate-database -> schema extraction -> migration analysis -> SP/trigger conversion -> (AQ integration)
 ```
 
+## Pipeline Dependency Graph
+
+```
+investigate -> analyze -> [evaluate-mmi, evaluate-ddd] -> integrate-evaluations
+  -> redesign -> design-microservices -> [design-scalardb | design-data-layer, design-api]
+  -> [review-consistency, review-scalardb | review-data-integrity,
+     review-operations, review-risk, review-business]
+  -> review-synthesizer -> report
+```
+
 ## Output Language
 
 Output language is configurable per project. Set during `/architect:start` initialization or via flag:
@@ -182,6 +228,16 @@ Output language is configurable per project. Set during `/architect:start` initi
 ```
 
 Supported: `en` (English, default), `ja` (Japanese).
+
+## Output Structure
+
+All outputs are written to git-ignored directories:
+
+```
+reports/          # Analysis and design documents
+generated/        # Generated code per service
+work/             # Pipeline state and intermediate files
+```
 
 ## Requirements
 
@@ -194,15 +250,20 @@ Supported: `en` (English, default), `ja` (Japanese).
 - **Serena**: Advanced code analysis with AST-level understanding
 - **Context7**: Latest ScalarDB documentation
 
-## Output Structure
+## Documentation
 
-All outputs are written to git-ignored directories:
+| Document | Description |
+|----------|-------------|
+| [Getting Started](docs/getting-started.md) | Installation and first steps |
+| [Skill Reference](docs/skill-reference.md) | Complete skill catalog |
+| [ScalarDB Development](docs/scalardb-development.md) | ScalarDB development guide |
+| [Database Migration](docs/database-migration.md) | Migration guide (Oracle/MySQL/PostgreSQL) |
 
-```
-reports/          # Analysis and design documents
-generated/        # Generated code per service
-work/             # Pipeline state and intermediate files
-```
+Japanese translations:
+[Getting Started (日本語)](docs/getting-started_ja.md) |
+[Skill Reference (日本語)](docs/skill-reference_ja.md) |
+[ScalarDB Development (日本語)](docs/scalardb-development_ja.md) |
+[Database Migration (日本語)](docs/database-migration_ja.md)
 
 ## License
 
