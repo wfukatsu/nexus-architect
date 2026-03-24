@@ -92,17 +92,17 @@ All skills are invoked as `/architect:skill-name`.
 
 | Command | Model | Description |
 |---------|-------|-------------|
-| `/architect:scalardb-model` | sonnet | Interactive schema design wizard (keys, indexes, data types) |
-| `/architect:scalardb-config` | sonnet | Configuration file generator (6 interface combinations) |
-| `/architect:scalardb-scaffold` | sonnet | Complete starter project generator |
-| `/architect:scalardb-error-handler` | sonnet | Exception handling code generator and code reviewer |
-| `/architect:scalardb-crud-ops` | sonnet | CRUD API operation patterns guide |
-| `/architect:scalardb-jdbc-ops` | sonnet | JDBC/SQL operation patterns guide |
-| `/architect:scalardb-local-env` | sonnet | Docker Compose local environment setup |
-| `/architect:scalardb-docs` | sonnet | ScalarDB documentation search |
-| `/architect:scalardb-build-app` | opus | Build complete application from domain requirements |
-| `/architect:scalardb-review-code` | sonnet | Java code review (16 check categories) |
-| `/architect:scalardb-migrate` | sonnet | Migration advisor (Core/Cluster, CRUD/JDBC, 1PC/2PC) |
+| `/scalardb:model` | sonnet | Interactive schema design wizard (keys, indexes, data types) |
+| `/scalardb:config` | sonnet | Configuration file generator (6 interface combinations) |
+| `/scalardb:scaffold` | sonnet | Complete starter project generator |
+| `/scalardb:error-handler` | sonnet | Exception handling code generator and code reviewer |
+| `/scalardb:crud-ops` | sonnet | CRUD API operation patterns guide |
+| `/scalardb:jdbc-ops` | sonnet | JDBC/SQL operation patterns guide |
+| `/scalardb:local-env` | sonnet | Docker Compose local environment setup |
+| `/scalardb:docs` | sonnet | ScalarDB documentation search |
+| `/scalardb:build-app` | opus | Build complete application from domain requirements |
+| `/scalardb:review-code` | sonnet | Java code review (16 check categories) |
+| `/scalardb:migrate` | sonnet | Migration advisor (Core/Cluster, CRUD/JDBC, 1PC/2PC) |
 
 See [ScalarDB Development Guide](scalardb-development.md) for detailed usage.
 

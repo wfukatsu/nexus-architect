@@ -1,6 +1,8 @@
 # Nexus Architect
 
-Unified system architecture agent for Claude Code. Covers legacy system refactoring, greenfield ScalarDB design, ScalarDB application development, and consulting deliverable generation.
+System architecture toolkit for Claude Code. Two plugins:
+- **architect** — Legacy refactoring, greenfield design, database migration, consulting deliverables
+- **scalardb** — ScalarDB application development toolkit
 
 ## Installation
 
@@ -10,16 +12,18 @@ Unified system architecture agent for Claude Code. Covers legacy system refactor
 # 1. Add the marketplace
 claude plugin marketplace add wfukatsu/nexus-architect
 
-# 2. Install the plugin
+# 2. Install both plugins
 claude plugin install architect@nexus-architect --scope user
+claude plugin install scalardb@nexus-architect --scope user
 ```
 
-After installation, all commands are available as `/architect:skill-name` in any Claude Code session.
+After installation, commands are available as `/architect:skill-name` and `/scalardb:skill-name`.
 
 To update to the latest version:
 
 ```bash
 claude plugin update architect@nexus-architect
+claude plugin update scalardb@nexus-architect
 ```
 
 ### Manual Installation
@@ -31,8 +35,9 @@ git clone https://github.com/wfukatsu/nexus-architect.git
 # 2. Add as a local marketplace
 claude plugin marketplace add ./nexus-architect
 
-# 3. Install the plugin
+# 3. Install both plugins
 claude plugin install architect@nexus-architect --scope user
+claude plugin install scalardb@nexus-architect --scope user
 ```
 
 ### Verify Installation
@@ -41,9 +46,10 @@ In a Claude Code session, type any command to confirm:
 
 ```bash
 /architect:start
+/scalardb:model
 ```
 
-If the skill is recognized, the installation is successful.
+If the skills are recognized, the installation is successful.
 
 ## Quick Start
 
@@ -60,14 +66,14 @@ If the skill is recognized, the installation is successful.
 /architect:evaluate-mmi ./path/to/target
 
 # ScalarDB development
-/architect:scalardb-scaffold
-/architect:scalardb-model
-/architect:scalardb-build-app
+/scalardb:scaffold
+/scalardb:model
+/scalardb:build-app
 ```
 
 ## Commands
 
-All 51 skills are invoked as `/architect:skill-name`.
+Architecture skills use `/architect:skill-name`. ScalarDB tools use `/scalardb:skill-name`.
 
 | Command | Description |
 |---------|-------------|
@@ -115,18 +121,18 @@ All 51 skills are invoked as `/architect:skill-name`.
 | `/architect:report` | Markdown to HTML consolidated report |
 | `/architect:render-mermaid` | Mermaid to PNG/SVG + syntax fix |
 | `/architect:estimate-cost` | Infrastructure, license, and operational costs |
-| **ScalarDB Development** | |
-| `/architect:scalardb-model` | Interactive schema design wizard |
-| `/architect:scalardb-config` | Configuration file generator (6 interface combos) |
-| `/architect:scalardb-scaffold` | Complete starter project generator |
-| `/architect:scalardb-error-handler` | Exception handling code generator and reviewer |
-| `/architect:scalardb-crud-ops` | CRUD API operation patterns guide |
-| `/architect:scalardb-jdbc-ops` | JDBC/SQL operation patterns guide |
-| `/architect:scalardb-local-env` | Docker Compose local environment setup |
-| `/architect:scalardb-docs` | ScalarDB documentation search |
-| `/architect:scalardb-build-app` | Build complete app from requirements |
-| `/architect:scalardb-review-code` | Java code review (16 check categories) |
-| `/architect:scalardb-migrate` | Migration advisor (Core/Cluster, CRUD/JDBC, 1PC/2PC) |
+| **ScalarDB Development (`/scalardb:*`)** | |
+| `/scalardb:model` | Interactive schema design wizard |
+| `/scalardb:config` | Configuration file generator (6 interface combos) |
+| `/scalardb:scaffold` | Complete starter project generator |
+| `/scalardb:error-handler` | Exception handling code generator and reviewer |
+| `/scalardb:crud-ops` | CRUD API operation patterns guide |
+| `/scalardb:jdbc-ops` | JDBC/SQL operation patterns guide |
+| `/scalardb:local-env` | Docker Compose local environment setup |
+| `/scalardb:docs` | ScalarDB documentation search |
+| `/scalardb:build-app` | Build complete app from requirements |
+| `/scalardb:review-code` | Java code review (16 check categories) |
+| `/scalardb:migrate` | Migration advisor (Core/Cluster, CRUD/JDBC, 1PC/2PC) |
 | **Database Migration** | |
 | `/architect:migrate-database` | Unified migration router (Oracle/MySQL/PostgreSQL) |
 | `/architect:migrate-oracle` | Oracle → ScalarDB (schema, analysis, AQ, SP/trigger) |
@@ -156,7 +162,7 @@ requirements -> domain modeling -> ScalarDB design -> infra -> deploy
 Build ScalarDB applications with guided schema design, code generation, and code review.
 
 ```
-scalardb-model -> scalardb-config -> scalardb-scaffold -> scalardb-review-code
+/scalardb:model -> /scalardb:config -> /scalardb:scaffold -> /scalardb:review-code
 ```
 
 ### Database Migration to ScalarDB

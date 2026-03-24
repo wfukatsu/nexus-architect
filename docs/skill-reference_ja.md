@@ -92,17 +92,17 @@
 
 | コマンド | モデル | 説明 |
 |---------|-------|------|
-| `/architect:scalardb-model` | sonnet | インタラクティブスキーマ設計ウィザード（キー、インデックス、データ型） |
-| `/architect:scalardb-config` | sonnet | 設定ファイルジェネレーター（6つのインターフェース組み合わせ） |
-| `/architect:scalardb-scaffold` | sonnet | 完全なスタータープロジェクトジェネレーター |
-| `/architect:scalardb-error-handler` | sonnet | 例外処理コードジェネレーターおよびコードレビューア |
-| `/architect:scalardb-crud-ops` | sonnet | CRUD API操作パターンガイド |
-| `/architect:scalardb-jdbc-ops` | sonnet | JDBC/SQL操作パターンガイド |
-| `/architect:scalardb-local-env` | sonnet | Docker Composeローカル環境セットアップ |
-| `/architect:scalardb-docs` | sonnet | ScalarDBドキュメント検索 |
-| `/architect:scalardb-build-app` | opus | ドメイン要件から完全なアプリケーションを構築 |
-| `/architect:scalardb-review-code` | sonnet | Javaコードレビュー（16のチェックカテゴリ） |
-| `/architect:scalardb-migrate` | sonnet | 移行アドバイザー（Core/Cluster、CRUD/JDBC、1PC/2PC） |
+| `/scalardb:model` | sonnet | インタラクティブスキーマ設計ウィザード（キー、インデックス、データ型） |
+| `/scalardb:config` | sonnet | 設定ファイルジェネレーター（6つのインターフェース組み合わせ） |
+| `/scalardb:scaffold` | sonnet | 完全なスタータープロジェクトジェネレーター |
+| `/scalardb:error-handler` | sonnet | 例外処理コードジェネレーターおよびコードレビューア |
+| `/scalardb:crud-ops` | sonnet | CRUD API操作パターンガイド |
+| `/scalardb:jdbc-ops` | sonnet | JDBC/SQL操作パターンガイド |
+| `/scalardb:local-env` | sonnet | Docker Composeローカル環境セットアップ |
+| `/scalardb:docs` | sonnet | ScalarDBドキュメント検索 |
+| `/scalardb:build-app` | opus | ドメイン要件から完全なアプリケーションを構築 |
+| `/scalardb:review-code` | sonnet | Javaコードレビュー（16のチェックカテゴリ） |
+| `/scalardb:migrate` | sonnet | 移行アドバイザー（Core/Cluster、CRUD/JDBC、1PC/2PC） |
 
 詳細な使い方は [ScalarDB開発ガイド](scalardb-development.md) を参照してください。
 

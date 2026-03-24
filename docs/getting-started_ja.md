@@ -73,16 +73,16 @@ work/             # パイプライン状態
 
 ```bash
 # スキーマをインタラクティブに設計
-/architect:scalardb-model
+/scalardb:model
 
 # 完全なスタータープロジェクトを生成
-/architect:scalardb-scaffold
+/scalardb:scaffold
 
 # 要件からアプリケーション全体を構築
-/architect:scalardb-build-app
+/scalardb:build-app
 
 # ScalarDBの正確性についてコードレビュー
-/architect:scalardb-review-code
+/scalardb:review-code
 ```
 
 詳細は [ScalarDB開発ガイド](scalardb-development.md) を参照してください。

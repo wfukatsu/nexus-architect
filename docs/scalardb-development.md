@@ -5,20 +5,20 @@ This guide covers the 11 ScalarDB development skills that help you build, review
 ## Overview
 
 ```
-/architect:scalardb-model        Design your schema
+/scalardb:model        Design your schema
         ↓
-/architect:scalardb-config       Generate configuration
+/scalardb:config       Generate configuration
         ↓
-/architect:scalardb-scaffold     Generate starter project
+/scalardb:scaffold     Generate starter project
         ↓
-/architect:scalardb-build-app    Build complete application
+/scalardb:build-app    Build complete application
         ↓
-/architect:scalardb-review-code  Review for correctness
+/scalardb:review-code  Review for correctness
 ```
 
 ## Skills
 
-### Schema Design: `/architect:scalardb-model`
+### Schema Design: `/scalardb:model`
 
 Interactive wizard that walks you through designing a ScalarDB schema step by step.
 
@@ -32,7 +32,7 @@ Interactive wizard that walks you through designing a ScalarDB schema step by st
 
 **Usage:**
 ```bash
-/architect:scalardb-model
+/scalardb:model
 ```
 
 **Output:** `schema.json` (Schema Loader format) and/or `schema.sql` (DDL format)
@@ -45,7 +45,7 @@ Interactive wizard that walks you through designing a ScalarDB schema step by st
 
 ---
 
-### Configuration: `/architect:scalardb-config`
+### Configuration: `/scalardb:config`
 
 Generates correct configuration files for any deployment/API/transaction mode combination.
 
@@ -58,7 +58,7 @@ Generates correct configuration files for any deployment/API/transaction mode co
 
 **Usage:**
 ```bash
-/architect:scalardb-config
+/scalardb:config
 ```
 
 **The 6 interface combinations:**
@@ -74,7 +74,7 @@ Generates correct configuration files for any deployment/API/transaction mode co
 
 ---
 
-### Project Scaffolding: `/architect:scalardb-scaffold`
+### Project Scaffolding: `/scalardb:scaffold`
 
 Generates a complete, runnable starter project for any of the 6 interface combinations.
 
@@ -89,7 +89,7 @@ Generates all files needed to start development:
 
 **Usage:**
 ```bash
-/architect:scalardb-scaffold
+/scalardb:scaffold
 ```
 
 **Code quality enforced:**
@@ -102,7 +102,7 @@ Generates all files needed to start development:
 
 ---
 
-### Application Builder: `/architect:scalardb-build-app`
+### Application Builder: `/scalardb:build-app`
 
 Builds a complete ScalarDB application from a domain description.
 
@@ -116,13 +116,13 @@ Builds a complete ScalarDB application from a domain description.
 
 **Usage:**
 ```bash
-/architect:scalardb-build-app
+/scalardb:build-app
 # Then describe your domain: "I need an e-commerce system with orders, customers, and inventory"
 ```
 
 ---
 
-### CRUD Operations Guide: `/architect:scalardb-crud-ops`
+### CRUD Operations Guide: `/scalardb:crud-ops`
 
 Quick reference for all CRUD API operations with code examples.
 
@@ -138,13 +138,13 @@ Quick reference for all CRUD API operations with code examples.
 
 **Usage:**
 ```bash
-/architect:scalardb-crud-ops
+/scalardb:crud-ops
 # Then ask: "How do I scan with a range condition?"
 ```
 
 ---
 
-### JDBC/SQL Operations Guide: `/architect:scalardb-jdbc-ops`
+### JDBC/SQL Operations Guide: `/scalardb:jdbc-ops`
 
 Quick reference for JDBC/SQL operations with code examples.
 
@@ -165,13 +165,13 @@ Quick reference for JDBC/SQL operations with code examples.
 
 **Usage:**
 ```bash
-/architect:scalardb-jdbc-ops
+/scalardb:jdbc-ops
 # Then ask: "How do I do a LEFT JOIN with aggregation?"
 ```
 
 ---
 
-### Exception Handling: `/architect:scalardb-error-handler`
+### Exception Handling: `/scalardb:error-handler`
 
 Generates exception handling code and reviews existing code for correctness.
 
@@ -189,13 +189,13 @@ Generates exception handling code and reviews existing code for correctness.
 
 **Usage:**
 ```bash
-/architect:scalardb-error-handler
+/scalardb:error-handler
 # Choose: "Generate exception handling code" or "Review my existing code"
 ```
 
 ---
 
-### Code Review: `/architect:scalardb-review-code`
+### Code Review: `/scalardb:review-code`
 
 Reviews Java code for ScalarDB correctness across 16 check categories.
 
@@ -210,13 +210,13 @@ Reviews Java code for ScalarDB correctness across 16 check categories.
 
 **Usage:**
 ```bash
-/architect:scalardb-review-code
+/scalardb:review-code
 # Then provide your Java file or paste code
 ```
 
 ---
 
-### Local Environment: `/architect:scalardb-local-env`
+### Local Environment: `/scalardb:local-env`
 
 Sets up local development environment with Docker Compose.
 
@@ -224,7 +224,7 @@ Sets up local development environment with Docker Compose.
 
 **Usage:**
 ```bash
-/architect:scalardb-local-env
+/scalardb:local-env
 # Choose your database backend
 ```
 
@@ -232,13 +232,13 @@ Sets up local development environment with Docker Compose.
 
 ---
 
-### Documentation Search: `/architect:scalardb-docs`
+### Documentation Search: `/scalardb:docs`
 
 Searches ScalarDB documentation and provides answers with code examples.
 
 **Usage:**
 ```bash
-/architect:scalardb-docs
+/scalardb:docs
 # Ask: "How do I configure cross-partition scan?"
 ```
 
@@ -246,7 +246,7 @@ Searches ScalarDB documentation and provides answers with code examples.
 
 ---
 
-### Migration Advisor: `/architect:scalardb-migrate`
+### Migration Advisor: `/scalardb:migrate`
 
 Guides migrations between interface combinations with concrete diffs.
 
@@ -257,7 +257,7 @@ Guides migrations between interface combinations with concrete diffs.
 
 **Usage:**
 ```bash
-/architect:scalardb-migrate
+/scalardb:migrate
 # Describe: "I need to migrate from Core+CRUD+1PC to Cluster+JDBC+2PC"
 ```
 

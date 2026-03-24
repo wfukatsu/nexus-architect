@@ -3,7 +3,7 @@ description: Generate docker-compose.yml and setup commands for a local ScalarDB
 user_invocable: true
 ---
 
-# /scalardb-local-env — Local Environment Setup
+# /scalardb:local-env — Local Environment Setup
 
 ## Instructions
 

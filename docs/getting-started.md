@@ -73,16 +73,16 @@ Consolidated HTML report:
 
 ```bash
 # Design a schema interactively
-/architect:scalardb-model
+/scalardb:model
 
 # Generate a complete starter project
-/architect:scalardb-scaffold
+/scalardb:scaffold
 
 # Build a full application from requirements
-/architect:scalardb-build-app
+/scalardb:build-app
 
 # Review code for ScalarDB correctness
-/architect:scalardb-review-code
+/scalardb:review-code
 ```
 
 See [ScalarDB Development Guide](scalardb-development.md) for details.

@@ -11,8 +11,8 @@
   "plugins": [
     {
       "name": "architect",
-      "description": "Unified system architecture agent with 51 skills for legacy refactoring, greenfield ScalarDB design, ScalarDB application development, database migration (Oracle/MySQL/PostgreSQL to ScalarDB), and consulting deliverables. Includes 5-perspective parallel review system, MMI/DDD evaluation frameworks, and full code generation pipeline.",
-      "version": "0.4.0",
+      "description": "System architecture agent for legacy refactoring, greenfield design, database migration (Oracle/MySQL/PostgreSQL to ScalarDB), and consulting deliverables. Includes 5-perspective parallel review system, MMI/DDD evaluation frameworks, and full code generation pipeline.",
+      "version": "0.5.0",
       "author": {
         "name": "Wataru Fukatsu",
         "url": "https://github.com/wfukatsu"
@@ -34,7 +34,84 @@
         "review",
         "consulting"
       ],
-      "source": "./"
+      "source": "./",
+      "skills": [
+        "./skills/start",
+        "./skills/pipeline",
+        "./skills/init-output",
+        "./skills/investigate",
+        "./skills/investigate-security",
+        "./skills/analyze",
+        "./skills/analyze-data-model",
+        "./skills/evaluate-mmi",
+        "./skills/evaluate-ddd",
+        "./skills/integrate-evaluations",
+        "./skills/map-domains",
+        "./skills/redesign",
+        "./skills/design-microservices",
+        "./skills/select-scalardb-edition",
+        "./skills/design-scalardb",
+        "./skills/design-scalardb-analytics",
+        "./skills/design-data-layer",
+        "./skills/design-api",
+        "./skills/design-implementation",
+        "./skills/generate-test-specs",
+        "./skills/generate-scalardb-code",
+        "./skills/generate-infra-code",
+        "./skills/design-infrastructure",
+        "./skills/design-security",
+        "./skills/design-observability",
+        "./skills/design-disaster-recovery",
+        "./skills/review-consistency",
+        "./skills/review-scalardb",
+        "./skills/review-data-integrity",
+        "./skills/review-operations",
+        "./skills/review-risk",
+        "./skills/review-business",
+        "./skills/review-synthesizer",
+        "./skills/report",
+        "./skills/render-mermaid",
+        "./skills/estimate-cost",
+        "./skills/migrate-database",
+        "./skills/migrate-oracle",
+        "./skills/migrate-mysql",
+        "./skills/migrate-postgresql"
+      ]
+    },
+    {
+      "name": "scalardb",
+      "description": "ScalarDB application development toolkit. Interactive schema design, configuration generation, CRUD/JDBC operation patterns, exception handling, project scaffolding, local environment setup, documentation search, code review, and migration advisory.",
+      "version": "0.5.0",
+      "author": {
+        "name": "Wataru Fukatsu",
+        "url": "https://github.com/wfukatsu"
+      },
+      "homepage": "https://github.com/wfukatsu/nexus-architect",
+      "tags": [
+        "scalardb",
+        "java",
+        "spring-boot",
+        "crud",
+        "jdbc",
+        "2pc",
+        "scaffolding",
+        "code-review",
+        "migration"
+      ],
+      "source": "./",
+      "skills": [
+        "./skills/model",
+        "./skills/config",
+        "./skills/scaffold",
+        "./skills/error-handler",
+        "./skills/crud-ops",
+        "./skills/jdbc-ops",
+        "./skills/local-env",
+        "./skills/docs",
+        "./skills/build-app",
+        "./skills/review-code",
+        "./skills/migrate"
+      ]
     }
   ]
 }

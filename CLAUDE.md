@@ -4,12 +4,16 @@ Guidance for Claude Code in the **nexus-architect** repository.
 
 ## What This Is
 
-Unified system architecture agent (36 skills). Covers three workflows:
+Two-plugin system architecture toolkit:
+- **architect** — System architecture agent for legacy refactoring, greenfield design, and consulting deliverables
+- **scalardb** — ScalarDB application development toolkit
+
+Workflows:
 - **Legacy refactoring**: investigate -> analyze -> evaluate -> redesign -> implement
 - **Greenfield design**: requirements -> domain modeling -> ScalarDB design -> infra -> deploy
 - **Consulting deliverables**: reports, cost estimates, domain stories
 
-All skills are invoked as `/architect:skill-name`.
+Architecture skills: `/architect:skill-name`. ScalarDB development tools: `/scalardb:skill-name`.
 Use `/architect:start` for interactive selection or `/architect:pipeline` for automated execution.
 
 ## Output Language
@@ -74,18 +78,18 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 - `/architect:render-mermaid [target_path]` — Mermaid to PNG/SVG + syntax fix
 - `/architect:estimate-cost` — Infrastructure, license, operational costs
 
-### ScalarDB Development
-- `/architect:scalardb-model` — Interactive schema design wizard (keys, indexes, data types)
-- `/architect:scalardb-config` — Configuration file generator (Core/Cluster, CRUD/JDBC, 1PC/2PC)
-- `/architect:scalardb-scaffold` — Complete starter project generator (all 6 interface combos)
-- `/architect:scalardb-error-handler` — Exception handling code generator and code reviewer
-- `/architect:scalardb-crud-ops` — CRUD API operation patterns (Get, Scan, Insert, Upsert, Update, Delete)
-- `/architect:scalardb-jdbc-ops` — JDBC/SQL operation patterns (SELECT, INSERT, JOIN, aggregates)
-- `/architect:scalardb-local-env` — Local Docker Compose environment setup
-- `/architect:scalardb-docs` — ScalarDB documentation search and lookup
-- `/architect:scalardb-build-app` — Build complete ScalarDB application from requirements
-- `/architect:scalardb-review-code` — Review Java code for ScalarDB correctness (16 checks)
-- `/architect:scalardb-migrate` — Migration advisor (Core→Cluster, CRUD→JDBC, 1PC→2PC)
+### ScalarDB Development (`/scalardb:*`)
+- `/scalardb:model` — Interactive schema design wizard (keys, indexes, data types)
+- `/scalardb:config` — Configuration file generator (Core/Cluster, CRUD/JDBC, 1PC/2PC)
+- `/scalardb:scaffold` — Complete starter project generator (all 6 interface combos)
+- `/scalardb:error-handler` — Exception handling code generator and code reviewer
+- `/scalardb:crud-ops` — CRUD API operation patterns (Get, Scan, Insert, Upsert, Update, Delete)
+- `/scalardb:jdbc-ops` — JDBC/SQL operation patterns (SELECT, INSERT, JOIN, aggregates)
+- `/scalardb:local-env` — Local Docker Compose environment setup
+- `/scalardb:docs` — ScalarDB documentation search and lookup
+- `/scalardb:build-app` — Build complete ScalarDB application from requirements
+- `/scalardb:review-code` — Review Java code for ScalarDB correctness (16 checks)
+- `/scalardb:migrate` — Migration advisor (Core→Cluster, CRUD→JDBC, 1PC→2PC)
 
 ### Database Migration (Oracle/MySQL/PostgreSQL → ScalarDB)
 - `/architect:migrate-database` — Unified migration router (detects DB type, delegates)

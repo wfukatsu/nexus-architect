@@ -3,7 +3,7 @@ description: Generate a complete ScalarDB starter project for any of the 6 inter
 user_invocable: true
 ---
 
-# /scalardb-scaffold — ScalarDB Application Scaffolding
+# /scalardb:scaffold — ScalarDB Application Scaffolding
 
 ## Instructions
 

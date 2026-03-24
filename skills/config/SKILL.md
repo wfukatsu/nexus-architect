@@ -3,7 +3,7 @@ description: Generate ScalarDB configuration files (database.properties, build.g
 user_invocable: true
 ---
 
-# /scalardb-config — ScalarDB Configuration Generator
+# /scalardb:config — ScalarDB Configuration Generator
 
 ## Instructions
 

@@ -3,7 +3,7 @@ description: Interactive data modeling wizard for ScalarDB. Helps design schemas
 user_invocable: true
 ---
 
-# /scalardb-model — ScalarDB Data Modeling Wizard
+# /scalardb:model — ScalarDB Data Modeling Wizard
 
 ## Instructions
 

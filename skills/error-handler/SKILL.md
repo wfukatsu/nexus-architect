@@ -3,7 +3,7 @@ description: Generate correct ScalarDB exception handling code with retry logic.
 user_invocable: true
 ---
 
-# /scalardb-error-handler — ScalarDB Exception Handling Guide
+# /scalardb:error-handler — ScalarDB Exception Handling Guide
 
 ## Instructions
 

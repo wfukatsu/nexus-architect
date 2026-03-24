@@ -3,7 +3,7 @@ description: Show ScalarDB JDBC/SQL operation patterns — SELECT, INSERT, UPSER
 user_invocable: true
 ---
 
-# /scalardb-jdbc-ops — ScalarDB JDBC/SQL Operations Guide
+# /scalardb:jdbc-ops — ScalarDB JDBC/SQL Operations Guide
 
 ## Instructions
 

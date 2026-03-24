@@ -3,7 +3,7 @@ description: Show ScalarDB CRUD operation patterns — builder syntax for Get, S
 user_invocable: true
 ---
 
-# /scalardb-crud-ops — ScalarDB CRUD Operations Guide
+# /scalardb:crud-ops — ScalarDB CRUD Operations Guide
 
 ## Instructions
 

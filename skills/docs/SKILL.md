@@ -3,7 +3,7 @@ description: Search ScalarDB documentation for specific topics. Fetches the offi
 user_invocable: true
 ---
 
-# /scalardb-docs — ScalarDB Documentation Search
+# /scalardb:docs — ScalarDB Documentation Search
 
 ## Instructions
 
@@ -18,7 +18,7 @@ You are a ScalarDB documentation search assistant. When invoked:
 ## Execution Steps
 
 ### Step 1: Determine the topic
-If the user provided a topic with the command (e.g., `/scalardb-docs two-phase commit`), use that. Otherwise ask:
+If the user provided a topic with the command (e.g., `/scalardb:docs two-phase commit`), use that. Otherwise ask:
 - "What ScalarDB topic would you like to look up?"
 
 ### Step 2: Fetch and search
