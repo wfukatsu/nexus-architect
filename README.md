@@ -1,8 +1,8 @@
 # Nexus Architect
 
-System architecture toolkit for Claude Code. Two plugins, 49 skills:
+System architecture toolkit for Claude Code. Two plugins, 51 skills:
 
-- **architect** (38 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
+- **architect** (40 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
 - **scalardb** (11 skills) — ScalarDB application development toolkit
 
 ## Installation
