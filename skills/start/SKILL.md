@@ -1,5 +1,4 @@
 ---
-name: start
 description: |
   Interactively start system analysis and design. Assesses project context and determines the optimal path.
   /architect:start [target_path].

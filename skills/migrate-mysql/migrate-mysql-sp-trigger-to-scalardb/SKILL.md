@@ -1,5 +1,4 @@
 ---
-name: migrate-mysql-sp-trigger-to-scalardb
 description: Generates ScalarDB Java application code from MySQL stored procedures, functions, and triggers. Produces Java Transaction API implementations plus a summary migration report.
 ---
 

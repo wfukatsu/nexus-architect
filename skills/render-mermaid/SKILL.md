@@ -1,5 +1,4 @@
 ---
-name: render-mermaid
 description: |
   Render Mermaid diagrams to PNG/SVG/PDF and fix syntax errors.
   Invoked via /render-mermaid [target_path].

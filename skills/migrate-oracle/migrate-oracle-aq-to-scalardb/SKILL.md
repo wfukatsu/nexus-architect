@@ -1,5 +1,4 @@
 ---
-name: migrate-oracle-aq-to-scalardb
 description: Generates Oracle AQ setup SQL (payload types, queues, enqueue triggers/SPs) and Java consumer files that dequeue messages and process them using the ScalarDB Java Transaction API.
 ---
 

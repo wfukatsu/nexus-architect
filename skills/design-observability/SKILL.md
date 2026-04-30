@@ -1,5 +1,4 @@
 ---
-name: design-observability
 description: |
   Design monitoring, distributed tracing, log aggregation, and alerting.
   Invoked via /design-observability.

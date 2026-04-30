@@ -1,5 +1,4 @@
 ---
-name: review-consistency
 description: |
   Review design documents for structural coherence, traceability, and terminology consistency.
   Used as one perspective within the parallel review system.

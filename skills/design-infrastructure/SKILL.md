@@ -1,5 +1,4 @@
 ---
-name: design-infrastructure
 description: |
   Design Kubernetes, IaC (Terraform), networking, and multi-environment configuration.
   Invoked via /architect:design-infrastructure.

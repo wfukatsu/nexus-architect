@@ -1,5 +1,4 @@
 ---
-name: analyze
 description: |
   Extract ubiquitous language, actor-role-permission matrix, and domain-code mapping.
   /architect:analyze [target_path] to invoke.

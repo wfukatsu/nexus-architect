@@ -1,5 +1,4 @@
 ---
-name: generate-infra-code
 description: |
   Generate Kubernetes manifests, Terraform modules, and Helm charts.
   Invoked via /generate-infra-code.

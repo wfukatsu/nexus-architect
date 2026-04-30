@@ -1,5 +1,4 @@
 ---
-name: design-scalardb-analytics
 description: |
   Design HTAP analytics platform using ScalarDB Analytics with Apache Spark.
   /architect:design-scalardb-analytics to invoke. Enterprise Premium only.

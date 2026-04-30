@@ -1,5 +1,4 @@
 ---
-name: investigate-security
 description: |
   Evaluate security posture including OWASP Top 10, access control, and zero-trust readiness.
   /architect:investigate-security [target_path] to invoke.

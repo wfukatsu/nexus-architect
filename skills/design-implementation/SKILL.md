@@ -1,5 +1,4 @@
 ---
-name: design-implementation
 description: |
   Define implementation specifications for domain services, repository interfaces, value objects, and exception mapping.
   Invoked via /architect:design-implementation. Used after the design phase is complete.

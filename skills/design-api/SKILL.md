@@ -1,5 +1,4 @@
 ---
-name: design-api
 description: |
   Generate REST/GraphQL/gRPC/AsyncAPI specifications.
   /architect:design-api to invoke. Requires design-microservices output as a prerequisite.

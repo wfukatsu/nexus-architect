@@ -1,5 +1,4 @@
 ---
-name: estimate-cost
 description: |
   Estimate cloud infrastructure, ScalarDB licensing, and operational costs.
   Invoked via /estimate-cost. Also integrates sizing estimates.

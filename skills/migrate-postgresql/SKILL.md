@@ -1,5 +1,4 @@
 ---
-name: migrate-postgresql
 description: |
   PostgreSQL to ScalarDB migration. Schema extraction, migration analysis,
   and SP/trigger to Java conversion. /architect:migrate-postgresql to start.

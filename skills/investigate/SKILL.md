@@ -1,5 +1,4 @@
 ---
-name: investigate
 description: |
   Comprehensive investigation of the target system covering technology stack, codebase structure, technical debt, and DDD readiness.
   /architect:investigate [target_path] to invoke.

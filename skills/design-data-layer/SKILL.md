@@ -1,5 +1,4 @@
 ---
-name: design-data-layer
 description: |
   Generic database design for non-ScalarDB projects.
   /architect:design-data-layer to invoke. For projects not using ScalarDB.

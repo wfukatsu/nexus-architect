@@ -1,5 +1,4 @@
 ---
-name: select-scalardb-edition
 description: |
   Interactive selection of the optimal ScalarDB edition (OSS/Enterprise Standard/Premium).
   /architect:select-scalardb-edition to invoke.

@@ -1,5 +1,4 @@
 ---
-name: init-output
 description: |
   Initialize output directories and pipeline-progress.json.
   /architect:init-output [project_name]. Use --reset to reinitialize.

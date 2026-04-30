@@ -1,5 +1,4 @@
 ---
-name: generate-scalardb-code
 description: |
   Generate Spring Boot + ScalarDB Java code from design specifications.
   Invoked via /architect:generate-scalardb-code. Dedicated to projects using ScalarDB.
