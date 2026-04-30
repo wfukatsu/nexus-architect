@@ -2,7 +2,7 @@
 name: design-microservices
 description: |
   Design target microservices architecture and transformation plan.
-  /architect:design-microservices to invoke. Requires ddd-redesign output as a prerequisite.
+  /architect:design-microservices to invoke. Requires redesign output as a prerequisite.
 model: opus
 user_invocable: true
 ---

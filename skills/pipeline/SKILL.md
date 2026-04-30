@@ -43,7 +43,18 @@ All skills defined in @skills/common/skill-dependencies.yaml can be executed in 
 
 - **Missing required prerequisite files**: Log the error and automatically skip downstream phases
 - **Skill execution failure**: Record status: "failed" in pipeline-progress.json
-- **Dependency phase failure**: Automatically skip downstream phases
+- **Dependency phase failure** (status: "failed"): Automatically skip downstream phases
+
+## Conditional Dependency Resolution
+
+A phase listed in another phase's `depends_on` may be marked `status: "skipped"`
+because its `conditions:` did not match the current project (e.g. `review-data-integrity`
+when `scalardb_enabled` is true). When resolving `depends_on`:
+
+- Treat conditional `skipped` dependencies as **satisfied** (filter them out).
+- Only `failed` dependencies cascade as downstream skips.
+- This is what enables `review-synthesizer` to run after exactly one of
+  `review-scalardb` / `review-data-integrity` (the other is conditionally skipped).
 
 ## Context Management
 

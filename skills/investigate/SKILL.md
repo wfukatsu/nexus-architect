@@ -56,7 +56,7 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 ## Completion
 
 1. All four output files have been written
-2. Update investigate-system in pipeline-progress.json to "completed"
+2. Update investigate in pipeline-progress.json to "completed"
 3. Report a summary of findings and any unresolved concerns
 
 ## Related Skills

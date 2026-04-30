@@ -4,14 +4,14 @@
 
 ```
 reports/
-├── before/{project}/              # investigate-system
+├── before/{project}/              # investigate
 │   ├── technology-stack.md
 │   ├── codebase-structure.md
 │   ├── issues-and-debt.md
 │   └── ddd-readiness.md
-├── 00_summary/                    # compile-report
+├── 00_summary/                    # report
 │   └── full-report.html
-├── 01_analysis/                   # analyze-system, analyze-data-model
+├── 01_analysis/                   # analyze, analyze-data-model
 │   ├── system-overview.md
 │   ├── ubiquitous-language.md
 │   ├── actors-roles-permissions.md
@@ -25,7 +25,7 @@ reports/
 │   ├── ddd-tactical-evaluation.md
 │   ├── integrated-evaluation.md
 │   └── unified-improvement-plan.md
-├── 03_design/                     # ddd-redesign, design-*, map-domains
+├── 03_design/                     # redesign, design-*, map-domains
 │   ├── domain-analysis.md
 │   ├── bounded-contexts-redesign.md
 │   ├── context-map.md
@@ -65,16 +65,16 @@ work/                              # pipeline state
 ## Dependency Flow
 
 ```
-investigate-system → analyze-system → analyze-data-model
+investigate → analyze → analyze-data-model
                             ↓
               [evaluate-mmi, evaluate-ddd] → integrate-evaluations
                                                     ↓
-              map-domains → ddd-redesign → design-microservices
+              map-domains → redesign → design-microservices
                                                     ↓
                             [design-scalardb | design-data-layer, design-api]
                                                     ↓
               [review-consistency, review-scalardb|data-integrity,
                review-operations, review-risk, review-business]
                                                     ↓
-                            review-synthesizer → compile-report
+                            review-synthesizer → report
 ```

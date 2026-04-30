@@ -99,6 +99,15 @@ public class OrderService {
         conn.commit(); // Final commit
 
         return orderId;
+      } catch (SQLException e) {
+        if (e.getErrorCode() == 301) {
+          // UnknownTransactionStatusException -- do NOT rollback.
+          // The 2PC commit may have completed at the coordinator; verify via app state
+          // before retrying to avoid duplicate writes.
+          throw e;
+        }
+        conn.rollback();
+        throw e;
       } catch (Exception e) {
         conn.rollback();
         throw e;
@@ -137,6 +146,26 @@ COMMIT;
 3. **Session affinity**: Required when using L7 load balancers
 4. **Participant coordination**: Still requires RPC between services to coordinate the 2PC protocol
 5. **VALIDATE** is only needed for `SERIALIZABLE` isolation with `EXTRA_READ` strategy
+6. **Error code 301 on commit** must NOT trigger rollback (see below)
+
+## Handling SQLException error code 301 in 2PC
+
+Error code `301` (UnknownTransactionStatusException) is especially dangerous in 2PC
+because the coordinator may have already committed at some participants when the
+exception surfaces. Per `rules/scalardb-exception-handling.md`:
+
+- Do **not** rollback (would diverge from already-committed participants).
+- Do **not** blindly retry (would cause duplicate writes at committed participants).
+
+The catch block above re-throws on 301 without rolling back. **Caller-side responsibilities:**
+
+- JDBC hides the underlying `txId`, so `getState(txId)` cannot be called from client
+  code to determine commit status (see `rules/scalardb-2pc-patterns.md`).
+- Implement **idempotency at the business layer** (unique order IDs, upsert semantics,
+  reconciliation jobs) so that retries are safe.
+- Note: try-with-resources will call `conn.close()` after the throw. JDBC close-with-
+  pending-transaction behavior is driver-defined and may issue an implicit rollback;
+  treat the re-throw as "best-effort" and rely on the idempotency layer to recover.
 
 ## Comparison with CRUD 2PC
 

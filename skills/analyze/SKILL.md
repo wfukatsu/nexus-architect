@@ -3,7 +3,7 @@ name: analyze
 description: |
   Extract ubiquitous language, actor-role-permission matrix, and domain-code mapping.
   /architect:analyze [target_path] to invoke.
-  Requires investigate-system output as a prerequisite.
+  Requires investigate output as a prerequisite.
 model: opus
 user_invocable: true
 ---

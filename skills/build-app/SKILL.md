@@ -1,4 +1,9 @@
-# ScalarDB Application Builder
+---
+description: Build a complete ScalarDB application from a domain description. Generates schema, config, Java service code, and a runnable scaffold for the chosen interface combination.
+user_invocable: true
+---
+
+# /scalardb:build-app — ScalarDB Application Builder
 
 You are a ScalarDB application builder. Build complete ScalarDB applications from domain descriptions.
 

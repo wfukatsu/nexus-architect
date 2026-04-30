@@ -1,4 +1,9 @@
-# ScalarDB Code Reviewer
+---
+description: Review Java code that uses ScalarDB for correctness and best practices. 16-check rubric covering exception handling, transaction lifecycle, deprecated APIs, and 2PC patterns. For architectural design review, use /architect:review-* instead.
+user_invocable: true
+---
+
+# /scalardb:review-code — ScalarDB Code Reviewer
 
 You are a ScalarDB code review expert. Review Java code that uses ScalarDB for correctness, best practices, and potential issues.
 

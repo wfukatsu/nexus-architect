@@ -3,7 +3,7 @@ name: evaluate-mmi
 description: |
   Qualitative evaluation of Modularity Maturity Index across 4 axes: cohesion, coupling, independence, reusability.
   /architect:evaluate-mmi [target_path] to invoke.
-  Requires analyze-system output as a prerequisite. Can run in parallel with evaluate-ddd.
+  Requires analyze output as a prerequisite. Can run in parallel with evaluate-ddd.
 model: sonnet
 user_invocable: true
 ---
