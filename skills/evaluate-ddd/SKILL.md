@@ -3,7 +3,7 @@ name: evaluate-ddd
 description: |
   Evaluate DDD principle conformance across 3 layers and 12 criteria.
   /architect:evaluate-ddd [target_path] to invoke.
-  Requires analyze-system output as a prerequisite. Can run in parallel with evaluate-mmi.
+  Requires analyze output as a prerequisite. Can run in parallel with evaluate-mmi.
 model: sonnet
 user_invocable: true
 ---

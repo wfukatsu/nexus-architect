@@ -6,7 +6,7 @@ schema_version: 1
 
 phases:
   # Phase: Investigation
-  investigate-system:
+  investigate:
     category: investigation
     depends_on: []
     outputs:
@@ -17,9 +17,9 @@ phases:
     model: sonnet
 
   # Phase: Analysis
-  analyze-system:
+  analyze:
     category: analysis
-    depends_on: [investigate-system]
+    depends_on: [investigate]
     outputs:
       - reports/01_analysis/system-overview.md
       - reports/01_analysis/ubiquitous-language.md
@@ -29,7 +29,7 @@ phases:
 
   analyze-data-model:
     category: analysis
-    depends_on: [analyze-system]
+    depends_on: [analyze]
     optional: true
     outputs:
       - reports/01_analysis/data-model-analysis.md
@@ -39,7 +39,7 @@ phases:
   # Phase: Evaluation (parallel)
   evaluate-mmi:
     category: evaluation
-    depends_on: [analyze-system]
+    depends_on: [analyze]
     parallel_with: [evaluate-ddd]
     outputs:
       - reports/02_evaluation/mmi-overview.md
@@ -48,7 +48,7 @@ phases:
 
   evaluate-ddd:
     category: evaluation
-    depends_on: [analyze-system]
+    depends_on: [analyze]
     parallel_with: [evaluate-mmi]
     outputs:
       - reports/02_evaluation/ddd-strategic-evaluation.md
@@ -64,7 +64,7 @@ phases:
     model: sonnet
 
   # Phase: Design
-  ddd-redesign:
+  redesign:
     category: design
     depends_on: [integrate-evaluations]
     outputs:
@@ -74,14 +74,14 @@ phases:
 
   map-domains:
     category: design
-    depends_on: [analyze-system]
+    depends_on: [analyze]
     outputs:
       - reports/03_design/domain-analysis.md
     model: opus
 
   design-microservices:
     category: design
-    depends_on: [ddd-redesign]
+    depends_on: [redesign]
     outputs:
       - reports/03_design/target-architecture.md
       - reports/03_design/transformation-plan.md
@@ -165,14 +165,23 @@ phases:
 
   review-synthesizer:
     category: review
-    depends_on: [review-consistency, review-operations, review-risk, review-business]
+    # Depends on all 5 unconditional reviews plus whichever data-layer review ran
+    # (review-scalardb when scalardb_enabled, review-data-integrity when scalardb_disabled).
+    # The orchestrator must skip the absent branch when resolving dependencies.
+    depends_on:
+      - review-consistency
+      - review-operations
+      - review-risk
+      - review-business
+      - review-scalardb
+      - review-data-integrity
     outputs:
       - reports/review/review-synthesis.md
       - reports/review/review-synthesis.json
     model: sonnet
 
   # Phase: Reporting
-  compile-report:
+  report:
     category: reporting
     depends_on: [review-synthesizer]
     outputs:

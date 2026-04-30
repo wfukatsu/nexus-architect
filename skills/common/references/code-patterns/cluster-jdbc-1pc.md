@@ -123,6 +123,14 @@ public class Sample implements Closeable {
         }
         conn.commit(); // Always commit, even read-only
         return info;
+      } catch (SQLException e) {
+        if (e.getErrorCode() == 301) {
+          // UnknownTransactionStatusException -- do NOT rollback.
+          // Commit status is unknown; verify via app state and retry only if not committed.
+          throw e;
+        }
+        conn.rollback();
+        throw e;
       } catch (Exception e) {
         conn.rollback();
         throw e;
@@ -182,6 +190,14 @@ public class Sample implements Closeable {
 
         conn.commit();
         return orderId;
+      } catch (SQLException e) {
+        if (e.getErrorCode() == 301) {
+          // UnknownTransactionStatusException -- do NOT rollback.
+          // Commit status is unknown; verify via app state and retry only if not committed.
+          throw e;
+        }
+        conn.rollback();
+        throw e;
       } catch (Exception e) {
         conn.rollback();
         throw e;
@@ -212,6 +228,14 @@ public class Sample implements Closeable {
         }
         conn.commit();
         return results;
+      } catch (SQLException e) {
+        if (e.getErrorCode() == 301) {
+          // UnknownTransactionStatusException -- do NOT rollback.
+          // Commit status is unknown; verify via app state and retry only if not committed.
+          throw e;
+        }
+        conn.rollback();
+        throw e;
       } catch (Exception e) {
         conn.rollback();
         throw e;
@@ -234,6 +258,14 @@ public class Sample implements Closeable {
         }
         conn.commit();
         return total;
+      } catch (SQLException e) {
+        if (e.getErrorCode() == 301) {
+          // UnknownTransactionStatusException -- do NOT rollback.
+          // Commit status is unknown; verify via app state and retry only if not committed.
+          throw e;
+        }
+        conn.rollback();
+        throw e;
       } catch (Exception e) {
         conn.rollback();
         throw e;
@@ -277,8 +309,28 @@ java -jar scalardb-cluster-schema-loader-<VERSION>-all.jar \
 
 1. **Always `setAutoCommit(false)`** — ScalarDB requires explicit transaction management
 2. **Always commit** even for read-only transactions
-3. **Always rollback** in catch blocks
+3. **Always rollback** in catch blocks — **except** when `SQLException.getErrorCode() == 301`
 4. **Use try-with-resources** for Connection, PreparedStatement, ResultSet
 5. **Quote reserved words** in SQL: `"timestamp"`, `"order"`, `"key"`, etc.
 6. **Use `PreparedStatement`** with parameter binding (never concatenate values)
 7. **Use `namespace.table` format** in SQL statements
+
+## Handling SQLException error code 301 (UnknownTransactionStatusException)
+
+Error code `301` means the commit may have succeeded **or** failed — the client cannot
+tell. Per `rules/scalardb-exception-handling.md` the transaction must NOT be rolled back
+(rollback after a successful commit corrupts state) and must NOT be blindly retried
+(retry after a successful commit causes duplicate writes).
+
+The catch blocks above re-throw on 301 without rolling back. **Caller-side responsibilities:**
+
+- The JDBC interface does not expose the underlying `txId`, so
+  `DistributedTransactionManager.getState(txId)` cannot be used to verify status from
+  client code (a known JDBC limitation; see `rules/scalardb-2pc-patterns.md`).
+- The caller must implement **idempotency** (e.g., a unique business key on inserts,
+  upsert semantics on updates) so that a retry after a possibly-committed transaction
+  does not double-apply the effect.
+- Note: try-with-resources will call `conn.close()` after the throw. JDBC behavior on
+  close-with-pending-transaction is implementation-defined; some drivers issue an
+  implicit rollback. Treat re-throw as "best-effort, may have rolled back" and rely
+  on the idempotency layer to recover.

@@ -16,7 +16,7 @@
     "skip_phases": []
   },
   "phases": {
-    "investigate-system": {
+    "investigate": {
       "status": "pending|in_progress|completed|failed|skipped",
       "started_at": null,
       "completed_at": null,
