@@ -1,5 +1,4 @@
 ---
-name: analyze-data-model
 description: |
   Comprehensive data layer analysis including entity/relationship analysis, DB design evaluation, and ER diagram generation.
   /architect:analyze-data-model [target_path] to invoke.

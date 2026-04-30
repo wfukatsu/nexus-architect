@@ -1,5 +1,4 @@
 ---
-name: pipeline
 description: |
   Automated pipeline that executes all phases in dependency order.
   /architect:pipeline [target_path].

@@ -1,5 +1,4 @@
 ---
-name: design-scalardb
 description: |
   Design ScalarDB schema, transaction boundaries, and storage backend.
   /architect:design-scalardb to invoke. For ScalarDB projects only.

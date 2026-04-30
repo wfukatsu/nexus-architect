@@ -1,5 +1,4 @@
 ---
-name: design-disaster-recovery
 description: |
   Define RTO/RPO, backup strategies, failover design, and recovery procedures.
   Invoked via /design-disaster-recovery.

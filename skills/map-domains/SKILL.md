@@ -1,5 +1,4 @@
 ---
-name: map-domains
 description: |
   Domain classification, bounded context mapping, and business structure identification.
   /architect:map-domains to invoke.

@@ -1,5 +1,4 @@
 ---
-name: review-business
 description: |
   Review business requirements traceability, NFR quantification, and stakeholder alignment.
   Used as one perspective within the parallel review system.

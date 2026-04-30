@@ -1,5 +1,4 @@
 ---
-name: report
 description: |
   Compile all Markdown reports into a consolidated HTML report.
   Invoked via /architect:report.

@@ -1,5 +1,4 @@
 ---
-name: migrate-database
 description: |
   Unified database migration router. Analyzes Oracle, MySQL, or PostgreSQL schemas
   and generates ScalarDB migration documentation, Java code, and AQ integration.

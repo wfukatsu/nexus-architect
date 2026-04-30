@@ -1,5 +1,4 @@
 ---
-name: review-risk
 description: |
   Review distributed system risks, failure modes, and Saga design adequacy.
   Adopts an adversarial perspective to discover risks overlooked by the designer. Deepest analysis perspective.

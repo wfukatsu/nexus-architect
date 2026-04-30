@@ -1,5 +1,4 @@
 ---
-name: integrate-evaluations
 description: |
   Merge MMI and DDD evaluation results into a unified improvement plan.
   /architect:integrate-evaluations to invoke.

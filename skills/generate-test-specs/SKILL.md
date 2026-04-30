@@ -1,5 +1,4 @@
 ---
-name: generate-test-specs
 description: |
   Generate BDD scenarios, unit test, integration test, and performance test specifications.
   Invoked via /architect:generate-test-specs. Requires output from design-implementation as a prerequisite.

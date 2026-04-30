@@ -1,5 +1,4 @@
 ---
-name: evaluate-mmi
 description: |
   Qualitative evaluation of Modularity Maturity Index across 4 axes: cohesion, coupling, independence, reusability.
   /architect:evaluate-mmi [target_path] to invoke.

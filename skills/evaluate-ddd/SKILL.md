@@ -1,5 +1,4 @@
 ---
-name: evaluate-ddd
 description: |
   Evaluate DDD principle conformance across 3 layers and 12 criteria.
   /architect:evaluate-ddd [target_path] to invoke.

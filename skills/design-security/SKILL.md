@@ -1,5 +1,4 @@
 ---
-name: design-security
 description: |
   Design authentication, authorization, secrets management, and network security.
   Invoked via /design-security.

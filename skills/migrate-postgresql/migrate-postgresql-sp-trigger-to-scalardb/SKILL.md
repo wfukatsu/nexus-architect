@@ -1,5 +1,4 @@
 ---
-name: migrate-postgresql-sp-trigger-to-scalardb
 description: Generates ScalarDB Java application code from PostgreSQL PL/pgSQL functions, procedures, triggers, and trigger functions. Produces Java Transaction API implementations plus a summary migration report.
 ---
 

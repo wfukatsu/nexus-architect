@@ -1,5 +1,4 @@
 ---
-name: redesign
 description: |
   Redesign bounded contexts, define aggregates, and generate context maps.
   /architect:redesign to invoke. Requires integrate-evaluations output as a prerequisite.

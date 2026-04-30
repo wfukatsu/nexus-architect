@@ -1,5 +1,4 @@
 ---
-name: migrate-mysql
 description: |
   MySQL to ScalarDB migration. Schema extraction, migration analysis,
   and SP/trigger to Java conversion. /architect:migrate-mysql to start.

@@ -1,5 +1,4 @@
 ---
-name: migrate-oracle
 description: |
   Oracle to ScalarDB migration. Schema extraction, migration analysis, AQ integration,
   and SP/trigger to Java conversion. /architect:migrate-oracle to start.
