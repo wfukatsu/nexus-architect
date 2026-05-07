@@ -1,6 +1,6 @@
 # Nexus Architect
 
-System architecture toolkit for Claude Code. Two plugins, 51 skills:
+System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as two plugins with 51 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
 
 - **architect** (40 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
 - **scalardb** (11 skills) — ScalarDB application development toolkit
@@ -51,6 +51,56 @@ In a Claude Code session, type any command to confirm:
 ```
 
 If the skills are recognized, the installation is successful.
+
+### Using with Codex
+
+Codex can use the same skill files without installing Claude Code plugins.
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/wfukatsu/nexus-architect.git
+cd nexus-architect
+
+# 2. Optional Python dependencies
+pip install -r requirements.txt
+```
+
+Open Codex at the repository root. `AGENTS.md` tells Codex how to translate Claude Code conventions:
+
+- `/architect:<name>` -> `skills/<name>/SKILL.md`
+- `/scalardb:<name>` -> `skills/<name>/SKILL.md`
+- `CLAUDE_PLUGIN_ROOT` -> the repository root
+- `.claude/docs/*` -> `skills/common/references/*`
+- `.claude/rules/*` -> `rules/*`
+
+Then invoke the same command text in chat:
+
+```bash
+/architect:start ./path/to/target
+/architect:pipeline ./path/to/target
+/scalardb:model
+/scalardb:review-code ./path/to/app
+```
+
+When a skill asks to use Claude tools, Codex follows these mappings:
+
+| Claude Code reference | Codex behavior |
+|---|---|
+| `Read`, `Glob`, `Grep`, `LS` | Use shell reads, `rg`, `rg --files`, `find`, or `ls` |
+| `Write`, `Edit`, `MultiEdit` | Edit files with `apply_patch` |
+| `Bash` | Run shell commands |
+| `AskUserQuestion` | Present numbered choices in chat and wait for the reply |
+| `Task`, `Subagent` | Run in the main Codex thread unless the user explicitly asks for sub-agents |
+| `WebFetch`, `WebSearch` | Use Codex web access, Context7, or approved `curl` |
+
+After editing generated reports or Mermaid diagrams in Codex, run the hooks manually when relevant:
+
+```bash
+hooks/validate-frontmatter.sh reports/before/example/technology-stack.md
+hooks/validate-mermaid.sh reports/before/example/codebase-structure.md
+```
+
+Claude Code continues to use the plugin metadata and slash commands unchanged. See [Using Nexus Architect with Codex](docs/codex-usage.md) for the full Codex guide.
 
 ## Quick Start
 
@@ -241,7 +291,8 @@ work/             # Pipeline state and intermediate files
 
 ## Requirements
 
-- Claude Code CLI (latest)
+- Claude Code CLI (latest), for Claude Code plugin usage
+- Codex, for Codex usage
 - Python 3.9+
 - Node.js 18+ (optional, for Mermaid rendering)
 
@@ -255,12 +306,14 @@ work/             # Pipeline state and intermediate files
 | Document | Description |
 |----------|-------------|
 | [Getting Started](docs/getting-started.md) | Installation and first steps |
+| [Codex Usage](docs/codex-usage.md) | Using the same skills from Codex |
 | [Skill Reference](docs/skill-reference.md) | Complete skill catalog |
 | [ScalarDB Development](docs/scalardb-development.md) | ScalarDB development guide |
 | [Database Migration](docs/database-migration.md) | Migration guide (Oracle/MySQL/PostgreSQL) |
 
 Japanese translations:
 [Getting Started (日本語)](docs/getting-started_ja.md) |
+[Codex Usage (日本語)](docs/codex-usage_ja.md) |
 [Skill Reference (日本語)](docs/skill-reference_ja.md) |
 [ScalarDB Development (日本語)](docs/scalardb-development_ja.md) |
 [Database Migration (日本語)](docs/database-migration_ja.md)

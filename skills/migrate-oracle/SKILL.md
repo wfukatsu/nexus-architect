@@ -28,10 +28,10 @@ echo "$CLAUDE_PLUGIN_ROOT"
 - If the output is **empty**, run this fallback to locate it:
 
 ```bash
-find ~/.claude/plugins -name "plugin.json" -path "*/scalardb-migration/*" 2>/dev/null | head -1 | xargs -I{} dirname {} | xargs -I{} dirname {}
+find ~/.claude/plugins -name "plugin.json" -path "*/architect/*" 2>/dev/null | head -1 | xargs -I{} dirname {} | xargs -I{} dirname {}
 ```
 
-Store the result as `PLUGIN_ROOT`. All subagent template paths in Steps 7–12 use this variable (e.g., `PLUGIN_ROOT/subagents/oracle/0-test-connection.md`).
+Store the result as `PLUGIN_ROOT`. All subagent template paths in Steps 7–12 use this variable (e.g., `PLUGIN_ROOT/skills/common/subagents/oracle/0-test-connection.md`).
 
 ---
 
@@ -307,7 +307,7 @@ mkdir -p <OUTPUT_DIR>
 
 Spawn a **Bash** subagent using the `Task` tool to test the database connection directly using SQL*Plus before running the heavy extraction process.
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/subagents/oracle/0-test-connection.md`
+1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/0-test-connection.md`
 2. Substitute the runtime variables with values from Steps 1-4:
    - `<ORACLE_HOST>` → the collected ORACLE_HOST value
    - `<ORACLE_PORT>` → the collected ORACLE_PORT value
@@ -332,7 +332,7 @@ Spawn a **Bash** subagent using the `Task` tool to test the database connection 
 
 Spawn a **Bash** subagent using the `Task` tool to run the Python extractor script.
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/subagents/oracle/1-extract-schema.md`
+1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/1-extract-schema.md`
 2. Substitute the runtime variables as documented in the template (replace `<INCLUDE_SOURCE_FLAG>` based on ORACLE_INCLUDE_PLSQL_SOURCE from Step 4)
 3. Call the Task tool with `subagent_type: "Bash"`, `description: "Extract Oracle schema"`, and the substituted prompt
 
@@ -346,7 +346,7 @@ Spawn a **Bash** subagent using the `Task` tool to run the Python extractor scri
 
 Spawn a **general-purpose** subagent using the `Task` tool to generate the schema report from the extracted JSON.
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/subagents/oracle/2-generate-report.md`
+1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/2-generate-report.md`
 2. Substitute the runtime variables as documented in the template (replace all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4)
 3. Call the Task tool with `subagent_type: "general-purpose"`, `description: "Generate Oracle schema report"`, and the substituted prompt
 
@@ -360,7 +360,7 @@ Spawn a **general-purpose** subagent using the `Task` tool to generate the schem
 
 Spawn a **general-purpose** subagent using the `Task` tool to generate ScalarDB migration documentation.
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/subagents/oracle/3-migration-analysis.md`
+1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/3-migration-analysis.md`
 2. Substitute the runtime variables as documented in the template (replace all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4)
 3. Call the Task tool with `subagent_type: "general-purpose"`, `description: "Generate Oracle migration docs"`, and the substituted prompt
 
@@ -374,7 +374,7 @@ Spawn a **general-purpose** subagent using the `Task` tool to generate ScalarDB 
 
 Spawn a **general-purpose** subagent using the `Task` tool to generate Oracle AQ setup SQL and Java consumer files from triggers and stored procedures.
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/subagents/oracle/4-aq-migration.md`
+1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/4-aq-migration.md`
 2. Substitute the runtime variables as documented in the template (replace all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4)
 3. Call the Task tool with `subagent_type: "general-purpose"`, `description: "Generate AQ setup SQL & consumer Java"`, and the substituted prompt
 
@@ -392,7 +392,7 @@ Spawn a **general-purpose** subagent using the `Task` tool to generate Oracle AQ
 
 Spawn a **general-purpose** subagent using the `Task` tool to generate ScalarDB Java application code from PL/SQL stored procedures, functions, packages, and triggers (direct conversion without AQ).
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/subagents/oracle/5-sp-trigger-migration.md`
+1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/5-sp-trigger-migration.md`
 2. Substitute the runtime variables as documented in the template (replace all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4)
 3. Call the Task tool with `subagent_type: "general-purpose"`, `description: "Generate SP & trigger migration code"`, and the substituted prompt
 
@@ -494,7 +494,7 @@ The SKILL.md files are **read directly by subagents** as instruction documents (
 
 ## Related Files
 
-- **Subagent Prompts**: `${CLAUDE_PLUGIN_ROOT}/subagents/oracle/` (6 prompt templates: `0-test-connection.md` through `5-sp-trigger-migration.md`)
+- **Subagent Prompts**: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/` (6 prompt templates: `0-test-connection.md` through `5-sp-trigger-migration.md`)
 - **Analysis Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-oracle-schema/SKILL.md`
 - **Report Template**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-oracle-schema/analyze-oracle-dbms_report.md`
 - **Extractor Script**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-oracle-schema/scripts/oracle_db_extractor.py`

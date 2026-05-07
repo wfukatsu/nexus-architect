@@ -16,6 +16,12 @@ npm install -g @mermaid-js/mermaid-cli
 
 ## Basic Usage
 
+### Claude Code vs. Codex
+
+In Claude Code, install the plugins and use the slash commands directly.
+
+In Codex, open a session at the repository root and use the same command text in chat. `AGENTS.md` maps `/architect:<name>` and `/scalardb:<name>` to the matching `skills/<name>/SKILL.md` file. See [Using Nexus Architect with Codex](codex-usage.md) for details.
+
 ### 1. Analyzing a Legacy System
 
 ```bash

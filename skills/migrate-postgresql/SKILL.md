@@ -28,10 +28,10 @@ echo "$CLAUDE_PLUGIN_ROOT"
 - If the output is **empty**, run this fallback to locate it:
 
 ```bash
-find ~/.claude/plugins -name "plugin.json" -path "*/scalardb-migration/*" 2>/dev/null | head -1 | xargs -I{} dirname {} | xargs -I{} dirname {}
+find ~/.claude/plugins -name "plugin.json" -path "*/architect/*" 2>/dev/null | head -1 | xargs -I{} dirname {} | xargs -I{} dirname {}
 ```
 
-Store the result as `PLUGIN_ROOT`. All subagent template paths in Steps 7–11 use this variable (e.g., `PLUGIN_ROOT/subagents/postgresql/0-test-connection.md`).
+Store the result as `PLUGIN_ROOT`. All subagent template paths in Steps 7–11 use this variable (e.g., `PLUGIN_ROOT/skills/common/subagents/postgresql/0-test-connection.md`).
 
 ---
 
@@ -305,7 +305,7 @@ mkdir -p <OUTPUT_DIR>
 
 Spawn a **Bash** subagent using the `Task` tool to test the PostgreSQL database connection via the external API.
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/subagents/postgresql/0-test-connection.md`
+1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/postgresql/0-test-connection.md`
 2. Substitute the runtime variables: replace `<POSTGRES_HOST>`, `<POSTGRES_PORT>`, `<POSTGRES_DATABASE>`, `<POSTGRES_USER>`, `<POSTGRES_PASSWORD>`, and `<OUTPUT_DIR>` with the actual values from Steps 4-5
 3. Call the Task tool with `subagent_type: "Bash"`, `description: "Test PostgreSQL connection"`, and the substituted prompt
 
@@ -323,7 +323,7 @@ Spawn a **Bash** subagent using the `Task` tool to test the PostgreSQL database 
 
 Spawn a **Bash** subagent using the `Task` tool to run the Python extractor script.
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/subagents/postgresql/1-extract-schema.md`
+1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/postgresql/1-extract-schema.md`
 2. Substitute the runtime variables as documented in the template (replace `<INCLUDE_SOURCE_FLAG>` based on POSTGRES_INCLUDE_PLPGSQL_SOURCE from Step 4)
 3. Call the Task tool with `subagent_type: "Bash"`, `description: "Extract PostgreSQL schema"`, and the substituted prompt
 
@@ -341,7 +341,7 @@ Spawn a **Bash** subagent using the `Task` tool to run the Python extractor scri
 
 Spawn a **general-purpose** subagent using the `Task` tool to generate the schema report from the extracted JSON.
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/subagents/postgresql/2-generate-report.md`
+1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/postgresql/2-generate-report.md`
 2. Substitute the runtime variables as documented in the template (replace all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4)
 3. Call the Task tool with `subagent_type: "general-purpose"`, `description: "Generate PostgreSQL schema report"`, and the substituted prompt
 
@@ -360,9 +360,9 @@ Spawn a **general-purpose** subagent using the `Task` tool to generate the schem
 **Both subagents run simultaneously** in a single message — send both `Task` tool calls together in one response. They share the same inputs (`postgresql_schema_report.md` and `raw_schema_data.json`) and have no dependency on each other's output.
 
 **Preparation:**
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/subagents/postgresql/3-migration-analysis.md`
+1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/postgresql/3-migration-analysis.md`
    - Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
-2. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/subagents/postgresql/4-sp-trigger-migration.md`
+2. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/postgresql/4-sp-trigger-migration.md`
    - Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
 
 **Spawn both in one message:**
@@ -506,7 +506,7 @@ The SKILL.md files are **read directly by subagents** as instruction documents (
 
 ## Related Files
 
-- **Subagent Prompts**: `${CLAUDE_PLUGIN_ROOT}/subagents/postgresql/` (5 prompt templates)
+- **Subagent Prompts**: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/postgresql/` (5 prompt templates)
 - **Analysis Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-postgresql-schema/SKILL.md`
 - **Report Template**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-postgresql-schema/analyze-postgresql-dbms_report.md`
 - **Extractor Script**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-postgresql-schema/scripts/postgresql_db_extractor.py`

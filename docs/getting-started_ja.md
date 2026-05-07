@@ -16,6 +16,12 @@ npm install -g @mermaid-js/mermaid-cli
 
 ## 基本的な使い方
 
+### Claude Code と Codex
+
+Claude Code では plugin をインストールし、slash command を直接使います。
+
+Codex ではリポジトリ root でセッションを開き、同じコマンド文字列をチャットで依頼してください。`AGENTS.md` が `/architect:<name>` と `/scalardb:<name>` を対応する `skills/<name>/SKILL.md` にマッピングします。詳細は [Codex で Nexus Architect を使う](codex-usage_ja.md) を参照してください。
+
 ### 1. レガシーシステムの分析
 
 ```bash

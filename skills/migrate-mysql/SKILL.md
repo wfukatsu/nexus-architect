@@ -28,10 +28,10 @@ echo "$CLAUDE_PLUGIN_ROOT"
 - If the output is **empty**, run this fallback to locate it:
 
 ```bash
-find ~/.claude/plugins -name "plugin.json" -path "*/scalardb-migration/*" 2>/dev/null | head -1 | xargs -I{} dirname {} | xargs -I{} dirname {}
+find ~/.claude/plugins -name "plugin.json" -path "*/architect/*" 2>/dev/null | head -1 | xargs -I{} dirname {} | xargs -I{} dirname {}
 ```
 
-Store the result as `PLUGIN_ROOT`. All subagent template paths in Steps 7–11 use this variable (e.g., `PLUGIN_ROOT/subagents/mysql/0-test-connection.md`).
+Store the result as `PLUGIN_ROOT`. All subagent template paths in Steps 7–11 use this variable (e.g., `PLUGIN_ROOT/skills/common/subagents/mysql/0-test-connection.md`).
 
 ---
 
@@ -305,7 +305,7 @@ mkdir -p <OUTPUT_DIR>
 
 Spawn a **Bash** subagent using the `Task` tool to test the MySQL database connection via the external API.
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/subagents/mysql/0-test-connection.md`
+1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/mysql/0-test-connection.md`
 2. Substitute the runtime variables: replace `<MYSQL_HOST>`, `<MYSQL_PORT>`, `<MYSQL_DATABASE>`, `<MYSQL_USER>`, `<MYSQL_PASSWORD>`, and `<OUTPUT_DIR>` with the actual values from Steps 4-5
 3. Call the Task tool with `subagent_type: "Bash"`, `description: "Test MySQL connection"`, and the substituted prompt
 
@@ -323,7 +323,7 @@ Spawn a **Bash** subagent using the `Task` tool to test the MySQL database conne
 
 Spawn a **Bash** subagent using the `Task` tool to run the Python extractor script.
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/subagents/mysql/1-extract-schema.md`
+1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/mysql/1-extract-schema.md`
 2. Substitute the runtime variables as documented in the template (replace `<INCLUDE_SOURCE_FLAG>` based on MYSQL_INCLUDE_SOURCE from Step 4)
 3. Call the Task tool with `subagent_type: "Bash"`, `description: "Extract MySQL schema"`, and the substituted prompt
 
@@ -341,7 +341,7 @@ Spawn a **Bash** subagent using the `Task` tool to run the Python extractor scri
 
 Spawn a **general-purpose** subagent using the `Task` tool to generate the schema report from the extracted JSON.
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/subagents/mysql/2-generate-report.md`
+1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/mysql/2-generate-report.md`
 2. Substitute the runtime variables as documented in the template (replace all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4)
 3. Call the Task tool with `subagent_type: "general-purpose"`, `description: "Generate MySQL schema report"`, and the substituted prompt
 
@@ -360,9 +360,9 @@ Spawn a **general-purpose** subagent using the `Task` tool to generate the schem
 **Both subagents run simultaneously** in a single message — send both `Task` tool calls together in one response. They share the same inputs (`mysql_schema_report.md` and `raw_mysql_schema_data.json`) and have no dependency on each other's output.
 
 **Preparation:**
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/subagents/mysql/3-migration-analysis.md`
+1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/mysql/3-migration-analysis.md`
    - Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
-2. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/subagents/mysql/4-sp-trigger-migration.md`
+2. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/mysql/4-sp-trigger-migration.md`
    - Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
 
 **Spawn both in one message:**
@@ -506,7 +506,7 @@ The skill files are **read directly by subagents** as instruction documents (the
 
 ## Related Files
 
-- **Subagent Prompts**: `${CLAUDE_PLUGIN_ROOT}/subagents/mysql/` (5 prompt templates)
+- **Subagent Prompts**: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/mysql/` (5 prompt templates)
 - **Analysis Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-mysql-schema/SKILL.md`
 - **Report Template**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-mysql-schema/analyze-mysql-dbms_report.md`
 - **Extractor Script**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-mysql-schema/scripts/mysql_db_extractor.py`
