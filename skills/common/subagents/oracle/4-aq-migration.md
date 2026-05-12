@@ -8,10 +8,10 @@
 You are generating Oracle AQ setup SQL and Java consumer code from Oracle PL/SQL triggers and stored procedures. Follow these steps:
 
 0. Record start time using Bash: `START_SECS=$(date +%s)`
-1. Read the AQ migration skill instructions at: <PLUGIN_ROOT>/skills/migrate-oracle-aq-to-scalardb/SKILL.md
-2. Read the AQ migration strategy guide (reference doc with SQL and Java patterns) at: <PLUGIN_ROOT>/skills/migrate-oracle-aq-to-scalardb/reference/aq-migration-strategy-guide.md
-3. Read the exception handling strategy (exception classification for consumer retry/commit decisions) at: <PLUGIN_ROOT>/skills/migrate-oracle-aq-to-scalardb/reference/aq-exception-handling-strategy.md
-4. Read the report template at: <PLUGIN_ROOT>/skills/migrate-oracle-aq-to-scalardb/templates/scalardb_aq_migration_report.md
+1. Read the AQ migration skill instructions at: <PLUGIN_ROOT>/skills/migrate-oracle/migrate-oracle-aq-to-scalardb/SKILL.md
+2. Read the AQ migration strategy guide (reference doc with SQL and Java patterns) at: <PLUGIN_ROOT>/skills/migrate-oracle/migrate-oracle-aq-to-scalardb/reference/aq-migration-strategy-guide.md
+3. Read the exception handling strategy (exception classification for consumer retry/commit decisions) at: <PLUGIN_ROOT>/skills/migrate-oracle/migrate-oracle-aq-to-scalardb/reference/aq-exception-handling-strategy.md
+4. Read the report template at: <PLUGIN_ROOT>/skills/migrate-oracle/migrate-oracle-aq-to-scalardb/templates/scalardb_aq_migration_report.md
 5. Read the extracted schema data at: <OUTPUT_DIR>/raw_schema_data.json — focus on the `plsql` section (procedures, functions, triggers, source, DDL)
 6. Read the schema report at: <OUTPUT_DIR>/oracle_schema_report.md — use this for table/column context needed to generate accurate Key builders and namespace values
 7. Ensure the output directory exists: `mkdir -p <OUTPUT_DIR>/generated-java/`

@@ -507,13 +507,13 @@ The skill files are **read directly by subagents** as instruction documents (the
 ## Related Files
 
 - **Subagent Prompts**: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/mysql/` (5 prompt templates)
-- **Analysis Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-mysql-schema/SKILL.md`
-- **Report Template**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-mysql-schema/analyze-mysql-dbms_report.md`
-- **Extractor Script**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-mysql-schema/scripts/mysql_db_extractor.py`
-- **Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-mysql-to-scalardb/SKILL.md`
-- **Migration Templates**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-mysql-to-scalardb/templates/`
-- **ScalarDB Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-mysql-to-scalardb/reference/scalardb_mysql_reference.md`
-- **SP & Trigger Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-mysql-sp-trigger-to-scalardb/SKILL.md`
-- **SP & Trigger Migration Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-mysql-sp-trigger-to-scalardb/reference/migration-strategy-guide-sp-triggers-to-scalardb.md`
-- **SP & Trigger Migration Template**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-mysql-sp-trigger-to-scalardb/templates/scalardb_sp_migration_report.md`
+- **Analysis Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-mysql/analyze-mysql-schema/SKILL.md`
+- **Report Template**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-mysql/analyze-mysql-schema/analyze-mysql-dbms_report.md`
+- **Extractor Script**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-mysql/analyze-mysql-schema/scripts/mysql_db_extractor.py`
+- **Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-mysql/migrate-mysql-to-scalardb/SKILL.md`
+- **Migration Templates**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-mysql/migrate-mysql-to-scalardb/templates/`
+- **ScalarDB Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-mysql/migrate-mysql-to-scalardb/reference/scalardb_mysql_reference.md`
+- **SP & Trigger Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-mysql/migrate-mysql-sp-trigger-to-scalardb/SKILL.md`
+- **SP & Trigger Migration Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-mysql/migrate-mysql-sp-trigger-to-scalardb/reference/migration-strategy-guide-sp-triggers-to-scalardb.md`
+- **SP & Trigger Migration Template**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-mysql/migrate-mysql-sp-trigger-to-scalardb/templates/scalardb_sp_migration_report.md`
 - **Config**: `.claude/configuration/databases.env`

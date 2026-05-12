@@ -8,8 +8,8 @@
 You are generating a PostgreSQL schema analysis report. Follow these steps:
 
 0. Record start time using Bash: `START_SECS=$(date +%s)`
-1. Read the skill instructions at: <PLUGIN_ROOT>/skills/analyze-postgresql-schema/SKILL.md
-2. Read the report template at: <PLUGIN_ROOT>/skills/analyze-postgresql-schema/analyze-postgresql-dbms_report.md
+1. Read the skill instructions at: <PLUGIN_ROOT>/skills/migrate-postgresql/analyze-postgresql-schema/SKILL.md
+2. Read the report template at: <PLUGIN_ROOT>/skills/migrate-postgresql/analyze-postgresql-schema/analyze-postgresql-dbms_report.md
 3. Read the extracted JSON data at: <OUTPUT_DIR>/raw_schema_data.json
 4. Following the SKILL.md instructions and the report template structure exactly, generate the complete schema report.
 5. Write the report to: <OUTPUT_DIR>/postgresql_schema_report.md

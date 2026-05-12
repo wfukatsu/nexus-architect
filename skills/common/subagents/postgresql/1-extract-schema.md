@@ -10,7 +10,7 @@ Run the PostgreSQL schema extractor script. Execute this exact command:
 ```bash
 START_SECS=$(date +%s)
 
-python <PLUGIN_ROOT>/skills/analyze-postgresql-schema/scripts/postgresql_db_extractor.py --config .claude/configuration/databases.env <INCLUDE_SOURCE_FLAG>
+python <PLUGIN_ROOT>/skills/migrate-postgresql/analyze-postgresql-schema/scripts/postgresql_db_extractor.py --config .claude/configuration/databases.env <INCLUDE_SOURCE_FLAG>
 
 END_SECS=$(date +%s)
 DURATION_SECONDS=$((END_SECS - START_SECS))

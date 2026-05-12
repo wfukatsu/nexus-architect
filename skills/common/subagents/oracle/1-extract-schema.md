@@ -10,7 +10,7 @@ Run the Oracle schema extractor script. Execute these commands in order:
 ```bash
 START_SECS=$(date +%s)
 
-python <PLUGIN_ROOT>/skills/analyze-oracle-schema/scripts/oracle_db_extractor.py --config .claude/configuration/databases.env <INCLUDE_SOURCE_FLAG>
+python <PLUGIN_ROOT>/skills/migrate-oracle/analyze-oracle-schema/scripts/oracle_db_extractor.py --config .claude/configuration/databases.env <INCLUDE_SOURCE_FLAG>
 
 END_SECS=$(date +%s)
 DURATION_SECONDS=$((END_SECS - START_SECS))

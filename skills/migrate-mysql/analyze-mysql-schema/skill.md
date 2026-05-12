@@ -1,5 +1,4 @@
 ---
-name: analyze-mysql-schema
 description: Analyzes MySQL database schema and generates a comprehensive Markdown report for sharing. Use when you need to document MySQL schema objects including tables, triggers, stored procedures, views, and object dependencies.
 ---
 

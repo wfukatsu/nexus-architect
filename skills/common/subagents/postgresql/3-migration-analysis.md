@@ -8,10 +8,10 @@
 You are generating ScalarDB migration documentation from a PostgreSQL schema report. Follow these steps:
 
 0. Record start time using Bash: `START_SECS=$(date +%s)`
-1. Read the migration skill instructions at: <PLUGIN_ROOT>/skills/migrate-postgresql-to-scalardb/SKILL.md
-2. Read the ScalarDB reference documentation at: <PLUGIN_ROOT>/skills/migrate-postgresql-to-scalardb/reference/scalardb_reference.md
-3. Read the migration analysis template at: <PLUGIN_ROOT>/skills/migrate-postgresql-to-scalardb/templates/scalardb_migration_analysis.md
-4. Read the migration steps template at: <PLUGIN_ROOT>/skills/migrate-postgresql-to-scalardb/templates/scalardb_migration_steps.md
+1. Read the migration skill instructions at: <PLUGIN_ROOT>/skills/migrate-postgresql/migrate-postgresql-to-scalardb/SKILL.md
+2. Read the ScalarDB reference documentation at: <PLUGIN_ROOT>/skills/migrate-postgresql/migrate-postgresql-to-scalardb/reference/scalardb_reference.md
+3. Read the migration analysis template at: <PLUGIN_ROOT>/skills/migrate-postgresql/migrate-postgresql-to-scalardb/templates/scalardb_migration_analysis.md
+4. Read the migration steps template at: <PLUGIN_ROOT>/skills/migrate-postgresql/migrate-postgresql-to-scalardb/templates/scalardb_migration_steps.md
 5. Read the schema report at: <OUTPUT_DIR>/postgresql_schema_report.md
 6. Following the SKILL.md instructions, templates, and reference docs, generate both migration documents.
 7. Write the migration analysis to: <OUTPUT_DIR>/scalardb_migration_analysis.md

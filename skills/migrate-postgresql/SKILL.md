@@ -507,13 +507,13 @@ The SKILL.md files are **read directly by subagents** as instruction documents (
 ## Related Files
 
 - **Subagent Prompts**: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/postgresql/` (5 prompt templates)
-- **Analysis Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-postgresql-schema/SKILL.md`
-- **Report Template**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-postgresql-schema/analyze-postgresql-dbms_report.md`
-- **Extractor Script**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-postgresql-schema/scripts/postgresql_db_extractor.py`
-- **Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql-to-scalardb/SKILL.md`
-- **Migration Templates**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql-to-scalardb/templates/`
-- **ScalarDB Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql-to-scalardb/reference/scalardb_reference.md`
-- **SP & Trigger Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql-sp-trigger-to-scalardb/SKILL.md`
-- **SP & Trigger Migration Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql-sp-trigger-to-scalardb/reference/migration-strategy-guide-sp-triggers-to-scalardb.md`
-- **SP & Trigger Migration Template**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql-sp-trigger-to-scalardb/templates/scalardb_sp_migration_report.md`
+- **Analysis Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/analyze-postgresql-schema/SKILL.md`
+- **Report Template**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/analyze-postgresql-schema/analyze-postgresql-dbms_report.md`
+- **Extractor Script**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/analyze-postgresql-schema/scripts/postgresql_db_extractor.py`
+- **Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-to-scalardb/SKILL.md`
+- **Migration Templates**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-to-scalardb/templates/`
+- **ScalarDB Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-to-scalardb/reference/scalardb_reference.md`
+- **SP & Trigger Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-sp-trigger-to-scalardb/SKILL.md`
+- **SP & Trigger Migration Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-sp-trigger-to-scalardb/reference/migration-strategy-guide-sp-triggers-to-scalardb.md`
+- **SP & Trigger Migration Template**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-sp-trigger-to-scalardb/templates/scalardb_sp_migration_report.md`
 - **Config**: `.claude/configuration/databases.env`

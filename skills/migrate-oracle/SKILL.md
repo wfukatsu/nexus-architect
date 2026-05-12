@@ -495,17 +495,17 @@ The SKILL.md files are **read directly by subagents** as instruction documents (
 ## Related Files
 
 - **Subagent Prompts**: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/` (6 prompt templates: `0-test-connection.md` through `5-sp-trigger-migration.md`)
-- **Analysis Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-oracle-schema/SKILL.md`
-- **Report Template**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-oracle-schema/analyze-oracle-dbms_report.md`
-- **Extractor Script**: `${CLAUDE_PLUGIN_ROOT}/skills/analyze-oracle-schema/scripts/oracle_db_extractor.py`
-- **Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle-to-scalardb/SKILL.md`
-- **Migration Templates**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle-to-scalardb/templates/`
-- **ScalarDB Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle-to-scalardb/reference/scalardb_reference.md`
-- **AQ Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle-aq-to-scalardb/SKILL.md`
-- **AQ Migration Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle-aq-to-scalardb/reference/aq-migration-strategy-guide.md`
-- **AQ Migration Template**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle-aq-to-scalardb/templates/scalardb_aq_migration_report.md`
-- **AQ Official Docs**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle-aq-to-scalardb/reference/AQ-official-docs/`
-- **SP & Trigger Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle-sp-trigger-to-scalardb/SKILL.md`
-- **SP & Trigger Migration Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle-sp-trigger-to-scalardb/reference/migration-strategy-guide-sp-triggers-to-scalardb.md`
-- **SP & Trigger Migration Template**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle-sp-trigger-to-scalardb/templates/scalardb_sp_migration_report.md`
+- **Analysis Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/analyze-oracle-schema/SKILL.md`
+- **Report Template**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/analyze-oracle-schema/analyze-oracle-dbms_report.md`
+- **Extractor Script**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/analyze-oracle-schema/scripts/oracle_db_extractor.py`
+- **Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-to-scalardb/SKILL.md`
+- **Migration Templates**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-to-scalardb/templates/`
+- **ScalarDB Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-to-scalardb/reference/scalardb_reference.md`
+- **AQ Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-aq-to-scalardb/SKILL.md`
+- **AQ Migration Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-aq-to-scalardb/reference/aq-migration-strategy-guide.md`
+- **AQ Migration Template**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-aq-to-scalardb/templates/scalardb_aq_migration_report.md`
+- **AQ Official Docs**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-aq-to-scalardb/reference/AQ-official-docs/`
+- **SP & Trigger Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-sp-trigger-to-scalardb/SKILL.md`
+- **SP & Trigger Migration Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-sp-trigger-to-scalardb/reference/migration-strategy-guide-sp-triggers-to-scalardb.md`
+- **SP & Trigger Migration Template**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-sp-trigger-to-scalardb/templates/scalardb_sp_migration_report.md`
 - **Config**: `.claude/configuration/databases.env`

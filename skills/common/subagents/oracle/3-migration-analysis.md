@@ -8,10 +8,10 @@
 You are generating ScalarDB migration documentation from an Oracle schema report. Follow these steps:
 
 0. Record start time using Bash: `START_SECS=$(date +%s)`
-1. Read the migration skill instructions at: <PLUGIN_ROOT>/skills/migrate-oracle-to-scalardb/SKILL.md
-2. Read the ScalarDB reference documentation at: <PLUGIN_ROOT>/skills/migrate-oracle-to-scalardb/reference/scalardb_reference.md
-3. Read the migration analysis template at: <PLUGIN_ROOT>/skills/migrate-oracle-to-scalardb/templates/scalardb_migration_analysis.md
-4. Read the migration steps template at: <PLUGIN_ROOT>/skills/migrate-oracle-to-scalardb/templates/scalardb_migration_steps.md
+1. Read the migration skill instructions at: <PLUGIN_ROOT>/skills/migrate-oracle/migrate-oracle-to-scalardb/SKILL.md
+2. Read the ScalarDB reference documentation at: <PLUGIN_ROOT>/skills/migrate-oracle/migrate-oracle-to-scalardb/reference/scalardb_reference.md
+3. Read the migration analysis template at: <PLUGIN_ROOT>/skills/migrate-oracle/migrate-oracle-to-scalardb/templates/scalardb_migration_analysis.md
+4. Read the migration steps template at: <PLUGIN_ROOT>/skills/migrate-oracle/migrate-oracle-to-scalardb/templates/scalardb_migration_steps.md
 5. Read the schema report at: <OUTPUT_DIR>/oracle_schema_report.md
 5b. Read the raw schema data at: <OUTPUT_DIR>/raw_schema_data.json — use this for view definitions (if truncated in the schema report), stored procedure query analysis, and database usage pattern analysis
 6. Following the SKILL.md instructions, templates, and reference docs, generate both migration documents.

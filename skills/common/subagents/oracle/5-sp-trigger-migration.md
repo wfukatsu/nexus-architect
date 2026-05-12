@@ -8,9 +8,9 @@
 You are generating ScalarDB Java application code from Oracle PL/SQL stored procedures, functions, packages, and triggers. Follow these steps:
 
 0. Record start time using Bash: `START_SECS=$(date +%s)`
-1. Read the SP/trigger migration skill instructions at: <PLUGIN_ROOT>/skills/migrate-oracle-sp-trigger-to-scalardb/SKILL.md
-2. Read the migration strategy guide (reference doc with all 17 feature mappings and code examples) at: <PLUGIN_ROOT>/skills/migrate-oracle-sp-trigger-to-scalardb/reference/migration-strategy-guide-sp-triggers-to-scalardb.md
-3. Read the report template at: <PLUGIN_ROOT>/skills/migrate-oracle-sp-trigger-to-scalardb/templates/scalardb_sp_migration_report.md
+1. Read the SP/trigger migration skill instructions at: <PLUGIN_ROOT>/skills/migrate-oracle/migrate-oracle-sp-trigger-to-scalardb/SKILL.md
+2. Read the migration strategy guide (reference doc with all 17 feature mappings and code examples) at: <PLUGIN_ROOT>/skills/migrate-oracle/migrate-oracle-sp-trigger-to-scalardb/reference/migration-strategy-guide-sp-triggers-to-scalardb.md
+3. Read the report template at: <PLUGIN_ROOT>/skills/migrate-oracle/migrate-oracle-sp-trigger-to-scalardb/templates/scalardb_sp_migration_report.md
 4. Read the extracted schema data at: <OUTPUT_DIR>/raw_schema_data.json — focus on the `plsql` section (procedures, functions, packages, triggers, source, DDL)
 5. Read the schema report at: <OUTPUT_DIR>/oracle_schema_report.md — use this for table/column context needed to generate accurate Key builders and namespace values
 6. Create the output directory: `<OUTPUT_DIR>/generated-java/` (use Bash: `mkdir -p <OUTPUT_DIR>/generated-java/`)

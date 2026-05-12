@@ -51,9 +51,9 @@ Based on the user's selection, invoke the corresponding skill using the `Skill` 
 
 | User Selection | Skill to Invoke |
 |----------------|-----------------|
-| **Oracle** | `Skill: scalardb-migration:oracle-to-scalardb` |
-| **MySQL** | `Skill: scalardb-migration:mysql-to-scalardb` |
-| **PostgreSQL** | `Skill: scalardb-migration:postgresql-to-scalardb` |
+| **Oracle** | `Skill: architect:migrate-oracle` |
+| **MySQL** | `Skill: architect:migrate-mysql` |
+| **PostgreSQL** | `Skill: architect:migrate-postgresql` |
 
 The delegated command handles the entire workflow autonomously:
 
@@ -102,7 +102,7 @@ Do NOT perform any additional steps after invoking the skill — the delegated c
   Then re-ask the question from Step 1.
 
 - **User cancels or does not respond:**
-  Stop execution and inform the user they can restart with `/migrate-database` or use a direct command (`/oracle-to-scalardb`, `/mysql-to-scalardb`, `/postgresql-to-scalardb`).
+  Stop execution and inform the user they can restart with `/architect:migrate-database` or use a direct command (`/architect:migrate-oracle`, `/architect:migrate-mysql`, `/architect:migrate-postgresql`).
 
 ---
 
@@ -110,12 +110,12 @@ Do NOT perform any additional steps after invoking the skill — the delegated c
 
 | Command | Description |
 |---------|-------------|
-| `/oracle-to-scalardb` | Direct Oracle migration (skips database selection) |
-| `/mysql-to-scalardb` | Direct MySQL migration (skips database selection) |
-| `/postgresql-to-scalardb` | Direct PostgreSQL migration (skips database selection) |
+| `/architect:migrate-oracle` | Direct Oracle migration (skips database selection) |
+| `/architect:migrate-mysql` | Direct MySQL migration (skips database selection) |
+| `/architect:migrate-postgresql` | Direct PostgreSQL migration (skips database selection) |
 
 ## Related Files
 
 - **Config**: `.claude/configuration/databases.env`
 - **Output**: `.claude/output/` (generated reports)
-- **Subagent Prompts**: `${CLAUDE_PLUGIN_ROOT}/subagents/{oracle,mysql,postgresql}/`
+- **Subagent Prompts**: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/{oracle,mysql,postgresql}/`
