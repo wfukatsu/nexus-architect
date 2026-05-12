@@ -1,7 +1,7 @@
 ---
 description: |
   Define RTO/RPO, backup strategies, failover design, and recovery procedures.
-  Invoked via /design-disaster-recovery.
+  Invoked via /architect:design-disaster-recovery.
 model: sonnet
 user_invocable: true
 ---

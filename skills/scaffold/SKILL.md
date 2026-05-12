@@ -1,5 +1,6 @@
 ---
 description: Generate a complete ScalarDB starter project for any of the 6 interface combinations. Produces build.gradle, config, schema, service class, docker-compose, and README.
+model: sonnet
 user_invocable: true
 ---
 

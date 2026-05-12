@@ -277,7 +277,7 @@ input_files:
 [Top 3 actionable improvements for the strategic design layer]
 ```
 
-**`reports/02_evaluation/ddd-tactical-evaluation.md`** — Tactical design + architecture evaluation (Task B + Task C results):
+**`reports/02_evaluation/ddd-tactical-architecture-evaluation.md`** — Tactical design + architecture evaluation (Task B + Task C results):
 
 ```markdown
 ---
@@ -327,7 +327,7 @@ input_files:
 | File | Content |
 |------|---------|
 | `reports/02_evaluation/ddd-strategic-evaluation.md` | Strategic design evaluation |
-| `reports/02_evaluation/ddd-tactical-evaluation.md` | Tactical design + architecture evaluation |
+| `reports/02_evaluation/ddd-tactical-architecture-evaluation.md` | Tactical design + architecture evaluation |
 
 ## Related Skills
 

@@ -67,23 +67,21 @@ The delegated command handles the entire workflow autonomously:
 
 **Phase B: Subagent Processing — Isolated Contexts**
 
-*Oracle (Steps 7-13 — 6 subagents):*
+*Oracle (Steps 7-11 — 6 subagents):*
 
 | Step | Subagent | Type | What It Does |
 |------|----------|------|--------------|
-| 7 | Connection Tester | Bash | POSTs to `test-connection` API to verify DB is reachable |
+| 7 | Connection Tester | Bash | Verifies DB is reachable via SQL*Plus |
 | 8 | Schema Extractor | Bash | Runs `oracle_db_extractor.py` |
 | 9 | Report Generator | general-purpose | Reads JSON + template, writes schema report |
-| 10 | Migration Analyst | general-purpose | Reads report + reference docs, writes migration docs |
-| 11 | AQ Migrator | general-purpose | Generates AQ setup SQL + Java consumer code |
-| 12 | SP & Trigger Migrator | general-purpose | Generates Java code + SP/trigger report |
-| 13 | *(main context)* | — | Displays combined summary |
+| 10 | Migration Analyst + AQ Migrator + SP/Trigger Migrator | general-purpose ×3 | Parallel: migration docs + AQ Java code + SP/trigger Java code |
+| 11 | *(main context)* | — | Displays combined summary + metrics table |
 
 *MySQL / PostgreSQL (Steps 7-11 — 5 subagents):*
 
 | Step | Subagent | Type | What It Does |
 |------|----------|------|--------------|
-| 7 | Connection Tester | Bash | POSTs to API to verify DB is reachable |
+| 7 | Connection Tester | Bash | Verifies DB is reachable via Python connector |
 | 8 | Schema Extractor | Bash | Runs `*_db_extractor.py` |
 | 9 | Report Generator | general-purpose | Reads JSON + template, writes schema report |
 | 10 | Migration Analyst + SP Migrator | general-purpose x2 | Parallel: migration docs + Java code |

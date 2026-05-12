@@ -1,7 +1,7 @@
 ---
 description: |
   Design monitoring, distributed tracing, log aggregation, and alerting.
-  Invoked via /design-observability.
+  Invoked via /architect:design-observability.
 model: sonnet
 user_invocable: true
 ---

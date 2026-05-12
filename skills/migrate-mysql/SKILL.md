@@ -400,7 +400,7 @@ Display to the user:
 MySQL to ScalarDB Migration — Complete
 
 Phase 0: Connection Test
-  - API endpoint: https://test2.jeeni.in/database/test-mysql-connection
+  - Connection method: Python mysql-connector-python (direct database connection)
   - <Subagent 0 SUMMARY line (database product and version)>
 
 Phase 1: Schema Extraction

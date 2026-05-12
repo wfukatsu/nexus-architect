@@ -1,7 +1,7 @@
 ---
 description: |
   Design authentication, authorization, secrets management, and network security.
-  Invoked via /design-security.
+  Invoked via /architect:design-security.
 model: sonnet
 user_invocable: true
 ---

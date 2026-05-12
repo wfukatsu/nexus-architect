@@ -1,5 +1,6 @@
 ---
 description: Show ScalarDB CRUD operation patterns — builder syntax for Get, Scan, Insert, Upsert, Update, Delete with examples.
+model: sonnet
 user_invocable: true
 ---
 

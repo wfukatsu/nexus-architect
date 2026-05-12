@@ -1,5 +1,6 @@
 ---
 description: ScalarDB interface migration advisor. Guides Core<->Cluster, CRUD<->JDBC, and 1PC<->2PC migrations. For migrating from another database, use /architect:migrate-database instead.
+model: sonnet
 user_invocable: true
 ---
 

@@ -145,6 +145,7 @@ Naming and frontmatter rules: @rules/output-conventions.md
 | ScalarDB config validation | @rules/scalardb-config-validation.md | Configuration correctness |
 | ScalarDB schema design | @rules/scalardb-schema-design.md | Schema and key design |
 | ScalarDB Java best practices | @rules/scalardb-java-best-practices.md | Java coding standards |
+| ScalarDB coding patterns | @rules/scalardb-coding-patterns.md | Code generation, design-scalardb, generate-scalardb-code |
 | ScalarDB edition profiles | @rules/scalardb-edition-profiles.md | Edition selection |
 | Evaluation frameworks | @rules/evaluation-frameworks.md | MMI/DDD scoring |
 | Mermaid best practices | @rules/mermaid-best-practices.md | Creating diagrams |

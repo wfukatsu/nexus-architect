@@ -1,5 +1,6 @@
 ---
 description: Generate ScalarDB configuration files (database.properties, build.gradle dependencies) based on your choices.
+model: sonnet
 user_invocable: true
 ---
 

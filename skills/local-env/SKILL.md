@@ -1,5 +1,6 @@
 ---
 description: Generate docker-compose.yml and setup commands for a local ScalarDB development environment.
+model: sonnet
 user_invocable: true
 ---
 

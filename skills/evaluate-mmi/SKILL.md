@@ -33,7 +33,7 @@ For detailed scoring criteria and algorithms, refer to:
 
 ### Step 1: Identify Modules
 
-Read `reports/01_analysis/codebase-structure.md` and `reports/01_analysis/domain-code-mapping.md` to extract the list of modules to evaluate. Record module names — these will be passed to sub-agents.
+Glob for `reports/before/**/codebase-structure.md` to find the investigate-phase output, then read the found file. Also read `reports/01_analysis/domain-code-mapping.md`. Extract the list of modules to evaluate and record module names — these will be passed to sub-agents.
 
 ### Step 2: Collect Input File Paths
 

@@ -33,7 +33,7 @@ Multiple reviewers may flag the same root cause from different angles.
 
 ## Step 3: Quality Gate Verdict
 
-Determined based on thresholds in `review-registry.json`:
+Determined based on thresholds in `${CLAUDE_PLUGIN_ROOT}/skills/review-registry.json`:
 
 - **PASS**: aggregate >= 3.5, critical: 0, major <= 3, all perspectives >= 3.0
 - **CONDITIONAL PASS**: aggregate >= 2.5, critical <= 2 (with mitigations), major <= 8
@@ -62,4 +62,4 @@ Headings: Verdict -> Score Summary -> P0 Blockers -> P1 Must Fix -> P2 Should Fi
 ## Variable Input Handling
 
 Operates with any combination of 2-5 perspectives.
-Reads the weights of enabled perspectives from `review-registry.json`, normalizes them, and aggregates scores.
+Reads the weights of enabled perspectives from `${CLAUDE_PLUGIN_ROOT}/skills/review-registry.json`, normalizes them, and aggregates scores.

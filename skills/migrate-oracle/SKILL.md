@@ -307,7 +307,7 @@ mkdir -p <OUTPUT_DIR>
 
 Spawn a **Bash** subagent using the `Task` tool to test the database connection directly using SQL*Plus before running the heavy extraction process.
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/0-test-connection.md`
+1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/oracle/0-test-connection.md`
 2. Substitute the runtime variables with values from Steps 1-4:
    - `<ORACLE_HOST>` → the collected ORACLE_HOST value
    - `<ORACLE_PORT>` → the collected ORACLE_PORT value
@@ -319,6 +319,8 @@ Spawn a **Bash** subagent using the `Task` tool to test the database connection 
 3. Call the Task tool with `subagent_type: "Bash"`, `description: "Test Oracle DB connection"`, and the substituted prompt
 
 **Check the subagent result:**
+- Extract `DURATION_SECONDS` from the subagent's response → store as `S0_DURATION`
+- Extract `total_tokens` from the `<usage>` block in the Task result (if present) → store as `S0_TOKENS`
 - If STATUS is **SUCCESS** → Display the Oracle version banner to the user. Proceed to Step 8.
 - If STATUS is **FAILURE** → Display the error message with the appropriate resolution hint and **STOP HERE — do NOT proceed to Step 8 or any later step.**
   - `ORA-12541` → Oracle listener not running or wrong host/port
@@ -332,11 +334,13 @@ Spawn a **Bash** subagent using the `Task` tool to test the database connection 
 
 Spawn a **Bash** subagent using the `Task` tool to run the Python extractor script.
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/1-extract-schema.md`
+1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/oracle/1-extract-schema.md`
 2. Substitute the runtime variables as documented in the template (replace `<INCLUDE_SOURCE_FLAG>` based on ORACLE_INCLUDE_PLSQL_SOURCE from Step 4)
 3. Call the Task tool with `subagent_type: "Bash"`, `description: "Extract Oracle schema"`, and the substituted prompt
 
 **Check the subagent result:**
+- Extract `DURATION_SECONDS` from the subagent's response → store as `S1_DURATION`
+- Extract `total_tokens` from the `<usage>` block in the Task result (if present) → store as `S1_TOKENS`
 - If STATUS is **FAILURE** → Display the error to the user with resolution hints (check host/port/service, verify credentials, ensure Oracle listener is running). **STOP HERE — do NOT proceed to Step 9 or Step 10.**
 - If STATUS is **SUCCESS** → Note the OUTPUT_FILE path and proceed to Step 9.
 
@@ -346,11 +350,13 @@ Spawn a **Bash** subagent using the `Task` tool to run the Python extractor scri
 
 Spawn a **general-purpose** subagent using the `Task` tool to generate the schema report from the extracted JSON.
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/2-generate-report.md`
+1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/oracle/2-generate-report.md`
 2. Substitute the runtime variables as documented in the template (replace all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4)
 3. Call the Task tool with `subagent_type: "general-purpose"`, `description: "Generate Oracle schema report"`, and the substituted prompt
 
 **Check the subagent result:**
+- Extract `DURATION_SECONDS` from the subagent's response → store as `S2_DURATION`
+- Extract `total_tokens` from the `<usage>` block in the Task result (if present) → store as `S2_TOKENS`
 - If STATUS is **FAILURE** → Display the error to the user. Note that `raw_schema_data.json` is still available for manual inspection. **STOP HERE — do NOT proceed to Step 10.**
 - If STATUS is **SUCCESS** → Note the summary and proceed to Step 10.
 
@@ -366,23 +372,27 @@ Record `S345_START` = current time.
 
 **Task A — Subagent 3: Migration Analysis**
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/3-migration-analysis.md`
+1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/oracle/3-migration-analysis.md`
 2. Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
 3. Call: `Task(subagent_type: "general-purpose", description: "Generate Oracle migration docs", prompt: <substituted>)`
 
 **Task B — Subagent 4: AQ Migration**
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/4-aq-migration.md`
+1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/oracle/4-aq-migration.md`
 2. Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
 3. Call: `Task(subagent_type: "general-purpose", description: "Generate AQ setup SQL & consumer Java", prompt: <substituted>)`
 
 **Task C — Subagent 5: Stored Procedure & Trigger Migration**
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/5-sp-trigger-migration.md`
+1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/oracle/5-sp-trigger-migration.md`
 2. Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
 3. Call: `Task(subagent_type: "general-purpose", description: "Generate SP & trigger migration code", prompt: <substituted>)`
 
-**Wait for all three Tasks to complete**, then record `S345_WALL = max(S3_DURATION, S4_DURATION, S5_DURATION)`.
+**Wait for all three Tasks to complete**, then:
+- From Subagent 3 result: extract `DURATION_SECONDS` → store as `S3_DURATION`; extract `total_tokens` from `<usage>` block → store as `S3_TOKENS`
+- From Subagent 4 result: extract `DURATION_SECONDS` → store as `S4_DURATION`; extract `total_tokens` from `<usage>` block → store as `S4_TOKENS`
+- From Subagent 5 result: extract `DURATION_SECONDS` → store as `S5_DURATION`; extract `total_tokens` from `<usage>` block → store as `S5_TOKENS`
+- Record `S345_WALL = max(S3_DURATION, S4_DURATION, S5_DURATION)`
 
 **Check results independently (failures are isolated — one does not block the others):**
 - **Subagent 3 fails** → Display error. Note schema analysis outputs remain on disk. Continue checking 4 and 5.
@@ -392,7 +402,13 @@ Record `S345_START` = current time.
 
 ---
 
-### STEP 11: Display Final Summary
+### STEP 11: Display Final Summary with Metrics
+
+**Compute totals before rendering:**
+- `TOTAL_DURATION = S0_DURATION + S1_DURATION + S2_DURATION + S345_WALL`
+  *(Phases 3, 4 & 5 ran in parallel, so only the longest one adds to wall-clock time)*
+- `TOTAL_TOKENS = S0_TOKENS + S1_TOKENS + S2_TOKENS + S3_TOKENS + S4_TOKENS + S5_TOKENS`
+  *(If any token value is unavailable, mark it as "N/A" and omit it from the total)*
 
 Display the combined results from all six subagents to the user:
 
@@ -400,7 +416,7 @@ Display the combined results from all six subagents to the user:
 Oracle to ScalarDB Migration - Complete
 
 Phase 0: Connection Test
-  - API endpoint: https://test2.jeeni.in/database/test-connection
+  - Connection method: SQL*Plus (direct database connection)
   - <Subagent 0 SUMMARY line (database product and version)>
 
 Phase 1: Schema Extraction
@@ -446,6 +462,26 @@ Next Steps:
   7. Review scalardb_sp_migration_report.md for SP & trigger migration details
 ```
 
+Then display the metrics table:
+
+```
+Execution Summary
+─────────────────────────────────────────────────────────────────────
+ Phase                             │ Subagent Type    │ Tokens  │ Time
+─────────────────────────────────────────────────────────────────────
+ Phase 0: Connection Test          │ Bash             │ S0_TOK  │ S0s
+ Phase 1: Schema Extraction        │ Bash             │ S1_TOK  │ S1s
+ Phase 2: Schema Report            │ General-purpose  │ S2_TOK  │ S2s
+ Phase 3: Migration Analysis     ┐ │ General-purpose  │ S3_TOK  │ S3s
+ Phase 4: AQ Migration           │ │ General-purpose  │ S4_TOK  │ S4s
+ Phase 5: SP/Trigger Migration   ┘ │ General-purpose  │ S5_TOK  │ S5s
+                  (parallel wall-clock)                        │ S345s
+─────────────────────────────────────────────────────────────────────
+ TOTAL                             │ 6 subagents      │ TOT_TOK │ TOTs
+─────────────────────────────────────────────────────────────────────
+```
+*(If any token value is unavailable, mark it as "N/A" and omit it from the total)*
+
 ---
 
 ## Error Handling
@@ -490,18 +526,18 @@ The SKILL.md files are **read directly by subagents** as instruction documents (
 
 ## Related Files
 
-- **Subagent Prompts**: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/` (6 prompt templates: `0-test-connection.md` through `5-sp-trigger-migration.md`)
-- **Analysis Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/analyze-oracle-schema/SKILL.md`
-- **Report Template**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/analyze-oracle-schema/analyze-oracle-dbms_report.md`
-- **Extractor Script**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/analyze-oracle-schema/scripts/oracle_db_extractor.py`
-- **Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-to-scalardb/SKILL.md`
-- **Migration Templates**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-to-scalardb/templates/`
-- **ScalarDB Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-to-scalardb/reference/scalardb_reference.md`
-- **AQ Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-aq-to-scalardb/SKILL.md`
-- **AQ Migration Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-aq-to-scalardb/reference/aq-migration-strategy-guide.md`
-- **AQ Migration Template**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-aq-to-scalardb/templates/scalardb_aq_migration_report.md`
-- **AQ Official Docs**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-aq-to-scalardb/reference/AQ-official-docs/`
-- **SP & Trigger Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-sp-trigger-to-scalardb/SKILL.md`
-- **SP & Trigger Migration Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-sp-trigger-to-scalardb/reference/migration-strategy-guide-sp-triggers-to-scalardb.md`
-- **SP & Trigger Migration Template**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-sp-trigger-to-scalardb/templates/scalardb_sp_migration_report.md`
+- **Subagent Prompts**: `${PLUGIN_ROOT}/skills/common/subagents/oracle/` (6 prompt templates: `0-test-connection.md` through `5-sp-trigger-migration.md`)
+- **Analysis Skill**: `${PLUGIN_ROOT}/skills/migrate-oracle/analyze-oracle-schema/SKILL.md`
+- **Report Template**: `${PLUGIN_ROOT}/skills/migrate-oracle/analyze-oracle-schema/analyze-oracle-dbms_report.md`
+- **Extractor Script**: `${PLUGIN_ROOT}/skills/migrate-oracle/analyze-oracle-schema/scripts/oracle_db_extractor.py`
+- **Migration Skill**: `${PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-to-scalardb/SKILL.md`
+- **Migration Templates**: `${PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-to-scalardb/templates/`
+- **ScalarDB Reference**: `${PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-to-scalardb/reference/scalardb_reference.md`
+- **AQ Migration Skill**: `${PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-aq-to-scalardb/SKILL.md`
+- **AQ Migration Reference**: `${PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-aq-to-scalardb/reference/aq-migration-strategy-guide.md`
+- **AQ Migration Template**: `${PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-aq-to-scalardb/templates/scalardb_aq_migration_report.md`
+- **AQ Official Docs**: `${PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-aq-to-scalardb/reference/AQ-official-docs/`
+- **SP & Trigger Migration Skill**: `${PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-sp-trigger-to-scalardb/SKILL.md`
+- **SP & Trigger Migration Reference**: `${PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-sp-trigger-to-scalardb/reference/migration-strategy-guide-sp-triggers-to-scalardb.md`
+- **SP & Trigger Migration Template**: `${PLUGIN_ROOT}/skills/migrate-oracle/migrate-oracle-sp-trigger-to-scalardb/templates/scalardb_sp_migration_report.md`
 - **Config**: `.claude/configuration/databases.env`

@@ -1,5 +1,6 @@
 ---
 description: Show ScalarDB JDBC/SQL operation patterns — SELECT, INSERT, UPSERT, UPDATE, DELETE, JOIN, aggregates with examples.
+model: sonnet
 user_invocable: true
 ---
 

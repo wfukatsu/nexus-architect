@@ -76,7 +76,7 @@ Conforms to the schema defined in @skills/common/progress-registry.md.
 ## Completion Criteria
 
 1. All phases are either completed or skipped
-2. `reports/00_summary/executive-summary.md` has been generated
+2. `reports/00_summary/full-report.html` has been generated
 3. pipeline-progress.json status is "completed"
 
 ## Related Skills

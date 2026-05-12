@@ -38,8 +38,8 @@ Each dimension scored 1-5 (5: Exemplary, 4: Good, 3: Acceptable, 2: Concerning, 
 ### Step 1: Collect Input File Paths
 
 Glob for all available design and analysis documents:
-- `reports/01_analysis/**/*.md`
 - `reports/03_design/**/*.md`
+- `reports/01_analysis/**/*.md`
 
 Record the full list of found file paths — these will be passed to sub-agents.
 

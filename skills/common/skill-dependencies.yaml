@@ -52,7 +52,7 @@ phases:
     parallel_with: [evaluate-mmi]
     outputs:
       - reports/02_evaluation/ddd-strategic-evaluation.md
-      - reports/02_evaluation/ddd-tactical-evaluation.md
+      - reports/02_evaluation/ddd-tactical-architecture-evaluation.md
     model: sonnet
 
   integrate-evaluations:

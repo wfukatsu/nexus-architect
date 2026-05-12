@@ -400,7 +400,7 @@ Display to the user:
 PostgreSQL to ScalarDB Migration — Complete
 
 Phase 0: Connection Test
-  - API endpoint: https://test2.jeeni.in/database/test-postgres-connection
+  - Connection method: Python psycopg2 (direct database connection)
   - <Subagent 0 SUMMARY line (database product and version)>
 
 Phase 1: Schema Extraction

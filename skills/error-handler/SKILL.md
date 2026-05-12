@@ -1,5 +1,6 @@
 ---
 description: Generate correct ScalarDB exception handling code with retry logic. Can also review existing code for exception handling correctness.
+model: sonnet
 user_invocable: true
 ---
 

@@ -1,5 +1,6 @@
 ---
 description: Search ScalarDB documentation for specific topics. Fetches the official docs and summarizes relevant sections.
+model: sonnet
 user_invocable: true
 ---
 
