@@ -356,58 +356,43 @@ Spawn a **general-purpose** subagent using the `Task` tool to generate the schem
 
 ---
 
-### STEP 10: Subagent 3 — Migration Analysis (general-purpose)
+### STEP 10: Subagents 3, 4, 5 — Parallel Execution (general-purpose × 3)
 
-Spawn a **general-purpose** subagent using the `Task` tool to generate ScalarDB migration documentation.
+Subagents 3, 4, and 5 all depend only on the outputs of Subagent 2 (`oracle_schema_report.md` + `raw_schema_data.json`). They have no dependencies on each other, so spawn all three **in a single message** to run in parallel.
+
+Record `S345_START` = current time.
+
+**In one message**, issue all three Task() calls simultaneously:
+
+**Task A — Subagent 3: Migration Analysis**
 
 1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/3-migration-analysis.md`
-2. Substitute the runtime variables as documented in the template (replace all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4)
-3. Call the Task tool with `subagent_type: "general-purpose"`, `description: "Generate Oracle migration docs"`, and the substituted prompt
+2. Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
+3. Call: `Task(subagent_type: "general-purpose", description: "Generate Oracle migration docs", prompt: <substituted>)`
 
-**Check the subagent result:**
-- If STATUS is **FAILURE** → Display the error to the user. Note that schema analysis outputs are still available in the output directory.
-- If STATUS is **SUCCESS** → Proceed to Step 11.
-
----
-
-### STEP 11: Subagent 4 — AQ Migration (general-purpose)
-
-Spawn a **general-purpose** subagent using the `Task` tool to generate Oracle AQ setup SQL and Java consumer files from triggers and stored procedures.
+**Task B — Subagent 4: AQ Migration**
 
 1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/4-aq-migration.md`
-2. Substitute the runtime variables as documented in the template (replace all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4)
-3. Call the Task tool with `subagent_type: "general-purpose"`, `description: "Generate AQ setup SQL & consumer Java"`, and the substituted prompt
+2. Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
+3. Call: `Task(subagent_type: "general-purpose", description: "Generate AQ setup SQL & consumer Java", prompt: <substituted>)`
 
-**Error cascading rules for Step 11:**
-- Subagent 2 (Step 9) **failed** → **do NOT spawn Subagent 4** (it needs oracle_schema_report.md for table/column context)
-- Subagent 3 (Step 10) **failed** → **still spawn Subagent 4** (AQ migration only needs raw_schema_data.json + schema report, not migration docs)
-
-**Check the subagent result:**
-- If STATUS is **FAILURE** → Display the error to the user. Note that all prior outputs (schema report, migration docs) are still available on disk.
-- If STATUS is **SUCCESS** → Note the QUEUES_CREATED, FILES_GENERATED and SUMMARY. Proceed to Step 12.
-
----
-
-### STEP 12: Subagent 5 — Stored Procedure & Trigger Migration (general-purpose)
-
-Spawn a **general-purpose** subagent using the `Task` tool to generate ScalarDB Java application code from PL/SQL stored procedures, functions, packages, and triggers (direct conversion without AQ).
+**Task C — Subagent 5: Stored Procedure & Trigger Migration**
 
 1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/oracle/5-sp-trigger-migration.md`
-2. Substitute the runtime variables as documented in the template (replace all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4)
-3. Call the Task tool with `subagent_type: "general-purpose"`, `description: "Generate SP & trigger migration code"`, and the substituted prompt
+2. Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
+3. Call: `Task(subagent_type: "general-purpose", description: "Generate SP & trigger migration code", prompt: <substituted>)`
 
-**Error cascading rules for Step 12:**
-- Subagent 2 (Step 9) **failed** → **do NOT spawn Subagent 5** (it needs oracle_schema_report.md for table/column context)
-- Subagent 3 (Step 10) **failed** → **still spawn Subagent 5** (SP & trigger migration only needs raw_schema_data.json + schema report, not migration docs)
-- Subagent 4 (Step 11) **failed** → **still spawn Subagent 5** (SP & trigger migration is independent of AQ migration)
+**Wait for all three Tasks to complete**, then record `S345_WALL = max(S3_DURATION, S4_DURATION, S5_DURATION)`.
 
-**Check the subagent result:**
-- If STATUS is **FAILURE** → Display the error to the user. Note that all prior outputs (schema report, migration docs, AQ files) are still available on disk.
-- If STATUS is **SUCCESS** → Note the FILES_GENERATED count and SUMMARY. Proceed to Step 13.
+**Check results independently (failures are isolated — one does not block the others):**
+- **Subagent 3 fails** → Display error. Note schema analysis outputs remain on disk. Continue checking 4 and 5.
+- **Subagent 4 fails** → Display error. Note prior outputs remain on disk. Continue checking 5.
+- **Subagent 5 fails** → Display error. Note prior outputs remain on disk.
+- Any SUCCESS → Note the relevant counts (COMPLEXITY_SCORE, QUEUES_CREATED, FILES_GENERATED) for the summary.
 
 ---
 
-### STEP 13: Display Final Summary
+### STEP 11: Display Final Summary
 
 Display the combined results from all six subagents to the user:
 
@@ -426,13 +411,16 @@ Phase 2: Schema Report
   - Generated: oracle_schema_report.md
   - <Subagent 2 SUMMARY lines>
 
-Phase 3: Migration Analysis
+Phase 3+4+5: Parallel Migration (ran simultaneously after Phase 2)
+  Wall-clock time: <S345_WALL>s  (SA3: <S3_DURATION>s | SA4: <S4_DURATION>s | SA5: <S5_DURATION>s)
+
+  [Phase 3] Migration Analysis
   - Generated: scalardb_migration_analysis.md
   - Generated: scalardb_migration_steps.md
   - Migration Complexity: <Subagent 3 COMPLEXITY_SCORE>
   - <Subagent 3 SUMMARY lines>
 
-Phase 4: AQ Migration
+  [Phase 4] AQ Migration
   - Generated: aq_setup.sql (Oracle AQ setup — payload types, queues, triggers, enqueue SPs)
   - Generated: scalardb_aq_migration_report.md
   - Java consumer files: <OUTPUT_DIR>/generated-java/
@@ -440,7 +428,7 @@ Phase 4: AQ Migration
   - Files generated: <Subagent 4 FILES_GENERATED>
   - <Subagent 4 SUMMARY lines>
 
-Phase 5: Stored Procedure & Trigger Migration (Direct)
+  [Phase 5] Stored Procedure & Trigger Migration (Direct)
   - Generated: scalardb_sp_migration_report.md
   - Java files: <OUTPUT_DIR>/generated-java/
   - Files generated: <Subagent 5 FILES_GENERATED>
@@ -467,9 +455,9 @@ Next Steps:
 - If **Subagent 0 fails** (API connection test) → show error with resolution hints (check host/port/service, verify credentials, ensure Oracle listener is running, verify network connectivity), **STOP** (do not spawn Subagent 1, 2, 3, 4, or 5)
 - If **Subagent 1 fails** (DB connection/extraction error) → show error with resolution hints, **STOP** (do not spawn Subagent 2, 3, 4, or 5)
 - If **Subagent 2 fails** (report generation error) → show error, note that `raw_schema_data.json` is available on disk, **STOP** (do not spawn Subagent 3, 4, or 5 — Subagents 4 and 5 need the schema report for table/column context)
-- If **Subagent 3 fails** (migration analysis error) → show error, note that schema report is still available on disk. **Still spawn Subagent 4 and 5** (AQ migration and SP & trigger migration only need raw_schema_data.json + schema report, not migration docs)
-- If **Subagent 4 fails** (AQ migration error) → show error, note that all prior outputs are still available. **Still spawn Subagent 5** (SP & trigger migration is independent of AQ migration)
-- If **Subagent 5 fails** (SP & trigger migration error) → show error, note that all prior outputs (schema report, migration docs, AQ files) are still available on disk
+- If **Subagent 3 fails** (migration analysis error) → show error, note that schema report is still on disk. Subagents 4 and 5 ran in parallel and are unaffected.
+- If **Subagent 4 fails** (AQ migration error) → show error, note that all prior outputs are still on disk. Subagents 3 and 5 ran in parallel and are unaffected.
+- If **Subagent 5 fails** (SP & trigger migration error) → show error, note that all prior outputs are still on disk. Subagents 3 and 4 ran in parallel and are unaffected.
 
 Partial outputs are always preserved — if extraction succeeds but later steps fail, earlier output files remain on disk for manual inspection.
 
@@ -477,16 +465,24 @@ Partial outputs are always preserved — if extraction succeeds but later steps 
 
 ## Subagent Architecture
 
-This command uses **6 sequential subagents** to isolate heavy processing from the main conversation:
+This command uses **6 subagents** — 3 sequential then 3 parallel — to isolate heavy processing from the main conversation:
 
-| Subagent | Type | Purpose | Returns |
-|----------|------|---------|---------|
-| 0 | Bash | Test DB connection via API (`test-connection` endpoint) | SUCCESS/FAILURE + DB version |
-| 1 | Bash | Run `oracle_db_extractor.py` | SUCCESS/FAILURE + file path |
-| 2 | general-purpose | Generate `oracle_schema_report.md` from JSON + template | Executive summary |
-| 3 | general-purpose | Generate migration analysis + steps from report + reference docs | Complexity score + findings |
-| 4 | general-purpose | Generate AQ setup SQL + Java consumer code from triggers/SPs | Queues + files generated |
-| 5 | general-purpose | Generate Java code from PL/SQL + SP & trigger migration report | Files generated + complexity |
+```
+SA0 (Bash) → SA1 (Bash) → SA2 (general-purpose) → ┌─ SA3 (general-purpose) ─┐
+                                                     ├─ SA4 (general-purpose) ─┤ → Summary
+                                                     └─ SA5 (general-purpose) ─┘
+```
+
+| Subagent | Type | Phase | Purpose | Returns |
+|----------|------|-------|---------|---------|
+| 0 | Bash | Sequential | Test DB connection via SQL*Plus | SUCCESS/FAILURE + DB version |
+| 1 | Bash | Sequential | Run `oracle_db_extractor.py` | SUCCESS/FAILURE + file path |
+| 2 | general-purpose | Sequential | Generate `oracle_schema_report.md` from JSON + template | Executive summary |
+| 3 | general-purpose | **Parallel** | Generate migration analysis + steps from report + reference docs | Complexity score + findings |
+| 4 | general-purpose | **Parallel** | Generate AQ setup SQL + Java consumer code from triggers/SPs | Queues + files generated |
+| 5 | general-purpose | **Parallel** | Generate Java code from PL/SQL + SP & trigger migration report | Files generated + complexity |
+
+SA3, SA4, and SA5 are spawned simultaneously in a single message after SA2 completes. Expected speedup vs. sequential: ~33–55% reduction in wall-clock time for phases 3–5.
 
 The SKILL.md files are **read directly by subagents** as instruction documents (the Skill tool is not invoked).
 
