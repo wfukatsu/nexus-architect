@@ -39,25 +39,25 @@ Gain a comprehensive understanding of the target system and generate the followi
 
 ## Execution
 
-### issues-and-debt.md — 集計手順
+### issues-and-debt.md — Counting Procedure
 
-1. 本文にすべての個別問題（`SEC-xx`、`DEBT-xx`）を書き出す
-2. 書き出した項目を実際に数えて深刻度別に集計する
-3. その集計結果をサマリーテーブルに記入する
+1. Write all individual issues (`SEC-xx`, `DEBT-xx`) in the body first
+2. Count the written items by severity
+3. Fill the summary table with those counts
 
-**NG パターン**: サマリーテーブルを先に書いてから本文を埋める。本文と集計値が一致しなくなる。
+**Anti-pattern**: Writing the summary table before the body. The table counts will not match the actual body items.
 
-### ddd-readiness.md — スコア計算手順
+### ddd-readiness.md — Score Calculation Procedure
 
-1. 12 基準すべてに個別スコア（1〜5）を採点する
-2. 採点後、@rules/evaluation-frameworks.md の式で合計スコアを計算する:
+1. Score all 12 criteria individually (1–5 each)
+2. After scoring, compute the total using the formula from @rules/evaluation-frameworks.md:
    ```
    DDD Score = (0.30 × Strategic_Avg + 0.45 × Tactical_Avg + 0.25 × Architecture_Avg) / 5 × 100
    ```
-3. 計算した値を Weighted Score テーブルの合計列に記入する
-4. その値を Executive Summary のスコアとして使う
+3. Enter the computed value as the Weighted Score table total
+4. Use that value as the score in the Executive Summary
 
-**NG パターン**: Executive Summary に先にスコアを書き、後から個別採点する。合計が一致しなくなる。
+**Anti-pattern**: Writing the Executive Summary score first, then scoring individual criteria. The total will not match the table sum.
 
 ## Output
 
@@ -78,8 +78,8 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 
 1. All four output files have been written
 2. Verify numerical consistency:
-   - `ddd-readiness.md`: Executive Summary のスコア = Weighted Score 列の合計（独立推定値ではない）
-   - `issues-and-debt.md`: サマリーテーブルの各深刻度カウント = 本文の SEC-xx / DEBT-xx の実件数
+   - `ddd-readiness.md`: Executive Summary score = sum of Weighted Score column in the table (not an independent estimate)
+   - `issues-and-debt.md`: summary table severity counts = actual number of SEC-xx / DEBT-xx items in the body
 3. Update investigate in pipeline-progress.json to "completed"
 4. Report a summary of findings and any unresolved concerns
 
