@@ -187,3 +187,10 @@ phases:
     outputs:
       - reports/00_summary/full-report.html
     model: haiku
+
+  review-report:
+    category: reporting
+    depends_on: [report]
+    outputs:
+      - reports/review/report-quality-review.md
+    model: sonnet

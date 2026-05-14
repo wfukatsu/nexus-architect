@@ -28,7 +28,7 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 
 ### Orchestration
 - `/architect:start [target_path]` — Interactively start system analysis and design
-- `/architect:pipeline [target_path]` — Automated pipeline execution (--resume, --skip)
+- `/architect:pipeline [target_path]` — Automated pipeline execution (--resume-from, --rerun-from, --skip-{phase}, --no-scalardb, --lang=en|ja)
 - `/architect:init-output [project]` — Initialize output directories
 
 ### Investigation & Analysis
@@ -64,10 +64,10 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 - `/architect:design-observability` — Monitoring, tracing, alerting
 - `/architect:design-disaster-recovery` — RTO/RPO, backup, DR
 
-### Review (5-perspective parallel)
+### Review (5 parallel reviews — scalardb and data-integrity are mutually exclusive)
 - `/architect:review-consistency` — Structural coherence (CON-)
-- `/architect:review-scalardb` — ScalarDB constraints (SDB-)
-- `/architect:review-data-integrity` — Data integrity (DIN-, non-ScalarDB)
+- `/architect:review-scalardb` — ScalarDB constraints (SDB-) — runs when scalardb_enabled
+- `/architect:review-data-integrity` — Data integrity (DIN-) — runs when scalardb_disabled
 - `/architect:review-operations` — Operational readiness (OPS-)
 - `/architect:review-risk` — Distributed system risks (RSK-)
 - `/architect:review-business` — Business requirements (BIZ-)
@@ -75,6 +75,7 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 
 ### Reporting
 - `/architect:report` — Markdown to HTML consolidated report
+- `/architect:review-report` — Review quality of generated HTML report (completeness, score accuracy, Mermaid syntax, language, structure)
 - `/architect:render-mermaid [target_path]` — Mermaid to PNG/SVG + syntax fix
 - `/architect:estimate-cost` — Infrastructure, license, operational costs
 
@@ -101,8 +102,9 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 
 ```
 investigate -> analyze -> [evaluate-mmi, evaluate-ddd] -> integrate-evaluations
-  -> redesign -> design-microservices -> [design-scalardb, design-api]
-  -> implementation -> review -> report
+  -> redesign -> design-microservices -> [design-scalardb | design-data-layer, design-api]
+  -> [review-consistency, review-scalardb|review-data-integrity, review-operations, review-risk, review-business]
+  -> review-synthesizer -> report -> review-report
 ```
 
 Dependency manifest: @skills/common/skill-dependencies.yaml
@@ -152,11 +154,14 @@ Naming and frontmatter rules: @rules/output-conventions.md
 | Spring Boot integration | @rules/spring-boot-integration.md | Java code generation |
 | Output structure contract | @templates/output-structure.md | File dependencies |
 | Sub-agent patterns | @skills/common/sub-agent-patterns.md | Spawning sub-agents |
+| Progress registry | @skills/common/progress-registry.md | pipeline-progress.json schema and resume behavior |
 | API reference | @skills/common/references/api-reference.md | ScalarDB API details |
 | Interface matrix | @skills/common/references/interface-matrix.md | 6 interface combinations |
 | Exception hierarchy | @skills/common/references/exception-hierarchy.md | Exception decision tree |
 | SQL reference | @skills/common/references/sql-reference.md | SQL grammar and limitations |
 | Schema format | @skills/common/references/schema-format.md | JSON/SQL schema format |
+| Configuration reference | @skills/common/references/configuration-reference.md | All ScalarDB config properties by backend |
+| Code patterns | @skills/common/references/code-patterns/ | Complete app templates for all 6 interface combos |
 
 ## Conventions
 
