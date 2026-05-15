@@ -66,6 +66,8 @@ work/         パイプライン状態と中間コンテキスト
 
 スキルが `.claude/docs/` や `.claude/rules/` の Claude インストール済み参照ファイルを指す場合、Codex ではリポジトリ内の `skills/common/references/` と `rules/` の実体を使います。
 
+Migration スキルが `${CLAUDE_PLUGIN_ROOT}/subagents/<db>/` または `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/<db>/` の subagent prompt template を指す場合、Codex では `skills/common/subagents/<db>/` を使います。
+
 ## 検証
 
 Claude Code では hooks を `PostToolUse` hook として自動実行できます。Codex では必要に応じて手動実行してください。

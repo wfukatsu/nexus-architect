@@ -72,6 +72,7 @@ Open Codex at the repository root. `AGENTS.md` tells Codex how to translate Clau
 - `CLAUDE_PLUGIN_ROOT` -> the repository root
 - `.claude/docs/*` -> `skills/common/references/*`
 - `.claude/rules/*` -> `rules/*`
+- `${CLAUDE_PLUGIN_ROOT}/subagents/*` -> `skills/common/subagents/*`
 
 Then invoke the same command text in chat:
 

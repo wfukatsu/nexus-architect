@@ -305,7 +305,7 @@ mkdir -p <OUTPUT_DIR>
 
 Spawn a **Bash** subagent using the `Task` tool to test the PostgreSQL database connection via the external API.
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/postgresql/0-test-connection.md`
+1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/postgresql/0-test-connection.md`
 2. Substitute the runtime variables: replace `<POSTGRES_HOST>`, `<POSTGRES_PORT>`, `<POSTGRES_DATABASE>`, `<POSTGRES_USER>`, `<POSTGRES_PASSWORD>`, and `<OUTPUT_DIR>` with the actual values from Steps 4-5
 3. Call the Task tool with `subagent_type: "Bash"`, `description: "Test PostgreSQL connection"`, and the substituted prompt
 
@@ -323,7 +323,7 @@ Spawn a **Bash** subagent using the `Task` tool to test the PostgreSQL database 
 
 Spawn a **Bash** subagent using the `Task` tool to run the Python extractor script.
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/postgresql/1-extract-schema.md`
+1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/postgresql/1-extract-schema.md`
 2. Substitute the runtime variables as documented in the template (replace `<INCLUDE_SOURCE_FLAG>` based on POSTGRES_INCLUDE_PLPGSQL_SOURCE from Step 4)
 3. Call the Task tool with `subagent_type: "Bash"`, `description: "Extract PostgreSQL schema"`, and the substituted prompt
 
@@ -341,7 +341,7 @@ Spawn a **Bash** subagent using the `Task` tool to run the Python extractor scri
 
 Spawn a **general-purpose** subagent using the `Task` tool to generate the schema report from the extracted JSON.
 
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/postgresql/2-generate-report.md`
+1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/postgresql/2-generate-report.md`
 2. Substitute the runtime variables as documented in the template (replace all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4)
 3. Call the Task tool with `subagent_type: "general-purpose"`, `description: "Generate PostgreSQL schema report"`, and the substituted prompt
 
@@ -360,9 +360,9 @@ Spawn a **general-purpose** subagent using the `Task` tool to generate the schem
 **Both subagents run simultaneously** in a single message — send both `Task` tool calls together in one response. They share the same inputs (`postgresql_schema_report.md` and `raw_schema_data.json`) and have no dependency on each other's output.
 
 **Preparation:**
-1. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/postgresql/3-migration-analysis.md`
+1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/postgresql/3-migration-analysis.md`
    - Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
-2. Read the prompt template at: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/postgresql/4-sp-trigger-migration.md`
+2. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/postgresql/4-sp-trigger-migration.md`
    - Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
 
 **Spawn both in one message:**
@@ -506,14 +506,14 @@ The SKILL.md files are **read directly by subagents** as instruction documents (
 
 ## Related Files
 
-- **Subagent Prompts**: `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/postgresql/` (5 prompt templates)
-- **Analysis Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/analyze-postgresql-schema/SKILL.md`
-- **Report Template**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/analyze-postgresql-schema/analyze-postgresql-dbms_report.md`
-- **Extractor Script**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/analyze-postgresql-schema/scripts/postgresql_db_extractor.py`
-- **Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-to-scalardb/SKILL.md`
-- **Migration Templates**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-to-scalardb/templates/`
-- **ScalarDB Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-to-scalardb/reference/scalardb_reference.md`
-- **SP & Trigger Migration Skill**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-sp-trigger-to-scalardb/SKILL.md`
-- **SP & Trigger Migration Reference**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-sp-trigger-to-scalardb/reference/migration-strategy-guide-sp-triggers-to-scalardb.md`
-- **SP & Trigger Migration Template**: `${CLAUDE_PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-sp-trigger-to-scalardb/templates/scalardb_sp_migration_report.md`
+- **Subagent Prompts**: `${PLUGIN_ROOT}/skills/common/subagents/postgresql/` (5 prompt templates)
+- **Analysis Skill**: `${PLUGIN_ROOT}/skills/migrate-postgresql/analyze-postgresql-schema/SKILL.md`
+- **Report Template**: `${PLUGIN_ROOT}/skills/migrate-postgresql/analyze-postgresql-schema/analyze-postgresql-dbms_report.md`
+- **Extractor Script**: `${PLUGIN_ROOT}/skills/migrate-postgresql/analyze-postgresql-schema/scripts/postgresql_db_extractor.py`
+- **Migration Skill**: `${PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-to-scalardb/SKILL.md`
+- **Migration Templates**: `${PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-to-scalardb/templates/`
+- **ScalarDB Reference**: `${PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-to-scalardb/reference/scalardb_reference.md`
+- **SP & Trigger Migration Skill**: `${PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-sp-trigger-to-scalardb/SKILL.md`
+- **SP & Trigger Migration Reference**: `${PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-sp-trigger-to-scalardb/reference/migration-strategy-guide-sp-triggers-to-scalardb.md`
+- **SP & Trigger Migration Template**: `${PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-sp-trigger-to-scalardb/templates/scalardb_sp_migration_report.md`
 - **Config**: `.claude/configuration/databases.env`

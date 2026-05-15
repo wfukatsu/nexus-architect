@@ -68,6 +68,7 @@ For migration skills that mention `.claude/configuration/databases.env` or `.cla
 When a skill mentions `CLAUDE_PLUGIN_ROOT`, treat the repository root as the plugin root in Codex.
 
 - `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/<db>/` -> `skills/common/subagents/<db>/` (subagent prompt templates for migration skills)
+- `${CLAUDE_PLUGIN_ROOT}/subagents/<db>/` -> `skills/common/subagents/<db>/` (legacy subagent prompt path)
 
 ## Pipeline Skill
 

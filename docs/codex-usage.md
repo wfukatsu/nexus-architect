@@ -66,6 +66,8 @@ Some database migration skills intentionally use `.claude/configuration/database
 
 When a skill refers to installed Claude reference docs under `.claude/docs/` or `.claude/rules/`, Codex uses the repository copies in `skills/common/references/` and `rules/`.
 
+When a migration skill refers to subagent prompt templates under `${CLAUDE_PLUGIN_ROOT}/subagents/<db>/` or `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/<db>/`, Codex uses `skills/common/subagents/<db>/`.
+
 ## Validation
 
 Claude Code can run the hooks automatically as `PostToolUse` hooks. Codex should run them manually when relevant:
