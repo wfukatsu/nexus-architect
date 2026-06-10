@@ -21,7 +21,7 @@ validate_file() {
   ERRORS=""
   BLOCK_NUM=0
 
-  while IFS= read -r block; do
+  while IFS= read -r -d $'\001' block; do
     BLOCK_NUM=$((BLOCK_NUM + 1))
     FIRST_LINE=$(echo "$block" | grep -m1 '[a-zA-Z]')
     if [ -n "$FIRST_LINE" ]; then
@@ -47,7 +47,7 @@ validate_file() {
     [ "$OPEN_BRACES" -ne "$CLOSE_BRACES" ] && \
       ERRORS="${ERRORS}Block $BLOCK_NUM: Unbalanced braces ($OPEN_BRACES open, $CLOSE_BRACES close)\n"
 
-  done < <(awk '/^```mermaid$/{found=1; block=""; next} /^```$/{if(found){print block; found=0} next} found{block=block (block?"\n":"") $0}' "$FILE_PATH")
+  done < <(awk '/^```mermaid$/{found=1; block=""; next} /^```$/{if(found){printf "%s\001", block; found=0} next} found{block=block (block?"\n":"") $0}' "$FILE_PATH")
 
   if [ -n "$ERRORS" ]; then
     echo "MERMAID VALIDATION ERRORS in $FILE_PATH:"

@@ -81,9 +81,10 @@ Generate the story automatically from existing analysis files without facilitati
 Steps:
 1. Read `reports/03_design/bounded-contexts-redesign.md` — identify BC boundary and contained aggregates
 2. Read `reports/01_analysis/actors-roles-permissions.md` — extract actors
-3. Read `reports/01_analysis/ubiquitous-language.md` — align domain terminology
+3. Read `reports/01_analysis/ubiquitous-language.md` — build a term lookup table from the "業務用語 / Domain Term" column
 4. Infer the most plausible main flow from the aggregate lifecycle
-5. Generate the story document directly
+5. When naming actors and work items, look up each concept in the term table from step 3 and use the exact term verbatim. Do not invent synonyms or paraphrases.
+6. Generate the story document directly
 
 ## Prerequisites
 
