@@ -103,7 +103,8 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 
 ```
 investigate -> analyze -> [evaluate-mmi, evaluate-ddd] -> integrate-evaluations
-  -> redesign -> design-microservices -> [design-scalardb | design-data-layer, design-api]
+  -> redesign -> [create-domain-story (optional, per domain)]
+  -> design-microservices -> [design-scalardb | design-data-layer, design-api]
   -> [review-consistency, review-scalardb|review-data-integrity, review-operations, review-risk, review-business]
   -> review-synthesizer -> report -> review-report
 ```

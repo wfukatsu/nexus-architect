@@ -25,6 +25,7 @@ Verify all pipeline phases executed in `work/pipeline-progress.json` are represe
 - Every `completed` phase must have at least one corresponding section in the HTML
 - Phase outputs listed in `pipeline-progress.json` must be discoverable in the HTML content
 - Key metrics (MMI score, DDD score, review scores, overall verdict) must be present
+- If `reports/04_stories/domain-story-*.md` files exist, a Domain Stories section must be present in the HTML; each domain covered must appear as a subsection with its sequence diagram
 
 ### 2. Score Accuracy (weight: 0.35)
 
