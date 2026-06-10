@@ -48,6 +48,7 @@
         "./skills/integrate-evaluations",
         "./skills/map-domains",
         "./skills/redesign",
+        "./skills/create-domain-story",
         "./skills/design-microservices",
         "./skills/select-scalardb-edition",
         "./skills/design-scalardb",

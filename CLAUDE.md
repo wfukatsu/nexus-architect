@@ -45,6 +45,7 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 ### Design
 - `/architect:map-domains` — Domain classification, BC mapping
 - `/architect:redesign` — Bounded context redesign
+- `/architect:create-domain-story [--domain=<name>] [--auto]` — Domain Storytelling: visualize business processes per domain (interactive 7-stage facilitation or auto-generation from analysis files)
 - `/architect:design-microservices` — Target architecture
 - `/architect:select-scalardb-edition` — ScalarDB edition selection
 - `/architect:design-scalardb` — ScalarDB schema and transaction design

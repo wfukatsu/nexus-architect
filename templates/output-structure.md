@@ -41,6 +41,8 @@ reports/
 │       ├── graphql/
 │       ├── grpc/
 │       └── asyncapi/
+├── 04_stories/                    # create-domain-story (optional)
+│   └── domain-story-{domain}.md  # One file per domain
 └── review/                        # review-* agents
     ├── individual/
     │   ├── review-consistency.json

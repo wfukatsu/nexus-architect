@@ -88,7 +88,7 @@ to Sonnet or above) for the following skill groups:
 
 | Recommended: Opus equivalent | Recommended: Sonnet equivalent | Haiku equivalent sufficient |
 |---|---|---|
-| analyze, design-api, design-data-layer, design-implementation, design-infrastructure, design-microservices, design-scalardb, generate-scalardb-code, map-domains, redesign | analyze-data-model, design-disaster-recovery, design-observability, design-scalardb-analytics, design-security, estimate-cost, evaluate-ddd, evaluate-mmi, generate-infra-code, generate-test-specs, integrate-evaluations, investigate, investigate-security, migrate-database, migrate-mysql, migrate-oracle, migrate-postgresql, pipeline, review-*, select-scalardb-edition | init-output, render-mermaid |
+| analyze, create-domain-story, design-api, design-data-layer, design-implementation, design-infrastructure, design-microservices, design-scalardb, generate-scalardb-code, map-domains, redesign | analyze-data-model, design-disaster-recovery, design-observability, design-scalardb-analytics, design-security, estimate-cost, evaluate-ddd, evaluate-mmi, generate-infra-code, generate-test-specs, integrate-evaluations, investigate, investigate-security, migrate-database, migrate-mysql, migrate-oracle, migrate-postgresql, pipeline, review-*, select-scalardb-edition | init-output, render-mermaid |
 
 ## Interaction Rules
 

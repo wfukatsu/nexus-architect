@@ -79,6 +79,14 @@ phases:
       - reports/03_design/domain-analysis.md
     model: opus
 
+  create-domain-story:
+    category: design
+    depends_on: [redesign]
+    optional: true
+    outputs:
+      - reports/04_stories/domain-story-{domain}.md
+    model: opus
+
   design-microservices:
     category: design
     depends_on: [redesign]
