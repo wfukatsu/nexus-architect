@@ -12,7 +12,7 @@
     {
       "name": "architect",
       "description": "System architecture agent for legacy refactoring, greenfield design, database migration (Oracle/MySQL/PostgreSQL to ScalarDB), and consulting deliverables. Includes 5-perspective parallel review system, MMI/DDD evaluation frameworks, and full code generation pipeline.",
-      "version": "0.5.0",
+      "version": "0.6.2",
       "author": {
         "name": "Wataru Fukatsu",
         "url": "https://github.com/wfukatsu"
@@ -83,7 +83,7 @@
     {
       "name": "scalardb",
       "description": "ScalarDB application development toolkit. Interactive schema design, configuration generation, CRUD/JDBC operation patterns, exception handling, project scaffolding, local environment setup, documentation search, code review, and migration advisory.",
-      "version": "0.5.0",
+      "version": "0.6.2",
       "author": {
         "name": "Wataru Fukatsu",
         "url": "https://github.com/wfukatsu"
