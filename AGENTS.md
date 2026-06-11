@@ -52,15 +52,14 @@ Prefer repository-relative paths for Codex execution:
 - Common references: `skills/common/references/`
 - Subagent prompt templates: `skills/common/subagents/`
 
-When a skill refers to Claude-installed reference paths, use these Codex fallbacks:
+Skills reference plugin files via `${CLAUDE_PLUGIN_ROOT}/...` (e.g.
+`${CLAUDE_PLUGIN_ROOT}/skills/common/references/api-reference.md`,
+`${CLAUDE_PLUGIN_ROOT}/rules/scalardb-crud-patterns.md`). In Codex, resolve
+these as repository-relative paths (see the `CLAUDE_PLUGIN_ROOT` note below).
 
-- `.claude/docs/api-reference.md` -> `skills/common/references/api-reference.md`
-- `.claude/docs/exception-hierarchy.md` -> `skills/common/references/exception-hierarchy.md`
-- `.claude/docs/configuration-reference.md` -> `skills/common/references/configuration-reference.md`
-- `.claude/docs/schema-format.md` -> `skills/common/references/schema-format.md`
-- `.claude/docs/interface-matrix.md` -> `skills/common/references/interface-matrix.md`
-- `.claude/docs/sql-reference.md` -> `skills/common/references/sql-reference.md`
-- `.claude/docs/code-patterns/*` -> `skills/common/references/code-patterns/*`
+Legacy fallbacks (only if an old skill copy still mentions them):
+
+- `.claude/docs/*` -> `skills/common/references/*`
 - `.claude/rules/*` -> `rules/*`
 
 For migration skills that mention `.claude/configuration/databases.env` or `.claude/output/`, keep those paths unless the user asks to migrate the runtime state. They are compatibility paths and can be used by both Claude Code and Codex.

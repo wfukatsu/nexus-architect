@@ -71,6 +71,7 @@
         "./skills/review-business",
         "./skills/review-synthesizer",
         "./skills/report",
+        "./skills/review-report",
         "./skills/render-mermaid",
         "./skills/estimate-cost",
         "./skills/migrate-database",

@@ -1,5 +1,6 @@
 ---
 description: Generates ScalarDB migration documentation from MySQL schema analysis. Consumes the MySQL schema analysis Markdown file from the configured output directory as input and produces migration analysis and step-by-step migration guides.
+model: opus
 ---
 
 # Migrate MySQL to ScalarDB Skill

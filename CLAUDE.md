@@ -140,30 +140,34 @@ Naming and frontmatter rules: @rules/output-conventions.md
 
 ## Rules & References
 
+Read these files on demand with the Read tool when the "When to Read" condition applies.
+They are intentionally NOT auto-imported (no `@` prefix) to keep session context small —
+do not load ScalarDB rules for non-ScalarDB work.
+
 | Resource | Location | When to Read |
 |----------|----------|--------------|
-| ScalarDB exception handling | @rules/scalardb-exception-handling.md | Exception handling, retry logic |
-| ScalarDB CRUD patterns | @rules/scalardb-crud-patterns.md | CRUD API operations |
-| ScalarDB JDBC patterns | @rules/scalardb-jdbc-patterns.md | JDBC/SQL operations |
-| ScalarDB 2PC patterns | @rules/scalardb-2pc-patterns.md | Two-phase commit protocol |
-| ScalarDB config validation | @rules/scalardb-config-validation.md | Configuration correctness |
-| ScalarDB schema design | @rules/scalardb-schema-design.md | Schema and key design |
-| ScalarDB Java best practices | @rules/scalardb-java-best-practices.md | Java coding standards |
-| ScalarDB coding patterns | @rules/scalardb-coding-patterns.md | Code generation, design-scalardb, generate-scalardb-code |
-| ScalarDB edition profiles | @rules/scalardb-edition-profiles.md | Edition selection |
-| Evaluation frameworks | @rules/evaluation-frameworks.md | MMI/DDD scoring |
-| Mermaid best practices | @rules/mermaid-best-practices.md | Creating diagrams |
-| Spring Boot integration | @rules/spring-boot-integration.md | Java code generation |
-| Output structure contract | @templates/output-structure.md | File dependencies |
-| Sub-agent patterns | @skills/common/sub-agent-patterns.md | Spawning sub-agents |
-| Progress registry | @skills/common/progress-registry.md | pipeline-progress.json schema and resume behavior |
-| API reference | @skills/common/references/api-reference.md | ScalarDB API details |
-| Interface matrix | @skills/common/references/interface-matrix.md | 6 interface combinations |
-| Exception hierarchy | @skills/common/references/exception-hierarchy.md | Exception decision tree |
-| SQL reference | @skills/common/references/sql-reference.md | SQL grammar and limitations |
-| Schema format | @skills/common/references/schema-format.md | JSON/SQL schema format |
-| Configuration reference | @skills/common/references/configuration-reference.md | All ScalarDB config properties by backend |
-| Code patterns | @skills/common/references/code-patterns/ | Complete app templates for all 6 interface combos |
+| ScalarDB exception handling | rules/scalardb-exception-handling.md | Exception handling, retry logic |
+| ScalarDB CRUD patterns | rules/scalardb-crud-patterns.md | CRUD API operations |
+| ScalarDB JDBC patterns | rules/scalardb-jdbc-patterns.md | JDBC/SQL operations |
+| ScalarDB 2PC patterns | rules/scalardb-2pc-patterns.md | Two-phase commit protocol |
+| ScalarDB config validation | rules/scalardb-config-validation.md | Configuration correctness |
+| ScalarDB schema design | rules/scalardb-schema-design.md | Schema and key design |
+| ScalarDB Java best practices | rules/scalardb-java-best-practices.md | Java coding standards |
+| ScalarDB coding patterns | rules/scalardb-coding-patterns.md | Code generation, design-scalardb, generate-scalardb-code |
+| ScalarDB edition profiles | rules/scalardb-edition-profiles.md | Edition selection |
+| Evaluation frameworks | rules/evaluation-frameworks.md | MMI/DDD scoring |
+| Mermaid best practices | rules/mermaid-best-practices.md | Creating diagrams |
+| Spring Boot integration | rules/spring-boot-integration.md | Java code generation |
+| Output structure contract | templates/output-structure.md | File dependencies |
+| Sub-agent patterns | skills/common/sub-agent-patterns.md | Spawning sub-agents |
+| Progress registry | skills/common/progress-registry.md | pipeline-progress.json schema and resume behavior |
+| API reference | skills/common/references/api-reference.md | ScalarDB API details |
+| Interface matrix | skills/common/references/interface-matrix.md | 6 interface combinations |
+| Exception hierarchy | skills/common/references/exception-hierarchy.md | Exception decision tree |
+| SQL reference | skills/common/references/sql-reference.md | SQL grammar and limitations |
+| Schema format | skills/common/references/schema-format.md | JSON/SQL schema format |
+| Configuration reference | skills/common/references/configuration-reference.md | All ScalarDB config properties by backend |
+| Code patterns | skills/common/references/code-patterns/ | Complete app templates for all 6 interface combos |
 
 ## Conventions
 

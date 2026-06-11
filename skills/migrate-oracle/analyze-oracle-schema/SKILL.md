@@ -1,5 +1,6 @@
 ---
 description: Analyzes Oracle database schema and generates a comprehensive Markdown report for sharing. Use when you need to document Oracle schema objects including tables, triggers, custom types, PL/SQL code, and object dependencies.
+model: sonnet
 ---
 
 # Oracle Database Schema Analysis Skill

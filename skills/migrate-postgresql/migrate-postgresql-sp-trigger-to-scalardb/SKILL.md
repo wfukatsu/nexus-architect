@@ -1,5 +1,6 @@
 ---
 description: Generates ScalarDB Java application code from PostgreSQL PL/pgSQL functions, procedures, triggers, and trigger functions. Produces Java Transaction API implementations plus a summary migration report.
+model: opus
 ---
 
 # Migrate PostgreSQL Stored Procedures & Triggers to ScalarDB Skill

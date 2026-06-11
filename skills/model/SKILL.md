@@ -67,8 +67,9 @@ Output:
 
 ## Reference
 
-Read `.claude/docs/schema-format.md` for the complete schema format reference.
-Read `.claude/docs/api-reference.md` for supported data types.
+Read `${CLAUDE_PLUGIN_ROOT}/skills/common/references/schema-format.md` for the complete schema format reference.
+Read `${CLAUDE_PLUGIN_ROOT}/skills/common/references/api-reference.md` for supported data types.
+Read `${CLAUDE_PLUGIN_ROOT}/rules/scalardb-schema-design.md` for partition/clustering key and secondary index design rules.
 
 ## Data Type Selection Guide
 

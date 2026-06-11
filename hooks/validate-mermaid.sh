@@ -1,6 +1,8 @@
 #!/bin/bash
 # PostToolUse hook: Validate Mermaid diagram syntax after Write/Edit
-# Blocking: non-zero exit feeds error back to Claude for self-correction
+# Blocking: in hook mode, errors go to stderr and the script exits 2 so
+# Claude Code feeds them back to the model for self-correction.
+# In CLI mode (file paths as arguments), failures exit 1.
 
 validate_file() {
   FILE_PATH="$1"
@@ -32,13 +34,16 @@ validate_file() {
       ERRORS="${ERRORS}Block $BLOCK_NUM: Empty mermaid block\n"
     fi
 
-    # Check for unbalanced brackets
-    OPEN_PARENS=$(echo "$block" | tr -cd '(' | wc -c | tr -d ' ')
-    CLOSE_PARENS=$(echo "$block" | tr -cd ')' | wc -c | tr -d ' ')
-    OPEN_BRACKETS=$(echo "$block" | tr -cd '[' | wc -c | tr -d ' ')
-    CLOSE_BRACKETS=$(echo "$block" | tr -cd ']' | wc -c | tr -d ' ')
-    OPEN_BRACES=$(echo "$block" | tr -cd '{' | wc -c | tr -d ' ')
-    CLOSE_BRACES=$(echo "$block" | tr -cd '}' | wc -c | tr -d ' ')
+    # Check for unbalanced brackets.
+    # Strip double-quoted label content first: brackets/parens inside quoted
+    # labels (e.g. A["決済 (カード)"]) are legal and must not be counted.
+    STRIPPED=$(echo "$block" | sed 's/"[^"]*"//g')
+    OPEN_PARENS=$(echo "$STRIPPED" | tr -cd '(' | wc -c | tr -d ' ')
+    CLOSE_PARENS=$(echo "$STRIPPED" | tr -cd ')' | wc -c | tr -d ' ')
+    OPEN_BRACKETS=$(echo "$STRIPPED" | tr -cd '[' | wc -c | tr -d ' ')
+    CLOSE_BRACKETS=$(echo "$STRIPPED" | tr -cd ']' | wc -c | tr -d ' ')
+    OPEN_BRACES=$(echo "$STRIPPED" | tr -cd '{' | wc -c | tr -d ' ')
+    CLOSE_BRACES=$(echo "$STRIPPED" | tr -cd '}' | wc -c | tr -d ' ')
 
     [ "$OPEN_PARENS" -ne "$CLOSE_PARENS" ] && \
       ERRORS="${ERRORS}Block $BLOCK_NUM: Unbalanced parentheses ($OPEN_PARENS open, $CLOSE_PARENS close)\n"
@@ -50,9 +55,9 @@ validate_file() {
   done < <(awk '/^```mermaid$/{found=1; block=""; next} /^```$/{if(found){printf "%s\001", block; found=0} next} found{block=block (block?"\n":"") $0}' "$FILE_PATH")
 
   if [ -n "$ERRORS" ]; then
-    echo "MERMAID VALIDATION ERRORS in $FILE_PATH:"
-    printf "$ERRORS"
-    echo "Fix the mermaid syntax before proceeding."
+    echo "MERMAID VALIDATION ERRORS in $FILE_PATH:" >&2
+    printf "$ERRORS" >&2
+    echo "Fix the mermaid syntax before proceeding." >&2
     return 1
   fi
 
@@ -74,5 +79,7 @@ FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 # Only run for Write/Edit tools when invoked as a Claude Code hook
 case "$TOOL_NAME" in Write|Edit|MultiEdit) ;; *) exit 0 ;; esac
 
-validate_file "$FILE_PATH"
-exit $?
+# Exit 2 so Claude Code treats this as blocking feedback (stderr is fed
+# back to the model); exit 1 would only be shown to the user.
+validate_file "$FILE_PATH" || exit 2
+exit 0

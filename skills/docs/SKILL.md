@@ -26,7 +26,7 @@ If the user provided a topic with the command (e.g., `/scalardb:docs two-phase c
 Use WebFetch to fetch `https://scalardb.scalar-labs.com/llms-full.txt` with a prompt tailored to the user's topic.
 
 ### Step 3: Also check local reference docs
-Check the local reference documentation in `.claude/docs/` for relevant information:
+Check the local reference documentation in `${CLAUDE_PLUGIN_ROOT}/skills/common/references/` for relevant information:
 - `api-reference.md` — API details
 - `exception-hierarchy.md` — Exception handling
 - `configuration-reference.md` — Configuration properties

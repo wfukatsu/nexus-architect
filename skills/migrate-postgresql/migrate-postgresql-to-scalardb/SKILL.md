@@ -1,5 +1,6 @@
 ---
 description: Generates ScalarDB migration documentation from PostgreSQL schema analysis. Consumes the PostgreSQL schema analysis Markdown file from the configured output directory as input and produces migration analysis and step-by-step migration guides.
+model: opus
 ---
 
 # Migrate PostgreSQL to ScalarDB Schema Skill

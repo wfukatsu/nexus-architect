@@ -36,7 +36,8 @@ If the user provides code or points to a file, review it for:
 
 ## Reference
 
-Read `.claude/docs/exception-hierarchy.md` for the complete exception hierarchy and decision flowchart.
+Read `${CLAUDE_PLUGIN_ROOT}/skills/common/references/exception-hierarchy.md` for the complete exception hierarchy and decision flowchart.
+Read `${CLAUDE_PLUGIN_ROOT}/rules/scalardb-exception-handling.md` for catch ordering, rollback, and retry rules.
 
 ## Exception Hierarchy
 

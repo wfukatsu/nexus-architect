@@ -1,5 +1,6 @@
 ---
 description: Generates ScalarDB Java application code from MySQL stored procedures, functions, and triggers. Produces Java Transaction API implementations plus a summary migration report.
+model: opus
 ---
 
 # Migrate MySQL Stored Procedures & Triggers to ScalarDB Skill
