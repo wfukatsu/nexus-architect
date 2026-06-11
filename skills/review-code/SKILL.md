@@ -126,15 +126,15 @@ Present findings grouped by severity:
 ## Reference Files
 
 When reviewing, consult these reference documents:
-- `.claude/docs/exception-hierarchy.md` — Exception handling patterns (CRUD and JDBC)
-- `.claude/docs/api-reference.md` — Correct API usage (CRUD and JDBC)
-- `.claude/docs/sql-reference.md` — Supported SQL grammar
-- `.claude/docs/configuration-reference.md` — Configuration validation
-- `.claude/docs/schema-format.md` — Schema validation
-- `.claude/rules/scalardb-exception-handling.md` — Exception rules (CRUD and JDBC)
-- `.claude/rules/scalardb-crud-patterns.md` — CRUD rules
-- `.claude/rules/scalardb-jdbc-patterns.md` — JDBC/SQL rules
-- `.claude/rules/scalardb-java-best-practices.md` — Java best practices (CRUD and JDBC)
+- `${CLAUDE_PLUGIN_ROOT}/skills/common/references/exception-hierarchy.md` — Exception handling patterns (CRUD and JDBC)
+- `${CLAUDE_PLUGIN_ROOT}/skills/common/references/api-reference.md` — Correct API usage (CRUD and JDBC)
+- `${CLAUDE_PLUGIN_ROOT}/skills/common/references/sql-reference.md` — Supported SQL grammar
+- `${CLAUDE_PLUGIN_ROOT}/skills/common/references/configuration-reference.md` — Configuration validation
+- `${CLAUDE_PLUGIN_ROOT}/skills/common/references/schema-format.md` — Schema validation
+- `${CLAUDE_PLUGIN_ROOT}/rules/scalardb-exception-handling.md` — Exception rules (CRUD and JDBC)
+- `${CLAUDE_PLUGIN_ROOT}/rules/scalardb-crud-patterns.md` — CRUD rules
+- `${CLAUDE_PLUGIN_ROOT}/rules/scalardb-jdbc-patterns.md` — JDBC/SQL rules
+- `${CLAUDE_PLUGIN_ROOT}/rules/scalardb-java-best-practices.md` — Java best practices (CRUD and JDBC)
 
 ## How to Use
 

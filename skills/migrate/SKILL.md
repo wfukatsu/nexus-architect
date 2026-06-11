@@ -166,9 +166,10 @@ Present the migration plan as:
 ## Reference Files
 
 Consult these reference documents:
-- `.claude/docs/interface-matrix.md` — Interface combinations overview
-- `.claude/docs/configuration-reference.md` — Configuration for all modes
-- `.claude/docs/code-patterns/` — Complete code examples for each combination
+- `${CLAUDE_PLUGIN_ROOT}/skills/common/references/interface-matrix.md` — Interface combinations overview
+- `${CLAUDE_PLUGIN_ROOT}/skills/common/references/configuration-reference.md` — Configuration for all modes
+- `${CLAUDE_PLUGIN_ROOT}/skills/common/references/code-patterns/` — Complete code examples for each combination
+- `${CLAUDE_PLUGIN_ROOT}/rules/scalardb-2pc-patterns.md` — Two-phase commit protocol rules (for 1PC -> 2PC migration)
 
 ## How to Use
 

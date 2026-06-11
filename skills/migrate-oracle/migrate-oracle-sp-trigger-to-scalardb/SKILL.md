@@ -1,5 +1,6 @@
 ---
 description: Generates ScalarDB Java application code from Oracle PL/SQL stored procedures, functions, packages, and triggers. Produces Java Transaction API implementations plus a summary migration report.
+model: opus
 ---
 
 # Migrate Oracle Stored Procedures & Triggers to ScalarDB Skill

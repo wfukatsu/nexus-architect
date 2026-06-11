@@ -329,11 +329,14 @@ Verdict thresholds (scale: 1–5):
 
 ### Step 4: Write Output
 
-Write `reports/review/report-quality-review.md` with the following structure:
+Write `reports/review/report-quality-review.md` with the following structure.
+The template below is in English; translate all headings and narrative text into the
+language configured in `work/pipeline-progress.json` (`options.output_language`).
+YAML frontmatter keys always remain in English.
 
 ```markdown
 ---
-title: "レポート品質レビュー — <project_name>"
+title: "Report Quality Review — <project_name>"
 schema_version: 1
 phase: "Review"
 skill: review-report
@@ -344,28 +347,28 @@ input_files:
   - work/pipeline-progress.json
 ---
 
-## 総合判定: <PASS|PASS_WITH_WARNINGS|FAIL>（加重スコア: X.X / 5.0）
+## Overall Verdict: <PASS|PASS_WITH_WARNINGS|FAIL> (weighted score: X.X / 5.0)
 
-## スコアサマリー
+## Score Summary
 
-| 次元 | 重み | スコア | 所見数 |
-|------|------|--------|--------|
-| 完全性 | 30% | X/5 | N |
-| スコア正確性 | 35% | X/5 | N |
-| Mermaid 構文 | 15% | X/5 | N |
-| 言語一貫性 | 10% | X/5 | N |
-| 構造的整合性 | 10% | X/5 | N |
-| **加重合計** | | **X.X/5** | |
+| Dimension | Weight | Score | Findings |
+|-----------|--------|-------|----------|
+| Completeness | 30% | X/5 | N |
+| Score Accuracy | 35% | X/5 | N |
+| Mermaid Syntax | 15% | X/5 | N |
+| Language Consistency | 10% | X/5 | N |
+| Structural Integrity | 10% | X/5 | N |
+| **Weighted Total** | | **X.X/5** | |
 
-## Critical / Major 所見
+## Critical / Major Findings
 
 [List each critical or major finding with ID, title, location, description, recommendation]
 
-## Minor / Info 所見
+## Minor / Info Findings
 
 [List minor and info findings as a compact table]
 
-## 修正が必要な箇所
+## Required Fixes
 
 [Numbered list of specific edits required to bring the report to PASS]
 ```

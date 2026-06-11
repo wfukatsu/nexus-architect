@@ -42,7 +42,8 @@ Generate the complete code example including:
 
 ## Reference
 
-Read `.claude/docs/api-reference.md` for the complete API reference.
+Read `${CLAUDE_PLUGIN_ROOT}/skills/common/references/api-reference.md` for the complete API reference.
+Read `${CLAUDE_PLUGIN_ROOT}/rules/scalardb-crud-patterns.md` for CRUD API coding rules.
 
 ## Quick Reference Examples
 

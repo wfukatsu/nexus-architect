@@ -1,6 +1,8 @@
 #!/bin/bash
 # PostToolUse hook: Validate YAML frontmatter in output files
-# Blocking: non-zero exit feeds error back to Claude for self-correction
+# Blocking: in hook mode, errors go to stderr and the script exits 2 so
+# Claude Code feeds them back to the model for self-correction.
+# In CLI mode (file paths as arguments), failures exit 1.
 
 validate_file() {
   FILE_PATH="$1"
@@ -14,8 +16,8 @@ validate_file() {
   # Check if file starts with frontmatter delimiter
   FIRST_LINE=$(head -1 "$FILE_PATH")
   [ "$FIRST_LINE" != "---" ] && {
-    echo "FRONTMATTER ERROR in $FILE_PATH:"
-    echo "  Output files in reports/ must start with YAML frontmatter (---)"
+    echo "FRONTMATTER ERROR in $FILE_PATH:" >&2
+    echo "  Output files in reports/ must start with YAML frontmatter (---)" >&2
     return 1
   }
 
@@ -23,16 +25,16 @@ validate_file() {
   FRONTMATTER=$(awk 'NR==1 && /^---$/{found=1; next} found && /^---$/{exit} found{print}' "$FILE_PATH")
 
   if [ -z "$FRONTMATTER" ]; then
-    echo "FRONTMATTER ERROR in $FILE_PATH:"
-    echo "  File starts with '---' but no closing '---' found."
+    echo "FRONTMATTER ERROR in $FILE_PATH:" >&2
+    echo "  File starts with '---' but no closing '---' found." >&2
     return 1
   fi
 
   # Check closing delimiter
   HAS_CLOSING=$(awk 'NR==1 && /^---$/{found=1; next} found && /^---$/{print "yes"; exit}' "$FILE_PATH")
   if [ "$HAS_CLOSING" != "yes" ]; then
-    echo "FRONTMATTER ERROR in $FILE_PATH:"
-    echo "  Unclosed frontmatter block. Missing closing '---'."
+    echo "FRONTMATTER ERROR in $FILE_PATH:" >&2
+    echo "  Unclosed frontmatter block. Missing closing '---'." >&2
     return 1
   fi
 
@@ -59,8 +61,8 @@ except yaml.YAMLError as e:
     sys.exit(1)
 " <<< "$FRONTMATTER" 2>&1)
     if [ $? -ne 0 ]; then
-      echo "FRONTMATTER VALIDATION ERROR in $FILE_PATH:"
-      echo "  $YAML_ERROR"
+      echo "FRONTMATTER VALIDATION ERROR in $FILE_PATH:" >&2
+      echo "  $YAML_ERROR" >&2
       return 1
     fi
   fi
@@ -83,5 +85,7 @@ FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 # Only run for Write/Edit tools when invoked as a Claude Code hook
 case "$TOOL_NAME" in Write|Edit|MultiEdit) ;; *) exit 0 ;; esac
 
-validate_file "$FILE_PATH"
-exit $?
+# Exit 2 so Claude Code treats this as blocking feedback (stderr is fed
+# back to the model); exit 1 would only be shown to the user.
+validate_file "$FILE_PATH" || exit 2
+exit 0

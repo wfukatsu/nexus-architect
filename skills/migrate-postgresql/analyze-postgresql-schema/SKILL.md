@@ -1,5 +1,6 @@
 ---
 description: Analyzes PostgreSQL database schema and generates a comprehensive Markdown report for sharing. Use when you need to document PostgreSQL schema objects including tables, triggers, custom types, PL/pgSQL code, and object dependencies.
+model: sonnet
 ---
 
 # PostgreSQL Database Schema Analysis Skill

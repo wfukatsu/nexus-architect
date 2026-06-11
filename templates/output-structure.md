@@ -22,7 +22,7 @@ reports/
 │   ├── mmi-overview.md
 │   ├── mmi-by-module.md
 │   ├── ddd-strategic-evaluation.md
-│   ├── ddd-tactical-evaluation.md
+│   ├── ddd-tactical-architecture-evaluation.md
 │   ├── integrated-evaluation.md
 │   └── unified-improvement-plan.md
 ├── 03_design/                     # redesign, design-*, map-domains
@@ -51,7 +51,8 @@ reports/
     │   ├── review-risk.json
     │   └── review-business.json
     ├── review-synthesis.json
-    └── review-synthesis.md
+    ├── review-synthesis.md
+    └── report-quality-review.md   # review-report (runs after report)
 
 generated/                         # codegen skills (Phase B)
 └── {service}/

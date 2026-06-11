@@ -45,7 +45,8 @@ Generate the complete code example including:
 
 ## Reference
 
-Read `.claude/docs/api-reference.md` and `.claude/docs/sql-reference.md` for the complete SQL reference.
+Read `${CLAUDE_PLUGIN_ROOT}/skills/common/references/api-reference.md` and `${CLAUDE_PLUGIN_ROOT}/skills/common/references/sql-reference.md` for the complete SQL reference.
+Read `${CLAUDE_PLUGIN_ROOT}/rules/scalardb-jdbc-patterns.md` for JDBC/SQL coding rules and `${CLAUDE_PLUGIN_ROOT}/rules/scalardb-2pc-patterns.md` for two-phase commit via SQL.
 
 ## Quick Reference Examples
 

@@ -46,7 +46,7 @@ Generate ALL of the following files:
 
 ## Reference
 
-Read the appropriate code pattern file from `.claude/docs/code-patterns/`:
+Read the appropriate code pattern file from `${CLAUDE_PLUGIN_ROOT}/skills/common/references/code-patterns/`:
 - `core-crud-1pc.md`
 - `core-crud-2pc.md`
 - `cluster-crud-1pc.md`

@@ -23,16 +23,18 @@ Generate a consolidated HTML report from all Markdown files under reports/.
 
 ## Input Sources
 
-Compile all Markdown files found in the following directories (skip any that don't exist):
+Compile all Markdown files found in the following directories (skip any that don't exist).
+Render each section heading in the language configured in `work/pipeline-progress.json`
+(`options.output_language`); the English names below are the canonical section identifiers.
 
-| Directory | Phase | Section heading |
-|-----------|-------|-----------------|
-| `reports/before/{project}/` | Investigation | 調査 / Investigation |
-| `reports/01_analysis/` | Analysis | 分析 / Analysis |
-| `reports/02_evaluation/` | Evaluation | 評価 / Evaluation |
-| `reports/03_design/` | Design | 設計 / Design |
-| `reports/04_stories/` | Domain Stories | ドメインストーリー / Domain Stories |
-| `reports/review/` | Review | レビュー / Review |
+| Directory | Phase | Section heading (English canonical) |
+|-----------|-------|--------------------------------------|
+| `reports/before/{project}/` | Investigation | Investigation |
+| `reports/01_analysis/` | Analysis | Analysis |
+| `reports/02_evaluation/` | Evaluation | Evaluation |
+| `reports/03_design/` | Design | Design |
+| `reports/04_stories/` | Domain Stories | Domain Stories |
+| `reports/review/` | Review | Review |
 
 `reports/04_stories/` is optional — include the section only when one or more `domain-story-*.md` files exist there.
 

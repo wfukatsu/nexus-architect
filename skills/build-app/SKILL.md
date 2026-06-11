@@ -91,14 +91,16 @@ Generate all of these:
 ## Reference Files
 
 Consult these reference documents:
-- `.claude/docs/code-patterns/` — Complete working examples for each interface combination
-- `.claude/docs/api-reference.md` — API reference (CRUD and JDBC)
-- `.claude/docs/sql-reference.md` — Supported SQL grammar
-- `.claude/docs/exception-hierarchy.md` — Exception handling (CRUD and JDBC)
-- `.claude/docs/configuration-reference.md` — Configuration
-- `.claude/docs/schema-format.md` — Schema format
-- `.claude/docs/interface-matrix.md` — Interface combinations
-- `.claude/rules/scalardb-jdbc-patterns.md` — JDBC/SQL rules
+- `${CLAUDE_PLUGIN_ROOT}/skills/common/references/code-patterns/` — Complete working examples for each interface combination
+- `${CLAUDE_PLUGIN_ROOT}/skills/common/references/api-reference.md` — API reference (CRUD and JDBC)
+- `${CLAUDE_PLUGIN_ROOT}/skills/common/references/sql-reference.md` — Supported SQL grammar
+- `${CLAUDE_PLUGIN_ROOT}/skills/common/references/exception-hierarchy.md` — Exception handling (CRUD and JDBC)
+- `${CLAUDE_PLUGIN_ROOT}/skills/common/references/configuration-reference.md` — Configuration
+- `${CLAUDE_PLUGIN_ROOT}/skills/common/references/schema-format.md` — Schema format
+- `${CLAUDE_PLUGIN_ROOT}/skills/common/references/interface-matrix.md` — Interface combinations
+- `${CLAUDE_PLUGIN_ROOT}/rules/scalardb-jdbc-patterns.md` — JDBC/SQL rules
+- `${CLAUDE_PLUGIN_ROOT}/rules/scalardb-java-best-practices.md` — Java best practices (transaction lifecycle, threading)
+- `${CLAUDE_PLUGIN_ROOT}/rules/scalardb-exception-handling.md` — Exception handling and retry rules
 
 ## How to Use
 

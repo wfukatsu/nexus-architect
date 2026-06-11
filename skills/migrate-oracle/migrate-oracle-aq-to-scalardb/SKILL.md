@@ -1,5 +1,6 @@
 ---
 description: Generates Oracle AQ setup SQL (payload types, queues, enqueue triggers/SPs) and Java consumer files that dequeue messages and process them using the ScalarDB Java Transaction API.
+model: opus
 ---
 
 # Migrate Oracle Stored Procedures & Triggers to AQ + ScalarDB Consumer Skill
