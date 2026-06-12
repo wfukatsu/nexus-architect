@@ -23,14 +23,16 @@ Record the selection in work/pipeline-progress.json under options.output_languag
 ## Workflow Selection Criteria
 
 - User presents an existing codebase -> **Legacy refactoring path**
-- User describes requirements only -> **Greenfield design path**
+- User describes requirements only -> **Greenfield design path**: run `/architect:define-requirements` first to fix the requirements baseline (pass any user-provided documents via `--input`), then proceed with the design phases
 - Unclear -> Ask one clarifying question, then proceed with execution
 
 ## ScalarDB Usage Decision
 
-- Multi-DB distributed transactions required -> Include ScalarDB skills
-- User mentions ScalarDB / Scalar / distributed transactions -> Include
-- Otherwise -> Use the design-data-layer alternative path
+- `reports/00_requirements/scalardb-applicability.md` exists -> Use its verdict as the primary basis
+- Otherwise, fall back to heuristics:
+  - Multi-DB distributed transactions required -> Include ScalarDB skills
+  - User mentions ScalarDB / Scalar / distributed transactions -> Include
+  - Otherwise -> Use the design-data-layer alternative path
 
 ## Domain Story Option
 
@@ -75,3 +77,4 @@ Read @skills/common/skill-dependencies.yaml to determine execution order.
 |-------|-------------|
 | /architect:pipeline | Automated execution version |
 | /architect:init-output | Initialization |
+| /architect:define-requirements | Greenfield entry point — requirements baseline and ScalarDB applicability |

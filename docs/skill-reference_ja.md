@@ -9,6 +9,12 @@
 | `/architect:start` | sonnet | インタラクティブにシステム分析と設計を開始 |
 | `/architect:pipeline` | sonnet | 自動パイプライン実行（--resume、--skip をサポート） |
 
+## 要件定義
+
+| コマンド | モデル | 説明 |
+|---------|-------|------|
+| `/architect:define-requirements` | opus | 要件定義: FR/NFR 分類、データ・トランザクション要件、ScalarDB 適用判定（greenfield パスの起点。--input、--auto、--no-scalardb をサポート） |
+
 ## 調査
 
 | コマンド | モデル | 説明 |

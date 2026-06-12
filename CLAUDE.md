@@ -31,6 +31,9 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 - `/architect:pipeline [target_path]` — Automated pipeline execution (--resume-from, --rerun-from, --skip-{phase}, --no-scalardb, --lang=en|ja)
 - `/architect:init-output [project]` — Initialize output directories
 
+### Requirements
+- `/architect:define-requirements [target_path] [--input=<file|dir>] [--auto] [--no-scalardb]` — Requirements definition: FR/NFR classification, data/transaction requirements, ScalarDB applicability (greenfield entry point)
+
 ### Investigation & Analysis
 - `/architect:investigate [target_path]` — Tech stack, structure, debt, DDD readiness
 - `/architect:investigate-security [target_path]` — OWASP Top 10, access control

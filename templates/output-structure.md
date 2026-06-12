@@ -4,6 +4,11 @@
 
 ```
 reports/
+├── 00_requirements/               # define-requirements (greenfield entry; optional on legacy path)
+│   ├── requirements-definition.md
+│   ├── data-transaction-requirements.md
+│   ├── scalardb-applicability.md  # Omitted with --no-scalardb
+│   └── open-questions.md
 ├── before/{project}/              # investigate
 │   ├── technology-stack.md
 │   ├── codebase-structure.md
@@ -68,6 +73,8 @@ work/                              # pipeline state
 ## Dependency Flow
 
 ```
+define-requirements (optional; greenfield entry point)
+        ↓  (referenced by map-domains, design-scalardb, design-data-layer)
 investigate → analyze → analyze-data-model
                             ↓
               [evaluate-mmi, evaluate-ddd] → integrate-evaluations

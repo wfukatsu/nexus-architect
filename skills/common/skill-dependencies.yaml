@@ -5,6 +5,18 @@
 schema_version: 1
 
 phases:
+  # Phase: Requirements (greenfield entry point; optional on legacy path)
+  define-requirements:
+    category: requirements
+    depends_on: []
+    optional: true
+    outputs:
+      - reports/00_requirements/requirements-definition.md
+      - reports/00_requirements/data-transaction-requirements.md
+      - reports/00_requirements/scalardb-applicability.md
+      - reports/00_requirements/open-questions.md
+    model: opus
+
   # Phase: Investigation
   investigate:
     category: investigation

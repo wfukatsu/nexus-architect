@@ -1,7 +1,7 @@
 {
   "name": "architect",
   "description": "System architecture agent for legacy refactoring, greenfield design, database migration, and consulting deliverables. ScalarDB development tools available as /scalardb:skill-name.",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "author": {
     "name": "Wataru Fukatsu"
   },

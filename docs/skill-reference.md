@@ -9,6 +9,12 @@ All skills are invoked as `/architect:skill-name`.
 | `/architect:start` | sonnet | Interactively start system analysis and design |
 | `/architect:pipeline` | sonnet | Automated pipeline execution (supports --resume, --skip) |
 
+## Requirements
+
+| Command | Model | Description |
+|---------|-------|-------------|
+| `/architect:define-requirements` | opus | Requirements definition: FR/NFR classification, data/transaction requirements, ScalarDB applicability (greenfield entry point; supports --input, --auto, --no-scalardb) |
+
 ## Investigation
 
 | Command | Model | Description |

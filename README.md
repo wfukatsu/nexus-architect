@@ -1,8 +1,8 @@
 # Nexus Architect
 
-System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as two plugins with 51 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
+System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as two plugins with 52 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
 
-- **architect** (40 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
+- **architect** (41 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
 - **scalardb** (11 skills) — ScalarDB application development toolkit
 
 ## Installation
@@ -132,6 +132,12 @@ Claude Code continues to use the plugin metadata and slash commands unchanged. S
 | `/architect:start` | Interactively start system analysis and design |
 | `/architect:pipeline` | Automated pipeline execution (supports `--resume`, `--skip`) |
 | `/architect:init-output` | Initialize output directories |
+
+### Requirements
+
+| Command | Description |
+|---------|-------------|
+| `/architect:define-requirements` | Requirements definition: FR/NFR classification, data/transaction requirements, ScalarDB applicability (greenfield entry point) |
 
 ### Investigation & Analysis
 
