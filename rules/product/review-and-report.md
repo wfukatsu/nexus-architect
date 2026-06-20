@@ -11,7 +11,7 @@ consolidates everything into one HTML deliverable that leads with the validation
 2. **Traceability** — does `work/traceability.json` agree with the documents? Every node should
    have a valid Upstream chain to a `VIS-`/`NSM-` root; flag orphans (no upstream) and dangling
    references (upstream id that doesn't exist).
-3. **Extensibility (手法2.9)** — will the domain boundaries and API layering absorb likely future
+3. **Extensibility** — will the domain boundaries and API layering absorb likely future
    features? Flag boundaries drawn around current screens, System APIs exposed to UI, low reuse
    (1 Process → 1 Experience), and over-engineered Generic subdomains.
 4. **Strategy (product lens)** — is the Vision consistent with the chosen scope? Are the unit

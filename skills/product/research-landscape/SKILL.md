@@ -18,7 +18,7 @@ Produce one deliverable:
    - **Market overview** — TAM/SAM/SOM (bottom-up preferred), trends, and alternatives incl. the
      status-quo / "do nothing"
    - **Competitive matrix** — direct & indirect competitors on dimensions the segment cares about
-   - **Kano classification** — Must-be (→ PoP / 同質化) vs Delighter (→ PoD / 差別化)
+   - **Kano classification** — Must-be (→ PoP / parity) vs Delighter (→ PoD / differentiation)
    - **Strategy recommendation** — reach parity on PoP efficiently, concentrate on a few
      defensible PoDs; flag that delighters decay and need refresh
 

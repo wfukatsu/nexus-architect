@@ -7,20 +7,14 @@ journey, gantt, pie, mindmap, timeline, C4Context
 
 ## Non-ASCII Text
 
-Nodes containing non-ASCII text (e.g., Japanese) must be wrapped in quotes:
+Nodes whose labels contain non-ASCII text (e.g., localized labels in Japanese or
+other non-Latin scripts, when output_language is not "en") must be wrapped in quotes.
+The label text itself follows the configured output language; the node IDs stay ASCII:
 
 ```mermaid
 graph TD
     A["Order Service"] --> B["Inventory Service"]
     A --> C["Payment Service"]
-```
-
-Japanese example:
-
-```mermaid
-graph TD
-    A["注文サービス"] --> B["在庫サービス"]
-    A --> C["決済サービス"]
 ```
 
 ## Node ID Naming

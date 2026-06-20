@@ -74,7 +74,8 @@ phases:
     model: sonnet
   design-positioning:
     category: ux
-    depends_on: [map-journey, research-landscape]
+    depends_on: [map-journey]              # research-landscape is soft: used when present (e.g. ux-to-spec profile omits it)
+    soft_depends_on: [research-landscape]
     implemented: true
     outputs: [reports/01_ux/positioning.md]
     model: opus
