@@ -1,6 +1,9 @@
 # Nexus Architect スキルリファレンス
 
-すべてのスキルは `/architect:skill-name` として呼び出します。
+スキルはプラグインの名前空間で呼び出します：`/product:skill-name`（プロダクトの方向性）、
+`/architect:skill-name`（システムアーキテクチャ）、`/scalardb:skill-name`（ScalarDB 開発）。
+本書では architect スキルを最初にまとめ、続いて ScalarDB 開発、データベース移行、
+プロダクトの方向性の順に掲載します。
 
 ## オーケストレーション
 
@@ -122,3 +125,35 @@
 | `/architect:migrate-postgresql` | sonnet | PostgreSQL | フルパイプライン：スキーマ抽出、分析、PL/pgSQL変換 |
 
 詳細な使い方は [データベース移行ガイド](database-migration.md) を参照してください。
+
+## プロダクトの方向性
+
+すべてのスキルは `/product:skill-name` として呼び出します。プロダクトのビジョンから
+SLA/非機能要件までを導出する検証駆動パイプラインで、システム実装設計へは
+`/architect:define-requirements` へ handoff します。フェーズ順と
+`mvp`/`core-only`/`ux-to-spec`/`full` プロファイルは
+`skills/product/common/skill-dependencies.yaml` に定義されています。
+
+| コマンド | モデル | フェーズ | 説明 |
+|---------|-------|---------|------|
+| `/product:start` | sonnet | オーケストレーション | プロダクト方向性設計を対話的に開始。依存順でパイプラインを実行し、最もリスクの高い前提でゲートする（`--auto`、`--profile`、`--lang`） |
+| `/product:init-output` | sonnet | オーケストレーション | プロダクト出力ツリー、`work/pipeline-progress.json`、`work/traceability.json` を初期化 |
+| `/product:define-vision` | opus | 1. プロダクトコア | プロダクトコア（Vision/Mission/Values）を Product Vision Board と PR-FAQ として定義 |
+| `/product:define-success-metrics` | opus | 1. プロダクトコア | 1 つの North Star Metric と 3〜5 個の入力指標 |
+| `/product:research-landscape` | opus | 1. プロダクトコア | 市場・競合リサーチ：市場規模（TAM/SAM/SOM）、トレンド、Kano 分類 |
+| `/product:design-revenue` | opus | 1. プロダクトコア | 収益・ビジネスモデルと再計算可能な便益評価テンプレート |
+| `/product:define-scope` | sonnet | 1. プロダクトコア | 制約を正規化しプロダクトスコープ（対象/対象外）を決定 |
+| `/product:validate-assumptions` | opus | ゲート | 最もリスクの高い前提を抽出し、最も安価な検証と Go/No-Go を付与（再実行可能） |
+| `/product:generate-persona` | opus | 2. UX 基盤 | Jobs-to-be-Done に紐づくペルソナ（ジョブストーリー + ペルソナカード） |
+| `/product:map-journey` | sonnet | 2. UX 基盤 | カスタマージャーニーをステージ × レイヤーのグリッドで作成（接点、行動、感情） |
+| `/product:design-positioning` | opus | 2. UX 基盤 | ポジショニング（Dunford 5 要素キャンバス）、接点 × デバイス × タイミングのマトリクス |
+| `/product:generate-ui-mock` | sonnet | 3. UX → 仕様 | ジャーニー/ポジショニング/ペルソナから主要画面の lo-fi UI モックを生成 |
+| `/product:define-features` | sonnet | 3. UX → 仕様 | UI モックからフィーチャーを抽出（各画面アクション → Command/フィーチャー） |
+| `/product:define-data-model` | opus | 3. UX → 仕様 | UI モックとフィーチャーからデータモデルを 2 パスで導出（明示 → 暗黙） |
+| `/product:map-domains` | opus | 4. ドメイン & API | フィーチャー/エンティティを境界づけられたコンテキストへ抽象化（DDD 戦略的設計） |
+| `/product:design-api` | opus | 4. ドメイン & API | 論理 API を 3 つの API-Led レイヤーで設計（System/Process/Experience） |
+| `/product:design-sla` | sonnet | 5. 品質 & 非機能 | サービスごとの SLI/SLO/SLA とエラーバジェット |
+| `/product:define-nfr` | sonnet | 5. 品質 & 非機能 | SLO を測定可能な非機能要件へ変換（可用性、レイテンシ p95/p99 など） |
+| `/product:review` | opus | R. レビュー & レポート | プロダクト成果物をレビュー（整合性、トレーサビリティ、拡張性、戦略） |
+| `/product:report` | sonnet | R. レビュー & レポート | 成果物を 1 つの自己完結型 HTML レポートに統合（冒頭に検証ステータス） |
+| `/product:adapt-change` | opus | 6. 適応 | 再伝播エンジン：変化から影響範囲を算定し、影響を受けるスキルのみ再実行 |

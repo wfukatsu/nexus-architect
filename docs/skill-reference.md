@@ -1,6 +1,9 @@
 # Nexus Architect Skill Reference
 
-All skills are invoked as `/architect:skill-name`.
+Skills are invoked by plugin namespace: `/product:skill-name` (product direction),
+`/architect:skill-name` (system architecture), and `/scalardb:skill-name` (ScalarDB development).
+The architect skills are catalogued first, followed by ScalarDB Development, Database Migration,
+and Product Direction.
 
 ## Orchestration
 
@@ -122,3 +125,34 @@ See [ScalarDB Development Guide](scalardb-development.md) for detailed usage.
 | `/architect:migrate-postgresql` | sonnet | PostgreSQL | Full pipeline: schema extraction, analysis, PL/pgSQL conversion |
 
 See [Database Migration Guide](database-migration.md) for detailed usage.
+
+## Product Direction
+
+All skills are invoked as `/product:skill-name`. Validation-driven pipeline from product vision
+to SLA/NFR; hands off to `/architect:define-requirements` for system implementation design.
+Phase order and the `mvp`/`core-only`/`ux-to-spec`/`full` profiles are defined in
+`skills/product/common/skill-dependencies.yaml`.
+
+| Command | Model | Phase | Description |
+|---------|-------|-------|-------------|
+| `/product:start` | sonnet | Orchestration | Interactively start product-direction design; runs the pipeline in dependency order, gating on the riskiest assumptions (`--auto`, `--profile`, `--lang`) |
+| `/product:init-output` | sonnet | Orchestration | Initialize the product output tree, `work/pipeline-progress.json`, and `work/traceability.json` |
+| `/product:define-vision` | opus | 1. Product Core | Define product core (Vision/Mission/Values) as a Product Vision Board plus PR-FAQ |
+| `/product:define-success-metrics` | opus | 1. Product Core | One North Star Metric plus 3–5 input metrics |
+| `/product:research-landscape` | opus | 1. Product Core | Market/competitor research: sizing (TAM/SAM/SOM), trends, Kano classification |
+| `/product:design-revenue` | opus | 1. Product Core | Revenue/business model and a recomputable benefit-evaluation template |
+| `/product:define-scope` | sonnet | 1. Product Core | Normalize constraints and decide product scope (in/out) |
+| `/product:validate-assumptions` | opus | Gate | Extract riskiest assumptions, attach cheapest test and Go/No-Go (re-runnable) |
+| `/product:generate-persona` | opus | 2. UX Foundation | Jobs-to-be-Done–anchored personas (job stories + persona cards) |
+| `/product:map-journey` | sonnet | 2. UX Foundation | Customer journey as a stages × layers grid (touchpoints, actions, emotions) |
+| `/product:design-positioning` | opus | 2. UX Foundation | Positioning (Dunford 5-component canvas), touchpoint × device × timing matrix |
+| `/product:generate-ui-mock` | sonnet | 3. UX → Spec | Lo-fi UI mocks for key screens from journey/positioning/personas |
+| `/product:define-features` | sonnet | 3. UX → Spec | Extract features from UI mocks (each screen action → Command/feature) |
+| `/product:define-data-model` | opus | 3. UX → Spec | Derive the data model in two passes (explicit → implicit) |
+| `/product:map-domains` | opus | 4. Domain & API | Abstract features/entities into bounded contexts (DDD strategic) |
+| `/product:design-api` | opus | 4. Domain & API | Logical API surface in three API-Led layers (System/Process/Experience) |
+| `/product:design-sla` | sonnet | 5. Quality & NFR | Per-service SLI/SLO/SLA with error budgets |
+| `/product:define-nfr` | sonnet | 5. Quality & NFR | Turn SLOs into measurable NFRs (availability, latency p95/p99, ...) |
+| `/product:review` | opus | R. Review & Report | Review product artifacts (consistency, traceability, extensibility, strategy) |
+| `/product:report` | sonnet | R. Review & Report | Consolidate artifacts into one self-contained HTML report (validation status first) |
+| `/product:adapt-change` | opus | 6. Adaptation | Re-propagation engine: compute affected scope from a change and re-run only impacted skills |
