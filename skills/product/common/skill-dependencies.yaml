@@ -1,0 +1,163 @@
+# product plugin — Skill Dependency Graph (single source of truth)
+# /product:start reads this to determine phase order.
+# parallel_with = "no ordering constraint" (a single session runs skills sequentially).
+# implemented: true  -> SKILL.md exists. ALL phases are implemented (21 skills): Phases 1-6 +
+# the validation gate + Phase R (review/report) + adapt-change. Nothing remains design-only.
+
+schema_version: 1
+plugin: product
+
+orchestrators:
+  start:        { model: sonnet, note: "interactive; --auto runs the whole pipeline non-interactively" }
+  init-output:  { model: sonnet, outputs: [work/pipeline-progress.json, work/traceability.json] }
+
+phases:
+  # ---- Phase 1: Product Core ----
+  define-vision:
+    category: core
+    depends_on: []
+    implemented: true
+    outputs: [reports/00_core/vision-mission-value.md, reports/00_core/pr-faq.md]
+    model: opus
+
+  define-success-metrics:
+    category: core
+    depends_on: [define-vision]
+    implemented: true
+    outputs: [reports/00_core/success-metrics.md]
+    model: opus
+
+  research-landscape:
+    category: core
+    depends_on: []
+    optional: true
+    implemented: true
+    outputs: [reports/00_core/market-landscape.md]
+    model: opus
+
+  design-revenue:
+    category: core
+    depends_on: [define-vision, define-success-metrics]
+    implemented: true
+    outputs: [reports/00_core/revenue-model.md, reports/00_core/benefit-evaluation.md]
+    model: opus
+
+  define-scope:
+    category: core
+    depends_on: [define-vision]            # M1: success-metrics not yet required; uses it when present
+    implemented: true
+    outputs: [reports/00_core/constraints.md, reports/00_core/scope-definition.md]
+    model: sonnet
+
+  # ---- GATE: Validation (rerunnable) ----
+  validate-assumptions:
+    category: validation
+    depends_on: [define-vision, define-scope]
+    gate: true
+    rerunnable: true
+    implemented: true
+    outputs: [reports/00_core/assumptions.md, reports/00_core/validation-plan.md]
+    model: opus
+
+  # ---- Phase 2: UX Foundation ----
+  generate-persona:
+    category: ux
+    depends_on: [define-vision]
+    implemented: true
+    outputs: [reports/01_ux/personas.md]
+    model: opus
+  map-journey:
+    category: ux
+    depends_on: [generate-persona]
+    implemented: true
+    outputs: [reports/01_ux/journey-maps.md]
+    model: sonnet
+  design-positioning:
+    category: ux
+    depends_on: [map-journey, research-landscape]
+    implemented: true
+    outputs: [reports/01_ux/positioning.md]
+    model: opus
+
+  # ---- Phase 3: UX -> Spec ----
+  generate-ui-mock:
+    category: spec
+    depends_on: [map-journey, design-positioning]
+    implemented: true
+    outputs: [reports/02_spec/ui-mocks/]
+    model: sonnet
+  define-features:
+    category: spec
+    depends_on: [generate-ui-mock, define-scope]
+    implemented: true
+    outputs: [reports/02_spec/feature-list.md]
+    model: sonnet
+  define-data-model:
+    category: spec
+    depends_on: [define-features, generate-ui-mock]
+    implemented: true
+    outputs: [reports/02_spec/data-model.md]
+    model: opus
+
+  # ---- Phase 4: Domain & API ----
+  map-domains:
+    category: domain
+    depends_on: [define-data-model, define-features]
+    implemented: true
+    outputs: [reports/03_domain/domain-map.md, reports/03_domain/bounded-contexts.md, reports/03_domain/ubiquitous-language.md]
+    model: opus
+  design-api:
+    category: domain
+    depends_on: [map-domains, define-data-model]
+    implemented: true
+    outputs: [reports/03_domain/api-design.md]
+    model: opus
+
+  # ---- Phase 5: Quality & NFR ----
+  design-sla:
+    category: quality
+    depends_on: [define-features, design-positioning]
+    implemented: true
+    outputs: [reports/04_quality/sla.md]
+    model: sonnet
+  define-nfr:
+    category: quality
+    depends_on: [design-sla, map-domains]
+    implemented: true
+    outputs: [reports/04_quality/nfr.md]
+    model: sonnet
+
+  # ---- Phase R: Review & Report (rerunnable; can run mid-pipeline) ----
+  review:
+    category: review
+    depends_on: [map-journey]
+    optional: true
+    rerunnable: true
+    implemented: true
+    outputs: [reports/report/review.md]
+    model: opus
+  report:
+    category: review
+    depends_on: [define-nfr]
+    optional: true
+    implemented: true
+    outputs: [reports/report/full-report.html]
+    model: sonnet
+
+  # ---- Phase 6: Adaptation (on demand) ----
+  adapt-change:
+    category: adaptation
+    depends_on: []
+    standalone: true
+    implemented: true
+    outputs: [reports/05_adaptation/change-log.md, reports/05_adaptation/impact-analysis.md]
+    model: opus
+
+profiles:
+  mvp:        [define-vision, define-scope, validate-assumptions]            # M1 (all implemented)
+  core-only:  [define-vision, define-success-metrics, research-landscape, design-revenue, define-scope, validate-assumptions]  # all implemented
+  ux-to-spec: [generate-persona, map-journey, design-positioning, generate-ui-mock, define-features, define-data-model]
+  full:       [define-vision, define-success-metrics, research-landscape, design-revenue, define-scope,
+               validate-assumptions, generate-persona, map-journey, design-positioning,
+               generate-ui-mock, define-features, define-data-model,
+               map-domains, design-api, design-sla, define-nfr, review, report]
