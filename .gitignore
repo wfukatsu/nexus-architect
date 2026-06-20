@@ -4,6 +4,10 @@ generated/
 work/
 knowledge.ryugraph/
 
+# QA artifacts (browser snapshots, console logs, rendered diagrams)
+.playwright-mcp/
+domain-stories-*.png
+
 # Python
 __pycache__/
 *.pyc
