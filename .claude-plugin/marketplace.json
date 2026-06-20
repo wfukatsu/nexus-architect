@@ -115,6 +115,52 @@
         "./skills/review-code",
         "./skills/migrate"
       ]
+    },
+    {
+      "name": "product",
+      "description": "Product direction agent. Validation-driven, dialogue-based pipeline that designs product vision/mission/value, success metrics, revenue model, personas, customer journeys, positioning, UI mocks, features, data model, domains, API (system/process/experience), and SLA/NFR. Extracts and validates the riskiest assumptions before committing, and re-propagates changes via a traceability graph. Hands off to /architect for system implementation design.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Wataru Fukatsu",
+        "url": "https://github.com/wfukatsu"
+      },
+      "homepage": "https://github.com/wfukatsu/nexus-architect",
+      "tags": [
+        "product-management",
+        "product-strategy",
+        "vision",
+        "jobs-to-be-done",
+        "customer-journey",
+        "positioning",
+        "validation",
+        "ddd",
+        "api-design",
+        "sla"
+      ],
+      "source": "./",
+      "skills": [
+        "./skills/product/start",
+        "./skills/product/init-output",
+        "./skills/product/define-vision",
+        "./skills/product/define-success-metrics",
+        "./skills/product/research-landscape",
+        "./skills/product/design-revenue",
+        "./skills/product/define-scope",
+        "./skills/product/validate-assumptions",
+        "./skills/product/generate-persona",
+        "./skills/product/map-journey",
+        "./skills/product/design-positioning",
+        "./skills/product/generate-ui-mock",
+        "./skills/product/define-features",
+        "./skills/product/define-data-model",
+        "./skills/product/map-domains",
+        "./skills/product/design-api",
+        "./skills/product/design-sla",
+        "./skills/product/define-nfr",
+        "./skills/product/review",
+        "./skills/product/report",
+        "./skills/product/adapt-change"
+      ]
     }
   ]
 }
