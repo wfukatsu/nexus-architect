@@ -17,7 +17,7 @@ Produce one deliverable:
    (blocker / major / minor), location (file + ID), and a concrete fix**:
    - **Consistency** — broken ID refs, contradictions, terminology drift
    - **Traceability** — `work/traceability.json` vs. documents; orphans & dangling refs
-   - **Extensibility** — domain boundaries & API reuse vs. future features (手法2.9)
+   - **Extensibility** — domain boundaries & API reuse vs. future features
    - **Strategy** — Vision↔scope alignment, unit-economics health, durable differentiation
 
 ## Invocation

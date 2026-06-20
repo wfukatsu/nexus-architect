@@ -16,6 +16,7 @@ Codex uses this `AGENTS.md` file plus the `skills/*/SKILL.md` files directly.
 
 When the user invokes a Claude-style command in Codex, map it to the matching local skill:
 
+- `/product:<name>` -> read and follow `skills/product/<name>/SKILL.md` (product skills are nested under `skills/product/`; product rules are nested under `rules/product/`)
 - `/architect:<name>` -> read and follow `skills/<name>/SKILL.md`
 - `/scalardb:<name>` -> read and follow `skills/<name>/SKILL.md`
 - `@rules/...`, `@templates/...`, and `@skills/...` -> resolve as repository-relative paths

@@ -13,9 +13,9 @@ a feature checklist.
 
 ## Points of Difference (PoD) vs Points of Parity (PoP)
 
-- **PoP (同質化点)** — table-stakes attributes you must match to be considered. Meeting them
+- **PoP (points of parity)** — table-stakes attributes you must match to be considered. Meeting them
   *removes a reason not to buy*; exceeding them rarely wins. **Do not over-invest here.**
-- **PoD (差別化点)** — attributes where you are meaningfully better/different and that the segment
+- **PoD (points of difference)** — attributes where you are meaningfully better/different and that the segment
   values. This is where investment compounds into preference.
 
 Strategy: reach parity on PoP efficiently, concentrate resources on a few defensible PoDs.
@@ -24,9 +24,9 @@ Strategy: reach parity on PoP efficiently, concentrate resources on a few defens
 
 Classify candidate attributes:
 
-- **Must-be (基本)** — absence causes dissatisfaction; presence is neutral → these are **PoP**.
-- **Performance (一元的)** — satisfaction scales linearly with how well you do it.
-- **Delighter (魅力的)** — unexpected value; presence delights, absence is forgiven → these are
+- **Must-be (basic)** — absence causes dissatisfaction; presence is neutral → these are **PoP**.
+- **Performance (one-dimensional)** — satisfaction scales linearly with how well you do it.
+- **Delighter (attractive)** — unexpected value; presence delights, absence is forgiven → these are
   **PoD**.
 
 Delighters decay into expectations over time (today's delighter is tomorrow's must-be), so

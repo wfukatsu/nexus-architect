@@ -4,17 +4,19 @@ Guidance for Claude Code in the **nexus-architect** repository.
 
 ## What This Is
 
-Two-plugin system architecture toolkit:
+Three-plugin system architecture toolkit:
+- **product** — Product direction agent: validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
 - **architect** — System architecture agent for legacy refactoring, greenfield design, and consulting deliverables
 - **scalardb** — ScalarDB application development toolkit
 
 Workflows:
+- **Product direction**: vision -> success metrics / revenue -> scope -> validate -> personas/journey/positioning -> UI/features/data -> domains/API -> SLA/NFR -> review/report (handoff to `/architect:define-requirements`)
 - **Legacy refactoring**: investigate -> analyze -> evaluate -> redesign -> implement
 - **Greenfield design**: requirements -> domain modeling -> ScalarDB design -> infra -> deploy
 - **Consulting deliverables**: reports, cost estimates, domain stories
 
-Architecture skills: `/architect:skill-name`. ScalarDB development tools: `/scalardb:skill-name`.
-Use `/architect:start` for interactive selection or `/architect:pipeline` for automated execution.
+Product direction skills: `/product:skill-name`. Architecture skills: `/architect:skill-name`. ScalarDB development tools: `/scalardb:skill-name`.
+Use `/product:start` to design product direction, `/architect:start` for interactive system analysis/design selection, or `/architect:pipeline` for automated execution.
 
 ## Output Language
 
@@ -25,6 +27,31 @@ Output language is configurable per project. Set in `work/pipeline-progress.json
 Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orchestrator asks the user to select a language at project initialization.
 
 ## Command Reference
+
+### Product Direction (`/product:*`)
+Validation-driven pipeline from product vision to SLA/NFR. Skills are namespaced under `skills/product/`; rules under `rules/product/`. Use `/product:start` for interactive/automated execution; hands off to `/architect:define-requirements` for system implementation design.
+
+- `/product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--lang=ja|en]` — Interactively start product-direction design; runs the validation-driven pipeline in dependency order, gating on the riskiest assumptions
+- `/product:init-output [project]` — Initialize the product output tree, pipeline progress file, and traceability graph
+- `/product:define-vision` — Define product core (Vision/Mission/Values) as a Product Vision via dialogue
+- `/product:define-success-metrics` — One North Star Metric plus 3–5 input metrics
+- `/product:research-landscape` — Market/competitor research: market sizing (TAM/SAM/SOM), trends
+- `/product:design-revenue` — Revenue/business model and a recomputable benefit-evaluation template
+- `/product:define-scope` — Normalize constraints and decide product scope (in/out)
+- `/product:validate-assumptions` — Extract riskiest assumptions, attach cheapest test, Go/No-Go gate (re-runnable)
+- `/product:generate-persona` — Jobs-to-be-Done–anchored personas (job stories + persona cards)
+- `/product:map-journey` — Customer journey as a stages × layers grid (touchpoints, actions, emotions)
+- `/product:design-positioning` — Positioning (Dunford 5-component canvas), touchpoint × device × timing matrix
+- `/product:generate-ui-mock` — Lo-fi UI mocks for key screens from journey/positioning/personas
+- `/product:define-features` — Extract features from UI mocks (each screen action becomes a Command/feature)
+- `/product:define-data-model` — Derive data model from UI mocks and features (explicit → implicit, 2 passes)
+- `/product:map-domains` — Abstract features/entities into bounded contexts (DDD strategic; Core/Supporting/Generic)
+- `/product:design-api` — Logical API surface in three API-Led layers (System/Process/Experience)
+- `/product:design-sla` — Per-service SLI/SLO/SLA with error budgets from customer expectations
+- `/product:define-nfr` — Turn SLOs into measurable NFRs (availability, latency p95/p99, ...)
+- `/product:review` — Review product artifacts through four lenses (consistency, traceability, ...)
+- `/product:report [--auto] [--lang=ja|en]` — Consolidate artifacts into one self-contained HTML report (validation status first)
+- `/product:adapt-change` — Re-propagation engine: compute affected scope from a change and re-run only impacted skills
 
 ### Orchestration
 - `/architect:start [target_path]` — Interactively start system analysis and design
@@ -112,7 +139,9 @@ investigate -> analyze -> [evaluate-mmi, evaluate-ddd] -> integrate-evaluations
   -> review-synthesizer -> report -> review-report
 ```
 
-Dependency manifest: @skills/common/skill-dependencies.yaml
+Dependency manifest (architect): @skills/common/skill-dependencies.yaml
+
+The **product** plugin has its own pipeline and manifest: `skills/product/common/skill-dependencies.yaml` (vision -> success-metrics/revenue -> scope -> validate-assumptions [gate] -> persona/journey/positioning -> ui-mock/features/data-model -> map-domains/api -> sla/nfr -> review -> report; `adapt-change` on demand). It ends by handing off to `/architect:define-requirements`.
 
 ## Output Conventions
 
@@ -133,6 +162,8 @@ Naming and frontmatter rules: @rules/output-conventions.md
 | **opus** | Architecture decisions, tradeoff analysis, risk | review-risk, redesign, design-microservices |
 | **sonnet** | Standard analysis, document generation, reviews | analyze, review-consistency, report |
 | **haiku** | Template generation, status checks, simple transforms | init-output, render-mermaid |
+
+The **product** plugin follows the same tiers (per-skill `model` in `skills/product/common/skill-dependencies.yaml`): **opus** for strategy/judgment (`define-vision`, `validate-assumptions`, `design-positioning`, `map-domains`, `design-api`, `review`, `adapt-change`), **sonnet** for structured generation (`define-scope`, `generate-ui-mock`, `define-features`, `design-sla`, `define-nfr`, `report`, and the `start` orchestrator).
 
 ## Tool Priority
 

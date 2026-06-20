@@ -27,7 +27,7 @@ Experience (channel-optimized)
    flows.
 3. **Screens/journeys → Experience APIs** — from `ui-mocks/`/journeys, tailor per channel.
 
-## Reuse & extensibility rules (手法2.9)
+## Reuse & extensibility rules
 
 - **Maximize reuse**: one Process API should serve **many** Experience APIs; one System API should
   serve **many** Process APIs. Reuse is the whole point of the layering.

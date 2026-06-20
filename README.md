@@ -1,8 +1,9 @@
 # Nexus Architect
 
-System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as two plugins with 52 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
+System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as three plugins with 75 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
 
-- **architect** (41 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
+- **product** (21 skills) — Product direction: validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
+- **architect** (43 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
 - **scalardb** (11 skills) — ScalarDB application development toolkit
 
 ## Installation
@@ -13,16 +14,18 @@ System architecture toolkit for Claude Code and Codex. Claude Code uses this rep
 # 1. Add the marketplace
 claude plugin marketplace add wfukatsu/nexus-architect
 
-# 2. Install both plugins
+# 2. Install the plugins
+claude plugin install product@nexus-architect --scope user
 claude plugin install architect@nexus-architect --scope user
 claude plugin install scalardb@nexus-architect --scope user
 ```
 
-After installation, commands are available as `/architect:skill-name` and `/scalardb:skill-name`.
+After installation, commands are available as `/product:skill-name`, `/architect:skill-name`, and `/scalardb:skill-name`.
 
 To update to the latest version:
 
 ```bash
+claude plugin update product@nexus-architect
 claude plugin update architect@nexus-architect
 claude plugin update scalardb@nexus-architect
 ```
@@ -36,7 +39,8 @@ git clone https://github.com/wfukatsu/nexus-architect.git
 # 2. Add as a local marketplace
 claude plugin marketplace add ./nexus-architect
 
-# 3. Install both plugins
+# 3. Install the plugins
+claude plugin install product@nexus-architect --scope user
 claude plugin install architect@nexus-architect --scope user
 claude plugin install scalardb@nexus-architect --scope user
 ```
@@ -46,6 +50,7 @@ claude plugin install scalardb@nexus-architect --scope user
 In a Claude Code session, type any command to confirm:
 
 ```bash
+/product:start
 /architect:start
 /scalardb:model
 ```
@@ -67,16 +72,18 @@ pip install -r requirements.txt
 
 Open Codex at the repository root. `AGENTS.md` tells Codex how to translate Claude Code conventions:
 
+- `/product:<name>` -> `skills/product/<name>/SKILL.md` (product skills are nested under `skills/product/`)
 - `/architect:<name>` -> `skills/<name>/SKILL.md`
 - `/scalardb:<name>` -> `skills/<name>/SKILL.md`
 - `CLAUDE_PLUGIN_ROOT` -> the repository root
 - `.claude/docs/*` -> `skills/common/references/*`
-- `.claude/rules/*` -> `rules/*`
+- `.claude/rules/*` -> `rules/*` (product rules are nested under `rules/product/*`)
 - `${CLAUDE_PLUGIN_ROOT}/subagents/*` -> `skills/common/subagents/*`
 
 Then invoke the same command text in chat:
 
 ```bash
+/product:start
 /architect:start ./path/to/target
 /architect:pipeline ./path/to/target
 /scalardb:model
@@ -106,6 +113,9 @@ Claude Code continues to use the plugin metadata and slash commands unchanged. S
 ## Quick Start
 
 ```bash
+# Product direction (greenfield: start here, then hand off to /architect:define-requirements)
+/product:start
+
 # Interactive workflow (recommended)
 /architect:start ./path/to/target
 
@@ -124,6 +134,34 @@ Claude Code continues to use the plugin metadata and slash commands unchanged. S
 ```
 
 ## Commands
+
+### Product Direction (`/product:*`)
+
+Validation-driven pipeline from product vision to SLA/NFR. Hands off to `/architect:define-requirements` for system implementation design.
+
+| Command | Description |
+|---------|-------------|
+| `/product:start` | Interactively start product-direction design (`--profile=mvp\|core-only\|ux-to-spec\|full`) |
+| `/product:init-output` | Initialize the product output tree, progress file, and traceability graph |
+| `/product:define-vision` | Define product core (Vision/Mission/Values) via dialogue |
+| `/product:define-success-metrics` | One North Star Metric plus 3–5 input metrics |
+| `/product:research-landscape` | Market/competitor research: sizing (TAM/SAM/SOM), trends |
+| `/product:design-revenue` | Revenue/business model and a recomputable benefit-evaluation template |
+| `/product:define-scope` | Normalize constraints and decide product scope (in/out) |
+| `/product:validate-assumptions` | Extract riskiest assumptions, cheapest test, Go/No-Go gate (re-runnable) |
+| `/product:generate-persona` | Jobs-to-be-Done–anchored personas (job stories + persona cards) |
+| `/product:map-journey` | Customer journey as a stages × layers grid |
+| `/product:design-positioning` | Positioning (Dunford canvas), touchpoint × device × timing matrix |
+| `/product:generate-ui-mock` | Lo-fi UI mocks for key screens |
+| `/product:define-features` | Extract features from UI mocks (each screen action → Command/feature) |
+| `/product:define-data-model` | Derive data model from UI mocks and features (explicit → implicit, 2 passes) |
+| `/product:map-domains` | Abstract features/entities into bounded contexts (DDD strategic) |
+| `/product:design-api` | Logical API surface in three API-Led layers (System/Process/Experience) |
+| `/product:design-sla` | Per-service SLI/SLO/SLA with error budgets |
+| `/product:define-nfr` | Turn SLOs into measurable NFRs (availability, latency p95/p99, ...) |
+| `/product:review` | Review product artifacts (consistency, traceability, extensibility, strategy) |
+| `/product:report` | Consolidate artifacts into one self-contained HTML report (validation status first) |
+| `/product:adapt-change` | Re-propagation engine: compute affected scope and re-run only impacted skills |
 
 ### Orchestration
 
@@ -233,6 +271,16 @@ Claude Code continues to use the plugin metadata and slash commands unchanged. S
 | `/scalardb:migrate` | Migration advisor (Core/Cluster, CRUD/JDBC, 1PC/2PC) |
 
 ## Workflows
+
+### Product Direction
+
+Decide product direction before system design: validate the riskiest assumptions early, then derive UX, spec, domains, API, and SLA/NFR. Hands off to the greenfield path via `/architect:define-requirements`.
+
+```
+vision -> success-metrics / revenue -> scope -> validate-assumptions [gate]
+  -> personas/journey/positioning -> ui-mock/features/data-model
+  -> domains/API -> SLA/NFR -> review -> report -> /architect:define-requirements
+```
 
 ### Legacy Refactoring
 
