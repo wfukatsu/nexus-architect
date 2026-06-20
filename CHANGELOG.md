@@ -1,0 +1,114 @@
+# Changelog
+
+All notable changes to Nexus Architect are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
+all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
+
+## [0.8.2] - 2026-06-20
+
+### Changed
+- Bumped all three plugin versions to 0.8.2.
+
+### Documentation
+- Documented the `create-domain-story` (Design) and `review-report` (Reporting) skills
+  in `README.md` and the skill reference (en/ja), which previously listed 41 of the 43
+  architect skills.
+- Corrected the `/architect:pipeline` flag reference
+  (`--resume-from`, `--rerun-from`, `--skip-{phase}`, `--no-scalardb`, `--lang`).
+- Surfaced the `product` plugin in the Getting Started and Codex usage guides (en/ja):
+  added a "Product Direction (greenfield)" entry point, the `/product:*` skill mapping
+  (`skills/product/<name>/SKILL.md`), and the product install command.
+
+## [0.8.1] - 2026-06-20
+
+### Fixed
+- Fixed a plugin namespace collision that prevented `product:` and `scalardb:` namespaced
+  skills from loading. Skills are now scoped per plugin via explicit `skills[]` arrays in
+  the marketplace manifest, so each plugin registers only its own commands.
+
+## [0.8.0] - 2026-06-20
+
+### Added
+- **`product` plugin** (21 skills, 14 rules) — a validation-driven, dialogue-based product
+  direction pipeline from product vision to SLA/NFR. Extracts and validates the riskiest
+  assumptions before deep design, propagates changes through a traceability graph, and hands
+  off to `/architect:define-requirements` for system implementation design.
+
+Nexus Architect is now a three-plugin toolkit (`product`, `architect`, `scalardb`)
+with 75 skills total.
+
+## [0.7.0] - 2026-06-11
+
+### Added
+- `/architect:define-requirements` skill as the greenfield entry point: functional/
+  non-functional requirement classification, data and transaction requirement analysis,
+  and ScalarDB applicability assessment. Supports `--input`, `--auto`, and `--no-scalardb`.
+
+## [0.6.2] - 2026-06-11
+
+### Added
+- `/architect:create-domain-story` skill for Domain Storytelling (visualize business
+  processes per domain).
+- `/architect:review-report` skill to review the quality of the generated HTML report.
+- `ec-monolith` sample project for toolkit validation.
+
+### Fixed
+- Resolved agent component audit findings across hooks, skills, and manifests.
+- Repaired Mermaid validator block parsing and added a ubiquitous-language term alignment rule.
+- Added calculation procedures and self-verification to the `investigate` skill.
+
+## [0.6.1] - 2026-05-12
+
+### Added
+- Parallel sub-agent execution in the review and evaluation skills.
+- Parallelized `migrate-oracle` SA3/SA4/SA5 stages after the schema report.
+
+### Fixed
+- Multi-perspective review fixes across 28 files.
+- Corrected skill invocations and nested sub-skill paths across the migration pipeline.
+
+## [0.6.0] - 2026-05-07
+
+### Added
+- Codex compatibility layer (`AGENTS.md`): the same skill files are usable from Codex
+  without installing Claude Code plugins.
+
+### Fixed
+- Removed the `name` field from all SKILL.md files to enable `/architect:` prefix registration.
+- Resolved skill audit findings (manifest naming, frontmatter, JDBC patterns).
+
+## [0.5.0] - 2026-03-24
+
+### Changed
+- Split the ScalarDB development skills into a separate `scalardb` plugin.
+
+## [0.4.0] - 2026-03-23
+
+### Added
+- Database migration support (Oracle / MySQL / PostgreSQL → ScalarDB): schema extraction,
+  migration analysis, and stored-procedure/trigger conversion to Java.
+
+## [0.3.0] - 2026-03-23
+
+### Added
+- ScalarDB application development skills (schema modeling, configuration, CRUD/JDBC patterns,
+  scaffolding, code review, migration advisory).
+
+## [0.2.0]
+
+### Changed
+- Restructured the repository into a Claude Code plugin-compatible layout.
+
+[0.8.2]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.8.2
+[0.8.1]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.8.1
+[0.8.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.8.0
+[0.7.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.7.0
+[0.6.2]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.6.2
+[0.6.1]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.6.1
+[0.6.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.6.0
+[0.5.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.5.0
+[0.4.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.4.0
+[0.3.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.3.0

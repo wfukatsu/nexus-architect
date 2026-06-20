@@ -368,13 +368,15 @@ work/             # Pipeline state and intermediate files
 | [Skill Reference](docs/skill-reference.md) | Complete skill catalog |
 | [ScalarDB Development](docs/scalardb-development.md) | ScalarDB development guide |
 | [Database Migration](docs/database-migration.md) | Migration guide (Oracle/MySQL/PostgreSQL) |
+| [Changelog](CHANGELOG.md) | Release notes and version history |
 
 Japanese translations:
 [Getting Started (日本語)](docs/getting-started_ja.md) |
 [Codex Usage (日本語)](docs/codex-usage_ja.md) |
 [Skill Reference (日本語)](docs/skill-reference_ja.md) |
 [ScalarDB Development (日本語)](docs/scalardb-development_ja.md) |
-[Database Migration (日本語)](docs/database-migration_ja.md)
+[Database Migration (日本語)](docs/database-migration_ja.md) |
+[Changelog (日本語)](CHANGELOG_ja.md)
 
 ## License
 
