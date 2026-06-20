@@ -38,6 +38,10 @@ validate_file() {
     # Strip double-quoted label content first: brackets/parens inside quoted
     # labels (e.g. A["決済 (カード)"]) are legal and must not be counted.
     STRIPPED=$(echo "$block" | sed 's/"[^"]*"//g')
+    # Strip erDiagram relationship cardinality markers (e.g. ||--o{, }o--o{, }|..|{)
+    # whose braces are relationship syntax, not block delimiters. Attribute-block
+    # braces (CUSTOMER { ... }) are preceded by a name/space and stay counted.
+    STRIPPED=$(echo "$STRIPPED" | sed -E 's/[.o|-]\{//g; s/\}[o|]//g')
     OPEN_PARENS=$(echo "$STRIPPED" | tr -cd '(' | wc -c | tr -d ' ')
     CLOSE_PARENS=$(echo "$STRIPPED" | tr -cd ')' | wc -c | tr -d ' ')
     OPEN_BRACKETS=$(echo "$STRIPPED" | tr -cd '[' | wc -c | tr -d ' ')
