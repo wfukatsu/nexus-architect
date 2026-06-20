@@ -10,7 +10,7 @@ and Product Direction.
 | Command | Model | Description |
 |---------|-------|-------------|
 | `/architect:start` | sonnet | Interactively start system analysis and design |
-| `/architect:pipeline` | sonnet | Automated pipeline execution (supports --resume, --skip) |
+| `/architect:pipeline` | sonnet | Automated pipeline execution (--resume-from, --rerun-from, --skip-{phase}, --no-scalardb, --lang) |
 
 ## Requirements
 
@@ -46,6 +46,7 @@ and Product Direction.
 |---------|-------|-----------|-------------|
 | `/architect:map-domains` | opus | - | Domain classification, BC mapping |
 | `/architect:redesign` | opus | - | Bounded context redesign |
+| `/architect:create-domain-story` | opus | Optional | Domain Storytelling: visualize business processes per domain |
 | `/architect:design-microservices` | opus | - | Target architecture |
 | `/architect:select-scalardb-edition` | sonnet | ScalarDB | Edition selection |
 | `/architect:design-scalardb` | opus | ScalarDB | Schema and transaction design |
@@ -88,6 +89,7 @@ and Product Direction.
 | Command | Model | Description |
 |---------|-------|-------------|
 | `/architect:report` | haiku | Markdown to HTML consolidated report |
+| `/architect:review-report` | sonnet | Review the quality of the generated HTML report (completeness, score accuracy, Mermaid syntax) |
 | `/architect:render-mermaid` | haiku | Mermaid to PNG/SVG + syntax fix |
 | `/architect:estimate-cost` | sonnet | Infrastructure, license, and operational costs |
 

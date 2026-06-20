@@ -10,7 +10,7 @@
 | コマンド | モデル | 説明 |
 |---------|-------|------|
 | `/architect:start` | sonnet | インタラクティブにシステム分析と設計を開始 |
-| `/architect:pipeline` | sonnet | 自動パイプライン実行（--resume、--skip をサポート） |
+| `/architect:pipeline` | sonnet | 自動パイプライン実行（--resume-from、--rerun-from、--skip-{phase}、--no-scalardb、--lang） |
 
 ## 要件定義
 
@@ -46,6 +46,7 @@
 |---------|-------|------|------|
 | `/architect:map-domains` | opus | - | ドメイン分類、BC マッピング |
 | `/architect:redesign` | opus | - | 境界づけられたコンテキストの再設計 |
+| `/architect:create-domain-story` | opus | オプション | ドメインストーリーテリング: ドメインごとの業務プロセスを可視化 |
 | `/architect:design-microservices` | opus | - | ターゲットアーキテクチャ |
 | `/architect:select-scalardb-edition` | sonnet | ScalarDB | エディション選択 |
 | `/architect:design-scalardb` | opus | ScalarDB | スキーマとトランザクション設計 |
@@ -88,6 +89,7 @@
 | コマンド | モデル | 説明 |
 |---------|-------|------|
 | `/architect:report` | haiku | Markdown から HTML への統合レポート |
+| `/architect:review-report` | sonnet | 生成された HTML レポートの品質レビュー（完全性、スコア精度、Mermaid 構文） |
 | `/architect:render-mermaid` | haiku | Mermaid から PNG/SVG + 構文修正 |
 | `/architect:estimate-cost` | sonnet | インフラ、ライセンス、運用コスト |
 

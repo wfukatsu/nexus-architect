@@ -168,7 +168,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Hands off to `/archit
 | Command | Description |
 |---------|-------------|
 | `/architect:start` | Interactively start system analysis and design |
-| `/architect:pipeline` | Automated pipeline execution (supports `--resume`, `--skip`) |
+| `/architect:pipeline` | Automated pipeline execution (`--resume-from`, `--rerun-from`, `--skip-{phase}`, `--no-scalardb`, `--lang`) |
 | `/architect:init-output` | Initialize output directories |
 
 ### Requirements
@@ -200,6 +200,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Hands off to `/archit
 |---------|-------------|
 | `/architect:map-domains` | Domain classification, BC mapping |
 | `/architect:redesign` | Bounded context redesign |
+| `/architect:create-domain-story` | Domain Storytelling: visualize business processes per domain (optional) |
 | `/architect:design-microservices` | Target architecture |
 | `/architect:select-scalardb-edition` | ScalarDB edition selection |
 | `/architect:design-scalardb` | ScalarDB schema and transaction design |
@@ -242,6 +243,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Hands off to `/archit
 | Command | Description |
 |---------|-------------|
 | `/architect:report` | Markdown to HTML consolidated report |
+| `/architect:review-report` | Review the quality of the generated HTML report |
 | `/architect:render-mermaid` | Mermaid to PNG/SVG + syntax fix |
 | `/architect:estimate-cost` | Infrastructure, license, and operational costs |
 
@@ -318,10 +320,11 @@ migrate-database -> schema extraction -> migration analysis -> SP/trigger conver
 
 ```
 investigate -> analyze -> [evaluate-mmi, evaluate-ddd] -> integrate-evaluations
-  -> redesign -> design-microservices -> [design-scalardb | design-data-layer, design-api]
+  -> redesign -> [create-domain-story (optional, per domain)]
+  -> design-microservices -> [design-scalardb | design-data-layer, design-api]
   -> [review-consistency, review-scalardb | review-data-integrity,
      review-operations, review-risk, review-business]
-  -> review-synthesizer -> report
+  -> review-synthesizer -> report -> review-report
 ```
 
 ## Output Language

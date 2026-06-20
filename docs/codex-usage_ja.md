@@ -20,10 +20,11 @@ npm install -g @mermaid-js/mermaid-cli
 
 ## スキルの呼び出し方
 
-Claude Code では `/architect:start` や `/scalardb:model` のような slash command が使えます。
+Claude Code では `/product:start`、`/architect:start`、`/scalardb:model` のような slash command が使えます。
 
 Codex では同じコマンド文字列をチャットで依頼してください。Codex は `AGENTS.md` のルールに従って対応する `SKILL.md` を読みます。
 
+- `/product:start` -> `skills/product/start/SKILL.md`（product スキルは `skills/product/` 配下にネストされています）
 - `/architect:start ./path/to/project` -> `skills/start/SKILL.md`
 - `/architect:pipeline ./path/to/project` -> `skills/pipeline/SKILL.md`
 - `/scalardb:model` -> `skills/model/SKILL.md`
@@ -85,8 +86,9 @@ Claude Code での使い方はこれまで通りです。
 
 ```bash
 claude plugin marketplace add wfukatsu/nexus-architect
+claude plugin install product@nexus-architect --scope user
 claude plugin install architect@nexus-architect --scope user
 claude plugin install scalardb@nexus-architect --scope user
 ```
 
-インストール後は、`README.md` に記載された `/architect:*` と `/scalardb:*` のコマンドを利用できます。
+インストール後は、`README.md` に記載された `/product:*`、`/architect:*`、`/scalardb:*` のコマンドを利用できます。

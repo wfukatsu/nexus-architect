@@ -20,9 +20,26 @@ npm install -g @mermaid-js/mermaid-cli
 
 In Claude Code, install the plugins and use the slash commands directly.
 
-In Codex, open a session at the repository root and use the same command text in chat. `AGENTS.md` maps `/architect:<name>` and `/scalardb:<name>` to the matching `skills/<name>/SKILL.md` file. See [Using Nexus Architect with Codex](codex-usage.md) for details.
+In Codex, open a session at the repository root and use the same command text in chat. `AGENTS.md` maps `/product:<name>`, `/architect:<name>`, and `/scalardb:<name>` to the matching `SKILL.md` file (`/product:<name>` resolves to `skills/product/<name>/SKILL.md`). See [Using Nexus Architect with Codex](codex-usage.md) for details.
 
-### 1. Analyzing a Legacy System
+### 1. Deciding Product Direction (greenfield)
+
+Start here for a new product: a validation-driven pipeline from vision to SLA/NFR that hands off to `/architect:define-requirements`.
+
+```bash
+# Interactive pipeline (gates on the riskiest assumptions before deep design)
+/product:start
+
+# Pick a smaller scope with a profile
+/product:start --profile=mvp
+
+# Then hand off to system implementation design
+/architect:define-requirements
+```
+
+See the [Skill Reference](skill-reference.md) for the full product skill catalog.
+
+### 2. Analyzing a Legacy System
 
 ```bash
 # Interactive workflow (recommended)
@@ -36,7 +53,7 @@ In Codex, open a session at the repository root and use the same command text in
 /architect:integrate-evaluations
 ```
 
-### 2. Full Pipeline Execution
+### 3. Full Pipeline Execution
 
 ```bash
 # Run all phases automatically
@@ -52,7 +69,7 @@ In Codex, open a session at the repository root and use the same command text in
 /architect:pipeline ./path/to/project --resume-from=design-microservices
 ```
 
-### 3. Running Reviews
+### 4. Running Reviews
 
 ```bash
 # 5-perspective parallel review (after design is complete)
@@ -75,7 +92,7 @@ Consolidated HTML report:
 # -> reports/00_summary/full-report.html
 ```
 
-## 4. ScalarDB Application Development
+## 5. ScalarDB Application Development
 
 ```bash
 # Design a schema interactively
@@ -93,7 +110,7 @@ Consolidated HTML report:
 
 See [ScalarDB Development Guide](scalardb-development.md) for details.
 
-## 5. Database Migration to ScalarDB
+## 6. Database Migration to ScalarDB
 
 ```bash
 # Unified entry point (asks which database)
