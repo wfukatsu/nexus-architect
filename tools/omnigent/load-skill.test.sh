@@ -26,19 +26,36 @@ check_exit() {
 }
 
 # assert_contains <description> <needle> <command...>
+# Fails if the command exits non-zero (so an errored loader can't pass merely by
+# emitting the needle on stderr) or if the needle is absent from stdout.
 assert_contains() {
   local desc="$1" needle="$2"; shift 2
-  local out
-  out="$("$@" 2>/dev/null)"
-  if printf '%s' "$out" | grep -qF -- "$needle"; then ok "$desc"; else nok "$desc (missing: $needle)"; fi
+  local out status
+  out="$("$@" 2>/dev/null)"; status=$?
+  if [ "$status" -ne 0 ]; then
+    nok "$desc (command exited $status, expected 0)"
+  elif printf '%s' "$out" | grep -qF -- "$needle"; then
+    ok "$desc"
+  else
+    nok "$desc (missing: $needle)"
+  fi
 }
 
 # assert_not_contains <description> <needle> <command...>
+# Fails if the command exits non-zero (an error with empty stdout must NOT pass) or
+# if the needle IS present. For cases where a non-zero exit is the expected outcome,
+# use check_exit instead.
 assert_not_contains() {
   local desc="$1" needle="$2"; shift 2
-  local out
-  out="$("$@" 2>/dev/null)"
-  if printf '%s' "$out" | grep -qF -- "$needle"; then nok "$desc (unexpectedly found: $needle)"; else ok "$desc"; fi
+  local out status
+  out="$("$@" 2>/dev/null)"; status=$?
+  if [ "$status" -ne 0 ]; then
+    nok "$desc (command exited $status, expected 0)"
+  elif printf '%s' "$out" | grep -qF -- "$needle"; then
+    nok "$desc (unexpectedly found: $needle)"
+  else
+    ok "$desc"
+  fi
 }
 
 echo "== load-skill.sh test suite =="
@@ -49,39 +66,59 @@ echo
 # Loader must exist and be executable.
 if [ -x "$LOADER" ]; then ok "loader is executable"; else nok "loader is executable"; fi
 
-# --- Resolve one skill per plugin (discover real names, don't assume) -----
+# --- Resolve one skill per plugin (DISCOVER fixtures, never hardcode names) -----
+# Derive a real flat skill and a real product skill from the filesystem so these
+# tests stay valid as skills are renamed/added/removed. Assert the loader resolves
+# the discovered skill to its own SKILL.md ("Source file:" path) and emits the
+# preamble marker — no hardcoded skill names, body text, or counts.
 
-# architect skill: investigate is a core flat skill.
-assert_contains "architect:investigate resolves and emits body" "# System Investigation" \
-  bash "$LOADER" architect:investigate
-assert_contains "architect:investigate emits translation preamble" "OMNIGENT TRANSLATION PREAMBLE" \
-  bash "$LOADER" architect:investigate
+PREAMBLE_MARKER="OMNIGENT TRANSLATION PREAMBLE"
 
-# scalardb skill: model lives flat under skills/model/SKILL.md.
-assert_contains "scalardb:model resolves (flat namespace)" "OMNIGENT TRANSLATION PREAMBLE" \
-  bash "$LOADER" scalardb:model
-assert_contains "scalardb:model source path is skills/model/SKILL.md" "skills/model/SKILL.md" \
-  bash "$LOADER" scalardb:model
+# Flat skill: skills/<name>/SKILL.md (architect + scalardb share this namespace).
+FLAT_SKILL_FILE="$(find "$ROOT/skills" -mindepth 2 -maxdepth 2 -name SKILL.md 2>/dev/null | sort | head -1)"
+if [ -n "$FLAT_SKILL_FILE" ]; then
+  FLAT_NAME="$(basename "$(dirname "$FLAT_SKILL_FILE")")"
+  echo "   (flat fixture: $FLAT_NAME -> $FLAT_SKILL_FILE)"
 
-# product skill: define-vision is nested under skills/product/define-vision/.
-assert_contains "product:define-vision resolves (nested path)" "skills/product/define-vision/SKILL.md" \
-  bash "$LOADER" product:define-vision
-assert_contains "product:define-vision emits body" "OMNIGENT TRANSLATION PREAMBLE" \
-  bash "$LOADER" product:define-vision
+  assert_contains "architect:<flat> resolves to its SKILL.md (Source file)" "Source file: $FLAT_SKILL_FILE" \
+    bash "$LOADER" "architect:$FLAT_NAME"
+  assert_contains "architect:<flat> emits translation preamble" "$PREAMBLE_MARKER" \
+    bash "$LOADER" "architect:$FLAT_NAME"
+  # scalardb shares the flat namespace, so it resolves the same file.
+  assert_contains "scalardb:<flat> resolves the same flat SKILL.md" "Source file: $FLAT_SKILL_FILE" \
+    bash "$LOADER" "scalardb:$FLAT_NAME"
+  # Bare name defaults to the architect/flat namespace -> same file.
+  assert_contains "bare <flat> defaults to flat namespace" "Source file: $FLAT_SKILL_FILE" \
+    bash "$LOADER" "$FLAT_NAME"
+else
+  nok "could not discover any flat skill under skills/*/SKILL.md"
+fi
 
-# Bare name defaults to the architect/flat namespace.
-assert_contains "bare 'investigate' defaults to flat namespace" "# System Investigation" \
-  bash "$LOADER" investigate
+# Product skill: skills/product/<name>/SKILL.md (nested namespace).
+PROD_SKILL_FILE="$(find "$ROOT/skills/product" -mindepth 2 -maxdepth 2 -name SKILL.md 2>/dev/null | sort | head -1)"
+if [ -n "$PROD_SKILL_FILE" ]; then
+  PROD_NAME="$(basename "$(dirname "$PROD_SKILL_FILE")")"
+  echo "   (product fixture: $PROD_NAME -> $PROD_SKILL_FILE)"
+
+  assert_contains "product:<name> resolves to its nested SKILL.md (Source file)" "Source file: $PROD_SKILL_FILE" \
+    bash "$LOADER" "product:$PROD_NAME"
+  assert_contains "product:<name> emits translation preamble" "$PREAMBLE_MARKER" \
+    bash "$LOADER" "product:$PROD_NAME"
+else
+  nok "could not discover any product skill under skills/product/*/SKILL.md"
+fi
 
 # --- ${CLAUDE_PLUGIN_ROOT} substitution -----------------------------------
 # Pick a skill that actually references the token, discovered from the tree.
 TOKEN_SKILL_FILE="$(grep -rl 'CLAUDE_PLUGIN_ROOT' "$ROOT/skills" 2>/dev/null | grep '/SKILL.md$' | head -1)"
 if [ -n "$TOKEN_SKILL_FILE" ]; then
-  # Derive the slash name from the path.
+  # Derive the slash name from the path (handles flat, product, and nested
+  # parent/child sub-skills — derive the full relative name, not just a basename).
   rel="${TOKEN_SKILL_FILE#"$ROOT"/skills/}"
-  case "$rel" in
-    product/*/SKILL.md) sname="product:$(basename "$(dirname "$TOKEN_SKILL_FILE")")" ;;
-    */SKILL.md)         sname="architect:$(basename "$(dirname "$TOKEN_SKILL_FILE")")" ;;
+  stripped="${rel%/SKILL.md}"           # e.g. review-code, product/define-vision, migrate-oracle/<child>
+  case "$stripped" in
+    product/*) sname="product:${stripped#product/}" ;;
+    *)         sname="architect:$stripped" ;;
   esac
   echo "   (token skill for substitution test: $sname)"
   # The expanded root must appear...
@@ -116,6 +153,13 @@ fi
 # Unknown plugin is rejected.
 check_exit "unknown plugin returns non-zero" 2 \
   bash "$LOADER" bogus:investigate
+
+# Path-traversal components in the name are rejected (exit 2), while legit nested
+# names (parent/child) remain valid — exercised by the substitution/list tests.
+check_exit "name with '..' is rejected (path traversal)" 2 \
+  bash "$LOADER" architect:../foo
+check_exit "bare name with '..' is rejected (path traversal)" 2 \
+  bash "$LOADER" ../etc/passwd
 
 # --- --list ---------------------------------------------------------------
 check_exit "--list exits 0" 0 bash "$LOADER" --list

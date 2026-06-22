@@ -64,7 +64,11 @@ closest documented fallback.
 
 ## Path Resolution: `${CLAUDE_PLUGIN_ROOT}` and `@`-prefixes
 
-The worker's CWD is the **repository root**. Treat the repository root as the plugin root:
+Repository root is an **absolute path** — the loader prints it as
+`CLAUDE_PLUGIN_ROOT == <absolute root>` in its preamble. Resolve `${CLAUDE_PLUGIN_ROOT}`,
+`@rules/`, `@templates/`, `@skills/` and other repo-relative paths against this absolute
+root; **do NOT assume your CWD equals it** (the loader never `cd`s). Treat the repository
+root as the plugin root:
 
 - `${CLAUDE_PLUGIN_ROOT}` → the absolute repo root. The loader substitutes any literal
   `${CLAUDE_PLUGIN_ROOT}` in a skill body with the absolute root before emitting it, so a
@@ -98,14 +102,19 @@ Skill bodies mention Claude Code tools. Interpret them as Omnigent tools:
 | `LS`               | `sys_os_shell`  | `ls`                                     |
 | `WebFetch` / `WebSearch` | (orchestrator web capability) | when network is approved      |
 
-## `Task(...)` Blocks → Sub-agent Dispatch
+## `Task(...)` Blocks → Sequential Bodies or Orchestrator Dispatch
 
 Several skills (notably the 5-perspective parallel reviews and the migration routers)
 spawn Claude sub-agents via `Task(...)`. Under Omnigent, for each `Task` prompt body:
 
-- **Preferred (parallel):** dispatch each prompt as an Omnigent sub-agent
-  (`sys_call_async` / a session dispatch) and aggregate the results once all return.
-- **Fallback (sequential):** run the prompts one after another in the same worker.
+- **Default (sequential):** run each prompt body one after another in the same worker
+  and have the orchestrator aggregate the results.
+- **Parallel (orchestrator capability):** genuine concurrent sub-agent execution is
+  performed by the **orchestrator** via the session/sub-agent dispatch API (e.g.
+  `sys_session_send`), not by a plain worker.
+
+> **Note:** `sys_call_async` dispatches a registered local **Python tool**, not an
+> agent/sub-agent session — do **not** use it to run `Task(...)` prompt bodies.
 
 Either way, the **orchestrator** computes any composite scores *after* collecting all
 results — individual sub-agents only return their own findings (e.g. each review writes

@@ -92,12 +92,14 @@ EOF
   # already listed above as a first-class namespace, so exclude skills/product/*.
   while IFS= read -r f; do
     [ -n "$f" ] || continue
+    # Exclude product skills with a fixed-string (glob) match — $SKILLS_DIR may
+    # contain regex metacharacters, so avoid a regex filter like grep -v.
+    [[ "$f" == "$SKILLS_DIR/product/"* ]] && continue
     rel="${f#"$SKILLS_DIR"/}"          # e.g. migrate-oracle/migrate-oracle-to-scalardb/SKILL.md
     echo "  ${rel%/SKILL.md}"
     count=$((count + 1))
   done <<EOF
-$(find "$SKILLS_DIR" -mindepth 3 -maxdepth 3 -name SKILL.md 2>/dev/null \
-    | grep -v "^$SKILLS_DIR/product/" | sort)
+$(find "$SKILLS_DIR" -mindepth 3 -maxdepth 3 -name SKILL.md 2>/dev/null | sort)
 EOF
 
   echo
@@ -125,14 +127,19 @@ Tool mapping:
   Bash / Grep / Glob  -> sys_os_shell (use rg/find/grep/sed within the shell)
 
 Path mapping:
-  CLAUDE_PLUGIN_ROOT placeholders, and @rules/ @templates/ @skills/ prefixes,
-  resolve repository-relative; worker CWD = repo root (${ROOT}).
+  Repository root is ${ROOT}. Resolve CLAUDE_PLUGIN_ROOT, @rules/, @templates/,
+  @skills/ and other repo-relative paths against this absolute root; do NOT assume
+  your CWD equals it. (CLAUDE_PLUGIN_ROOT placeholders are already expanded in the
+  body below.)
 
 Task(...) blocks:
-  Dispatch each prompt body as an Omnigent sub-agent (sys_call_async / session
-  dispatch) and aggregate the results, OR run them sequentially in this worker.
-  Composite scores are computed by the orchestrator after all results are
-  collected.
+  DEFAULT: run each Task prompt body SEQUENTIALLY in this worker and have the
+  orchestrator aggregate the results. (sys_call_async dispatches a registered
+  local Python tool, NOT an agent/sub-agent session — do not use it for this.)
+  Genuine PARALLEL sub-agent execution is an orchestrator capability via the
+  session/sub-agent dispatch API (e.g. sys_session_send), not available to a
+  plain worker. Either way the orchestrator computes any composite scores after
+  all results are collected.
 
 AskUserQuestion / interactive choices:
   Hand off to the orchestrator<->human gate: present the numbered choices,
@@ -150,8 +157,9 @@ model: frontmatter:
   a per-dispatch model when the orchestrator supports it.
 
 Pipeline sequencing:
-  Read skills/common/skill-dependencies.yaml for the DAG and track progress in
-  work/pipeline-progress.json (plain data, not a Claude construct).
+  Read skills/common/skill-dependencies.yaml for the architect DAG (or
+  skills/product/common/skill-dependencies.yaml for the product pipeline) and track
+  progress in work/pipeline-progress.json (plain data, not a Claude construct).
 ===== END PREAMBLE — SKILL BODY FOLLOWS =====
 
 EOF
@@ -197,6 +205,16 @@ if [ -z "$plugin" ] || [ -z "$name" ]; then
   exit 2
 fi
 
+# Reject path-traversal components in the skill name (e.g. architect:../foo).
+# Legit nested names like migrate-oracle/migrate-oracle-to-scalardb are unaffected.
+IFS='/' read -ra _name_parts <<< "$name"
+for _part in "${_name_parts[@]}"; do
+  if [ "$_part" = "." ] || [ "$_part" = ".." ]; then
+    err "invalid skill name '$name': path components '.' and '..' are not allowed"
+    exit 2
+  fi
+done
+
 case "$plugin" in
   product)
     skill_path="$SKILLS_DIR/product/$name/SKILL.md"
@@ -224,4 +242,15 @@ print_preamble "$plugin" "$name" "$skill_path"
 # shellcheck disable=SC2016
 token='${CLAUDE_PLUGIN_ROOT}'
 body="$(cat "$skill_path")"
+
+# Replace the token literally. On bash 5.2+ with patsub_replacement enabled, a '&'
+# in the replacement ($ROOT) would be taken as "the matched text"; disable it around
+# the substitution so the replacement is always literal, then restore prior state.
+# (Trailing-newline normalization from $(cat ...) is acceptable and left as-is.)
+_patsub_was_on=""
+if shopt -q patsub_replacement 2>/dev/null; then
+  _patsub_was_on="yes"
+  shopt -u patsub_replacement
+fi
 printf '%s\n' "${body//"$token"/$ROOT}"
+if [ -n "$_patsub_was_on" ]; then shopt -s patsub_replacement; fi
