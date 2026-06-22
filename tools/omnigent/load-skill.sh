@@ -253,4 +253,8 @@ if shopt -q patsub_replacement 2>/dev/null; then
   shopt -u patsub_replacement
 fi
 printf '%s\n' "${body//"$token"/$ROOT}"
+_emit_status=$?
+# Always restore the prior option state, then exit with printf's status so a write
+# failure (e.g. broken pipe) is not masked by the restore command's own exit code.
 if [ -n "$_patsub_was_on" ]; then shopt -s patsub_replacement; fi
+exit "$_emit_status"

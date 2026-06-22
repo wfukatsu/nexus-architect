@@ -181,12 +181,18 @@ else
 fi
 
 # --- Resolves from a non-repo-root CWD ------------------------------------
-# Run from /tmp; the loader must still find the repo via the script location.
-NONROOT_OUT="$(cd /tmp && bash "$LOADER" architect:investigate 2>/dev/null)"
-if printf '%s' "$NONROOT_OUT" | grep -qF '# System Investigation'; then
-  ok "resolves from a non-repo-root CWD (/tmp)"
+# Run from /tmp; the loader must still find the repo via its own script location.
+# Use the already-DISCOVERED flat fixture (no hardcoded skill name or body text):
+# resolution succeeds if the emitted "Source file:" path points at that SKILL.md.
+if [ -n "${FLAT_SKILL_FILE:-}" ]; then
+  NONROOT_OUT="$(cd /tmp && bash "$LOADER" "architect:$FLAT_NAME" 2>/dev/null)"
+  if printf '%s' "$NONROOT_OUT" | grep -qF "Source file: $FLAT_SKILL_FILE"; then
+    ok "resolves from a non-repo-root CWD (/tmp)"
+  else
+    nok "resolves from a non-repo-root CWD (/tmp)"
+  fi
 else
-  nok "resolves from a non-repo-root CWD (/tmp)"
+  nok "resolves from a non-repo-root CWD (/tmp) — no flat fixture discovered"
 fi
 
 # --- Summary --------------------------------------------------------------
