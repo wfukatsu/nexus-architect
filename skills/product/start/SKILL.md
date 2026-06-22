@@ -25,16 +25,16 @@ given. Record it in `work/pipeline-progress.json` under `options.output_language
 
 - Pick a profile (or honor `--profile`): `mvp` (vision + scope + validate — the smallest useful
   direction), `core-only`, `ux-to-spec`, `full`.
-- **M1 status**: only `define-vision`, `define-scope`, `validate-assumptions` (and `init-output`)
-  are implemented. For phases marked `implemented: false` in the dependency manifest, tell the
-  user the phase is not yet available and skip it (do not fabricate its output).
+- **Implementation status**: all 21 product skills are implemented (`implemented: true` for every
+  phase in the dependency manifest), so any profile — including `full` — runs end to end. Profiles
+  scope *which* phases run, not what is available; they never skip a phase for being unimplemented.
 
 ## Execution Flow
 
-1. Read `@skills/product/common/skill-dependencies.yaml` to get phase order and the
-   `implemented` flag.
+1. Read `@skills/product/common/skill-dependencies.yaml` to get phase order and dependencies
+   (all phases are `implemented: true`).
 2. Run `/product:init-output` to create the output tree and state files.
-3. Execute implemented skills in dependency order. After each phase, update
+3. Execute the selected profile's skills in dependency order. After each phase, update
    `work/pipeline-progress.json` and append key decisions to `work/context.md`.
 4. **Validation gate** — after Phase 1 (`define-vision`, `define-scope`), run
    `/product:validate-assumptions`. Read its verdict from `pipeline-progress.json` → `gates`:
