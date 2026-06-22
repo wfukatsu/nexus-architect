@@ -1,8 +1,9 @@
 # product plugin — Skill Dependency Graph (single source of truth)
 # /product:start reads this to determine phase order.
 # parallel_with = "no ordering constraint" (a single session runs skills sequentially).
-# implemented: true  -> SKILL.md exists. ALL phases are implemented (21 skills): Phases 1-6 +
-# the validation gate + Phase R (review/report) + adapt-change. Nothing remains design-only.
+# implemented: true  -> SKILL.md exists. ALL phases are implemented (22 skills): Phases 1-6 +
+# the validation gate + the architecture/tech-fitness synthesis + Phase R (review/report) +
+# adapt-change. Nothing remains design-only.
 
 schema_version: 1
 plugin: product
@@ -128,6 +129,15 @@ phases:
     outputs: [reports/04_quality/nfr.md]
     model: sonnet
 
+  # ---- Synthesis: Architecture & Technology Fitness (capstone of Phase 4/5) ----
+  design-architecture:
+    category: domain
+    depends_on: [design-api, map-domains, define-data-model]
+    soft_depends_on: [define-nfr, define-scope]   # uses NFR scaling + constraints when present
+    implemented: true
+    outputs: [reports/03_domain/architecture.md, reports/03_domain/tech-stack-fitness.md]
+    model: opus
+
   # ---- Phase R: Review & Report (rerunnable; can run mid-pipeline) ----
   review:
     category: review
@@ -161,4 +171,4 @@ profiles:
   full:       [define-vision, define-success-metrics, research-landscape, design-revenue, define-scope,
                validate-assumptions, generate-persona, map-journey, design-positioning,
                generate-ui-mock, define-features, define-data-model,
-               map-domains, design-api, design-sla, define-nfr, review, report]
+               map-domains, design-api, design-sla, define-nfr, design-architecture, review, report]

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
+## [Unreleased]
+
+### Added
+- **`product` plugin: `/product:design-architecture` skill** — synthesizes bounded contexts, API
+  layers, the data model and NFRs into a runtime architecture (Mermaid container / critical-path /
+  deployment-scaling views), and runs an evidence-driven **technology-fitness** assessment over a
+  standing checklist — **Kong (API Gateway), ScalarDB, ScalarDB Analytics, ScalarDL** — emitting an
+  Adopt / Conditional / Reject decision with rationale and architecture placement for each. A
+  ScalarDB/ScalarDL *Adopt* bridges to the `architect` plugin's ScalarDB pipeline. Outputs
+  `reports/03_domain/architecture.md` and `reports/03_domain/tech-stack-fitness.md`. Added to the
+  `full` profile (capstone after `define-nfr`) and the dependency graph; new rule
+  `rules/product/architecture-and-tech-fitness.md`. Product plugin now has 22 skills.
+
 ## [0.8.2] - 2026-06-20
 
 ### Changed

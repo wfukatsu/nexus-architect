@@ -4,12 +4,13 @@ Instructions for using this repository with Codex while preserving Claude Code p
 
 ## What This Repository Is
 
-This repository is a dual-plugin architecture toolkit originally packaged for Claude Code:
+This repository is a three-plugin architecture toolkit originally packaged for Claude Code:
 
 - `architect`: system architecture, refactoring, design, migration, and reporting skills
 - `scalardb`: ScalarDB application development, review, configuration, and scaffolding skills
+- `product`: product-direction skills (product vision through SLA/NFR), nested under `skills/product/`; product rules under `rules/product/`
 
-Claude Code continues to use `CLAUDE.md`, `.claude-plugin/`, and slash commands such as `/architect:start`.
+Claude Code continues to use `CLAUDE.md`, `.claude-plugin/`, and slash commands such as `/architect:start` or `/product:start`.
 Codex uses this `AGENTS.md` file plus the `skills/*/SKILL.md` files directly.
 
 ## Codex Command Mapping

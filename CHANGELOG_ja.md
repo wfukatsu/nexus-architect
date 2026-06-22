@@ -7,6 +7,19 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 3 つのプラグイン（`product`・`architect`・`scalardb`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+### 追加
+- **`product` プラグイン: `/product:design-architecture` スキル** — 境界づけられたコンテキスト・
+  API レイヤー・データモデル・非機能要件を統合してランタイムの全体アーキテクチャを生成し（Mermaid の
+  構成図 / クリティカルパス / デプロイ・スケーリングの 3 ビュー）、定型チェックリスト
+  **Kong（API Gateway）・ScalarDB・ScalarDB Analytics・ScalarDL** に対する**技術適合度評価**を
+  成果物の根拠に基づいて実施。各技術に **採用 / 条件付き採用 / 不採用** の判定と採用理由・配置を出力する。
+  ScalarDB / ScalarDL の「採用」は architect プラグインの ScalarDB パイプラインへの橋渡しとなる。
+  出力は `reports/03_domain/architecture.md` と `reports/03_domain/tech-stack-fitness.md`。
+  `full` プロファイル（`define-nfr` の後の総合ステップ）と依存グラフに追加。新ルール
+  `rules/product/architecture-and-tech-fitness.md` を追加。product プラグインは 22 スキルに。
+
 ## [0.8.2] - 2026-06-20
 
 ### 変更

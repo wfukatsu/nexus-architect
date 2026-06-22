@@ -64,6 +64,11 @@ When `define-nfr` / `map-domains` / `design-api` artifacts exist, they can be ha
 `/architect:define-requirements --input=<reports/...>` for system implementation design (see the
 mapping table in the design docs). Logical (product) vs physical (architect) split applies.
 
+`design-architecture` additionally emits a technology-fitness assessment
+(`reports/03_domain/tech-stack-fitness.md`); a ScalarDB / ScalarDL **Adopt** there bridges directly
+to `/architect:select-scalardb-edition` → `/architect:design-scalardb` (and
+`/architect:design-scalardb-analytics`).
+
 ## Related Skills
 
 | Skill | Relationship |
