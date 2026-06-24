@@ -1,9 +1,9 @@
 # product plugin — Skill Dependency Graph (single source of truth)
 # /product:start reads this to determine phase order.
 # parallel_with = "no ordering constraint" (a single session runs skills sequentially).
-# implemented: true  -> SKILL.md exists. ALL phases are implemented (22 skills): Phases 1-6 +
-# the validation gate + the architecture/tech-fitness synthesis + Phase R (review/report) +
-# adapt-change. Nothing remains design-only.
+# implemented: true  -> SKILL.md exists. ALL phases are implemented (23 skills): Phases 1-6 +
+# the validation gate + the architecture/tech-fitness synthesis + the persona-anchored
+# domain-story step + Phase R (review/report) + adapt-change. Nothing remains design-only.
 
 schema_version: 1
 plugin: product
@@ -80,11 +80,20 @@ phases:
     implemented: true
     outputs: [reports/01_ux/positioning.md]
     model: opus
+  create-domain-story:
+    category: ux
+    depends_on: [generate-persona, map-journey]   # actors=personas, activities ordered by journey
+    soft_depends_on: [map-domains, define-data-model]  # CTX-/ENT- enrichment when present (e.g. on rerun)
+    optional: true
+    implemented: true
+    outputs: [reports/01_ux/domain-stories/]
+    model: opus
 
   # ---- Phase 3: UX -> Spec ----
   generate-ui-mock:
     category: spec
     depends_on: [map-journey, design-positioning]
+    soft_depends_on: [create-domain-story]   # renders the story's activities into screens when present
     implemented: true
     outputs: [reports/02_spec/ui-mocks/]
     model: sonnet
@@ -169,6 +178,6 @@ profiles:
   core-only:  [define-vision, define-success-metrics, research-landscape, design-revenue, define-scope, validate-assumptions]  # all implemented
   ux-to-spec: [generate-persona, map-journey, design-positioning, generate-ui-mock, define-features, define-data-model]
   full:       [define-vision, define-success-metrics, research-landscape, design-revenue, define-scope,
-               validate-assumptions, generate-persona, map-journey, design-positioning,
+               validate-assumptions, generate-persona, map-journey, design-positioning, create-domain-story,
                generate-ui-mock, define-features, define-data-model,
                map-domains, design-api, design-sla, define-nfr, design-architecture, review, report]

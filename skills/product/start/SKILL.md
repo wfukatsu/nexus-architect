@@ -76,4 +76,5 @@ to `/architect:select-scalardb-edition` → `/architect:design-scalardb` (and
 | `/product:init-output` | Initialization (called automatically) |
 | `/product:define-vision` | First phase — product core |
 | `/product:validate-assumptions` | Validation gate after Phase 1 |
+| `/product:create-domain-story` | UX phase — persona-anchored domain stories (the axis for UI mocks) |
 | `/architect:define-requirements` | Downstream handoff to system design |

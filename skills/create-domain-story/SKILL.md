@@ -201,4 +201,5 @@ sequenceDiagram
 | /architect:analyze | Upstream — provides actors and ubiquitous language |
 | /architect:redesign | Upstream — provides bounded context definitions |
 | /architect:map-domains | Related — domain classification context |
+| /product:create-domain-story | Counterpart — product-path, persona-anchored variant (actors=personas, activities=job stories) |
 | /architect:report | Downstream — stories can be included in the final HTML report |

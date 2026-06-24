@@ -18,6 +18,7 @@ Create the directory structure and state files required to run the `product` pip
 1. Create the following directories (only those that do not yet exist):
    - `reports/00_core/`
    - `reports/01_ux/`
+   - `reports/01_ux/domain-stories/`
    - `reports/02_spec/ui-mocks/`
    - `reports/03_domain/`
    - `reports/04_quality/`
