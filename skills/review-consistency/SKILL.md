@@ -104,6 +104,7 @@ Evaluate ONLY the Traceability dimension:
 - Ability to trace from requirements to design to implementation
 - Presence of forward and backward references
 - Whether gaps are documented
+- Cross-plugin continuity (when `work/traceability.json` exists from a product handoff, per docs/design.md §1.5): every `FR-` is reachable from a `FEAT-` or explicitly flagged as elicited-fresh; no product `NFR-` was silently re-numbered; no `upstream` ID dangles across the product→architect boundary
 
 Score 1-5: 5=Exemplary, 4=Good, 3=Acceptable, 2=Concerning, 1=Critical
 
