@@ -161,6 +161,7 @@
         "./skills/product/map-domains",
         "./skills/product/design-api",
         "./skills/product/create-domain-story",
+        "./skills/product/design-system",
         "./skills/product/design-sla",
         "./skills/product/define-nfr",
         "./skills/product/design-architecture",

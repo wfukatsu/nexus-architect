@@ -10,7 +10,7 @@ Three-plugin system architecture toolkit:
 - **scalardb** — ScalarDB application development toolkit
 
 Workflows:
-- **Product direction**: vision -> success metrics / revenue -> scope -> validate -> personas/journey/positioning -> domain-stories -> UI/features/data -> domains/API -> SLA/NFR -> review/report (handoff to `/architect:define-requirements`)
+- **Product direction**: vision -> success metrics / revenue -> scope -> validate -> personas/journey/positioning -> domain-stories/design-system -> UI/features/data -> domains/API -> SLA/NFR -> review/report (handoff to `/architect:define-requirements`)
 - **Legacy refactoring**: investigate -> analyze -> evaluate -> redesign -> implement
 - **Greenfield design**: requirements -> domain modeling -> ScalarDB design -> infra -> deploy
 - **Consulting deliverables**: reports, cost estimates, domain stories
@@ -43,7 +43,8 @@ Validation-driven pipeline from product vision to SLA/NFR. Skills are namespaced
 - `/product:map-journey` — Customer journey as a stages × layers grid (touchpoints, actions, emotions)
 - `/product:design-positioning` — Positioning (Dunford 5-component canvas), touchpoint × device × timing matrix
 - `/product:create-domain-story` — Persona-anchored Domain Storytelling (actors=personas, activities=job stories/journey); the axis UI mocks render
-- `/product:generate-ui-mock` — Lo-fi UI mocks for key screens, driven by the domain stories (each activity → a screen)
+- `/product:design-system` — Build or `--import` a separately-managed design system (DTCG tokens + components + guidelines); the visual language UI mocks render at lo/mid fidelity
+- `/product:generate-ui-mock` — UI mocks for key screens, driven by domain stories and styled by the design system (each activity → a screen; tokens injected)
 - `/product:define-features` — Extract features from UI mocks (each screen action becomes a Command/feature)
 - `/product:define-data-model` — Derive data model from UI mocks and features (explicit → implicit, 2 passes)
 - `/product:map-domains` — Abstract features/entities into bounded contexts (DDD strategic; Core/Supporting/Generic)
@@ -142,7 +143,7 @@ investigate -> analyze -> [evaluate-mmi, evaluate-ddd] -> integrate-evaluations
 
 Dependency manifest (architect): @skills/common/skill-dependencies.yaml
 
-The **product** plugin has its own pipeline and manifest: `skills/product/common/skill-dependencies.yaml` (vision -> success-metrics/revenue -> scope -> validate-assumptions [gate] -> persona/journey/positioning -> create-domain-story -> ui-mock/features/data-model -> map-domains/api -> sla/nfr -> review -> report; `adapt-change` on demand). It ends by handing off to `/architect:define-requirements`.
+The **product** plugin has its own pipeline and manifest: `skills/product/common/skill-dependencies.yaml` (vision -> success-metrics/revenue -> scope -> validate-assumptions [gate] -> persona/journey/positioning -> create-domain-story/design-system -> ui-mock/features/data-model -> map-domains/api -> sla/nfr -> review -> report; `adapt-change` on demand). It ends by handing off to `/architect:define-requirements`.
 
 ## Output Conventions
 
