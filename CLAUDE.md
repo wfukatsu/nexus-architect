@@ -10,7 +10,7 @@ Three-plugin system architecture toolkit:
 - **scalardb** — ScalarDB application development toolkit
 
 Workflows:
-- **Product direction**: vision -> success metrics / revenue -> scope -> validate -> personas/journey/positioning -> UI/features/data -> domains/API -> SLA/NFR -> review/report (handoff to `/architect:define-requirements`)
+- **Product direction**: vision -> success metrics / revenue -> scope -> validate -> personas/journey/positioning -> UI/features/data -> domains/API/domain-stories -> SLA/NFR -> review/report (handoff to `/architect:define-requirements`)
 - **Legacy refactoring**: investigate -> analyze -> evaluate -> redesign -> implement
 - **Greenfield design**: requirements -> domain modeling -> ScalarDB design -> infra -> deploy
 - **Consulting deliverables**: reports, cost estimates, domain stories
@@ -47,6 +47,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Skills are namespaced
 - `/product:define-data-model` — Derive data model from UI mocks and features (explicit → implicit, 2 passes)
 - `/product:map-domains` — Abstract features/entities into bounded contexts (DDD strategic; Core/Supporting/Generic)
 - `/product:design-api` — Logical API surface in three API-Led layers (System/Process/Experience)
+- `/product:create-domain-story` — Persona-anchored Domain Storytelling per bounded context (actors=personas, activities=job stories/journey)
 - `/product:design-sla` — Per-service SLI/SLO/SLA with error budgets from customer expectations
 - `/product:define-nfr` — Turn SLOs into measurable NFRs (availability, latency p95/p99, ...)
 - `/product:review` — Review product artifacts through four lenses (consistency, traceability, ...)
@@ -141,7 +142,7 @@ investigate -> analyze -> [evaluate-mmi, evaluate-ddd] -> integrate-evaluations
 
 Dependency manifest (architect): @skills/common/skill-dependencies.yaml
 
-The **product** plugin has its own pipeline and manifest: `skills/product/common/skill-dependencies.yaml` (vision -> success-metrics/revenue -> scope -> validate-assumptions [gate] -> persona/journey/positioning -> ui-mock/features/data-model -> map-domains/api -> sla/nfr -> review -> report; `adapt-change` on demand). It ends by handing off to `/architect:define-requirements`.
+The **product** plugin has its own pipeline and manifest: `skills/product/common/skill-dependencies.yaml` (vision -> success-metrics/revenue -> scope -> validate-assumptions [gate] -> persona/journey/positioning -> ui-mock/features/data-model -> map-domains/api -> create-domain-story -> sla/nfr -> review -> report; `adapt-change` on demand). It ends by handing off to `/architect:define-requirements`.
 
 ## Output Conventions
 

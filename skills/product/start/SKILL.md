@@ -76,4 +76,5 @@ to `/architect:select-scalardb-edition` → `/architect:design-scalardb` (and
 | `/product:init-output` | Initialization (called automatically) |
 | `/product:define-vision` | First phase — product core |
 | `/product:validate-assumptions` | Validation gate after Phase 1 |
+| `/product:create-domain-story` | Phase 4 — persona-anchored domain stories per bounded context |
 | `/architect:define-requirements` | Downstream handoff to system design |

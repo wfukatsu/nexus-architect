@@ -20,6 +20,7 @@ Create the directory structure and state files required to run the `product` pip
    - `reports/01_ux/`
    - `reports/02_spec/ui-mocks/`
    - `reports/03_domain/`
+   - `reports/03_domain/domain-stories/`
    - `reports/04_quality/`
    - `reports/05_adaptation/`
    - `reports/report/`
