@@ -9,6 +9,33 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-06-24
+
+### 追加
+- **`product` プラグイン: `/product:create-domain-story` スキル** — ペルソナ起点のドメインストーリーテリング。
+  アクターはペルソナ（`PER-`）、アクティビティはジョブストーリー（`JOB-`）をジャーニー（`JNY-`）順に並べたもの、
+  ワークアイテムは扱う対象から導出する。各ストーリーは「あるペルソナが主要ジョブを遂行する」ハッピーパスの
+  シナリオで、ペルソナ×ジョブ単位でスコープする（境界づけられたコンテキストは `--domain` による任意の拡張）。
+  UX フェーズの、ジャーニー／ポジショニングの後・UI モックの**前**に実行し、`reports/01_ux/domain-stories/` を
+  `STORY-` トレーサビリティ付きで出力する。`/architect:create-domain-story` の product パイプライン版。
+- **`product` プラグイン: `/product:design-system` スキル** — **分離管理**のデザインシステムを構築または
+  `--import` で取り込む。構築はポジショニング／ペルソナ／ビジョンから **W3C DTCG** トークン
+  （color/type/spacing/radius/elevation/motion）を WCAG コントラストゲート付きで導出。`--import` は既存システム
+  （Tailwind config / DTCG JSON / Figma Tokens / CSS テーマ）を同一スキーマへ正規化する。出力は `reports/` 配下では
+  なく専用の `design-system/<name>/` ツリーに置き、semver の `manifest.json` を持ち、複数の名前付きシステムを
+  併存でき、**standalone**（いつでも単独実行可能）。アクティブなシステムは
+  `work/pipeline-progress.json` → `options.design_system` に記録する。新ルール
+  `rules/product/design-system.md` を追加。**product プラグインは 24 スキルに。**
+
+### 変更
+- **`/product:generate-ui-mock` がストーリー駆動＋デザインシステム適用に** — 画面は各ペルソナ×ジョブの
+  ドメインストーリーから導出し（1 アクティビティ ≒ 1 画面操作）、アクティブなデザインシステムでスタイリングする。
+  各 self-contained 画面に `tokens.css` をインライン注入し、`--fidelity=lo`（トークンのみ）または
+  `mid`（トークン＋`CMP-` コンポーネントスタイル）で描画する。システム未設定時はアドホックな lo-fi へフォールバック。
+  画面は `STORY-`/`CMP-` もトレースする。
+- **UX フェーズの順序** — `full` プロファイルで `create-domain-story` と `design-system` をポジショニングの後・
+  `generate-ui-mock` の前に実行し、モックが「選択された流れ」を「共有の視覚言語」で描けるようにした。
+
 ## [0.9.0] - 2026-06-24
 
 ### 追加

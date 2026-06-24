@@ -9,6 +9,34 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-06-24
+
+### Added
+- **`product` plugin: `/product:create-domain-story` skill** — persona-anchored Domain Storytelling.
+  Actors come from personas (`PER-`), activities from job stories (`JOB-`) ordered by the journey
+  (`JNY-`), work items from the things handled. Each story is the chosen happy-path scenario for a
+  persona pursuing a key job, scoped per persona×job (bounded contexts are optional enrichment via
+  `--domain`). Runs in the UX phase, after journey/positioning and **before** UI mocks; outputs
+  `reports/01_ux/domain-stories/` with `STORY-` traceability. The product-pipeline counterpart of
+  `/architect:create-domain-story`.
+- **`product` plugin: `/product:design-system` skill** — build or `--import` a **separately-managed**
+  design system. Build derives **W3C DTCG** tokens (color/type/spacing/radius/elevation/motion) from
+  positioning/personas/vision with a WCAG contrast gate; `--import` normalizes an existing system
+  (Tailwind config / DTCG JSON / Figma Tokens / CSS theme) into the same schema. Output lives in a
+  dedicated `design-system/<name>/` tree (not under `reports/`), carries a semver `manifest.json`,
+  supports multiple coexisting named systems, and is **standalone** (runnable any time). The active
+  system is recorded in `work/pipeline-progress.json` → `options.design_system`. New rule
+  `rules/product/design-system.md`. **The product plugin now has 24 skills.**
+
+### Changed
+- **`/product:generate-ui-mock` is story-driven and design-system–styled** — screens are derived from
+  the domain story for each persona×job (one activity ≈ one screen interaction), and styled by the
+  active design system: its `tokens.css` is injected into every self-contained screen, rendered at
+  `--fidelity=lo` (tokens only) or `mid` (tokens + `CMP-` component styles). Falls back to ad-hoc
+  lo-fi styling when no system is configured. Screens now also trace `STORY-`/`CMP-`.
+- **UX-phase ordering** — `create-domain-story` and `design-system` run after positioning and before
+  `generate-ui-mock` in the `full` profile, so mocks render a chosen flow in a shared visual language.
+
 ## [0.9.0] - 2026-06-24
 
 ### Added
