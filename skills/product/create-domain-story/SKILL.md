@@ -1,9 +1,10 @@
 ---
 description: |
-  Create persona-anchored domain stories (Domain Storytelling) per bounded context — actors come
-  from personas (PER-), activities from job stories (JOB-) and the journey, work items from entities
-  (ENT-). Visualizes how each persona actually accomplishes a job across a context, as narrative
-  prose plus a Mermaid sequence diagram. /product:create-domain-story [--domain=<CTX>] [--persona=<PER>] [--auto] [--lang=ja|en].
+  Create persona-anchored domain stories (Domain Storytelling) — actors come from personas (PER-),
+  activities from job stories (JOB-) ordered by the journey (JNY-), work items from the things they
+  handle. Each story is the chosen happy-path flow for a persona pursuing a key job, and becomes the
+  axis the UI mocks render. Runs after journey, before UI mocks.
+  /product:create-domain-story [--persona=<PER>] [--job=<JOB>] [--domain=<CTX>] [--auto] [--lang=ja|en].
 model: opus
 user_invocable: true
 ---
@@ -12,18 +13,22 @@ user_invocable: true
 
 ## Desired Outcome
 
-Produce one deliverable per targeted bounded context:
+Produce one deliverable per persona × key job:
 
-1. **Domain story** — `reports/03_domain/domain-stories/domain-story-{domain}.md`: a Domain
-   Storytelling narrative (`STORY-` IDs) that shows how a specific **persona** accomplishes a
-   **job** within a bounded context. Each story expresses the three Domain Storytelling elements,
-   sourced from product artifacts rather than reinvented:
+1. **Domain story** — `reports/01_ux/domain-stories/domain-story-{slug}.md` (`STORY-` IDs): a Domain
+   Storytelling narrative showing how a specific **persona** accomplishes a **key job**, step by
+   step, ordered by the **journey**. It is the concrete, single-threaded happy-path scenario that
+   downstream `generate-ui-mock` renders into screens (each activity → a screen interaction). Each
+   story expresses the three Domain Storytelling elements, sourced from existing UX artifacts:
 
-   - **Actors** — the persona(s) (`PER-`) plus the supporting systems/contexts they interact with
-   - **Work Items** — the objects/information handled, drawn from entities (`ENT-`) and the
-     ubiquitous language of the context
-   - **Activities** — numbered actions, seeded from the persona's job stories (`JOB-`) and the
-     journey-map actions, ordered into a coherent happy-path flow
+   - **Actors** — the persona(s) (`PER-`) plus the supporting people/systems they interact with
+   - **Work Items** — the objects/information handled along the way (named from the journey and job
+     vocabulary; enriched with entities `ENT-` when a data model already exists)
+   - **Activities** — numbered actions, derived from the persona's job story (`JOB-`) and the
+     journey actions/stages (`JNY-`), ordered into a coherent happy-path flow
+
+`{slug}` is the kebab-case persona+job scenario (e.g. `shopper-checkout`), or the context name when
+`--domain` is used.
 
 This is the product-pipeline, persona-first counterpart of `/architect:create-domain-story` (which
 anchors actors to the legacy `actors-roles-permissions.md`). Use this one inside the product
@@ -32,113 +37,115 @@ workflow; use the architect one on the legacy-refactoring path.
 ## Invocation
 
 ```
-/product:create-domain-story [--domain=<CTX>] [--persona=<PER>] [--auto] [--lang=ja|en]
+/product:create-domain-story [--persona=<PER>] [--job=<JOB>] [--domain=<CTX>] [--auto] [--lang=ja|en]
 ```
 
 | Argument/Flag | Required | Description |
 |---------------|----------|-------------|
-| `--domain=<CTX>` | Optional | Target bounded context (`CTX-` id or name). Prompted/looped over all if omitted. |
-| `--persona=<PER>` | Optional | Anchor the story to one persona (`PER-` id). Defaults to the primary persona for the context. |
-| `--auto` | Optional | Skip facilitation; derive the story from existing artifacts. Lower fidelity, suitable for bulk generation across all contexts. |
+| `--persona=<PER>` | Optional | Anchor to one persona (`PER-` id). Defaults to the primary persona; loops over personas if omitted in `--auto`. |
+| `--job=<JOB>` | Optional | Anchor to one job story (`JOB-` id). Defaults to the persona's highest-priority jobs. |
+| `--domain=<CTX>` | Optional | Scope the story to a bounded context (`CTX-`) instead of a persona×job. Only valid after `/product:map-domains` (a later-pipeline / rerun use). |
+| `--auto` | Optional | Skip facilitation; derive stories from existing artifacts. Suitable for bulk generation across personas/jobs. |
 | `--lang` | Optional | Override output language. |
 
 ## Decision Criteria
 
 - **Anchor every story to a persona and a job.** A story without a `PER-` actor and at least one
-  `JOB-`-derived activity is not a domain story — it is a generic flow. Pick the persona whose JTBD
-  the context most directly serves.
-- **One story = one persona × one job × one context.** Keep stories single-threaded (happy path);
+  `JOB-`-derived activity is not a domain story — it is a generic flow.
+- **One story = one persona × one key job (one scenario).** Keep it single-threaded (happy path);
   capture alternatives as Exception Scenarios, not as branches in the main diagram.
-- **Reuse the ubiquitous language verbatim.** Actor, work-item, and activity names must match the
-  terms in `reports/03_domain/ubiquitous-language.md`. Do not invent synonyms.
-- **Do not fabricate steps.** If the journey/job stories do not cover a step, mark it `TBD` and add
+- **The story is the mock axis.** Write activities at user-task granularity (coarse enough to map
+  one activity ≈ one screen interaction) so `generate-ui-mock` can render them directly. Avoid
+  system-internal steps that have no UI.
+- **Reuse existing vocabulary verbatim.** Actor and work-item names match the personas, journey, and
+  (if present) ubiquitous language. Do not invent synonyms.
+- **Do not fabricate steps.** If the journey/job story does not cover a step, mark it `TBD` and add
   an Open Question rather than inventing business behavior.
-- **Stop condition**: for each targeted context, the file exists with an actors table (≥1 `PER-`),
-  a work-items table, a numbered main flow whose activities trace to `JOB-`/journey actions, and a
-  Mermaid sequence diagram.
+- **Stop condition**: for each targeted persona×job, the file exists with an actors table (≥1 `PER-`),
+  a work-items table, a numbered main flow whose activities trace to `JOB-`/`JNY-`, and a Mermaid
+  sequence diagram.
 
 ## Prerequisites
 
 | Input | Required/Recommended | Source | If missing/empty |
 |-------|---------------------|--------|------------------|
-| `reports/03_domain/bounded-contexts.md` | Required | `/product:map-domains` | block with a message — stories are scoped per `CTX-` |
-| `reports/03_domain/ubiquitous-language.md` | Required | `/product:map-domains` | block — terms anchor actors/work items |
 | `reports/01_ux/personas.md` | Required | `/product:generate-persona` | block — actors are personas; without them this is the architect skill |
-| `reports/01_ux/journey-maps.md` | Recommended | `/product:map-journey` | proceed; derive activities from `JOB-` only, flag thinner coverage |
-| `reports/02_spec/data-model.md` | Recommended | `/product:define-data-model` | proceed; take work items from ubiquitous language only |
+| `reports/01_ux/journey-maps.md` | Required | `/product:map-journey` | block — activities are ordered by the journey |
+| `reports/03_domain/bounded-contexts.md` | Optional (enrichment) | `/product:map-domains` | skip `CTX-` scoping; persona×job scoping only |
+| `reports/03_domain/ubiquitous-language.md` | Optional (enrichment) | `/product:map-domains` | name work items from journey/job vocabulary |
+| `reports/02_spec/data-model.md` | Optional (enrichment) | `/product:define-data-model` | work items stay informal (no `ENT-` links) |
 
 If personas are absent, do not silently degrade to a generic flow — tell the user and suggest
 `/product:generate-persona` first, or `/architect:create-domain-story` for the legacy path.
 
 ## Process
 
-1. **Read context** — bounded contexts (`CTX-`), ubiquitous language, personas (`PER-`/`JOB-`),
-   journey maps, data model, and `work/traceability.json`.
-2. **Select the (context, persona, job) triple** — for `--domain` (or each context in `--auto`),
-   pick the persona whose JTBD the context serves (default: primary persona) and the job story the
-   context most directly fulfills.
-3. **Map actors** — the chosen persona(s) as primary actor(s); supporting actors are the systems /
-   other `CTX-` contexts it collaborates with (from the context map).
-4. **Map work items** — the `ENT-` entities and terms the context owns, named verbatim from the
-   ubiquitous language.
+1. **Read context** — personas (`PER-`/`JOB-`), journey maps (`JNY-`), and `work/traceability.json`;
+   optionally bounded contexts, ubiquitous language, and data model when they already exist.
+2. **Select the (persona, job) pair** — for `--persona`/`--job` (or each priority job in `--auto`),
+   pick the persona (default: primary) and the key job. With `--domain`, scope to that `CTX-` and
+   pick the persona whose JTBD it serves.
+3. **Map actors** — the chosen persona(s) as primary actor(s); supporting actors are the people /
+   systems they interact with along the journey (and other `CTX-` contexts when known).
+4. **Map work items** — the objects/information handled, named from the journey/job vocabulary;
+   link to `ENT-` entities when a data model exists.
 5. **Order activities** — turn the `JOB-` story ("When … I want to … so I can …") and the matching
-   journey-map actions into a numbered happy-path sequence: who does what, with which work item, to
-   whom. Uncovered steps → `TBD` + Open Question.
+   journey actions/stages into a numbered happy-path sequence at user-task granularity: who does
+   what, with which work item, to whom. Uncovered steps → `TBD` + Open Question.
 6. **Capture exceptions** — up to 3 significant alternative/error paths (from journey pains or
    Moments of Truth).
 7. **Interactive mode only** — present the draft for confirmation before writing; in `--auto`, write
    directly.
 8. **Append traceability** — add `STORY-` nodes to `work/traceability.json` with Upstream references
-   to the `PER-`, `JOB-`, and `CTX-` it derives from.
+   to the `PER-`, `JOB-`, and `JNY-` (and `CTX-` when scoped) it derives from.
 9. **Record** — write the file(s); append decisions to `work/context.md`; log every `TBD`.
 
 ## Output
 
-`reports/03_domain/domain-stories/domain-story-{domain}.md` (one per targeted context). `{domain}`
-is the kebab-case context name. Frontmatter keys stay English; body uses `options.output_language`.
+`reports/01_ux/domain-stories/domain-story-{slug}.md` (one per persona×job, or per context with
+`--domain`). Frontmatter keys stay English; body uses `options.output_language`.
 
 ### Output Document Structure
 
 ```markdown
 ---
-title: "Domain Story: {Context} — {Persona}"
+title: "Domain Story: {Persona} — {Job}"
 schema_version: 1
-phase: "Phase 4: Domain & API"
+phase: "Phase 2: UX Foundation"
 skill: create-domain-story
 generated_at: "ISO8601"
-context: "{CTX-id}"
 persona: "{PER-id}"
+job: "{JOB-id}"
+context: "{CTX-id or TBD}"
 mode: "interactive|auto"
 input_files:
-  - reports/03_domain/bounded-contexts.md
-  - reports/03_domain/ubiquitous-language.md
   - reports/01_ux/personas.md
   - reports/01_ux/journey-maps.md
 ---
 
-# Domain Story: {Context} — {Persona}
+# Domain Story: {Persona} — {Job}
 
 ## Story Overview
 
-[2–3 sentences: which persona, pursuing which job (JOB-id), within which context (CTX-id)]
+[2–3 sentences: which persona (PER-id), pursuing which job (JOB-id), across which journey (JNY-id)]
 
 ## Actors
 
 | Actor | Type | Source | Role in This Story |
 |-------|------|--------|--------------------|
-| ...   | Persona / System / Context | PER-xx / CTX-xx | ... |
+| ...   | Persona / Person / System | PER-xx / ... | ... |
 
 ## Work Items
 
-| Work Item | Domain Term | Source | Description |
-|-----------|-------------|--------|-------------|
-| ...       | ...         | ENT-xx | ... |
+| Work Item | Term | Source | Description |
+|-----------|------|--------|-------------|
+| ...       | ...  | JNY-xx / ENT-xx | ... |
 
 ## Main Flow
 
-[Numbered narrative; each step traces to a JOB- or journey action]
+[Numbered narrative; each step traces to a JOB-/JNY- and maps to a screen interaction]
 
-1. [Persona] [activity verb] [work item] → [recipient Actor/System]   _(JOB-xx)_
+1. [Persona] [activity verb] [work item] → [recipient Actor/System]   _(JOB-xx / JNY-xx)_
 2. ...
 
 ## Mermaid Diagram
@@ -146,8 +153,8 @@ input_files:
 ```mermaid
 sequenceDiagram
     participant Persona as {Persona}
-    participant CtxA as {Context}
-    Persona->>CtxA: 1. ... ({Work Item})
+    participant System as {System/Service}
+    Persona->>System: 1. ... ({Work Item})
 ```
 
 ## Exception Scenarios
@@ -155,15 +162,19 @@ sequenceDiagram
 ### [Exception Name]
 [Brief description; link the journey pain / Moment of Truth it comes from]
 
+## Screen Hints (for UI mocks)
+
+[Optional: which activities cluster into which screen, to seed generate-ui-mock]
+
 ## Traceability
 
-| STORY-id | Persona (PER-) | Job (JOB-) | Context (CTX-) |
-|----------|----------------|------------|----------------|
-| STORY-xx | PER-xx | JOB-xx | CTX-xx |
+| STORY-id | Persona (PER-) | Job (JOB-) | Journey (JNY-) | Context (CTX-) |
+|----------|----------------|------------|----------------|----------------|
+| STORY-xx | PER-xx | JOB-xx | JNY-xx | CTX-xx / TBD |
 
 ## Open Questions
 
-[TBD items where the journey/job stories did not cover a step]
+[TBD items where the journey/job story did not cover a step]
 ```
 
 ## Mermaid Diagram Guidelines
@@ -178,17 +189,15 @@ sequenceDiagram
 | Resource | Purpose |
 |----------|---------|
 | `@rules/product/persona-jtbd.md` | Personas, JTBD job stories — actor & activity sources |
-| `@rules/product/ddd-strategic.md` | Bounded contexts & ubiquitous language — scope & terms |
 | `@rules/mermaid-best-practices.md` | Sequence-diagram syntax and label rules |
 
 ## Related Skills
 
 | Skill | Relationship |
 |-------|-------------|
-| `/product:map-domains` | Upstream — provides `CTX-` contexts and ubiquitous language |
 | `/product:generate-persona` | Upstream — provides `PER-` actors and `JOB-` activities |
-| `/product:map-journey` | Upstream — provides journey actions ordering the main flow |
-| `/product:design-api` | Sibling — APIs realize the activities in the stories |
-| `/product:report` | Downstream — stories are auto-included (Mermaid rendered inline) |
+| `/product:map-journey` | Upstream — provides `JNY-` actions ordering the main flow |
+| `/product:generate-ui-mock` | Downstream — renders each story's activities into screens |
+| `/product:map-domains` | Downstream/enrichment — stories inform contexts; `--domain` rescopes per `CTX-` |
 | `/architect:create-domain-story` | Counterpart — legacy-path, analysis-anchored variant |
-| `/product:adapt-change` | Re-runs this skill when persona or domain changes |
+| `/product:adapt-change` | Re-runs this skill when persona or journey changes |
