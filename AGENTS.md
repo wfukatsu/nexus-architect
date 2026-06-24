@@ -83,13 +83,20 @@ does not interpret it, so treat the file as the orchestration specification desc
 
 ## Model Recommendations
 
-Claude Code switches models automatically based on the `model:` frontmatter. In Codex the flag is
-ignored — the session model is used throughout. For best results, prefer a capable model (equivalent
-to Sonnet or above) for the following skill groups:
+Claude Code switches models automatically based on each skill's assignment. Codex ignores the
+`model:` setting and uses the session model throughout, so choose an equivalent tier when possible:
+Opus for architecture decisions, strategy, tradeoff analysis, and risk; Sonnet for standard analysis,
+structured generation, and most reviews; Haiku for template generation and simple transforms.
 
-| Recommended: Opus equivalent | Recommended: Sonnet equivalent | Haiku equivalent sufficient |
-|---|---|---|
-| analyze, create-domain-story, design-api, design-data-layer, design-implementation, design-infrastructure, design-microservices, design-scalardb, generate-scalardb-code, map-domains, redesign | analyze-data-model, design-disaster-recovery, design-observability, design-scalardb-analytics, design-security, estimate-cost, evaluate-ddd, evaluate-mmi, generate-infra-code, generate-test-specs, integrate-evaluations, investigate, investigate-security, migrate-database, migrate-mysql, migrate-oracle, migrate-postgresql, pipeline, review-*, select-scalardb-edition | init-output, render-mermaid |
+The dependency YAML files are authoritative for pipeline skills; standalone skills use their
+`SKILL.md` frontmatter. Product skill names are prefixed below to distinguish them from architect
+skills with the same name.
+
+| Plugin | Opus equivalent | Sonnet equivalent | Haiku equivalent sufficient |
+|---|---|---|---|
+| architect | define-requirements, analyze, map-domains, redesign, create-domain-story, design-microservices, design-scalardb, design-data-layer, design-api, design-implementation, generate-scalardb-code, design-infrastructure, review-risk | start, pipeline, investigate, investigate-security, analyze-data-model, evaluate-mmi, evaluate-ddd, integrate-evaluations, select-scalardb-edition, design-scalardb-analytics, generate-test-specs, generate-infra-code, design-security, design-observability, design-disaster-recovery, review-consistency, review-scalardb, review-data-integrity, review-operations, review-business, review-synthesizer, review-report, estimate-cost, migrate-database, migrate-oracle, migrate-mysql, migrate-postgresql | init-output, report, render-mermaid |
+| scalardb | — | model, config, scaffold, error-handler, crud-ops, jdbc-ops, local-env, docs, build-app, review-code, migrate | — |
+| product | product:define-vision, product:define-success-metrics, product:research-landscape, product:design-revenue, product:validate-assumptions, product:generate-persona, product:design-positioning, product:define-data-model, product:map-domains, product:design-api, product:review, product:adapt-change | product:start, product:init-output, product:define-scope, product:map-journey, product:generate-ui-mock, product:define-features, product:design-sla, product:define-nfr, product:report | — |
 
 ## Interaction Rules
 
