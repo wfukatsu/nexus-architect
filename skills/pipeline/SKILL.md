@@ -23,11 +23,12 @@ All skills defined in @skills/common/skill-dependencies.yaml can be executed in 
 
 1. Load the dependency graph from `skill-dependencies.yaml`
 2. Initialize output directories with `/architect:init-output`
-3. Execute each skill and verify its output before proceeding to the next
-4. Execute skills with `parallel_with` in parallel via Task
-5. Enable or disable ScalarDB-related skills based on the `conditions` field
-6. Record progress in `work/pipeline-progress.json`
-7. Accumulate findings in `work/context.md` between phases
+3. **Product handoff detection** — glob `reports/03_domain/`, `reports/04_quality/`, `reports/02_spec/` and `work/traceability.json`. If product artifacts exist, run `define-requirements` first with them as inputs (the product→architect handoff, @docs/design.md §1); it auto-detects and carries product IDs forward. Otherwise run the standard greenfield/legacy entry.
+4. Execute each skill and verify its output before proceeding to the next
+5. Execute skills with `parallel_with` in parallel via Task
+6. Enable or disable ScalarDB-related skills based on the `conditions` field
+7. Record progress in `work/pipeline-progress.json`
+8. Accumulate findings in `work/context.md` between phases
 
 ## Command-Line Options
 
@@ -86,3 +87,4 @@ Conforms to the schema defined in @skills/common/progress-registry.md.
 | /architect | Interactive version |
 | /architect:init-output | Initialization |
 | /architect:report | Final report |
+| /product:start | Upstream — product reports are detected at step 3 and handed off via define-requirements (@docs/design.md §1) |

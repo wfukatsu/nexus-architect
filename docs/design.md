@@ -42,7 +42,10 @@ Two complementary paths:
    the same project root, `define-requirements` auto-detects product reports under
    `reports/00_core/`, `reports/01_ux/`, `reports/02_spec/`, `reports/03_domain/`,
    `reports/04_quality/` and adds them to the intake set (alongside `work/traceability.json`).
-   See the `define-requirements` Prerequisites / Step 1.
+   See the `define-requirements` Prerequisites / Step 1. The **orchestrators**
+   (`/architect:start`, `/architect:pipeline`) run the same detection up front: when product
+   artifacts are present they announce the handoff and route to the greenfield path with the
+   reports fed in, so the bridge is visible rather than implicit.
 
 2. **Explicit `--input`.** When the product output lives elsewhere, pass the relevant
    files (or their directory) explicitly, e.g.
