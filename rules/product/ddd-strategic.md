@@ -35,11 +35,17 @@ by id, not by direct object containment.
   Aim for loose coupling between contexts; protect Core with an ACL.
 - **Boundary sizing for extensibility** — draw boundaries that absorb likely future features; align
   contexts to business capabilities, not current screens, so they survive change.
+- **Consistency hint per context** — tag each `CTX-` with a coarse `Strong` / `Eventual` / `TBD`
+  hint (invariant-bearing contexts — money, inventory, booking → `Strong`; read models, analytics,
+  notifications → `Eventual`). A *hint* that seeds architect's transaction classification, not a
+  binding decision.
 
 ## Handoff to nexus-architect
 
 The `CTX-` bounded contexts and ubiquitous language map to architect's Bounded Context inputs
-(design.md §1.3). `map-domains` output is the bridge to `/architect:define-requirements`.
+(design.md §1.3). `map-domains` output is the bridge to `/architect:define-requirements`; the
+per-context consistency hint seeds architect's per-process transaction-consistency classification
+(design.md §1.4), which makes the binding ACID/Saga/Local-Tx call.
 
 ## Discipline
 

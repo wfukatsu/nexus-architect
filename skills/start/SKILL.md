@@ -20,8 +20,25 @@ Ask the user which language to use for output documents:
 
 Record the selection in work/pipeline-progress.json under options.output_language.
 
+## Product Handoff Detection
+
+Before selecting a path, check whether the **product** plugin already ran in this project:
+glob `reports/03_domain/`, `reports/04_quality/`, `reports/02_spec/` and `work/traceability.json`.
+If any product artifacts exist, this is a **product→architect handoff** (see @docs/design.md §1.1–1.5).
+Announce it and route to the greenfield path with the product reports fed in — do **not** re-elicit
+what they already answer:
+
+> "Detected product-direction artifacts (vision, scope, features, bounded contexts, NFRs).
+> I'll use them as the requirements baseline via `/architect:define-requirements`."
+
+`define-requirements` auto-detects these reports, but pass them explicitly anyway so the handoff is
+visible and survives a non-co-located layout. The §1.4 designed gaps (per-process transaction
+consistency, physical DB inventory, actor/role/permission) are what `define-requirements` still
+elicits — everything else is confirm-or-correct.
+
 ## Workflow Selection Criteria
 
+- Product artifacts detected (above) -> **Product handoff → greenfield path**: run `/architect:define-requirements` with the product reports as inputs, then proceed with the design phases
 - User presents an existing codebase -> **Legacy refactoring path**
 - User describes requirements only -> **Greenfield design path**: run `/architect:define-requirements` first to fix the requirements baseline (pass any user-provided documents via `--input`), then proceed with the design phases
 - Unclear -> Ask one clarifying question, then proceed with execution
@@ -44,8 +61,8 @@ If yes, ask which domains to cover (present the bounded context list from `bound
 
 ## Execution Flow
 
-1. Evaluate project context (read provided materials, inspect codebase)
-2. Determine the path and relevant phases
+1. Evaluate project context (read provided materials, inspect codebase, **run Product Handoff Detection**)
+2. Determine the path and relevant phases (product handoff → greenfield)
 3. Run `/architect:init-output` to initialize the output directory
 4. Execute skills in dependency order per `skill-dependencies.yaml`
 5. After `redesign`: offer Domain Story generation (see Domain Story Option above)
@@ -78,3 +95,4 @@ Read @skills/common/skill-dependencies.yaml to determine execution order.
 | /architect:pipeline | Automated execution version |
 | /architect:init-output | Initialization |
 | /architect:define-requirements | Greenfield entry point — requirements baseline and ScalarDB applicability |
+| /product:start | Upstream — when product ran first, its reports are detected and handed off (@docs/design.md §1) |

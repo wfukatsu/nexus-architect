@@ -16,8 +16,11 @@ Produce three deliverables:
 1. **Domain map** — `reports/03_domain/domain-map.md`: subdomains classified **Core / Supporting /
    Generic**, with investment guidance (build Core, pragmatic Supporting, buy Generic).
 2. **Bounded contexts** — `reports/03_domain/bounded-contexts.md` (`CTX-` IDs): each context, the
-   entities/features it owns, and a **Context Map** of relationships (ACL, Open Host / Published
-   Language, Shared Kernel, Customer/Supplier, Conformist, Partnership).
+   entities/features it owns, a **Context Map** of relationships (ACL, Open Host / Published
+   Language, Shared Kernel, Customer/Supplier, Conformist, Partnership), and a coarse
+   **consistency hint** per context (`Strong` / `Eventual` / `TBD`) — a *hint*, not a decision:
+   it seeds architect's per-process transaction-consistency classification (see Handoff), which
+   makes the final ACID/Saga/Local-Tx call.
 3. **Ubiquitous language** — `reports/03_domain/ubiquitous-language.md`: the shared vocabulary per
    context (every `ENT-`/term appears here).
 
@@ -57,20 +60,27 @@ Produce three deliverables:
    `@rules/product/ddd-strategic.md`.
 3. **Draw contexts** — group entities/features into `CTX-` bounded contexts sized for the future.
 4. **Map relationships** — type each context-to-context relationship (ACL, Published Language, …).
-5. **Define language** — the ubiquitous language per context.
-6. **Append traceability** — add `CTX-` nodes to `work/traceability.json` with Upstream
+5. **Tag consistency hint** — for each `CTX-`, mark a coarse `Strong` / `Eventual` / `TBD` hint
+   from the nature of its operations (money/inventory/booking invariants → `Strong`; read models,
+   analytics, notifications → `Eventual`; unclear → `TBD`), with a one-line rationale. This is a
+   seed for architect, not a binding transaction decision.
+6. **Define language** — the ubiquitous language per context.
+7. **Append traceability** — add `CTX-` nodes to `work/traceability.json` with Upstream
    `ENT-`/`FEAT-` references.
-7. **Record** — write the three files; append decisions to `work/context.md`; log `TBD`s.
+8. **Record** — write the three files; append decisions to `work/context.md`; log `TBD`s.
 
 ## Handoff
 
 The `CTX-` bounded contexts + ubiquitous language map to architect's Bounded Context inputs
-(`docs/design.md` §1.3) — the bridge to `/architect:define-requirements`.
+(`docs/design.md` §1.3) — the bridge to `/architect:define-requirements`. The per-context
+**consistency hint** (`Strong`/`Eventual`/`TBD`) seeds architect's per-process
+transaction-consistency classification — the §1.4 designed gap product cannot fully close;
+architect confirms or overrides it and makes the binding ACID/Saga/Local-Tx decision.
 
 ## Output
 
 `reports/03_domain/domain-map.md`, `reports/03_domain/bounded-contexts.md` (with `CTX-` table +
-Context Map), and `reports/03_domain/ubiquitous-language.md`.
+Context Map + per-context consistency hint), and `reports/03_domain/ubiquitous-language.md`.
 
 ## Reference Materials
 
