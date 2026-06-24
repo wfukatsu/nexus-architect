@@ -9,6 +9,8 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-06-24
+
 ### Added
 - **`product` plugin: `/product:design-architecture` skill** — synthesizes bounded contexts, API
   layers, the data model and NFRs into a runtime architecture (Mermaid container / critical-path /
@@ -19,6 +21,22 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
   `reports/03_domain/architecture.md` and `reports/03_domain/tech-stack-fitness.md`. Added to the
   `full` profile (capstone after `define-nfr`) and the dependency graph; new rule
   `rules/product/architecture-and-tech-fitness.md`. Product plugin now has 22 skills.
+- **Product → architect handoff contract (`docs/design.md`)** — a single source of truth for how
+  `product` output feeds the `architect` plugin, resolving previously dangling `design.md`
+  references in four SKILL/rule files. Defines the artifact mapping (per-output ID prefixes →
+  `define-requirements` deliverables, §1.3), the by-design gaps `product` does not supply (§1.4),
+  the cross-plugin **traceability write-back** contract (`FEAT-→FR-` links, verbatim `NFR-` reuse,
+  §1.5), and the canonical **adaptation-engine** spec (§7).
+
+### Changed
+- **`/architect:define-requirements` consumes product output** — auto-detects product reports under
+  `reports/0*_*/`, carries product IDs forward, uses `tech-stack-fitness.md` as the ScalarDB
+  applicability prior, and writes `FR-`/`NFR-` nodes back to `work/traceability.json`.
+- **`/architect:start` and `/architect:pipeline` are product-aware** — run handoff detection up
+  front and route to the greenfield path with product reports fed in.
+- **`/product:map-domains`** now emits a coarse per-`CTX-` consistency hint (`Strong`/`Eventual`/
+  `TBD`) that seeds architect's transaction-consistency classification.
+- **`/architect:review-consistency`** checks cross-plugin traceability continuity.
 
 ## [0.8.2] - 2026-06-20
 

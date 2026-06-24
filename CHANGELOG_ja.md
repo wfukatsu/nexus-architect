@@ -9,6 +9,8 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-06-24
+
 ### 追加
 - **`product` プラグイン: `/product:design-architecture` スキル** — 境界づけられたコンテキスト・
   API レイヤー・データモデル・非機能要件を統合してランタイムの全体アーキテクチャを生成し（Mermaid の
@@ -19,6 +21,22 @@ Nexus Architect の主な変更点を記録します。
   出力は `reports/03_domain/architecture.md` と `reports/03_domain/tech-stack-fitness.md`。
   `full` プロファイル（`define-nfr` の後の総合ステップ）と依存グラフに追加。新ルール
   `rules/product/architecture-and-tech-fitness.md` を追加。product プラグインは 22 スキルに。
+- **product → architect ハンドオフ契約（`docs/design.md`）** — `product` の成果物が `architect`
+  プラグインのインプットとしてどう橋渡しされるかの単一の真実。4 つの SKILL/ルールファイルで宙吊りに
+  なっていた `design.md` 参照を解消。成果物マッピング（成果物ごとの ID 接頭辞 → `define-requirements`
+  の成果物、§1.3）、`product` が供給しない設計上のギャップ（§1.4）、クロスプラグインの
+  **トレーサビリティ書き戻し**契約（`FEAT-→FR-` リンク、`NFR-` の verbatim 再利用、§1.5）、
+  正典の**適応エンジン**仕様（§7）を定義。
+
+### 変更
+- **`/architect:define-requirements` が product 成果物を取り込む** — `reports/0*_*/` の product
+  レポートを自動検出し、product の ID を引き継ぎ、`tech-stack-fitness.md` を ScalarDB 適用判定の
+  prior として利用し、`FR-`/`NFR-` ノードを `work/traceability.json` へ書き戻す。
+- **`/architect:start`・`/architect:pipeline` の product 認識** — 前段でハンドオフ検出を行い、
+  product レポートを渡してグリーンフィールドパスへ誘導する。
+- **`/product:map-domains`** が `CTX-` ごとに粗い整合性ヒント（`Strong`/`Eventual`/`TBD`）を出力し、
+  architect のトランザクション整合性分類の起点とする。
+- **`/architect:review-consistency`** がクロスプラグインのトレーサビリティ継続性を検査する。
 
 ## [0.8.2] - 2026-06-20
 
