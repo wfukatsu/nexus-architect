@@ -27,3 +27,8 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# Tool-generated local dirs
+.pi/
+.polly/
+.worktrees/
