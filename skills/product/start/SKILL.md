@@ -25,9 +25,12 @@ given. Record it in `work/pipeline-progress.json` under `options.output_language
 
 - Pick a profile (or honor `--profile`): `mvp` (vision + scope + validate — the smallest useful
   direction), `core-only`, `ux-to-spec`, `full`.
-- **M1 status**: only `define-vision`, `define-scope`, `validate-assumptions` (and `init-output`)
-  are implemented. For phases marked `implemented: false` in the dependency manifest, tell the
-  user the phase is not yet available and skip it (do not fabricate its output).
+- **Implementation status**: all phases in the dependency manifest are implemented (`implemented:
+  true`). Should a phase ever be marked `implemented: false`, tell the user it is not yet available
+  and skip it (do not fabricate its output).
+- **UX-phase visual track** (`full` profile): after `design-positioning`, run the two optional
+  artifacts that feed the mocks — `create-domain-story` (the *what*: per-persona screen flow) and
+  `design-system` (the *how it looks*: shared visual language) — before `generate-ui-mock`.
 
 ## Execution Flow
 
@@ -41,7 +44,16 @@ given. Record it in `work/pipeline-progress.json` under `options.output_language
    - `no-go`: stop forward progress and help the user revise Phase 1 artifacts (a forward
      iteration, not a failure). Re-run the gate after revision.
    - `go`: proceed to the next phase.
-5. Skip phases whose prerequisites are absent (consumer treats a skipped/absent input as `TBD`).
+5. **Design-system step (UX phase)** — in the `full` profile, after `design-positioning` and
+   before `generate-ui-mock`, run `create-domain-story` then `/product:design-system`.
+   `design-system` writes to `design-system/{name}/` (not `reports/`) and sets
+   `options.design_system` in `pipeline-progress.json` so the mocks inject `tokens.css`. Mode:
+   - `--auto`: build a neutral, accessible default system (or `--import=<path>` when the user
+     supplied one); never fabricate brand values — unknowns become `TBD`.
+   - interactive: offer **build** (derive tokens from positioning/personas) vs **incorporate**
+     (`--import` an existing Tailwind / DTCG / Figma Tokens / CSS theme).
+   If skipped, `generate-ui-mock` falls back to its built-in defaults.
+6. Skip phases whose prerequisites are absent (consumer treats a skipped/absent input as `TBD`).
 
 ## Iteration (not waterfall)
 
