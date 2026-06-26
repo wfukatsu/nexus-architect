@@ -12,10 +12,18 @@ which features and entities are read out, so each layer traces to the one above 
 2. Compare them briefly (against the job, journey opportunities, positioning).
 3. **Select one with an explicit rationale.**
 
-Then enumerate the screens the chosen approach needs, lay out the elements, and render each screen
-as a **self-contained HTML file with inline CSS** under `ui-mocks/`. Annotate each screen with the
-`JNY-` opportunity / `JOB-` it serves.
+Then enumerate the screens the chosen approach needs, **ordered by the domain story's numbered
+activities** (one activity ≈ one screen step), lay out the elements, and render each screen as a
+**self-contained HTML file with inline CSS** under `ui-mocks/`. Annotate each screen with the
+`STORY-` activity / `JNY-` opportunity / `JOB-` it serves.
 
+- **Wire the story into a clickable flow.** The activity order is the click path: each screen's
+  flow-advancing action is a real `<a href>` to the next activity's screen, with a back link to the
+  previous screen and a `step N of M` indicator. File names encode the story and step
+  (`{STORY}-NN-{slug}.html`) so links are deterministic. A per-story `{STORY}-index.html` lists the
+  activity sequence and links to step 1. A missing step is a disabled `TBD` link, never a dead end;
+  branches link to their target screens. The reader must be able to **click through the whole story
+  end to end**.
 - **Fidelity rule**: optimize for *"a reader can tell what function and what data each screen
   involves"*, not visual polish. Low-fi is fine; ambiguous is not.
 - Each mock is "a rendering of a selected solution", not a random first draft.

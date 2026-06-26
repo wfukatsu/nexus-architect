@@ -44,7 +44,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Skills are namespaced
 - `/product:design-positioning` — Positioning (Dunford 5-component canvas), touchpoint × device × timing matrix
 - `/product:create-domain-story` — Persona-anchored Domain Storytelling (actors=personas, activities=job stories/journey); the axis UI mocks render
 - `/product:design-system` — Build or `--import` a separately-managed design system (DTCG tokens + components + guidelines); the visual language UI mocks render at lo/mid fidelity
-- `/product:generate-ui-mock` — UI mocks for key screens, driven by domain stories and styled by the design system (each activity → a screen; tokens injected)
+- `/product:generate-ui-mock` — Navigable UI mocks for key screens, driven by domain stories and styled by the design system (each activity → a screen, wired into a clickable flow you can step through in story order; tokens injected)
 - `/product:define-features` — Extract features from UI mocks (each screen action becomes a Command/feature)
 - `/product:define-data-model` — Derive data model from UI mocks and features (explicit → implicit, 2 passes)
 - `/product:map-domains` — Abstract features/entities into bounded contexts (DDD strategic; Core/Supporting/Generic)
