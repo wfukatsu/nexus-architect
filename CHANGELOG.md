@@ -9,6 +9,18 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-06-26
+
+### Changed
+- **`product` plugin: `/product:generate-ui-mock` now produces a navigable, clickable prototype**
+  instead of a set of disconnected single-screen HTML files. Screens are ordered by the domain
+  story's numbered activities, and each screen's flow-advancing action is a real `<a href>` to the
+  next activity's screen, so a reader can click through the whole story end to end. Adds back/next
+  navigation and a `step N of M` indicator per screen, branch links to alternate-path targets, and a
+  per-story flow index (`{STORY}-index.html`) as the entry point. Screens use deterministic file
+  names (`{STORY}-NN-{slug}.html`); a story step missing from the source renders as a disabled `TBD`
+  link (never a dead end). Traceability now records `next`/`prev` screen edges.
+
 ## [0.10.0] - 2026-06-24
 
 ### Added
