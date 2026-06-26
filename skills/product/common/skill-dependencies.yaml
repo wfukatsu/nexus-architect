@@ -186,7 +186,7 @@ phases:
 profiles:
   mvp:        [define-vision, define-scope, validate-assumptions]            # M1 (all implemented)
   core-only:  [define-vision, define-success-metrics, research-landscape, design-revenue, define-scope, validate-assumptions]  # all implemented
-  ux-to-spec: [generate-persona, map-journey, design-positioning, generate-ui-mock, define-features, define-data-model]
+  ux-to-spec: [generate-persona, map-journey, design-positioning, create-domain-story, design-system, generate-ui-mock, define-features, define-data-model]
   full:       [define-vision, define-success-metrics, research-landscape, design-revenue, define-scope,
                validate-assumptions, generate-persona, map-journey, design-positioning, create-domain-story,
                design-system, generate-ui-mock, define-features, define-data-model,
