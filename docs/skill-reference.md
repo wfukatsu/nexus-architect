@@ -149,6 +149,7 @@ Phase order and the `mvp`/`core-only`/`ux-to-spec`/`full` profiles are defined i
 | `/product:map-journey` | sonnet | 2. UX Foundation | Customer journey as a stages × layers grid (touchpoints, actions, emotions) |
 | `/product:design-positioning` | opus | 2. UX Foundation | Positioning (Dunford 5-component canvas), touchpoint × device × timing matrix |
 | `/product:generate-ui-mock` | sonnet | 3. UX → Spec | Lo-fi UI mocks for key screens from journey/positioning/personas |
+| `/product:generate-frontend` | sonnet | 3. UX → Spec | Turn UI mocks + design system into a runnable React + Storybook frontend (Atomic Design, token-styled, react-router) |
 | `/product:define-features` | sonnet | 3. UX → Spec | Extract features from UI mocks (each screen action → Command/feature) |
 | `/product:define-data-model` | opus | 3. UX → Spec | Derive the data model in two passes (explicit → implicit) |
 | `/product:map-domains` | opus | 4. Domain & API | Abstract features/entities into bounded contexts (DDD strategic) |

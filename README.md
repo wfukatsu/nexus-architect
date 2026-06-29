@@ -2,7 +2,7 @@
 
 System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as three plugins with 77 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
 
-- **product** (23 skills) — Product direction: validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
+- **product** (25 skills) — Product direction: validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
 - **architect** (43 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
 - **scalardb** (11 skills) — ScalarDB application development toolkit
 
@@ -152,11 +152,15 @@ Validation-driven pipeline from product vision to SLA/NFR. Hands off to `/archit
 | `/product:generate-persona` | Jobs-to-be-Done–anchored personas (job stories + persona cards) |
 | `/product:map-journey` | Customer journey as a stages × layers grid |
 | `/product:design-positioning` | Positioning (Dunford canvas), touchpoint × device × timing matrix |
-| `/product:generate-ui-mock` | Lo-fi UI mocks for key screens |
+| `/product:create-domain-story` | Persona-anchored domain stories; the axis UI mocks render along |
+| `/product:design-system` | Build or `--import` a separately-managed design system (DTCG tokens + components + guidelines) |
+| `/product:generate-ui-mock` | Navigable UI mocks for key screens (domain-story-driven, design-system-styled) |
+| `/product:generate-frontend` | Turn UI mocks + design system into a runnable React + Storybook frontend (Atomic Design, token-styled, react-router) |
 | `/product:define-features` | Extract features from UI mocks (each screen action → Command/feature) |
 | `/product:define-data-model` | Derive data model from UI mocks and features (explicit → implicit, 2 passes) |
 | `/product:map-domains` | Abstract features/entities into bounded contexts (DDD strategic) |
 | `/product:design-api` | Logical API surface in three API-Led layers (System/Process/Experience) |
+| `/product:design-architecture` | Architecture & technology-fitness synthesis (capstone of domain/API/data + NFR) |
 | `/product:design-sla` | Per-service SLI/SLO/SLA with error budgets |
 | `/product:define-nfr` | Turn SLOs into measurable NFRs (availability, latency p95/p99, ...) |
 | `/product:review` | Review product artifacts (consistency, traceability, extensibility, strategy) |

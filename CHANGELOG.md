@@ -9,6 +9,21 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-06-29
+
+### Added
+- **`product` plugin: `/product:generate-frontend` skill** — turns the navigable UI mocks and the
+  active design system into a **runnable React + TypeScript frontend** under `generated/frontend/`.
+  Decomposes the screens with **Atomic Design** (design tokens → atoms → molecules → organisms →
+  templates → pages): each `CMP-` from the design system becomes a component at its atomic level and
+  each UI-mock screen becomes a page. Components are styled with **CSS Modules + CSS variables** that
+  reference design tokens only (no raw values), the story flow (`next`/`prev`) is wired with
+  **react-router**, and every component is registered in **Storybook** with one story per
+  variant/state. Emits a self-contained, installable scaffold (React 18 + Vite + Storybook 8 + TS).
+  New rule `rules/product/atomic-react-storybook.md`; traceability records `COMP-`/`PAGE-` nodes with
+  Upstream `CMP-`/`TOK-`/`STORY-` references. Runs in the spec phase, after `generate-ui-mock`.
+  **product plugin now at 25 skills.**
+
 ## [0.11.0] - 2026-06-26
 
 ### Changed
