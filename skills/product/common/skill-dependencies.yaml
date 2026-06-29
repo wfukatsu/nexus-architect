@@ -196,8 +196,10 @@ phases:
 profiles:
   mvp:        [define-vision, define-scope, validate-assumptions]            # M1 (all implemented)
   core-only:  [define-vision, define-success-metrics, research-landscape, design-revenue, define-scope, validate-assumptions]  # all implemented
-  ux-to-spec: [generate-persona, map-journey, design-positioning, create-domain-story, design-system, generate-ui-mock, generate-frontend, define-features, define-data-model]
+  # generate-frontend runs at the END of the spec phase (after define-features/define-data-model):
+  # it soft-depends on define-features (screen actions) so the feature list exists when it runs.
+  ux-to-spec: [generate-persona, map-journey, design-positioning, create-domain-story, design-system, generate-ui-mock, define-features, define-data-model, generate-frontend]
   full:       [define-vision, define-success-metrics, research-landscape, design-revenue, define-scope,
                validate-assumptions, generate-persona, map-journey, design-positioning, create-domain-story,
-               design-system, generate-ui-mock, generate-frontend, define-features, define-data-model,
+               design-system, generate-ui-mock, define-features, define-data-model, generate-frontend,
                map-domains, design-api, design-sla, define-nfr, design-architecture, review, report]

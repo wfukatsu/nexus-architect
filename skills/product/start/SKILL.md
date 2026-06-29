@@ -31,8 +31,9 @@ given. Record it in `work/pipeline-progress.json` under `options.output_language
 - **UX-phase visual track** (`full` profile): after `design-positioning`, run the two optional
   artifacts that feed the mocks — `create-domain-story` (the *what*: per-persona screen flow) and
   `design-system` (the *how it looks*: shared visual language) — before `generate-ui-mock`.
-- **Frontend codegen step** (optional; `ux-to-spec` / `full` profiles): after `generate-ui-mock`,
-  `generate-frontend` can turn the mocks + design system into a runnable React + Storybook frontend.
+- **Frontend codegen step** (optional; `ux-to-spec` / `full` profiles): at the end of the spec phase
+  (after the mocks and `define-features`), `generate-frontend` can turn the mocks + design system into
+  a runnable React + Storybook frontend.
   It is **selectable**, not automatic — it produces real code (a heavier artifact), so the
   orchestrator asks before running it (see Execution Flow step 6). `--no-frontend` skips it outright;
   `--frontend` forces it on.

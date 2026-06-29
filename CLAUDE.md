@@ -10,7 +10,7 @@ Three-plugin system architecture toolkit:
 - **scalardb** — ScalarDB application development toolkit
 
 Workflows:
-- **Product direction**: vision -> success metrics / revenue -> scope -> validate -> personas/journey/positioning -> domain-stories/design-system -> UI/frontend/features/data -> domains/API -> SLA/NFR -> review/report (handoff to `/architect:define-requirements`)
+- **Product direction**: vision -> success metrics / revenue -> scope -> validate -> personas/journey/positioning -> domain-stories/design-system -> UI/features/data/frontend -> domains/API -> SLA/NFR -> review/report (handoff to `/architect:define-requirements`)
 - **Legacy refactoring**: investigate -> analyze -> evaluate -> redesign -> implement
 - **Greenfield design**: requirements -> domain modeling -> ScalarDB design -> infra -> deploy
 - **Consulting deliverables**: reports, cost estimates, domain stories
@@ -144,7 +144,7 @@ investigate -> analyze -> [evaluate-mmi, evaluate-ddd] -> integrate-evaluations
 
 Dependency manifest (architect): @skills/common/skill-dependencies.yaml
 
-The **product** plugin has its own pipeline and manifest: `skills/product/common/skill-dependencies.yaml` (vision -> success-metrics/revenue -> scope -> validate-assumptions [gate] -> persona/journey/positioning -> create-domain-story/design-system -> ui-mock/frontend/features/data-model -> map-domains/api -> sla/nfr -> review -> report; `adapt-change` on demand). It ends by handing off to `/architect:define-requirements`.
+The **product** plugin has its own pipeline and manifest: `skills/product/common/skill-dependencies.yaml` (vision -> success-metrics/revenue -> scope -> validate-assumptions [gate] -> persona/journey/positioning -> create-domain-story/design-system -> ui-mock/features/data-model/frontend -> map-domains/api -> sla/nfr -> review -> report; `adapt-change` on demand). It ends by handing off to `/architect:define-requirements`.
 
 ## Output Conventions
 
