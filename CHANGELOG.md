@@ -24,6 +24,14 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
   Upstream `CMP-`/`TOK-`/`STORY-` references. Runs in the spec phase, after `generate-ui-mock`.
   **product plugin now at 25 skills.**
 
+### Changed
+- **`product` plugin: `/product:start` now offers `generate-frontend` as a selectable step.** After
+  the UI mocks, the orchestrator asks whether to generate the runnable React + Storybook frontend
+  (interactive) or follows the profile under `--auto` (included in `ux-to-spec` / `full`). New flags
+  `--frontend` / `--no-frontend` force the choice; the decision is recorded in
+  `work/pipeline-progress.json` → `options.frontend`. The step is non-blocking — downstream phases
+  read the mocks, not the generated code.
+
 ## [0.11.0] - 2026-06-26
 
 ### Changed

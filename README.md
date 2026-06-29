@@ -141,7 +141,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Hands off to `/archit
 
 | Command | Description |
 |---------|-------------|
-| `/product:start` | Interactively start product-direction design (`--profile=mvp\|core-only\|ux-to-spec\|full`) |
+| `/product:start` | Interactively start product-direction design (`--profile=mvp\|core-only\|ux-to-spec\|full`; selectable frontend codegen via `--frontend`/`--no-frontend`) |
 | `/product:init-output` | Initialize the product output tree, progress file, and traceability graph |
 | `/product:define-vision` | Define product core (Vision/Mission/Values) via dialogue |
 | `/product:define-success-metrics` | One North Star Metric plus 3–5 input metrics |

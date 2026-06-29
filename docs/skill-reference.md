@@ -137,7 +137,7 @@ Phase order and the `mvp`/`core-only`/`ux-to-spec`/`full` profiles are defined i
 
 | Command | Model | Phase | Description |
 |---------|-------|-------|-------------|
-| `/product:start` | sonnet | Orchestration | Interactively start product-direction design; runs the pipeline in dependency order, gating on the riskiest assumptions (`--auto`, `--profile`, `--lang`) |
+| `/product:start` | sonnet | Orchestration | Interactively start product-direction design; runs the pipeline in dependency order, gating on the riskiest assumptions; offers a selectable `generate-frontend` step after the mocks (`--auto`, `--profile`, `--frontend`/`--no-frontend`, `--lang`) |
 | `/product:init-output` | sonnet | Orchestration | Initialize the product output tree, `work/pipeline-progress.json`, and `work/traceability.json` |
 | `/product:define-vision` | opus | 1. Product Core | Define product core (Vision/Mission/Values) as a Product Vision Board plus PR-FAQ |
 | `/product:define-success-metrics` | opus | 1. Product Core | One North Star Metric plus 3–5 input metrics |

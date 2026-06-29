@@ -31,7 +31,7 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 ### Product Direction (`/product:*`)
 Validation-driven pipeline from product vision to SLA/NFR. Skills are namespaced under `skills/product/`; rules under `rules/product/`. Use `/product:start` for interactive/automated execution; hands off to `/architect:define-requirements` for system implementation design.
 
-- `/product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--lang=ja|en]` — Interactively start product-direction design; runs the validation-driven pipeline in dependency order, gating on the riskiest assumptions
+- `/product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--lang=ja|en]` — Interactively start product-direction design; runs the validation-driven pipeline in dependency order, gating on the riskiest assumptions. After the UI mocks, offers a selectable `generate-frontend` step (React + Storybook codegen); `--frontend`/`--no-frontend` force the choice
 - `/product:init-output [project]` — Initialize the product output tree, pipeline progress file, and traceability graph
 - `/product:define-vision` — Define product core (Vision/Mission/Values) as a Product Vision via dialogue
 - `/product:define-success-metrics` — One North Star Metric plus 3–5 input metrics

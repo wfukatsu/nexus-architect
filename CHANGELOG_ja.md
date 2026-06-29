@@ -23,6 +23,13 @@ Nexus Architect の主な変更点を記録します。
   `CMP-`/`TOK-`/`STORY-` への Upstream 参照付きで記録する。spec フェーズの `generate-ui-mock` の後に実行する。
   **product プラグインは 25 スキルに。**
 
+### 変更
+- **`product` プラグイン: `/product:start` が `generate-frontend` を選択式ステップとして提示**するようになりました。
+  UI モックの後に、実行可能な React + Storybook フロントエンドを生成するか対話的に尋ね（インタラクティブ）、
+  `--auto` ではプロファイルに従う（`ux-to-spec` / `full` に含まれる）。新フラグ `--frontend` / `--no-frontend` で
+  選択を強制でき、決定は `work/pipeline-progress.json` → `options.frontend` に記録する。このステップは非ブロッキングで、
+  後続フェーズは生成コードではなくモックを参照する。
+
 ## [0.11.0] - 2026-06-26
 
 ### 変更
