@@ -31,6 +31,11 @@ flag it `TBD` with an Open Question — do not silently invent design-system par
   **and** in `.storybook/preview.ts`, so app and stories share one theme.
 - Every `*.module.css` references tokens via `var(--token-*)`. **A raw color/space/type value is a
   defect.** Map design-system semantic aliases (`--color-primary`, `--space-2`, …) straight through.
+- **Structural values not governed by any token are allowed** — e.g. a `1px` hairline border width, a
+  container `max-width`, `margin: 0 auto`, `100vh` — when the design system declares no token for that
+  concept. Prefer a token when one exists; if a recurring structural value clearly wants one (a shared
+  border width or container width), add it as an Open Question for the design system rather than
+  scattering the literal. Colors, font sizes, and spacing must always be tokens.
 - At **mid** design-system fidelity, port the `CMP-` component CSS classes from `components.md` into
   the component's `*.module.css`; at **lo**, style from tokens only.
 - No active design system → copy the mock's ad-hoc inline CSS into modules and note that no token
