@@ -33,9 +33,14 @@ Start here for a new product: a validation-driven pipeline from vision to SLA/NF
 # Pick a smaller scope with a profile
 /product:start --profile=mvp
 
+# Include the React + Storybook frontend codegen step (or omit it with --no-frontend)
+/product:start --frontend
+
 # Then hand off to system implementation design
 /architect:define-requirements
 ```
+
+After the UI mocks, `/product:start` can optionally run `/product:generate-frontend` to turn the mocks plus the active design system into a runnable React + Storybook scaffold under `generated/frontend/` (Atomic Design, token-styled). It is selectable: confirmed interactively, or forced with `--frontend` / `--no-frontend`.
 
 See the [Skill Reference](skill-reference.md) for the full product skill catalog.
 
