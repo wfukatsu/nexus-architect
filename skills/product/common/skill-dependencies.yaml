@@ -1,10 +1,10 @@
 # product plugin — Skill Dependency Graph (single source of truth)
 # /product:start reads this to determine phase order.
 # parallel_with = "no ordering constraint" (a single session runs skills sequentially).
-# implemented: true  -> SKILL.md exists. ALL phases are implemented (24 skills): Phases 1-6 +
+# implemented: true  -> SKILL.md exists. ALL phases are implemented (25 skills): Phases 1-6 +
 # the validation gate + the architecture/tech-fitness synthesis + the persona-anchored
-# domain-story step + the separately-managed design-system step + Phase R (review/report) +
-# adapt-change. Nothing remains design-only.
+# domain-story step + the separately-managed design-system step + the React/Storybook frontend
+# codegen step + Phase R (review/report) + adapt-change. Nothing remains design-only.
 
 schema_version: 1
 plugin: product
@@ -120,6 +120,16 @@ phases:
     outputs: [reports/02_spec/data-model.md]
     model: opus
 
+  # ---- Phase 3b: Frontend Codegen (React + Storybook) ----
+  generate-frontend:
+    category: codegen
+    depends_on: [generate-ui-mock]
+    soft_depends_on: [design-system, define-features]   # design-system = tokens/components; features = screen actions
+    optional: true
+    implemented: true
+    outputs: [generated/frontend/]                      # NOT under reports/ — runnable code
+    model: sonnet
+
   # ---- Phase 4: Domain & API ----
   map-domains:
     category: domain
@@ -186,8 +196,10 @@ phases:
 profiles:
   mvp:        [define-vision, define-scope, validate-assumptions]            # M1 (all implemented)
   core-only:  [define-vision, define-success-metrics, research-landscape, design-revenue, define-scope, validate-assumptions]  # all implemented
-  ux-to-spec: [generate-persona, map-journey, design-positioning, create-domain-story, design-system, generate-ui-mock, define-features, define-data-model]
+  # generate-frontend runs at the END of the spec phase (after define-features/define-data-model):
+  # it soft-depends on define-features (screen actions) so the feature list exists when it runs.
+  ux-to-spec: [generate-persona, map-journey, design-positioning, create-domain-story, design-system, generate-ui-mock, define-features, define-data-model, generate-frontend]
   full:       [define-vision, define-success-metrics, research-landscape, design-revenue, define-scope,
                validate-assumptions, generate-persona, map-journey, design-positioning, create-domain-story,
-               design-system, generate-ui-mock, define-features, define-data-model,
+               design-system, generate-ui-mock, define-features, define-data-model, generate-frontend,
                map-domains, design-api, design-sla, define-nfr, design-architecture, review, report]

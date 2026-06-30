@@ -2,7 +2,7 @@
 description: |
   Interactively start product-direction design. Determines scope, runs the validation-driven
   pipeline in dependency order, and gates on the riskiest assumptions before deep design.
-  /product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--lang=ja|en].
+  /product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--lang=ja|en].
 model: sonnet
 user_invocable: true
 ---
@@ -31,6 +31,12 @@ given. Record it in `work/pipeline-progress.json` under `options.output_language
 - **UX-phase visual track** (`full` profile): after `design-positioning`, run the two optional
   artifacts that feed the mocks — `create-domain-story` (the *what*: per-persona screen flow) and
   `design-system` (the *how it looks*: shared visual language) — before `generate-ui-mock`.
+- **Frontend codegen step** (optional; `ux-to-spec` / `full` profiles): at the end of the spec phase
+  (after the mocks and `define-features`), `generate-frontend` can turn the mocks + design system into
+  a runnable React + Storybook frontend.
+  It is **selectable**, not automatic — it produces real code (a heavier artifact), so the
+  orchestrator asks before running it (see Execution Flow step 6). `--no-frontend` skips it outright;
+  `--frontend` forces it on.
 
 ## Execution Flow
 
@@ -53,7 +59,19 @@ given. Record it in `work/pipeline-progress.json` under `options.output_language
    - interactive: offer **build** (derive tokens from positioning/personas) vs **incorporate**
      (`--import` an existing Tailwind / DTCG / Figma Tokens / CSS theme).
    If skipped, `generate-ui-mock` falls back to its built-in defaults.
-6. Skip phases whose prerequisites are absent (consumer treats a skipped/absent input as `TBD`).
+6. **Frontend codegen step (selectable, spec phase)** — after `generate-ui-mock` (and once
+   `define-features` exists, ideally), decide whether to run `/product:generate-frontend`, which emits
+   a runnable React + TypeScript + Storybook scaffold under `generated/frontend/` (Atomic Design,
+   token-styled, react-router from the story flow):
+   - `--frontend` → always run; `--no-frontend` → always skip.
+   - interactive (no flag): present the choice via AskUserQuestion — **Generate frontend** (build the
+     React/Storybook code now) vs **Skip** (spec docs only; can run `/product:generate-frontend`
+     later). Recommend skipping when there is no design system or the mocks are still lo-fi/unstable.
+   - `--auto` with no flag: follow the profile — run it when `generate-frontend` is in the selected
+     profile (`ux-to-spec`, `full`), skip otherwise.
+   Record the decision in `work/pipeline-progress.json`. It does not block downstream phases
+   (`define-features` / `define-data-model` read the mocks, not the generated code).
+7. Skip phases whose prerequisites are absent (consumer treats a skipped/absent input as `TBD`).
 
 ## Iteration (not waterfall)
 
@@ -90,4 +108,5 @@ to `/architect:select-scalardb-edition` → `/architect:design-scalardb` (and
 | `/product:validate-assumptions` | Validation gate after Phase 1 |
 | `/product:create-domain-story` | UX phase — persona-anchored domain stories (the axis for UI mocks) |
 | `/product:design-system` | UX phase — separately-managed design system (the visual language for UI mocks) |
+| `/product:generate-frontend` | Spec phase — selectable React + Storybook codegen from the mocks (`--frontend`/`--no-frontend`) |
 | `/architect:define-requirements` | Downstream handoff to system design |

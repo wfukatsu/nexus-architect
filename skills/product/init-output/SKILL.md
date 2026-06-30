@@ -32,7 +32,7 @@ Create the directory structure and state files required to run the `product` pip
    ```json
    {
      "schema_version": 1,
-     "options": { "output_language": "en", "no_research": false, "profile": "full", "design_system": null },
+     "options": { "output_language": "en", "no_research": false, "profile": "full", "design_system": null, "frontend": null },
      "phases": {
        "define-vision": { "status": "pending", "outputs": [], "updated_at": null }
      },
