@@ -2,7 +2,7 @@
 
 System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as three plugins with 77 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
 
-- **product** (25 skills) — Product direction: validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
+- **product** (26 skills) — Product direction: validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
 - **architect** (43 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
 - **scalardb** (11 skills) — ScalarDB application development toolkit
 
@@ -144,6 +144,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Hands off to `/archit
 | `/product:start` | Interactively start product-direction design (`--profile=mvp\|core-only\|ux-to-spec\|full`; selectable frontend codegen via `--frontend`/`--no-frontend`) |
 | `/product:init-output` | Initialize the product output tree, progress file, and traceability graph |
 | `/product:define-vision` | Define product core (Vision/Mission/Values) via dialogue |
+| `/product:name-product` | Name the product as an acronym — a pronounceable Latin-letter name whose every letter is the initial of an English word, expanding into a value phrase (optional; in `full`) |
 | `/product:define-success-metrics` | One North Star Metric plus 3–5 input metrics |
 | `/product:research-landscape` | Market/competitor research: sizing (TAM/SAM/SOM), trends |
 | `/product:design-revenue` | Revenue/business model and a recomputable benefit-evaluation template |
