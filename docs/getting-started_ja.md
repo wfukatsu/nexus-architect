@@ -66,6 +66,9 @@ product スキルの全カタログは [スキルリファレンス](skill-refer
 /architect:integrate-evaluations
 ```
 
+手元にレガシーシステムがない場合は、同梱のサンプルモノリス `samples/ec-monolith` を
+ターゲットパスに指定すると、分析ワークフローを一通り試せます。
+
 ### 3. フルパイプライン実行
 
 ```bash

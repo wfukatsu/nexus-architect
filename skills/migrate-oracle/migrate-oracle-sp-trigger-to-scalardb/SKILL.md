@@ -286,7 +286,7 @@ The report includes:
 ## Files in This Skill
 
 ```
-skills/migrate-oracle-sp-trigger-to-scalardb/
+skills/migrate-oracle/migrate-oracle-sp-trigger-to-scalardb/
 ├── SKILL.md                              # This file
 ├── reference/
 │   └── migration-strategy-guide-sp-triggers-to-scalardb.md       # 17 feature mappings with code examples
@@ -299,9 +299,9 @@ skills/migrate-oracle-sp-trigger-to-scalardb/
 ## Related
 
 - **Command**: `commands/oracle-to-scalardb.md` (orchestration — Step 12)
-- **Schema Extraction**: `skills/analyze-oracle-schema/` (provides raw_schema_data.json)
-- **Schema Report**: `skills/analyze-oracle-schema/` (provides oracle_schema_report.md)
-- **Migration Analysis**: `skills/migrate-oracle-to-scalardb/` (general migration docs)
+- **Schema Extraction**: `skills/migrate-oracle/analyze-oracle-schema/` (provides raw_schema_data.json)
+- **Schema Report**: `skills/migrate-oracle/analyze-oracle-schema/` (provides oracle_schema_report.md)
+- **Migration Analysis**: `skills/migrate-oracle/migrate-oracle-to-scalardb/` (general migration docs)
 
 ---
 

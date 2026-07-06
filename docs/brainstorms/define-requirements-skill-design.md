@@ -59,7 +59,7 @@ user_invocable: true
 | Outcome | 4成果物（§4）の生成。FR/NFR が ID 付きで分類され、整合性要求レベルとトレース可能であること |
 | Judgment Criteria | 推測で要件を捏造しない（資料・回答に根拠を持つ）。数値目標（レイテンシ/スループット/RPO/RTO）は必ず確認し、得られなければ TBD として Open Questions に残す。整合性要求は業務プロセス単位で判定する |
 | Prerequisites | 下表（§3.3）|
-| Available Resources | Read（資料取込）、Glob/Grep（target_path 調査）、AskUserQuestion（ヒアリング）、`workflow/greenfield/01_requirements_analysis.md`（テンプレート・判定ツリー）、`research/02_scalardb_usecases.md`・`research/15_xa_heterogeneous_investigation.md`（適用判定根拠） |
+| Available Resources | Read（資料取込）、Glob/Grep（target_path 調査）、AskUserQuestion（ヒアリング）、`workflow/greenfield/01_requirements_analysis.md`（テンプレート・判定ツリー）、`research/02_scalardb_usecases_{en,ja}.md`・`research/15_xa_heterogeneous_investigation_{en,ja}.md`（適用判定根拠） |
 | Execution | 5ステップ（§3.4）+ 実行モード（§3.5）|
 | Output | 4ファイル（§4）+ フロントマター規約 |
 | Completion | 完了条件チェックリスト + `work/pipeline-progress.json` 更新 |

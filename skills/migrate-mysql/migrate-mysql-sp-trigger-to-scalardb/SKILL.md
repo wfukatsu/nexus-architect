@@ -271,7 +271,7 @@ After generating all Java files, produce `scalardb_mysql_sp_migration_report.md`
 ## Files in This Skill
 
 ```
-skills/migrate-mysql-sp-trigger-to-scalardb/
+skills/migrate-mysql/migrate-mysql-sp-trigger-to-scalardb/
 ├── SKILL.md                              # This file
 ├── reference/
 │   └── migration-strategy-guide-sp-triggers-to-scalardb.md       # 17 feature mappings with code examples
@@ -284,9 +284,9 @@ skills/migrate-mysql-sp-trigger-to-scalardb/
 ## Related
 
 - **Command**: `commands/mysql-to-scalardb.md` (orchestration — Step 11)
-- **Schema Extraction**: `skills/analyze-mysql-schema/` (provides raw_mysql_schema_data.json)
-- **Schema Report**: `skills/analyze-mysql-schema/` (provides mysql_schema_report.md)
-- **Migration Analysis**: `skills/migrate-mysql-to-scalardb/` (general migration docs)
+- **Schema Extraction**: `skills/migrate-mysql/analyze-mysql-schema/` (provides raw_mysql_schema_data.json)
+- **Schema Report**: `skills/migrate-mysql/analyze-mysql-schema/` (provides mysql_schema_report.md)
+- **Migration Analysis**: `skills/migrate-mysql/migrate-mysql-to-scalardb/` (general migration docs)
 
 ---
 

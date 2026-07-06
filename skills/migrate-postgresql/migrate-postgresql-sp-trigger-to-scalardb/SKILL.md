@@ -274,7 +274,7 @@ After generating all Java files, produce `scalardb_sp_migration_report.md` using
 ## Files in This Skill
 
 ```
-skills/migrate-postgresql-sp-trigger-to-scalardb/
+skills/migrate-postgresql/migrate-postgresql-sp-trigger-to-scalardb/
 ├── SKILL.md                              # This file
 ├── reference/
 │   └── migration-strategy-guide-sp-triggers-to-scalardb.md       # 17 feature mappings with code examples
@@ -287,9 +287,9 @@ skills/migrate-postgresql-sp-trigger-to-scalardb/
 ## Related
 
 - **Command**: `commands/postgresql-to-scalardb.md` (orchestration — Step 11)
-- **Schema Extraction**: `skills/analyze-postgresql-schema/` (provides raw_schema_data.json)
-- **Schema Report**: `skills/analyze-postgresql-schema/` (provides postgresql_schema_report.md)
-- **Migration Analysis**: `skills/migrate-postgresql-to-scalardb/` (general migration docs)
+- **Schema Extraction**: `skills/migrate-postgresql/analyze-postgresql-schema/` (provides raw_schema_data.json)
+- **Schema Report**: `skills/migrate-postgresql/analyze-postgresql-schema/` (provides postgresql_schema_report.md)
+- **Migration Analysis**: `skills/migrate-postgresql/migrate-postgresql-to-scalardb/` (general migration docs)
 
 ---
 

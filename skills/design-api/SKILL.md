@@ -29,6 +29,7 @@ Design API specifications for inter-service and client-facing communication:
 | File | Required/Recommended | Source |
 |------|---------------------|--------|
 | reports/03_design/target-architecture.md | Required | /architect:design-microservices |
+| reports/03_domain/api-design.md | Optional | /product:design-api — when present, use the logical API-Led surface (`API-` System/Process/Experience layers) as the starting inventory to be made physical (protocols, specs), keeping `API-` ID traceability (@docs/design.md §1.3) |
 
 ## Output
 

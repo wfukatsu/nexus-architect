@@ -9,7 +9,7 @@ user_invocable: true
 
 # System Analysis
 
-## Outcome
+## Desired Outcome
 
 Structure the domain knowledge of the target system and generate the following four analysis documents:
 1. **System Overview** — Business context, key features, system boundaries
@@ -17,7 +17,7 @@ Structure the domain knowledge of the target system and generate the following f
 3. **Actors, Roles, and Permissions** — User types, role definitions, permission matrix
 4. **Domain-Code Mapping** — Correspondence between domain concepts and code implementations
 
-## Judgment Criteria
+## Decision Criteria
 
 - Cross-reference ubiquitous language with actual naming in the code
 - Detect cases where the same concept uses different names

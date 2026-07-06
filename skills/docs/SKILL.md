@@ -1,5 +1,5 @@
 ---
-description: Search ScalarDB documentation for specific topics. Fetches the official docs and summarizes relevant sections.
+description: Search ScalarDB documentation for specific topics. Fetches the official docs and summarizes relevant sections. Use when a ScalarDB question needs an authoritative or version-specific answer that the local rules/references do not cover.
 model: sonnet
 user_invocable: true
 ---

@@ -1,5 +1,5 @@
 ---
-description: Generate docker-compose.yml and setup commands for a local ScalarDB development environment.
+description: Generate docker-compose.yml and setup commands for a local ScalarDB development environment. Use when the user wants to run or test ScalarDB locally, set up a dev backend (PostgreSQL/MySQL/Cassandra/DynamoDB local), or asks "how do I try ScalarDB on my machine".
 model: sonnet
 user_invocable: true
 ---

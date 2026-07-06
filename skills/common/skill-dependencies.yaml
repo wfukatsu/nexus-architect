@@ -136,7 +136,7 @@ phases:
   review-consistency:
     category: review
     depends_on: [design-api]
-    parallel_with: [review-scalardb, review-operations, review-risk, review-business]
+    parallel_with: [review-scalardb, review-data-integrity, review-operations, review-risk, review-business]
     outputs:
       - reports/review/individual/review-consistency.json
     model: sonnet
@@ -162,7 +162,7 @@ phases:
   review-operations:
     category: review
     depends_on: [design-api]
-    parallel_with: [review-consistency, review-scalardb, review-risk, review-business]
+    parallel_with: [review-consistency, review-scalardb, review-data-integrity, review-risk, review-business]
     outputs:
       - reports/review/individual/review-operations.json
     model: sonnet
@@ -170,7 +170,7 @@ phases:
   review-risk:
     category: review
     depends_on: [design-api]
-    parallel_with: [review-consistency, review-scalardb, review-operations, review-business]
+    parallel_with: [review-consistency, review-scalardb, review-data-integrity, review-operations, review-business]
     outputs:
       - reports/review/individual/review-risk.json
     model: opus
@@ -178,7 +178,7 @@ phases:
   review-business:
     category: review
     depends_on: [design-api]
-    parallel_with: [review-consistency, review-scalardb, review-operations, review-risk]
+    parallel_with: [review-consistency, review-scalardb, review-data-integrity, review-operations, review-risk]
     outputs:
       - reports/review/individual/review-business.json
     model: sonnet

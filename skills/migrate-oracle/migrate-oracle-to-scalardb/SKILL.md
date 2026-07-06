@@ -389,7 +389,7 @@ When using `transaction-metadata-decoupling: true`:
 ## Files in This Skill
 
 ```
-skills/migrate-oracle-to-scalardb/
+skills/migrate-oracle/migrate-oracle-to-scalardb/
 ├── SKILL.md                              # This file
 ├── reference/
 │   └── scalardb_reference.md             # Complete ScalarDB reference
@@ -406,7 +406,7 @@ skills/migrate-oracle-to-scalardb/
 ## Related
 
 - **Command**: `commands/migrate-oracle-to-scalardb.md` (orchestration)
-- **Prerequisite Skill**: `skills/analyze-oracle-schema/` (input provider)
+- **Prerequisite Skill**: `skills/migrate-oracle/analyze-oracle-schema/` (input provider)
 
 ---
 

@@ -9,7 +9,7 @@ user_invocable: true
 
 # System Investigation
 
-## Outcome
+## Desired Outcome
 
 Gain a comprehensive understanding of the target system and generate the following four investigation reports:
 1. **Technology Stack Analysis** — Languages, frameworks, libraries, external services
@@ -17,7 +17,7 @@ Gain a comprehensive understanding of the target system and generate the followi
 3. **Issues and Technical Debt** — Problem identification and severity classification (CRITICAL/High/Medium/Low)
 4. **DDD Readiness** — Assessment of readiness for migration to domain-driven design
 
-## Judgment Criteria
+## Decision Criteria
 
 - Prioritize deep-diving into areas where technical debt is most concentrated
 - Especially flag coupling issues that hinder domain decomposition

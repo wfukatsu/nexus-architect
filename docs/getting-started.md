@@ -66,6 +66,9 @@ See the [Skill Reference](skill-reference.md) for the full product skill catalog
 /architect:integrate-evaluations
 ```
 
+No legacy system at hand? Use the bundled sample monolith at `samples/ec-monolith`
+as the target path to try the analysis workflow end to end.
+
 ### 3. Full Pipeline Execution
 
 ```bash
