@@ -16,7 +16,7 @@ A three-plugin system-architecture toolkit originally packaged for Claude Code:
 - **scalardb** — ScalarDB application development, review, configuration, scaffolding
 - **product** — product-direction skills (vision → SLA/NFR), nested under `skills/product/`
 
-There are ~85 `SKILL.md` files. Each is a self-contained instruction document. Under
+There are ~90 `SKILL.md` files. Each is a self-contained instruction document. Under
 Claude Code they are invoked as slash commands (e.g. `/architect:investigate`); under
 Omnigent a worker resolves the command to a file, reads it, and follows it.
 
