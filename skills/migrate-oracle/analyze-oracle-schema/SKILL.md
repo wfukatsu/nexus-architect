@@ -34,7 +34,7 @@ Oracle Database  ──►  raw_schema_data.json  ──►  oracle_schema_repor
 Run the Python script to extract schema metadata from Oracle:
 
 ```bash
-cd skills/analyze-oracle-schema/scripts
+cd skills/migrate-oracle/analyze-oracle-schema/scripts
 python oracle_db_extractor.py
 ```
 
@@ -254,7 +254,7 @@ The script produces `raw_schema_data.json` with this structure:
 
 ```bash
 # Navigate to scripts folder
-cd skills/analyze-oracle-schema/scripts
+cd skills/migrate-oracle/analyze-oracle-schema/scripts
 
 # Test connection first
 python oracle_db_extractor.py --test

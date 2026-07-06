@@ -9,13 +9,13 @@ user_invocable: true
 
 # Data Model Analysis
 
-## Outcome
+## Desired Outcome
 
 Perform a comprehensive analysis of the target system's data layer and generate the following:
 1. **Data Model Analysis** — Entities, relationships, domain rules, normalization status
 2. **ER Diagram (Current State)** — Current ER diagram in Mermaid erDiagram format
 
-## Judgment Criteria
+## Decision Criteria
 
 - Cross-reference entity identification with domain terms
 - When normalization deviations exist, determine whether they are intentional or problematic

@@ -340,7 +340,7 @@ When using `transaction-metadata-decoupling: true`:
 ## Files in This Skill
 
 ```
-skills/migrate-mysql-to-scalardb/
+skills/migrate-mysql/migrate-mysql-to-scalardb/
 ├── SKILL.md                                   # This file
 ├── reference/
 │   └── scalardb_mysql_reference.md            # Complete ScalarDB reference for MySQL
@@ -357,7 +357,7 @@ skills/migrate-mysql-to-scalardb/
 ## Related
 
 - **Command**: `commands/mysql-to-scalardb.md` (orchestration)
-- **Prerequisite Skill**: `skills/analyze-mysql-schema/` (input provider)
+- **Prerequisite Skill**: `skills/migrate-mysql/analyze-mysql-schema/` (input provider)
 
 ---
 

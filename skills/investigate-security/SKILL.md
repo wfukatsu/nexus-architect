@@ -8,7 +8,7 @@ user_invocable: true
 
 # Security Analysis
 
-## Outcome
+## Desired Outcome
 
 Evaluate the security posture of the target system and report vulnerabilities and areas for improvement:
 - OWASP Top 10 compliance status for each item
@@ -16,7 +16,7 @@ Evaluate the security posture of the target system and report vulnerabilities an
 - Access control matrix (from a zero-trust perspective)
 - Status of secret management, encryption, and audit logging
 
-## Judgment Criteria
+## Decision Criteria
 
 - For each OWASP Top 10 item, identify specific compliant/non-compliant locations in the code
 - Classify security risks as CRITICAL/HIGH/MEDIUM/LOW

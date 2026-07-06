@@ -36,7 +36,7 @@ MySQL Database  ──►  raw_mysql_schema_data.json  ──►  mysql_schema_r
 Run the Python script to extract schema metadata from MySQL:
 
 ```bash
-cd skills/analyze-mysql-schema/scripts
+cd skills/migrate-mysql/analyze-mysql-schema/scripts
 python mysql_db_extractor.py
 ```
 
@@ -305,7 +305,7 @@ The generated `mysql_schema_report.md` includes:
 
 ```bash
 # Navigate to scripts folder
-cd skills/analyze-mysql-schema/scripts
+cd skills/migrate-mysql/analyze-mysql-schema/scripts
 
 # Test connection first
 python mysql_db_extractor.py --test

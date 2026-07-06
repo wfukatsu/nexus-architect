@@ -25,6 +25,8 @@ Service classification:
 |------|---------------------|--------|
 | reports/03_design/bounded-contexts-redesign.md | Required | /architect:redesign |
 | reports/03_design/context-map.md | Recommended | /architect:redesign |
+| reports/03_domain/architecture.md | Optional | /product:design-architecture — when present, treat its `ARCH-` runtime/deployment views as the **candidate architecture to refine** (confirm or override each element with a recorded reason), not as something to re-derive from scratch (@docs/design.md §1.3) |
+| reports/03_domain/tech-stack-fitness.md | Optional | /product:design-architecture — Adopt/Conditional/Reject verdicts inform platform-technology placement |
 
 ## Output
 

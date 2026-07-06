@@ -36,8 +36,8 @@ def find_env_file(config_path=None):
             print(f"Warning: Specified config file not found: {config_path}")
 
     # Script location varies:
-    #   Plugin mode: <plugin_root>/skills/analyze-oracle-schema/scripts/oracle_db_extractor.py
-    #   Legacy mode: <project>/.claude/skills/analyze-oracle-schema/scripts/oracle_db_extractor.py
+    #   Plugin mode: <plugin_root>/skills/migrate-oracle/analyze-oracle-schema/scripts/oracle_db_extractor.py
+    #   Legacy mode: <project>/.claude/skills/migrate-oracle/analyze-oracle-schema/scripts/oracle_db_extractor.py
     script_dir = Path(__file__).parent  # scripts/
     skill_dir = script_dir.parent  # analyze-oracle-schema/
     claude_dir = skill_dir.parent.parent  # .claude/ (legacy) or plugin grandparent

@@ -12,12 +12,19 @@ disable-model-invocation: true
 
 ## Expected Outcome
 
-Complete a comprehensive architecture analysis and design for the target project.
-The final deliverables are a complete set of reports under reports/.
+Complete the core architecture analysis and design pipeline for the target project:
+investigation through evaluation, redesign, target architecture, data/API design, the
+5-perspective review, and the consolidated HTML report. The final deliverables are the
+reports under reports/ produced by the phases in the dependency manifest.
 
 ## Available Skills
 
-All skills defined in @skills/common/skill-dependencies.yaml can be executed in dependency order.
+The pipeline executes the phases defined in @skills/common/skill-dependencies.yaml in
+dependency order. Skills outside the manifest (infrastructure, security, observability,
+disaster recovery, implementation specs, test specs, code generation, cost estimation)
+are a **manual extension tier**: run them individually after the pipeline completes, or
+via `/architect:start`, which can sequence them interactively. They are intentionally not
+part of the automated run.
 
 ## Execution Strategy
 

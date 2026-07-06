@@ -1,6 +1,6 @@
 # Nexus Architect
 
-System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as three plugins with 77 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
+System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as three plugins with 80 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
 
 - **product** (26 skills) — Product direction: validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
 - **architect** (43 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
@@ -341,6 +341,10 @@ Output language is configurable per project. Set during `/architect:start` initi
 ```
 
 Supported: `en` (English, default), `ja` (Japanese).
+
+### Documentation language policy
+
+All skill instructions (`SKILL.md`), rule files, and embedded prompts are written in **English**; `output_language` applies only to generated report artifacts. User guides under `docs/` are maintained as EN/JA pairs (`getting-started`, `skill-reference`, `scalardb-development`, `database-migration`, `codex-usage`). Exceptions by design: `docs/design.md` (internal design spec, EN only) and the `docs/codex-*` audit records (point-in-time internal audits, JA only).
 
 ## Output Structure
 

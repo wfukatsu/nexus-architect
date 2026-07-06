@@ -37,7 +37,7 @@ Every requirement carries an ID (`FR-xxx` / `NFR-xxx`), a priority, and a data c
 | `--auto` | Optional | Skip elicitation; generate from input documents and existing artifacts only. Unknown items become `TBD` and are recorded in Open Questions. Error if combined with no inputs at all |
 | `--no-scalardb` | Optional | Skip the ScalarDB applicability assessment (Step 4) |
 
-## Judgment Criteria
+## Decision Criteria
 
 - **Never fabricate requirements.** Every requirement must be grounded in an input document, an existing artifact, or a user answer. If a value is unknown, record it as `TBD` in Open Questions — do not guess.
 - **Always confirm numeric targets** (latency, throughput, RPO, RTO). If they cannot be obtained, record them as `TBD` with the question that must be answered.

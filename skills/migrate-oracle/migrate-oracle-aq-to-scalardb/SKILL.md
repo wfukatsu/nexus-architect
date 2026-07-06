@@ -697,7 +697,7 @@ After generating all files, produce `scalardb_aq_migration_report.md` using the 
 ## Files in This Skill
 
 ```
-skills/migrate-oracle-aq-to-scalardb/
+skills/migrate-oracle/migrate-oracle-aq-to-scalardb/
 ├── SKILL.md                              # This file
 ├── reference/
 │   ├── aq-migration-strategy-guide.md    # AQ conversion patterns and code examples
@@ -715,10 +715,10 @@ skills/migrate-oracle-aq-to-scalardb/
 ## Related
 
 - **Command**: `commands/oracle-to-scalardb.md` (orchestration — Step 11)
-- **Schema Extraction**: `skills/analyze-oracle-schema/` (provides raw_schema_data.json)
-- **Schema Report**: `skills/analyze-oracle-schema/` (provides oracle_schema_report.md)
-- **Migration Analysis**: `skills/migrate-oracle-to-scalardb/` (general migration docs)
-- **SP & Trigger Migration**: `skills/migrate-oracle-sp-trigger-to-scalardb/` (direct Java conversion without AQ)
+- **Schema Extraction**: `skills/migrate-oracle/analyze-oracle-schema/` (provides raw_schema_data.json)
+- **Schema Report**: `skills/migrate-oracle/analyze-oracle-schema/` (provides oracle_schema_report.md)
+- **Migration Analysis**: `skills/migrate-oracle/migrate-oracle-to-scalardb/` (general migration docs)
+- **SP & Trigger Migration**: `skills/migrate-oracle/migrate-oracle-sp-trigger-to-scalardb/` (direct Java conversion without AQ)
 
 ---
 

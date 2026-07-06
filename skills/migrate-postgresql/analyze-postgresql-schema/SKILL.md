@@ -34,7 +34,7 @@ PostgreSQL Database  ──►  raw_schema_data.json  ──►  postgresql_sche
 Run the Python script to extract schema metadata from PostgreSQL:
 
 ```bash
-cd skills/analyze-postgresql-schema/scripts
+cd skills/migrate-postgresql/analyze-postgresql-schema/scripts
 python postgresql_db_extractor.py
 ```
 
@@ -303,7 +303,7 @@ The script produces `raw_schema_data.json` with this structure:
 
 ```bash
 # Navigate to scripts folder
-cd skills/analyze-postgresql-schema/scripts
+cd skills/migrate-postgresql/analyze-postgresql-schema/scripts
 
 # Test connection first
 python postgresql_db_extractor.py --test

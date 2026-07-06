@@ -10,7 +10,7 @@ Three-plugin system architecture toolkit:
 - **scalardb** — ScalarDB application development toolkit
 
 Workflows:
-- **Product direction**: vision -> success metrics / revenue -> scope -> validate -> personas/journey/positioning -> domain-stories/design-system -> UI/features/data/frontend -> domains/API -> SLA/NFR -> review/report (handoff to `/architect:define-requirements`)
+- **Product direction**: vision -> success metrics / revenue -> scope -> validate -> personas/journey/positioning -> domain-stories/design-system -> UI/features/data/frontend -> domains/API -> SLA/NFR -> architecture/tech-fitness -> review/report (handoff to `/architect:define-requirements`)
 - **Legacy refactoring**: investigate -> analyze -> evaluate -> redesign -> implement
 - **Greenfield design**: requirements -> domain modeling -> ScalarDB design -> infra -> deploy
 - **Consulting deliverables**: reports, cost estimates, domain stories
@@ -53,6 +53,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Skills are namespaced
 - `/product:design-api` — Logical API surface in three API-Led layers (System/Process/Experience)
 - `/product:design-sla` — Per-service SLI/SLO/SLA with error budgets from customer expectations
 - `/product:define-nfr` — Turn SLOs into measurable NFRs (availability, latency p95/p99, ...)
+- `/product:design-architecture` — Synthesize contexts/APIs/data/NFRs into a runtime architecture (container, critical-path sequence, deployment views) and assess platform-technology fitness (Kong, ScalarDB, ScalarDB Analytics, ScalarDL) with Adopt/Conditional/Reject decisions
 - `/product:review` — Review product artifacts through four lenses (consistency, traceability, ...)
 - `/product:report [--auto] [--lang=ja|en]` — Consolidate artifacts into one self-contained HTML report (validation status first)
 - `/product:adapt-change` — Re-propagation engine: compute affected scope from a change and re-run only impacted skills
@@ -145,7 +146,15 @@ investigate -> analyze -> [evaluate-mmi, evaluate-ddd] -> integrate-evaluations
 
 Dependency manifest (architect): @skills/common/skill-dependencies.yaml
 
-The **product** plugin has its own pipeline and manifest: `skills/product/common/skill-dependencies.yaml` (vision -> success-metrics/revenue -> scope -> validate-assumptions [gate] -> persona/journey/positioning -> create-domain-story/design-system -> ui-mock/features/data-model/frontend -> map-domains/api -> sla/nfr -> review -> report; `adapt-change` on demand). It ends by handing off to `/architect:define-requirements`.
+The manifest covers the core pipeline only. The remaining architect skills —
+`investigate-security`, `select-scalardb-edition`, `design-scalardb-analytics`,
+`design-implementation`, `generate-test-specs`, `generate-scalardb-code`,
+`generate-infra-code`, `design-infrastructure`, `design-security`,
+`design-observability`, `design-disaster-recovery`, `estimate-cost` — form a
+**manual extension tier**: they are not executed by `/architect:pipeline` and are
+invoked individually (typically after the core pipeline) or via `/architect:start`.
+
+The **product** plugin has its own pipeline and manifest: `skills/product/common/skill-dependencies.yaml` (vision -> success-metrics/revenue -> scope -> validate-assumptions [gate] -> persona/journey/positioning -> create-domain-story/design-system -> ui-mock/features/data-model/frontend -> map-domains/api -> sla/nfr -> design-architecture -> review -> report; `adapt-change` on demand). It ends by handing off to `/architect:define-requirements`.
 
 ## Output Conventions
 
@@ -163,11 +172,11 @@ Naming and frontmatter rules: @rules/output-conventions.md
 
 | Model | Use For | Examples |
 |-------|---------|----------|
-| **opus** | Architecture decisions, tradeoff analysis, risk | review-risk, redesign, design-microservices |
-| **sonnet** | Standard analysis, document generation, reviews | analyze, review-consistency, report |
-| **haiku** | Template generation, status checks, simple transforms | init-output, render-mermaid |
+| **opus** | Architecture decisions, tradeoff analysis, risk | analyze, review-risk, redesign, design-microservices |
+| **sonnet** | Standard analysis, document generation, reviews | investigate, review-consistency, evaluate-mmi |
+| **haiku** | Template generation, status checks, simple transforms | init-output, render-mermaid, report |
 
-The **product** plugin follows the same tiers (per-skill `model` in `skills/product/common/skill-dependencies.yaml`): **opus** for strategy/judgment (`define-vision`, `validate-assumptions`, `design-positioning`, `map-domains`, `design-api`, `review`, `adapt-change`), **sonnet** for structured generation (`define-scope`, `generate-ui-mock`, `generate-frontend`, `define-features`, `design-sla`, `define-nfr`, `report`, and the `start` orchestrator).
+The **product** plugin follows the same tiers (per-skill `model` in `skills/product/common/skill-dependencies.yaml`): **opus** (16 skills) for strategy/judgment (`define-vision`, `define-success-metrics`, `research-landscape`, `design-revenue`, `name-product`, `validate-assumptions`, `generate-persona`, `design-positioning`, `create-domain-story`, `design-system`, `define-data-model`, `map-domains`, `design-api`, `design-architecture`, `review`, `adapt-change`), **sonnet** (10 skills) for structured generation and orchestration (`define-scope`, `map-journey`, `generate-ui-mock`, `generate-frontend`, `define-features`, `design-sla`, `define-nfr`, `report`, plus the `start` orchestrator and `init-output`).
 
 ## Tool Priority
 

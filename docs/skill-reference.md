@@ -149,7 +149,9 @@ Phase order and the `mvp`/`core-only`/`ux-to-spec`/`full` profiles are defined i
 | `/product:generate-persona` | opus | 2. UX Foundation | Jobs-to-be-Done–anchored personas (job stories + persona cards) |
 | `/product:map-journey` | sonnet | 2. UX Foundation | Customer journey as a stages × layers grid (touchpoints, actions, emotions) |
 | `/product:design-positioning` | opus | 2. UX Foundation | Positioning (Dunford 5-component canvas), touchpoint × device × timing matrix |
-| `/product:generate-ui-mock` | sonnet | 3. UX → Spec | Lo-fi UI mocks for key screens from journey/positioning/personas |
+| `/product:create-domain-story` | opus | 2. UX Foundation | Persona-anchored Domain Storytelling (actors=personas, activities=job stories ordered by journey); the axis the UI mocks render (optional) |
+| `/product:design-system` | opus | 2. UX Foundation | Build or `--import` a separately-managed design system (DTCG tokens + components + guidelines); styles the UI mocks (optional, standalone) |
+| `/product:generate-ui-mock` | sonnet | 3. UX → Spec | Navigable UI mocks for key screens, driven by domain stories and styled by the design system (each activity → a screen, wired into a clickable story flow) |
 | `/product:define-features` | sonnet | 3. UX → Spec | Extract features from UI mocks (each screen action → Command/feature) |
 | `/product:define-data-model` | opus | 3. UX → Spec | Derive the data model in two passes (explicit → implicit) |
 | `/product:generate-frontend` | sonnet | 3. UX → Spec | Turn UI mocks + design system into a runnable React + Storybook frontend (Atomic Design, token-styled, react-router) — selectable, end of spec phase |

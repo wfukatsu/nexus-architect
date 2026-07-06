@@ -9,6 +9,8 @@ generated_at: 2026-05-15
 
 Claude Code と Codex の両方で利用できるようにするために、動作が異なる箇所を洗い出したドキュメントです。
 
+> **注記（時点情報）**: 本ドキュメントは 2026-05-15 時点のスナップショットです。本文中の「51 skills」は当時の構成であり、現在は **3 plugins（product / architect / scalardb）/ 80 skills**（`/product:*` を含む）です。最新の構成は `README.md` と `.claude-plugin/marketplace.json` を参照してください。
+
 ## 凡例
 
 - ✅ 対応済み（`AGENTS.md` / docs で吸収済み）
