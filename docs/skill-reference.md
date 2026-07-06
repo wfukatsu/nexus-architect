@@ -140,6 +140,7 @@ Phase order and the `mvp`/`core-only`/`ux-to-spec`/`full` profiles are defined i
 | `/product:start` | sonnet | Orchestration | Interactively start product-direction design; runs the pipeline in dependency order, gating on the riskiest assumptions; offers a selectable `generate-frontend` step after the mocks (`--auto`, `--profile`, `--frontend`/`--no-frontend`, `--lang`) |
 | `/product:init-output` | sonnet | Orchestration | Initialize the product output tree, `work/pipeline-progress.json`, and `work/traceability.json` |
 | `/product:define-vision` | opus | 1. Product Core | Define product core (Vision/Mission/Values) as a Product Vision Board plus PR-FAQ |
+| `/product:name-product` | opus | 1. Product Core | Name the product as an acronym — a short pronounceable Latin-letter name whose every letter is the initial of an English word, expanding into a value phrase grounded in vision/positioning; shortlists candidates, recommends one (optional; in `full`) |
 | `/product:define-success-metrics` | opus | 1. Product Core | One North Star Metric plus 3–5 input metrics |
 | `/product:research-landscape` | opus | 1. Product Core | Market/competitor research: sizing (TAM/SAM/SOM), trends, Kano classification |
 | `/product:design-revenue` | opus | 1. Product Core | Revenue/business model and a recomputable benefit-evaluation template |

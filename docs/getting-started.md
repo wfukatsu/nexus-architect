@@ -42,6 +42,14 @@ Start here for a new product: a validation-driven pipeline from vision to SLA/NF
 
 After the UI mocks, `/product:start` can optionally run `/product:generate-frontend` to turn the mocks plus the active design system into a runnable React + Storybook scaffold under `generated/frontend/` (Atomic Design, token-styled). It is selectable: confirmed interactively, or forced with `--frontend` / `--no-frontend`.
 
+Need a name for the product? `/product:name-product` builds an **acronym name** — a short pronounceable Latin-letter name whose every letter is the initial of an English word, so the name expands into a phrase that states the product's value (e.g. `N`ext-generation `E`xtensible e`X`change `U`nified `S`ystem). It draws the expansion words from your vision and positioning, shortlists candidates, and recommends one. It runs after the vision in the `full` profile, or standalone any time:
+
+```bash
+/product:name-product                     # from the current vision/positioning
+/product:name-product --seed=SCALAR       # find an English word for each letter of a base word
+/product:name-product --style=initialism  # spelled-out letters (e.g. SDK) instead of a pronounceable word
+```
+
 See the [Skill Reference](skill-reference.md) for the full product skill catalog.
 
 ### 2. Analyzing a Legacy System

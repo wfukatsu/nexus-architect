@@ -147,6 +147,7 @@
         "./skills/product/start",
         "./skills/product/init-output",
         "./skills/product/define-vision",
+        "./skills/product/name-product",
         "./skills/product/define-success-metrics",
         "./skills/product/research-landscape",
         "./skills/product/design-revenue",
