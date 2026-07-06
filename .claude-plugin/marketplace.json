@@ -14,7 +14,7 @@
       "strict": false,
       "hooks": "./hooks/hooks.json",
       "description": "System architecture agent for legacy refactoring, greenfield design, database migration (Oracle/MySQL/PostgreSQL to ScalarDB), and consulting deliverables. Includes 5-perspective parallel review system, MMI/DDD evaluation frameworks, and full code generation pipeline.",
-      "version": "0.12.0",
+      "version": "0.13.0",
       "author": {
         "name": "Wataru Fukatsu",
         "url": "https://github.com/wfukatsu"
@@ -87,7 +87,7 @@
       "name": "scalardb",
       "strict": false,
       "description": "ScalarDB application development toolkit. Interactive schema design, configuration generation, CRUD/JDBC operation patterns, exception handling, project scaffolding, local environment setup, documentation search, code review, and migration advisory.",
-      "version": "0.12.0",
+      "version": "0.13.0",
       "author": {
         "name": "Wataru Fukatsu",
         "url": "https://github.com/wfukatsu"
@@ -124,7 +124,7 @@
       "strict": false,
       "hooks": "./hooks/hooks.json",
       "description": "Product direction agent. Validation-driven, dialogue-based pipeline that designs product vision/mission/value, success metrics, revenue model, personas, customer journeys, positioning, UI mocks, features, data model, domains, API (system/process/experience), and SLA/NFR. Extracts and validates the riskiest assumptions before committing, and re-propagates changes via a traceability graph. Hands off to /architect for system implementation design.",
-      "version": "0.12.0",
+      "version": "0.13.0",
       "author": {
         "name": "Wataru Fukatsu",
         "url": "https://github.com/wfukatsu"

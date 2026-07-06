@@ -9,6 +9,48 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-07-07
+
+### 追加
+- **`product` プラグイン: `/product:name-product` スキル** — プロダクトを**アルファベット・アクロニム**として
+  命名する：各文字が英単語の頭文字になる短く発音可能なラテン文字名で、名前自体が価値フレーズに展開される。
+  ビジョン/ポジショニングに根ざして候補を絞り込み、1 案を推奨する。任意実行（`full` プロファイルに含む）。
+  新ルール `rules/product/naming-frameworks.md` を追加。**product プラグインは 26 スキルに。**
+- **Omnigent 互換レイヤー** — `OMNIGENT.md` とローダー（`tools/omnigent/load-skill.sh`）により、
+  汎用マルチエージェント・オーケストレーターが約 90 個の `SKILL.md` を無改変で実行できる。ローダーは
+  `plugin:skill` 名をファイルパスに解決し、翻訳プリアンブルを出力し、`${CLAUDE_PLUGIN_ROOT}` を展開する。
+  非侵襲（スキルファイルの変更なし）でテスト付き。
+
+### 変更
+- **`AGENTS.md` のモデル階層推奨を現行の product 26 スキルに同期**（16 opus / 10 sonnet）。各スキルの
+  `model:` frontmatter と両依存マニフェストに一致。
+
+### 修正
+- **入れ子 migrate サブスキルの陳腐化フラットパス（12 ファイル 30 箇所）** — 実行可能な `cd` ブロック、
+  Related Skills、出力ツリー、抽出スクリプトのコメントが入れ子化前のパス
+  （例: `skills/analyze-mysql-schema/...`。正しくは `skills/migrate-mysql/analyze-mysql-schema/...`）を
+  参照していた。
+- **ドキュメントのドリフト**: README のスキル数を修正（77 → 80）。CLAUDE.md のモデル階層表を修正
+  （`analyze` = opus、`report` = haiku）し、product の階層リストを全 26 スキルに補完。CLAUDE.md に
+  `/product:design-architecture` を追加。スキルリファレンス（EN/JA）に `/product:create-domain-story` と
+  `/product:design-system` を追加。`generate-ui-mock` の説明を実際の駆動源（ドメインストーリー +
+  デザインシステム）に更新。
+- **パイプラインの範囲を明確化**: `skill-dependencies.yaml` 外の architect 12 スキル（インフラ、
+  セキュリティ、オブザーバビリティ、DR、実装、コード生成、コスト見積、セキュリティ調査）を
+  `/architect:pipeline` が実行しない**手動拡張ティア**として明記し、pipeline スキルの「全スキル」の
+  記述を実態に合わせて修正。
+- **product→architect ブリッジ成果物を受け手側で宣言**: `design-microservices` が `architecture.md` /
+  `tech-stack-fitness.md` を、`design-api` が `api-design.md` を任意入力として明記（再導出でなく
+  リファインするセマンティクス）。
+- レビューフェーズの `parallel_with` 宣言を対称化。見出しを `Desired Outcome` / `Decision Criteria` に
+  正規化（5 スキル）。scalardb ユーティリティ 5 スキルの説明に「Use when」トリガーを追加。`workflow/` と
+  `research/` に位置づけ README を追加。README にドキュメント言語ポリシーを追加。Codex 監査ドキュメントに
+  時点スナップショット注記を追加。getting-started（EN/JA）に `samples/ec-monolith` の導線を追加。
+  define-requirements の brainstorm ドキュメントの陳腐化した `research/` ファイル名を修正。
+
+### ドキュメント
+- getting-started ガイド（EN/JA）に `/product:generate-frontend` を掲載。
+
 ## [0.12.0] - 2026-06-29
 
 ### 追加

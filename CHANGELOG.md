@@ -9,6 +9,50 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-07-07
+
+### Added
+- **`product` plugin: `/product:name-product` skill** — names the product as an **alphabetic
+  acronym**: a short, pronounceable Latin-letter name whose every letter is the initial of an
+  English word, so the name expands into a value phrase. Grounded in vision/positioning, it
+  shortlists candidates and recommends one. Optional; included in the `full` profile. New rule
+  `rules/product/naming-frameworks.md`. **product plugin now at 26 skills.**
+- **Omnigent compatibility layer** — `OMNIGENT.md` plus a loader (`tools/omnigent/load-skill.sh`)
+  let a generic multi-agent orchestrator run the ~90 `SKILL.md` files unchanged: the loader
+  resolves `plugin:skill` names to file paths, prints a translation preamble, and expands
+  `${CLAUDE_PLUGIN_ROOT}`. Non-invasive (no skill files modified); ships with tests.
+
+### Changed
+- **`AGENTS.md` model-tier recommendations synced** to the current 26 product skills
+  (16 opus / 10 sonnet), matching each skill's `model:` frontmatter and both dependency manifests.
+
+### Fixed
+- **Stale flat paths in the nested migrate sub-skills (30 fixes across 12 files)** — runnable
+  `cd` blocks, Related Skills sections, output trees, and extractor script comments still
+  referenced pre-nesting paths (e.g. `skills/analyze-mysql-schema/...` instead of
+  `skills/migrate-mysql/analyze-mysql-schema/...`).
+- **Documentation drift**: README skill count corrected (77 → 80); CLAUDE.md model-tier table
+  corrected (`analyze` = opus, `report` = haiku) and its product tier list completed to all
+  26 skills; `/product:design-architecture` added to CLAUDE.md; `/product:create-domain-story`
+  and `/product:design-system` added to the skill reference (EN/JA); `generate-ui-mock`
+  description updated to its actual drivers (domain stories + design system).
+- **Pipeline scope clarified**: the 12 architect skills outside `skill-dependencies.yaml`
+  (infrastructure, security, observability, DR, implementation, codegen, cost estimation,
+  security investigation) are now documented as a **manual extension tier** not executed by
+  `/architect:pipeline`; the pipeline skill's "all skills" claim was softened to match.
+- **Product→architect bridge artifacts declared at the receiving end**:
+  `design-microservices` lists `architecture.md` / `tech-stack-fitness.md` and `design-api`
+  lists `api-design.md` as optional inputs with refine-not-rederive semantics.
+- Review-phase `parallel_with` declarations made symmetric; headings normalized to
+  `Desired Outcome` / `Decision Criteria` (5 skills); "Use when" triggers added to 5 scalardb
+  utility skill descriptions; `workflow/` and `research/` marked with README status notes;
+  documentation language policy added to README; snapshot notes added to the Codex audit docs;
+  getting-started (EN/JA) now points at `samples/ec-monolith`; stale `research/` filenames
+  fixed in the define-requirements brainstorm doc.
+
+### Documentation
+- `/product:generate-frontend` surfaced in the getting-started guides (EN/JA).
+
 ## [0.12.0] - 2026-06-29
 
 ### Added
