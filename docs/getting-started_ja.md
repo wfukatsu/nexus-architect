@@ -50,7 +50,7 @@ UI モックの後、`/product:start` は任意で `/product:generate-frontend` 
 /product:name-product --style=initialism  # 発音可能な単語ではなく文字読み（例: SDK）
 ```
 
-product スキルの全カタログは [スキルリファレンス](skill-reference_ja.md) を参照してください。
+product スキルの全カタログは [スキルリファレンス](skill-reference_ja.md) を、パイプライン実行前に用意すべきインプットは [product インプット要件ガイド](product-input-requirements_ja.md) を参照してください。
 
 ### 2. レガシーシステムの分析
 
@@ -68,6 +68,8 @@ product スキルの全カタログは [スキルリファレンス](skill-refer
 
 手元にレガシーシステムがない場合は、同梱のサンプルモノリス `samples/ec-monolith` を
 ターゲットパスに指定すると、分析ワークフローを一通り試せます。
+
+レガシー／グリーンフィールド（`/architect:define-requirements`）の各パスで用意すべきインプットは [architect インプット要件ガイド](architect-input-requirements_ja.md) を参照してください。
 
 ### 3. フルパイプライン実行
 
