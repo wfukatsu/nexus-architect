@@ -24,6 +24,8 @@ When the user invokes a Claude-style command in Codex, map it to the matching lo
 
 If a referenced skill does not exist, explain that it is unavailable and choose the closest documented fallback.
 
+Before running an entry-point skill (`/product:start`, `/product:define-vision`, `/architect:investigate`, `/architect:define-requirements`), consult the input-requirements guides for the information the user must supply: [product Input Requirements](docs/product-input-requirements.md) and [architect Input Requirements](docs/architect-input-requirements.md).
+
 ## Claude Tool Mapping
 
 Many skill files mention Claude Code tools. In Codex, interpret them as follows:
