@@ -9,6 +9,8 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-07-13
+
 ### Added
 - **Input-requirements guides (`docs/product-input-requirements.md`,
   `docs/architect-input-requirements.md`, EN/JA)** — document the information the user must supply
