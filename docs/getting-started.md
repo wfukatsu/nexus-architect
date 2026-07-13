@@ -50,7 +50,7 @@ Need a name for the product? `/product:name-product` builds an **acronym name** 
 /product:name-product --style=initialism  # spelled-out letters (e.g. SDK) instead of a pronounceable word
 ```
 
-See the [Skill Reference](skill-reference.md) for the full product skill catalog.
+See the [Skill Reference](skill-reference.md) for the full product skill catalog, and the [product Input Requirements](product-input-requirements.md) for the inputs you should prepare before running the pipeline.
 
 ### 2. Analyzing a Legacy System
 
@@ -68,6 +68,8 @@ See the [Skill Reference](skill-reference.md) for the full product skill catalog
 
 No legacy system at hand? Use the bundled sample monolith at `samples/ec-monolith`
 as the target path to try the analysis workflow end to end.
+
+See the [architect Input Requirements](architect-input-requirements.md) for the inputs you should prepare for the legacy and greenfield (`/architect:define-requirements`) paths.
 
 ### 3. Full Pipeline Execution
 
