@@ -9,6 +9,13 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+### 追加
+- **インプット要件ガイド（`docs/product-input-requirements.md`・
+  `docs/architect-input-requirements.md`、EN/JA）** — 各プラグインのパイプラインを実行する際に
+  利用者が用意すべき情報をまとめたドキュメント（エントリーポイント、必須／推奨インプット、
+  対話モードと `--auto` モード、フェーズごとのヒアリング項目、product→architect のハンドオフ）。
+  README・`getting-started`・`skill-reference`・`AGENTS.md`・`CLAUDE.md` からリンク。
+
 ## [0.13.0] - 2026-07-07
 
 ### 追加

@@ -9,6 +9,13 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+### Added
+- **Input-requirements guides (`docs/product-input-requirements.md`,
+  `docs/architect-input-requirements.md`, EN/JA)** — document the information the user must supply
+  to run each plugin's pipeline (entry points, required vs. recommended inputs, interactive vs.
+  `--auto` mode, per-phase elicitation, and the product→architect handoff). Linked from README,
+  `getting-started`, `skill-reference`, `AGENTS.md`, and `CLAUDE.md`.
+
 ## [0.13.0] - 2026-07-07
 
 ### Added
