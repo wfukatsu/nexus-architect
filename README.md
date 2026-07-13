@@ -344,7 +344,7 @@ Supported: `en` (English, default), `ja` (Japanese).
 
 ### Documentation language policy
 
-All skill instructions (`SKILL.md`), rule files, and embedded prompts are written in **English**; `output_language` applies only to generated report artifacts. User guides under `docs/` are maintained as EN/JA pairs (`getting-started`, `skill-reference`, `scalardb-development`, `database-migration`, `codex-usage`). Exceptions by design: `docs/design.md` (internal design spec, EN only) and the `docs/codex-*` audit records (point-in-time internal audits, JA only).
+All skill instructions (`SKILL.md`), rule files, and embedded prompts are written in **English**; `output_language` applies only to generated report artifacts. User guides under `docs/` are maintained as EN/JA pairs (`getting-started`, `product-input-requirements`, `architect-input-requirements`, `skill-reference`, `scalardb-development`, `database-migration`, `codex-usage`). Exceptions by design: `docs/design.md` (internal design spec, EN only) and the `docs/codex-*` audit records (point-in-time internal audits, JA only).
 
 ## Output Structure
 
@@ -373,6 +373,8 @@ work/             # Pipeline state and intermediate files
 | Document | Description |
 |----------|-------------|
 | [Getting Started](docs/getting-started.md) | Installation and first steps |
+| [product Input Requirements](docs/product-input-requirements.md) | Inputs you supply to run the product pipeline |
+| [architect Input Requirements](docs/architect-input-requirements.md) | Inputs you supply to run the architect pipeline |
 | [Codex Usage](docs/codex-usage.md) | Using the same skills from Codex |
 | [Skill Reference](docs/skill-reference.md) | Complete skill catalog |
 | [ScalarDB Development](docs/scalardb-development.md) | ScalarDB development guide |
@@ -381,6 +383,8 @@ work/             # Pipeline state and intermediate files
 
 Japanese translations:
 [Getting Started (日本語)](docs/getting-started_ja.md) |
+[product Input Requirements (日本語)](docs/product-input-requirements_ja.md) |
+[architect Input Requirements (日本語)](docs/architect-input-requirements_ja.md) |
 [Codex Usage (日本語)](docs/codex-usage_ja.md) |
 [Skill Reference (日本語)](docs/skill-reference_ja.md) |
 [ScalarDB Development (日本語)](docs/scalardb-development_ja.md) |
