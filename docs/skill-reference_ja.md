@@ -5,6 +5,10 @@
 本書では architect スキルを最初にまとめ、続いて ScalarDB 開発、データベース移行、
 プロダクトの方向性の順に掲載します。
 
+各パイプラインの実行前に用意すべきインプットは、
+[product インプット要件ガイド](product-input-requirements_ja.md) と
+[architect インプット要件ガイド](architect-input-requirements_ja.md) を参照してください。
+
 ## オーケストレーション
 
 | コマンド | モデル | 説明 |
