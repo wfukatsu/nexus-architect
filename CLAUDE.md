@@ -193,6 +193,8 @@ do not load ScalarDB rules for non-ScalarDB work.
 
 | Resource | Location | When to Read |
 |----------|----------|--------------|
+| product input requirements | docs/product-input-requirements.md | Inputs the user must supply before running the product pipeline |
+| architect input requirements | docs/architect-input-requirements.md | Inputs the user must supply before running the architect pipeline (legacy or greenfield) |
 | ScalarDB exception handling | rules/scalardb-exception-handling.md | Exception handling, retry logic |
 | ScalarDB CRUD patterns | rules/scalardb-crud-patterns.md | CRUD API operations |
 | ScalarDB JDBC patterns | rules/scalardb-jdbc-patterns.md | JDBC/SQL operations |
@@ -215,8 +217,6 @@ do not load ScalarDB rules for non-ScalarDB work.
 | Schema format | skills/common/references/schema-format.md | JSON/SQL schema format |
 | Configuration reference | skills/common/references/configuration-reference.md | All ScalarDB config properties by backend |
 | Code patterns | skills/common/references/code-patterns/ | Complete app templates for all 6 interface combos |
-| product input requirements | docs/product-input-requirements.md | Inputs the user must supply before running the product pipeline |
-| architect input requirements | docs/architect-input-requirements.md | Inputs the user must supply before running the architect pipeline (legacy or greenfield) |
 
 ## Conventions
 
