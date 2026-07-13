@@ -9,6 +9,8 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-07-13
+
 ### 追加
 - **インプット要件ガイド（`docs/product-input-requirements.md`・
   `docs/architect-input-requirements.md`、EN/JA）** — 各プラグインのパイプラインを実行する際に
