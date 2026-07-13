@@ -5,6 +5,10 @@ Skills are invoked by plugin namespace: `/product:skill-name` (product direction
 The architect skills are catalogued first, followed by ScalarDB Development, Database Migration,
 and Product Direction.
 
+For the inputs you should prepare before running each pipeline, see the
+[product Input Requirements](product-input-requirements.md) and
+[architect Input Requirements](architect-input-requirements.md) guides.
+
 ## Orchestration
 
 | Command | Model | Description |
