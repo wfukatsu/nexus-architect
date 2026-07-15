@@ -9,6 +9,31 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-07-15
+
+### 追加
+- **`architect` プラグイン: `/architect:estimate-token-cost` スキル** — architect パイプラインを
+  コードベースに対して実行した場合のトークン使用量と USD コストを見積もる。事前見積もりモデル
+  （コード行数 → 取り込みトークン → キャッシュ調整後の課金入力、typical/low/high の3バンド）と、
+  `work/token-usage.json` の実測値による較正（部分実行時は残フェーズを外挿）を組み合わせる。
+  インフラ・ライセンス・運用コストを扱う `/architect:estimate-cost` とは別物。
+  **architect プラグインは 44 スキルに。**
+- **フェーズ別トークン使用量の自動記録（`hooks/record_token_usage.py`）** — フェイルセーフな
+  フック（`Write|Edit|MultiEdit|Task|Agent` の `PostToolUse` と `Stop`/`SubagentStop`）が
+  セッショントランスクリプトを差分解析し、課金トークン（入力/出力、キャッシュ読み、5分/1時間
+  キャッシュ書き込み、Web検索リクエスト）をパイプラインフェーズに帰属させる：`in_progress`
+  フェーズ優先、次に新たに `completed` へ遷移したフェーズ（保留バケットを回収）、いずれも
+  なければターン終了時に `_unassigned`。`work/token-usage.json`（フェーズ×モデル台帳 + USD）と
+  `work/token-usage.jsonl`（追記専用監査ログ）を出力。初期化済みパイプラインプロジェクト外では
+  不活性。並列サブエージェントの発火は flock で直列化し、message id はチャンク境界をまたいで
+  重複排除。
+- **`skills/common/references/model-pricing.json`** — モデル価格（期間限定の導入価格を含む）、
+  キャッシュ倍率、サーバーツール価格、事前見積もりヒューリスティクスの単一ソース。記録フックと
+  見積もりスキルが共有する。
+- **`rules/token-pricing.md`** — 台帳スキーマ（`token-usage-v2`）、帰属の意味論と注意点、
+  見積もり手法、サブスクリプション課金と API 課金の違いを記載。`CLAUDE.md` の Rules & References
+  表から参照。
+
 ## [0.14.0] - 2026-07-13
 
 ### 追加
