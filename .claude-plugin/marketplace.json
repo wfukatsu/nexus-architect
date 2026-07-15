@@ -77,6 +77,7 @@
         "./skills/review-report",
         "./skills/render-mermaid",
         "./skills/estimate-cost",
+        "./skills/estimate-token-cost",
         "./skills/migrate-database",
         "./skills/migrate-oracle",
         "./skills/migrate-mysql",
