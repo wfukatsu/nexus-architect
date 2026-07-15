@@ -1,0 +1,42 @@
+{
+  "$schema": "model-pricing-v1",
+  "version": "2026-06-24",
+  "currency": "USD",
+  "unit": "per_1M_tokens",
+  "note": "Single source of truth for token pricing used by the token-usage recorder (hooks/record_token_usage.py) and the /architect:estimate-token-cost skill. Update `version` and the family prices when Anthropic pricing changes. Prices are per 1,000,000 tokens.",
+  "cache_multipliers": {
+    "read": 0.1,
+    "write_5m": 1.25,
+    "write_1h": 2.0
+  },
+  "server_tools": {
+    "web_search_per_1k": 10.0
+  },
+  "families": [
+    { "name": "fable-5",   "match": ["fable-5", "mythos-5", "mythos-preview"], "input": 10.0, "output": 50.0 },
+    { "name": "opus-4-8",  "match": ["opus-4-8"], "input": 5.0, "output": 25.0 },
+    { "name": "opus-4-7",  "match": ["opus-4-7"], "input": 5.0, "output": 25.0 },
+    { "name": "opus-4-6",  "match": ["opus-4-6"], "input": 5.0, "output": 25.0 },
+    { "name": "opus",      "match": ["opus"], "input": 5.0, "output": 25.0 },
+    { "name": "sonnet-5",  "match": ["sonnet-5"], "input": 3.0, "output": 15.0, "intro_input": 2.0, "intro_output": 10.0, "intro_until": "2026-08-31" },
+    { "name": "sonnet",    "match": ["sonnet"], "input": 3.0, "output": 15.0 },
+    { "name": "haiku",     "match": ["haiku"], "input": 1.0, "output": 5.0 }
+  ],
+  "default": { "name": "unknown-defaults-to-sonnet", "input": 3.0, "output": 15.0 },
+  "estimation_heuristics": {
+    "note": "Used by /architect:estimate-token-cost for a-priori (pre-run) estimates. Prefer measured actuals from work/token-usage.json when available.",
+    "tokens_per_loc": { "typical": 9, "low": 8, "high": 12 },
+    "code_ingestion_ratio": { "typical": 0.5, "low": 0.3, "high": 0.7, "note": "Fraction of the codebase actually read as body text (structural tools/sampling cover the rest)." },
+    "effective_input_multiplier": { "typical": 8, "low": 4, "high": 12, "note": "Cache-adjusted billed input tokens per token of unique ingested content, across the whole multi-turn pipeline (context re-transmission minus prompt-cache reads at 0.1x)." },
+    "output_per_phase_tokens": { "typical": 60000, "note": "Rough per-phase report/reasoning output; scale by phase count." },
+    "phase_model_tier": {
+      "note": "Default model tier per phase from skill-dependencies.yaml; used to pick prices for a-priori estimates.",
+      "investigate": "sonnet", "analyze": "opus", "evaluate-mmi": "sonnet", "evaluate-ddd": "sonnet",
+      "integrate-evaluations": "sonnet", "redesign": "opus", "map-domains": "opus",
+      "design-microservices": "opus", "design-scalardb": "opus", "design-data-layer": "opus", "design-api": "opus",
+      "review-consistency": "sonnet", "review-scalardb": "sonnet", "review-data-integrity": "sonnet",
+      "review-operations": "sonnet", "review-risk": "opus", "review-business": "sonnet",
+      "review-synthesizer": "sonnet", "report": "haiku", "review-report": "sonnet"
+    }
+  }
+}

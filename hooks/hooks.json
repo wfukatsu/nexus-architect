@@ -13,6 +13,35 @@
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-frontmatter.sh"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit|Task|Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/record_token_usage.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/record_token_usage.py"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/record_token_usage.py"
+          }
+        ]
       }
     ]
   }

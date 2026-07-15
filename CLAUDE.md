@@ -114,6 +114,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Skills are namespaced
 - `/architect:review-report` — Review quality of generated HTML report (completeness, score accuracy, Mermaid syntax, language, structure)
 - `/architect:render-mermaid [target_path]` — Mermaid to PNG/SVG + syntax fix
 - `/architect:estimate-cost` — Infrastructure, license, operational costs
+- `/architect:estimate-token-cost` — Token usage and USD cost of running the pipeline (a-priori from LOC, calibrated by recorded actuals)
 
 ### ScalarDB Development (`/scalardb:*`)
 - `/scalardb:model` — Interactive schema design wizard (keys, indexes, data types)
@@ -150,7 +151,8 @@ The manifest covers the core pipeline only. The remaining architect skills —
 `investigate-security`, `select-scalardb-edition`, `design-scalardb-analytics`,
 `design-implementation`, `generate-test-specs`, `generate-scalardb-code`,
 `generate-infra-code`, `design-infrastructure`, `design-security`,
-`design-observability`, `design-disaster-recovery`, `estimate-cost` — form a
+`design-observability`, `design-disaster-recovery`, `estimate-cost`,
+`estimate-token-cost` — form a
 **manual extension tier**: they are not executed by `/architect:pipeline` and are
 invoked individually (typically after the core pipeline) or via `/architect:start`.
 
@@ -195,6 +197,7 @@ do not load ScalarDB rules for non-ScalarDB work.
 |----------|----------|--------------|
 | product input requirements | docs/product-input-requirements.md | Inputs the user must supply before running the product pipeline |
 | architect input requirements | docs/architect-input-requirements.md | Inputs the user must supply before running the architect pipeline (legacy or greenfield) |
+| Token pricing & usage tracking | rules/token-pricing.md | Estimating run cost, or reading the `work/token-usage.json` ledger recorded during execution |
 | ScalarDB exception handling | rules/scalardb-exception-handling.md | Exception handling, retry logic |
 | ScalarDB CRUD patterns | rules/scalardb-crud-patterns.md | CRUD API operations |
 | ScalarDB JDBC patterns | rules/scalardb-jdbc-patterns.md | JDBC/SQL operations |
