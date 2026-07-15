@@ -9,6 +9,30 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-07-15
+
+### Added
+- **`architect` plugin: `/architect:estimate-token-cost` skill** — estimates the token usage and
+  USD cost of running the architect pipeline on a codebase. Combines an a-priori model (lines of
+  code → ingested tokens → cache-adjusted billed input, with typical/low/high bands) with measured
+  actuals from `work/token-usage.json` when present (extrapolates remaining phases on partial
+  runs). Distinct from `/architect:estimate-cost`, which covers infrastructure/license/operational
+  costs. **architect plugin now at 44 skills.**
+- **Automatic per-phase token-usage recording (`hooks/record_token_usage.py`)** — a fail-safe hook
+  (`PostToolUse` on `Write|Edit|MultiEdit|Task|Agent`, plus `Stop`/`SubagentStop`) that
+  incrementally parses the session transcript and attributes billed tokens (input/output,
+  cache read, 5m/1h cache writes, web-search requests) to pipeline phases: `in_progress` phases
+  first, then phases newly transitioned to `completed` (sweeping the pending bucket), else
+  `_unassigned` at turn end. Writes `work/token-usage.json` (per-phase/per-model ledger + USD) and
+  `work/token-usage.jsonl` (append-only audit log). Inert outside initialized pipeline projects;
+  flock-serialized against parallel subagent firings; message-id deduped across chunk boundaries.
+- **`skills/common/references/model-pricing.json`** — single source of truth for model prices
+  (including time-limited introductory pricing), cache multipliers, server-tool pricing, and the
+  a-priori estimation heuristics shared by the recorder hook and the estimation skill.
+- **`rules/token-pricing.md`** — ledger schema (`token-usage-v2`), attribution semantics and
+  caveats, estimation methodology, and the subscription-vs-API billing distinction. Referenced
+  from the `CLAUDE.md` Rules & References table.
+
 ## [0.14.0] - 2026-07-13
 
 ### Added
