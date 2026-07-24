@@ -9,6 +9,39 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-07-24
+
+### 追加
+- **Backlog Delivery スキルファミリ（`architect` プラグイン、新規5スキル）** — 生成済みレポートを
+  GitLab/GitHub 上のマージ済みコードまで届ける一連のワークフロー。**architect プラグインは 49 スキルに。**
+  - `/architect:export-backlog` — product/architect のレポートから Epic（What/Why）→ Sub-Epic
+    （What/Key Results）→ Issue（How）の3階層バックログを起票。レビューファースト
+    （`reports/backlog/backlog-plan.md` + `backlog-manifest.json` を承認後にリモート書込）、冪等な
+    再実行、GitLab ネイティブ Epic＋スコープドラベルのフォールバック、GitHub ラベル＋タスクリスト
+    方式、全階層へのトレーサビリティ ID 引き継ぎ、全ノードへの `status::todo` 付与。
+  - `/architect:implement-backlog` — Epic 全体の整合性を保ちながら選択アイテムを実装。親 Epic と
+    同一 Epic 配下の兄弟を参照し、共有エンジニアリングコンテキストパック
+    （`reports/backlog/shared-context/`: アーキテクチャガードレール・コーディング規約・ユビキタス
+    言語・データ契約・NFR 予算・ADR-lite 決定ログ）と照合し、共有ブランチ契約
+    `feature/<issue-id>-<slug>` 上で `generated/{service}/` にコードを出力。Epic/Sub-Epic/Issue へ
+    進捗を追記し、軽量＋オンデマンド（`--review-epic`）の整合性レビューを実行。指定がなければ
+    `status::doing` のアイテムをユーザー確認のうえ選択。
+  - `/architect:review-issue` — 実装済み Issue を Epic 全体の観点（親 Sub-Epic/Epic＋関連 Issue）で
+    レビューし、`[B]` ブロッカーは修正サブエージェントによる有界ループで自動修正
+    （`--max-fix-rounds`＋無進捗検知。非収束時は Issue に「判断が必要」コメントを書き
+    `status::blocked` にしてユーザーに確認）。ブロッカー解消後は Issue 紐付きの PR/MR を起票して
+    承認待ちで停止。各ラウンドの指摘は重複排除されたプロジェクトナレッジベース
+    （`shared-context/review-knowledge.md`、`KN-` エントリ）に蒸留され、以降の計画・実装が参照する。
+  - `/architect:merge-issue` — 承認済み PR/MR を厳格なプレフライト（open・Mergeable 判定・承認・
+    CI green・コンフリクトなし）と明示確認ゲート（スキップは `--yes-merge` のみ、プレフライトは
+    スキップ不可）の背後でマージし、Issue をクローズ（`status::done` の単一権限）、Sub-Epic/Epic の
+    進捗をロールアップ、Sub-Epic 完了時に Epic 統合レビューを起動。
+  - `/architect:deliver-backlog` — Epic 配下の各 Issue を implement → review →（人間の承認）→
+    merge の順に駆動する半自律オーケストレーター。`backlog-manifest.json` から再開し、人間ゲートで
+    ハード停止。`--yes-merge` なしでは自動マージしない。
+- **共通ステータス語彙** — `status::todo/doing/review/done/blocked`（GitHub は `status:` 形式）を
+  ファミリ全体で共有。export-backlog が seed し、下流スキルが遷移させる。
+
 ## [0.15.0] - 2026-07-15
 
 ### 追加
