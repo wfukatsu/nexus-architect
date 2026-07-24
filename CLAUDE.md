@@ -18,6 +18,27 @@ Workflows:
 Product direction skills: `/product:skill-name`. Architecture skills: `/architect:skill-name`. ScalarDB development tools: `/scalardb:skill-name`.
 Use `/product:start` to design product direction, `/architect:start` for interactive system analysis/design selection, or `/architect:pipeline` for automated execution.
 
+## Repository Mechanics
+
+This repo is not an application — it is a **Claude Code plugin marketplace** whose product is a corpus of ~90 skill instruction files. There is no compile/build step and no application to run; "developing" here means editing skills, rules, and hooks.
+
+**Packaging.** `.claude-plugin/marketplace.json` defines three plugins (`architect`, `scalardb`, `product`), each with its own version, and lists the skill directories it ships. Skills physically live in a flat `skills/` tree (product skills are nested under `skills/product/`); a plugin "owns" a skill only by listing its path in `marketplace.json`. **Adding a skill requires two edits: create `skills/<name>/SKILL.md` AND register its path in the plugin's `skills` array in `marketplace.json`.** An unregistered SKILL.md will not surface as a slash command.
+
+**Skill anatomy.** Each skill is a single self-contained `skills/<name>/SKILL.md` with YAML frontmatter:
+- `description` — multi-line; first line is the summary, followed by the `/plugin:skill` invocation form and usage notes (this text is what the model matches on).
+- `model` — `opus` | `sonnet` | `haiku` (see Model Assignment).
+- `user_invocable: true` — exposes it as a slash command.
+- `disable-model-invocation: true` — present on skills that should only run when explicitly called.
+Skill bodies follow a house structure (Desired Outcome → Decision Criteria → Prerequisites table → steps) and reference shared knowledge via `@rules/...`, `@templates/...`, `@skills/common/...` paths — resolved repo-relative. Keep all SKILL.md prose, rules, and embedded prompts in **English**; the per-project `output_language` only governs generated report content, never the skills themselves.
+
+**Hooks (fire automatically — do not bypass).** `hooks/hooks.json` wires PostToolUse/Stop/SubagentStop hooks:
+- `validate-mermaid.sh` + `validate-frontmatter.sh` run on every Write/Edit/MultiEdit. They validate files written under `reports/`: frontmatter must start with `---`, Mermaid must parse. In hook mode a failure exits 2 (feeds the error back for self-correction); the same scripts exit 1 when run from the CLI with file-path arguments.
+- `record_token_usage.py` runs on Write/Edit/MultiEdit/Task/Agent and at Stop/SubagentStop, appending to `work/token-usage.json` (the ledger consumed by `/architect:estimate-token-cost`; see @rules/token-pricing.md).
+
+**Multi-runtime.** The same skills are driven by three orchestrators, each with its own entry doc that must be kept in sync: `CLAUDE.md` (Claude Code, slash commands), `AGENTS.md` (Codex — maps Claude tool names to shell equivalents), `OMNIGENT.md` (generic multi-agent loader in `tools/omnigent/`). When you change how skills are invoked or structured, update all three.
+
+**Tests / release.** No unit-test framework; verification is shell-based — `hooks/*.sh` self-test via file-path CLI mode, and `tools/omnigent/load-skill.test.sh` covers the loader. Releases are manual git-flow (`release/x.y.z` branch → bump versions in `marketplace.json` → update both `CHANGELOG.md` and `CHANGELOG_ja.md` → merge to `main`); all three plugins currently share version `0.15.0`.
+
 ## Output Language
 
 Output language is configurable per project. Set in `work/pipeline-progress.json`:
