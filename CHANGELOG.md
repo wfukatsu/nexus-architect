@@ -9,6 +9,41 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-07-24
+
+### Added
+- **Backlog Delivery skill family (`architect` plugin, 5 new skills)** — takes the generated
+  reports all the way to merged code on GitLab/GitHub. **architect plugin now at 49 skills.**
+  - `/architect:export-backlog` — turns the product/architect reports into a three-level work-item
+    hierarchy: Epic (What/Why) → Sub-Epic (What/Key Results) → Issue (How). Review-first
+    (`reports/backlog/backlog-plan.md` + `backlog-manifest.json` approved before any remote write),
+    idempotent re-runs, native GitLab Epics with a scoped-label fallback, GitHub label + task-list
+    scheme, traceability IDs carried through every level, and `status::todo` seeded on every node.
+  - `/architect:implement-backlog` — implements a selected item while keeping the whole Epic
+    consistent: reads the parent Epic and same-Epic siblings, builds and consults a shared
+    engineering-context pack (`reports/backlog/shared-context/`: architecture guardrails, coding
+    standards, ubiquitous language, data contracts, NFR budgets, ADR-lite decisions), writes code
+    to `generated/{service}/` on the shared `feature/<issue-id>-<slug>` branch contract, appends
+    progress to the Epic/Sub-Epic/Issue, and runs a lightweight + on-demand (`--review-epic`)
+    consistency review. Defaults to the `status::doing` item, confirming with the user.
+  - `/architect:review-issue` — reviews an implemented Issue for whole-Epic consistency (parent
+    Sub-Epic/Epic + related Issues), auto-fixes `[B]` blockers via fix subagents in a bounded loop
+    (`--max-fix-rounds` + no-progress detection; on non-convergence writes a "decision needed"
+    comment, sets `status::blocked`, and asks the user), then opens a PR/MR linked to the Issue and
+    hands off for approval. Distills every round's findings into a deduplicated project knowledge
+    base (`shared-context/review-knowledge.md`, `KN-` entries) consumed by later planning and
+    implementation.
+  - `/architect:merge-issue` — merges the approved PR/MR behind a strict preflight (open, Mergeable
+    verdict, approvals, CI green, no conflicts) and an explicit confirmation gate (skippable only
+    via `--yes-merge`; preflight never skippable), then closes the Issue (`status::done` — single
+    authority for done), rolls up Sub-Epic/Epic progress, and triggers the whole-Epic review when a
+    Sub-Epic completes.
+  - `/architect:deliver-backlog` — semi-autonomous orchestrator that drives implement → review →
+    (human approval) → merge per Issue under an Epic, resuming from `backlog-manifest.json`; hard
+    stops at the human gates and never auto-merges unless `--yes-merge`.
+- **Shared status taxonomy** across the family: `status::todo/doing/review/done/blocked` (GitHub
+  `status:` form), seeded by export-backlog and advanced by the downstream skills.
+
 ## [0.15.0] - 2026-07-15
 
 ### Added
