@@ -9,6 +9,22 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.16.1] - 2026-07-25
+
+### Changed
+- **`/architect:implement-backlog` — token-optimized sub-agent execution.** The skill now runs as a
+  thin **sonnet** orchestrator (was opus) that delegates heavy steps to model-tiered sub-agents,
+  documented in a new "Sub-Agent Execution & Model Assignment" section: parallel sonnet agents
+  derive the shared-context pack (Step 1), a haiku Explore agent digests the Epic/siblings/design
+  reports (Step 3), an opus agent drafts the mini-plan against Epic-wide contracts (Step 4),
+  sonnet agents implement per coherent unit with opus escalation only for judgment-heavy design
+  (Step 5), opus agents issue the Epic-consistency verdict and roll-up review (Step 6), and a
+  haiku agent drafts progress comments and the impl-log mirror (Step 7). Two cost rules are now
+  explicit: the orchestrator holds compact digests instead of full report/source bodies, and each
+  step uses the cheapest capable model tier — opus is reserved for planning and consistency
+  judgment. AGENTS.md model tiers and the CLAUDE.md command reference are synced (with guidance
+  for runtimes without model switching to preserve the delegation structure at the session model).
+
 ## [0.16.0] - 2026-07-24
 
 ### Added
