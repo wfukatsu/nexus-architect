@@ -3,9 +3,9 @@ description: |
   Implement a backlog item (Issue / Sub-Epic / Epic) created by /architect:export-backlog, keeping
   everything consistent across the whole Epic. Reads the parent Epic and the sibling Sub-Epics /
   Issues under the same Epic, cross-checks a shared engineering-context pack (architecture, coding
-  standards, ubiquitous language, NFR budgets), writes code under generated/, appends progress
-  notes to the Epic / Sub-Epic / Issue, and runs a lightweight + on-demand consistency review for
-  whole-Epic optimization.
+  standards, ubiquitous language, NFR budgets), writes code into the target project's real source
+  tree (never the git-ignored generated/), appends progress notes to the Epic / Sub-Epic / Issue,
+  and runs a lightweight + on-demand consistency review for whole-Epic optimization.
   /architect:implement-backlog [item] [--epic=<id>] [--build-context] [--review-epic[=<id>]] [--out=<path>] [--dry-run] [--auto] [--lang=en|ja].
   With no item, picks the items flagged status::doing and confirms with the user before proceeding.
   Runs as a thin orchestrator that delegates heavy steps to model-tiered sub-agents
@@ -32,9 +32,10 @@ Implement a selected backlog item while keeping the whole Epic coherent:
   language, data contracts, NFR budgets) are assembled once into a referenceable pack and consulted
   on every item, with new cross-cutting decisions recorded so later items stay aligned.
 
-Code lands under `generated/{service}/`; the tracker and `reports/backlog/` hold the progress trail.
-This skill runs against the **target project** (the one holding `reports/` and the backlog), the same
-way other architect skills operate — it never edits nexus-architect itself.
+Code lands in the target project's **source tree** (see Output Location); the tracker and
+`reports/backlog/` hold the progress trail. This skill runs against the **target project** (the one
+holding `reports/` and the backlog), the same way other architect skills operate — it never edits
+nexus-architect itself.
 
 ## Decision Criteria
 
@@ -49,6 +50,37 @@ way other architect skills operate — it never edits nexus-architect itself.
   raise it as a finding rather than silently diverging.
 - **Fabrication ban** — Implement only what the item's acceptance criteria and the referenced design
   reports specify. Do not invent requirements, endpoints, or numbers.
+- **Output location** — Code written here is a **deliverable**: it is committed, reviewed in a
+  PR/MR, and merged. It therefore belongs in the target project's real source tree, **not** in
+  `generated/`, which the output structure contract (@templates/output-structure.md) reserves for regenerable
+  pipeline output and which target projects commonly git-ignore alongside `reports/` and `work/`.
+  See Output Location for how the source root is resolved and verified.
+
+## Output Location
+
+Resolve the **source root** once per item, in this precedence:
+
+1. `--out=<path>` — explicit override, always wins.
+2. `source_root` recorded in `shared-context/decisions.md` by a previous item — reuse it so every
+   item under the Epic writes to the same place.
+3. The existing repo layout — an already-present service/module directory matching the item's
+   service (e.g. `services/<service>/`, `apps/<service>/`, or a build-tool root such as
+   `settings.gradle`/`pom.xml`/`pnpm-workspace.yaml` member).
+4. Greenfield repo with no source yet — propose `services/{service}/` (service naming per
+   `architecture-guardrails.md`) and confirm with the user via AskUserQuestion, unless `--auto`.
+
+The resolved root must satisfy two checks before any code is written:
+
+- **Not git-ignored** — `git check-ignore -q <source_root>` must exit **1** (no ignore rule
+  matches). Exit 0 means the path is ignored, so `git add` would silently stage nothing and the
+  downstream review → PR/MR → merge chain would break on an empty commit; stop and report the
+  matching rule (`git check-ignore -v <source_root>`) rather than writing code into it. Any other
+  exit status is a git error — surface it instead of assuming the path is safe.
+- **Inside the repo** — the root resolves within the target project's git worktree.
+
+Record the resolved root as a `source_root` decision in `shared-context/decisions.md` the first time
+it is established. Pass `--out=generated/<service>/` explicitly when the intent genuinely is
+throwaway scaffolding rather than merge-bound work.
 
 ## Prerequisites
 
@@ -77,7 +109,7 @@ This skill runs as a **thin orchestrator (sonnet)** that delegates the heavy ste
 that can do the job. Two rules keep token cost minimal:
 
 - **Context protection** — the orchestrator never bulk-reads design reports, sibling Issues, or
-  generated code itself. Sub-agents read them and return compact digests; the orchestrator holds
+  the produced code itself. Sub-agents read them and return compact digests; the orchestrator holds
   only the manifest, the digests, the mini-plan, and the tracker state.
 - **Cheapest-capable tier** — haiku for mechanical transforms, sonnet for structured generation and
   analysis, opus **only** for judgment (planning against Epic-wide contracts, consistency
@@ -157,10 +189,17 @@ source documents — in view for the rest of the run:
 ### Step 4 — Mark start and plan the item
 Create (or reuse, if it already exists) the working branch **`feature/<issue-id>-<slug>`** from the
 base branch — this branch name is the **shared contract** with `/architect:review-issue` and
-`/architect:merge-issue`, which resolve the same name to review and merge the work. Then set the
-item's status to `status::doing` and append a progress comment ("Implementation started")
-containing a mini-plan: the files to add/change under `generated/`, the interface/contract (aligned
-to siblings + ubiquitous language + `coding-standards.md`), and the tests. **Delegate the drafting
+`/architect:merge-issue`, which resolve the same name to review and merge the work.
+
+Then **resolve and verify the source root** per Output Location, before drafting the plan: apply the
+precedence, run the `git check-ignore` and in-worktree checks, and stop with the offending ignore
+rule if the root is ignored — the plan must not name files the downstream chain cannot commit. On
+first resolution, record it as a `source_root` decision in `shared-context/decisions.md`.
+
+Then set the item's status to `status::doing` and append a progress comment ("Implementation
+started") containing a mini-plan: the files to add/change under the resolved source root, the
+interface/contract (aligned to siblings + ubiquitous language + `coding-standards.md`), and the
+tests. **Delegate the drafting
 of the mini-plan to an opus sub-agent**, giving it the Step 3 digest, the item's acceptance
 criteria, and `review-knowledge.md` — planning against Epic-wide contracts is the judgment step
 this skill reserves opus for. The sub-agent must check the plan against `review-knowledge.md` so a
@@ -171,17 +210,21 @@ change.
 ### Step 5 — Implement
 **Delegate the implementation to sonnet sub-agents** — one per coherent unit of the mini-plan
 (e.g. per service or per module), run in parallel when units don't share files. Each sub-agent
-receives the approved mini-plan slice, the Step 3 digest, and the relevant `coding-standards.md`
-excerpts, and writes code to `generated/{service}/` (override with `--out`) on the working branch,
-following `coding-standards.md`, reusing/aligning sibling contracts, and satisfying the item's
-acceptance criteria — returning the changed-file list and self-review notes, not file contents.
+receives the approved mini-plan slice, the Step 3 digest, the **source root resolved in Step 4**,
+and the relevant `coding-standards.md` excerpts, and writes code under that root on the working
+branch, following `coding-standards.md`, reusing/aligning sibling contracts, and satisfying the
+item's acceptance criteria — returning the changed-file list and self-review notes, not file
+contents. Sub-agents write only inside the resolved root; a unit that needs to write elsewhere
+stops and reports it instead of widening the scope on its own.
 Escalate a unit to opus only when it involves judgment-heavy design (2PC boundaries, cross-service
 data ownership, ambiguous contracts). Generate tests following the
 `/architect:generate-test-specs` conventions when the item warrants them. Apply the relevant
-`@rules/*` (e.g. ScalarDB patterns) when the project uses them. Reuse existing generated code
-rather than duplicating it. **Commit the changes to the working branch** in coherent units, each
-commit message referencing the Issue (e.g. `feat: … (#<iid>)`) — uncommitted work cannot be
-reviewed or merged downstream.
+`@rules/*` (e.g. ScalarDB patterns) when the project uses them. Reuse existing code in the source
+tree rather than duplicating it. **Commit the changes to the working branch** in coherent units,
+each commit message referencing the Issue (e.g. `feat: … (#<iid>)`) — uncommitted work cannot be
+reviewed or merged downstream. Verify each commit actually staged the intended files
+(`git show --stat`); an empty or short commit means the output path is ignored or misresolved —
+stop and re-check Output Location rather than proceeding to review.
 
 ### Step 6 — Review (lightweight + on-demand)
 1. **Self-review** — done by each Step 5 implementer sub-agent against the item's acceptance
@@ -228,6 +271,9 @@ Offer the next `doing` / `todo` item under the same Epic (confirm before startin
   review findings are not reintroduced; any new cross-cutting decision is recorded in `decisions.md`.
 - No fabricated requirements/endpoints/numbers — everything traces to acceptance criteria or a
   referenced report.
+- Code was written under a source root that passed the `git check-ignore` and in-worktree checks,
+  recorded as `source_root` in `decisions.md`, and every commit staged the intended files — no
+  merge-bound code was written into `generated/` unless `--out` explicitly asked for it.
 - `--dry-run` performs no remote writes and no code output; it only reports intended changes.
 - Heavy steps ran as model-tiered sub-agents per the assignment table (opus only for planning and
   consistency verdicts); the orchestrator held digests, not full report/source bodies.
@@ -238,6 +284,6 @@ Offer the next `doing` / `todo` item under the same Epic (confirm before startin
 |-------|-------------|
 | /architect:export-backlog | Upstream — creates the backlog + manifest this skill consumes |
 | /architect:design-implementation | Input source (How specs for Issues) |
-| /architect:generate-scalardb-code | Reference for `generated/{service}/` output conventions |
+| /architect:generate-scalardb-code | Reference for code layout/conventions — note it emits regenerable scaffolding to `generated/{service}/`, whereas this skill writes merge-bound code to the source tree |
 | /architect:generate-test-specs | Reference for test generation |
 | /architect:review-consistency, /architect:review-synthesizer | Review lenses reused by the Epic roll-up |
