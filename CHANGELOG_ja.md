@@ -9,6 +9,46 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-07-25
+
+### 追加
+- **`/architect:generate-docs` — 生成・実装されたコードのドキュメント（`architect` プラグイン、新規
+  スキル）。architect プラグインは 50 スキルに。** コード生成スキルと `implement-backlog` が
+  コードを出力する一方で、それを説明する README や `docs/` を作る工程が存在しなかった。本スキルが
+  その工程を担い、両方の経路に定位置を持つ。
+  - **2つのモード。** *Scaffold* は `generate-scalardb-code` / `generate-infra-code` /
+    `/product:generate-frontend` の後に `generated/` を対象とし、コミットしない（再生成可能な
+    領域のため）。*Delivery* は作業ブランチ上の解決済み `source_root` を対象とし、Issue 参照付きで
+    コミットするため、コードと同じ PR/MR にドキュメントが載る — git に無視されるドキュメントは
+    PR に到達できないため、`git check-ignore` とワークツリー内チェックを踏襲。
+  - **その場での更新。** オーナーシップマーカー（`<!-- nexus:begin:<section> -->` …
+    `<!-- nexus:end:<section> -->`）により再生成対象を本スキルが書いた領域のみに限定。人間が
+    書いた散文は保持し、マーカーの無い手書き README は確認なしにその場で書き換えない。
+    セクションキー（`overview`・`build-and-run`・`configuration`・`layout`・`api`・`operations`・
+    `traceability`）は安定しており、再実行時は同じ領域を更新する。
+  - **存在するものを書く。** 内容は実際のコード・ビルドファイル・設定から導出し、設計レポートは
+    *why* のみを供給する。検証工程で、記載した各ビルド/実行/テストコマンドが実在するビルド
+    ターゲットに裏付けられているか、リンクとパスが解決するかを確認し、コードのインベントリに
+    無い設定キーやルートを排除し、設計とコードの乖離は散文で埋めず所見として報告する
+    （Delivery モードでは Issue に追記）。
+  - **コストティアリング実行。** ソースではなくダイジェストを保持する薄い sonnet オーケストレーター。
+    コードのインベントリ化・設計意図の抽出・検証は haiku、ページ執筆はページ単位の並列 sonnet、
+    opus は判断が重い設計解説（2PC 境界、整合性モデル、障害・復旧セマンティクス）のみ。
+
+### 変更
+- **`/architect:implement-backlog` — 実装コードを記録する Step 5b を新設。** 実装（Step 5）と
+  レビュー（Step 6）の間で `/architect:generate-docs --scope=changed --source-root=<resolved>
+  --issue=<iid>` を実行し、ドキュメント変更を同じ作業ブランチにコミットする。これによりコードと
+  ドキュメントが1つの PR/MR でレビュー・マージされる。スキップはドキュメント対象の変更が無い
+  場合に限り許容され、その理由を進捗コメントに記録する必要がある。サブエージェント割当表・
+  Desired Outcome・Acceptance Criteria も併せて更新。
+- **`/architect:deliver-backlog`** — ステージ (a) に、implement 工程が README/`docs/` の更新を
+  同じ PR/MR へ運ぶことを明記。
+- `generate-scalardb-code`・`generate-infra-code`・`/product:generate-frontend` から
+  `generate-docs` への downstream 参照を追加。CLAUDE.md の manual extension tier に
+  **コード生成 → `generate-docs`** の固定順序を記載。AGENTS.md のモデルティア・README.md・
+  `docs/skill-reference{,_ja}.md` も同期。
+
 ## [0.16.2] - 2026-07-25
 
 ### 修正

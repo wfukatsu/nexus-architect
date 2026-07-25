@@ -9,6 +9,48 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-07-25
+
+### Added
+- **`/architect:generate-docs` — documentation for the code that was generated or implemented
+  (`architect` plugin, new skill). The architect plugin is now 50 skills.** Code was being emitted
+  by the codegen skills and by `implement-backlog` with nothing producing the README/`docs/` that
+  describe it; this skill fills that step and has a fixed place in both paths.
+  - **Two modes.** *Scaffold* documents `generated/` after `generate-scalardb-code` /
+    `generate-infra-code` / `/product:generate-frontend` and does not commit (that tree is
+    regenerable). *Delivery* documents the resolved `source_root` on the working branch and commits
+    with the Issue reference, so the docs reach the same PR/MR as the code — reusing the
+    `git check-ignore` / in-worktree checks, since documentation git ignores cannot reach a PR.
+  - **Updates in place.** Ownership markers (`<!-- nexus:begin:<section> -->` …
+    `<!-- nexus:end:<section> -->`) scope regeneration to this skill's own regions; human-authored
+    prose is preserved and an unmarked, hand-written README is never rewritten in place without
+    confirmation. Section keys (`overview`, `build-and-run`, `configuration`, `layout`, `api`,
+    `operations`, `traceability`) are stable, so a later run updates the same region.
+  - **Documents what exists.** Content is derived from the actual code, build files and
+    configuration; the design reports supply only the *why*. A verification step checks every
+    documented build/run/test command against a real build target, resolves every link and path,
+    rejects config keys and routes absent from the code inventory, and reports design-vs-code drift
+    as a finding (appended to the Issue in delivery mode) instead of smoothing it over in prose.
+  - **Cost-tiered execution.** A thin sonnet orchestrator holding digests rather than sources:
+    haiku agents for the code inventory, design-intent extraction and verification; one sonnet
+    agent per page in parallel; opus only for judgment-heavy design prose (2PC boundaries,
+    consistency model, failure/recovery semantics).
+
+### Changed
+- **`/architect:implement-backlog` — new Step 5b documents the implemented code.** Between
+  implement (Step 5) and review (Step 6), the skill now runs `/architect:generate-docs
+  --scope=changed --source-root=<resolved> --issue=<iid>` and commits the doc changes to the same
+  working branch, so code and documentation are reviewed and merged together in one PR/MR. Skipping
+  is allowed only when the item changes no documented surface, and the skip must be justified in
+  the progress comment. The sub-agent assignment table, desired outcome and acceptance criteria are
+  updated accordingly.
+- **`/architect:deliver-backlog`** — stage (a) now notes that the implement step carries the
+  README/`docs/` updates into the same PR/MR.
+- `generate-scalardb-code`, `generate-infra-code` and `/product:generate-frontend` point downstream
+  to `generate-docs`; the CLAUDE.md manual extension tier records the fixed **generate code →
+  `generate-docs`** ordering. AGENTS.md model tiers, README.md and
+  `docs/skill-reference{,_ja}.md` are synced.
+
 ## [0.16.2] - 2026-07-25
 
 ### Fixed
