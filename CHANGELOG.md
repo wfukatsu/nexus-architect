@@ -9,6 +9,30 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.16.2] - 2026-07-25
+
+### Fixed
+- **`/architect:implement-backlog` — merge-bound code now lands in the source tree, not
+  `generated/`.** The skill produces deliverables: code is committed to
+  `feature/<issue-id>-<slug>`, reviewed in a PR/MR by `/architect:review-issue`, and merged by
+  `/architect:merge-issue`. Defaulting its output to `generated/` contradicted that, because
+  `generated/` is regenerable pipeline output that target projects commonly git-ignore alongside
+  `reports/` and `work/` — so `git add` could silently stage nothing and break the
+  implement → review → merge chain on an empty commit. A new **Output Location** section resolves
+  the source root by precedence (`--out` → the `source_root` recorded in
+  `shared-context/decisions.md` → the existing repo layout → `services/{service}/` confirmed with
+  the user on a greenfield repo) and records it in `decisions.md` so every item under the Epic
+  writes to the same place. Two preflight checks now gate Step 4 before any code is written:
+  `git check-ignore -q <source_root>` must exit 1 (any other status is surfaced as a git error, not
+  assumed safe), and the root must resolve inside the target worktree. Step 5 confines implementer
+  sub-agents to the resolved root — a unit needing to write elsewhere stops and reports instead of
+  widening scope — and verifies each commit actually staged the intended files (`git show --stat`),
+  routing an empty commit back to Output Location instead of on to review. `generated/` keeps its
+  meaning for the one-shot codegen skills (`generate-scalardb-code`, `generate-infra-code`,
+  `generate-frontend`), and `--out=generated/<service>/` still selects it for throwaway
+  scaffolding. `templates/output-structure.md` and the CLAUDE.md command reference are synced with
+  the new contract.
+
 ## [0.16.1] - 2026-07-25
 
 ### Changed
