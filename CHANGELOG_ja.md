@@ -9,6 +9,29 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+## [0.16.2] - 2026-07-25
+
+### 修正
+- **`/architect:implement-backlog` — マージ対象のコードを `generated/` ではなくソースツリーへ出力。**
+  本スキルが生成するのは成果物であり、コードは `feature/<issue-id>-<slug>` にコミットされ、
+  `/architect:review-issue` が PR/MR でレビューし、`/architect:merge-issue` がマージする。にもかかわらず
+  デフォルト出力が `generated/` だったため契約が矛盾していた — `generated/` は再生成可能な
+  パイプライン出力であり、対象プロジェクトでは `reports/`・`work/` と併せて git-ignore される
+  ことが多く、`git add` が黙って何も stage せず、空コミットによって実装 → レビュー → マージの
+  連鎖が破綻し得た。新設の **Output Location** セクションで source root の解決順を定義
+  （`--out` → `shared-context/decisions.md` に記録された `source_root` → 既存のリポジトリ
+  レイアウト → グリーンフィールドではユーザー確認のうえ `services/{service}/`）し、解決結果を
+  `decisions.md` に記録することで Epic 配下の全アイテムが同一の出力先を使うようにした。
+  Step 4 では、コード書き込み前に 2 つの事前チェックを必須化 — `git check-ignore -q <source_root>`
+  が exit 1（無視ルール不一致）であること（それ以外の exit は git エラーとして提示し、安全と
+  みなさない）、および root が対象ワークツリー内に解決されること。Step 5 では実装サブエージェントを
+  解決済み root 内に限定し（外部への書き込みが必要な場合はスコープを広げず停止して報告）、
+  各コミットが意図したファイルを実際に stage したかを `git show --stat` で検証し、空コミットは
+  レビューへ進めず Output Location へ差し戻す。`generated/` はワンショットのコード生成スキル
+  （`generate-scalardb-code`・`generate-infra-code`・`generate-frontend`）用の意味を維持し、
+  使い捨てスキャフォールドが目的の場合は `--out=generated/<service>/` で従来どおり選択できる。
+  `templates/output-structure.md` と CLAUDE.md のコマンドリファレンスも新しい契約に同期。
+
 ## [0.16.1] - 2026-07-25
 
 ### 変更
