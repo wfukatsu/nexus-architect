@@ -66,6 +66,7 @@
 | `/architect:generate-test-specs` | sonnet | BDD/ユニット/統合テスト仕様 |
 | `/architect:generate-scalardb-code` | opus | Spring Boot + ScalarDB コード生成 |
 | `/architect:generate-infra-code` | sonnet | K8s/Terraform/Helm コード生成 |
+| `/architect:generate-docs` | sonnet | 生成・実装済みコードの README と `docs/`（コード生成の後、および implement-backlog の Step 5b で実行） |
 
 ## レビュー
 

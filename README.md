@@ -221,6 +221,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Hands off to `/archit
 | `/architect:generate-test-specs` | BDD/unit/integration test specifications |
 | `/architect:generate-scalardb-code` | Spring Boot + ScalarDB code generation |
 | `/architect:generate-infra-code` | K8s/Terraform/Helm code generation |
+| `/architect:generate-docs` | README + `docs/` for the generated/implemented code — runs after codegen, and as Step 5b of `implement-backlog` |
 
 ### Infrastructure
 

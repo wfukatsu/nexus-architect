@@ -142,3 +142,4 @@ Generation engines you may delegate to: `example-skills:frontend-design`,
 | `/product:design-system` | Upstream — its `tokens.css`/`CMP-` become the theme + components |
 | `/product:define-features` | Upstream — screen actions become page handlers |
 | `/product:adapt-change` | Re-runs this skill when the mocks or design system change |
+| `/architect:generate-docs` | Downstream — run after generation to write the README/docs for the emitted frontend scaffold |
