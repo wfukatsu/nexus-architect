@@ -70,6 +70,15 @@ work/                              # pipeline state
 └── context.md
 ```
 
+`reports/`, `generated/` and `work/` are all **regenerable pipeline output** and are typically
+git-ignored. `generated/` therefore holds only scaffolding that a codegen skill can overwrite on
+re-run (`generate-scalardb-code`, `generate-infra-code`, `generate-frontend`).
+
+**Merge-bound code does not go here.** `/architect:implement-backlog` produces deliverables that are
+committed, reviewed in a PR/MR and merged, so it writes into the target project's real source tree
+(resolved and verified per its Output Location section) — writing it under `generated/` would leave
+it git-ignored and break the implement → review → merge chain.
+
 ## Dependency Flow
 
 ```
