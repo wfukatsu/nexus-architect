@@ -114,6 +114,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Skills are namespaced
 - `/architect:generate-test-specs` — BDD/unit/integration test specs
 - `/architect:generate-scalardb-code` — Spring Boot + ScalarDB code generation
 - `/architect:generate-infra-code` — K8s/Terraform/Helm code generation
+- `/architect:generate-docs [target] [--scope=changed|service|repo] [--source-root=<path>] [--readme-only] [--issue=<id>] [--dry-run] [--auto] [--lang=en|ja]` — Create/update the documentation for code that was generated or implemented: per-service READMEs and `docs/` pages (overview, build & run, configuration, layout, API, operations, traceability) derived from the code that actually exists, with design reports supplying the *why*. Updates in place via ownership markers (`<!-- nexus:begin:<section> -->`) so human-authored prose is preserved, verifies every documented command against a real build target, and reports design-vs-code drift instead of smoothing it over. Runs after the codegen skills (scaffold mode) and as Step 5b of `implement-backlog` (delivery mode — commits the doc changes to the working branch so they land in the same PR/MR)
 
 ### Infrastructure
 - `/architect:design-infrastructure` — K8s, IaC, multi-environment
@@ -178,11 +179,17 @@ Dependency manifest (architect): @skills/common/skill-dependencies.yaml
 The manifest covers the core pipeline only. The remaining architect skills —
 `investigate-security`, `select-scalardb-edition`, `design-scalardb-analytics`,
 `design-implementation`, `generate-test-specs`, `generate-scalardb-code`,
-`generate-infra-code`, `design-infrastructure`, `design-security`,
+`generate-infra-code`, `generate-docs`, `design-infrastructure`, `design-security`,
 `design-observability`, `design-disaster-recovery`, `estimate-cost`,
 `estimate-token-cost` — form a
 **manual extension tier**: they are not executed by `/architect:pipeline` and are
 invoked individually (typically after the core pipeline) or via `/architect:start`.
+
+Within that tier the codegen skills have a fixed follow-on order — **generate code →
+`generate-docs`**: `generate-scalardb-code` / `generate-infra-code` (and
+`/product:generate-frontend`) emit the scaffold, then `generate-docs` documents what
+was emitted. On the backlog-delivery path the same step is automatic: it runs as Step 5b
+of `implement-backlog`, inside the implement → review → merge chain.
 
 The **product** plugin has its own pipeline and manifest: `skills/product/common/skill-dependencies.yaml` (vision -> success-metrics/revenue -> scope -> validate-assumptions [gate] -> persona/journey/positioning -> create-domain-story/design-system -> ui-mock/features/data-model/frontend -> map-domains/api -> sla/nfr -> design-architecture -> review -> report; `adapt-change` on demand). It ends by handing off to `/architect:define-requirements`.
 

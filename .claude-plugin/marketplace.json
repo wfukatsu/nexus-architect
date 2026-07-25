@@ -61,6 +61,7 @@
         "./skills/generate-test-specs",
         "./skills/generate-scalardb-code",
         "./skills/generate-infra-code",
+        "./skills/generate-docs",
         "./skills/design-infrastructure",
         "./skills/design-security",
         "./skills/design-observability",

@@ -39,3 +39,4 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 | Skill | Relationship |
 |-------|-------------|
 | /architect:design-infrastructure | Input source |
+| /architect:generate-docs | Downstream — run after generation to write the README and the `operations` docs for the emitted IaC |

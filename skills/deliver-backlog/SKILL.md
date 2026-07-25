@@ -65,8 +65,9 @@ confirm before starting, unless `--auto`. With `--issue`, the working set is tha
 For each Issue in order (determine its current stage from `impl.status`/labels, or `--from`):
 
 - **(a) implement** — If not yet implemented (`todo`/`doing`), run
-  `/architect:implement-backlog <issue> [--auto]` (the first Issue builds the shared-context pack). If
-  the Issue is already at `review`, skip implement.
+  `/architect:implement-backlog <issue> [--auto]` (the first Issue builds the shared-context pack;
+  its Step 5b runs `/architect:generate-docs`, so the README/docs updates are committed to the same
+  branch and arrive in the same PR/MR). If the Issue is already at `review`, skip implement.
 - **(b) review** — Run `/architect:review-issue <issue> [--max-fix-rounds=N] [--auto]`. This performs
   the whole-Epic review, the bounded blocker auto-fix loop, the knowledge-base update, and (on zero
   blockers) opens the PR/MR.

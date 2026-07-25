@@ -51,3 +51,4 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 | /architect:design-implementation | Input source |
 | /architect:design-scalardb | Input source |
 | /architect:review-scalardb | Review target (--mode=code) |
+| /architect:generate-docs | Downstream — run after generation to write the service READMEs and docs/ for the emitted scaffold |

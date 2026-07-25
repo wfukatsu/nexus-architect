@@ -4,8 +4,9 @@ description: |
   everything consistent across the whole Epic. Reads the parent Epic and the sibling Sub-Epics /
   Issues under the same Epic, cross-checks a shared engineering-context pack (architecture, coding
   standards, ubiquitous language, NFR budgets), writes code into the target project's real source
-  tree (never the git-ignored generated/), appends progress notes to the Epic / Sub-Epic / Issue,
-  and runs a lightweight + on-demand consistency review for whole-Epic optimization.
+  tree (never the git-ignored generated/), updates the README/docs for the changed surface via
+  /architect:generate-docs, appends progress notes to the Epic / Sub-Epic / Issue, and runs a
+  lightweight + on-demand consistency review for whole-Epic optimization.
   /architect:implement-backlog [item] [--epic=<id>] [--build-context] [--review-epic[=<id>]] [--out=<path>] [--dry-run] [--auto] [--lang=en|ja].
   With no item, picks the items flagged status::doing and confirms with the user before proceeding.
   Runs as a thin orchestrator that delegates heavy steps to model-tiered sub-agents
@@ -26,6 +27,8 @@ Implement a selected backlog item while keeping the whole Epic coherent:
   conflicts (naming, API shapes, data model, ubiquitous language, NFR budgets).
 - **Visible progress.** The executed work is appended back onto the Epic / Sub-Epic / Issue on the
   tracker (comments + status labels), and mirrored to a local implementation log.
+- **Docs that ship with the code.** The README(s) and `docs/` pages covering the changed surface
+  are updated on the same branch, so code and documentation are reviewed and merged together.
 - **Whole-Epic optimization.** A lightweight consistency review runs after each item, and an
   on-demand roll-up review spans the whole Epic.
 - **Shared source of truth.** Cross-cutting rules (architecture, coding standards, ubiquitous
@@ -123,6 +126,7 @@ that can do the job. Two rules keep token cost minimal:
 | 3 | Read parent Epic, siblings, and referenced design reports | Explore (**haiku**) | consistency digest: contracts, naming, prior decisions, guardrails |
 | 4 | Draft the mini-plan against the digest + `review-knowledge.md` | **opus** | mini-plan (files, interface/contract, tests) |
 | 5 | Implement code + tests per the approved mini-plan | **sonnet**, one per coherent unit | changed-file list + self-review notes |
+| 5b | Update README/`docs/` for the implemented code (`/architect:generate-docs`) | **sonnet** (its own orchestrator; delegates internally) | doc files written + drift findings |
 | 6-2 | Epic-consistency verdict on the resulting diff | **opus** | pass / findings list |
 | 6-4 | Whole-Epic roll-up review (`--review-epic`) | **opus** | `epic-review-<epic>.md` |
 | 7 | Draft progress comments + mirror to `impl-log/` | **haiku** | drafted comment/log text |
@@ -226,6 +230,16 @@ reviewed or merged downstream. Verify each commit actually staged the intended f
 (`git show --stat`); an empty or short commit means the output path is ignored or misresolved —
 stop and re-check Output Location rather than proceeding to review.
 
+### Step 5b — Document the implemented code
+Run `/architect:generate-docs --scope=changed --source-root=<resolved root> --issue=<iid>
+[--auto] [--dry-run]` so the README(s) and `docs/` pages describe what this item actually added or
+changed. It updates in place (only its own marked sections; human prose is preserved), verifies the
+commands it documents against real build targets, and commits the doc changes to the **same working
+branch** — so they reach the same PR/MR as the code and are reviewed together in Step 6. Any
+design-vs-code drift it reports is appended to the Issue as a finding, not resolved in prose. Skip
+only when the item changes no documented surface (e.g. an internal-only refactor with no behaviour,
+config, interface, or command change) — say so in the Step 7 comment when skipped.
+
 ### Step 6 — Review (lightweight + on-demand)
 1. **Self-review** — done by each Step 5 implementer sub-agent against the item's acceptance
    criteria and the shared guardrails; the orchestrator only collates the notes.
@@ -271,6 +285,8 @@ Offer the next `doing` / `todo` item under the same Epic (confirm before startin
   review findings are not reintroduced; any new cross-cutting decision is recorded in `decisions.md`.
 - No fabricated requirements/endpoints/numbers — everything traces to acceptance criteria or a
   referenced report.
+- Documentation for the changed surface was updated in the same commit range (Step 5b) — or the
+  skip was justified and recorded — so the PR/MR carries code and docs together.
 - Code was written under a source root that passed the `git check-ignore` and in-worktree checks,
   recorded as `source_root` in `decisions.md`, and every commit staged the intended files — no
   merge-bound code was written into `generated/` unless `--out` explicitly asked for it.
@@ -286,4 +302,5 @@ Offer the next `doing` / `todo` item under the same Epic (confirm before startin
 | /architect:design-implementation | Input source (How specs for Issues) |
 | /architect:generate-scalardb-code | Reference for code layout/conventions — note it emits regenerable scaffolding to `generated/{service}/`, whereas this skill writes merge-bound code to the source tree |
 | /architect:generate-test-specs | Reference for test generation |
+| /architect:generate-docs | Step 5b — documents the implemented code onto the same branch/PR |
 | /architect:review-consistency, /architect:review-synthesizer | Review lenses reused by the Epic roll-up |

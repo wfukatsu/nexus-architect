@@ -66,6 +66,7 @@ For the inputs you should prepare before running each pipeline, see the
 | `/architect:generate-test-specs` | sonnet | BDD/unit/integration test specifications |
 | `/architect:generate-scalardb-code` | opus | Spring Boot + ScalarDB code generation |
 | `/architect:generate-infra-code` | sonnet | K8s/Terraform/Helm code generation |
+| `/architect:generate-docs` | sonnet | README + `docs/` for generated/implemented code (runs after codegen; Step 5b of implement-backlog) |
 
 ## Review
 
