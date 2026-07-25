@@ -8,8 +8,9 @@ description: |
   whole-Epic optimization.
   /architect:implement-backlog [item] [--epic=<id>] [--build-context] [--review-epic[=<id>]] [--out=<path>] [--dry-run] [--auto] [--lang=en|ja].
   With no item, picks the items flagged status::doing and confirms with the user before proceeding.
-  Only runs when explicitly invoked.
-model: opus
+  Runs as a thin orchestrator that delegates heavy steps to model-tiered sub-agents
+  (haiku/sonnet/opus) to minimize token cost. Only runs when explicitly invoked.
+model: sonnet
 user_invocable: true
 disable-model-invocation: true
 ---
@@ -69,6 +70,36 @@ Scoped labels on GitLab, plain labels on GitHub:
 (GitHub form: `status:todo` …). If the labels do not exist, create them once. Default selection
 target is `doing`.
 
+## Sub-Agent Execution & Model Assignment
+
+This skill runs as a **thin orchestrator (sonnet)** that delegates the heavy steps to sub-agents
+(Agent/Task tool; see @skills/common/sub-agent-patterns.md), each pinned to the cheapest model tier
+that can do the job. Two rules keep token cost minimal:
+
+- **Context protection** — the orchestrator never bulk-reads design reports, sibling Issues, or
+  generated code itself. Sub-agents read them and return compact digests; the orchestrator holds
+  only the manifest, the digests, the mini-plan, and the tracker state.
+- **Cheapest-capable tier** — haiku for mechanical transforms, sonnet for structured generation and
+  analysis, opus **only** for judgment (planning against Epic-wide contracts, consistency
+  verdicts). Escalate a delegated step one tier only when the item is judgment-heavy (ambiguous
+  contracts, distributed-transaction/2PC design, cross-service data ownership); never use opus for
+  work a cheaper tier can do.
+
+| Step | Delegated work | Sub-agent (model) | Returns to orchestrator |
+|------|----------------|-------------------|-------------------------|
+| 1 | Derive each shared-context file from its source reports | one **sonnet** agent per file, in parallel | file written + 1-line summary |
+| 3 | Read parent Epic, siblings, and referenced design reports | Explore (**haiku**) | consistency digest: contracts, naming, prior decisions, guardrails |
+| 4 | Draft the mini-plan against the digest + `review-knowledge.md` | **opus** | mini-plan (files, interface/contract, tests) |
+| 5 | Implement code + tests per the approved mini-plan | **sonnet**, one per coherent unit | changed-file list + self-review notes |
+| 6-2 | Epic-consistency verdict on the resulting diff | **opus** | pass / findings list |
+| 6-4 | Whole-Epic roll-up review (`--review-epic`) | **opus** | `epic-review-<epic>.md` |
+| 7 | Draft progress comments + mirror to `impl-log/` | **haiku** | drafted comment/log text |
+
+The orchestrator itself keeps only the cheap, stateful work: manifest/platform resolution, item
+selection dialogue (AskUserQuestion), branch and label operations, `glab`/`gh` writes, and gating
+(user confirmations, `--dry-run`). Each sub-agent prompt must include only the digest and the
+specific inputs its step needs — never the full shared-context pack or full report bodies.
+
 ## Steps
 
 ### Step 0 — Load the backlog and resolve the platform
@@ -80,9 +111,10 @@ ask the user to run `! glab auth login` / `! gh auth login`.
 
 ### Step 1 — Ensure the shared engineering-context pack (bundled)
 The referenceable location is `reports/backlog/shared-context/`. (Re)build it when it is absent,
-when `--build-context` is passed, or when a source report is newer than the pack. Derive each file
-from the product/architect reports (skip inputs that don't exist), with the required YAML
-frontmatter:
+when `--build-context` is passed, or when a source report is newer than the pack. **Delegate each
+derived file to a parallel sonnet sub-agent** (one per file; the sub-agent reads the source reports
+and writes the file, returning only a 1-line summary). Derive each file from the product/architect
+reports (skip inputs that don't exist), with the required YAML frontmatter:
 
 | File | Derived from |
 |------|--------------|
@@ -109,7 +141,10 @@ from previous reviews so the same problems are not implemented again.
    ordered list of child items to work through (confirming each in turn).
 
 ### Step 3 — Assemble the consistency context for the item
-Gather, and keep in view for the rest of the run:
+**Delegate the gathering to an Explore sub-agent (haiku)** that reads the sources below and returns
+a compact **consistency digest** (contracts and interfaces already defined, naming, prior
+decisions, applicable guardrails, acceptance criteria). The orchestrator keeps the digest — not the
+source documents — in view for the rest of the run:
 - **Parent Epic** — What / Why / Success Metrics / Key Results.
 - **Same-Epic siblings** — every Sub-Epic and Issue under the same Epic: titles, status, acceptance
   criteria, and any decisions already recorded in their tracker comments and `impl-log/`. Use these
@@ -125,36 +160,50 @@ base branch — this branch name is the **shared contract** with `/architect:rev
 `/architect:merge-issue`, which resolve the same name to review and merge the work. Then set the
 item's status to `status::doing` and append a progress comment ("Implementation started")
 containing a mini-plan: the files to add/change under `generated/`, the interface/contract (aligned
-to siblings + ubiquitous language + `coding-standards.md`), and the tests. Check the mini-plan
-against `review-knowledge.md` so a lesson from a previous review is not re-implemented as a fresh
-finding. Present the mini-plan and confirm, unless `--auto`. On `--dry-run`, do not write the
-label/comment — report what would change.
+to siblings + ubiquitous language + `coding-standards.md`), and the tests. **Delegate the drafting
+of the mini-plan to an opus sub-agent**, giving it the Step 3 digest, the item's acceptance
+criteria, and `review-knowledge.md` — planning against Epic-wide contracts is the judgment step
+this skill reserves opus for. The sub-agent must check the plan against `review-knowledge.md` so a
+lesson from a previous review is not re-implemented as a fresh finding. Present the mini-plan and
+confirm, unless `--auto`. On `--dry-run`, do not write the label/comment — report what would
+change.
 
 ### Step 5 — Implement
-On the working branch, write code to `generated/{service}/` (override with `--out`), following
-`coding-standards.md`, reusing/aligning sibling contracts, and satisfying the item's acceptance
-criteria. Generate tests following the `/architect:generate-test-specs` conventions when the item
-warrants them. Apply the relevant `@rules/*` (e.g. ScalarDB patterns) when the project uses them.
-Reuse existing generated code rather than duplicating it. **Commit the changes to the working
-branch** in coherent units, each commit message referencing the Issue (e.g. `feat: … (#<iid>)`) —
-uncommitted work cannot be reviewed or merged downstream.
+**Delegate the implementation to sonnet sub-agents** — one per coherent unit of the mini-plan
+(e.g. per service or per module), run in parallel when units don't share files. Each sub-agent
+receives the approved mini-plan slice, the Step 3 digest, and the relevant `coding-standards.md`
+excerpts, and writes code to `generated/{service}/` (override with `--out`) on the working branch,
+following `coding-standards.md`, reusing/aligning sibling contracts, and satisfying the item's
+acceptance criteria — returning the changed-file list and self-review notes, not file contents.
+Escalate a unit to opus only when it involves judgment-heavy design (2PC boundaries, cross-service
+data ownership, ambiguous contracts). Generate tests following the
+`/architect:generate-test-specs` conventions when the item warrants them. Apply the relevant
+`@rules/*` (e.g. ScalarDB patterns) when the project uses them. Reuse existing generated code
+rather than duplicating it. **Commit the changes to the working branch** in coherent units, each
+commit message referencing the Issue (e.g. `feat: … (#<iid>)`) — uncommitted work cannot be
+reviewed or merged downstream.
 
 ### Step 6 — Review (lightweight + on-demand)
-1. **Self-review** — against the item's acceptance criteria and the shared guardrails.
-2. **Epic-consistency check** — confirm the change does not conflict with sibling Issues' contracts
-   or recorded decisions (naming, API shapes, data model, ubiquitous language, NFR budgets). Fix
-   small inconsistencies; surface larger ones as findings on the item and, if needed, on the Epic.
+1. **Self-review** — done by each Step 5 implementer sub-agent against the item's acceptance
+   criteria and the shared guardrails; the orchestrator only collates the notes.
+2. **Epic-consistency check** — **delegate to an opus sub-agent** that receives the diff summary
+   and the Step 3 digest, and returns a pass/findings verdict: does the change conflict with
+   sibling Issues' contracts or recorded decisions (naming, API shapes, data model, ubiquitous
+   language, NFR budgets)? Fix small inconsistencies (route them back to the Step 5 implementer);
+   surface larger ones as findings on the item and, if needed, on the Epic.
 3. **Record cross-cutting decisions** — any new decision that affects other items is appended to
    `shared-context/decisions.md`, closing the consistency loop.
-4. **On-demand Epic roll-up** — `--review-epic[=<id>]` runs a consolidated review across all Issues
-   under the Epic (coherence, gaps, duplicated work, contract drift) and writes
-   `reports/backlog/epic-review-<epic>.md`. The **automatic** trigger for this review lives in
+4. **On-demand Epic roll-up** — `--review-epic[=<id>]` **delegates to an opus sub-agent** a
+   consolidated review across all Issues under the Epic (coherence, gaps, duplicated work, contract
+   drift), writing `reports/backlog/epic-review-<epic>.md`. The **automatic** trigger for this review lives in
    `/architect:merge-issue`: it invokes (or recommends) `--review-epic` when the last Issue of a
    Sub-Epic is merged — a single trigger authority, so it does not also fire from here.
 
 ### Step 7 — Record progress (append to the items)
-Append the executed work back onto the tracker and mirror it locally. On `--dry-run`, stop before
-any remote write and report the intended changes.
+Append the executed work back onto the tracker and mirror it locally. **Delegate the drafting of
+the comments and the `impl-log/` mirror to a haiku sub-agent** (mechanical summarization of the
+collected results); the orchestrator executes the actual `glab`/`gh` writes. On `--dry-run`, stop
+before any remote write and report the intended changes.
 - **Issue** — comment with what was implemented (files, key decisions, deviations), the
   acceptance-criteria checklist status, and the review result; transition status to
   **`status::review` at most**. `status::done` is owned by `/architect:merge-issue` — an Issue is
@@ -180,6 +229,8 @@ Offer the next `doing` / `todo` item under the same Epic (confirm before startin
 - No fabricated requirements/endpoints/numbers — everything traces to acceptance criteria or a
   referenced report.
 - `--dry-run` performs no remote writes and no code output; it only reports intended changes.
+- Heavy steps ran as model-tiered sub-agents per the assignment table (opus only for planning and
+  consistency verdicts); the orchestrator held digests, not full report/source bodies.
 
 ## Related Skills
 
