@@ -92,7 +92,12 @@ Capture the merge commit SHA / result.
   `status::done` and run the whole-Epic review (`/architect:implement-backlog --review-epic=<epic>`,
   or note it for the user).
 - **Epic** — comment progress roll-up.
-- **Manifest** — update the node: `impl.status = done`, `pr.merged = true`, merge SHA, `updated_at`.
+- **Manifest** — update **every node this roll-up moved**, not just the Issue. The Issue node gets
+  `impl.status = done`, `pr.merged = true`, merge SHA, `updated_at`; a Sub-Epic or Epic that was
+  transitioned to `status::done` above gets its own `impl.status = done` + `updated_at` (no `pr`
+  fields — those belong to the Issue). Leaving a parent's completion only on the tracker silently
+  desynchronizes the manifest: a later `deliver-backlog` resume reads `impl.status` and sees a
+  finished Sub-Epic as unstarted.
 - Report the merged URL and the updated Epic progress (e.g. "Epic E1: 4/9 Issues done").
 
 ## Acceptance Criteria
@@ -100,7 +105,8 @@ Capture the merge commit SHA / result.
 - No merge happens unless every preflight check passes **and** the user explicitly confirms (or
   explicitly pre-authorized with `--yes-merge` — preflight is never skippable).
 - After a successful merge, the Issue is closed + `status::done`, and the Sub-Epic/Epic roll-ups and
-  manifest are updated.
+  manifest are updated — including `impl.status` on any Sub-Epic/Epic this roll-up completed, so no
+  node is `done` on the tracker while the manifest still reads unstarted.
 - A completed Sub-Epic triggers (or clearly recommends) the whole-Epic review.
 - `--dry-run` performs no merge and no writes; it only reports readiness and intent.
 
