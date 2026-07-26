@@ -9,6 +9,33 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.17.1] - 2026-07-26
+
+### Fixed
+- **`/architect:generate-docs` — drift findings now have a home, and generated sections can be
+  removed.** Exercising the skill against a real `/product:generate-frontend` scaffold surfaced
+  three gaps:
+  - **Drift findings had nowhere to go in scaffold mode.** Step 5 said to report them to the user
+    and append them to the Issue, but scaffold mode has no tracker — so a run had to invent a
+    section key at write time. `findings` joins the stable key list, and a table now states where
+    drift goes per mode: appended to the **Issue** in delivery mode (the tracker is the record,
+    nothing written into the docs), written to the **`findings` section** in scaffold mode. Drift is
+    never resolved in prose either way — the docs must not assert a reconciliation the code has not
+    made.
+  - **No removal rule.** A marked section a later run no longer justifies — resolved drift, a
+    deleted service, a surface that no longer exists — is now removed together with its markers and
+    listed in the run report; a stale generated section is worse than a missing one. Only keys in
+    the stable list may be removed, so hand-written content is never touched. Inventing a key
+    outside the list is now forbidden, since an unrecognized key makes the region unfindable on the
+    next run.
+  - **Non-git targets produced a raw git error.** Delivery mode now says plainly that it cannot
+    commit outside a git worktree and offers scaffold mode, which needs no repository.
+
+  Validated on the test run against a hand-written, unmarked README: the original prose was
+  preserved 24/24 lines, every generated region sat inside markers with a stable key, and the
+  verification step confirmed 6/6 documented commands and 18/18 paths against the real project
+  while catching three genuine documentation defects in it.
+
 ## [0.17.0] - 2026-07-25
 
 ### Added
