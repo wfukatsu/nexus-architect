@@ -13,6 +13,7 @@
     "scalardb_enabled": true,
     "workflow_type": "legacy|greenfield",
     "output_language": "en",
+    "confirm_versions": true,
     "skip_phases": []
   },
   "phases": {
@@ -28,6 +29,16 @@
   "warnings": []
 }
 ```
+
+## Options
+
+| Option | Values | Meaning |
+|--------|--------|---------|
+| `scalardb_enabled` | `true` \| `false` | Whether the ScalarDB-specific phases run |
+| `workflow_type` | `legacy` \| `greenfield` | Which entry path the project took |
+| `output_language` | `en` \| `ja` | Language of generated report content |
+| `confirm_versions` | `true` \| `false` | Project default for confirming resolved dependency versions with the user before pinning them (see @rules/dependency-versions.md). Absent → interactive runs ask, `--auto` runs adopt. Overridden per run by `--confirm-versions` / `--no-confirm-versions`. |
+| `skip_phases` | list of phase names | Phases the user excluded |
 
 ## Status Values
 

@@ -24,7 +24,7 @@ Create the directory structure and progress management files required for pipeli
    - `generated/`
    - `work/`
 
-2. Initialize `work/pipeline-progress.json` (register all phases from skill-dependencies.yaml as "pending"). Include the `output_language` field under options, defaulting to `"en"`.
+2. Initialize `work/pipeline-progress.json` (register all phases from skill-dependencies.yaml as "pending"). Include the `output_language` field under options, defaulting to `"en"`, and `confirm_versions`, defaulting to `true` (whether codegen skills confirm resolved dependency versions with the user — see @rules/dependency-versions.md).
 
 3. Create `work/context.md` as an empty file.
 

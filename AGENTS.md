@@ -111,6 +111,7 @@ session model and preserve the delegation structure (sub-agents return digests, 
 - If a skill asks for multiple-choice input with `AskUserQuestion`, show the choices as a numbered list and wait for the user's answer before continuing.
 - If a skill asks for parallel Claude subagents, execute the prerequisite steps in order and only parallelize independent shell reads or explicit user-approved agent work.
 - Keep generated outputs in the documented output directories and include YAML frontmatter for Markdown reports.
+- Before writing any file that pins a version (Gradle/Maven, `package.json`, image tags, Helm/Terraform/Kubernetes), **look the version up** from its registry with the shell (`curl` against `repo1.maven.org` / Docker Hub / the Terraform registry, `npm view <pkg> dist-tags --json`, `gh release list -R <owner>/<repo>`, `curl -s https://endoflife.date/api/<product>.json`) — never write a version from memory or copy one out of a skill example. Choose a stable, non-EOL, mutually compatible release, record the decision table in the artifact and `work/version-decisions.json`, and confirm with the user per `--confirm-versions` / `--no-confirm-versions` / `options.confirm_versions` (unset -> interactive runs ask, `--auto` runs adopt). See `rules/dependency-versions.md`.
 - After editing any report Markdown file or Mermaid diagram, you **must** run the validation hooks before proceeding:
   - `hooks/validate-frontmatter.sh <file.md>`
   - `hooks/validate-mermaid.sh <file.md>`

@@ -1,5 +1,10 @@
 # ScalarDB Migration Steps Template (PostgreSQL)
 
+> **The ScalarDB / image versions below are a dated example** (snapshot: 2026-07). Resolve the
+> current stable release per `rules/dependency-versions.md` before the migration pins anything —
+> a migration is the moment to land on a supported version, not to inherit an old one.
+
+
 This template is used to generate the **step-by-step migration guide** for PostgreSQL to ScalarDB migration. Replace all `{{PLACEHOLDER}}` tokens with actual values from the source PostgreSQL schema report and migration analysis.
 
 **Input Source**: This guide consumes `postgresql_schema_report.md` from the configured output directory (analyze-postgresql-schema output).

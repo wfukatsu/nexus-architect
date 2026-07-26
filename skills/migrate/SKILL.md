@@ -63,14 +63,24 @@ For each migration, identify:
    - Docker Compose updates
    - ScalarDB Cluster deployment (if migrating to Cluster)
 
+## Dependency Versions
+
+The diffs below write `:<version>` on purpose: a migration is exactly the moment to move onto a
+current **stable** ScalarDB release, and every ScalarDB artifact must land on the *same* version.
+Resolve it per `rules/dependency-versions.md`
+(`https://repo1.maven.org/maven2/com/scalar-labs/<artifact>/maven-metadata.xml`, or
+`gh release list -R scalar-labs/scalardb`), check it against the target edition and Java version, and
+confirm with the user unless the project opted out (`options.confirm_versions` /
+`--no-confirm-versions`). Do not carry the version the project is migrating *from* forward by default.
+
 ## Common Migrations
 
 ### Core CRUD 1PC → Cluster CRUD 1PC
 
 **Dependencies:**
 ```diff
-- implementation 'com.scalar-labs:scalardb:3.16.0'
-+ implementation 'com.scalar-labs:scalardb-cluster-java-client-sdk:3.16.0'
+- implementation 'com.scalar-labs:scalardb:<current>'      # whatever the project pins today
++ implementation 'com.scalar-labs:scalardb-cluster-java-client-sdk:<version>'  # resolved stable
 ```
 
 **Configuration:**
@@ -118,9 +128,9 @@ For each migration, identify:
 
 **Dependencies:**
 ```diff
-- implementation 'com.scalar-labs:scalardb:3.16.0'
-+ implementation 'com.scalar-labs:scalardb-sql-jdbc:3.16.0'
-+ implementation 'com.scalar-labs:scalardb-cluster-java-client-sdk:3.16.0'
+- implementation 'com.scalar-labs:scalardb:<current>'      # whatever the project pins today
++ implementation 'com.scalar-labs:scalardb-sql-jdbc:<version>'                 # resolved stable
++ implementation 'com.scalar-labs:scalardb-cluster-java-client-sdk:<version>'  # resolved stable
 ```
 
 **Configuration:**

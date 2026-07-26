@@ -27,6 +27,19 @@ Generate:
 2. **Schema loading commands**
 3. **Troubleshooting tips** for common issues
 
+## Dependency Versions
+
+The image tags and JAR versions below are a **dated example** (snapshot: 2026-07), not the current
+stable releases. Before emitting a compose file or a download command, resolve each one per
+`rules/dependency-versions.md`: read the registry's tag list
+(`curl -s "https://hub.docker.com/v2/repositories/<ns>/<image>/tags?page_size=25&ordering=last_updated"`,
+`library` as `<ns>` for official images) and the ScalarDB release list
+(`gh release list -R scalar-labs/scalardb`), pick the newest **stable** tag of a supported line
+(`endoflife.date` for the database's support window), and **never leave a moving `:latest` tag in a
+compose file** — resolve it to a concrete version so the environment is reproducible. The
+schema-loader JAR must match the ScalarDB version the application pins. Confirm the chosen set with
+the user unless the project opted out (`options.confirm_versions` / `--no-confirm-versions`).
+
 ## Docker Compose Templates
 
 ### MySQL
@@ -127,7 +140,7 @@ scalar.db.password=cassandra
 ```yaml
 services:
   dynamodb:
-    image: amazon/dynamodb-local:latest
+    image: amazon/dynamodb-local:<resolved-tag>   # resolve a concrete tag; never :latest
     ports:
       - "8000:8000"
     command: -jar DynamoDBLocal.jar -sharedDb
@@ -177,16 +190,19 @@ networks:
 
 ## Schema Loading Commands
 
+Resolve `<version>` first (`gh release list -R scalar-labs/scalardb --limit 10` → newest non-prerelease)
+and use the same version the application pins:
+
 ```bash
 # Download schema loader (if not already available)
-curl -OL https://github.com/scalar-labs/scalardb/releases/download/v3.16.0/scalardb-schema-loader-3.16.0.jar
+curl -OL https://github.com/scalar-labs/scalardb/releases/download/v<version>/scalardb-schema-loader-<version>.jar
 
 # Create tables
-java -jar scalardb-schema-loader-3.16.0.jar \
+java -jar scalardb-schema-loader-<version>.jar \
   --config database.properties -f schema.json --coordinator
 
 # Delete tables (for cleanup)
-java -jar scalardb-schema-loader-3.16.0.jar \
+java -jar scalardb-schema-loader-<version>.jar \
   --config database.properties -f schema.json -D --coordinator
 ```
 

@@ -21,6 +21,11 @@ not just produce internally consistent documents.
 Ask which language to use for output documents (English default / Japanese), unless `--lang` is
 given. Record it in `work/pipeline-progress.json` under `options.output_language`.
 
+Ask the same way whether `generate-frontend` should **confirm the dependency versions** it resolves
+before pinning them (see @rules/dependency-versions.md), and record it as
+`options.confirm_versions` (`true` = ask, default; `false` = adopt the resolved stable set silently).
+`--confirm-versions` / `--no-confirm-versions` override it per run.
+
 ## Workflow Selection
 
 - Pick a profile (or honor `--profile`): `mvp` (vision + scope + validate — the smallest useful

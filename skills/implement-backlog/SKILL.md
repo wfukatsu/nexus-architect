@@ -7,7 +7,7 @@ description: |
   tree (never the git-ignored generated/), updates the README/docs for the changed surface via
   /architect:generate-docs, appends progress notes to the Epic / Sub-Epic / Issue, and runs a
   lightweight + on-demand consistency review for whole-Epic optimization.
-  /architect:implement-backlog [item] [--epic=<id>] [--build-context] [--review-epic[=<id>]] [--out=<path>] [--dry-run] [--auto] [--lang=en|ja].
+  /architect:implement-backlog [item] [--epic=<id>] [--build-context] [--review-epic[=<id>]] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja].
   With no item, picks the items flagged status::doing and confirms with the user before proceeding.
   Runs as a thin orchestrator that delegates heavy steps to model-tiered sub-agents
   (haiku/sonnet/opus) to minimize token cost. Only runs when explicitly invoked.
@@ -216,6 +216,18 @@ confirm, unless `--auto`. On `--dry-run`, do not write the label/comment — rep
 change.
 
 ### Step 5 — Implement
+
+**Any new dependency this item introduces is version-resolved first**, per
+@rules/dependency-versions.md: look the version up in its registry (never recall it, never copy a
+number out of a skill/rules example), pick the stable, non-EOL release that is compatible with what
+the project already pins, and reuse `work/version-decisions.json` when it is fresh so parallel
+sub-agents cannot pin two different versions of the same library. The existing lockfile/BOM in the
+source tree is binding — this Issue's scope is what it introduces, not an ambient upgrade of
+everything else. Confirm the version decision table per `--confirm-versions` /
+`--no-confirm-versions` / `options.confirm_versions` (default: ask, except under `--auto`), record it
+in `shared-context/decisions.md` as a cross-cutting decision, and name the versions in the Step 7
+progress comment. Sub-agents receive the resolved versions — they do not each decide their own.
+
 **Delegate the implementation to sonnet sub-agents** — one per coherent unit of the mini-plan
 (e.g. per service or per module), run in parallel when units don't share files. Each sub-agent
 receives the approved mini-plan slice, the Step 3 digest, the **source root resolved in Step 4**,
@@ -297,7 +309,9 @@ Offer the next `doing` / `todo` item under the same Epic (confirm before startin
 - The shared-context pack exists and was consulted — including `review-knowledge.md`, so known
   review findings are not reintroduced; any new cross-cutting decision is recorded in `decisions.md`.
 - No fabricated requirements/endpoints/numbers — everything traces to acceptance criteria or a
-  referenced report.
+  referenced report. **Version numbers included**: every dependency this item introduced was looked
+  up, is stable and compatible with the project's existing pins, and is recorded in
+  `decisions.md` + `work/version-decisions.json`.
 - Documentation for the changed surface was updated in the same commit range (Step 5b) — or the
   skip was justified and recorded — so the PR/MR carries code and docs together.
 - Code was written under a source root that passed the `git check-ignore` and in-worktree checks,

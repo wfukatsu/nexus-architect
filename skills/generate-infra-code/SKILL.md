@@ -17,6 +17,17 @@ Generate IaC code based on the infrastructure design:
 - NetworkPolicy and PodDisruptionBudget
 - Multi-environment configuration (dev/staging/prod)
 
+## Dependency Versions
+
+IaC is almost entirely version pins — Kubernetes `apiVersion` and cluster version, Terraform
+`required_version` and provider constraints, Helm chart versions, container image tags. Follow
+@rules/dependency-versions.md: resolve each from its registry (Terraform registry, chart repo, image
+registry, `endoflife.date` for the supported Kubernetes window), pin **stable, non-EOL, mutually
+compatible** versions, never leave a moving `:latest`/`stable` image tag in a manifest, and honour
+what the target environment already runs over what is newest. Confirm the version decision table per
+`--confirm-versions` / `--no-confirm-versions` / `options.confirm_versions`, and record it with the
+generated IaC plus `work/version-decisions.json`.
+
 ## Prerequisites
 
 | File | Required/Recommended | Source |
