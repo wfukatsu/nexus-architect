@@ -72,6 +72,15 @@ skill turns both into reusable, story-backed React components organized by **Ato
   generated `package.json` scripts (`dev`, `build`, `storybook`, `build-storybook`, `typecheck`)
   exist and are correct. Prefer a small, coherent toolchain over feature breadth.
 - **Trace every component** to its `CMP-`/`TOK-` and every page to its `STORY-`/screen.
+- **Regeneration overwrites — say so before it does.** What this skill emits is regenerable output:
+  a re-run, whether invoked directly or by `/product:adapt-change` when the mocks or the design
+  system change, rewrites the files it owns under the output root. Hand-edits made there are lost.
+  So before writing into an output root that already exists and holds content this skill did not
+  just produce, state plainly that it will be overwritten and confirm (unless `--auto`), offering
+  `--out=<path>` to regenerate alongside instead of over. Once a scaffold has graduated into a
+  frontend someone maintains by hand, it no longer belongs under `generated/`: regenerate elsewhere
+  and treat the maintained copy as the source of truth — mirroring why
+  `/architect:implement-backlog` keeps merge-bound code out of that tree.
 - **Stop condition**: every `CMP-` has a typed React component + a story covering its variants/states;
   every UI-mock screen has a page + a route in `router.tsx` + a story; `tokens.css` is wired globally
   and into Storybook's preview; `package.json`/`tsconfig`/`vite.config`/`.storybook` exist; the
@@ -122,6 +131,12 @@ skill turns both into reusable, story-backed React components organized by **Ato
 `src/styles/tokens.css`, `.storybook/`, `package.json`, `vite.config.ts`, `tsconfig.json`. Each
 component/page carries a `*.stories.tsx`; styling references design tokens only; routing mirrors the
 mock's story flow. Code identifiers stay English; UI copy/comments use `options.output_language`.
+
+This tree is **regenerable pipeline output** and is git-ignored alongside `reports/` and `work/`
+(see @templates/output-structure.md) — which is correct here precisely because a re-run is expected
+to replace it. Documentation for the emitted scaffold is written by `/architect:generate-docs` in
+its scaffold mode, which marks the sections it owns so a later docs run does not disturb prose
+someone added by hand.
 
 ## Reference Materials
 

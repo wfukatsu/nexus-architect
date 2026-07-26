@@ -157,6 +157,13 @@ Report the resolved mode, root, scope, and target files before doing work.
 - dependencies and required runtimes/versions
 - existing docs: which READMEs and `docs/` pages exist, and which carry nexus ownership markers
 
+**Observed vs inferred.** The digest must mark any value the sub-agent derived rather than read —
+`inferred: <value> (<basis>)`, e.g. `inferred: Node 18+ (Vite 5 requires it)` when `package.json`
+declares no `engines`. A digest that presents inference as inventory defeats the skill's central
+discipline: the orchestrator cannot tell the two apart afterwards, so the inference reaches the
+README as fact. Inferred values may be documented, but only with their basis stated or hedged —
+never asserted flat as if read from the code.
+
 ### Step 2 — Gather design intent (delegated)
 **Delegate to an Explore sub-agent (haiku)** that reads the design reports relevant to the code in
 scope and returns an **intent digest**: what each service is for, the constraints and decisions
@@ -223,7 +230,8 @@ Markers rather than leaving a stale list behind.
 - Re-running the skill preserves all human-authored prose — only marked regions changed, and no
   unmarked file was rewritten in place without confirmation.
 - Documented configuration keys, routes, and env vars all appear in the inventory digest; no
-  invented surface.
+  invented surface. Anything the digest marked `inferred:` is documented with its basis or hedged,
+  never asserted as read from the code.
 - Design-vs-code drift was reported to the user and recorded where the mode keeps it (the Issue in
   delivery mode, the `findings` section in scaffold mode), never papered over in prose.
 - Every region this skill wrote is inside markers with a key from the stable list, and any section
