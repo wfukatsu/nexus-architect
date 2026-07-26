@@ -9,6 +9,24 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+## [0.17.4] - 2026-07-26
+
+### 修正
+- **`/architect:generate-docs` — v0.16.2〜v0.17.3 の全作業レビューで見つかった曖昧さ3件を解消。**
+  いずれも検証済みの挙動を変えるものではなく、従来は導出可能だが暗黙だった点の明文化。
+  - **単独起動時のモード判定を明記。** `--issue` なしで、かつ他スキルの一工程としてでもなく起動された
+    場合は、解決された root がモードを決める — `generated/` 配下なら Scaffold、それ以外は Delivery。
+    Delivery ではトラッカーへの書き込み前に `--issue` が必須で、参照する Issue が無い実行では
+    コミットは作業ブランチに載せつつ、ドリフト所見はユーザーへの報告のみとなる。
+  - **`findings` セクションの書き手とタイミングを明記。** 内容を生むのは Step 5 の検証だが、記載は
+    Step 4 のセクション表のみで、初回実行の書き手が不在だった。Scaffold モードでは Step 5 が検証後に
+    書くことを明記し、Step 4 側の記載は「前回の所見が既に存在する再実行」を扱うものと位置づけた。
+  - **安定キー一覧の情報源を一本化。** SKILL.md の散文と契約テストの `STABLE` 集合に二重管理されて
+    おり、同期はコメント頼みだった。テストが SKILL.md の「Section keys are stable (…)」の一文から
+    一覧を parse するようになり、当該文が消えた場合はハードフェイル、ファイルが単体でコピーされた
+    場合はフォールバック一覧で検査を継続する。検証済み: 8キー全て parse され、両フィクスチャと
+    フォールバック経路がすべて PASS。
+
 ## [0.17.3] - 2026-07-26
 
 本リリースの内容はすべて、バックログ配送経路を実地で動かした結果として得られたものです — マーカー契約を
@@ -481,6 +499,7 @@ Nexus Architect の主な変更点を記録します。
 ### 変更
 - リポジトリを Claude Code プラグイン互換の構成に再編。
 
+[0.17.4]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.4
 [0.17.3]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.3
 [0.17.2]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.2
 [0.17.1]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.1

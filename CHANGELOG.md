@@ -9,6 +9,27 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.17.4] - 2026-07-26
+
+### Fixed
+- **`/architect:generate-docs` — three ambiguities closed after a session-wide review of the
+  v0.16.2–v0.17.3 work.** None change behaviour that was already exercised; they pin down what was
+  previously derivable but implicit.
+  - **Standalone mode determination is now stated.** Invoked with no `--issue` and not as a step of
+    another skill, the resolved root decides the mode: a root under `generated/` is scaffold,
+    anything else is delivery — with `--issue` required before any tracker write, and, when the run
+    has no Issue to reference, commits still landing on the working branch and drift findings going
+    to the user only.
+  - **The `findings` section has a stated writer and timing.** It is produced by Step 5
+    verification but was listed only in Step 4's section table, leaving a first run with no stated
+    writer. Step 5 now writes it after verification in scaffold mode; the Step 4 listing covers
+    re-runs, where prior findings already exist to carry.
+  - **The stable key list has one source of truth.** It lived in both SKILL.md prose and the
+    contract test's `STABLE` set, with only a comment as sync guard. The test now parses the list
+    from SKILL.md's "Section keys are stable (…)" sentence — failing hard if the sentence
+    disappears, with a fallback list so the mechanics checks still run if the file is copied
+    elsewhere. Verified: all 8 keys parse, both fixtures pass, the fallback path passes.
+
 ## [0.17.3] - 2026-07-26
 
 Everything here came out of exercising the backlog-delivery path for real — the marker contract
@@ -502,6 +523,7 @@ with 75 skills total.
 ### Changed
 - Restructured the repository into a Claude Code plugin-compatible layout.
 
+[0.17.4]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.4
 [0.17.3]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.3
 [0.17.2]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.2
 [0.17.1]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.1
