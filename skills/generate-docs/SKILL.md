@@ -77,7 +77,9 @@ Resolve the root in this precedence: `--source-root=<path>` → the `source_root
 `reports/backlog/shared-context/decisions.md` → the tree named by the invoking skill → the
 repository root. In delivery mode the root must pass the same checks `implement-backlog` applies
 (`git check-ignore -q <root>` exits 1; the root is inside the target worktree) — documentation that
-git ignores cannot reach the PR/MR.
+git ignores cannot reach the PR/MR. If the target is not a git worktree at all, delivery mode cannot
+commit: say so plainly (rather than surfacing a raw git error) and offer to continue in scaffold
+mode, which needs no repository.
 
 ## Ownership Markers
 
@@ -97,7 +99,14 @@ Generated regions are delimited so re-runs are safe and reviewable:
   guessing where the author wanted them.
 
 Section keys are stable (`overview`, `build-and-run`, `configuration`, `layout`, `api`,
-`operations`, `traceability`) so a later run updates the same region.
+`operations`, `traceability`, `findings`) so a later run updates the same region. Never invent a key
+outside this list — an unrecognized key makes the region unfindable on the next run.
+
+**Removing a section.** When a run no longer justifies a section it previously wrote — the drift
+recorded in `findings` is resolved, the documented surface is gone, the service was deleted —
+remove the whole marked region *including its markers*, and list the removal in the run report. A
+stale generated section is worse than a missing one. Only regions whose key is in the stable list
+may be removed: anything else was not written by this skill and is left alone.
 
 ## Sub-Agent Execution & Model Assignment
 
@@ -162,6 +171,7 @@ section content:
 | `api` | Public interface summary (routes/operations) linking to the API specs for detail |
 | `operations` | Deploy/rollback, health checks, logs/metrics, common failure modes (infra and service scaffolds) |
 | `traceability` | Links to the design reports and, in delivery mode, the Issue/Epic this work came from |
+| `findings` | Design-vs-code drift and documentation gaps recorded rather than resolved (scaffold mode — see Step 5). Written only when Step 5 produced findings; removed once they are resolved |
 
 Each sub-agent returns the file path and the section keys it touched — not the file body. Mermaid
 must follow @rules/mermaid-best-practices.md (non-ASCII labels quoted).
@@ -174,8 +184,16 @@ must follow @rules/mermaid-best-practices.md (non-ASCII labels quoted).
 - design-vs-code drift: designed elements in the intent digest with no counterpart in the inventory
 
 Fix what is fixable (wrong path, stale command) by routing the page back to its Step 4 sub-agent.
-Report drift findings to the user — and, in delivery mode, append them to the Issue rather than
-resolving them in prose.
+Drift is **never** resolved in prose — the docs must not assert a reconciliation the code has not
+made. Always report the findings to the user, and record them where the mode has a place for them:
+
+| Mode | Where drift findings go |
+|------|-------------------------|
+| **Delivery** | Appended to the Issue as a comment — the tracker is the record, so no `findings` section is written into the docs |
+| **Scaffold** | Written into the `findings` section of the root README of the documented tree, since there is no tracker to carry them |
+
+When a later run finds the recorded drift resolved, remove the `findings` region per Ownership
+Markers rather than leaving a stale list behind.
 
 ### Step 6 — Commit or report
 - **Delivery mode** — Stage the doc changes and commit them to the working branch, message
@@ -193,8 +211,10 @@ resolving them in prose.
   unmarked file was rewritten in place without confirmation.
 - Documented configuration keys, routes, and env vars all appear in the inventory digest; no
   invented surface.
-- Design-vs-code drift was reported (to the user, and onto the Issue in delivery mode), not
-  papered over.
+- Design-vs-code drift was reported to the user and recorded where the mode keeps it (the Issue in
+  delivery mode, the `findings` section in scaffold mode), never papered over in prose.
+- Every region this skill wrote is inside markers with a key from the stable list, and any section
+  it previously wrote that is no longer justified was removed with its markers and reported.
 - In delivery mode the doc changes are committed on the same working branch as the code, staged
   files verified, so they land in the same PR/MR.
 - `--dry-run` performs no writes and no commits.
