@@ -14,9 +14,32 @@ import hashlib
 import re
 import sys
 
-# Keep in sync with the stable key list in SKILL.md (Ownership Markers).
-STABLE = {"overview", "build-and-run", "configuration", "layout", "api",
-          "operations", "traceability", "findings"}
+def _stable_from_skill():
+    """Parse the stable key list from SKILL.md so the contract has one source.
+
+    Falls back to the known list if SKILL.md is not present (e.g. the test file
+    copied elsewhere), so the mechanics checks still run.
+    """
+    import os
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "SKILL.md")
+    fallback = {"overview", "build-and-run", "configuration", "layout", "api",
+                "operations", "traceability", "findings"}
+    try:
+        text = open(path).read()
+    except OSError:
+        return fallback
+    m = re.search(r"Section keys are stable \(([^)]+)\)", text)
+    if not m:
+        raise AssertionError(
+            "SKILL.md no longer contains the 'Section keys are stable (...)' "
+            "sentence — update this parser together with the contract")
+    keys = set(re.findall(r"`([a-z-]+)`", m.group(1)))
+    if not keys:
+        raise AssertionError("parsed an empty stable key list from SKILL.md")
+    return keys
+
+
+STABLE = _stable_from_skill()
 
 BEGIN = "<!-- nexus:begin:{k} -->"
 END = "<!-- nexus:end:{k} -->"

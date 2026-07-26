@@ -142,7 +142,11 @@ terms. Never use opus for routine README assembly.
 
 ### Step 0 — Resolve mode, root, and scope
 Determine the mode and the root per Modes (running the git checks in delivery mode; stop and report
-the matching ignore rule if the root is ignored). Resolve the scope: `--scope` if given, else
+the matching ignore rule if the root is ignored). When invoked standalone — no `--issue` and not as
+a step of another skill — the resolved root decides the mode: a root under `generated/` is
+**scaffold**, anything else is **delivery** (with `--issue` required before any tracker write; if
+the run has no Issue to reference, commits still land on the working branch and the drift findings
+go to the user only). Resolve the scope: `--scope` if given, else
 `changed` when a working branch with commits is present, else `repo`. In `changed` scope, take the
 touched paths from `git diff --name-only <base>...HEAD` and map them to the owning services/modules.
 Report the resolved mode, root, scope, and target files before doing work.
@@ -211,6 +215,11 @@ made. Always report the findings to the user, and record them where the mode has
 |------|-------------------------|
 | **Delivery** | Appended to the Issue as a comment — the tracker is the record, so no `findings` section is written into the docs |
 | **Scaffold** | Written into the `findings` section of the root README of the documented tree, since there is no tracker to carry them |
+
+In scaffold mode the `findings` region is written **here, after verification** — by this step (or by
+routing one last write to the root README's Step 4 sub-agent), not during the Step 4 page pass,
+because the findings do not exist until verification has run. Its listing in the Step 4 section
+table covers re-runs, where prior findings already exist to carry.
 
 When a later run finds the recorded drift resolved, remove the `findings` region per Ownership
 Markers rather than leaving a stale list behind.
