@@ -108,6 +108,19 @@ remove the whole marked region *including its markers*, and list the removal in 
 stale generated section is worse than a missing one. Only regions whose key is in the stable list
 may be removed: anything else was not written by this skill and is left alone.
 
+**Whitespace around a region.** Insert and remove must be exact inverses, or repeated runs produce
+whitespace-only diff noise in a file whose whole point is being reviewable:
+
+- a marked region is separated from its neighbours by **exactly one blank line**, or sits flush
+  against the start/end of the file
+- removing a region takes the region *and* the single blank line that follows it — or, at end of
+  file, the one that precedes it
+- the file ends with exactly one newline, and no run of two or more blank lines is ever introduced
+
+Verified by round-trip: under this rule, remove → re-insert reproduces the file byte-for-byte, and
+repeated cycles do not drift. The whole marker contract above is asserted as behaviour by
+`skills/generate-docs/marker-mechanics.test.py` — run it after changing these rules.
+
 ## Sub-Agent Execution & Model Assignment
 
 A **thin orchestrator (sonnet)** delegating to sub-agents (Agent/Task tool; see
@@ -215,6 +228,8 @@ Markers rather than leaving a stale list behind.
   delivery mode, the `findings` section in scaffold mode), never papered over in prose.
 - Every region this skill wrote is inside markers with a key from the stable list, and any section
   it previously wrote that is no longer justified was removed with its markers and reported.
+- The written file carries no whitespace-only churn: one blank line around each region, one newline
+  at end of file, no run of two or more blank lines.
 - In delivery mode the doc changes are committed on the same working branch as the code, staged
   files verified, so they land in the same PR/MR.
 - `--dry-run` performs no writes and no commits.
