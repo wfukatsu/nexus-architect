@@ -9,6 +9,45 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.17.5] - 2026-07-27
+
+### Added
+- **Backlog checklists are now maintained as work progresses** (`skills/common/backlog-checklists.md`,
+  new shared contract). The backlog family advanced status labels, progress comments and the
+  manifest, but nothing ever flipped a markdown checkbox on the tracked items — and GitLab/GitHub
+  render a task list as a progress counter, so a delivered Issue left its acceptance criteria and its
+  box in the parent's task list unticked, under-reporting real progress to everyone reading the Epic.
+  Two checklists, each with one exclusive owner:
+  - **Child task list** (Epic `## Sub-Epics`, Sub-Epic `## Issues`) → `/architect:merge-issue`, and
+    only when that child actually reaches `done`, since merging is what establishes it.
+  - **Acceptance criteria** (Issue `## Acceptance Criteria`) → `/architect:implement-backlog`
+    (implemented) then `/architect:review-issue` (verified).
+
+  Rules the whole family follows: tick on evidence, never on intent; edit the body **in place**,
+  flipping only the `[ ]` → `[x]` marker (never regenerate a body from `backlog-manifest.json`, which
+  would discard human edits); idempotent re-runs; unticking allowed when a review or revert disproves
+  a criterion, with a stated reason; skip entirely on the GitLab native-Epic / GitHub sub-issue path,
+  where the parent carries links instead of a task list; `--dry-run` edits no body.
+
+### Changed
+- **`/architect:export-backlog`** authors both checklists as unticked `- [ ]` boxes — one per
+  criterion, one per child — and ticks nothing itself. A Given/When/Then scenario now goes *inside* a
+  single box: a criterion written as prose can never be ticked by the downstream skills.
+- **`/architect:implement-backlog`** (Step 7) ticks the acceptance criteria its committed code
+  satisfies (commit/test/doc as evidence) and names every box it left unticked in the same progress
+  comment. It leaves the parent's task list alone — an Issue is not done until its PR/MR merges.
+- **`/architect:review-issue`** (Step 5) reconciles the checklist against the review verdict before
+  raising the PR/MR: confirmed criteria ticked, refuted ones unticked with the reason on the Issue,
+  and anything still open surfaced in the PR/MR body.
+- **`/architect:merge-issue`** reports unticked acceptance criteria at the **Step 2 confirmation
+  gate** — deliberately not as a preflight check, so the "every preflight must pass" invariant stays
+  absolute — and Step 4 ticks the Issue's box in its Sub-Epic, plus the Sub-Epic's box in the Epic
+  when that Sub-Epic completes. Criteria the user waived are recorded in the merge comment, never
+  ticked to look complete.
+- **`/architect:deliver-backlog`** states that checkboxes are *output*, not resume input: stage
+  selection still reads `impl.status` and the tracker labels, and a mismatched box is a defect for
+  the owning skill to fix.
+
 ## [0.17.4] - 2026-07-26
 
 ### Fixed
