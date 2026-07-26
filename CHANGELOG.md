@@ -9,6 +9,65 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.17.6] - 2026-07-27
+
+### Added
+- **Dependency versions are looked up before they are pinned, and the confirmation is the user's
+  choice** (`rules/dependency-versions.md`, new shared contract). The codegen skills wrote version
+  numbers that came from model memory or from the examples inside this repo's own skill files — and
+  those drift: `config`, `local-env`, `migrate` and the code-pattern references all pinned ScalarDB
+  `3.16.0` while `spring-boot-integration.md` said `3.17.0`, with the current stable line at `3.18.0`
+  (verified against `gh release list -R scalar-labs/scalardb` and
+  `repo1.maven.org/.../scalardb/maven-metadata.xml`). A recalled version is an unverified claim, and a
+  stale one ships into a real build.
+
+  The contract applies to every generated file that pins a version — Gradle/Maven, `package.json`,
+  image tags, Helm/Terraform/Kubernetes, CI runner images:
+  - **Never write a version from memory.** Resolve it from the registry of record, with the lookup
+    named per ecosystem: `repo1.maven.org/.../maven-metadata.xml` (**not** `search.maven.org`'s solr
+    endpoint, whose default ordering returns an older release as if it were newest),
+    `npm view <pkg> dist-tags --json` (the `latest` tag, not `next`/`canary`), `gh release list` (its
+    `Pre-release` marker is explicit), the Docker Hub and Terraform registry APIs (Terraform's version
+    array is **unsorted** — sort semver yourself), `helm search repo --versions`,
+    `endoflife.date/api/<product>.json` for LTS and EOL dates, and context7 for compatibility
+    statements.
+  - **Choose stable, not merely newest.** No prereleases, no moving `:latest`/`stable` tags, prefer
+    the ecosystem's LTS (usually *not* the highest number), never pin an EOL line, treat a
+    brand-new major as a flag rather than a default, let the target project's existing
+    lockfile/BOM/parent-POM win over "latest" (no ambient upgrades as a side effect), and gate the
+    whole set on mutual compatibility — the newest of each is frequently not a working combination.
+  - **Record the decision.** A version decision table (chosen / latest stable / released / source /
+    why / rejected) goes into the artifact, mirrored to `work/version-decisions.json` and reused for
+    7 days (`--refresh-versions` to re-resolve) so parallel sub-agents and later skills cannot pin two
+    different versions of the same library.
+  - **A failed lookup is never filled in with a guess.** Fall back to the project's existing pin, mark
+    the entry `verified: false` with the reason, and surface it.
+
+- **`--confirm-versions` / `--no-confirm-versions` + `options.confirm_versions`.** Whether the resolved
+  set is confirmed with the user or adopted silently is configurable: the flag per run, the
+  `work/pipeline-progress.json` option as the project default, and unset means interactive runs ask
+  while `--auto` runs adopt. `/architect:start` and `/product:start` now ask for this preference
+  alongside the output language, and `init-output` seeds it. Some situations ask regardless of the
+  setting: a failed lookup, a brand-new major as the only current option, an EOL current pin, no
+  compatible set without a downgrade, or a licensed/private registry requirement.
+
+### Changed
+- Wired the contract into every skill that emits a pinned file: `/architect:generate-scalardb-code`,
+  `/architect:generate-infra-code`, `/architect:implement-backlog` (Step 5 — versions resolved once and
+  handed to the sub-agents, with the project's lockfile binding), `/architect:design-infrastructure`
+  (state the version *and* its support horizon), `/product:generate-frontend` (React/Vite/Storybook
+  compatibility is explicit), `/scalardb:scaffold` (new Step 4), `/scalardb:config`,
+  `/scalardb:local-env`, `/scalardb:build-app`, `/scalardb:migrate`.
+- Stale in-text pins are no longer readable as current truth: `config`, `migrate`, `local-env`'s
+  schema-loader commands and the migrate routers' `SCALARDB_TARGET_VERSION` now use version-agnostic
+  placeholders, while the code-pattern references, `spring-boot-integration.md` and the migration
+  templates carry an explicit dated-example banner pointing at the lookup rule.
+- `/scalardb:local-env` no longer ships a moving `:latest` image tag — a compose file must pin a
+  concrete tag to be reproducible.
+- Entry docs kept in sync: `CLAUDE.md` (rules table, conventions, flags), `AGENTS.md` (the shell
+  lookups Codex should use), `OMNIGENT.md`, and `skills/common/progress-registry.md` (which now
+  documents the whole `options` block, including `confirm_versions`).
+
 ## [0.17.5] - 2026-07-27
 
 ### Added

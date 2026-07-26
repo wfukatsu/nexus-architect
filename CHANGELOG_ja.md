@@ -9,6 +9,67 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+## [0.17.6] - 2026-07-27
+
+### 追加
+- **依存バージョンは pin する前に必ず調べる。確認するかどうかはユーザーが選べる**
+  （`rules/dependency-versions.md` — 新しい共有契約）。従来のコード生成スキルは、モデルの記憶や
+  本リポジトリ自身のスキル内サンプルからバージョン番号を書いていた。そしてそれはドリフトする —
+  `config`・`local-env`・`migrate`・code-patterns はいずれも ScalarDB `3.16.0` を pin していたが、
+  `spring-boot-integration.md` は `3.17.0`、実際の現行安定版は `3.18.0` だった
+  （`gh release list -R scalar-labs/scalardb` と
+  `repo1.maven.org/.../scalardb/maven-metadata.xml` で確認済み）。記憶から書いたバージョンは
+  未検証の主張であり、古いバージョンは実際のビルドにそのまま流れ込む。
+
+  対象はバージョンを pin するすべての生成物 — Gradle / Maven、`package.json`、イメージタグ、
+  Helm / Terraform / Kubernetes、CI ランナーイメージ:
+  - **記憶からバージョンを書かない。** エコシステムごとに参照先を明記した:
+    `repo1.maven.org/.../maven-metadata.xml`（`search.maven.org` の solr は既定の並び順が
+    バージョン順では**ない**ため、古いリリースを最新のように返す。使わない）、
+    `npm view <pkg> dist-tags --json`（`latest` タグ。`next`/`canary` ではない）、
+    `gh release list`（`Pre-release` 表示が明示される）、Docker Hub / Terraform レジストリ API
+    （Terraform の versions 配列は**未ソート** — semver で自分で並べる）、
+    `helm search repo --versions`、LTS / EOL 日付は `endoflife.date/api/<product>.json`、
+    互換性の記述は context7。
+  - **「最新」ではなく「安定」を選ぶ。** プレリリースは除外、`:latest`/`stable` のような可変タグは
+    使わない、そのエコシステムが LTS を定義しているなら LTS を優先（多くの場合 LTS は最大の番号では
+    ない）、EOL のラインは pin しない、出たばかりのメジャーは既定採用せずフラグとして扱う、
+    対象プロジェクト既存の lockfile / BOM / 親 POM は "latest" より優先（作業のついでに無関係な
+    依存を上げない）、そして最後に相互互換性で全体を判定する — 各々の最新版の組み合わせは
+    しばしば動かない。
+  - **決定を記録する。** バージョン決定表（採用 / 最新安定版 / リリース日 / 情報源 / 理由 /
+    却下したもの）を成果物に書き、`work/version-decisions.json` にミラーして 7 日間再利用する
+    （`--refresh-versions` で再解決）。並列サブエージェントや後続スキルが同じライブラリに
+    異なるバージョンを pin することを防ぐ。
+  - **調べられなかった時に推測で埋めない。** プロジェクト既存の pin にフォールバックし、
+    `verified: false` と理由を記録してユーザーに提示する。
+
+- **`--confirm-versions` / `--no-confirm-versions` と `options.confirm_versions`。**
+  解決したバージョン群をユーザーに確認するか、黙って採用するかは設定可能: 実行単位はフラグ、
+  プロジェクト既定は `work/pipeline-progress.json` のオプション、未設定なら対話実行では確認し
+  `--auto` では確認せず採用。`/architect:start` と `/product:start` が出力言語と一緒にこの設定を
+  尋ね、`init-output` が初期値を書き込む。設定に関わらず必ず確認するケース: 参照に失敗した場合、
+  現行の選択肢が出たばかりのメジャーのみの場合、既存 pin が EOL の場合、ダウングレードなしに
+  互換な組み合わせが存在しない場合、有償エディションや private レジストリが必要な場合。
+
+### 変更
+- バージョンを pin するすべてのスキルに contract を接続: `/architect:generate-scalardb-code`、
+  `/architect:generate-infra-code`、`/architect:implement-backlog`（Step 5 — 一度解決した
+  バージョンをサブエージェントに渡す。既存 lockfile は拘束的）、
+  `/architect:design-infrastructure`（バージョンとサポート期限を併記）、
+  `/product:generate-frontend`（React / Vite / Storybook の互換性を明示）、
+  `/scalardb:scaffold`（Step 4 を新設）、`/scalardb:config`、`/scalardb:local-env`、
+  `/scalardb:build-app`、`/scalardb:migrate`。
+- 本文中の古い pin が「現在の正解」として読まれないようにした: `config`・`migrate`・`local-env` の
+  schema-loader コマンド・migrate ルーターの `SCALARDB_TARGET_VERSION` はバージョン非依存の
+  プレースホルダに変更し、code-patterns・`spring-boot-integration.md`・移行テンプレートには
+  参照ルールを指す「これは日付付きサンプル」バナーを追加した。
+- `/scalardb:local-env` から可変タグ `:latest` を排除した — compose ファイルは再現性のために
+  具体的なタグを pin する必要がある。
+- エントリードキュメントを同期: `CLAUDE.md`（ルール表・規約・フラグ）、`AGENTS.md`（Codex が使う
+  シェル参照コマンド）、`OMNIGENT.md`、`skills/common/progress-registry.md`
+  （`options` ブロック全体を表として明文化。`confirm_versions` を含む）。
+
 ## [0.17.5] - 2026-07-27
 
 ### 追加
