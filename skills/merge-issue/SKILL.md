@@ -73,12 +73,17 @@ Check, and stop with a clear reason if any fails:
 - **CI / pipeline is green** if the project runs one (`glab ci status` / `gh pr checks`).
 - **No merge conflicts** and the branch is **up to date** with base (offer to rebase/update, but do
   not merge through a conflict).
-
 ### Step 2 — Confirmation gate (required)
 Present the PR/MR title + URL, the base branch, the merge strategy (`--strategy`, default project
 default), and whether the source branch will be deleted (`--delete-branch`). Get an explicit
 go-ahead — skipped only when `--yes-merge` was passed (still print what is about to merge). On
 `--dry-run`, stop here and report what would be merged.
+
+Also read the Issue's **acceptance-criteria checkboxes** (per @skills/common/backlog-checklists.md)
+and list any still `[ ]` here. This is a *reporting* item, not a preflight check — it does not block
+the merge, but the user decides knowingly: accept the merge (the unticked criteria are then recorded
+as waived in Step 4's merge comment) or send the Issue back. Never tick a box to make this list
+empty.
 
 ### Step 3 — Execute the merge
 - GitLab: `glab mr merge <iid> [--squash|--rebase] [--remove-source-branch] [--yes]`.
@@ -86,12 +91,20 @@ go-ahead — skipped only when `--yes-merge` was passed (still print what is abo
 Capture the merge commit SHA / result.
 
 ### Step 4 — Post-merge roll-up
+This skill owns every **child task-list tick** in the hierarchy (per
+@skills/common/backlog-checklists.md): a box flips only when its item is actually `done`, which is
+what merging establishes. Edit each parent body in place — flip only the matched `[ ]` → `[x]` — and
+skip this entirely on the native-Epic/sub-issue path, where the parent has no task list.
+
 - **Issue** — set `status::done`, close it (if not auto-closed by `Closes #`), and comment the merge
-  result (merge commit / URL).
-- **Sub-Epic** — comment a roll-up (N/M Issues done); when all its Issues are done, set the Sub-Epic
-  `status::done` and run the whole-Epic review (`/architect:implement-backlog --review-epic=<epic>`,
-  or note it for the user).
-- **Epic** — comment progress roll-up.
+  result (merge commit / URL). Any acceptance criterion the user waived at the Step 2 gate is named
+  in that comment and stays `[ ]`.
+- **Sub-Epic** — **tick this Issue's box** in the Sub-Epic's `## Issues` task list, then comment a
+  roll-up (N/M Issues done); when all its Issues are done, set the Sub-Epic `status::done` and run
+  the whole-Epic review (`/architect:implement-backlog --review-epic=<epic>`, or note it for the
+  user).
+- **Epic** — comment progress roll-up, and **tick the Sub-Epic's box** in the Epic's `## Sub-Epics`
+  task list when that Sub-Epic just went `done`.
 - **Manifest** — update **every node this roll-up moved**, not just the Issue. The Issue node gets
   `impl.status = done`, `pr.merged = true`, merge SHA, `updated_at`; a Sub-Epic or Epic that was
   transitioned to `status::done` above gets its own `impl.status = done` + `updated_at` (no `pr`
@@ -108,7 +121,13 @@ Capture the merge commit SHA / result.
   manifest are updated — including `impl.status` on any Sub-Epic/Epic this roll-up completed, so no
   node is `done` on the tracker while the manifest still reads unstarted.
 - A completed Sub-Epic triggers (or clearly recommends) the whole-Epic review.
-- `--dry-run` performs no merge and no writes; it only reports readiness and intent.
+- The Issue's box in its Sub-Epic's task list (and the Sub-Epic's box in the Epic's, when it just
+  completed) is ticked, so the tracker's progress counters match the merged reality — unless the
+  hierarchy uses native Epic/sub-issue links, which carry no task list.
+- Unticked acceptance criteria were reported before the merge and, if the user accepted them anyway,
+  recorded as waived in the merge comment — never ticked to look complete.
+- `--dry-run` performs no merge and no writes (no body edits); it only reports readiness and intent,
+  including which boxes would flip.
 
 ## Related Skills
 

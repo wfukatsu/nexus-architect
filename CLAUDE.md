@@ -248,6 +248,7 @@ do not load ScalarDB rules for non-ScalarDB work.
 | Output structure contract | templates/output-structure.md | File dependencies |
 | Sub-agent patterns | skills/common/sub-agent-patterns.md | Spawning sub-agents |
 | Progress registry | skills/common/progress-registry.md | pipeline-progress.json schema and resume behavior |
+| Backlog checklist contract | skills/common/backlog-checklists.md | Ticking Epic/Sub-Epic/Issue checkboxes during backlog delivery |
 | API reference | skills/common/references/api-reference.md | ScalarDB API details |
 | Interface matrix | skills/common/references/interface-matrix.md | 6 interface combinations |
 | Exception hierarchy | skills/common/references/exception-hierarchy.md | Exception decision tree |

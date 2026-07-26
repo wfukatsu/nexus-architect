@@ -151,6 +151,12 @@ If the verdict has `[B]` blockers and `--no-fix` is not set (and the verdict is 
    - Ask the user via AskUserQuestion how to proceed, and stop.
 
 ### Step 5 — Raise the PR/MR (blockers = 0)
+- **Reconcile the acceptance-criteria checklist first** (per @skills/common/backlog-checklists.md):
+  the review is the verification step, so tick (`[ ]` → `[x]`) every criterion the verdict confirms,
+  and **untick** any box `implement-backlog` ticked that the review or a fix round showed is not
+  met — naming the reason in the Issue comment. Edit the body in place (flip markers only). If
+  criteria remain unticked, say so in the PR/MR body rather than opening it as if the Issue were
+  complete.
 - Push the working branch. Open a PR/MR that links and closes the Issue (`Closes #<iid>`), with a
   body assembled from the Issue, the review summary, the acceptance-criteria checklist, and any
   remaining `[S]`/`[Q]` notes. GitLab: `glab mr create -s <branch> -t <base> --title … --description …`;
@@ -172,6 +178,9 @@ If the verdict has `[B]` blockers and `--no-fix` is not set (and the verdict is 
   prompt.
 - A PR/MR is opened only when blockers are 0, linked to the Issue, and the skill hands off for
   approval rather than merging.
+- The Issue's acceptance-criteria checkboxes match the review verdict before the PR/MR is opened:
+  confirmed criteria ticked, refuted ones unticked with a stated reason, remaining ones surfaced in
+  the PR/MR body.
 - `--dry-run` performs no fixes, comments, or PR/MR creation (but the local knowledge base is still
   updated).
 - Every review updates `reports/backlog/shared-context/review-knowledge.md` with distilled,
