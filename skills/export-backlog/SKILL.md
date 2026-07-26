@@ -145,6 +145,14 @@ Write two files under `reports/backlog/` **before creating anything remotely**:
   `{ local_id, level, title, body, labels, parent_local_id, source_reports, traceability,
   remote: null }`. This is the source of truth for creation and idempotency.
 
+  **`labels` is the creation seed, not live state.** It records what was attached when the item was
+  created (`status::todo` and the type/domain labels) and is *never* advanced afterwards — status
+  moves on the tracker and, for the pipeline's own bookkeeping, in the node's `impl.status` written
+  by `/architect:implement-backlog` and `/architect:merge-issue`. So a node whose Issue is long
+  since `status::done` still shows `status::todo` here, by design. Anything deciding what to work on
+  next must read the tracker label or `impl.status` — never this array. (`--update` syncs labels to
+  the remote, which is the one case it is rewritten.)
+
 ### Step 4 — Confirmation gate (required — do not skip)
 Creating remote work items is outward-facing and hard to reverse. Present a concise summary
 (counts per level, target project, whether native Epics or the label fallback will be used) and

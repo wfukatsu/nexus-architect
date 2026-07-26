@@ -35,6 +35,11 @@ This orchestrator does **not** create a new progress file. The source of truth i
 labels: `todo · doing · review · done · blocked`). Re-running resumes from there — completed Issues
 are skipped, in-flight Issues continue from their current stage.
 
+Read state from `impl.status` and the tracker, **never from a node's `labels` array** — that field
+is the creation seed `export-backlog` wrote and is not advanced as work progresses, so trusting it
+would re-deliver finished Issues. When the two disagree, the tracker wins and the manifest is
+brought up to date.
+
 ## Command-Line Options
 
 - `--epic=<id>`: Deliver the Issues under this Epic. If omitted, the target Epic is chosen interactively.
