@@ -9,6 +9,34 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.17.2] - 2026-07-26
+
+### Fixed
+- **`/architect:generate-docs` — region insert and remove are now exact inverses.** Re-run testing
+  showed the whitespace around a marked region was unspecified, so remove → re-insert did not
+  reproduce the file and repeated cycles left whitespace-only diff noise — in a file whose whole
+  point is being reviewable. The rule is now explicit: exactly one blank line separates a region
+  from its neighbours (or it sits flush against start/end of file); removal takes the region plus
+  the single blank line that follows it, or at end of file the one that precedes it; the file ends
+  with exactly one newline and no run of two or more blank lines is introduced. Verified before the
+  rule was written: under it, remove → re-insert reproduces the file byte-for-byte for both a
+  mid-file and an EOF-adjacent region, and five remove/append cycles produce zero drift.
+
+### Added
+- **`skills/generate-docs/marker-mechanics.test.py` — the ownership-marker contract asserted as
+  behaviour.** SKILL.md states the marker rules in prose, so a later edit could quietly break
+  re-run safety. 17 checks over five properties: in-place update leaves human prose byte-identical
+  and duplicates nothing; re-application is a no-op; removal takes the region without touching
+  other content; keys outside the stable list are refused for both update and removal; and
+  insert/remove round-trip byte-for-byte with no drift over repeated cycles. Self-contained via an
+  embedded fixture, or pass a path to check a real README; exit 1 on failure, matching the
+  `hooks/*.sh` CLI convention.
+
+### Changed
+- CLAUDE.md's verification note lists the new test and no longer pins a plugin version number that
+  had gone stale (it said `0.15.0`); it now states that the three plugins share one version and are
+  bumped together, and records the tag + GitHub release steps in the release flow.
+
 ## [0.17.1] - 2026-07-26
 
 ### Fixed
