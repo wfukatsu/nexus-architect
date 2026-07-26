@@ -118,7 +118,8 @@ whitespace-only diff noise in a file whose whole point is being reviewable:
 - the file ends with exactly one newline, and no run of two or more blank lines is ever introduced
 
 Verified by round-trip: under this rule, remove → re-insert reproduces the file byte-for-byte, and
-repeated cycles do not drift.
+repeated cycles do not drift. The whole marker contract above is asserted as behaviour by
+`skills/generate-docs/marker-mechanics.test.py` — run it after changing these rules.
 
 ## Sub-Agent Execution & Model Assignment
 
