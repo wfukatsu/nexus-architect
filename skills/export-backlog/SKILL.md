@@ -85,7 +85,9 @@ backlog stays linked to the design.
 
 ### Issue — How
 - **How**: the implementation approach — components/classes/endpoints/schema to build or change.
-- **Acceptance Criteria**: a checklist or Given/When/Then; must be verifiable.
+- **Acceptance Criteria**: a markdown checkbox per criterion (`- [ ] …`), each verifiable. A
+  Given/When/Then scenario goes *inside* one box, so every criterion stays individually tickable
+  downstream (see Checklist Contract).
 - **Body sections**: `## How`, `## Acceptance Criteria`, `## References` (source report path +
   traceability IDs), and suggested `size` (S/M/L).
 - - **Bake in past lessons**: when a `review-knowledge.md` rule applies to an Issue's area, fold it
@@ -95,6 +97,14 @@ backlog stays linked to the design.
   `api-design.md` / `api-specifications/`; a schema or migration unit from `data-model.md` /
   `scalardb-*.md`; a service/repository/value-object spec from `reports/06_implementation/`; a
   transformation step; each **High/Critical** review finding from `review-synthesis.md`.
+
+## Checklist Contract (shared with the backlog family)
+
+Read @skills/common/backlog-checklists.md — the single source of truth for the two checklists
+(parent child-task-list, Issue acceptance criteria), who ticks each, and the in-place edit mechanics.
+This skill is the **author** of both: it must emit them as unticked `- [ ]` boxes (one per criterion,
+one per child), because a criterion written as prose can never be ticked by the downstream skills. It
+never ticks anything — at creation time nothing is done yet.
 
 ## Steps
 
@@ -195,7 +205,10 @@ Print the Epic URL(s) to the user.
 
 - A `backlog-plan.md` + `backlog-manifest.json` are written and approved **before** any remote
   create call.
-- Every Issue has at least one verifiable acceptance criterion and a source-report reference.
+- Every Issue has at least one verifiable acceptance criterion and a source-report reference, and
+  every criterion is written as an unticked `- [ ]` checkbox so downstream skills can tick it.
+- Every parent created on the task-list scheme lists its children as `- [ ] #<iid>` boxes (the
+  native Epic/sub-issue path uses the links instead — no duplicate list).
 - Every node traces to a source report; Key Results cite a metric/SLO/NFR ID (or are marked `TBD`).
 - Re-running does not create duplicates; created URLs are recorded in the manifest.
 - No fabricated numbers, endpoints, or requirements — everything derives from the reports.

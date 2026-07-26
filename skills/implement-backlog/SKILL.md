@@ -267,11 +267,17 @@ collected results); the orchestrator executes the actual `glab`/`gh` writes. On 
 before any remote write and report the intended changes.
 - **Issue** — comment with what was implemented (files, key decisions, deviations), the
   acceptance-criteria checklist status, and the review result; transition status to
-  **`status::review` at most**. `status::done` is owned by `/architect:merge-issue` — an Issue is
-  done only when its PR/MR has merged, so this skill never sets `done` (that would silently drop the
-  Issue out of the review → PR/MR → merge flow).
+  **`status::review` at most**. **Tick the acceptance-criteria checkboxes** this item's committed
+  code actually satisfies — edit the Issue body in place per @skills/common/backlog-checklists.md,
+  flipping only `[ ]` → `[x]` on the criteria you can point at a commit/test/doc for, and list every
+  box left unticked (with what is missing) in the same comment. Never tick a criterion because it is
+  planned, and never rewrite the body wholesale. `status::done` is owned by
+  `/architect:merge-issue` — an Issue is done only when its PR/MR has merged, so this skill never
+  sets `done` (that would silently drop the Issue out of the review → PR/MR → merge flow).
 - **Sub-Epic** — comment with a roll-up (progress and notable decisions). Sub-Epic `status::done`
-  is likewise set by `/architect:merge-issue` when its last Issue merges.
+  is likewise set by `/architect:merge-issue` when its last Issue merges — and so is the tick on
+  this Issue's box in the Sub-Epic's `## Issues` task list: leave it unticked here, since the Issue
+  is not done until its PR/MR merges.
 - **Epic** — comment with a progress roll-up and any cross-cutting decisions.
 - Mirror the appended notes to `reports/backlog/impl-log/<item>.md` (with frontmatter), and update
   the node in `backlog-manifest.json` with `impl: { status, files, decisions, updated_at }`.
@@ -285,6 +291,9 @@ Offer the next `doing` / `todo` item under the same Epic (confirm before startin
   unaddressed (fixed or surfaced as a finding).
 - Every implemented item ends with a progress comment on its Issue and a status-label transition,
   mirrored in `reports/backlog/impl-log/`.
+- The Issue's acceptance-criteria checkboxes reflect reality: each satisfied criterion is `[x]` with
+  evidence, each unsatisfied one is still `[ ]` and named in the comment; the parent's child task
+  list is left to `/architect:merge-issue`.
 - The shared-context pack exists and was consulted — including `review-knowledge.md`, so known
   review findings are not reintroduced; any new cross-cutting decision is recorded in `decisions.md`.
 - No fabricated requirements/endpoints/numbers — everything traces to acceptance criteria or a

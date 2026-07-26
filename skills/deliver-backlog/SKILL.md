@@ -35,6 +35,11 @@ This orchestrator does **not** create a new progress file. The source of truth i
 labels: `todo · doing · review · done · blocked`). Re-running resumes from there — completed Issues
 are skipped, in-flight Issues continue from their current stage.
 
+The markdown **checkboxes** on the items (child task lists and acceptance criteria, maintained by the
+wrapped skills per @skills/common/backlog-checklists.md) are a *rendering* of that progress for
+humans, not an input: read stage from `impl.status`/labels, and treat a mismatched box as something
+the responsible skill should fix, not as state.
+
 Read state from `impl.status` and the tracker, **never from a node's `labels` array** — that field
 is the creation seed `export-backlog` wrote and is not advanced as work progresses, so trusting it
 would re-deliver finished Issues. When the two disagree, the tracker wins and the manifest is
@@ -108,7 +113,9 @@ Epic's overall progress.
 
 1. Every targeted Issue is `status::done` (merged), or explicitly `blocked`/deferred by the user.
 2. `backlog-manifest.json` reflects the final `impl.status` / `pr` state for each processed Issue.
-3. A delivery summary has been presented.
+3. Each processed item's checkboxes match its outcome — acceptance criteria ticked (or explicitly
+   reported as open/waived), and merged Issues ticked off in their Sub-Epic's task list.
+4. A delivery summary has been presented.
 
 ## Related Skills
 
