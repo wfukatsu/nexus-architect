@@ -9,6 +9,63 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.17.3] - 2026-07-26
+
+Everything here came out of exercising the backlog-delivery path for real — the marker contract
+against a live `/product:generate-frontend` scaffold, the Output Location interlock on a scratch
+repository, the Step 1 sub-agent delegation, and the full tracker write path (status transitions,
+progress comments, PR linkage, merge, close, roll-up) against a throwaway repository rather than
+live work items.
+
+### Fixed
+- **`/architect:merge-issue` — parent completion now reaches the manifest.** Step 4 said "update the
+  node", singular, alongside `pr.merged` and a merge SHA — fields that only exist on an Issue. A
+  Sub-Epic or Epic transitioned to `status::done` on the tracker therefore had nothing written back.
+  Observed exactly that in a real 35-node backlog: all 27 Issue nodes carried `impl`, while the Epic
+  and four completed Sub-Epics had no `impl` key at all — so a later `deliver-backlog` resume, which
+  reads `impl.status`, would see a finished Sub-Epic as unstarted. Step 4 now updates every node the
+  roll-up moved, with `pr` fields scoped to the Issue.
+- **`/architect:export-backlog`, `/architect:deliver-backlog` — the manifest's `labels` array is a
+  creation seed, not live state.** It records what was attached at creation (`status::todo` plus
+  type/domain labels) and is never advanced; status lives on the tracker and in `impl.status`. In the
+  real backlog every node still read `status::todo` while the tracker held 7 done and 9 doing.
+  Harmless today because nothing reads it, but a trap for resume logic — so `export-backlog` states
+  what the field is (and that `--update` is the one case it is rewritten), and `deliver-backlog` is
+  explicit that state comes from `impl.status` and the tracker, never from `labels`, with the tracker
+  winning on disagreement.
+- **`/architect:generate-docs` — the inventory digest separates observed from inferred.** Exercising
+  the Step 1 delegation validated the design (a haiku Explore agent returned a digest covering all
+  six fields, matching independently verified ground truth on every count and command, with no source
+  pasted and nothing fabricated) but exposed a gap: it asserted "Node.js 18+" as inventory when
+  `package.json` declares no `engines` — an inference from Vite 5's requirement. The conclusion was
+  right, but the orchestrator holds only the digest and cannot tell inference from observation, so it
+  reaches the README as fact, defeating the skill's central discipline. Derived values must now be
+  marked `inferred: <value> (<basis>)` and are documented with their basis or hedged, never asserted
+  as read from the code.
+- **`/product:generate-frontend` — regeneration says so before it overwrites.** The output location
+  is correct (the tree is meant to be replaced, which is why `adapt-change` re-runs the skill), but
+  nothing warned that a re-run destroys hand-edits under the output root; `adapt-change` carries a
+  reversibility guarantee while the skill doing the writing said nothing. It now states plainly that
+  it will overwrite and confirms (unless `--auto`), offers `--out=<path>` to regenerate alongside
+  instead of over, and notes that a scaffold which has graduated into a hand-maintained frontend
+  belongs outside `generated/`.
+
+### Added
+- **`skills/implement-backlog/output-location.test.sh`** — the Output Location interlock asserted as
+  behaviour. Builds a scratch repository whose `.gitignore` carries the usual
+  `reports/`/`generated/`/`work/` block and checks that `check-ignore` rejects a source root under
+  `generated/` and names the matching rule, accepts a real `services/` root inside the worktree, that
+  a docs commit lands on `feature/<issue-id>-<slug>` with the Issue reference and stages the intended
+  file, and that an output path git ignores stages nothing so the commit is refused rather than
+  silently empty. 11 checks, exit 1 on failure.
+
+### Changed
+- Both changelogs' link-reference blocks were stale — `CHANGELOG.md` stopped at `0.8.2`, leaving 13
+  tagged versions unlinked plus a broken `[0.7.0]` link to a tag that was never cut, and
+  `CHANGELOG_ja.md` had no references at all. Both now carry one reference per existing tag.
+- `docs/codex-gap-analysis_ja.md` said the repo currently has 80 skills; it has 87 (architect 50 /
+  product 26 / scalardb 11).
+
 ## [0.17.2] - 2026-07-26
 
 ### Fixed
@@ -445,6 +502,7 @@ with 75 skills total.
 ### Changed
 - Restructured the repository into a Claude Code plugin-compatible layout.
 
+[0.17.3]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.3
 [0.17.2]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.2
 [0.17.1]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.1
 [0.17.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.0
