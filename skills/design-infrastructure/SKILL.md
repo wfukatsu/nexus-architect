@@ -18,6 +18,14 @@ Design a production-grade infrastructure configuration:
 - Multi-environment strategy (dev/staging/prod, Kustomize overlays)
 - When using ScalarDB Cluster: Helm chart configuration, Coordinator placement
 
+## Platform Versions
+
+Where the design names a version — Kubernetes, the Helm chart, ScalarDB Cluster, a managed database
+engine — look it up rather than recalling it, and choose a **stable, non-EOL** release per
+@rules/dependency-versions.md (`endoflife.date` for support windows, the chart/registry APIs for what
+is published). State the version *and* its support horizon in the design, so
+`/architect:generate-infra-code` pins the same set and the reader knows when it expires.
+
 ## Prerequisites
 
 | File | Required/Recommended | Source |

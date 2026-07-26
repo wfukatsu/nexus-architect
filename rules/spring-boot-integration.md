@@ -1,5 +1,10 @@
 # Spring Boot + ScalarDB Integration Guide
 
+> **The versions below are a dated example** (snapshot: 2026-07), not the current stable releases.
+> Resolve each pin per @rules/dependency-versions.md before writing a `build.gradle`, and check the
+> Spring Boot ↔ Java ↔ ScalarDB combination for compatibility — the newest of each is not
+> automatically a working set.
+
 ## Gradle Dependencies
 
 ```groovy

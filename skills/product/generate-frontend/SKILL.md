@@ -43,13 +43,15 @@ skill turns both into reusable, story-backed React components organized by **Ato
 ## Invocation
 
 ```
-/product:generate-frontend [--design-system=<name>] [--out=<path>] [--auto] [--lang=ja|en]
+/product:generate-frontend [--design-system=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--auto] [--lang=ja|en]
 ```
 
 | Argument/Flag | Required | Description |
 |---------------|----------|-------------|
 | `--design-system=<name>` | Optional | Override the active design system. Default: `options.design_system` from the progress file. |
 | `--out=<path>` | Optional | Output root. Default `generated/frontend/`. |
+| `--confirm-versions` / `--no-confirm-versions` | Optional | Confirm the resolved dependency versions with the user, or adopt them silently. Default: ask interactively, adopt under `--auto`; project default via `options.confirm_versions`. See @rules/dependency-versions.md. |
+| `--refresh-versions` | Optional | Ignore a fresh `work/version-decisions.json` and re-resolve every version from its registry. |
 | `--auto` | Optional | Generate without elicitation; resolve every ambiguity with the best-justified default and log it. |
 | `--lang` | Optional | Override output language (UI copy / comments). Code identifiers stay English. |
 
@@ -71,6 +73,14 @@ skill turns both into reusable, story-backed React components organized by **Ato
 - **The scaffold must actually run.** Dependency versions are mutually compatible and pinned; the
   generated `package.json` scripts (`dev`, `build`, `storybook`, `build-storybook`, `typecheck`)
   exist and are correct. Prefer a small, coherent toolchain over feature breadth.
+- **Pinned versions are looked up, never recalled** (@rules/dependency-versions.md). Resolve React,
+  TypeScript, Vite, Storybook, react-router and the Node engine range from their registries
+  (`npm view <pkg> dist-tags --json`, `endoflife.date` for Node's LTS window), take the `latest`
+  dist-tag rather than `next`/`canary`, and verify the set is mutually compatible — the newest of each
+  is frequently not a working combination, and Storybook in particular gates on the Vite/React major.
+  Present the version decision table for confirmation per `--confirm-versions` /
+  `--no-confirm-versions` / `options.confirm_versions` (default: ask, except under `--auto`), and write
+  it into the scaffold README plus `work/version-decisions.json`.
 - **Trace every component** to its `CMP-`/`TOK-` and every page to its `STORY-`/screen.
 - **Regeneration overwrites — say so before it does.** What this skill emits is regenerable output:
   a re-run, whether invoked directly or by `/product:adapt-change` when the mocks or the design

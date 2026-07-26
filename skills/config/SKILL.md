@@ -54,6 +54,15 @@ Read `${CLAUDE_PLUGIN_ROOT}/skills/common/references/configuration-reference.md`
 Read `${CLAUDE_PLUGIN_ROOT}/skills/common/references/interface-matrix.md` for the dependency matrix.
 Read `${CLAUDE_PLUGIN_ROOT}/rules/scalardb-config-validation.md` for required properties and valid values per backend.
 
+## Dependency Versions
+
+The dependency coordinates below are written `:<version>` on purpose. Resolve the concrete version
+per `rules/dependency-versions.md` — read the published list from
+`https://repo1.maven.org/maven2/com/scalar-labs/<artifact>/maven-metadata.xml`, pick the newest
+**stable** release (no `-alpha`/`-beta`/`-rc`/`-SNAPSHOT`) that matches the project's edition and Java
+version, keep every ScalarDB artifact on the **same** version, and confirm with the user unless the
+project opted out (`options.confirm_versions` / `--no-confirm-versions`).
+
 ## Configuration Templates
 
 ### Core + CRUD (MySQL)
@@ -63,7 +72,7 @@ scalar.db.contact_points=jdbc:mysql://localhost:3306/
 scalar.db.username=root
 scalar.db.password=mysql
 ```
-Dependency: `com.scalar-labs:scalardb:3.16.0`
+Dependency: `com.scalar-labs:scalardb:<version>`
 
 ### Core + CRUD (PostgreSQL)
 ```properties
@@ -72,7 +81,7 @@ scalar.db.contact_points=jdbc:postgresql://localhost:5432/
 scalar.db.username=postgres
 scalar.db.password=postgres
 ```
-Dependency: `com.scalar-labs:scalardb:3.16.0`
+Dependency: `com.scalar-labs:scalardb:<version>`
 
 ### Core + CRUD (Cassandra)
 ```properties
@@ -81,7 +90,7 @@ scalar.db.contact_points=localhost
 scalar.db.username=cassandra
 scalar.db.password=cassandra
 ```
-Dependency: `com.scalar-labs:scalardb:3.16.0`
+Dependency: `com.scalar-labs:scalardb:<version>`
 
 ### Core + CRUD (DynamoDB Local)
 ```properties
@@ -91,21 +100,21 @@ scalar.db.username=sample
 scalar.db.password=sample
 scalar.db.dynamo.endpoint_override=http://localhost:8000
 ```
-Dependency: `com.scalar-labs:scalardb:3.16.0`
+Dependency: `com.scalar-labs:scalardb:<version>`
 
 ### Cluster + CRUD
 ```properties
 scalar.db.transaction_manager=cluster
 scalar.db.contact_points=indirect:localhost
 ```
-Dependency: `com.scalar-labs:scalardb-cluster-java-client-sdk:3.16.0`
+Dependency: `com.scalar-labs:scalardb-cluster-java-client-sdk:<version>`
 
 ### Cluster + JDBC
 ```properties
 scalar.db.sql.connection_mode=cluster
 scalar.db.sql.cluster_mode.contact_points=indirect:localhost
 ```
-Dependencies: `com.scalar-labs:scalardb-sql-jdbc:3.16.0` + `com.scalar-labs:scalardb-cluster-java-client-sdk:3.16.0`
+Dependencies: `com.scalar-labs:scalardb-sql-jdbc:<version>` + `com.scalar-labs:scalardb-cluster-java-client-sdk:<version>`
 
 ## Output Format
 

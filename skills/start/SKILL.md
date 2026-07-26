@@ -20,6 +20,13 @@ Ask the user which language to use for output documents:
 
 Record the selection in work/pipeline-progress.json under options.output_language.
 
+Ask one more project-level preference at the same time — **dependency version confirmation**: when a
+codegen skill resolves the versions it is about to pin (see @rules/dependency-versions.md), should it
+present the version decision table for approval, or adopt the resolved stable versions on its own?
+Record the answer as `options.confirm_versions` (`true` = ask, `false` = adopt silently). Default to
+`true` if the user has no preference; a per-run `--confirm-versions` / `--no-confirm-versions`
+overrides it.
+
 ## Product Handoff Detection
 
 Before selecting a path, check whether the **product** plugin already ran in this project:

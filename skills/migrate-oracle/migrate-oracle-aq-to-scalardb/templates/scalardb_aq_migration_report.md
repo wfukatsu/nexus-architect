@@ -1,5 +1,10 @@
 # Oracle AQ Migration Report Template
 
+> **The ScalarDB / image versions below are a dated example** (snapshot: 2026-07). Resolve the
+> current stable release per `rules/dependency-versions.md` before the migration pins anything —
+> a migration is the moment to land on a supported version, not to inherit an old one.
+
+
 This template is used to generate the **AQ migration report**. Replace all `{{PLACEHOLDER}}` tokens with actual values from the analysis.
 
 ---

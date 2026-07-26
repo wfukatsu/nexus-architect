@@ -1,5 +1,10 @@
 # AQ Migration Strategy Guide: Oracle Triggers & Stored Procedures to AQ + ScalarDB Consumer
 
+> **The ScalarDB / image versions below are a dated example** (snapshot: 2026-07). Resolve the
+> current stable release per `rules/dependency-versions.md` before the migration pins anything —
+> a migration is the moment to land on a supported version, not to inherit an old one.
+
+
 ## Overview
 
 This guide provides patterns for converting Oracle triggers and stored procedures into an event-driven architecture:

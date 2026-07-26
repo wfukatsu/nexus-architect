@@ -33,7 +33,21 @@ If the user has no preference, use the standard sample model:
 - orders (customer_id, timestamp, order_id)
 - items (item_id, name, price)
 
-### Step 4: Generate Project
+### Step 4: Resolve dependency versions
+
+Before generating anything, resolve the versions the project will pin — ScalarDB (edition-matched),
+Java, Gradle plugins, the database image tag — per `rules/dependency-versions.md`. Look each up
+(`https://repo1.maven.org/maven2/com/scalar-labs/<artifact>/maven-metadata.xml`,
+`gh release list -R scalar-labs/scalardb`, Docker Hub tag API, `endoflife.date` for the Java/database
+support window), take the newest **stable** release of a supported line (never `-alpha`/`-beta`/`-rc`/
+`-SNAPSHOT`, never a moving `:latest` image tag), keep all ScalarDB artifacts on one version, and
+treat the versions in `code-patterns/*.md` as dated examples rather than the answer.
+
+Then present the version decision table and ask the user to confirm it — unless they opted out for
+this project (`options.confirm_versions: false` in `work/pipeline-progress.json`, or
+`--no-confirm-versions`). Record the table in the generated `README.md`.
+
+### Step 5: Generate Project
 
 Generate ALL of the following files:
 

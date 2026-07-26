@@ -32,7 +32,7 @@ Create the directory structure and state files required to run the `product` pip
    ```json
    {
      "schema_version": 1,
-     "options": { "output_language": "en", "no_research": false, "profile": "full", "design_system": null, "frontend": null },
+     "options": { "output_language": "en", "confirm_versions": true, "no_research": false, "profile": "full", "design_system": null, "frontend": null },
      "phases": {
        "define-vision": { "status": "pending", "outputs": [], "updated_at": null }
      },
@@ -41,7 +41,9 @@ Create the directory structure and state files required to run the `product` pip
    ```
 
    Ask the user which `output_language` to use (`en` default / `ja`) unless it is already set
-   or passed via `--lang`.
+   or passed via `--lang`. `confirm_versions` (default `true`) controls whether
+   `/product:generate-frontend` confirms the dependency versions it resolves before pinning them —
+   see @rules/dependency-versions.md.
 
 3. Initialize `work/traceability.json` as an empty graph — this is what makes
    `/product:adapt-change` work; every skill appends to it:

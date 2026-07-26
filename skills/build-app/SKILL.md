@@ -31,6 +31,15 @@ Generate the appropriate configuration:
 - `database.properties` or `scalardb-sql.properties`
 - Correct Maven dependencies in `build.gradle`
 
+**Resolve every version before pinning it**, per `rules/dependency-versions.md`: look up ScalarDB
+(`https://repo1.maven.org/maven2/com/scalar-labs/<artifact>/maven-metadata.xml` or
+`gh release list -R scalar-labs/scalardb`), Java, the Gradle plugins and the database image tag; take
+the newest **stable** release of a supported line (no `-alpha`/`-beta`/`-rc`/`-SNAPSHOT`, no moving
+`:latest` tag); keep all ScalarDB artifacts on one version; and treat the numbers in
+`code-patterns/*.md` as dated examples. Present the version decision table for confirmation unless the
+project opted out (`options.confirm_versions: false` / `--no-confirm-versions`), and record it in the
+generated `README.md`.
+
 ### Step 4: Service Layer
 Generate the service class(es) with:
 - All CRUD operations for each entity

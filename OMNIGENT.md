@@ -178,7 +178,8 @@ analysis themselves. To run a pipeline under Omnigent:
    `Task` dispatch section). Honor `conditions` (e.g. `scalardb_enabled` selects
    `review-scalardb`; `scalardb_disabled` selects `review-data-integrity`).
 3. Track progress in `work/pipeline-progress.json` (plain data — not a Claude construct).
-   It also holds `options.output_language` (`en` default, `ja` supported).
+   It also holds `options.output_language` (`en` default, `ja` supported) and
+   `options.confirm_versions` (see Dependency Versions).
 
 The `disable-model-invocation: true` frontmatter on orchestrator files is a Claude Code
 hint; Omnigent ignores it and treats the file as the orchestration spec above.
@@ -193,6 +194,17 @@ hint; Omnigent ignores it and treats the file as the orchestration spec above.
 - Keep generated outputs in the documented output directories with YAML frontmatter.
 - After writing any report `.md` or Mermaid diagram, run **both** validation hooks and fix
   any non-zero exit before proceeding.
+
+## Dependency Versions
+
+Any generated file that pins a version (Gradle/Maven, `package.json`, image tags, Helm/Terraform/
+Kubernetes) must use a version that was **looked up** from its registry at generation time — never
+recalled from model memory or copied out of a skill example — and must be a stable, non-EOL,
+mutually compatible release. Whether the resolved set is confirmed with the human is configurable:
+`--confirm-versions` / `--no-confirm-versions` per run, `options.confirm_versions` in
+`work/pipeline-progress.json` as the project default (unset -> interactive runs ask, `--auto` runs
+adopt). Record the decision table in the artifact and in `work/version-decisions.json`. See
+[`rules/dependency-versions.md`](rules/dependency-versions.md).
 
 ## Output Language
 

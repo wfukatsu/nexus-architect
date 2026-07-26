@@ -214,8 +214,10 @@ ACTIVE_DATABASE=oracle
 # SHARED OUTPUT CONFIGURATION (ABSOLUTE PATH REQUIRED)
 OUTPUT_DIR=<collected_output_dir>
 
-# ScalarDB target version
-SCALARDB_TARGET_VERSION=3.17
+# ScalarDB target version — resolve the current stable release before setting this
+# (rules/dependency-versions.md: gh release list -R scalar-labs/scalardb, or
+#  repo1.maven.org/maven2/com/scalar-labs/scalardb/maven-metadata.xml)
+SCALARDB_TARGET_VERSION=<resolved-stable-version>
 
 # =============================================================================
 # POSTGRESQL CONFIGURATION (defaults - not yet configured)

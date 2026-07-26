@@ -2,6 +2,11 @@
 
 Production deployment using ScalarDB Cluster with the native CRUD API.
 
+> **Versions in this file are a dated example** (snapshot: 2026-07), not the current stable
+> release. Before emitting a `build.gradle`, resolve each pin per
+> `rules/dependency-versions.md` — the ScalarDB line, Java, and the logging/CLI libraries all
+> move independently of this document.
+
 ## build.gradle
 
 ```groovy
