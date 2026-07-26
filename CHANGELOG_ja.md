@@ -9,6 +9,57 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+## [0.17.3] - 2026-07-26
+
+本リリースの内容はすべて、バックログ配送経路を実地で動かした結果として得られたものです — マーカー契約を
+実在の `/product:generate-frontend` スキャフォールドに対して、Output Location インターロックをスクラッチ
+リポジトリで、Step 1 のサブエージェント委譲を実プロジェクトで、そしてトラッカーへの全書き込み経路
+（ステータス遷移・進捗コメント・PR 連携・マージ・クローズ・ロールアップ）を実作業項目ではなく使い捨て
+リポジトリに対して実行しました。
+
+### 修正
+- **`/architect:merge-issue` — 親ノードの完了が manifest に届くようになった。** Step 4 の記述が
+  "update the node"（単数）で、しかも Issue にしか存在しない `pr.merged` や merge SHA と併記されて
+  いた。そのため Sub-Epic/Epic をトラッカー上で `status::done` にしても manifest には何も書き戻され
+  なかった。実在の35ノードのバックログでまさにこの状態を観測 — Issue 27件は全て `impl` を持つ一方、
+  Epic と完了済み Sub-Epic 4件には `impl` キー自体が無かった。`deliver-backlog` は `impl.status` を
+  読んで resume するため、完了済みの Sub-Epic を未着手と誤認する経路になる。Step 4 はロールアップが
+  動かした全ノードを更新するようになり、`pr` 系フィールドは Issue のみに限定された。
+- **`/architect:export-backlog`・`/architect:deliver-backlog` — manifest の `labels` 配列は作成時の
+  シード値であり現在値ではない。** 作成時に付与された内容（`status::todo` と type/domain ラベル）を
+  記録するだけで以後更新されず、ステータスはトラッカーと `impl.status` にある。実バックログでは全
+  ノードが `status:todo` のままなのに、トラッカー側は done 7 / doing 9 だった。現状は誰も読んで
+  いないため実害は無いが resume ロジックの罠になるため、`export-backlog` にフィールドの正体
+  （`--update` 時のみ書き換わることも含む）を明記し、`deliver-backlog` には状態を `impl.status` と
+  トラッカーから読むこと、`labels` からは読まないこと、食い違い時はトラッカーが正であることを明示した。
+- **`/architect:generate-docs` — インベントリダイジェストが観測値と推論値を区別するようになった。**
+  Step 1 の委譲を実行して設計自体は検証できた（haiku の Explore が6項目すべてを埋めたダイジェストを
+  返し、独立に検証済みの数値・コマンドと全件一致、ソースの貼り付けも捏造もゼロ）が、穴が判明した —
+  `package.json` に `engines` の宣言が無いにもかかわらず「Node.js 18+」をインベントリとして断定して
+  いた（Vite 5 の要件からの推論）。結論は正しいが、オーケストレーターはダイジェストしか持たないため
+  観測と推論を区別できず、推論が事実として README に流れ込み、本スキルの中核規律を無効化する。導出値は
+  `inferred: <値> (<根拠>)` と明示することが必須となり、根拠付きで書くかヘッジする扱いになった。
+- **`/product:generate-frontend` — 再生成が上書きする旨を事前に告げるようになった。** 出力先自体は
+  正しい（再実行での置換が前提だからこそ `adapt-change` がこのスキルを再実行する）が、再実行が出力先
+  配下の手編集を破棄することへの警告が皆無だった。`adapt-change` が可逆性を担保している一方で、実際に
+  書き込む当人が沈黙していた。上書きする旨を明示して確認を取り（`--auto` 時を除く）、`--out=<path>`
+  による併存の選択肢を提示し、手で保守されるフロントエンドに育った時点で `generated/` の外へ移すべき
+  ことを明記した。
+
+### 追加
+- **`skills/implement-backlog/output-location.test.sh`** — Output Location インターロックを挙動として
+  検証。`reports/`・`generated/`・`work/` を含む通常の `.gitignore` を持つスクラッチリポジトリを構築し、
+  `check-ignore` が `generated/` 配下の source root を拒否して該当ルールを提示すること、ワークツリー内の
+  実在する `services/` root を受理すること、ドキュメントのコミットが `feature/<issue-id>-<slug>` に
+  Issue 参照付きで着地し意図したファイルを stage すること、git が無視するパスでは何も stage されず
+  コミットが空コミットではなく拒否されることを確認する。11項目、失敗時 exit 1。
+
+### 変更
+- 両 CHANGELOG のリンク参照ブロックが陳腐化していた — `CHANGELOG.md` は `0.8.2` で止まり、タグ付き13
+  バージョンが未リンクな上、作成されたことのないタグを指す壊れた `[0.7.0]` リンクが存在し、
+  `CHANGELOG_ja.md` には参照が1件も無かった。両方に既存タグと1対1対応する参照を揃えた。
+- `docs/codex-gap-analysis_ja.md` の「80 skills」を **87**（architect 50 / product 26 / scalardb 11）に修正。
+
 ## [0.17.2] - 2026-07-26
 
 ### 修正
@@ -430,6 +481,7 @@ Nexus Architect の主な変更点を記録します。
 ### 変更
 - リポジトリを Claude Code プラグイン互換の構成に再編。
 
+[0.17.3]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.3
 [0.17.2]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.2
 [0.17.1]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.1
 [0.17.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.0
