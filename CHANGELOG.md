@@ -445,10 +445,22 @@ with 75 skills total.
 ### Changed
 - Restructured the repository into a Claude Code plugin-compatible layout.
 
+[0.17.2]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.2
+[0.17.1]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.1
+[0.17.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.0
+[0.16.2]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.16.2
+[0.16.1]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.16.1
+[0.16.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.16.0
+[0.15.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.15.0
+[0.14.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.14.0
+[0.13.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.13.0
+[0.12.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.12.0
+[0.11.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.11.0
+[0.10.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.10.0
+[0.9.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.9.0
 [0.8.2]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.8.2
 [0.8.1]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.8.1
 [0.8.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.8.0
-[0.7.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.7.0
 [0.6.2]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.6.2
 [0.6.1]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.6.1
 [0.6.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.6.0

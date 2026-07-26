@@ -85,6 +85,10 @@ Record the resolved root as a `source_root` decision in `shared-context/decision
 it is established. Pass `--out=generated/<service>/` explicitly when the intent genuinely is
 throwaway scaffolding rather than merge-bound work.
 
+The rules in this section are asserted as behaviour by
+`skills/implement-backlog/output-location.test.sh` (the ignore gate, the working-branch commit, and
+empty-commit detection, on a scratch repository) — run it after changing them.
+
 ## Prerequisites
 
 | File / source | Required/Recommended | Produced by |
