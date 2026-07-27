@@ -94,6 +94,83 @@ product スキルの全カタログは [スキルリファレンス](skill-refer
 # /architect:pipeline が自動的に実行しますが、個別に実行することも可能です
 ```
 
+### 5. コードの生成
+
+コード生成スキルは `/architect:pipeline` に**含まれていません** — パイプラインはレビューと
+レポートで終わります。設計完了後に、次の順で自分で呼び出します:
+
+```bash
+# 1. 設計をコーディング可能な仕様へ            （要: reports/03_design/）
+/architect:design-implementation
+
+# 2. テスト仕様                                （要: reports/06_implementation/）
+/architect:generate-test-specs
+
+# 3. アプリケーションコード                    （要: reports/06_implementation/ + scalardb-schema.md）
+/architect:generate-scalardb-code             # -> generated/{service}/
+
+# 4. インフラコード                            （要: reports/08_infrastructure/）
+/architect:design-infrastructure              # インフラのレポートがまだ無ければ先にこれ
+/architect:generate-infra-code                # -> generated/infrastructure/
+
+# 5. 生成物のドキュメント
+/architect:generate-docs
+```
+
+各ステップが必要とするのは直前のステップのレポートだけなので、それらが既にあれば途中から入れます。
+ここでの出力はすべて `generated/` 配下（git-ignore）で、**再実行で上書き**されます — 手で編集して
+育てるコードベースではなく、使い捨ての足場として扱ってください。
+
+レポートツリーを一切使わない近道が2つあります: `/scalardb:build-app`（要件から動く ScalarDB
+アプリまで）と `/product:generate-frontend`（UI モックから `generated/frontend/` の React +
+Storybook スキャフォールドまで）。
+
+### 6. バックログ経由でのコード配送
+
+再生成する足場ではなく、**レビューしてマージするコード**を作る場合はこちらを使います。
+プロジェクトの**実際のソースツリー**に書き込み、Issue ごとにマージ済み PR/MR まで進めます:
+
+```bash
+# レポート -> トラッカー上の Epic / Sub-Epic / Issue（作成前に必ず承認を求めます）
+/architect:export-backlog --target=github --repo=<owner>/<name>
+/architect:export-backlog --target=gitlab --project=<group>/<project>
+
+# Epic 配下の全 Issue を実装 -> レビュー -> [あなたの承認] -> マージ
+/architect:deliver-backlog --epic=E1
+
+# 1ステップずつ実行する場合
+/architect:implement-backlog I1.2.3     # 作業ブランチ上にコード + ドキュメント
+/architect:review-issue I1.2.3          # Epic 全体整合レビュー、ブロッカー自動修正、PR/MR 作成
+/architect:merge-issue I1.2.3           # プリフライト + 確認、マージ、ロールアップ
+```
+
+`deliver-backlog` は半自律です: 人間のゲート（PR/MR 承認、マージ実行、ブロッカーの判断）で必ず
+停止し、`reports/backlog/backlog-manifest.json` から再開します。進捗はトラッカー上に
+`status::*` ラベル・進捗コメント・チェックボックスとして現れます — 受入基準は実装・検証された
+時点で、親のタスクリストのボックスは子が実際にマージされた時点でチェックされます。
+
+前提: 対象プロジェクトに対して `gh` または `glab` が認証済みであること。
+
+### 7. 依存バージョンの選択
+
+生成物がバージョンを pin する場面では、生成時にレジストリから最新状況を調べ、安定版かつ EOL でなく
+相互に互換なリリースを選びます。決定表は `work/version-decisions.json` に記録されます。
+承認するかどうかは選べます:
+
+```bash
+/architect:generate-scalardb-code --confirm-versions      # 決定表を提示して確認する
+/product:generate-frontend --no-confirm-versions          # 解決した安定版を確認なしで採用
+/architect:implement-backlog I1.2.3 --refresh-versions    # キャッシュを使わず再解決
+```
+
+プロジェクト単位で一度だけ決めることもできます（`/architect:start` が出力言語と一緒に尋ねます）:
+
+```json
+{ "options": { "confirm_versions": true } }
+```
+
+未設定の場合、対話実行では確認し、`--auto` では確認せず採用します。
+
 ## 出力の確認
 
 すべての出力は以下のディレクトリに生成されます：
@@ -110,7 +187,7 @@ work/             # パイプライン状態
 # -> reports/00_summary/full-report.html
 ```
 
-## 5. ScalarDBアプリケーション開発
+## 8. ScalarDBアプリケーション開発
 
 ```bash
 # スキーマをインタラクティブに設計
@@ -128,7 +205,7 @@ work/             # パイプライン状態
 
 詳細は [ScalarDB開発ガイド](scalardb-development.md) を参照してください。
 
-## 6. ScalarDBへのデータベース移行
+## 9. ScalarDBへのデータベース移行
 
 ```bash
 # 統合エントリポイント（データベースを選択）

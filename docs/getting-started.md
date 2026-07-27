@@ -94,6 +94,84 @@ See the [architect Input Requirements](architect-input-requirements.md) for the 
 # /architect:pipeline runs this automatically, but you can also run it individually
 ```
 
+### 5. Generating Code
+
+The codegen skills are **not** part of `/architect:pipeline` — it stops after the review and report
+phases. Run them yourself afterwards, in this order:
+
+```bash
+# 1. Turn the design into coding-ready specs        (requires reports/03_design/)
+/architect:design-implementation
+
+# 2. Test specifications                            (requires reports/06_implementation/)
+/architect:generate-test-specs
+
+# 3. Application code                               (requires reports/06_implementation/ + scalardb-schema.md)
+/architect:generate-scalardb-code                   # -> generated/{service}/
+
+# 4. Infrastructure code                            (requires reports/08_infrastructure/)
+/architect:design-infrastructure                    # run this first if you have no infra reports yet
+/architect:generate-infra-code                      # -> generated/infrastructure/
+
+# 5. Documentation for what was just emitted
+/architect:generate-docs
+```
+
+Each step needs only the reports produced by the step before it, so you can enter the chain partway
+if those reports already exist. Everything here lands under `generated/`, which is git-ignored and
+**overwritten on re-run** — treat it as a disposable scaffold, not a codebase you hand-edit.
+
+Two shortcuts that skip the report tree entirely: `/scalardb:build-app` (requirements → running
+ScalarDB application) and `/product:generate-frontend` (UI mocks → React + Storybook scaffold under
+`generated/frontend/`).
+
+### 6. Delivering Code Through a Backlog
+
+When the code is meant to be reviewed and merged — not regenerated — use the delivery path instead.
+It writes into the project's **real source tree** and drives each Issue to a merged PR/MR:
+
+```bash
+# Reports -> Epic / Sub-Epic / Issue on the tracker (asks for approval before creating anything)
+/architect:export-backlog --target=github --repo=<owner>/<name>
+/architect:export-backlog --target=gitlab --project=<group>/<project>
+
+# Drive every Issue under an Epic: implement -> review -> [your approval] -> merge
+/architect:deliver-backlog --epic=E1
+
+# Or one step at a time
+/architect:implement-backlog I1.2.3     # code + docs on a working branch
+/architect:review-issue I1.2.3          # whole-Epic review, blocker auto-fix, opens the PR/MR
+/architect:merge-issue I1.2.3           # preflight + confirmation, merge, roll up
+```
+
+`deliver-backlog` is semi-autonomous: it stops at the human gates (PR/MR approval, the merge itself,
+blocker decisions) and resumes from `reports/backlog/backlog-manifest.json`. Progress shows up on the
+tracker as `status::*` labels, progress comments, and ticked checkboxes — acceptance criteria as they
+are implemented and verified, and a parent's task-list box when its child merges.
+
+Prerequisites: `gh` or `glab` authenticated for the target project.
+
+### 7. Choosing Dependency Versions
+
+Whenever a generated file pins a version, the version is looked up from its registry at generation
+time and a stable, non-EOL, compatible release is chosen — the decision table is written to
+`work/version-decisions.json`. You decide whether to approve it:
+
+```bash
+/architect:generate-scalardb-code --confirm-versions      # show the table and ask
+/product:generate-frontend --no-confirm-versions          # adopt the resolved set silently
+/architect:implement-backlog I1.2.3 --refresh-versions    # re-resolve instead of reusing the cache
+```
+
+Set it once per project instead in `work/pipeline-progress.json`
+(`/architect:start` asks for this alongside the output language):
+
+```json
+{ "options": { "confirm_versions": true } }
+```
+
+Unset means interactive runs ask and `--auto` runs adopt.
+
 ## Checking Output
 
 All outputs are generated in the following directories:
@@ -110,7 +188,7 @@ Consolidated HTML report:
 # -> reports/00_summary/full-report.html
 ```
 
-## 5. ScalarDB Application Development
+## 8. ScalarDB Application Development
 
 ```bash
 # Design a schema interactively
@@ -128,7 +206,7 @@ Consolidated HTML report:
 
 See [ScalarDB Development Guide](scalardb-development.md) for details.
 
-## 6. Database Migration to ScalarDB
+## 9. Database Migration to ScalarDB
 
 ```bash
 # Unified entry point (asks which database)

@@ -127,6 +127,15 @@ Claude Code continues to use the plugin metadata and slash commands unchanged. S
 /architect:analyze ./path/to/target
 /architect:evaluate-mmi ./path/to/target
 
+# Code generation (after the design pipeline — see Code Generation & Delivery below)
+/architect:design-implementation
+/architect:generate-scalardb-code
+/architect:generate-docs
+
+# Backlog delivery (merge-bound code: implement -> review -> merge, per Issue)
+/architect:export-backlog --target=github --repo=<owner>/<name>
+/architect:deliver-backlog --epic=E1
+
 # ScalarDB development
 /scalardb:scaffold
 /scalardb:model
@@ -215,13 +224,33 @@ Validation-driven pipeline from product vision to SLA/NFR. Hands off to `/archit
 
 ### Implementation & Codegen
 
+These are **not** part of `/architect:pipeline`. Run them individually after the design phases, in
+the order below (see [Code Generation & Delivery](#code-generation--delivery)).
+
+| Command | Description | Requires |
+|---------|-------------|----------|
+| `/architect:design-implementation` | Implementation specifications | `reports/03_design/` |
+| `/architect:generate-test-specs` | BDD/unit/integration test specifications | `reports/06_implementation/` |
+| `/architect:generate-scalardb-code` | Spring Boot + ScalarDB code generation | `reports/06_implementation/` + `scalardb-schema.md` |
+| `/architect:generate-infra-code` | K8s/Terraform/Helm code generation | `reports/08_infrastructure/` (from `design-infrastructure`) |
+| `/architect:generate-docs` | README + `docs/` for the generated/implemented code — runs after codegen, and as Step 5b of `implement-backlog` | generated or implemented code |
+
+### Backlog Delivery
+
+Turn the reports into tracker work items and drive them to merged code. Unlike the codegen skills
+above, this path writes **merge-bound code into the project's real source tree**, not `generated/`.
+
 | Command | Description |
 |---------|-------------|
-| `/architect:design-implementation` | Implementation specifications |
-| `/architect:generate-test-specs` | BDD/unit/integration test specifications |
-| `/architect:generate-scalardb-code` | Spring Boot + ScalarDB code generation |
-| `/architect:generate-infra-code` | K8s/Terraform/Helm code generation |
-| `/architect:generate-docs` | README + `docs/` for the generated/implemented code — runs after codegen, and as Step 5b of `implement-backlog` |
+| `/architect:export-backlog` | Reports → Epic / Sub-Epic / Issue hierarchy on GitLab or GitHub (review-first, idempotent) |
+| `/architect:deliver-backlog` | Orchestrates implement → review → approval → merge for each Issue under an Epic |
+| `/architect:implement-backlog` | Implements one item, Epic-consistently; Step 5b runs `generate-docs` onto the same branch |
+| `/architect:review-issue` | Whole-Epic consistency review, bounded blocker auto-fix, opens the PR/MR |
+| `/architect:merge-issue` | Merge preflight + confirmation, merge, close the Issue, roll up to Sub-Epic/Epic |
+
+Progress is visible on the tracker: `status::*` labels, progress comments, and the items' markdown
+checkboxes — acceptance criteria are ticked as they are implemented and verified, and a parent's
+task-list box is ticked when its child actually merges.
 
 ### Infrastructure
 
@@ -306,6 +335,49 @@ Design new systems from requirements through ScalarDB architecture to deployment
 requirements -> domain modeling -> ScalarDB design -> infra -> deploy
 ```
 
+### Code Generation & Delivery
+
+Code generation is a **manual extension tier**: `/architect:pipeline` and `/architect:start` stop at
+the review/report phase, and the codegen skills are invoked individually afterwards. There are two
+paths, and they differ in what the output *is*.
+
+**A. Scaffold — regenerable output under `generated/` (git-ignored).**
+
+```
+/architect:pipeline ./path/to/project      # design phases, through review + report
+  -> /architect:design-implementation      # requires reports/03_design/
+  -> /architect:generate-test-specs        # requires reports/06_implementation/
+  -> /architect:design-infrastructure      # requires target-architecture.md   (infra path only)
+  -> /architect:generate-scalardb-code     # -> generated/{service}/
+  -> /architect:generate-infra-code        # -> generated/infrastructure/
+  -> /architect:generate-docs              # READMEs + docs/ for what was emitted
+```
+
+Each step only needs the reports of the step before it, so you can enter the chain partway. A re-run
+overwrites what it owns — treat this tree as disposable.
+
+**B. Delivery — merge-bound code in the project's real source tree.**
+
+```
+/architect:export-backlog --target=github --repo=<owner>/<name>   # Epic / Sub-Epic / Issue
+  -> /architect:deliver-backlog --epic=E1                          # per Issue, in order:
+       implement  -> review (auto-fix blockers, open PR/MR)
+                  -> [human approval]  -> merge -> roll up
+```
+
+`implement-backlog` resolves the source root (never `generated/`, verified not git-ignored), commits
+to a working branch, and runs `generate-docs` as Step 5b so code and docs land in the same PR/MR.
+`deliver-backlog` stops at the human gates; it never merges without approval (or `--yes-merge`).
+
+Single steps are available too: `/architect:implement-backlog <issue>`, `/architect:review-issue
+<issue>`, `/architect:merge-issue <issue>`.
+
+**C. Frontend** — `/product:generate-frontend` (offered by `/product:start` after the UI mocks) emits
+a runnable React + Storybook scaffold under `generated/frontend/`.
+
+**D. ScalarDB only** — `/scalardb:build-app` or `/scalardb:scaffold` generate a working application
+without needing the report tree.
+
 ### ScalarDB Application Development
 
 Build ScalarDB applications with guided schema design, code generation, and code review.
@@ -332,6 +404,35 @@ investigate -> analyze -> [evaluate-mmi, evaluate-ddd] -> integrate-evaluations
      review-operations, review-risk, review-business]
   -> review-synthesizer -> report -> review-report
 ```
+
+Everything after `review-report` — the codegen, infrastructure-design, security/observability/DR,
+cost and documentation skills — is the **manual extension tier**: not executed by
+`/architect:pipeline`, invoked individually. Within it the codegen order is fixed: generate code,
+then `generate-docs`.
+
+## Dependency Versions
+
+Any generated file that pins a version (`build.gradle`/`pom.xml`, `package.json`, image tags,
+Helm/Terraform/Kubernetes) uses a version that was **looked up from its registry at generation
+time** — never recalled from memory — and that is a stable, non-EOL, mutually compatible release.
+The decision table is recorded in the artifact and in `work/version-decisions.json`.
+
+Whether the resolved set is confirmed with you is your choice:
+
+```bash
+/architect:implement-backlog I1.2.3 --confirm-versions      # always show the table and ask
+/product:generate-frontend --no-confirm-versions            # adopt the resolved stable set silently
+/architect:generate-scalardb-code --refresh-versions        # ignore the cache, re-resolve
+```
+
+```json
+// work/pipeline-progress.json — project-level default (asked at /architect:start)
+{ "options": { "confirm_versions": true } }
+```
+
+Unset means interactive runs ask and `--auto` runs adopt. Some cases always ask: a failed lookup, a
+brand-new major as the only option, an EOL current pin, no compatible set, or a licensed/private
+registry. See [`rules/dependency-versions.md`](rules/dependency-versions.md).
 
 ## Output Language
 

@@ -182,8 +182,10 @@ The manifest covers the core pipeline only. The remaining architect skills —
 `generate-infra-code`, `generate-docs`, `design-infrastructure`, `design-security`,
 `design-observability`, `design-disaster-recovery`, `estimate-cost`,
 `estimate-token-cost` — form a
-**manual extension tier**: they are not executed by `/architect:pipeline` and are
-invoked individually (typically after the core pipeline) or via `/architect:start`.
+**manual extension tier**: they are not executed by `/architect:pipeline` — nor by
+`/architect:start`, which also runs only the manifest's phases — and are invoked
+individually, typically after the core pipeline. See the invocation chains in
+README §Code Generation & Delivery and docs/getting-started.md §5–6.
 
 Within that tier the codegen skills have a fixed follow-on order — **generate code →
 `generate-docs`**: `generate-scalardb-code` / `generate-infra-code` (and
