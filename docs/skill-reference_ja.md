@@ -60,13 +60,33 @@
 
 ## 実装
 
+手動拡張ティア — `/architect:pipeline` では実行**されません**。設計フェーズ完了後に、下記の順で
+個別に呼び出します。出力先は `generated/` 配下（git-ignore、再実行で上書き）。
+
+| コマンド | モデル | 前提 | 説明 |
+|---------|-------|------|------|
+| `/architect:design-implementation` | opus | `reports/03_design/` | 実装仕様（サービス、リポジトリ、VO） |
+| `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/ユニット/統合テスト仕様 |
+| `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB コード生成 |
+| `/architect:generate-infra-code` | sonnet | `reports/08_infrastructure/` | K8s/Terraform/Helm コード生成 |
+| `/architect:generate-docs` | sonnet | 生成・実装済みコード | 生成・実装済みコードの README と `docs/`（コード生成の後、および implement-backlog の Step 5b で実行） |
+
+## バックログ配送
+
+レポートをトラッカーの作業アイテムに変換し、マージ済みコードまで進めます。上記のコード生成スキルと
+違い、この経路は**マージ対象のコードをプロジェクトの実ソースツリー**に書き込みます（`generated/`
+ではありません）。`gh` / `glab` の認証が必要です。
+
 | コマンド | モデル | 説明 |
 |---------|-------|------|
-| `/architect:design-implementation` | opus | 実装仕様（サービス、リポジトリ、VO） |
-| `/architect:generate-test-specs` | sonnet | BDD/ユニット/統合テスト仕様 |
-| `/architect:generate-scalardb-code` | opus | Spring Boot + ScalarDB コード生成 |
-| `/architect:generate-infra-code` | sonnet | K8s/Terraform/Helm コード生成 |
-| `/architect:generate-docs` | sonnet | 生成・実装済みコードの README と `docs/`（コード生成の後、および implement-backlog の Step 5b で実行） |
+| `/architect:export-backlog` | opus | レポート → GitLab / GitHub 上の Epic（What/Why）/ Sub-Epic（What/Key Results）/ Issue（How）。レビュー優先の計画 + 承認ゲートを経て冪等に作成 |
+| `/architect:deliver-backlog` | sonnet | Epic 配下の Issue ごとに 実装 → レビュー → 承認 → マージ を統括。`backlog-manifest.json` から再開し、人間のゲートで必ず停止 |
+| `/architect:implement-backlog` | sonnet | 1アイテムを Epic 整合的に作業ブランチ上で実装。Step 5b で `generate-docs` を実行し、ドキュメントを同じ PR/MR に載せる |
+| `/architect:review-issue` | opus | Epic 全体の整合レビュー、ブロッカー自動修正ループ（回数上限あり）、PR/MR 作成と承認への引き継ぎ |
+| `/architect:merge-issue` | opus | マージ前プリフライトと明示的な確認、マージ、Issue クローズ、Sub-Epic/Epic へのロールアップ |
+
+進捗はトラッカー上に `status::*` ラベル・進捗コメント・チェックボックスとして反映されます
+（受入基準は実装・検証時、親のタスクリストのボックスは子のマージ時）。
 
 ## レビュー
 

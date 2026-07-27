@@ -60,13 +60,34 @@ For the inputs you should prepare before running each pipeline, see the
 
 ## Implementation
 
+Manual extension tier — **not** run by `/architect:pipeline`. Invoke individually after the design
+phases, in the listed order. Output lands under `generated/` (git-ignored, overwritten on re-run).
+
+| Command | Model | Requires | Description |
+|---------|-------|----------|-------------|
+| `/architect:design-implementation` | opus | `reports/03_design/` | Implementation specifications (services, repositories, VOs) |
+| `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/unit/integration test specifications |
+| `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB code generation |
+| `/architect:generate-infra-code` | sonnet | `reports/08_infrastructure/` | K8s/Terraform/Helm code generation |
+| `/architect:generate-docs` | sonnet | generated/implemented code | README + `docs/` for generated/implemented code (runs after codegen; Step 5b of implement-backlog) |
+
+## Backlog Delivery
+
+Turns the reports into tracker work items and drives them to merged code. Unlike the codegen skills
+above, this path writes **merge-bound code into the project's real source tree**, never `generated/`.
+Requires `gh` / `glab` authenticated.
+
 | Command | Model | Description |
 |---------|-------|-------------|
-| `/architect:design-implementation` | opus | Implementation specifications (services, repositories, VOs) |
-| `/architect:generate-test-specs` | sonnet | BDD/unit/integration test specifications |
-| `/architect:generate-scalardb-code` | opus | Spring Boot + ScalarDB code generation |
-| `/architect:generate-infra-code` | sonnet | K8s/Terraform/Helm code generation |
-| `/architect:generate-docs` | sonnet | README + `docs/` for generated/implemented code (runs after codegen; Step 5b of implement-backlog) |
+| `/architect:export-backlog` | opus | Reports → Epic (What/Why) / Sub-Epic (What/Key Results) / Issue (How) on GitLab or GitHub; review-first plan + approval gate, idempotent creation |
+| `/architect:deliver-backlog` | sonnet | Orchestrates implement → review → approval → merge per Issue under an Epic; resumes from `backlog-manifest.json`, stops at every human gate |
+| `/architect:implement-backlog` | sonnet | Implements one item Epic-consistently on a working branch; Step 5b runs `generate-docs` so docs ship in the same PR/MR |
+| `/architect:review-issue` | opus | Whole-Epic consistency review, bounded blocker auto-fix loop, opens the PR/MR and hands off for approval |
+| `/architect:merge-issue` | opus | Merge preflight + explicit confirmation, merge, close the Issue, roll up to Sub-Epic/Epic |
+
+Progress is reflected on the tracker as `status::*` labels, progress comments, and ticked
+checkboxes (acceptance criteria when implemented/verified; a parent's task-list box when its child
+merges).
 
 ## Review
 
