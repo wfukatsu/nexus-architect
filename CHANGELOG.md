@@ -9,6 +9,30 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.17.7] - 2026-07-27
+
+### Documentation
+- **How to invoke the codegen and delivery paths is now written down.** The codegen skills were
+  catalogued but never explained: nothing stated that they sit outside `/architect:pipeline`, in what
+  order they chain, or what each one needs before it can run — and the whole backlog-delivery family
+  (`export-backlog`, `deliver-backlog`, `implement-backlog`, `review-issue`, `merge-issue`) was absent
+  from `README.md` and `docs/skill-reference*` altogether, though `CLAUDE.md` documents it.
+  - `README.md`: Quick Start gains the codegen and delivery entry points; a new **Code Generation &
+    Delivery** workflow section lays out the four paths and the distinction that matters — path A
+    emits a disposable scaffold under `generated/`, path B writes merge-bound code into the project's
+    real source tree; new **Backlog Delivery** command table; the Implementation & Codegen table gains
+    a *Requires* column; the dependency graph now explains the manual extension tier; new **Dependency
+    Versions** section covering the v0.17.6 flags and the project-level option.
+  - `docs/getting-started.md` / `_ja.md`: new §5 *Generating Code*, §6 *Delivering Code Through a
+    Backlog*, §7 *Choosing Dependency Versions* (the ScalarDB and migration sections renumber to 8/9).
+  - `docs/skill-reference.md` / `_ja.md`: the Implementation table gains a *Requires* column and the
+    manual-tier note; new **Backlog Delivery** section with per-skill models and roles.
+
+### Fixed
+- `CLAUDE.md` claimed the manual extension tier could be invoked "via `/architect:start`". It cannot:
+  `start` executes only the phases in `skill-dependencies.yaml`, and references no codegen skill.
+  Corrected, with pointers to the new invocation chains.
+
 ## [0.17.6] - 2026-07-27
 
 ### Added
