@@ -9,6 +9,30 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+## [0.17.7] - 2026-07-27
+
+### ドキュメント
+- **コード生成と配送の呼び出し方を明文化。** コード生成スキルはカタログには載っていたが、
+  使い方が書かれていなかった — `/architect:pipeline` の外にあること、どの順で連鎖するか、
+  各スキルが何を前提とするかがどこにも書かれておらず、さらにバックログ配送のスキル群
+  （`export-backlog`・`deliver-backlog`・`implement-backlog`・`review-issue`・`merge-issue`）は
+  `CLAUDE.md` には記載があるのに `README.md` と `docs/skill-reference*` には**まったく載っていなかった**。
+  - `README.md`: Quick Start にコード生成と配送の入口を追加。新セクション **Code Generation &
+    Delivery** で4つの経路と、最も重要な違い — 経路 A は `generated/` 配下の使い捨てスキャフォールド、
+    経路 B はプロジェクトの実ソースツリーに書くマージ対象コード — を提示。**Backlog Delivery** の
+    コマンド表を新設し、Implementation & Codegen の表に *Requires* 列を追加。依存グラフに手動拡張
+    ティアの説明を追記し、v0.17.6 のフラグとプロジェクト設定を説明する **Dependency Versions**
+    セクションを新設。
+  - `docs/getting-started.md` / `_ja.md`: §5「コードの生成」、§6「バックログ経由でのコード配送」、
+    §7「依存バージョンの選択」を新設（既存の ScalarDB / 移行セクションは 8・9 に繰り下げ）。
+  - `docs/skill-reference.md` / `_ja.md`: 実装の表に *前提* 列と手動拡張ティアの注記を追加し、
+    スキルごとのモデルと役割を示す **バックログ配送** セクションを新設。
+
+### 修正
+- `CLAUDE.md` に「手動拡張ティアは `/architect:start` 経由でも呼べる」と書かれていたが、これは誤り。
+  `start` は `skill-dependencies.yaml` のフェーズしか実行せず、コード生成スキルを一切参照していない。
+  記述を実態に合わせ、新しい呼び出し手順への参照を追加した。
+
 ## [0.17.6] - 2026-07-27
 
 ### 追加
