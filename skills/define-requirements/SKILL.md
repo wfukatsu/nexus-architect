@@ -103,7 +103,8 @@ Run the 5-stage facilitation below using AskUserQuestion, asking **only items on
 1. Walk the decision tree from `workflow/greenfield/01_requirements_analysis.md` (Step 1.4) against the transaction requirements matrix
 2. Fill in the assessment criteria checklist
 3. If the tree reaches an XA comparison node, fill in the XA vs ScalarDB comparison table (Step 1.5) and record the verdict with rationale
-4. The result is a **recommendation**; the final decision is deferred to /architect:select-scalardb-edition and /architect:start
+4. Ground capability claims (supported databases, transaction guarantees, edition-gated features; ScalarDL tamper-evidence when in scope) in the version-pinned OKF knowledge bundle per @rules/okf-knowledge-bundle.md — cite the concept's `resource` URL, not memory
+5. The result is a **recommendation**; the final decision is deferred to /architect:select-scalardb-edition and /architect:start
 
 ### Step 5: Review & Output
 

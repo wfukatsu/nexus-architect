@@ -51,6 +51,9 @@ Produce two deliverables:
   conflict named.
 - **Bridge to architect.** A ScalarDB/ScalarDL **Adopt** points forward to the `architect` plugin's
   ScalarDB pipeline.
+- **Ground ScalarDB/ScalarDL capability claims.** When fitness rationale asserts what ScalarDB /
+  ScalarDB Analytics / ScalarDL can or cannot do, verify it against the version-pinned OKF
+  knowledge bundle (@rules/okf-knowledge-bundle.md) and cite the concept's `resource` URL.
 - **Stop condition**: the runtime view plus at least one of {critical-path, deployment} view exist,
   all nodes trace to ids, and all four standing technologies carry a fitness + decision + rationale.
 

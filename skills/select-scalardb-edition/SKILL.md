@@ -22,6 +22,9 @@ Use AskUserQuestion to confirm the following step by step:
 5. Support level requirements
 
 Edition comparison: @rules/scalardb-edition-profiles.md
+Version-pinned feature/edition facts: @rules/okf-knowledge-bundle.md — verify each edition-gated
+feature against the pinned release's concepts (frontmatter `editions` / `feature_status`) before
+recommending it.
 
 ## Output
 

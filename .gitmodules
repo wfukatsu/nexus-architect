@@ -1,0 +1,3 @@
+[submodule "knowledge/okf-scalardb-scalardl"]
+	path = knowledge/okf-scalardb-scalardl
+	url = https://github.com/wfukatsu/OKF-ScalarDB-ScalarDL.git
