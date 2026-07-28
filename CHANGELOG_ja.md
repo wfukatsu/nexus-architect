@@ -9,6 +9,44 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-07-28
+
+### 追加
+- **ScalarDB / ScalarDL の実装判断を、バージョン固定の公式ドキュメントに基づかせるように。**
+  [OKF-ScalarDB-ScalarDL](https://github.com/wfukatsu/OKF-ScalarDB-ScalarDL) バンドル —
+  developers.scalar-labs.com の全ドキュメントを製品ごと・バージョンごとに分割したもの
+  （ScalarDB 3.14–3.18、ScalarDL 3.10–3.13、ScalarDB Community 3.4–3.13、計 1,800 概念）—
+  を git submodule として `knowledge/okf-scalardb-scalardl/` に組み込み、スキルがモデルの記憶や
+  バージョン不定の「latest」ドキュメントではなく、**プロジェクトが実際に動かしているリリース**を
+  根拠に回答するようにした。
+  - `rules/okf-knowledge-bundle.md`（新しい共有契約）: バンドルの解決（submodule →
+    `~/.cache/nexus-architect/` への shallow clone → 「バージョン非固定」と明示した上での
+    オンラインドキュメント）、読む前に**製品・バージョン・エディション**を確定、スキル群に対応
+    づけた `lifecycle_phase`（design / implement / operate）で概念を絞り込み、バージョンを跨いだ
+    回答の禁止、各概念の正規 `resource` URL の引用、依存のピン留めには frontmatter の
+    `patch_version` を使用 — `rules/dependency-versions.md` / `work/version-decisions.json` の
+    フローに接続する。
+  - `tools/update-okf-bundle.sh` + `/architect:update-knowledge`（新スキル、haiku）: バンドルの
+    リモート取得・更新・確認 — 引数なしの *ensure* は未取得のときだけ取得、`update` は最新を
+    取得（submodule のポインタが進むので、固定するにはコミットする）、`status` は解決パス・
+    ローカル/リモートのコミット・収録バージョンを表示。
+
+### 変更
+- **3 プラグイン横断で 19 スキルがバンドルを参照するように。** `architect`: `design-scalardb`
+  （Context7 はフォールバックに降格）、`design-scalardb-analytics`、`select-scalardb-edition`
+  （エディション判定を frontmatter の `editions` / `feature_status` で検証）、
+  `generate-scalardb-code`（API シグネチャ・設定キー・例外のリトライ可否は、固定したリリースの
+  `implement` フェーズ概念を根拠にする）、`review-scalardb`（指摘の根拠として `resource` URL を
+  引用）、`define-requirements`、`migrate-database`。`scalardb`: `docs` はバンドル優先の検索に
+  変更し、WebFetch は「バージョン非固定」と明示するフォールバックに降格。`build-app`・`model`・
+  `config`・`crud-ops`・`jdbc-ops`・`error-handler`・`scaffold`・`review-code`・`migrate`・
+  `local-env` にはナレッジグラウンディングの注記を追加。`product`: `design-architecture` は
+  ScalarDB / ScalarDL の適合性判断をバンドルに基づかせる。
+- エントリドキュメントを同期: `CLAUDE.md`（Rules & References 行・Conventions・コマンド
+  リファレンス）、`AGENTS.md` と `OMNIGENT.md`（グラウンディング規則 + 更新コマンド）、
+  `README.md`（`--recurse-submodules` での clone、新セクション **ScalarDB / ScalarDL Knowledge
+  Bundle**）、`rules/scalardb-coding-patterns.md`（ルール索引の先頭にバンドルを掲載）。
+
 ## [0.17.7] - 2026-07-27
 
 ### ドキュメント
