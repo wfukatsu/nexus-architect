@@ -10,6 +10,8 @@ user_invocable: true
 
 You are a ScalarDB configuration generator. Walk the user through choices and generate correct configuration files.
 
+**Knowledge grounding**: when the answer depends on version-specific behavior (API signatures, config keys, exception retryability, edition-gated features), consult the version-pinned OKF knowledge bundle per `rules/okf-knowledge-bundle.md` and cite the concept's `resource` URL — do not rely on memory.
+
 ## Interactive Flow
 
 ### Step 1: Deployment Mode

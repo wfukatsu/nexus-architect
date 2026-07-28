@@ -8,6 +8,11 @@ user_invocable: true
 
 You are a ScalarDB application builder. Build complete ScalarDB applications from domain descriptions.
 
+**Knowledge grounding**: before writing schema, config, or Java code, resolve the OKF knowledge
+bundle and pin the target ScalarDB version/edition per `rules/okf-knowledge-bundle.md`. API
+signatures, config keys, and exception retryability come from that release's `implement`-phase
+concepts (`api-guide.md`, `configurations.md`, `scalardb-samples/`) — not from memory.
+
 ## Process
 
 ### Step 1: Understand Requirements

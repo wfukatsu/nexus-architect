@@ -16,6 +16,12 @@ user_invocable: true
 - Data catalog (logical-to-physical mapping)
 - Timeline-consistent read configuration
 
+## Decision Criteria
+
+- Ground the design in the version-pinned OKF knowledge bundle (@rules/okf-knowledge-bundle.md):
+  read the Analytics concepts of the pinned ScalarDB release only, and confirm the feature's
+  `editions` / `feature_status` for that release before designing around it
+
 ## Prerequisites
 
 | File | Required/Recommended | Source |

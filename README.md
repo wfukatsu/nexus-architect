@@ -33,8 +33,8 @@ claude plugin update scalardb@nexus-architect
 ### Manual Installation
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/wfukatsu/nexus-architect.git
+# 1. Clone the repository (with the ScalarDB/ScalarDL knowledge bundle submodule)
+git clone --recurse-submodules https://github.com/wfukatsu/nexus-architect.git
 
 # 2. Add as a local marketplace
 claude plugin marketplace add ./nexus-architect
@@ -62,8 +62,8 @@ If the skills are recognized, the installation is successful.
 Codex can use the same skill files without installing Claude Code plugins.
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/wfukatsu/nexus-architect.git
+# 1. Clone the repository (with the ScalarDB/ScalarDL knowledge bundle submodule)
+git clone --recurse-submodules https://github.com/wfukatsu/nexus-architect.git
 cd nexus-architect
 
 # 2. Optional Python dependencies
@@ -281,6 +281,7 @@ task-list box is ticked when its child actually merges.
 | `/architect:review-report` | Review the quality of the generated HTML report |
 | `/architect:render-mermaid` | Mermaid to PNG/SVG + syntax fix |
 | `/architect:estimate-cost` | Infrastructure, license, and operational costs |
+| `/architect:update-knowledge` | Fetch/update the OKF ScalarDB/ScalarDL knowledge bundle from remote (`--latest`, `--status`) |
 
 ### Database Migration
 
@@ -433,6 +434,29 @@ Whether the resolved set is confirmed with you is your choice:
 Unset means interactive runs ask and `--auto` runs adopt. Some cases always ask: a failed lookup, a
 brand-new major as the only option, an EOL current pin, no compatible set, or a licensed/private
 registry. See [`rules/dependency-versions.md`](rules/dependency-versions.md).
+
+## ScalarDB / ScalarDL Knowledge Bundle
+
+Every ScalarDB / ScalarDL implementation decision (API usage, config keys, transaction patterns,
+exception retryability, edition-gated features) is grounded in the
+[OKF-ScalarDB-ScalarDL](https://github.com/wfukatsu/OKF-ScalarDB-ScalarDL) knowledge bundle — the
+complete official documentation from developers.scalar-labs.com, split **per product and per
+version** (ScalarDB 3.14–3.18, ScalarDL 3.10–3.13, ScalarDB Community 3.4–3.13; 1,800 concepts).
+
+It is vendored as a git submodule at `knowledge/okf-scalardb-scalardl/`. One command fetches or
+updates it from remote (also available as `/architect:update-knowledge`):
+
+```bash
+tools/update-okf-bundle.sh           # ensure the bundle is available (fetches only if absent)
+tools/update-okf-bundle.sh update    # pull the newest bundle from remote
+tools/update-okf-bundle.sh status    # resolved path, local/remote commits, bundled versions
+```
+
+Skills follow the protocol in [`rules/okf-knowledge-bundle.md`](rules/okf-knowledge-bundle.md):
+pin the project's product, version, and edition first; answer only from that release's docs; cite
+the canonical `resource` URL; never mix versions. When the submodule is absent, the script falls
+back to a shallow clone under `~/.cache/nexus-architect/`, then skills fall back to the online
+docs (explicitly labeled as not version-pinned).
 
 ## Output Language
 

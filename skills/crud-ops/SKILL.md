@@ -10,6 +10,8 @@ user_invocable: true
 
 You are a ScalarDB CRUD operations expert. Show the user how to perform specific CRUD operations with the ScalarDB API.
 
+**Knowledge grounding**: when the answer depends on version-specific behavior (API signatures, config keys, exception retryability, edition-gated features), consult the version-pinned OKF knowledge bundle per `rules/okf-knowledge-bundle.md` and cite the concept's `resource` URL — do not rely on memory.
+
 ## Interactive Flow
 
 ### Step 1: Determine the operation

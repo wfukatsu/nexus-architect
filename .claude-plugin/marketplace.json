@@ -78,6 +78,7 @@
         "./skills/render-mermaid",
         "./skills/estimate-cost",
         "./skills/estimate-token-cost",
+        "./skills/update-knowledge",
         "./skills/export-backlog",
         "./skills/deliver-backlog",
         "./skills/implement-backlog",

@@ -18,6 +18,15 @@ Generate per-service Java code from design and implementation specifications:
 - Gradle build configuration (build.gradle)
 - Dockerfile
 
+## Knowledge Grounding
+
+Before writing any ScalarDB API call, config key, or exception handler, resolve the OKF knowledge
+bundle and pin the target ScalarDB version/edition per @rules/okf-knowledge-bundle.md. The
+`implement`-phase concepts of that release (`api-guide.md`, `configurations.md`,
+`scalardb-samples/`) are the authority for API signatures, property names, and retryability of
+each exception; the local pattern rules below supply code shape but the pinned bundle wins on any
+disagreement.
+
 ## Dependency Versions
 
 `build.gradle` and the `Dockerfile` pin versions, so follow @rules/dependency-versions.md before
@@ -33,6 +42,7 @@ service docs, so do not hand-write a competing table inside its marked sections.
 ## Acceptance Criteria
 
 - Fully compliant with patterns in @rules/scalardb-coding-patterns.md
+- API usage, config keys, and exception retryability verified against the pinned release's docs in the OKF bundle (@rules/okf-knowledge-bundle.md)
 - Applies configuration patterns from @rules/spring-boot-integration.md
 - Proper handling of transaction exceptions (retry, rollback)
 - Entities follow immutable design; value objects are immutable

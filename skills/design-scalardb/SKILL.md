@@ -18,7 +18,7 @@ Design a data architecture leveraging ScalarDB:
 
 ## Decision Criteria
 
-- Consult the latest ScalarDB specifications via Context7 MCP before starting the design
+- Ground the design in the version-pinned OKF knowledge bundle (@rules/okf-knowledge-bundle.md): pin the project's ScalarDB version and edition first, then read the `design`-phase concepts (`design.md`, `data-modeling.md`, `consensus-commit.md`) of that release only. Context7 MCP is the fallback when the bundle is unavailable
 - Limit 2PC to a maximum of 2-3 services
 - Design keys targeting an OCC conflict rate below 5%
 - Select storage backend based on requirements (JDBC/Cassandra/DynamoDB, etc.)
@@ -36,7 +36,8 @@ Edition comparison: @rules/scalardb-edition-profiles.md
 
 ## Available Resources
 
-- **Context7 MCP** -- Fetch latest ScalarDB documentation (libraryId: /llmstxt/scalardb_scalar-labs_llms-full_txt)
+- **OKF knowledge bundle** -- Version-pinned official ScalarDB/ScalarDL docs at `knowledge/okf-scalardb-scalardl/okf/` (resolution and usage: @rules/okf-knowledge-bundle.md) — primary source
+- **Context7 MCP** -- Fetch latest ScalarDB documentation (libraryId: /llmstxt/scalardb_scalar-labs_llms-full_txt) — fallback, not version-pinned
 - **research/** -- Pre-research materials (16 documents)
 
 ## Output

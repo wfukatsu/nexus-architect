@@ -6,6 +6,7 @@ This file is a consolidated index for ScalarDB coding patterns. Each topic is co
 
 | Topic | File | When to Read |
 |-------|------|--------------|
+| Version-pinned official docs (ScalarDB/ScalarDL, per product/version/edition) | @rules/okf-knowledge-bundle.md | **First**, before any ScalarDB/ScalarDL design or implementation decision — pins the docs to the project's actual release |
 | CRUD API operations (Get, Scan, Insert, Upsert, Update, Delete) | @rules/scalardb-crud-patterns.md | Writing CRUD operations |
 | JDBC/SQL operations (SELECT, INSERT, JOIN, aggregates) | @rules/scalardb-jdbc-patterns.md | Writing SQL-based operations |
 | Exception handling and retry logic | @rules/scalardb-exception-handling.md | Catching and handling exceptions |

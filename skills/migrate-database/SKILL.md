@@ -12,6 +12,11 @@ user_invocable: true
 
 Unified entry point for all database-to-ScalarDB migrations. Asks the user which database type they want to migrate, then delegates to the appropriate database-specific command which handles everything: configuration detection, parameter collection, schema analysis, and migration documentation generation.
 
+**Knowledge grounding**: the delegated workflows must verify ScalarDB capabilities (supported
+databases, data types, transaction guarantees, edition-gated features) against the version-pinned
+OKF knowledge bundle per @rules/okf-knowledge-bundle.md — pin the target ScalarDB version first
+and cite the concept's `resource` URL, not memory.
+
 ---
 
 ## Execution Instructions

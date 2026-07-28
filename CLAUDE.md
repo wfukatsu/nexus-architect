@@ -137,6 +137,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Skills are namespaced
 - `/architect:render-mermaid [target_path]` — Mermaid to PNG/SVG + syntax fix
 - `/architect:estimate-cost` — Infrastructure, license, operational costs
 - `/architect:estimate-token-cost` — Token usage and USD cost of running the pipeline (a-priori from LOC, calibrated by recorded actuals)
+- `/architect:update-knowledge [--latest] [--status]` — Fetch or update the OKF ScalarDB/ScalarDL knowledge bundle from remote (wraps `tools/update-okf-bundle.sh`; no flag = ensure present, `--latest` = pull newest, `--status` = show resolved path/commits/versions)
 
 ### Backlog Delivery
 - `/architect:deliver-backlog [--epic=<id>] [--issue=<id>] [--from=implement|review|merge] [--auto] [--yes-merge] [--max-fix-rounds=N] [--export] [--dry-run] [--lang=en|ja]` — Orchestrator that drives the implementation skill group over a backlog: runs implement → review → (human approval) → merge for each Issue under an Epic, in order, resuming from `backlog-manifest.json`. Semi-autonomous — stops at the human gates (PR/MR approval, merge, blocker decisions); never auto-merges unless `--yes-merge`. Wraps `implement-backlog`, `review-issue`, `merge-issue`
@@ -236,6 +237,7 @@ do not load ScalarDB rules for non-ScalarDB work.
 | architect input requirements | docs/architect-input-requirements.md | Inputs the user must supply before running the architect pipeline (legacy or greenfield) |
 | Token pricing & usage tracking | rules/token-pricing.md | Estimating run cost, or reading the `work/token-usage.json` ledger recorded during execution |
 | Dependency version selection | rules/dependency-versions.md | Writing any file that pins a version (build.gradle/pom, package.json, image tags, Helm/Terraform/K8s) — how to look up the current stable release and whether to confirm it with the user |
+| OKF knowledge bundle (ScalarDB/ScalarDL official docs, version-pinned) | rules/okf-knowledge-bundle.md | Any ScalarDB/ScalarDL design, implementation, review, or migration decision — resolve the bundle, pin product/version/edition, ground the answer in that release's docs |
 | ScalarDB exception handling | rules/scalardb-exception-handling.md | Exception handling, retry logic |
 | ScalarDB CRUD patterns | rules/scalardb-crud-patterns.md | CRUD API operations |
 | ScalarDB JDBC patterns | rules/scalardb-jdbc-patterns.md | JDBC/SQL operations |
@@ -269,3 +271,4 @@ do not load ScalarDB rules for non-ScalarDB work.
 - **Immediate output**: Each skill step writes its output file upon completion
 - **Dependency versions**: Any generated file that pins a version (build.gradle/pom, package.json, image tags, Helm/Terraform/K8s) uses a version that was **looked up** from its registry — never recalled from memory or copied from a skill example — and is a stable, non-EOL, mutually compatible release. Whether the resolved set is confirmed with the user is the user's choice: `--confirm-versions` / `--no-confirm-versions` per run, `options.confirm_versions` as the project default (unset → interactive runs ask, `--auto` runs adopt). See @rules/dependency-versions.md
 - **ScalarDB-optional**: When ScalarDB is not used, ScalarDB-specific skills are skipped and review-data-integrity replaces review-scalardb
+- **ScalarDB/ScalarDL grounding**: Implementation-method decisions (API usage, config keys, transaction patterns, edition-gated features) are grounded in the version-pinned OKF knowledge bundle at `knowledge/okf-scalardb-scalardl/` (git submodule) — pin product/version/edition first, answer only from that release's docs. See @rules/okf-knowledge-bundle.md

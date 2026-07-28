@@ -8,6 +8,13 @@ user_invocable: true
 
 # ScalarDB Constraint Review
 
+## Knowledge Grounding
+
+Constraint claims (version-specific limits, config keys, edition-gated features) are verified
+against the project's pinned ScalarDB release in the OKF knowledge bundle
+(@rules/okf-knowledge-bundle.md), not against memory. Cite the concept's `resource` URL as
+evidence when a finding depends on documented behavior.
+
 ## Review Dimensions
 
 ### 1. 2PC Scope Compliance (weight: 0.40)
