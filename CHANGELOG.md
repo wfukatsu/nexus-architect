@@ -9,6 +9,43 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-07-28
+
+### Added
+- **ScalarDB / ScalarDL implementation decisions are now grounded in version-pinned official
+  documentation.** The [OKF-ScalarDB-ScalarDL](https://github.com/wfukatsu/OKF-ScalarDB-ScalarDL)
+  bundle — the complete developers.scalar-labs.com docs split per product and per version
+  (ScalarDB 3.14–3.18, ScalarDL 3.10–3.13, ScalarDB Community 3.4–3.13; 1,800 concepts) — is
+  vendored as a git submodule at `knowledge/okf-scalardb-scalardl/`, so skills answer from the
+  release a project actually runs instead of model memory or unpinned "latest" docs.
+  - `rules/okf-knowledge-bundle.md` (new shared contract): resolve the bundle (submodule →
+    `~/.cache/nexus-architect/` shallow clone → online docs explicitly labeled as **not**
+    version-pinned), pin **product, version, and edition** before reading anything, filter
+    concepts by `lifecycle_phase` (design / implement / operate) mapped to the skill families,
+    never mix versions, cite each concept's canonical `resource` URL, and pin dependencies with
+    the frontmatter `patch_version` — feeding the `rules/dependency-versions.md` /
+    `work/version-decisions.json` flow.
+  - `tools/update-okf-bundle.sh` + `/architect:update-knowledge` (new skill, haiku): fetch,
+    update, and inspect the bundle from remote — no-arg *ensure* fetches only when absent,
+    `update` pulls the newest state (moving the submodule pointer, to be committed to pin it),
+    `status` reports the resolved path, local vs remote commits, and bundled versions.
+
+### Changed
+- **19 skills across all three plugins now consult the bundle.** `architect`: `design-scalardb`
+  (Context7 demoted to fallback), `design-scalardb-analytics`, `select-scalardb-edition`
+  (edition claims verified against frontmatter `editions` / `feature_status`),
+  `generate-scalardb-code` (API signatures, config keys, and exception retryability come from
+  the pinned release's `implement`-phase concepts), `review-scalardb` (findings cite `resource`
+  URLs as evidence), `define-requirements`, `migrate-database`. `scalardb`: `docs` now searches
+  the bundle first with WebFetch demoted to an explicitly-labeled fallback; `build-app`,
+  `model`, `config`, `crud-ops`, `jdbc-ops`, `error-handler`, `scaffold`, `review-code`,
+  `migrate`, `local-env` gain a knowledge-grounding note. `product`: `design-architecture`
+  grounds ScalarDB / ScalarDL fitness claims in the bundle.
+- Entry docs kept in sync: `CLAUDE.md` (Rules & References row, Conventions, command reference),
+  `AGENTS.md` and `OMNIGENT.md` (grounding rule + update commands), `README.md` (clone with
+  `--recurse-submodules`, new **ScalarDB / ScalarDL Knowledge Bundle** section),
+  `rules/scalardb-coding-patterns.md` (bundle listed first in the rule index).
+
 ## [0.17.7] - 2026-07-27
 
 ### Documentation
