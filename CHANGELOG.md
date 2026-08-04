@@ -9,6 +9,54 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-08-04
+
+### Added
+- **`/architect:report-token-cost` (new skill, haiku): report the cost the agent actually
+  recorded, on the terminal.** The reporting counterpart to `/architect:estimate-token-cost` —
+  where that one estimates a run a priori from lines of code, this renders what the
+  `record_token_usage.py` hook logged into `work/token-usage.json` + `work/token-usage.jsonl`.
+  Per-model cost is **recomputed** from `skills/common/references/model-pricing.json` rather
+  than trusted from the ledger, so the report tracks price updates.
+  - `tools/token-cost-report.sh` dispatches five modes over `tools/lib/token_cost_*.py`:
+    an interactive **two-pane dashboard** (default on a TTY — select a phase / model / session
+    / day / event above, read its detail below, where a session shows its transcript log
+    including extended thinking; re-checks the ledger every 10s), `--once` for a single static
+    render (summary, per-phase, per-model with input / output / cache-read / cache-write
+    columns, daily timeline, top sessions, recent events), `--session=ID` for one session and
+    its log non-interactively, `--follow` to stream each ledger event as it is appended, and
+    `--json` / `--md` export.
+  - Sessions are **named** — and their logs read — from the Claude transcripts the ledger
+    points at, so the per-session table reads as prompts rather than as bare UUIDs.
+  - Display options: `--since` window, `--breakdown=tokens|cost`, `--top=N`, `--lang`,
+    `--currency=jpy --fx=RATE`, `--width`, `--color` / `--no-color`.
+
+### Fixed
+- **The report is measured in terminal columns, not characters.** Rules emitted one character
+  per column, so on a terminal that renders East Asian *ambiguous* characters double-width a
+  100-column rule drew at 200 and every separator ran past the edge; bars had the same defect.
+  Both now budget columns. Tables shrink to the terminal in three passes and drop the
+  per-model component columns rather than wrap, and `--follow` sizes its text columns to the
+  real width instead of emitting constant 140-column lines.
+- **The live dashboard no longer keeps fragments of the previous frame.** curses miscounts
+  double-width cells, so its update optimizer skipped cells it believed already matched and a
+  session's cost table could show the previous tab's numbers. The dashboard now forces a full
+  repaint; `touchwin()` was not enough, since it re-copies the window but diffs against the
+  same stale model.
+- Scroll counters are drawn on the header and separator rows instead of over table content;
+  the list pane never grows past its own content; and the key-bar row no longer fails its
+  write on every frame by touching the bottom-right cell.
+
+### Changed
+- **New drawing options for terminals where the Unicode glyphs do not render.** `--ascii`
+  (`--glyphs=ascii|unicode`) draws bars, rules and separators with `# . - | ->`; this is now
+  the **default when the output language is `ja`**, since Japanese terminals commonly render
+  ambiguous-width characters double-width and their fonts are chosen for kana and kanji rather
+  than for shade blocks. English output keeps the Unicode set. `--ambiguous-width=1|2` tells
+  the layout how many columns ambiguous characters occupy — never guessed, because no terminal
+  reports the setting. `--debug[=PATH]` records the rendering environment and any dropped
+  curses write. Only the *drawing glyphs* change; Japanese labels stay Unicode throughout.
+
 ## [0.18.0] - 2026-07-28
 
 ### Added
@@ -682,6 +730,8 @@ with 75 skills total.
 ### Changed
 - Restructured the repository into a Claude Code plugin-compatible layout.
 
+[0.19.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.19.0
+[0.18.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.18.0
 [0.17.4]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.4
 [0.17.3]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.3
 [0.17.2]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.2
