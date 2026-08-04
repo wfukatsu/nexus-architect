@@ -56,7 +56,7 @@ name = transcripts.name_for(sid) or sid
 path = transcripts.path_for(sid)
 
 print(c("1", "%s %s %s" % (name, D.G["sep"], T["log"])))
-print(c("2", D.G["rule"] * W))
+print(c("2", D.hrule(W)))
 rows = (
     (T["session"], sid),
     (T["cost"], "%s   %s %s   %d %s" % (money(s["cost"]), D.tokens(s["tokens"]), T["tokens"],
@@ -83,7 +83,7 @@ if TAIL:
     log = log[-TAIL:]
 print()
 print(c("1", "%s (%d %s)" % (T["log"], len(log), T["turns"])))
-print(c("2", D.G["rule"] * W))
+print(c("2", D.hrule(W)))
 
 ROLE = {"user": (T["role_user"], "32"), "assistant": (T["role_assistant"], ""),
         "tool": (T["role_tool"], "35"), "tool-result": (T["role_toolres"], "2"),

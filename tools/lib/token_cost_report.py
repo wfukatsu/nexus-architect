@@ -86,12 +86,11 @@ if JSON_OUT:
 
 # --------------------------------------------------------------- text rendering
 def rule(ch=None):
-    ch = ch or D.G["rule"]
-    return c(DIM, ch * W)
+    return c(DIM, D.hrule(W, ch))
 
 
 def head(text):
-    return c(BOLD, text) + " " + c(DIM, D.G["rule"] * max(0, W - dw(text) - 1))
+    return c(BOLD, text) + " " + c(DIM, D.hrule(max(0, W - dw(text) - 1)))
 
 
 def natural_width(headers, rows):

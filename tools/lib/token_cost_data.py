@@ -426,12 +426,19 @@ def build(ledger_path, jsonl_path, pricing, since="all"):
 
 
 # -------------------------------------------------------------------------- rendering
-# Almost every character the report draws with is East Asian *Ambiguous* width — U+2588 █,
-# U+2500 ─, U+00B7 ·, U+2192 →, U+25CF ●, U+03A3 Σ, U+2026 …. Two things go wrong with them:
-# a terminal told to render ambiguous characters double-width (the usual setting in Japanese
-# environments) draws each one twice as wide as dw() counts, so bars overrun their column;
-# and a terminal or font without the glyphs prints replacement boxes instead. The ASCII set
-# has neither problem, so it is what gets used whenever the output is not known to be UTF-8.
+# The characters the report draws with fail in two *separate* ways — do not conflate them:
+#
+#   Misalignment. U+2588 █, U+2500 ─, U+00B7 ·, U+2192 →, U+25CF ●, U+03A3 Σ and U+2026 …
+#   are East Asian *Ambiguous* width. A terminal told to render ambiguous characters
+#   double-width (the usual setting in Japanese environments) draws each one twice as wide
+#   as dw() counts by default, so bars overrun their column. That is what AMBIGUOUS_WIDE
+#   below corrects; it never produces garbled characters.
+#
+#   Garbled characters. A terminal or font without a glyph prints a replacement box. Note
+#   that U+2591 ░ — the likeliest one to be missing — is *Neutral*, not Ambiguous, so no
+#   amount of width bookkeeping helps: the fix is a different character set entirely.
+#
+# The ASCII set has neither problem, and is what gets used when the output is not UTF-8.
 UNICODE_GLYPHS = dict(bar_full="█", bar_empty="░", rule="─", sep="·", arrow="→",
                       dot="●", sigma="Σ", ellipsis="…")
 ASCII_GLYPHS = dict(bar_full="#", bar_empty=".", rule="-", sep="|", arrow="->",
@@ -453,6 +460,10 @@ def _ascii_mode():
 
 ASCII_ONLY = _ascii_mode()
 G = ASCII_GLYPHS if ASCII_ONLY else UNICODE_GLYPHS
+# There is no reliable way to ask a terminal how it renders ambiguous-width characters, so
+# this is the user's call (--ambiguous-width=2), never guessed from $TERM or the locale.
+AMBIGUOUS_WIDE = os.environ.get("NX_AMBIGUOUS", "1") == "2"
+WIDE_CLASSES = ("W", "F", "A") if AMBIGUOUS_WIDE else ("W", "F")
 
 try:  # a terminal in a non-UTF-8 locale still gets a report, not an encoding traceback
     sys.stdout.reconfigure(errors="replace")
@@ -469,8 +480,8 @@ def plain(text):
 
 
 def dw(text):
-    """Display width, counting East Asian wide characters as two columns."""
-    return sum(2 if unicodedata.east_asian_width(ch) in ("W", "F") else 1 for ch in str(text))
+    """Display width in terminal columns, per the configured ambiguous-width rule."""
+    return sum(2 if unicodedata.east_asian_width(ch) in WIDE_CLASSES else 1 for ch in str(text))
 
 
 def pad(text, width, align="l"):
@@ -493,13 +504,43 @@ def clip(text, width):
     return out + ell
 
 
+def _bar_glyphs():
+    """The filled/empty pair to draw bars with, guaranteed equal in column width.
+
+    █ U+2588 is East Asian Ambiguous but ░ U+2591 is Neutral, so under
+    --ambiguous-width=2 they are two columns and one. A mixed-width pair makes the
+    bar's total length depend on its own value — a full bar twice the length of an
+    empty one. Fall back to the ASCII pair rather than draw that.
+    """
+    full, empty = G["bar_full"], G["bar_empty"]
+    if dw(full) == dw(empty):
+        return full, empty
+    return ASCII_GLYPHS["bar_full"], ASCII_GLYPHS["bar_empty"]
+
+
+BAR_FULL, BAR_EMPTY = _bar_glyphs()
+BAR_CELL = max(1, dw(BAR_FULL))
+
+
+def hrule(columns, glyph=None):
+    """A horizontal rule `columns` wide — repeat count is columns / glyph width.
+
+    Same trap as bar(): ─ U+2500 is Ambiguous, so under --ambiguous-width=2 a rule of
+    N characters covers 2N columns and every separator runs twice past the edge.
+    """
+    glyph = glyph or G["rule"]
+    return glyph * max(0, columns // max(1, dw(glyph)))
+
+
 def bar(frac, width):
+    """A bar `width` terminal *columns* wide — not `width` characters."""
     try:
         frac = min(1.0, max(0.0, float(frac)))
     except (TypeError, ValueError):
         frac = 0.0
-    filled = int(round(frac * width))
-    return G["bar_full"] * filled + G["bar_empty"] * (width - filled)
+    cells = max(1, width // BAR_CELL)
+    filled = int(round(frac * cells))
+    return BAR_FULL * filled + BAR_EMPTY * (cells - filled)
 
 
 def money(value, currency="usd", fx=0.0):

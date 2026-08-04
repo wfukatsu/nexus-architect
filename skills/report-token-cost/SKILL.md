@@ -1,7 +1,7 @@
 ---
 description: |
   Report the actual token cost the agent recorded while running, straight from the ledger.
-  /architect:report-token-cost [--once] [--follow] [--session=ID] [--since=7d] [--breakdown=cost] [--ascii] [--md] [--json] [--lang=ja|en] to invoke.
+  /architect:report-token-cost [--once] [--follow] [--session=ID] [--since=7d] [--breakdown=cost] [--ascii] [--ambiguous-width=2] [--md] [--json] [--lang=ja|en] to invoke.
   Renders work/token-usage.json + work/token-usage.jsonl on the terminal — totals, per-phase
   and per-model cost (in / out / cache-read / cache-write columns), daily timeline, per-session
   cost with session names, and recent events. On a terminal it defaults to an interactive
@@ -51,17 +51,34 @@ One script does the whole job: `${CLAUDE_PLUGIN_ROOT}/tools/token-cost-report.sh
 | `… --lang=ja` | `--lang=ja` | Force display language (default: `options.output_language`, else `en`) |
 | `… --currency=jpy --fx=155` | same | Show money in JPY at the given rate |
 | `… --top=N` | `--top=N` | Rows per table (default 10) |
-| `… --ascii` | `--ascii` | Draw the bars, rules and separators with `# . - \| ->` instead of Unicode (`--glyphs=unicode` forces them back on) |
+| `… --ascii` | `--ascii` | Draw the bars, rules and separators with `# . - \| ->` instead of Unicode (`--glyphs=unicode` forces them back on). Only the *drawing glyphs* change — Japanese labels stay Unicode either way |
+| `… --ambiguous-width=2` | `--ambiguous-width=2` | Count East Asian ambiguous characters as two columns, for terminals that render them that way |
+| `… --debug` | `--debug[=PATH]` | Log the rendering environment and any dropped curses writes to `work/token-cost-debug.log` |
 
-## When the bars look garbled
+## When the bars look wrong
 
-The report's drawing characters — `█ ░ ─ · → ● Σ` — are almost all East Asian **ambiguous**
-width, which breaks two ways: a terminal or font without the glyphs prints replacement boxes,
-and a terminal told to render ambiguous characters double-width (the usual setting in Japanese
-environments) draws each one twice as wide as the layout counts, so the bars overrun their
-column. `--ascii` avoids both — ASCII is unambiguously one column wide and always present.
-Non-UTF-8 output is detected and switched to ASCII automatically; the double-width case cannot
-be detected, so it is the user's call.
+Two different failures, with two different fixes. Read what the user actually sees before
+recommending one — they are not variants of the same problem:
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `�`, tofu boxes, or `â–‘` where the bar should be | The font or terminal has no glyph, or something in the path decoded the UTF-8 wrongly. **Garbling is produced by a decoder** — a width miscount never causes it | `--ascii` |
+| Bars and rules look right but run past their column; percentages pushed off; Japanese labels and rules misaligned | The terminal renders East Asian **ambiguous** characters (`█ ─ · → ● Σ …`) as two columns while the layout counted one | `--ambiguous-width=2` |
+
+Note that `░` U+2591 is *Neutral*, not ambiguous — if the empty half of the bar is what
+breaks while `█` renders, that is font coverage and only `--ascii` helps.
+
+Neither is auto-detected beyond one case: non-UTF-8 output switches to ASCII glyphs on its
+own. No terminal reports its ambiguous-width setting or its font coverage, so those stay the
+user's call — never guess them from `$TERM` or the locale.
+
+To tell the two apart, have the user run this in their own terminal, outside the tool:
+
+```sh
+printf 'FULL=[████] SHADE=[░░░░] RULE=[────] 日本語\n'
+```
+
+If that is already broken, it is the terminal or font, not the report.
 
 Always pass `--once` when running it yourself: with no mode flag the script starts its live
 dashboard on a terminal, which never exits on its own. `--session` and the export flags are

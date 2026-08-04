@@ -44,7 +44,14 @@
 #                      terminal renders East Asian ambiguous-width characters double-width
 #                      (common in Japanese setups) and the bars overrun their column.
 #                      --glyphs=unicode forces the Unicode set back on; the default, auto,
-#                      picks ASCII whenever stdout is not UTF-8
+#                      picks ASCII whenever stdout is not UTF-8. Only the *drawing* glyphs
+#                      change - Japanese labels stay Unicode either way
+#   --ambiguous-width=N how many columns East Asian ambiguous characters occupy in your
+#                      terminal: 1 (default) or 2. Set 2 if the bars and rules render fine
+#                      but overrun their column - the usual Japanese terminal setting.
+#                      Never guessed: no terminal reports this
+#   --debug[=PATH]     log the rendering environment and any dropped curses writes
+#                      (default PATH: work/token-cost-debug.log)
 #   --json             emit the computed aggregate as JSON instead of the rendered report
 #   --md[=PATH]        also write the report as Markdown
 #                      (default PATH: reports/05_estimate/token-cost-actuals.md)
@@ -74,6 +81,8 @@ CURRENCY="usd"
 FX=""
 COLOR="auto"
 GLYPHS="auto"
+AMBIGUOUS=1
+DEBUG_LOG=""
 JSON_OUT=0
 MD_OUT=""
 WIDTH=""
@@ -101,6 +110,9 @@ for arg in "$@"; do
     --color)        COLOR=always ;;
     --ascii)        GLYPHS=ascii ;;
     --glyphs=*)     GLYPHS="${arg#*=}" ;;
+    --ambiguous-width=*) AMBIGUOUS="${arg#*=}" ;;
+    --debug)        DEBUG_LOG="work/token-cost-debug.log" ;;
+    --debug=*)      DEBUG_LOG="${arg#*=}" ;;
     --json)         JSON_OUT=1 ;;
     --md)           MD_OUT="reports/05_estimate/token-cost-actuals.md" ;;
     --md=*)         MD_OUT="${arg#*=}" ;;
@@ -168,6 +180,7 @@ esac
 [ "$TOP" -ge 1 ] 2>/dev/null || TOP=10
 case "$BREAKDOWN" in tokens|cost) ;; *) die "--breakdown must be tokens or cost" ;; esac
 case "$GLYPHS" in auto|ascii|unicode) ;; *) die "--glyphs must be auto, ascii or unicode" ;; esac
+case "$AMBIGUOUS" in 1|2) ;; *) die "--ambiguous-width must be 1 or 2" ;; esac
 if [ "$CURRENCY" = "jpy" ] && [ -z "$FX" ]; then
   die "--currency=jpy requires --fx=RATE (e.g. --fx=155)"
 fi
@@ -182,7 +195,13 @@ if [ "$MODE" = "auto" ]; then
   fi
 fi
 
-export NX_GLYPHS="$GLYPHS"
+export NX_GLYPHS="$GLYPHS" NX_AMBIGUOUS="$AMBIGUOUS"
+if [ -n "$DEBUG_LOG" ]; then
+  case "$DEBUG_LOG" in /*) ;; *) DEBUG_LOG="$PROJECT_DIR/$DEBUG_LOG" ;; esac
+  mkdir -p "$(dirname "$DEBUG_LOG")" 2>/dev/null || true
+  export NX_DEBUG_LOG="$DEBUG_LOG"
+  echo "token-cost-report: debug log -> $DEBUG_LOG" >&2
+fi
 export NX_LANG="$LANG_OPT" NX_TOP="$TOP" NX_WIDTH="$WIDTH" NX_COLOR="$USE_COLOR" \
        NX_SINCE="$SINCE" NX_CURRENCY="$CURRENCY" NX_FX="${FX:-0}" \
        NX_JSON="$JSON_OUT" NX_PROJECT_DIR="$PROJECT_DIR" NX_BREAKDOWN="$BREAKDOWN" \

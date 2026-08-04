@@ -29,6 +29,7 @@ SINCE = env("NX_SINCE", "all")
 BREAKDOWN = env("NX_BREAKDOWN", "tokens")
 INTERVAL = max(1, int(env("NX_INTERVAL", "10") or 10))
 PROJ = env("NX_PROJECT_DIR", ".")
+DEBUG_LOG = env("NX_DEBUG_LOG", "")
 
 T = D.labels(LANG)
 TABS = ["phases", "models", "sessions", "days", "events"]
@@ -511,7 +512,7 @@ class App:
         # separator
         sep_y = list_start + list_h
         label = " %s " % T["detail"]
-        put(stdscr, sep_y, 0, D.G["rule"] * width, width, "dim")
+        put(stdscr, sep_y, 0, D.hrule(width), width, "dim")
         put(stdscr, sep_y, 2, label, width - 2, "dim")
 
         # detail pane
@@ -532,7 +533,10 @@ class App:
                                       min(len(lines), self.detail_top + detail_h), len(lines))
             put(stdscr, sep_y, max(0, width - D.dw(counter) - 2), counter, width, "dim")
 
-        put(stdscr, height - 1, 0, D.pad(T["keys"], width), width, "dim")
+        # One column short of the edge: writing the bottom-right cell advances the cursor
+        # off the screen and curses returns ERR, which dropped the last cell of this row on
+        # every frame. (--debug surfaced it; it had been failing silently.)
+        put(stdscr, height - 1, 0, D.pad(T["keys"], width - 1), width - 1, "dim")
         # Discard what curses believes is on the screen and repaint every line. Its model
         # miscounts East Asian double-width cells, so the update optimizer skips cells it
         # thinks already match and fragments of the previous frame survive — a session's cost
@@ -624,6 +628,17 @@ def table_lines(headers, rows, aligns, width):
     return out
 
 
+def debug(fmt, *args):
+    """Append one line to the debug log, when --debug asked for one."""
+    if not DEBUG_LOG:
+        return
+    try:
+        with open(DEBUG_LOG, "a", encoding="utf-8") as fh:
+            fh.write("%s %s\n" % (datetime.now().strftime("%H:%M:%S.%f")[:-3], fmt % args))
+    except OSError:
+        pass
+
+
 def put(stdscr, y, x, text, width, style=""):
     if width <= 0 or y < 0 or x < 0:
         return
@@ -637,11 +652,24 @@ def put(stdscr, y, x, text, width, style=""):
         attr |= curses.A_REVERSE
     try:
         stdscr.addstr(y, x, text, attr)
-    except curses.error:
-        pass  # bottom-right cell and over-long lines raise; the clip above is best effort
+    except curses.error as exc:
+        # Writing the bottom-right cell always raises, and so does anything curses thinks
+        # runs past the edge — which is how a width miscount shows up. Swallowing these
+        # silently is what made the repaint bug invisible, so record them under --debug.
+        # Still non-fatal: one dropped cell must not take the dashboard down.
+        debug("addstr failed y=%d x=%d dw=%d width=%d style=%s: %s | %r",
+              y, x, D.dw(text), width, style or "-", exc, text[:60])
 
 
 def main(stdscr):
+    # The rendering environment, recorded once: which of these disagree is the whole
+    # question when the screen comes out garbled or misaligned.
+    debug("start term=%s encoding=%s locale=%s ncurses=%s size=%dx%d "
+          "glyphs=%s ambiguous_wide=%s bar=%r/%r",
+          os.environ.get("TERM", "-"), getattr(sys.stdout, "encoding", "-"),
+          locale.setlocale(locale.LC_CTYPE), curses.version, *stdscr.getmaxyx()[::-1],
+          "ascii" if D.ASCII_ONLY else "unicode", D.AMBIGUOUS_WIDE,
+          D.BAR_FULL, D.BAR_EMPTY)
     if curses.has_colors():
         curses.use_default_colors()
         curses.init_pair(1, curses.COLOR_CYAN, -1)
