@@ -99,6 +99,16 @@ Keys starting with `_` are internal bookkeeping; everything else is the reportab
 ledger. Parallel phases appear as joined keys (e.g.
 `review-consistency+review-risk`).
 
+### Reading the ledger
+
+`tools/token-cost-report.sh` (also `/architect:report-token-cost`) renders both artifacts on
+the terminal — totals, per-phase cost, per-model cost broken out into input / output /
+cache-read / cache-write columns, daily timeline, per-session cost (named from each session's
+transcript), and recent events — recomputing per-model cost from `model-pricing.json` so the
+report tracks price updates. On a terminal it defaults to a live dashboard that re-checks the
+ledger every 10s and re-renders on change; `--once` renders a single report, `--follow`
+streams each recorded event as it is appended, and `--md` / `--json` export the same aggregate.
+
 ## Estimation methodology (a-priori)
 
 When no actuals exist yet, `/architect:estimate-token-cost` estimates from lines of code

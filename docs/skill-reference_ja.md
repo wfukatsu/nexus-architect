@@ -117,6 +117,8 @@
 | `/architect:review-report` | sonnet | 生成された HTML レポートの品質レビュー（完全性、スコア精度、Mermaid 構文） |
 | `/architect:render-mermaid` | haiku | Mermaid から PNG/SVG + 構文修正 |
 | `/architect:estimate-cost` | sonnet | インフラ、ライセンス、運用コスト |
+| `/architect:estimate-token-cost` | sonnet | エージェント実行のトークン使用量と USD コスト（事前見積り、実績で校正） |
+| `/architect:report-token-cost` | haiku | 記録済み実績コストのターミナルレポート（既定は対話型2ペインダッシュボード/10秒間隔・上ペインで選択、下ペインに詳細やセッションログ、`--once` 単発、`--follow` ストリーム、`--session=ID` 単一セッション+ログ、`--since`、`--breakdown=cost`、`--ascii`（グリフ欠落で文字化けする端末向けの ASCII 描画）、`--ambiguous-width=2`（East Asian Ambiguous 文字を2桁で描画する端末向けの幅補正）、`--debug`、`--md`、`--json`） |
 
 ## ユーティリティ
 

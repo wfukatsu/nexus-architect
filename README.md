@@ -281,6 +281,8 @@ task-list box is ticked when its child actually merges.
 | `/architect:review-report` | Review the quality of the generated HTML report |
 | `/architect:render-mermaid` | Mermaid to PNG/SVG + syntax fix |
 | `/architect:estimate-cost` | Infrastructure, license, and operational costs |
+| `/architect:estimate-token-cost` | Token usage and USD cost of *running the agent* (a-priori from LOC, calibrated by recorded actuals) |
+| `/architect:report-token-cost` | Report the recorded actual agent cost from `work/token-usage.json`/`.jsonl` on the terminal — interactive two-pane dashboard by default (10s poll; pick a phase/model/session/day/event above, read its detail — a session shows its transcript log — below), `--once` single render, `--follow` event stream, `--session=ID` one session + its log, plus `--since`, `--breakdown=cost`, `--ascii` (ASCII bars for terminals that garble the Unicode ones), `--ambiguous-width=2` (terminals that render East Asian ambiguous characters double-width), `--debug`, `--md`, `--json` |
 | `/architect:update-knowledge` | Fetch/update the OKF ScalarDB/ScalarDL knowledge bundle from remote (`--latest`, `--status`) |
 
 ### Database Migration
