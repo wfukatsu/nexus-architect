@@ -32,3 +32,4 @@ Thumbs.db
 .pi/
 .polly/
 .worktrees/
+.context/codex-session-id
