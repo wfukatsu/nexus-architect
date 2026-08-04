@@ -137,6 +137,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Skills are namespaced
 - `/architect:render-mermaid [target_path]` — Mermaid to PNG/SVG + syntax fix
 - `/architect:estimate-cost` — Infrastructure, license, operational costs
 - `/architect:estimate-token-cost` — Token usage and USD cost of running the pipeline (a-priori from LOC, calibrated by recorded actuals)
+- `/architect:report-token-cost [--once] [--follow] [--session=ID] [--since=7d] [--breakdown=cost] [--ascii] [--md] [--json]` — Report the **recorded actual** cost from `work/token-usage.json` + `work/token-usage.jsonl` on the terminal (totals, per-phase cost, per-model cost with in/out/cache-read/cache-write columns, daily timeline, per-session cost with session names, recent events); wraps `tools/token-cost-report.sh`, which on a terminal defaults to an interactive two-pane dashboard polling every 10s — select a phase/model/session/day/event above, read its detail below, where a session shows its transcript log (`--follow` streams events instead, `--session=ID` prints one session + its log non-interactively). The live modes run in the user's own terminal, so pass `--once` for an in-session render
 - `/architect:update-knowledge [--latest] [--status]` — Fetch or update the OKF ScalarDB/ScalarDL knowledge bundle from remote (wraps `tools/update-okf-bundle.sh`; no flag = ensure present, `--latest` = pull newest, `--status` = show resolved path/commits/versions)
 
 ### Backlog Delivery
@@ -182,7 +183,7 @@ The manifest covers the core pipeline only. The remaining architect skills —
 `design-implementation`, `generate-test-specs`, `generate-scalardb-code`,
 `generate-infra-code`, `generate-docs`, `design-infrastructure`, `design-security`,
 `design-observability`, `design-disaster-recovery`, `estimate-cost`,
-`estimate-token-cost` — form a
+`estimate-token-cost`, `report-token-cost` — form a
 **manual extension tier**: they are not executed by `/architect:pipeline` — nor by
 `/architect:start`, which also runs only the manifest's phases — and are invoked
 individually, typically after the core pipeline. See the invocation chains in

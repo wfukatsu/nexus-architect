@@ -118,6 +118,8 @@ merges).
 | `/architect:review-report` | sonnet | Review the quality of the generated HTML report (completeness, score accuracy, Mermaid syntax) |
 | `/architect:render-mermaid` | haiku | Mermaid to PNG/SVG + syntax fix |
 | `/architect:estimate-cost` | sonnet | Infrastructure, license, and operational costs |
+| `/architect:estimate-token-cost` | sonnet | Token usage and USD cost of running the agent (a-priori, calibrated by actuals) |
+| `/architect:report-token-cost` | haiku | Terminal report of the recorded actual agent cost — interactive two-pane dashboard by default (10s poll; selection above, detail/session log below), `--once`, `--follow`, `--session=ID`, `--since`, `--breakdown=cost`, `--ascii`, `--md`, `--json` |
 
 ## Utility
 
