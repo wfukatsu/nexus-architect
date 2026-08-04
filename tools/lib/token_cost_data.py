@@ -451,11 +451,18 @@ TO_ASCII_PAIRS = (("↑↓", "^v"), ("←→", "<>"), ("→←", "><"))
 
 
 def _ascii_mode():
+    """Whether to draw with the ASCII glyph set. --glyphs=ascii|unicode overrides."""
     mode = os.environ.get("NX_GLYPHS", "auto").lower()
     if mode in ("ascii", "unicode"):
         return mode == "ascii"
     enc = (getattr(sys.stdout, "encoding", "") or "").lower().replace("-", "").replace("_", "")
-    return "utf8" not in enc
+    if "utf8" not in enc:
+        return True
+    # Japanese is the default-ASCII case: those terminals commonly render East Asian
+    # ambiguous characters double-width, and their fonts are chosen for kana/kanji rather
+    # than for shade blocks. Legibility beats prettiness when the drawing is what breaks.
+    # English keeps the Unicode set; --glyphs=unicode restores it for Japanese too.
+    return os.environ.get("NX_LANG", "en").lower().startswith("ja")
 
 
 ASCII_ONLY = _ascii_mode()

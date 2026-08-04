@@ -43,9 +43,11 @@
 #                      Unicode. Use when the bars come out as garbled boxes, or when the
 #                      terminal renders East Asian ambiguous-width characters double-width
 #                      (common in Japanese setups) and the bars overrun their column.
-#                      --glyphs=unicode forces the Unicode set back on; the default, auto,
-#                      picks ASCII whenever stdout is not UTF-8. Only the *drawing* glyphs
-#                      change - Japanese labels stay Unicode either way
+#                      --glyphs=unicode forces the Unicode set back on. The default, auto,
+#                      picks ASCII when stdout is not UTF-8 and when --lang=ja, since
+#                      Japanese terminals commonly render ambiguous-width characters
+#                      double-width and their fonts favour kana over shade blocks. Only the
+#                      *drawing* glyphs change - Japanese labels stay Unicode either way
 #   --ambiguous-width=N how many columns East Asian ambiguous characters occupy in your
 #                      terminal: 1 (default) or 2. Set 2 if the bars and rules render fine
 #                      but overrun their column - the usual Japanese terminal setting.

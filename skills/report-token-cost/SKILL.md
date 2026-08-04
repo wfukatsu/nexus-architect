@@ -51,7 +51,7 @@ One script does the whole job: `${CLAUDE_PLUGIN_ROOT}/tools/token-cost-report.sh
 | `… --lang=ja` | `--lang=ja` | Force display language (default: `options.output_language`, else `en`) |
 | `… --currency=jpy --fx=155` | same | Show money in JPY at the given rate |
 | `… --top=N` | `--top=N` | Rows per table (default 10) |
-| `… --ascii` | `--ascii` | Draw the bars, rules and separators with `# . - \| ->` instead of Unicode (`--glyphs=unicode` forces them back on). Only the *drawing glyphs* change — Japanese labels stay Unicode either way |
+| `… --ascii` | `--ascii` | Draw the bars, rules and separators with `# . - \| ->` instead of Unicode. **This is already the default when the output language is `ja`** — `--glyphs=unicode` restores the Unicode drawing. Only the *drawing glyphs* change; Japanese labels stay Unicode either way |
 | `… --ambiguous-width=2` | `--ambiguous-width=2` | Count East Asian ambiguous characters as two columns, for terminals that render them that way |
 | `… --debug` | `--debug[=PATH]` | Log the rendering environment and any dropped curses writes to `work/token-cost-debug.log` |
 
@@ -68,9 +68,11 @@ recommending one — they are not variants of the same problem:
 Note that `░` U+2591 is *Neutral*, not ambiguous — if the empty half of the bar is what
 breaks while `█` renders, that is font coverage and only `--ascii` helps.
 
-Neither is auto-detected beyond one case: non-UTF-8 output switches to ASCII glyphs on its
-own. No terminal reports its ambiguous-width setting or its font coverage, so those stay the
-user's call — never guess them from `$TERM` or the locale.
+The glyph set is chosen automatically in two cases: non-UTF-8 output, and `--lang=ja`. Both
+fall back to ASCII drawing because Japanese terminals commonly render ambiguous characters
+double-width and their fonts are picked for kana/kanji rather than shade blocks. Nothing else
+is detected — no terminal reports its ambiguous-width setting or its font coverage, so those
+stay the user's call; never guess them from `$TERM`.
 
 To tell the two apart, have the user run this in their own terminal, outside the tool:
 
