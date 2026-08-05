@@ -9,6 +9,8 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-08-05
+
 ### Added
 - **`rules/scalardb-saga-patterns.md` (new rule): ScalarDB Saga.** The OKF knowledge bundle now
   carries ScalarDB Saga as a fourth product, so the toolkit treats saga orchestration as a
@@ -788,6 +790,7 @@ with 75 skills total.
 ### Changed
 - Restructured the repository into a Claude Code plugin-compatible layout.
 
+[0.20.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.20.0
 [0.19.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.19.0
 [0.18.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.18.0
 [0.17.4]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.4
