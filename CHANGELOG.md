@@ -29,6 +29,22 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
   consistency across contexts rather than implied by a ScalarDB adoption.
 
 ### Changed
+- **The greenfield applicability decision tree now routes eventual consistency to ScalarDB Saga.**
+  `workflow/greenfield/01_requirements_analysis.md` Step 1.4 — the tree `/architect:define-requirements`
+  actually walks — terminated the eventual-consistency branch at "ScalarDB not needed"; it now reaches
+  ScalarDB Saga, gated on whether a compensation is definable for every step. The step is renamed to a
+  Scalar **product** applicability assessment (ScalarDB / ScalarDB Saga / neither), assessed per
+  business process, and it no longer presumes that a ScalarDB verdict implies 2PC. Step 1.5's XA
+  comparison gains an application-complexity row reflecting the shared-cluster and Global Transaction
+  API paths.
+- **`/architect:design-scalardb-analytics` no longer claims "Enterprise Premium only"** — ScalarDB
+  Analytics is a separately contracted Enterprise **Option**, so the skill now confirms licensing
+  rather than assuming a Premium project has it. The same correction is applied to the edition tables
+  in the Oracle / MySQL / PostgreSQL migration references, which also mislabelled ABAC as plain
+  Premium rather than an Enterprise Premium Option.
+- **`/scalardb:migrate` checks whether a 1PC → 2PC migration is needed at all** before advising one —
+  the shared-cluster pattern and the 3.19 Global Transaction API both keep application code one-phase
+  across services — and notes that 2PC → 1PC simplification is correspondingly more often available.
 - **OKF knowledge bundle updated to `7a723b8`** — adds ScalarDB 3.19 and ScalarDB Saga 3.19;
   2,015 concepts across 4 products and 21 version lines (was 1,800 / 3 / 19).
 - **`rules/scalardb-edition-profiles.md` rewritten against the bundle's own feature matrix.** It

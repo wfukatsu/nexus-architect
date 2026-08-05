@@ -88,49 +88,62 @@ Analyze which services require ACID transactions and which can tolerate eventual
 
 ---
 
-### Step 1.4: ScalarDB Applicability Assessment
+### Step 1.4: Scalar Product Applicability Assessment
 
-Follow the decision tree below to assess ScalarDB applicability. Refer to the decision tree in `02_scalardb_usecases.md`.
+Follow the decision tree below, per business process, to assess which Scalar product applies.
+Eventual consistency is **not** a "no Scalar product" answer — ScalarDB Saga is the product for that
+branch (@rules/scalardb-saga-patterns.md). Ground every capability claim in the version-pinned OKF
+knowledge bundle per @rules/okf-knowledge-bundle.md.
 
 ```mermaid
 flowchart TD
-    A["Start: Is there a data consistency<br/>requirement across microservices?"] -->|Yes| B{"Are multiple types of<br/>DBs in use?"}
-    A -->|No| Z1["ScalarDB not needed<br/>Handle with Local Tx"]
+    A["Start: Is there a data consistency<br/>requirement across services?"] -->|No| Z1["No Scalar product needed<br/>Handle with Local Tx"]
+    A -->|Yes| B{"Does the process require<br/>immediate consistency?"}
 
-    B -->|"Yes: Heterogeneous DBs"| C{"Is ACID transaction needed<br/>across heterogeneous DBs?"}
-    B -->|"No: Homogeneous DBs only"| D{"Is ACID transaction needed<br/>across services?"}
+    B -->|"No: eventual consistency<br/>is acceptable"| S1{"Is a compensation definable<br/>for every step?"}
+    B -->|Yes| C{"Are multiple types of<br/>DBs in use?"}
 
-    C -->|Yes| E{"Does it include NoSQL?"}
-    C -->|No| F["Handle with Eventual Consistency (Saga)<br/>ScalarDB not needed"]
+    S1 -->|Yes| SAGA["ScalarDB Saga recommended<br/>SAGA or TCC with compensations"]
+    S1 -->|"No: a step cannot be undone"| B2["Not a saga — it must be one<br/>ACID transaction. Re-enter at the<br/>immediate-consistency branch"]
+    B2 --> C
 
-    E -->|Yes| G["ScalarDB recommended<br/>ACID support needed for NoSQL"]
-    E -->|"No: RDBMS only"| H{"Can XA transactions<br/>handle this?<br/>→ Go to Step 1.5"}
+    C -->|"Yes: Heterogeneous DBs"| D{"Does it include NoSQL?"}
+    C -->|"No: Homogeneous RDBMS only"| H{"Can XA transactions<br/>handle this?<br/>→ Go to Step 1.5"}
 
-    D -->|Yes| I{"Can XA transactions<br/>handle this?<br/>→ Go to Step 1.5"}
-    D -->|No| F
+    D -->|Yes| G["ScalarDB recommended<br/>NoSQL does not support XA"]
+    D -->|"No: RDBMS only"| H
 
     H -->|"XA not feasible"| J["ScalarDB recommended"]
-    H -->|"XA feasible"| K["Adopt XA transactions<br/>ScalarDB not needed"]
-
-    I -->|"XA not feasible"| J
-    I -->|"XA feasible"| K
+    H -->|"XA feasible"| K["Adopt XA transactions<br/>ScalarDB not required"]
 
     style G fill:#4CAF50,color:#fff
     style J fill:#4CAF50,color:#fff
+    style SAGA fill:#4CAF50,color:#fff
     style K fill:#2196F3,color:#fff
     style Z1 fill:#9E9E9E,color:#fff
-    style F fill:#9E9E9E,color:#fff
 ```
+
+**A ScalarDB recommendation does not decide the transaction mechanism.** Whether the strongly
+consistent path is implemented as shared-cluster one-phase commit, the Global Transaction API with a
+Transaction Coordinator node (ScalarDB 3.19+), or application-driven 2PC is settled later, in
+`/architect:select-scalardb-edition` and `/architect:design-scalardb`
+(@rules/scalardb-2pc-patterns.md). Do not assume 2PC here, and do not treat "2PC is complex" as an
+argument against ScalarDB at this step.
+
+ScalarDB and ScalarDB Saga are commonly both adopted in one system, for different processes — the
+assessment is per business process, not per system.
 
 #### Assessment Criteria Checklist
 
 | # | Criterion | Yes/No | Notes |
 |---|-----------|--------|-------|
-| 1 | Are multiple types of DBs in use? | | |
-| 2 | Is ACID transaction needed across heterogeneous DBs? | | |
-| 3 | Does it include NoSQL (Cassandra, DynamoDB, etc.)? | | |
-| 4 | Can XA transactions handle this? (Detailed assessment in Step 1.5) | | |
-| 5 | Are there business processes requiring strong consistency across services? | | |
+| 1 | Does the process require immediate consistency, or is eventual consistency acceptable? | | |
+| 2 | If eventual: is a compensation definable and business-acceptable for every step? (ScalarDB Saga candidacy) | | |
+| 3 | Are multiple types of DBs in use? | | |
+| 4 | Does it include NoSQL (Cassandra, DynamoDB, etc.)? | | |
+| 5 | Can XA transactions handle this? (Detailed assessment in Step 1.5) | | |
+| 6 | Are there business processes requiring strong consistency across services? | | |
+| 7 | Is tamper-evidence / non-repudiation required? (ScalarDL candidacy) | | |
 
 ---
 
@@ -169,10 +182,14 @@ flowchart TD
 | Homogeneous RDBMS only | Supported | Supported | |
 | Heterogeneous RDBMS | Limited (compatibility issues) | Supported | |
 | Includes NoSQL | Not supported | Supported | |
-| Performance | Large 2PC overhead | Reduced lock contention via OCC. High throughput with Group Commit optimization (though adjustment costs apply when using the 2PC Interface) | |
+| Performance | Large 2PC overhead | Reduced lock contention via OCC. High throughput with Group Commit optimization (note: Group Commit cannot be combined with the 2PC interface) | |
+| Application complexity across services | Application drives the XA protocol | Shared-cluster pattern keeps application code one-phase; on 3.19+ the Global Transaction API does the same for separated clusters, with the Transaction Coordinator driving 2PC underneath | |
 | Operational complexity | TM management required | Managed by ScalarDB Cluster | |
-| Failure recovery | Risk of heuristic exceptions | Automatic recovery | |
+| Failure recovery | Risk of heuristic exceptions | Automatic (lazy) recovery | |
 | Vendor lock-in | Standard specification (JTA/XA) | ScalarDB dependency | |
+
+Version-specific rows above assume ScalarDB 3.19. Confirm against the release the project pins
+(@rules/okf-knowledge-bundle.md) before carrying this table into a deliverable.
 
 **Assessment Result:**
 

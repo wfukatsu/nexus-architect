@@ -2,7 +2,7 @@
 description: |
   Define system requirements through document intake and interactive elicitation.
   Classifies functional/non-functional requirements, analyzes data and transaction
-  requirements, and assesses ScalarDB applicability.
+  requirements, and assesses Scalar product applicability (ScalarDB / ScalarDB Saga).
   /architect:define-requirements [target_path] [--input=<file|dir>] [--auto] [--no-scalardb] to invoke.
   Entry point for the greenfield design path. Can also run standalone or after
   /architect:investigate on the legacy path. Accepts additional input documents
@@ -19,7 +19,7 @@ Produce a traceable requirements baseline as four deliverables:
 
 1. **Requirements definition** — business context, scope, FR/NFR classification with IDs and priorities, actor list
 2. **Data & transaction requirements** — DB inventory, transaction requirements matrix, consistency level per business process
-3. **ScalarDB applicability assessment** — decision tree result, XA vs ScalarDB comparison, rationale (skipped with `--no-scalardb`)
+3. **Scalar product applicability assessment** — decision tree result (ScalarDB / ScalarDB Saga / neither), XA vs ScalarDB comparison, rationale (skipped with `--no-scalardb`)
 4. **Open questions** — unresolved items (TBD), owners, downstream impact
 
 Every requirement carries an ID (`FR-xxx` / `NFR-xxx`), a priority, and a data consistency requirement so that downstream design skills can trace decisions back to requirements.
@@ -35,7 +35,7 @@ Every requirement carries an ID (`FR-xxx` / `NFR-xxx`), a priority, and a data c
 | `target_path` | Optional | Existing codebase to reference (brownfield-style requirements definition) |
 | `--input=<file\|dir>` | Optional, repeatable | Additional input documents: RFP, meeting notes, existing design docs, business flow diagrams. Read as text/Markdown/PDF |
 | `--auto` | Optional | Skip elicitation; generate from input documents and existing artifacts only. Unknown items become `TBD` and are recorded in Open Questions. Error if combined with no inputs at all |
-| `--no-scalardb` | Optional | Skip the ScalarDB applicability assessment (Step 4) |
+| `--no-scalardb` | Optional | Skip the Scalar product applicability assessment (Step 4) |
 
 ## Decision Criteria
 
@@ -63,8 +63,8 @@ When product reports are present, this skill runs as the **product→architect h
 | Resource | Purpose |
 |----------|---------|
 | `@docs/design.md` §1.3–1.4 | Product→architect artifact mapping, ID carry-over rules, and by-design gaps (read when product reports are present) |
-| `workflow/greenfield/01_requirements_analysis.md` | Templates: FR/NFR classification table, DB inventory, transaction requirements matrix, applicability decision tree, XA comparison table |
-| `research/02_scalardb_usecases_{en\|ja}.md` | Decision tree rationale for ScalarDB applicability |
+| `workflow/greenfield/01_requirements_analysis.md` | Templates: FR/NFR classification table, DB inventory, transaction requirements matrix, Scalar product applicability decision tree (Step 1.4), XA comparison table (Step 1.5) |
+| `research/02_scalardb_usecases_{en\|ja}.md` | Decision tree rationale for ScalarDB applicability — background material predating ScalarDB 3.19 / ScalarDB Saga; the bundle wins on any conflict (@rules/okf-knowledge-bundle.md) |
 | `research/15_xa_heterogeneous_investigation_{en\|ja}.md` | XA vs ScalarDB comparison criteria |
 
 Read the `_en` or `_ja` variant matching `options.output_language`. Reference the templates from these files — do not duplicate their content into this skill.
@@ -97,7 +97,7 @@ Run the 5-stage facilitation below using AskUserQuestion, asking **only items on
 2. Build the DB inventory (current or planned databases, types, versions, volumes)
 3. Build the transaction requirements matrix: classify each business process into Strong Consistency (ACID) / Eventual Consistency (Saga) / Local Tx with reasons. When `bounded-contexts.md` carries a per-`CTX-` consistency hint (`Strong`/`Eventual`/`TBD`, from /product:map-domains), use it as the **starting point** for the contexts a process spans — confirm or override it with a recorded reason; this is the binding classification (@docs/design.md §1.4)
 
-### Step 4: ScalarDB Applicability — skipped with `--no-scalardb`
+### Step 4: Scalar Product Applicability — skipped with `--no-scalardb`
 
 0. If `reports/03_domain/tech-stack-fitness.md` exists (from /product:design-architecture), use its ScalarDB/ScalarDL **Adopt/Trial/Reject** verdict as the **prior**: confirm or refute it against the transaction matrix rather than deriving the recommendation from a blank slate, and cite it as the input
 1. Walk the decision tree from `workflow/greenfield/01_requirements_analysis.md` (Step 1.4) against the transaction requirements matrix
@@ -123,7 +123,7 @@ Write to `reports/00_requirements/`:
 |------|---------|-----------|
 | `reports/00_requirements/requirements-definition.md` | Business context, scope, FR/NFR classification table, priorities, actor list | Always |
 | `reports/00_requirements/data-transaction-requirements.md` | DB inventory, transaction requirements matrix, consistency level assessment | Always |
-| `reports/00_requirements/scalardb-applicability.md` | Decision tree result (Mermaid), XA comparison table, rationale | Unless `--no-scalardb` |
+| `reports/00_requirements/scalardb-applicability.md` | Decision tree result (Mermaid) per business process — ScalarDB / ScalarDB Saga / neither — XA comparison table, rationale | Unless `--no-scalardb` |
 | `reports/00_requirements/open-questions.md` | Unresolved items (TBD), who to ask, impact on downstream phases | Always |
 
 Write all document content in the language configured in `work/pipeline-progress.json` (`options.output_language`). YAML frontmatter keys remain in English regardless of the output language.
@@ -151,7 +151,7 @@ Mermaid diagrams (applicability decision tree, context diagram) follow @rules/me
 2. Every FR/NFR has an ID, priority, and data consistency requirement
 3. Numeric NFR targets (latency, throughput, RPO/RTO) are either filled in or listed as TBD in `open-questions.md`
 4. Every business process in the transaction matrix has a consistency level with a reason
-5. ScalarDB applicability verdict recorded with rationale (unless `--no-scalardb`)
+5. Scalar product applicability verdict recorded per business process with rationale (unless `--no-scalardb`)
 6. `work/pipeline-progress.json` updated with phase status `completed`
 7. `work/traceability.json` updated with `FR-`/`NFR-` nodes; every `FR-` derived from product carries its `FEAT-` upstream and no product `NFR-` is re-numbered (@docs/design.md §1.5)
 

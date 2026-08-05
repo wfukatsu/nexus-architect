@@ -29,6 +29,20 @@ Nexus Architect の主な変更点を記録します。
   付随するのではなく「コンテキスト跨ぎで結果整合が要件」というシグナルで起動します。
 
 ### 変更
+- **greenfield の適用判定ツリーで、結果整合の枝が ScalarDB Saga に接続されるようになりました。**
+  `/architect:define-requirements` が実際に辿る `workflow/greenfield/01_requirements_analysis.md`
+  Step 1.4 では、結果整合の枝が「ScalarDB 不要」で終端していました。これを「各ステップに補償が
+  定義できるか」で分岐させ、ScalarDB Saga に到達するよう修正。ステップ名も Scalar **製品**の
+  適用判定（ScalarDB / ScalarDB Saga / いずれも不要）に改め、業務プロセス単位で判定し、ScalarDB
+  採用＝2PC という前提を置かないことを明記しました。Step 1.5 の XA 比較表には、共有クラスタと
+  Global Transaction API を踏まえた「サービス跨ぎのアプリ実装複雑度」の行を追加。
+- **`/architect:design-scalardb-analytics` の「Enterprise Premium only」表記を訂正** — ScalarDB
+  Analytics は別契約の Enterprise **Option** のため、Premium 契約なら使える前提を置かず
+  ライセンスを確認する挙動に変更。Oracle / MySQL / PostgreSQL 移行リファレンスのエディション表も
+  同様に訂正（ABAC を単なる Premium ではなく Enterprise Premium Option として明記）。
+- **`/scalardb:migrate` は 1PC → 2PC 移行を勧める前に、そもそも必要かを確認**するようになりました。
+  共有クラスタパターンと 3.19 の Global Transaction API はいずれもサービス跨ぎでもアプリコードを
+  1PC に保てるためです。あわせて 2PC → 1PC の簡素化が以前より選択しやすくなった旨も記載。
 - **OKF ナレッジバンドルを `7a723b8` に更新** — ScalarDB 3.19 と ScalarDB Saga 3.19 を追加。
   4 製品・21 バージョンライン・2,015 concepts（従来は 3 製品・19 バージョン・1,800 concepts）。
 - **`rules/scalardb-edition-profiles.md` をバンドルの機能マトリクスに基づき全面改訂。**
