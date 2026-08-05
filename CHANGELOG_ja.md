@@ -9,6 +9,8 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-08-05
+
 ### 追加
 - **`rules/scalardb-saga-patterns.md`（新規ルール）: ScalarDB Saga。** OKF ナレッジバンドルに
   ScalarDB Saga が 4 つ目の製品として追加されたことを受け、Saga オーケストレーションを
@@ -764,6 +766,7 @@ Nexus Architect の主な変更点を記録します。
 ### 変更
 - リポジトリを Claude Code プラグイン互換の構成に再編。
 
+[0.20.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.20.0
 [0.19.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.19.0
 [0.18.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.18.0
 [0.17.4]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.17.4
