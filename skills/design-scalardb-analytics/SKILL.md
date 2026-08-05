@@ -1,7 +1,8 @@
 ---
 description: |
   Design HTAP analytics platform using ScalarDB Analytics with Apache Spark.
-  /architect:design-scalardb-analytics to invoke. Enterprise Premium only.
+  /architect:design-scalardb-analytics to invoke. ScalarDB Analytics is an Enterprise **Option**,
+  contracted separately — it is not included in Enterprise Premium.
 model: sonnet
 user_invocable: true
 ---
@@ -21,6 +22,10 @@ user_invocable: true
 - Ground the design in the version-pinned OKF knowledge bundle (@rules/okf-knowledge-bundle.md):
   read the Analytics concepts of the pinned ScalarDB release only, and confirm the feature's
   `editions` / `feature_status` for that release before designing around it
+- **Confirm the licensing before designing.** Analytics concepts carry `editions: [Enterprise
+  Option]` — a separately contracted add-on. A project on Enterprise Premium does **not**
+  automatically have it. If the contract is unconfirmed, say so and ask rather than assuming
+  availability (@rules/scalardb-edition-profiles.md)
 
 ## Prerequisites
 

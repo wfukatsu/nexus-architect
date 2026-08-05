@@ -20,7 +20,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.scalar-labs:scalardb-cluster-java-client-sdk:3.16.0'
+    implementation 'com.scalar-labs:scalardb-cluster-java-client-sdk:3.19.0'
     implementation 'info.picocli:picocli:4.7.1'
     runtimeOnly 'org.apache.logging.log4j:log4j-slf4j2-impl:2.20.0'
     runtimeOnly 'org.apache.logging.log4j:log4j-core:2.20.0'

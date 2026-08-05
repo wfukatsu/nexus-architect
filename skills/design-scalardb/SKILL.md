@@ -13,19 +13,26 @@ user_invocable: true
 
 Design a data architecture leveraging ScalarDB:
 1. **Schema Design** -- Partition keys, clustering keys, secondary indexes
-2. **Transaction Boundaries** -- Selection and boundary definition for Consensus Commit/2PC/Saga
+2. **Transaction Boundaries** -- Selection and boundary definition across the four cross-service mechanisms (one-phase shared cluster / Global Transaction API / 2PC / ScalarDB Saga)
 3. **Migration Plan** -- Migration strategy from existing databases to ScalarDB
 
 ## Decision Criteria
 
 - Ground the design in the version-pinned OKF knowledge bundle (@rules/okf-knowledge-bundle.md): pin the project's ScalarDB version and edition first, then read the `design`-phase concepts (`design.md`, `data-modeling.md`, `consensus-commit.md`) of that release only. Context7 MCP is the fallback when the bundle is unavailable
-- Limit 2PC to a maximum of 2-3 services
+- **Choose the cross-service mechanism before designing any transaction that spans services**, in this order (@rules/scalardb-2pc-patterns.md):
+  1. Shared-cluster pattern with the one-phase interface — the documented recommendation whenever possible
+  2. Global Transaction API + Transaction Coordinator (ScalarDB 3.19+, Cluster) — separated clusters without hand-written 2PC
+  3. Application-driven 2PC — pre-3.19, no Coordinator node, Core-only, or Spring Data JDBC. Limit to a maximum of 2-3 services
+  4. ScalarDB Saga (@rules/scalardb-saga-patterns.md) — when a single ACID transaction is not possible or not wanted and compensation is business-acceptable
+  Record which option was chosen and why in `scalardb-transaction.md`
 - Design keys targeting an OCC conflict rate below 5%
 - Select storage backend based on requirements (JDBC/Cassandra/DynamoDB, etc.)
 - Do not use DB-specific features on ScalarDB-managed tables
 
 Detailed patterns: @rules/scalardb-coding-patterns.md
-Edition comparison: @rules/scalardb-edition-profiles.md
+Cross-service transactions: @rules/scalardb-2pc-patterns.md
+Saga / TCC: @rules/scalardb-saga-patterns.md
+Edition comparison and version support: @rules/scalardb-edition-profiles.md
 
 ## Prerequisites
 

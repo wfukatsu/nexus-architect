@@ -15,7 +15,12 @@ user_invocable: true
 - Log aggregation strategy (structured logging, centralized management)
 - Metrics design (RED/USE methods)
 - Alerting design (thresholds, escalation, dashboards)
-- ScalarDB-specific metrics (transaction success rate, OCC conflict rate)
+- ScalarDB-specific metrics (transaction success rate, OCC conflict rate). On ScalarDB Cluster
+  3.19+, prefer its native **OpenTelemetry support** over a bespoke exporter; verify availability
+  against the project's pinned release and edition per @rules/okf-knowledge-bundle.md. When
+  ScalarDB Saga is in the architecture, add saga-level signals — sagas by status, `ESCALATED` count
+  (an operator queue, not a transient error), compensation failure rate — per
+  @rules/scalardb-saga-patterns.md
 
 ## Output
 

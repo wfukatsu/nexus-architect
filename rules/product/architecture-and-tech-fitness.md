@@ -40,7 +40,7 @@ Fitness is read out of signals already in the design — never from vibes. For e
   if rejected, what existing artifact makes it unnecessary
 - **Conditions / risks**: what must be true (open questions, `TBD`s) for a Conditional to become Adopt
 
-The standing checklist (assess all four every run):
+The standing checklist (assess all five every run):
 
 ### Kong (API Gateway)
 - **What**: cloud-native API gateway / ingress; plugins for authN/Z (OIDC, JWT, key-auth, ACL),
@@ -55,7 +55,8 @@ The standing checklist (assess all four every run):
 ### ScalarDB (universal transaction manager)
 - **What**: a universal transaction manager giving **ACID transactions across multiple/heterogeneous
   databases and across microservices** (incl. two-phase commit), abstracting polyglot backends under
-  one transactional API. Editions: Core (OSS) / Enterprise (Cluster).
+  one transactional API. Editions: Community (Core library) / Enterprise Standard / Enterprise
+  Premium (Cluster) — the SQL/JDBC interface is Premium, not Standard.
 - **Adopt-when signals**: a **microservice constraint** (`CON-` microservices) with invariants that
   span **multiple aggregates/contexts**; **polyglot persistence**; a need for strong consistency that
   would otherwise force fragile **sagas**; cross-service transactional writes visible in `api-design`
@@ -64,6 +65,21 @@ The standing checklist (assess all four every run):
   event-sourced model where eventual consistency is acceptable everywhere.
 - **Note**: if adopted, flag whether `select-scalardb-edition` / `design-scalardb` (architect plugin)
   should follow — this is the bridge to nexus-architect's ScalarDB pipeline.
+
+### ScalarDB Saga (cross-service saga orchestration)
+- **What**: a saga orchestration engine coordinating **eventually consistent** transactions across
+  services — steps with compensations (SAGA) or reservations (TCC) — keeping saga state durable
+  through ScalarDB, so it needs no message broker. Runs as a server (REST + gRPC) or embedded.
+- **Adopt-when signals**: a business process spanning contexts whose consistency requirement is
+  **eventual** rather than strong; a step calling an **external system** or running long enough that
+  holding a transaction open is untenable; an existing hand-rolled compensation/orchestration in the
+  journey or `api-design` (a Process API sequencing several System APIs with rollback semantics).
+  Maps to a **saga orchestration component** beside the Process API layer.
+- **Reject-when**: every cross-context invariant needs strong consistency (use ScalarDB transactions);
+  no step has a meaningful compensation; the process is single-context.
+- **Note**: not implied by a ScalarDB Adopt. The two answer different questions — ScalarDB for
+  immediate consistency across databases, ScalarDB Saga for compensation-based convergence across
+  services. A system commonly adopts both, for different processes.
 
 ### ScalarDB Analytics
 - **What**: analytical (HTAP) query layer over ScalarDB-managed data — federated analytics/reporting
@@ -85,7 +101,7 @@ The standing checklist (assess all four every run):
 - **Reject-when**: no integrity/audit/non-repudiation requirement; ordinary CRUD durability suffices.
 
 ### Extending the checklist
-The four above are mandatory. Add project-relevant candidates when the artifacts clearly call for a
+The five above are mandatory. Add project-relevant candidates when the artifacts clearly call for a
 category not covered (e.g. a message broker, a vector store) — same evidence-driven format. Never pad
 the list with technologies no signal supports.
 
@@ -99,11 +115,12 @@ the list with technologies no signal supports.
 ## ID convention & handoff
 `ARCH-` for architecture views/components, `TECH-` for technology-fitness decisions; append to
 `work/traceability.json` with Upstream `CTX-`/`API-`/`ENT-`/`NFR-`/`CON-`/`SCP-` references. A
-ScalarDB/ScalarDL **Adopt** is the bridge to the **architect** plugin
+ScalarDB/ScalarDB Saga/ScalarDL **Adopt** is the bridge to the **architect** plugin
 (`/architect:select-scalardb-edition`, `/architect:design-scalardb`, `/architect:design-scalardb-analytics`).
 
 ## Sources
 - MuleSoft API-Led Connectivity; Kong Gateway documentation (gateway/plugin model)
-- Scalar Inc. — ScalarDB (universal transaction manager), ScalarDB Analytics (HTAP), ScalarDL
-  (tamper-evident, Byzantine-fault-detection ledger)
+- Scalar Inc. — ScalarDB (universal transaction manager), ScalarDB Analytics (HTAP), ScalarDB Saga
+  (saga/TCC orchestration across services), ScalarDL (tamper-evident, Byzantine-fault-detection
+  ledger)
 - DDD context mapping (architecture-as-synthesis of bounded contexts)

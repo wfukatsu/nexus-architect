@@ -214,7 +214,7 @@ java -version
 **Download ScalarDB Schema Loader:**
 ```bash
 # Download from Maven Central or Scalar Labs
-wget https://repo1.maven.org/maven2/com/scalar-labs/scalardb-schema-loader/3.17.0/scalardb-schema-loader-3.17.0.jar
+wget https://repo1.maven.org/maven2/com/scalar-labs/scalardb-schema-loader/3.19.0/scalardb-schema-loader-3.19.0.jar
 ```
 
 ### Step 1.2: Backup Oracle Database
@@ -383,7 +383,7 @@ scalar.db.jdbc.connection_pool.max_total=25
 
 ```bash
 # Test connection (creates coordinator table if needed)
-java -jar scalardb-schema-loader-3.17.0.jar \
+java -jar scalardb-schema-loader-3.19.0.jar \
   --config scalardb.properties \
   --coordinator
 ```
@@ -398,7 +398,7 @@ Coordinator tables created successfully.
 
 **Option A: Create New Tables**
 ```bash
-java -jar scalardb-schema-loader-3.17.0.jar \
+java -jar scalardb-schema-loader-3.19.0.jar \
   --config scalardb.properties \
   --schema-file scalardb_schema.json \
   --coordinator
@@ -412,7 +412,7 @@ Create file: `import_schema.json`
 ```
 
 ```bash
-java -jar scalardb-schema-loader-3.17.0.jar \
+java -jar scalardb-schema-loader-3.19.0.jar \
   --config scalardb.properties \
   --schema-file import_schema.json \
   --import
@@ -447,7 +447,7 @@ ORDER BY table_name;
 For tables that can be imported directly:
 
 ```bash
-java -jar scalardb-schema-loader-3.17.0.jar \
+java -jar scalardb-schema-loader-3.19.0.jar \
   --config scalardb.properties \
   --schema-file import_schema.json \
   --import
@@ -753,7 +753,7 @@ Before running the AQ setup or deploying consumers, ensure all target tables tha
 
 ```bash
 # Import existing Oracle tables into ScalarDB
-java -jar scalardb-schema-loader-3.17.0.jar \
+java -jar scalardb-schema-loader-3.19.0.jar \
   --config scalardb.properties \
   --schema-file import_schema.json \
   --import
@@ -803,7 +803,7 @@ The AQ consumer requires JAR files that may not be in Maven Central:
 | `aqapi.jar` | `$ORACLE_HOME/rdbms/jlib/aqapi.jar` | **Must extract from Oracle DB** — not in Maven Central |
 | `javax.jms-api-2.0.1.jar` | Maven Central | `javax.jms:javax.jms-api:2.0.1` |
 | `ojdbc11` | Maven Central | `com.oracle.database.jdbc:ojdbc11:23.4.0.24.05` |
-| `scalardb` | Maven Central | `com.scalar-labs:scalardb:3.17.1` |
+| `scalardb` | Maven Central | `com.scalar-labs:scalardb:3.19.0` |
 
 **Extract `aqapi.jar` from Oracle Docker container:**
 ```bash
@@ -816,7 +816,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])  // aqapi.jar
     implementation 'javax.jms:javax.jms-api:2.0.1'
     implementation 'com.oracle.database.jdbc:ojdbc11:23.4.0.24.05'
-    implementation 'com.scalar-labs:scalardb:3.17.1'
+    implementation 'com.scalar-labs:scalardb:3.19.0'
 }
 ```
 
@@ -877,7 +877,7 @@ Based on schema analysis, Oracle AQ is **NOT required** for this migration — n
 
 **Gradle (build.gradle):**
 ```groovy
-implementation 'com.scalar-labs:scalardb:3.17.0'
+implementation 'com.scalar-labs:scalardb:3.19.0'
 ```
 
 ### Step 6.2: Create ScalarDB Configuration

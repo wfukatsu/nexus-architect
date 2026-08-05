@@ -189,7 +189,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Hands off to `/archit
 
 | Command | Description |
 |---------|-------------|
-| `/architect:define-requirements` | Requirements definition: FR/NFR classification, data/transaction requirements, ScalarDB applicability (greenfield entry point) |
+| `/architect:define-requirements` | Requirements definition: FR/NFR classification, data/transaction requirements, Scalar product applicability — ScalarDB / ScalarDB Saga (greenfield entry point) |
 
 ### Investigation & Analysis
 
@@ -437,13 +437,14 @@ Unset means interactive runs ask and `--auto` runs adopt. Some cases always ask:
 brand-new major as the only option, an EOL current pin, no compatible set, or a licensed/private
 registry. See [`rules/dependency-versions.md`](rules/dependency-versions.md).
 
-## ScalarDB / ScalarDL Knowledge Bundle
+## ScalarDB / ScalarDL / ScalarDB Saga Knowledge Bundle
 
-Every ScalarDB / ScalarDL implementation decision (API usage, config keys, transaction patterns,
-exception retryability, edition-gated features) is grounded in the
+Every ScalarDB / ScalarDL / ScalarDB Saga implementation decision (API usage, config keys,
+transaction patterns, exception retryability, edition-gated features) is grounded in the
 [OKF-ScalarDB-ScalarDL](https://github.com/wfukatsu/OKF-ScalarDB-ScalarDL) knowledge bundle — the
-complete official documentation from developers.scalar-labs.com, split **per product and per
-version** (ScalarDB 3.14–3.18, ScalarDL 3.10–3.13, ScalarDB Community 3.4–3.13; 1,800 concepts).
+complete official documentation from developers.scalar-labs.com plus the documentation ScalarDB Saga
+keeps in its source repository, split **per product and per version** (ScalarDB 3.14–3.19,
+ScalarDB Saga 3.19, ScalarDL 3.10–3.13, ScalarDB Community 3.4–3.13; 2,015 concepts).
 
 It is vendored as a git submodule at `knowledge/okf-scalardb-scalardl/`. One command fetches or
 updates it from remote (also available as `/architect:update-knowledge`):

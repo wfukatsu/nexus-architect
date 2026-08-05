@@ -54,11 +54,11 @@ For anything the materials do not cover, you are asked across the following five
 
 > **Numeric targets (latency, throughput, RPO, RTO) are always confirmed.** If they cannot be obtained, they are recorded as `TBD` together with the question that must be answered.
 
-## 4. Inputs Relevant to the ScalarDB Applicability Assessment
+## 4. Inputs Relevant to the Scalar Product Applicability Assessment
 
-Unless `--no-scalardb` is given, ScalarDB applicability is assessed using:
+Unless `--no-scalardb` is given, Scalar product applicability (ScalarDB / ScalarDB Saga / neither, per business process) is assessed using:
 
-- **Per-business-process transaction consistency requirements** (Strong / Eventual / Local Tx) — confirmed in Stage 4 above
+- **Per-business-process transaction consistency requirements** (Strong / Eventual / Local Tx) — confirmed in Stage 4 above. Strong-consistency processes feed the ScalarDB branch; eventual-consistency processes feed the ScalarDB Saga branch (gated on whether a compensation is definable per step)
 - Current/planned DB inventory (types, versions, data volume)
 - (When linked with product) the `tech-stack-fitness.md` Adopt/Trial/Reject verdict, used as a **prior**
 

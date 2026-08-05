@@ -195,9 +195,9 @@ hint; Omnigent ignores it and treats the file as the orchestration spec above.
 - After writing any report `.md` or Mermaid diagram, run **both** validation hooks and fix
   any non-zero exit before proceeding.
 
-## ScalarDB / ScalarDL Knowledge Bundle
+## ScalarDB / ScalarDL / ScalarDB Saga Knowledge Bundle
 
-Any ScalarDB / ScalarDL design, implementation, review, or migration decision must be grounded in
+Any ScalarDB / ScalarDL / ScalarDB Saga design, implementation, review, or migration decision must be grounded in
 the version-pinned OKF knowledge bundle at `knowledge/okf-scalardb-scalardl/okf/` (a git
 submodule; run `tools/update-okf-bundle.sh` to fetch it if absent, `update` to pull the newest,
 `status` to inspect). Pin the project's product, version, and edition first, then answer only from that

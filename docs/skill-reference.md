@@ -54,7 +54,7 @@ For the inputs you should prepare before running each pipeline, see the
 | `/architect:design-microservices` | opus | - | Target architecture |
 | `/architect:select-scalardb-edition` | sonnet | ScalarDB | Edition selection |
 | `/architect:design-scalardb` | opus | ScalarDB | Schema and transaction design |
-| `/architect:design-scalardb-analytics` | sonnet | Premium | HTAP analytics platform design |
+| `/architect:design-scalardb-analytics` | sonnet | Analytics Option | HTAP analytics platform design |
 | `/architect:design-data-layer` | opus | Non-ScalarDB | Generic DB design |
 | `/architect:design-api` | opus | - | REST/GraphQL/gRPC/AsyncAPI |
 

@@ -35,6 +35,24 @@ Do you need ScalarDB Cluster (production, auth, encryption)?
         └── Multi-service transactions? → Cluster+JDBC+2PC (#6)
 ```
 
+## Multi-Service Transactions Do Not Force 2PC
+
+The "multi-service" branches above assume the application drives the two-phase commit protocol
+itself. That is only one of the ways ScalarDB spans services, and since 3.19 it is not the default:
+
+| Topology | Combination to use |
+|----------|--------------------|
+| **Shared cluster** — all services use one ScalarDB Cluster instance | The **1PC** combination (#3 or #5). The documented recommendation whenever possible |
+| **Separated clusters + Transaction Coordinator** (ScalarDB 3.19+) | The **1PC** combination (#3 or #5) with `GlobalTransactionManager`; the Coordinator node drives 2PC underneath |
+| **Separated clusters, application-driven 2PC** | The **2PC** combination (#4 or #6) |
+| **Eventual consistency across services** | Not a combination here — ScalarDB Saga; see `rules/scalardb-saga-patterns.md` |
+
+Spring Data JDBC does not support the shared-cluster pattern; with it, multi-service means the 2PC
+combination. Full selection rules: `rules/scalardb-2pc-patterns.md`.
+
+Note on editions: combinations #5 and #6 (JDBC/SQL) require **Enterprise Premium**, and #3–#6 all
+require an Enterprise edition for ScalarDB Cluster. See `rules/scalardb-edition-profiles.md`.
+
 ## Dependency Matrix
 
 | Combination | Maven Artifact | Artifact ID |

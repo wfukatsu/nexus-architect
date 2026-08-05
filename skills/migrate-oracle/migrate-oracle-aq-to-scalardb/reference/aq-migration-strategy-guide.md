@@ -75,7 +75,7 @@ Before deploying the AQ consumer:
 | `aqapi.jar` | `$ORACLE_HOME/rdbms/jlib/aqapi.jar` inside Oracle DB | **NO** — must extract from Oracle installation |
 | `javax.jms-api-2.0.1.jar` | Maven Central or Oracle DB | Yes: `javax.jms:javax.jms-api:2.0.1` |
 | `ojdbc11-23.x.jar` | Maven Central | Yes: `com.oracle.database.jdbc:ojdbc11:23.4.0.24.05` |
-| `scalardb-3.17.x.jar` | Maven Central | Yes: `com.scalar-labs:scalardb:3.17.1` |
+| `scalardb-3.19.x.jar` | Maven Central | Yes: `com.scalar-labs:scalardb:3.19.0` |
 
 **How to extract `aqapi.jar` from Oracle Docker container:**
 ```bash
@@ -92,7 +92,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])  // aqapi.jar
     implementation 'javax.jms:javax.jms-api:2.0.1'
     implementation 'com.oracle.database.jdbc:ojdbc11:23.4.0.24.05'
-    implementation 'com.scalar-labs:scalardb:3.17.1'
+    implementation 'com.scalar-labs:scalardb:3.19.0'
     implementation 'org.slf4j:slf4j-simple:2.0.9'
 }
 ```

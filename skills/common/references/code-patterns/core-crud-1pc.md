@@ -20,7 +20,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.scalar-labs:scalardb:3.16.0'
+    implementation 'com.scalar-labs:scalardb:3.19.0'
     implementation 'info.picocli:picocli:4.7.1'
     runtimeOnly 'org.apache.logging.log4j:log4j-slf4j2-impl:2.20.0'
     runtimeOnly 'org.apache.logging.log4j:log4j-core:2.20.0'
@@ -363,11 +363,11 @@ services:
 
 ```bash
 # Download schema loader
-curl -OL https://github.com/scalar-labs/scalardb/releases/download/v3.16.0/scalardb-schema-loader-3.16.0.jar
+curl -OL https://github.com/scalar-labs/scalardb/releases/download/v3.19.0/scalardb-schema-loader-3.19.0.jar
 
 # Create tables
-java -jar scalardb-schema-loader-3.16.0.jar --config database.properties -f schema.json --coordinator
+java -jar scalardb-schema-loader-3.19.0.jar --config database.properties -f schema.json --coordinator
 
 # Delete tables
-java -jar scalardb-schema-loader-3.16.0.jar --config database.properties -f schema.json -D --coordinator
+java -jar scalardb-schema-loader-3.19.0.jar --config database.properties -f schema.json -D --coordinator
 ```

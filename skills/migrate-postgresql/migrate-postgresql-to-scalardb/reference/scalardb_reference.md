@@ -75,8 +75,13 @@ ScalarDB is a **universal hybrid transaction/analytical processing (HTAP) engine
 |---------|----------|
 | Community | Transaction processing across databases using primitive interfaces |
 | Enterprise Standard | Clustering, non-transactional storage operations, authentication/authorization |
-| Enterprise Premium | SQL interface, GraphQL, data encryption at rest, attribute-based access control |
-| ScalarDB Analytics | Analytical query processing across ScalarDB-managed and non-managed data sources |
+| Enterprise Premium | SQL interface (SQL API / JDBC / Spring Data JDBC / LINQ), GraphQL, encryption at rest and in transit, vector search (Private Preview), remote replication (Private Preview) |
+| Enterprise Premium Option | Attribute-based access control (ABAC) — a separately contracted add-on on top of Premium, in Private Preview |
+| ScalarDB Analytics (Enterprise Option) | Analytical query processing across ScalarDB-managed and non-managed data sources — contracted separately, **not** included in Enterprise Premium |
+
+Source: `products/scalardb/3.19/features.md` in the OKF knowledge bundle. Verify against the release
+the project pins before relying on an edition boundary (`rules/scalardb-edition-profiles.md`).
+
 
 ---
 

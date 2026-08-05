@@ -272,7 +272,7 @@ The following JAR files are required for AQ consumer functionality:
 | `aqapi.jar` | Oracle DB (`$ORACLE_HOME/rdbms/jlib/aqapi.jar`) | Must be extracted from Oracle DB installation or container |
 | `javax.jms-api-2.0.1.jar` | Maven Central or Oracle DB | JMS 2.0 API |
 | `ojdbc11-23.x.jar` | Maven Central (`com.oracle.database.jdbc:ojdbc11`) | Oracle JDBC driver |
-| `scalardb-3.17.x.jar` | Maven Central (`com.scalar-labs:scalardb`) | ScalarDB Core (Transaction API) |
+| `scalardb-3.19.x.jar` | Maven Central (`com.scalar-labs:scalardb`) | ScalarDB Core (Transaction API) |
 
 **Note:** ScalarDB Core is the default component (open source/community edition). Only add ScalarDB Cluster dependencies if the SQL interface is needed. For the Java Transaction API used by these consumers, ScalarDB Core is sufficient.
 

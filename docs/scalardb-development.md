@@ -72,6 +72,12 @@ Generates correct configuration files for any deployment/API/transaction mode co
 | 5 | Cluster | JDBC | 1PC | Production with SQL |
 | 6 | Cluster | JDBC | 2PC | Production multi-service SQL |
 
+The 2PC rows above mean **application-driven** two-phase commit. A multi-service system does not
+have to use them: with the shared-cluster pattern, or with the Global Transaction API and a
+Transaction Coordinator node (ScalarDB 3.19+), multi-service transactions are written against the
+1PC combinations (#3 / #5). Where consistency can be eventual, ScalarDB Saga replaces the
+transaction entirely. See `rules/scalardb-2pc-patterns.md` and `rules/scalardb-saga-patterns.md`.
+
 ---
 
 ### Project Scaffolding: `/scalardb:scaffold`
@@ -272,7 +278,8 @@ These rules are automatically loaded and provide guidance whenever you work with
 | `scalardb-exception-handling` | Catch order, retry logic, UnknownTransactionStatusException |
 | `scalardb-crud-patterns` | Builder pattern, deprecated Put, key construction, result handling |
 | `scalardb-jdbc-patterns` | setAutoCommit, PreparedStatement, error code 301, JOIN/aggregate syntax |
-| `scalardb-2pc-patterns` | Coordinator/participant protocol, request routing, group commit |
+| `scalardb-2pc-patterns` | Choosing the cross-service mechanism (shared cluster / Global Transaction API / 2PC / Saga), coordinator/participant protocol, request routing, group commit |
+| `scalardb-saga-patterns` | ScalarDB Saga: SAGA vs TCC, idempotency, saga definitions, server configuration, escalation handling |
 | `scalardb-config-validation` | Required properties by storage, contact points format, cross-partition scan |
 | `scalardb-schema-design` | Partition key design, clustering keys, anti-patterns, data types |
 | `scalardb-java-best-practices` | Thread safety, transaction lifecycle, SLF4J, try-with-resources |

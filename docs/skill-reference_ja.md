@@ -54,7 +54,7 @@
 | `/architect:design-microservices` | opus | - | ターゲットアーキテクチャ |
 | `/architect:select-scalardb-edition` | sonnet | ScalarDB | エディション選択 |
 | `/architect:design-scalardb` | opus | ScalarDB | スキーマとトランザクション設計 |
-| `/architect:design-scalardb-analytics` | sonnet | Premium | HTAP分析プラットフォーム設計 |
+| `/architect:design-scalardb-analytics` | sonnet | Analytics Option | HTAP分析プラットフォーム設計 |
 | `/architect:design-data-layer` | opus | ScalarDB以外 | 汎用DB設計 |
 | `/architect:design-api` | opus | - | REST/GraphQL/gRPC/AsyncAPI |
 

@@ -72,6 +72,12 @@ ScalarDB スキーマの設計をステップバイステップで案内する�
 | 5 | Cluster | JDBC | 1PC | 本番環境、SQL 使用 |
 | 6 | Cluster | JDBC | 2PC | 本番環境、複数サービス SQL |
 
+上表の 2PC は**アプリケーションが駆動する** 2 フェーズコミットを指します。複数サービスのシステムが
+必ずこれを使う必要はありません。共有クラスタパターン、または Global Transaction API と Transaction
+Coordinator ノード（ScalarDB 3.19+）を使えば、サービス跨ぎのトランザクションも 1PC の組み合わせ
+（#3 / #5）で記述できます。結果整合で足りる場合は、ScalarDB Saga がトランザクション自体を置き換え
+ます。詳細は `rules/scalardb-2pc-patterns.md` および `rules/scalardb-saga-patterns.md` を参照。
+
 ---
 
 ### プロジェクトスキャフォールド: `/scalardb:scaffold`
@@ -272,7 +278,8 @@ ScalarDB ドキュメントを検索し、コード例付きの回答を提供�
 | `scalardb-exception-handling` | キャッチ順序、リトライロジック、UnknownTransactionStatusException |
 | `scalardb-crud-patterns` | ビルダーパターン、非推奨の Put、キー構築、Result の処理 |
 | `scalardb-jdbc-patterns` | setAutoCommit、PreparedStatement、エラーコード 301、JOIN/集約構文 |
-| `scalardb-2pc-patterns` | コーディネーター/パーティシパントプロトコル、リクエストルーティング、グループコミット |
+| `scalardb-2pc-patterns` | サービス跨ぎ方式の選択（共有クラスタ / Global Transaction API / 2PC / Saga）、コーディネーター/パーティシパントプロトコル、リクエストルーティング、グループコミット |
+| `scalardb-saga-patterns` | ScalarDB Saga: SAGA と TCC、冪等性、Saga 定義、サーバー設定、エスカレーション対応 |
 | `scalardb-config-validation` | ストレージ別の必須プロパティ、contact points 形式、クロスパーティションスキャン |
 | `scalardb-schema-design` | パーティションキー設計、クラスタリングキー、アンチパターン、データ型 |
 | `scalardb-java-best-practices` | スレッドセーフティ、トランザクションライフサイクル、SLF4J、try-with-resources |

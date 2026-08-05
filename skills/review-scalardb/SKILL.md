@@ -17,10 +17,13 @@ evidence when a finding depends on documented behavior.
 
 ## Review Dimensions
 
-### 1. 2PC Scope Compliance (weight: 0.40)
-- Whether 2PC transactions are contained within a maximum of 2-3 services
+### 1. Cross-Service Transaction Mechanism (weight: 0.40)
+- Whether the design names a mechanism per cross-service transaction rather than defaulting to 2PC
+- Whether a simpler mechanism was available and skipped (shared-cluster one-phase commit; the
+  Global Transaction API on ScalarDB 3.19+ Cluster)
+- Whether hand-written 2PC transactions are contained within a maximum of 2-3 services
 - Detection of transactions spanning 4+ services
-- Application points for the Saga pattern
+- Application points for ScalarDB Saga, and whether compensations are defined and idempotent
 
 ### 2. OCC Contention Analysis (weight: 0.35)
 - Identification of write hotspots
@@ -30,7 +33,11 @@ evidence when a finding depends on documented behavior.
 ### 3. Schema and API Compatibility (weight: 0.25)
 - Validity of partition/clustering key design
 - Necessity of secondary indexes and their performance impact
-- Compliance with ScalarDB v3.17+ constraints
+- Compliance with the constraints of the release the project pinned
+- Whether edition-gated features are within the project's contracted edition (SQL/JDBC and GraphQL
+  are Enterprise **Premium**; Analytics is an Enterprise **Option**; ABAC is an Enterprise Premium
+  Option and in Private Preview) — see @rules/scalardb-edition-profiles.md
+- Whether the pinned version line is still under maintenance support
 
 ## Execution
 
@@ -48,32 +55,46 @@ Record the full list of found file paths — these will be passed to sub-agents.
 
 In a **single message**, issue all three Task() calls simultaneously so they run in parallel:
 
-**Task A — 2PC Scope Compliance (SDB-1xx)**
+**Task A — Cross-Service Transaction Mechanism (SDB-1xx)**
 ```
 Task(
   subagent_type: "general-purpose",
-  description: "2PC scope compliance dimension review",
+  description: "Cross-service transaction mechanism dimension review",
   prompt: """
-You are a ScalarDB architect reviewing designs for 2PC SCOPE COMPLIANCE.
+You are a ScalarDB architect reviewing designs for the CROSS-SERVICE TRANSACTION MECHANISM.
 
 Read all of the following files using the Read tool:
 <FILE_LIST>
 [Insert the full list of file paths found in Step 1, one per line]
 </FILE_LIST>
 
-Also refer to ScalarDB 2PC best practices: ScalarDB recommends 2PC transactions span at most 2-3 services.
-Transactions spanning 4+ services should use the Saga pattern instead.
+ScalarDB offers four mechanisms for a transaction that spans services, in order of preference:
+1. Shared-cluster pattern with the one-phase commit interface — every service uses one ScalarDB
+   Cluster instance. This is the documented recommendation "whenever possible".
+2. Global Transaction API (`GlobalTransactionManager`, ScalarDB 3.19+ Cluster) — separated Cluster
+   instances with a Transaction Coordinator node driving 2PC underneath; application code stays
+   one-phase. Available only if the project pins 3.19 or later on an Enterprise edition.
+3. Application-driven two-phase commit — required pre-3.19, without a Coordinator node, on Core
+   (Community) only, or with Spring Data JDBC. ScalarDB recommends such transactions span at most
+   2-3 services.
+4. ScalarDB Saga — eventual consistency with compensations (SAGA) or reservations (TCC), for cases
+   where a single ACID transaction is not possible or not wanted.
 
-Evaluate ONLY the 2PC Scope Compliance dimension:
-- Are all 2PC transactions contained within 2-3 services maximum?
+Evaluate ONLY the Cross-Service Transaction Mechanism dimension:
+- Does the design name a mechanism for each cross-service transaction, with a recorded reason?
+- Was a simpler mechanism available and skipped (shared cluster, or Global Transaction API when the
+  pinned version and edition allow it)?
+- Are hand-written 2PC transactions contained within 2-3 services maximum?
 - Are there transactions spanning 4+ services that should use Saga instead?
-- Where should the Saga pattern be applied as an alternative to 2PC?
+- Where Saga is used, is a compensation defined for every step, and are the steps idempotent?
 
-Score 1-5: 5=Exemplary (all 2PC within 3-service limit), 4=Good, 3=Acceptable, 2=Concerning, 1=Critical (wide 2PC scope)
+Score 1-5: 5=Exemplary (mechanism chosen and justified per transaction, simplest viable option
+used), 4=Good, 3=Acceptable, 2=Concerning, 1=Critical (wide hand-written 2PC scope, or no
+mechanism stated)
 
 Return ONLY this JSON (no markdown fences, no explanation):
 {
-  "name": "2PC Scope Compliance",
+  "name": "Cross-Service Transaction Mechanism",
   "weight": 0.40,
   "score": <integer 1-5>,
   "findings": [
@@ -82,8 +103,8 @@ Return ONLY this JSON (no markdown fences, no explanation):
       "severity": "critical|major|minor|info",
       "location": "<file:section>",
       "title": "<finding title>",
-      "description": "<2PC scope issue and its impact on transaction reliability>",
-      "recommendation": "<refactoring to Saga or scope reduction>"
+      "description": "<mechanism or scope issue and its impact on transaction reliability and complexity>",
+      "recommendation": "<the mechanism to switch to, or the scope reduction to make>"
     }
   ]
 }
@@ -146,12 +167,20 @@ Read all of the following files using the Read tool:
 [Insert the full list of file paths found in Step 1, one per line]
 </FILE_LIST>
 
-Evaluate ONLY the Schema and API Compatibility dimension against ScalarDB v3.17+ constraints:
+Evaluate ONLY the Schema and API Compatibility dimension, against the constraints of the ScalarDB
+release the design pins (state the version you assumed if the design does not name one):
 - Partition key design (even distribution, no hot partitions, no monotonically increasing sole partition keys)
 - Clustering key design (appropriate sort order for access patterns)
 - Secondary indexes (only where necessary; avoid high-cardinality indexes on some backends)
 - API usage (Put is deprecated since 3.13; use Insert/Upsert/Update instead)
-- Exception handling (specific conflict exceptions caught before parent classes)
+- Exception handling (specific conflict exceptions caught before parent classes). The 3.19 recovery
+  APIs — finishTransaction(), recoverRecord() — are low-level operational APIs; flag any design
+  that calls them from application error handling
+- Edition fit: SQL / JDBC / Spring Data JDBC / GraphQL require Enterprise **Premium** (not
+  Standard); ScalarDB Analytics is a separately contracted Enterprise **Option**; ABAC is an
+  Enterprise Premium **Option** and in Private Preview. Flag any feature used outside the
+  project's stated edition
+- Version support: flag a design pinned to ScalarDB 3.15 or 3.14, which are past maintenance support
 
 Score 1-5: 5=Exemplary, 4=Good, 3=Acceptable, 2=Concerning, 1=Critical
 
@@ -198,6 +227,6 @@ Write `reports/review/individual/review-scalardb.json`:
 ## Output Format
 
 Finding ID prefix: **SDB-**
-- SDB-1xx: 2PC Scope Compliance
+- SDB-1xx: Cross-Service Transaction Mechanism
 - SDB-2xx: OCC Contention Analysis
 - SDB-3xx: Schema and API Compatibility
