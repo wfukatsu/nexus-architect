@@ -70,7 +70,7 @@ ScalarDB is a **universal hybrid transaction/analytical processing (HTAP) engine
 |---------|----------|
 | Community | Transaction processing across databases using primitive interfaces |
 | Enterprise Standard | Clustering, non-transactional storage operations, authentication/authorization |
-| Enterprise Premium | SQL interface (SQL API / JDBC / Spring Data JDBC / LINQ), GraphQL, vector search, encryption at rest and in transit, remote replication |
+| Enterprise Premium | SQL interface (SQL API / JDBC / Spring Data JDBC / LINQ), GraphQL, encryption at rest and in transit, vector search (Private Preview), remote replication (Private Preview) |
 | Enterprise Premium Option | Attribute-based access control (ABAC) — a separately contracted add-on on top of Premium, in Private Preview |
 | ScalarDB Analytics (Enterprise Option) | Analytical query processing across ScalarDB-managed and non-managed data sources — contracted separately, **not** included in Enterprise Premium |
 

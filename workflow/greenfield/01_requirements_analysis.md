@@ -1,4 +1,4 @@
-# Phase 1-1: Requirements Analysis and ScalarDB Applicability Assessment
+# Phase 1-1: Requirements Analysis and Scalar Product Applicability Assessment
 
 ## Purpose
 
@@ -206,7 +206,7 @@ Rationale: _______________________________________________
 | Deliverable | Description | Template |
 |-------------|-------------|----------|
 | Requirements Analysis Document | Classification of functional/non-functional requirements, organization of transaction requirements | Use the templates above |
-| ScalarDB Applicability Assessment Result | Assessment result and rationale based on the decision tree | Assessment criteria checklist + rationale |
+| Scalar Product Applicability Assessment Result | Per-process verdict (ScalarDB / ScalarDB Saga / neither) and rationale based on the decision tree | Assessment criteria checklist + rationale |
 | XA vs ScalarDB Assessment Result | Comparative evaluation result of XA and ScalarDB | Comparison table |
 
 ---
@@ -216,7 +216,7 @@ Rationale: _______________________________________________
 - [ ] All business requirements have been classified into functional and non-functional requirements
 - [ ] Current DB configuration inventory is complete and all DB types have been identified
 - [ ] Transaction requirements have been classified into "Strong Consistency," "Eventual Consistency," and "Local Tx"
-- [ ] ScalarDB applicability assessment has been made following the decision tree
+- [ ] Scalar product applicability has been assessed per business process following the decision tree (ScalarDB / ScalarDB Saga / neither)
 - [ ] XA vs ScalarDB comparison assessment has been documented with rationale
 - [ ] Assessment results have been agreed upon by stakeholders (architects, tech leads)
 - [ ] Requirements analysis document has been created and reviewed
@@ -231,9 +231,9 @@ Rationale: _______________________________________________
 |--------------|---------|
 | Transaction Requirements Matrix | Information on which services require strong consistency |
 | DB Configuration Information | DB types in use and their characteristics |
-| ScalarDB Applicability Assessment Result | Prerequisites for ScalarDB adoption |
+| Scalar Product Applicability Assessment Result | Per-process verdicts — prerequisites for ScalarDB / ScalarDB Saga adoption |
 | Non-Functional Requirements | Target values for latency, throughput, and availability |
 
 **Notes:**
-- If the ScalarDB applicability assessment concludes "not needed," skip all subsequent ScalarDB-related steps and proceed with the standard microservice design flow
-- If the ScalarDB applicability assessment concludes "recommended," Phase 1-2 will require domain modeling with particular attention to inter-service transaction boundaries
+- If no business process reaches a ScalarDB or ScalarDB Saga verdict, skip all subsequent ScalarDB-related steps and proceed with the standard microservice design flow
+- If any process reaches a ScalarDB or ScalarDB Saga verdict, Phase 1-2 will require domain modeling with particular attention to inter-service transaction boundaries. Note that a ScalarDB Saga adoption still involves ScalarDB: the saga engine keeps its state durable through a ScalarDB-backed store

@@ -54,11 +54,11 @@ product プラグインのインプットは [product-input-requirements_ja.md](
 
 > **数値目標（レイテンシ、スループット、RPO、RTO）は必ず確認**されます。取得できない場合は「何を答えるべきか」という問いとともに `TBD` として記録されます。
 
-## 4. ScalarDB 適用判定に関わるインプット
+## 4. Scalar 製品適用判定に関わるインプット
 
-`--no-scalardb` を付けない限り、以下を用いて ScalarDB 適用可否が判定されます。
+`--no-scalardb` を付けない限り、以下を用いて Scalar 製品の適用可否（業務プロセスごとに ScalarDB / ScalarDB Saga / いずれも不要）が判定されます。
 
-- **業務プロセスごとのトランザクション整合性要件**（Strong / Eventual / Local Tx）— 上記ステージ4で確認
+- **業務プロセスごとのトランザクション整合性要件**（Strong / Eventual / Local Tx）— 上記ステージ4で確認。Strong のプロセスは ScalarDB の枝、Eventual のプロセスは ScalarDB Saga の枝（各ステップに補償が定義できるかで分岐）につながります
 - 現行/計画中の DB インベントリ（種類・バージョン・データ量）
 - （product 連携時）`tech-stack-fitness.md` の Adopt/Trial/Reject 判定を「事前判断（prior）」として利用
 

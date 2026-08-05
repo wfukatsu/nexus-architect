@@ -85,7 +85,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Skills are namespaced
 - `/architect:init-output [project]` — Initialize output directories
 
 ### Requirements
-- `/architect:define-requirements [target_path] [--input=<file|dir>] [--auto] [--no-scalardb]` — Requirements definition: FR/NFR classification, data/transaction requirements, ScalarDB applicability (greenfield entry point)
+- `/architect:define-requirements [target_path] [--input=<file|dir>] [--auto] [--no-scalardb]` — Requirements definition: FR/NFR classification, data/transaction requirements, Scalar product applicability — ScalarDB / ScalarDB Saga (greenfield entry point)
 
 ### Investigation & Analysis
 - `/architect:investigate [target_path]` — Tech stack, structure, debt, DDD readiness

@@ -38,8 +38,9 @@ Nexus Architect の主な変更点を記録します。
   Global Transaction API を踏まえた「サービス跨ぎのアプリ実装複雑度」の行を追加。
 - **`/architect:design-scalardb-analytics` の「Enterprise Premium only」表記を訂正** — ScalarDB
   Analytics は別契約の Enterprise **Option** のため、Premium 契約なら使える前提を置かず
-  ライセンスを確認する挙動に変更。Oracle / MySQL / PostgreSQL 移行リファレンスのエディション表も
-  同様に訂正（ABAC を単なる Premium ではなく Enterprise Premium Option として明記）。
+  ライセンスを確認する挙動に変更。Oracle / MySQL / PostgreSQL 移行リファレンスのエディション表
+  （ABAC を単なる Premium ではなく Enterprise Premium Option として明記）と、skill-reference の
+  条件列も同様に訂正。
 - **`/scalardb:migrate` は 1PC → 2PC 移行を勧める前に、そもそも必要かを確認**するようになりました。
   共有クラスタパターンと 3.19 の Global Transaction API はいずれもサービス跨ぎでもアプリコードを
   1PC に保てるためです。あわせて 2PC → 1PC の簡素化が以前より選択しやすくなった旨も記載。

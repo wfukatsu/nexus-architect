@@ -81,7 +81,7 @@ Source: `products/scalardb/index.md`, `releases/release-support-policy.md`.
 | 3.17 | 3.17.4 | supported | 2027-05-01 |
 | 3.16 | 3.16.6 | supported | 2026-11-26 |
 | 3.15 | 3.15.9 | **unmaintained** | ended 2026-06-23 |
-| 3.14 | 3.14.6 | **unmaintained** | ended earlier |
+| 3.14 | 3.14.6 | **unmaintained** | ended 2026-02-20 |
 
 Greenfield projects target **3.19**. A project on 3.15 or 3.14 is past maintenance support — report
 that as a finding and propose the nearest supported line, per @rules/dependency-versions.md.

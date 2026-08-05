@@ -40,8 +40,9 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 - **`/architect:design-scalardb-analytics` no longer claims "Enterprise Premium only"** — ScalarDB
   Analytics is a separately contracted Enterprise **Option**, so the skill now confirms licensing
   rather than assuming a Premium project has it. The same correction is applied to the edition tables
-  in the Oracle / MySQL / PostgreSQL migration references, which also mislabelled ABAC as plain
-  Premium rather than an Enterprise Premium Option.
+  in the Oracle / MySQL / PostgreSQL migration references (which also mislabelled ABAC as plain
+  Premium rather than an Enterprise Premium Option) and to the skill-reference tables' condition
+  column.
 - **`/scalardb:migrate` checks whether a 1PC → 2PC migration is needed at all** before advising one —
   the shared-cluster pattern and the 3.19 Global Transaction API both keep application code one-phase
   across services — and notes that 2PC → 1PC simplification is correspondingly more often available.

@@ -189,7 +189,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Hands off to `/archit
 
 | Command | Description |
 |---------|-------------|
-| `/architect:define-requirements` | Requirements definition: FR/NFR classification, data/transaction requirements, ScalarDB applicability (greenfield entry point) |
+| `/architect:define-requirements` | Requirements definition: FR/NFR classification, data/transaction requirements, Scalar product applicability — ScalarDB / ScalarDB Saga (greenfield entry point) |
 
 ### Investigation & Analysis
 

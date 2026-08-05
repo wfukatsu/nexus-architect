@@ -52,10 +52,14 @@ elicits — everything else is confirm-or-correct.
 
 ## ScalarDB Usage Decision
 
-- `reports/00_requirements/scalardb-applicability.md` exists -> Use its verdict as the primary basis
+- `reports/00_requirements/scalardb-applicability.md` exists -> Use its verdicts as the primary
+  basis. The verdicts are per business process and may name ScalarDB, ScalarDB Saga, or neither:
+  **any** process reaching ScalarDB *or* ScalarDB Saga enables the ScalarDB skills (a Saga adoption
+  still stores its saga state through ScalarDB); only when no process reaches either does the
+  design-data-layer alternative path apply
 - Otherwise, fall back to heuristics:
   - Multi-DB distributed transactions required -> Include ScalarDB skills
-  - User mentions ScalarDB / Scalar / distributed transactions -> Include
+  - User mentions ScalarDB / ScalarDB Saga / Scalar / distributed transactions -> Include
   - Otherwise -> Use the design-data-layer alternative path
 
 ## Domain Story Option
