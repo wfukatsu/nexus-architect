@@ -186,7 +186,7 @@ Oracle Database (Producer)                    Java Application (Consumer)
 
 ```bash
 # Import existing Oracle tables into ScalarDB
-java -jar scalardb-schema-loader-3.17.0.jar \
+java -jar scalardb-schema-loader-3.19.0.jar \
   --config scalardb.properties \
   --schema-file import_schema.json \
   --import
@@ -220,7 +220,7 @@ dependencies {
     // From Maven Central
     implementation 'javax.jms:javax.jms-api:2.0.1'
     implementation 'com.oracle.database.jdbc:ojdbc11:23.4.0.24.05'
-    implementation 'com.scalar-labs:scalardb:3.17.1'
+    implementation 'com.scalar-labs:scalardb:3.19.0'
     implementation 'org.slf4j:slf4j-simple:2.0.9'
 }
 ```

@@ -141,3 +141,33 @@ Just like the CRUD API, read-only JDBC transactions MUST call `conn.commit()`.
 ### Always Rollback in JDBC Catch Blocks
 
 Always call `conn.rollback()` in catch blocks (except for error code 301).
+
+## Recovery APIs Are Not Error Handling (3.19+)
+
+ScalarDB 3.19 added three recovery capabilities to the Consensus Commit transaction manager. They
+are **low-level operational APIs**, not part of an application's exception-handling path — do not
+call them from a catch block, and do not generate code that does.
+
+| Capability | What it is | Who calls it |
+|------------|-----------|--------------|
+| `scalar.db.consensus_commit.coordinator.write_set_logging.enabled` | Opt-in; adds a `tx_write_set` column to the Coordinator table and populates it on commit/abort, laying the groundwork for proactive recovery. Existing Coordinator tables migrate by enabling it and running `Admin.repairCoordinatorTables()` | Operator, at deployment |
+| `DistributedTransactionManager#finishTransaction(String)` | Completes per-record post-commit recovery for a committed transaction and removes its Coordinator state row. Returns `true` when finished (or already finished), `false` when the transaction carries no write set (e.g. it was `rollback()`/`abort()`ed rather than committed); throws `TransactionException` on failure | Operational tooling |
+| `DistributedTransactionManager#recoverRecord` | Recovers a single record left uncommitted by a crashed transaction | Operational tooling |
+
+The documented guidance is explicit: most applications should not call these directly, and callers
+are expected to understand the transaction lifecycle and the implications. Normal applications rely
+on lazy recovery, which happens automatically.
+
+Source: `products/scalardb/3.19/releases/release-notes.md` (v3.19.0). Verify against the project's
+pinned release per @rules/okf-knowledge-bundle.md.
+
+## ScalarDB Cluster Pause Failures (3.19+)
+
+For operational tooling that pauses a Cluster (backup workflows, `scalar-admin`): every pause
+failure used to be `FAILED_PRECONDITION`. From 3.19, a failure caused by losing a race with another
+admin request is `ABORTED` and can simply be retried. Every pause failure also carries a
+`google.rpc.ErrorInfo` detail in the status trailers with `domain=com.scalar.db.cluster.admin` and
+`reason` set to the outcome — match on `reason`, never on the status code or description text.
+
+**A caller that unpauses to recover from a failed pause must skip that unpause when the reason is
+`TIMED_OUT_STILL_PAUSED`**, because the server is still paused by an earlier request.

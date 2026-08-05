@@ -284,7 +284,7 @@ java -version
 **Download ScalarDB Schema Loader:**
 ```bash
 # Download from Maven Central or Scalar Labs
-wget https://repo1.maven.org/maven2/com/scalar-labs/scalardb-schema-loader/3.17.0/scalardb-schema-loader-3.17.0.jar
+wget https://repo1.maven.org/maven2/com/scalar-labs/scalardb-schema-loader/3.19.0/scalardb-schema-loader-3.19.0.jar
 ```
 
 ### Step 1.2: Backup MySQL Database
@@ -517,7 +517,7 @@ scalar.db.jdbc.connection_pool.max_total=25
 
 ```bash
 # Test connection (creates coordinator table if needed)
-java -jar scalardb-schema-loader-3.17.0.jar \
+java -jar scalardb-schema-loader-3.19.0.jar \
   --config scalardb.properties \
   --coordinator
 ```
@@ -532,7 +532,7 @@ Coordinator tables created successfully.
 
 **Option A: Create New Tables**
 ```bash
-java -jar scalardb-schema-loader-3.17.0.jar \
+java -jar scalardb-schema-loader-3.19.0.jar \
   --config scalardb.properties \
   --schema-file scalardb_schema.json \
   --coordinator
@@ -546,7 +546,7 @@ Create file: `import_schema.json`
 ```
 
 ```bash
-java -jar scalardb-schema-loader-3.17.0.jar \
+java -jar scalardb-schema-loader-3.19.0.jar \
   --config scalardb.properties \
   --schema-file import_schema.json \
   --import
@@ -585,7 +585,7 @@ ORDER BY table_name;
 For tables that can be imported directly:
 
 ```bash
-java -jar scalardb-schema-loader-3.17.0.jar \
+java -jar scalardb-schema-loader-3.19.0.jar \
   --config scalardb.properties \
   --schema-file import_schema.json \
   --import
@@ -885,7 +885,7 @@ Standard ScalarDB SQL supports all identified query patterns:
 **Gradle (build.gradle):**
 ```groovy
 // implementation 'mysql:mysql-connector-java:8.x.x'  // Remove if not needed
-implementation 'com.scalar-labs:scalardb-sql-jdbc:3.17.0'
+implementation 'com.scalar-labs:scalardb-sql-jdbc:3.19.0'
 ```
 
 ### Step 6.2: Create ScalarDB SQL Client Configuration

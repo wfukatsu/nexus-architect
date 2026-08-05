@@ -12,8 +12,9 @@ Two rules, in order: **look the version up before writing it**, and **choose a s
 
 A version number recalled from training data, or copied out of a SKILL.md / rules example, is an
 **unverified claim** — model knowledge has a cutoff and the examples in this repo are dated snapshots
-that drift (this repo's own ScalarDB examples read `3.16.0` while the current stable line is well past
-it). Resolve the real current state first, from the registry of record:
+that drift. This repo's own ScalarDB examples sat at `3.16.0` for three minor releases before anyone
+noticed; they now read `3.19.0`, which will be stale in turn. Resolve the real current state first,
+from the registry of record:
 
 | Ecosystem | Authoritative lookup |
 |-----------|----------------------|
@@ -68,12 +69,12 @@ answers instead of re-resolving (and drifting):
 ```json
 {
   "schema_version": 1,
-  "checked_at": "2026-07-27T00:00:00Z",
+  "checked_at": "2026-08-05T00:00:00Z",
   "confirmed_by_user": true,
   "entries": [
     {
       "name": "com.scalar-labs:scalardb", "ecosystem": "maven",
-      "chosen": "3.18.0", "latest_stable": "3.18.0", "released": "2026-05-01",
+      "chosen": "3.19.0", "latest_stable": "3.19.0", "released": "2026-08-02",
       "source": "https://repo1.maven.org/maven2/com/scalar-labs/scalardb/maven-metadata.xml",
       "verified": true, "lts": false,
       "why": "newest stable on the published line; matches the Cluster SDK version in use",

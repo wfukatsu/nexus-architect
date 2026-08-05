@@ -1,10 +1,33 @@
 ---
-description: ScalarDB two-phase commit transaction rules — applies when writing Java code that uses TwoPhaseCommitTransactionManager
+description: ScalarDB cross-service transaction rules — choosing between the one-phase interface, the Global Transaction API, application-driven 2PC, and ScalarDB Saga, and writing Java code that uses TwoPhaseCommitTransactionManager
 globs:
   - "**/*.java"
 ---
 
-# ScalarDB Two-Phase Commit Rules
+# ScalarDB Cross-Service Transaction Rules
+
+## Choose the Mechanism Before Writing 2PC Code
+
+Hand-written two-phase commit is the most expensive of four options and, since ScalarDB 3.19, no
+longer the default answer for microservice transactions. Decide in this order:
+
+| # | Mechanism | Use when | Application interface |
+|---|-----------|----------|-----------------------|
+| 1 | **Shared-cluster, one-phase commit** | Every service can talk to one ScalarDB Cluster instance. The documented recommendation "whenever possible" | Ordinary one-phase `DistributedTransactionManager`; one service calls `commit()` |
+| 2 | **Global Transaction API** (3.19+, Cluster) | Services need their own Cluster instances (isolation, per-team administration) but you do not want the application sequencing the protocol | `GlobalTransactionManager` — one-phase code; the **Transaction Coordinator** node drives 2PC underneath. The same code also runs single-Cluster; only configuration selects which |
+| 3 | **Application-driven 2PC** (this document) | Pre-3.19, no Transaction Coordinator deployed, Core (Community) without Cluster, or Spring Data JDBC (which does not support the shared-cluster pattern) | `TwoPhaseCommitTransactionManager` — the application sequences `prepare`/`validate`/`commit` and handles partial failure |
+| 4 | **ScalarDB Saga** | A single ACID transaction across the services is not possible or not wanted — long-running steps, external systems, eventual consistency acceptable | Saga/TCC definitions with compensations. See @rules/scalardb-saga-patterns.md |
+
+Options 1–3 give strong consistency; option 4 trades it for compensation-based rollback and
+eventual convergence. Record which option was chosen and why in the transaction design document.
+
+Grounding: `products/scalardb/<version>/scalardb-cluster/deployment-patterns-for-microservices.md`
+for options 1 and 3, and `products/scalardb/3.19/releases/release-notes.md` (v3.19.0) for option 2 —
+the Global Transaction API and Transaction Coordinator are described in the release notes, and the
+deployment-pattern guide has not yet been updated to cover them. Confirm against the project's
+pinned release before designing on option 2, per @rules/okf-knowledge-bundle.md.
+
+Everything below applies to **option 3**.
 
 ## Protocol Order
 
@@ -88,6 +111,10 @@ All operations in a 2PC transaction MUST route to the same ScalarDB Cluster node
 - With `direct-kubernetes` mode: handled automatically via consistent hashing
 
 ## Microservice Pattern
+
+This is the hand-written orchestration of option 3. On ScalarDB 3.19 with a Transaction Coordinator
+node deployed, option 2 replaces every step below with ordinary one-phase code — reach for this
+pattern only when option 2 is unavailable.
 
 In a microservice architecture with gRPC:
 1. Coordinator calls `begin()`, gets `txId`

@@ -9,6 +9,46 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+### 追加
+- **`rules/scalardb-saga-patterns.md`（新規ルール）: ScalarDB Saga。** OKF ナレッジバンドルに
+  ScalarDB Saga が 4 つ目の製品として追加されたことを受け、Saga オーケストレーションを
+  「手作りのパターン」ではなく第一級の設計選択肢として扱えるようにしました。SAGA と TCC の
+  選択、譲れない冪等性・補償の制約、Saga 定義（宣言的サービスステップと embedded 専用の
+  コードステップ）、Saga のライフサイクルと `ESCALATED` の運用キュー、server / embedded の
+  デプロイ形態とアーティファクト・Java マトリクス、`scalar.db.saga.server.*` の設定ルール
+  （セキュリティプロバイダ、`owner_id`、リカバリタイムアウト、リテンション）を収録。
+- **ScalarDB 3.19 を設計・採用判断のパスに反映。** サービス跨ぎトランザクションの判断を、
+  2PC 既定ではなく 4 方式の順位付け——共有クラスタの 1PC、3.19 の **Global Transaction API**
+  ＋ Transaction Coordinator ノード、アプリ駆動 2PC、ScalarDB Saga——に変更。
+  `rules/scalardb-2pc-patterns.md`（スコープをサービス跨ぎトランザクション全体に拡大）、
+  `design-scalardb`、`design-microservices`、`select-scalardb-edition`、`define-requirements`、
+  `review-scalardb`、`skills/common/references/interface-matrix.md` に適用。
+- **product プラグインの技術適合性チェックリストに ScalarDB Saga を追加**
+  （`/product:design-architecture`、`rules/product/architecture-and-tech-fitness.md`）。Kong /
+  ScalarDB / ScalarDB Analytics / ScalarDL と並んで毎回評価する対象とし、ScalarDB 採用に
+  付随するのではなく「コンテキスト跨ぎで結果整合が要件」というシグナルで起動します。
+
+### 変更
+- **OKF ナレッジバンドルを `7a723b8` に更新** — ScalarDB 3.19 と ScalarDB Saga 3.19 を追加。
+  4 製品・21 バージョンライン・2,015 concepts（従来は 3 製品・19 バージョン・1,800 concepts）。
+- **`rules/scalardb-edition-profiles.md` をバンドルの機能マトリクスに基づき全面改訂。**
+  実害のある誤りがありました: SQL/JDBC/Spring Data/GraphQL は Enterprise **Standard** ではなく
+  **Premium**、ScalarDB Analytics は Premium に含まれず別契約の Enterprise **Option** です。
+  バンドルが使う 5 つのエディション値（ABAC 用の `Enterprise Premium Option` を含む）、3.19 の
+  機能表、マイクロサービス向けクラスタトポロジ、ラインごとの保守サポート期限、そして SLA は
+  エディション名ではなく商用契約で決まる旨を明記。
+- **`rules/scalardb-exception-handling.md`**: 3.19 の Consensus Commit リカバリ API
+  （`finishTransaction()`・`recoverRecord()`・write-set logging）はアプリの例外処理から呼ぶ
+  ものではない低レベル運用 API であることを明記。あわせて Cluster pause RPC の `ABORTED` /
+  `ErrorInfo` の扱い（`TIMED_OUT_STILL_PAUSED` のときは unpause しない）を追加。
+- **`rules/scalardb-config-validation.md`**: 3.19 で追加された 2 つのプロパティ、グループコミットと
+  2PC の非互換、`single-crud-operation` 時の注意を追加。
+- **ScalarDB のアーティファクト固定を `3.16.0`/`3.17.x` → `3.19.0` に更新** —
+  `spring-boot-integration`、6 つのコードパターン参照、Oracle/MySQL/PostgreSQL の移行テンプレート。
+  各座標は Maven Central と v3.19.0 のリリースアセットで確認済み。
+- `/architect:design-observability` は ScalarDB Cluster ネイティブの OpenTelemetry サポート
+  （3.19+）を優先し、ScalarDB Saga を含む構成では Saga レベルのシグナルを追加します。
+
 ## [0.19.0] - 2026-08-04
 
 ### 追加

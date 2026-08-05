@@ -3,7 +3,8 @@ description: |
   Synthesize bounded contexts, API layers, the data model and NFRs into a runtime architecture
   (Mermaid container view + critical-path sequence + deployment/scaling view), then assess the
   fitness of a standing platform-technology checklist — Kong (API Gateway), ScalarDB, ScalarDB
-  Analytics, ScalarDL — and emit an Adopt/Conditional/Reject decision with rationale for each.
+  Analytics, ScalarDB Saga, ScalarDL — and emit an Adopt/Conditional/Reject decision with rationale
+  for each.
   /product:design-architecture [--auto] [--lang=ja|en].
 model: opus
 user_invocable: true
@@ -25,10 +26,12 @@ Produce two deliverables:
    - A trace mapping: every diagram node → an existing `CTX-`/`API-`/`ENT-`/`NFR-` id
 
 2. **Technology fitness** — `reports/03_domain/tech-stack-fitness.md` (`TECH-` IDs): for each of
-   **Kong, ScalarDB, ScalarDB Analytics, ScalarDL** — fitness (High/Medium/Low/None), the triggering
-   signals (cited `NFR-`/`CTX-`/`ENT-`/`API-`/`CON-`/`SCP-` ids), a **decision (Adopt/Conditional/
-   Reject)**, the **adoption rationale** (and where it slots into the architecture if adopted), and
-   conditions/risks. A scored matrix summarizes all four.
+   **Kong, ScalarDB, ScalarDB Analytics, ScalarDB Saga, ScalarDL** — fitness (High/Medium/Low/None),
+   the triggering signals (cited `NFR-`/`CTX-`/`ENT-`/`API-`/`CON-`/`SCP-` ids), a **decision
+   (Adopt/Conditional/Reject)**, the **adoption rationale** (and where it slots into the architecture
+   if adopted), and conditions/risks. A scored matrix summarizes all five.
+   ScalarDB Saga is triggered by a `CTX-`-spanning process whose consistency requirement is
+   eventual, or a step that calls an external system — not by ScalarDB adoption on its own.
 
 ## Invocation
 
@@ -49,13 +52,14 @@ Produce two deliverables:
   Low/None. "Reject with a reason" is a valid, valuable output — never fabricate adoption.
 - **Honor constraints.** A technology conflicting with a `CON-` is Conditional/Reject with the
   conflict named.
-- **Bridge to architect.** A ScalarDB/ScalarDL **Adopt** points forward to the `architect` plugin's
-  ScalarDB pipeline.
+- **Bridge to architect.** A ScalarDB/ScalarDB Saga/ScalarDL **Adopt** points forward to the
+  `architect` plugin's ScalarDB pipeline.
 - **Ground ScalarDB/ScalarDL capability claims.** When fitness rationale asserts what ScalarDB /
-  ScalarDB Analytics / ScalarDL can or cannot do, verify it against the version-pinned OKF
-  knowledge bundle (@rules/okf-knowledge-bundle.md) and cite the concept's `resource` URL.
+  ScalarDB Analytics / ScalarDB Saga / ScalarDL can or cannot do, verify it against the
+  version-pinned OKF knowledge bundle (@rules/okf-knowledge-bundle.md) and cite the concept's
+  `resource` URL.
 - **Stop condition**: the runtime view plus at least one of {critical-path, deployment} view exist,
-  all nodes trace to ids, and all four standing technologies carry a fitness + decision + rationale.
+  all nodes trace to ids, and all five standing technologies carry a fitness + decision + rationale.
 
 ## Prerequisites
 
@@ -75,18 +79,18 @@ Produce two deliverables:
    Apply `@rules/product/architecture-and-tech-fitness.md` (Part 1). Tag tiers; mark differentiators
    and failure-mode defaults; record `TBD`s.
 3. **Assess technology fitness** — run the standing checklist (Kong, ScalarDB, ScalarDB Analytics,
-   ScalarDL) against the artifacts; cite signals; decide Adopt/Conditional/Reject with rationale and
+   ScalarDB Saga, ScalarDL) against the artifacts; cite signals; decide Adopt/Conditional/Reject with rationale and
    architecture placement. Apply the rule (Part 2). Add project-relevant extras only when a signal
    demands it.
 4. **Trace** — map every diagram node to an id; link each `TECH-` decision to the signals it cites.
 5. **Append traceability** — add `ARCH-`/`TECH-` nodes to `work/traceability.json` with Upstream
    `CTX-`/`API-`/`ENT-`/`NFR-`/`CON-`/`SCP-` references.
 6. **Record** — write both files; append decisions to `work/context.md`; log `TBD`s. If ScalarDB/
-   ScalarDL is Adopt, note the handoff to the architect plugin.
+   ScalarDB Saga/ScalarDL is Adopt, note the handoff to the architect plugin.
 
 ## Handoff
 
-A ScalarDB / ScalarDL **Adopt** bridges to the **architect** plugin:
+A ScalarDB / ScalarDB Saga / ScalarDL **Adopt** bridges to the **architect** plugin:
 `/architect:select-scalardb-edition`, `/architect:design-scalardb`,
 `/architect:design-scalardb-analytics`. The `ARCH-` views also feed `/product:report`.
 
@@ -99,7 +103,7 @@ A ScalarDB / ScalarDL **Adopt** bridges to the **architect** plugin:
 
 | Resource | Purpose |
 |----------|---------|
-| `@rules/product/architecture-and-tech-fitness.md` | Three architecture views; evidence-driven fitness rubric for Kong / ScalarDB / ScalarDB Analytics / ScalarDL |
+| `@rules/product/architecture-and-tech-fitness.md` | Three architecture views; evidence-driven fitness rubric for Kong / ScalarDB / ScalarDB Analytics / ScalarDB Saga / ScalarDL |
 | `@rules/product/api-led-connectivity.md` | The API layers the runtime view is built from |
 | `@rules/product/ddd-strategic.md` | Bounded-context tiers (Core/Supporting/Generic) |
 

@@ -52,7 +52,10 @@ Valid: `jdbc`, `cassandra`, `dynamo`, `cosmos`, `multi-storage`
 
 ### scalar.db.transaction_manager
 
-Valid: `consensus-commit` (default), `single-crud-operation`, `cluster`
+Valid: `consensus-commit` (default), `single-crud-operation` — the Core library values; and
+`cluster` when the application connects through the ScalarDB Cluster client SDK.
+
+With `single-crud-operation`, every `scalar.db.consensus_commit.*` property is **ignored**.
 
 ### scalar.db.consensus_commit.isolation_level
 
@@ -117,6 +120,28 @@ Required:
 For SQL/JDBC cluster mode, use SQL-specific auth properties:
 - `scalar.db.sql.cluster_mode.username` (NOT `scalar.db.username`)
 - `scalar.db.sql.cluster_mode.password` (NOT `scalar.db.password`)
+
+## Group Commit Is Incompatible With the 2PC Interface
+
+`scalar.db.consensus_commit.coordinator.group_commit.enabled=true` cannot be used with the
+two-phase commit interface. Flag any properties file that sets both.
+
+## Properties Added in 3.19
+
+Documented in `products/scalardb/3.19/releases/release-notes.md` (v3.19.0). The
+`configurations.md` reference has **not yet** been updated with them — cite the release notes, and
+re-verify against the project's pinned release before writing them into a properties file.
+
+| Property | Default | Notes |
+|----------|---------|-------|
+| `scalar.db.consensus_commit.coordinator.write_set_logging.enabled` | `false` | Opt-in. Adds a `tx_write_set` column to the Coordinator table, populated on commit/abort. Enabling it on an existing deployment requires running `Admin.repairCoordinatorTables()` to migrate the table |
+| `scalar.db.active_transaction_management.max_active_transactions` | `10000` | Caps the transactions tracked by active transaction management (Caffeine cache, Window-TinyLFU eviction). Pairs with the existing `scalar.db.active_transaction_management.expiration_time_millis` (default `-1`, no expiration), whose idle timer is refreshed on every transaction operation from 3.19 |
+
+## ScalarDB Saga Server Properties
+
+Saga server configuration is a separate namespace (`scalar.db.saga.server.*`) with its own rules —
+a misspelled key fails startup, and `${file:...}` secret references work there but not in the plain
+`scalar.db.*` keys ScalarDB itself resolves. See @rules/scalardb-saga-patterns.md.
 
 ## Placeholder Support
 

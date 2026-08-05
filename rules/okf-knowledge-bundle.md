@@ -1,14 +1,16 @@
-# OKF Knowledge Bundle (ScalarDB / ScalarDL)
+# OKF Knowledge Bundle (ScalarDB / ScalarDL / ScalarDB Saga)
 
-Version-pinned official documentation for ScalarDB and ScalarDL, vendored as the
+Version-pinned official documentation for ScalarDB, ScalarDL and ScalarDB Saga, vendored as the
 [OKF-ScalarDB-ScalarDL](https://github.com/wfukatsu/OKF-ScalarDB-ScalarDL) bundle. It contains the
-complete developers.scalar-labs.com docs split **per product and per version** (1,800 concepts,
-19 versions), so implementation decisions can be grounded in exactly the release a project runs —
-not in model memory and not in "latest".
+complete developers.scalar-labs.com docs — plus the documentation ScalarDB Saga keeps in its source
+repository — split **per product and per version** (2,015 concepts, 4 products, 21 version lines),
+so implementation decisions can be grounded in exactly the release a project runs — not in model
+memory and not in "latest".
 
-Applies whenever a skill **designs, implements, reviews, or migrates anything ScalarDB or
-ScalarDL**: schema/transaction design, code generation, configuration files, exception handling,
-edition selection, analytics, deployment, and DB migration.
+Applies whenever a skill **designs, implements, reviews, or migrates anything ScalarDB, ScalarDL or
+ScalarDB Saga**: schema/transaction design, cross-service transaction and saga design, code
+generation, configuration files, exception handling, edition selection, analytics, deployment, and
+DB migration.
 
 ## 1. Locate the bundle
 
@@ -43,12 +45,17 @@ Never read concept pages until all three are fixed. Decision guide:
 
 | Question | How to decide |
 |----------|---------------|
-| **Product** | `scalardb` for all current ScalarDB work (Core, Cluster, SQL/GraphQL, Analytics, Data Loader). `scalardl` when tamper-evidence / execution-proof is a requirement (Ledger/Auditor, Contract/Function). `scalardb-community` only to investigate legacy ≤3.13 Community systems — never as a basis for new design. |
-| **Version** | Existing project: read it from `build.gradle`/`pom.xml` (`com.scalar-labs` deps) or the Helm `image.tag`; the minor version (`3.17`) selects `products/<product>/<version>/`. New project: newest version whose `maintenance` is `supported` in `products/<product>/index.md`. Reuse/record the answer in `work/version-decisions.json` per @rules/dependency-versions.md; when pinning a dependency, use the `patch_version` from the concept frontmatter, not the directory name. |
-| **Edition** | Confirm the project's contracted edition first (see @rules/scalardb-edition-profiles.md). Each concept's frontmatter `editions` lists where it applies — never propose an Enterprise-only feature to a Community project. If the edition is unknown, say so and ask before proposing edition-gated features. |
+| **Product** | `scalardb` for all current ScalarDB work (Core, Cluster, SQL/GraphQL, Analytics, Data Loader). `scalardb-saga` when the requirement is a **cross-service** transaction that cannot be one ACID transaction — saga steps with compensations, or TCC. `scalardl` when tamper-evidence / execution-proof is a requirement (Ledger/Auditor, Contract/Function). `scalardb-community` only to investigate legacy ≤3.13 Community systems — never as a basis for new design. |
+| **Version** | Existing project: read it from `build.gradle`/`pom.xml` (`com.scalar-labs` deps) or the Helm `image.tag`; the minor version (`3.19`) selects `products/<product>/<version>/`. New project: newest version whose `maintenance` is `supported` in `products/<product>/index.md`. Reuse/record the answer in `work/version-decisions.json` per @rules/dependency-versions.md; when pinning a dependency, use the `patch_version` from the concept frontmatter, not the directory name. |
+| **Edition** | Confirm the project's contracted edition first (see @rules/scalardb-edition-profiles.md). Each concept's frontmatter `editions` lists where it applies — never propose an Enterprise-only feature to a Community project. Note the bundle uses five edition values: `Community`, `Enterprise Standard`, `Enterprise Premium`, `Enterprise Option` (add-on: Analytics, Scalar Manager) and `Enterprise Premium Option` (add-on on Premium: ABAC). If the edition is unknown, say so and ask before proposing edition-gated features. |
+
+Current supported lines, as of bundle commit `7a723b8`: **ScalarDB 3.19 (latest), 3.18, 3.17, 3.16**
+— 3.15 and 3.14 are `unmaintained`; **ScalarDL 3.13 (latest)**; **ScalarDB Saga 3.19**. Read the
+`maintenance` field in `products/<product>/index.md` rather than trusting this line after an update.
 
 ScalarDB + ScalarDL combined architectures: verify the two pinned versions are mutually
-compatible via each product's `requirements` / compatibility concepts.
+compatible via each product's `requirements` / compatibility concepts. ScalarDB Saga stores its
+state through ScalarDB, so pin its ScalarDB version too and check both.
 
 ## 3. Read the right concepts for the phase
 
@@ -61,6 +68,20 @@ open only what the task needs. Filter by frontmatter `lifecycle_phase`:
 | generate-scalardb-code, implement-backlog, scalardb:build-app / config / crud-ops / jdbc-ops / error-handler / scaffold | `implement` | `api-guide.md`, `configurations.md`, `two-phase-commit-transactions.md`, `scalardb-samples/` |
 | design-infrastructure, design-observability, design-disaster-recovery, generate-infra-code, migrate-* | `operate` | `scalar-kubernetes/`, `helm-charts/`, `backup-restore.md`, `*-status-codes.md`, `releases/release-notes.md` |
 
+Cross-service transaction work reads two extra entry points:
+
+| Question | Concepts |
+|----------|----------|
+| Which ScalarDB Cluster deployment pattern for microservices? | `products/scalardb/<version>/scalardb-cluster/deployment-patterns-for-microservices.md`, `two-phase-commit-transactions.md` |
+| Saga / TCC across services | `products/scalardb-saga/<version>/overview.md` (design), `getting-started.md` + `reference/saga-definitions.md` (implement), `reference/server-configuration.md` + `server-deployment.md` + `reference/grpc-admin-api.md` (operate) |
+
+**`releases/release-notes.md` is part of the reference, not an afterthought.** A capability
+introduced in the newest minor is described there before the guide pages catch up — ScalarDB 3.19's
+Global Transaction API and Transaction Coordinator node are documented in the release notes while
+`deployment-patterns-for-microservices.md` still describes only the pre-3.19 shared/separated
+choice. When only the release notes cover a capability, say so and treat the guide pages as stale
+rather than as a contradiction.
+
 ## 4. Hard rules (from the bundle's operating manual)
 
 - **Never answer across versions.** Config keys, error codes, and API signatures change between
@@ -71,6 +92,10 @@ open only what the task needs. Filter by frontmatter `lifecycle_phase`:
 - **2PC only across microservices**, never within a single service.
 - **Skip `status: deprecated` concepts and `feature_status: [Deprecated]` features** for new
   design; flag Preview features before proposing them for production.
+- **State the release when a concept is `prerelease: true`.** ScalarDB Saga 3.19 currently builds
+  `3.19.0-alpha.1`, so its API, configuration keys and wire contracts can still move between
+  builds. Design on it where it fits, and pin the exact build — do not present an alpha
+  configuration key as settled.
 - **Cite the frontmatter `resource` URL** when the answer relies on a concept. If the bundle has
   no grounds for a claim, say "not covered by the documentation" instead of guessing.
 

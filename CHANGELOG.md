@@ -9,6 +9,47 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+### Added
+- **`rules/scalardb-saga-patterns.md` (new rule): ScalarDB Saga.** The OKF knowledge bundle now
+  carries ScalarDB Saga as a fourth product, so the toolkit treats saga orchestration as a
+  first-class design option rather than a hand-rolled pattern: SAGA vs TCC selection, the
+  idempotency and compensation constraints that are non-negotiable, saga definitions (declarative
+  service steps vs embedded-only code steps), the saga lifecycle and `ESCALATED` operator queue,
+  server vs embedded deployment with the artifact/Java matrix, and the `scalar.db.saga.server.*`
+  configuration rules (security provider, `owner_id`, recovery timeout, retention).
+- **ScalarDB 3.19 in the design and adoption path.** The cross-service transaction decision now
+  ranks four mechanisms — shared-cluster one-phase commit, the 3.19 **Global Transaction API** with
+  a Transaction Coordinator node, application-driven 2PC, and ScalarDB Saga — instead of defaulting
+  to 2PC. Applied across `rules/scalardb-2pc-patterns.md` (renamed in scope to cross-service
+  transactions), `design-scalardb`, `design-microservices`, `select-scalardb-edition`,
+  `define-requirements`, `review-scalardb`, and `skills/common/references/interface-matrix.md`.
+- **ScalarDB Saga added to the product plugin's standing technology-fitness checklist**
+  (`/product:design-architecture`, `rules/product/architecture-and-tech-fitness.md`) — assessed
+  every run alongside Kong, ScalarDB, ScalarDB Analytics and ScalarDL, triggered by eventual
+  consistency across contexts rather than implied by a ScalarDB adoption.
+
+### Changed
+- **OKF knowledge bundle updated to `7a723b8`** — adds ScalarDB 3.19 and ScalarDB Saga 3.19;
+  2,015 concepts across 4 products and 21 version lines (was 1,800 / 3 / 19).
+- **`rules/scalardb-edition-profiles.md` rewritten against the bundle's own feature matrix.** It
+  had material errors: the SQL/JDBC/Spring Data/GraphQL interface is Enterprise **Premium**, not
+  Standard, and ScalarDB Analytics is a separately contracted Enterprise **Option** rather than
+  part of Premium. Now carries the five edition values the bundle uses (including
+  `Enterprise Premium Option` for ABAC), the 3.19 capability table, cluster topologies for
+  microservices, per-line maintenance-support windows, and the note that SLA figures come from the
+  commercial contract rather than the edition name.
+- **`rules/scalardb-exception-handling.md`**: the 3.19 Consensus Commit recovery APIs
+  (`finishTransaction()`, `recoverRecord()`, write-set logging) are documented as low-level
+  operational APIs that must not be called from application error handling, plus the new `ABORTED`
+  / `ErrorInfo` semantics on the Cluster pause RPC (never unpause on `TIMED_OUT_STILL_PAUSED`).
+- **`rules/scalardb-config-validation.md`**: the two properties added in 3.19, the group-commit /
+  2PC incompatibility, and the `single-crud-operation` caveat.
+- **ScalarDB artifact pins bumped `3.16.0`/`3.17.x` → `3.19.0`** across `spring-boot-integration`,
+  all six code-pattern references, and the Oracle/MySQL/PostgreSQL migration templates; each
+  coordinate verified against Maven Central and the v3.19.0 release assets.
+- `/architect:design-observability` prefers ScalarDB Cluster's native OpenTelemetry support (3.19+)
+  and adds saga-level signals when ScalarDB Saga is in the architecture.
+
 ## [0.19.0] - 2026-08-04
 
 ### Added

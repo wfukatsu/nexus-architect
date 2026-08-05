@@ -9,8 +9,8 @@
 
 ```groovy
 dependencies {
-    implementation 'com.scalar-labs:scalardb:3.17.0'
-    implementation 'com.scalar-labs:scalardb-sql-spring-data:3.17.0'  // Enterprise
+    implementation 'com.scalar-labs:scalardb:3.19.0'
+    implementation 'com.scalar-labs:scalardb-sql-spring-data:3.19.0'  // Enterprise
     implementation 'org.springframework.boot:spring-boot-starter:3.2.0'
 }
 ```
