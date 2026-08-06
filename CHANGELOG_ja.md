@@ -24,6 +24,19 @@ Nexus Architect の主な変更点を記録します。
   契約は `skills/capture-followup/followup-contract.test.py` が検証し、チェックリスト契約には本スキルが
   所有する「未チェック子ボックスの追記」操作が加わる。
 
+- **`/architect:report-backlog-status`(新規スキル、haiku)+ `tools/backlog-status.sh`:
+  バックログデリバリーのライブターミナルダッシュボード。** Epic → Sub-Epic → Issue のツリーを
+  折り畳み可能に表示し、各アイテムのデリバリー状態(`todo/doing/review/done/blocked` —
+  トラッカー優先、次に `impl.status`。シードの `labels` 配列は読まない)と
+  Implemented/Reviewed/Merged のステージボックスを併記。ヘッダには Issue 全体の集計、
+  フォローアップキュー、パイプラインフェーズ帯。`Enter` でアイテム別アクションメニューが開き、
+  次に実行すべきスラッシュコマンド(`/architect:implement-backlog I1.2.3` など)を生成 —
+  デフォルトはクリップボードにコピー、`--exec` 時は `claude` をフォアグラウンド実行。
+  `s`/`--sync` で glab/gh のライブラベルを重ねドリフトを表示。マニフェストは 10 秒毎に再読込、
+  `--once`/`--json`/`--md` で非対話レンダリング。表示層は `token-cost-report` と共通
+  (`--ascii`/`--ambiguous-width` も同じ挙動)、導出契約は
+  `tools/lib/backlog_status_data.test.py` が検証。
+
 ### 変更
 - **チェックボックスの意味を「マージ済み」から「実装状態」に変更。** Epic/Sub-Epic の子タスクリストの
   ボックスは従来 `merge-issue` がマージ時にのみチェックしていたため、実装・テスト完了でレビュー待ちの

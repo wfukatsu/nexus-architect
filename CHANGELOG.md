@@ -25,6 +25,18 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
   `skills/capture-followup/followup-contract.test.py`, and the checklist contract gains the
   "append an unticked child box" operation owned by this skill.
 
+- **`/architect:report-backlog-status` (new skill, haiku) + `tools/backlog-status.sh`: a live
+  terminal dashboard for backlog delivery.** The Epic → Sub-Epic → Issue tree, foldable, with each
+  item's delivery status (`todo/doing/review/done/blocked` — derived tracker-first, then
+  `impl.status`, never the seed `labels` array) and its Implemented/Reviewed/Merged stage boxes;
+  header shows overall Issue counts, the follow-up queue, and a pipeline phase strip. `Enter`
+  opens a per-item action menu that generates the next slash command
+  (`/architect:implement-backlog I1.2.3`, …) — copied to the clipboard by default, or run in the
+  foreground via `claude` under `--exec`. `s`/`--sync` overlays live `glab`/`gh` labels and flags
+  drift. The manifest is re-polled every 10s; `--once`/`--json`/`--md` render non-interactively.
+  Built on the `token-cost-report` display layer (same `--ascii`/`--ambiguous-width` handling);
+  the derivation contract is asserted by `tools/lib/backlog_status_data.test.py`.
+
 ### Changed
 - **Checkboxes now render implementation state, not merge state.** The Epic/Sub-Epic child
   task-list boxes previously flipped only when `merge-issue` merged the child, so a fully

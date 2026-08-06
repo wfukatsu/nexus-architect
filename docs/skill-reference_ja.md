@@ -85,6 +85,7 @@
 | `/architect:review-issue` | opus | Epic 全体の整合レビュー、ブロッカー自動修正ループ（回数上限あり）、PR/MR 作成と承認への引き継ぎ |
 | `/architect:merge-issue` | opus | マージ前プリフライトと明示的な確認、マージ、Issue クローズ、Sub-Epic/Epic へのロールアップ |
 | `/architect:capture-followup` | sonnet | デリバリー中に発見した後続タスクをキューに捕捉し、承認後に対応中の Sub-Epic/Epic へ紐付く Issue として起票(`F` 番台のマニフェストノード) |
+| `/architect:report-backlog-status` | haiku | バックログデリバリーのターミナルダッシュボード: Epic/Sub-Epic/Issue ツリーにデリバリー状態と I/R/M ステージを表示、トラッカー同期と次コマンド生成のアクションメニュー付き(`tools/backlog-status.sh` をラップ) |
 
 進捗はトラッカー上に `status::*` ラベル・進捗コメント・チェックボックスとして反映されます
 （受入基準は実装・検証時、親のタスクリストのボックスは子のマージ時）。

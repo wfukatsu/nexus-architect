@@ -85,6 +85,7 @@ Requires `gh` / `glab` authenticated.
 | `/architect:review-issue` | opus | Whole-Epic consistency review, bounded blocker auto-fix loop, opens the PR/MR and hands off for approval |
 | `/architect:merge-issue` | opus | Merge preflight + explicit confirmation, merge, close the Issue, roll up to Sub-Epic/Epic |
 | `/architect:capture-followup` | sonnet | Queue follow-up work discovered mid-delivery, then register it as Issues linked to the in-flight Sub-Epic/Epic (`F`-namespace manifest nodes) |
+| `/architect:report-backlog-status` | haiku | Terminal dashboard for backlog delivery: Epic/Sub-Epic/Issue tree with delivery status + I/R/M stages, tracker sync, and a next-command action menu (wraps `tools/backlog-status.sh`) |
 
 Progress is reflected on the tracker as `status::*` labels, progress comments, and ticked
 checkboxes (acceptance criteria when implemented/verified; a parent's task-list box when its child
