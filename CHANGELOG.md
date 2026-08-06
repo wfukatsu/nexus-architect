@@ -25,6 +25,27 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
   `skills/capture-followup/followup-contract.test.py`, and the checklist contract gains the
   "append an unticked child box" operation owned by this skill.
 
+### Changed
+- **Checkboxes now render implementation state, not merge state.** The Epic/Sub-Epic child
+  task-list boxes previously flipped only when `merge-issue` merged the child, so a fully
+  implemented, tested, review-pending Epic still rendered 0% progress. The checklist contract now
+  splits the two kinds of state: **checkboxes = implemented + tests passing** (ticked by
+  `implement-backlog` once every acceptance criterion is ticked with test evidence, reconciled —
+  including unticking with a reason — by `review-issue`), while **delivery state (merged/done)
+  stays in the `status::*` labels and `impl.status`**. `merge-issue` no longer ticks in the normal
+  flow; it verifies at merge and ticks only a missed box (the merged, CI-green result being the
+  evidence). Updated across `backlog-checklists.md`, `implement-backlog`, `review-issue`,
+  `merge-issue`, `deliver-backlog`, and `capture-followup`.
+- **Every Epic/Sub-Epic/Issue body now carries a `## Delivery Status` section** — a `Status:` line
+  mirroring the tracker label plus a stage checklist (`Implemented` / `Reviewed` / `Merged`; parents
+  carry `Implemented`/`Merged`) — so the body answers "did it merge?", which the implementation
+  checkboxes deliberately do not. `export-backlog` and `capture-followup` author it on new items;
+  `implement-backlog`, `review-issue`, and `merge-issue` tick the stage they establish and rewrite
+  the status line on every label transition; labels/`impl.status` remain the machine-readable
+  source of truth. **Existing items are retrofitted**: any skill about to edit a body that lacks
+  the section first appends it, initialized from the live tracker state. `export-backlog --update`
+  preserves the section (and all ticked boxes) when syncing bodies.
+
 ## [0.20.0] - 2026-08-05
 
 ### Added

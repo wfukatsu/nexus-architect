@@ -251,7 +251,12 @@ above, this path writes **merge-bound code into the project's real source tree**
 
 Progress is visible on the tracker: `status::*` labels, progress comments, and the items' markdown
 checkboxes — acceptance criteria are ticked as they are implemented and verified, and a parent's
-task-list box is ticked when its child actually merges.
+task-list box is ticked as soon as its child's implementation and tests are complete, so the
+Epic/Sub-Epic progress counters render implementation state. Delivery state is rendered too: every
+item body carries a `## Delivery Status` section (a `Status:` line mirroring the label, plus
+`Implemented`/`Reviewed`/`Merged` stage boxes ticked by the skill that establishes each stage), so
+"did it merge?" is answerable from the body; the `status::*` labels remain the machine-readable
+source of truth.
 
 ### Infrastructure
 

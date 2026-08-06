@@ -93,20 +93,28 @@ merge comment, so the deferral stays deliverable.
 Capture the merge commit SHA / result.
 
 ### Step 4 — Post-merge roll-up
-This skill owns every **child task-list tick** in the hierarchy (per
-@skills/common/backlog-checklists.md): a box flips only when its item is actually `done`, which is
-what merging establishes. Edit each parent body in place — flip only the matched `[ ]` → `[x]` — and
-skip this entirely on the native-Epic/sub-issue path, where the parent has no task list.
+Child task-list boxes render **implementation state** and are ticked upstream by
+`/architect:implement-backlog` / reconciled by `/architect:review-issue` (per
+@skills/common/backlog-checklists.md). This skill **verifies** them at merge: a merged, CI-green
+Issue is by definition implemented and tested, so tick any box that was missed — editing the parent
+body in place, flipping only the matched `[ ]` → `[x]` — and skip this entirely on the
+native-Epic/sub-issue path, where the parent has no task list. The merge itself moves the status
+labels, not the boxes.
 
 - **Issue** — set `status::done`, close it (if not auto-closed by `Closes #`), and comment the merge
-  result (merge commit / URL). Any acceptance criterion the user waived at the Step 2 gate is named
+  result (merge commit / URL). In its `## Delivery Status` section (retrofit it from live state if
+  the item predates it), rewrite the `Status:` line and **tick the `Merged` stage** — this is the
+  body's answer to "did it merge?", which the implementation checkboxes deliberately do not carry.
+  Any acceptance criterion the user waived at the Step 2 gate is named
   in that comment and stays `[ ]`.
-- **Sub-Epic** — **tick this Issue's box** in the Sub-Epic's `## Issues` task list, then comment a
-  roll-up (N/M Issues done); when all its Issues are done, set the Sub-Epic `status::done` and run
-  the whole-Epic review (`/architect:implement-backlog --review-epic=<epic>`, or note it for the
-  user).
-- **Epic** — comment progress roll-up, and **tick the Sub-Epic's box** in the Epic's `## Sub-Epics`
-  task list when that Sub-Epic just went `done`.
+- **Sub-Epic** — **verify this Issue's box** in the Sub-Epic's `## Issues` task list (tick it if it
+  was missed — the merged, CI-green result is the evidence), then comment a roll-up (N/M Issues
+  done); when all its Issues are done, set the Sub-Epic `status::done` — rewriting its `Status:`
+  line and **ticking the `Merged` stage** in its `## Delivery Status` — and run the whole-Epic
+  review (`/architect:implement-backlog --review-epic=<epic>`, or note it for the user).
+- **Epic** — comment progress roll-up, and verify the Sub-Epic's box in the Epic's `## Sub-Epics`
+  task list when that Sub-Epic just went `done` (tick it if it was missed); when every Sub-Epic is
+  done, tick the `Merged` stage in the Epic's `## Delivery Status` and rewrite its `Status:` line.
 - **Manifest** — update **every node this roll-up moved**, not just the Issue. The Issue node gets
   `impl.status = done`, `pr.merged = true`, merge SHA, `updated_at`; a Sub-Epic or Epic that was
   transitioned to `status::done` above gets its own `impl.status = done` + `updated_at` (no `pr`
@@ -124,8 +132,13 @@ skip this entirely on the native-Epic/sub-issue path, where the parent has no ta
   node is `done` on the tracker while the manifest still reads unstarted.
 - A completed Sub-Epic triggers (or clearly recommends) the whole-Epic review.
 - The Issue's box in its Sub-Epic's task list (and the Sub-Epic's box in the Epic's, when it just
-  completed) is ticked, so the tracker's progress counters match the merged reality — unless the
-  hierarchy uses native Epic/sub-issue links, which carry no task list.
+  completed) is verified ticked — normally already flipped by `implement-backlog`/`review-issue`
+  when implementation and tests completed, ticked here only if missed — unless the hierarchy uses
+  native Epic/sub-issue links, which carry no task list.
+- The merged Issue's `## Delivery Status` reads `Merged [x]` with a `Status:` line of
+  `status::done` (retrofitted first when the item predated the section), and a completed
+  Sub-Epic/Epic has its `Merged` stage ticked — so the bodies answer "did it merge?" without
+  opening the PR/MR.
 - Unticked acceptance criteria were reported before the merge and, if the user accepted them anyway,
   recorded as waived in the merge comment — never ticked to look complete.
 - `--dry-run` performs no merge and no writes (no body edits); it only reports readiness and intent,

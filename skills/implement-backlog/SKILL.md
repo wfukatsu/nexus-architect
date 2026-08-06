@@ -204,8 +204,10 @@ precedence, run the `git check-ignore` and in-worktree checks, and stop with the
 rule if the root is ignored — the plan must not name files the downstream chain cannot commit. On
 first resolution, record it as a `source_root` decision in `shared-context/decisions.md`.
 
-Then set the item's status to `status::doing` and append a progress comment ("Implementation
-started") containing a mini-plan: the files to add/change under the resolved source root, the
+Then set the item's status to `status::doing` — also rewriting the `Status:` line of its
+`## Delivery Status` section to match (appending the section first, initialized from live state,
+if the item predates it; per @skills/common/backlog-checklists.md) — and append a progress comment
+("Implementation started") containing a mini-plan: the files to add/change under the resolved source root, the
 interface/contract (aligned to siblings + ubiquitous language + `coding-standards.md`), and the
 tests. **Delegate the drafting
 of the mini-plan to an opus sub-agent**, giving it the Step 3 digest, the item's acceptance
@@ -292,14 +294,24 @@ before any remote write and report the intended changes.
   code actually satisfies — edit the Issue body in place per @skills/common/backlog-checklists.md,
   flipping only `[ ]` → `[x]` on the criteria you can point at a commit/test/doc for, and list every
   box left unticked (with what is missing) in the same comment. Never tick a criterion because it is
-  planned, and never rewrite the body wholesale. `status::done` is owned by
+  planned, and never rewrite the body wholesale. In the Issue's `## Delivery Status` section
+  (retrofit it first if missing), rewrite the `Status:` line to the new label and **tick the
+  `Implemented` stage** when every acceptance criterion is ticked with test evidence.
+  `status::done` is owned by
   `/architect:merge-issue` — an Issue is done only when its PR/MR has merged, so this skill never
   sets `done` (that would silently drop the Issue out of the review → PR/MR → merge flow).
-- **Sub-Epic** — comment with a roll-up (progress and notable decisions). Sub-Epic `status::done`
-  is likewise set by `/architect:merge-issue` when its last Issue merges — and so is the tick on
-  this Issue's box in the Sub-Epic's `## Issues` task list: leave it unticked here, since the Issue
-  is not done until its PR/MR merges.
-- **Epic** — comment with a progress roll-up and any cross-cutting decisions.
+- **Sub-Epic** — comment with a roll-up (progress and notable decisions). **When every acceptance
+  criterion of this Issue is ticked with test evidence, tick this Issue's box** in the Sub-Epic's
+  `## Issues` task list (in place, per @skills/common/backlog-checklists.md) — the child box renders
+  implementation state (implemented + tests passing), so it flips here, not at merge. If any
+  criterion is still open, leave the box unticked and name what is missing. When this tick was the
+  Sub-Epic's last, also tick the `Implemented` stage in the Sub-Epic's `## Delivery Status`
+  (retrofit the section if missing). Sub-Epic
+  `status::done` remains `/architect:merge-issue`'s (set when its last Issue merges).
+- **Epic** — comment with a progress roll-up and any cross-cutting decisions. When this Issue
+  completed the Sub-Epic's implementation (every sibling Issue's box now ticked), also tick the
+  Sub-Epic's box in the Epic's `## Sub-Epics` task list — and, when that completed the Epic's
+  implementation, the `Implemented` stage in the Epic's `## Delivery Status`.
 - Mirror the appended notes to `reports/backlog/impl-log/<item>.md` (with frontmatter), and update
   the node in `backlog-manifest.json` with `impl: { status, files, decisions, updated_at }`.
 
@@ -315,8 +327,11 @@ Then offer the next `doing` / `todo` item under the same Epic (confirm before st
 - Every implemented item ends with a progress comment on its Issue and a status-label transition,
   mirrored in `reports/backlog/impl-log/`.
 - The Issue's acceptance-criteria checkboxes reflect reality: each satisfied criterion is `[x]` with
-  evidence, each unsatisfied one is still `[ ]` and named in the comment; the parent's child task
-  list is left to `/architect:merge-issue`.
+  evidence, each unsatisfied one is still `[ ]` and named in the comment; the Issue's box in the
+  parent's child task list is ticked **iff** implementation and tests are complete (all criteria
+  ticked), so the parents' progress counters render implementation state. The touched items'
+  `## Delivery Status` sections match: `Status:` line rewritten on every label transition, the
+  `Implemented` stage ticked on completion, and the section retrofitted onto items that predate it.
 - The shared-context pack exists and was consulted — including `review-knowledge.md`, so known
   review findings are not reintroduced; any new cross-cutting decision is recorded in `decisions.md`.
 - No fabricated requirements/endpoints/numbers — everything traces to acceptance criteria or a

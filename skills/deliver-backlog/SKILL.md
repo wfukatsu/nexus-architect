@@ -36,9 +36,11 @@ labels: `todo · doing · review · done · blocked`). Re-running resumes from t
 are skipped, in-flight Issues continue from their current stage.
 
 The markdown **checkboxes** on the items (child task lists and acceptance criteria, maintained by the
-wrapped skills per @skills/common/backlog-checklists.md) are a *rendering* of that progress for
-humans, not an input: read stage from `impl.status`/labels, and treat a mismatched box as something
-the responsible skill should fix, not as state.
+wrapped skills per @skills/common/backlog-checklists.md) are a *rendering* of **implementation
+state** (implemented + tests passing) for humans, and each item's `## Delivery Status` section
+(status line + `Implemented`/`Reviewed`/`Merged` stages) is the matching rendering of **delivery
+state** — neither is an input: read stage from `impl.status`/labels, and treat a mismatched box or
+stale status line as something the responsible skill should fix, not as state.
 
 Read state from `impl.status` and the tracker, **never from a node's `labels` array** — that field
 is the creation seed `export-backlog` wrote and is not advanced as work progresses, so trusting it
@@ -118,7 +120,8 @@ Epic's overall progress.
 1. Every targeted Issue is `status::done` (merged), or explicitly `blocked`/deferred by the user.
 2. `backlog-manifest.json` reflects the final `impl.status` / `pr` state for each processed Issue.
 3. Each processed item's checkboxes match its outcome — acceptance criteria ticked (or explicitly
-   reported as open/waived), and merged Issues ticked off in their Sub-Epic's task list.
+   reported as open/waived), and implemented-and-tested Issues ticked off in their Sub-Epic's task
+   list (verified again at merge).
 4. A delivery summary has been presented.
 
 ## Related Skills

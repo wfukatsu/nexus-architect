@@ -73,7 +73,8 @@ backlog stays linked to the design.
 - **What**: one sentence naming the product/system and the outcome it delivers.
 - **Why**: the problem, business rationale, and target success metrics / North Star.
 - **Body sections**: `## What`, `## Why`, `## Success Metrics` (from `success-metrics.md` or
-  requirements NFR), `## Sub-Epics` (task list of children), `## Source reports`.
+  requirements NFR), `## Sub-Epics` (task list of children), `## Delivery Status` (per the
+  Checklist Contract — status line + `Implemented`/`Merged` stages, unticked), `## Source reports`.
 
 ### Sub-Epic — What / Key Results
 - **What**: the capability area / bounded context and its responsibility.
@@ -81,14 +82,16 @@ backlog stays linked to the design.
   value (e.g. "p95 latency < 200ms (NFR-03)", "checkout conversion +5pt (MET-02)"). Never invent
   numbers — if the reports give none, write the KR as a `TBD` to be filled, and say so.
 - **Body sections**: `## What`, `## Key Results`, `## Issues` (task list of children),
-  `## Traceability`, `## Source reports`.
+  `## Delivery Status` (status line + `Implemented`/`Merged` stages, unticked), `## Traceability`,
+  `## Source reports`.
 
 ### Issue — How
 - **How**: the implementation approach — components/classes/endpoints/schema to build or change.
 - **Acceptance Criteria**: a markdown checkbox per criterion (`- [ ] …`), each verifiable. A
   Given/When/Then scenario goes *inside* one box, so every criterion stays individually tickable
   downstream (see Checklist Contract).
-- **Body sections**: `## How`, `## Acceptance Criteria`, `## References` (source report path +
+- **Body sections**: `## How`, `## Acceptance Criteria`, `## Delivery Status` (status line +
+  `Implemented`/`Reviewed`/`Merged` stages, unticked), `## References` (source report path +
   traceability IDs), and suggested `size` (S/M/L).
 - - **Bake in past lessons**: when a `review-knowledge.md` rule applies to an Issue's area, fold it
   into that Issue's acceptance criteria or a `## Known pitfalls` note (cite the `KN-` id), so the
@@ -102,9 +105,11 @@ backlog stays linked to the design.
 
 Read @skills/common/backlog-checklists.md — the single source of truth for the two checklists
 (parent child-task-list, Issue acceptance criteria), who ticks each, and the in-place edit mechanics.
-This skill is the **author** of both: it must emit them as unticked `- [ ]` boxes (one per criterion,
-one per child), because a criterion written as prose can never be ticked by the downstream skills. It
-never ticks anything — at creation time nothing is done yet.
+This skill is the **author** of all three: it must emit the child task lists and acceptance
+criteria as unticked `- [ ]` boxes (one per criterion, one per child), because a criterion written
+as prose can never be ticked by the downstream skills — and it writes every item's
+`## Delivery Status` section (status line `Status: \`status::todo\`` plus the unticked stage
+checklist). It never ticks anything — at creation time nothing is done yet.
 
 ## Steps
 
@@ -175,9 +180,12 @@ not approved.
 ### Step 5 — Create the hierarchy (idempotent)
 Process the manifest top-down (Epics → Sub-Epics → Issues). For each node, if
 `remote.url` is already set (or an item with the same title + `type:` label already exists on the
-target), **skip creation** and, with `--update`, sync title/body/labels instead. Nodes with an
-`F`-suffixed `local_id` or an `origin` field belong to `/architect:capture-followup`: preserve
-them verbatim in the manifest and never re-synthesize, renumber, or `--update` them from reports. Write
+target), **skip creation** and, with `--update`, sync title/body/labels instead — but a body sync
+**carries over the remote item's `## Delivery Status` section and every ticked checkbox** rather
+than overwriting them with the manifest's creation-time body (per the Checklist Contract). Nodes
+with an `F`-suffixed `local_id` or an `origin` field belong to `/architect:capture-followup`:
+preserve them verbatim in the manifest and never re-synthesize, renumber, or `--update` them from
+reports. Write
 `remote: { id, iid, url, created_at }` back into `backlog-manifest.json` immediately after each
 successful create so an interrupted run resumes cleanly.
 
@@ -213,6 +221,8 @@ Print the Epic URL(s) to the user.
   every criterion is written as an unticked `- [ ]` checkbox so downstream skills can tick it.
 - Every parent created on the task-list scheme lists its children as `- [ ] #<iid>` boxes (the
   native Epic/sub-issue path uses the links instead — no duplicate list).
+- Every created item carries a `## Delivery Status` section (status line `status::todo`, unticked
+  stage checklist), so downstream skills render delivery state in place instead of adding it later.
 - Every node traces to a source report; Key Results cite a metric/SLO/NFR ID (or are marked `TBD`).
 - Re-running does not create duplicates; created URLs are recorded in the manifest.
 - No fabricated numbers, endpoints, or requirements — everything derives from the reports.
