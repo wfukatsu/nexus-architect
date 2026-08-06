@@ -1,7 +1,8 @@
 # Backlog Checklist Contract
 
 Shared by the backlog family: `/architect:export-backlog`, `/architect:implement-backlog`,
-`/architect:review-issue`, `/architect:merge-issue`, `/architect:deliver-backlog`.
+`/architect:review-issue`, `/architect:merge-issue`, `/architect:deliver-backlog`,
+`/architect:capture-followup`.
 
 Every Epic / Sub-Epic / Issue carries markdown checkboxes, and they are **live state**:
 GitLab/GitHub render a task list as a progress counter, so a box left unticked after the work landed
@@ -17,6 +18,13 @@ it. Keeping them current is part of finishing a step, not a cosmetic extra.
 
 Ownership is exclusive: the skill named above is the only one that flips that kind of box. An Issue
 is not `done` until its PR/MR merges, so nothing before `merge-issue` ticks a parent's child box.
+
+One more operation exists on the child task list: **appending a new unticked box**. When
+`/architect:capture-followup` creates a follow-up Issue mid-delivery, it appends `- [ ] #<iid>
+<title>` to the parent's `## Issues` (or `## Sub-Epics`) list — in place, idempotently (skip if
+`#<iid>` is already listed), using the same edit mechanics below. On the native-Epic/sub-issue path
+the hierarchy link replaces the append, as it replaces the list. That skill only ever *adds* an
+unticked box; ticking it remains `merge-issue`'s alone.
 
 ## Rules
 

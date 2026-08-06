@@ -83,7 +83,9 @@ Also read the Issue's **acceptance-criteria checkboxes** (per @skills/common/bac
 and list any still `[ ]` here. This is a *reporting* item, not a preflight check — it does not block
 the merge, but the user decides knowingly: accept the merge (the unticked criteria are then recorded
 as waived in Step 4's merge comment) or send the Issue back. Never tick a box to make this list
-empty.
+empty. A waived criterion that still represents real work can be captured as a follow-up Issue via
+`/architect:capture-followup <title> --queue-only` — name the queue entry next to the waiver in the
+merge comment, so the deferral stays deliverable.
 
 ### Step 3 — Execute the merge
 - GitLab: `glab mr merge <iid> [--squash|--rebase] [--remove-source-branch] [--yes]`.
@@ -136,3 +138,4 @@ skip this entirely on the native-Epic/sub-issue path, where the parent has no ta
 | /architect:review-issue | Upstream — raises and gets approval for the PR/MR this skill merges |
 | /architect:implement-backlog | Runs the whole-Epic review (`--review-epic`) after a Sub-Epic completes |
 | /architect:export-backlog | Source of the manifest and Epic/Sub-Epic/Issue hierarchy |
+| /architect:capture-followup | Sink for acceptance criteria waived at the merge gate — queues them as follow-up Issues |

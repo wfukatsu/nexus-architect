@@ -247,6 +247,7 @@ above, this path writes **merge-bound code into the project's real source tree**
 | `/architect:implement-backlog` | Implements one item, Epic-consistently; Step 5b runs `generate-docs` onto the same branch |
 | `/architect:review-issue` | Whole-Epic consistency review, bounded blocker auto-fix, opens the PR/MR |
 | `/architect:merge-issue` | Merge preflight + confirmation, merge, close the Issue, roll up to Sub-Epic/Epic |
+| `/architect:capture-followup` | Queues follow-up work discovered mid-delivery, then registers it as Issues linked to the in-flight Sub-Epic/Epic |
 
 Progress is visible on the tracker: `status::*` labels, progress comments, and the items' markdown
 checkboxes — acceptance criteria are ticked as they are implemented and verified, and a parent's
@@ -373,7 +374,9 @@ to a working branch, and runs `generate-docs` as Step 5b so code and docs land i
 `deliver-backlog` stops at the human gates; it never merges without approval (or `--yes-merge`).
 
 Single steps are available too: `/architect:implement-backlog <issue>`, `/architect:review-issue
-<issue>`, `/architect:merge-issue <issue>`.
+<issue>`, `/architect:merge-issue <issue>`. Work discovered mid-delivery but deferred is captured
+with `/architect:capture-followup` — queued locally, then (after an approval gate) registered as
+new Issues linked to the in-flight Sub-Epic/Epic, re-entering the loop as `status::todo`.
 
 **C. Frontend** — `/product:generate-frontend` (offered by `/product:start` after the UI mocks) emits
 a runnable React + Storybook scaffold under `generated/frontend/`.
