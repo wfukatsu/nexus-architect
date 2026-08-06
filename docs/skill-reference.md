@@ -122,6 +122,7 @@ merges).
 | `/architect:estimate-cost` | sonnet | Infrastructure, license, and operational costs |
 | `/architect:estimate-token-cost` | sonnet | Token usage and USD cost of running the agent (a-priori, calibrated by actuals) |
 | `/architect:report-token-cost` | haiku | Terminal report of the recorded actual agent cost — interactive two-pane dashboard by default (10s poll; selection above, detail/session log below), `--once`, `--follow`, `--session=ID`, `--since`, `--breakdown=cost`, `--ascii`, `--ambiguous-width=2`, `--debug`, `--md`, `--json` |
+| `/architect:report-status` | haiku | Terminal dashboard for pipeline progress: phase tree with status, declared-output completion, "running now" heartbeat, unmet dependencies and per-phase cost, with a next-command action menu, an ask-Claude key and a `Tab` switch to the backlog view (wraps `tools/nexus-status.sh`) |
 
 ## Utility
 
@@ -192,4 +193,5 @@ Phase order and the `mvp`/`core-only`/`ux-to-spec`/`full` profiles are defined i
 | `/product:design-architecture` | opus | 4/5. Synthesis | Runtime architecture diagrams (container/critical-path/deployment) + technology fitness (Kong / ScalarDB / ScalarDB Analytics / ScalarDL) with Adopt/Conditional/Reject rationale |
 | `/product:review` | opus | R. Review & Report | Review product artifacts (consistency, traceability, extensibility, strategy) |
 | `/product:report` | sonnet | R. Review & Report | Consolidate artifacts into one self-contained HTML report (validation status first) |
+| `/product:report-status` | haiku | R. Review & Report | Terminal dashboard for product-pipeline progress: phase tree with status, declared-output completion, gate verdict + open assumptions, per-phase cost, next-command action menu (wraps `tools/nexus-status.sh`) |
 | `/product:adapt-change` | opus | 6. Adaptation | Re-propagation engine: compute affected scope from a change and re-run only impacted skills |

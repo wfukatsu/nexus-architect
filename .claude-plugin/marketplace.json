@@ -79,6 +79,7 @@
         "./skills/estimate-cost",
         "./skills/estimate-token-cost",
         "./skills/report-token-cost",
+        "./skills/report-status",
         "./skills/update-knowledge",
         "./skills/export-backlog",
         "./skills/deliver-backlog",
@@ -178,6 +179,7 @@
         "./skills/product/design-architecture",
         "./skills/product/review",
         "./skills/product/report",
+        "./skills/product/report-status",
         "./skills/product/adapt-change"
       ]
     }

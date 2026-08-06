@@ -105,6 +105,17 @@ def run(manifest):
           [n["local_id"] for n in children.get("?", [])] == ["I9.9.9"])
     check("F-node flagged as followup", states["I1.1.F1"]["followup"])
 
+    print("tree filtering")
+    ids = [n["local_id"] for n, _, _ in B.flatten_tree(children, states)]
+    check("no filter shows the orphan", "I9.9.9" in ids, ids)
+    ids = [n["local_id"] for n, _, _ in
+           B.flatten_tree(children, states, epic_filter="E1")]
+    check("epic filter excludes the orphan (no Epic owns it)",
+          "I9.9.9" not in ids and "E1" in ids, ids)
+    ids = [n["local_id"] for n, _, _ in
+           B.flatten_tree(children, states, status_filter="blocked")]
+    check("status filter applies to the orphan too", "I9.9.9" not in ids, ids)
+
     print("roll-up")
     check("parent's own impl.status wins (SE1.2 done from merge-issue roll-up)",
           states["SE1.2"]["status"] == "done" and states["SE1.2"]["stages"]["merged"])

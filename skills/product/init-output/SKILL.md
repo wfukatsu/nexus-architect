@@ -34,11 +34,15 @@ Create the directory structure and state files required to run the `product` pip
      "schema_version": 1,
      "options": { "output_language": "en", "confirm_versions": true, "no_research": false, "profile": "full", "design_system": null, "frontend": null },
      "phases": {
-       "define-vision": { "status": "pending", "outputs": [], "updated_at": null }
+       "define-vision": { "status": "pending", "started_at": null, "completed_at": null, "updated_at": null, "note": null, "outputs": [] }
      },
      "gates": { "validate-assumptions": { "verdict": "pending", "open_assumptions": [] } }
    }
    ```
+
+   Phase entries follow the shared contract in @skills/common/progress-registry.md — in
+   particular `status: "in_progress"` + `started_at` are written *before* a phase runs, which
+   is what `/product:report-status` and the token-usage hook read.
 
    Ask the user which `output_language` to use (`en` default / `ja`) unless it is already set
    or passed via `--lang`. `confirm_versions` (default `true`) controls whether

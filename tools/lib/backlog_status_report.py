@@ -1,6 +1,6 @@
 """One-shot renders of the backlog-status tree: ANSI text, JSON, Markdown.
 
-Non-interactive counterpart of backlog_status_tui.py — this is what the agent runs
+Non-interactive counterpart of backlog_status_view.py — this is what the agent runs
 in-session (--once) and what --json / --md emit for other programs and reports.
 
 Usage: backlog_status_report.py <backlog-manifest.json>

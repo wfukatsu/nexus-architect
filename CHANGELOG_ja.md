@@ -10,6 +10,27 @@ Nexus Architect の主な変更点を記録します。
 ## [Unreleased]
 
 ### 追加
+- **`/architect:report-status` / `/product:report-status`（新規スキル、haiku）: パイプライン進捗を
+  バックログと同じダッシュボードでライブ表示。** バックログデリバリーにはライブ表示があったが、その
+  手前の product / architect パイプラインには手段がなく、`work/pipeline-progress.json` を生の JSON で
+  読むしかない上に、多くのスキルはフェーズ完了時にしか書き込まないため「今どこを走っているか」が
+  分からなかった。ダッシュボードを `tools/nexus-status.sh` 1 本に統合し、`Tab` で **pipeline**（新規）と
+  **backlog**（従来。`tools/backlog-status.sh` は薄い別名として存続、`/architect:report-backlog-status`
+  も従来どおり）を切り替える。pipeline ビューはフェーズツリーをカテゴリ単位で表示し（architect の手動
+  拡張ティアは折りたたみ可能な独立グループ）、各フェーズの状態、宣言された `outputs:` のうち実在する数
+  （`[==..] 2/4`）、直近 5 分にファイル書き込みやトークン消費があったか、未充足の依存、モデルティア、
+  記録済みコストを並べる。product ビューはヘッダに `validate-assumptions` のゲート判定と未検証前提の
+  件数を追加する。状態は進捗レジストリ優先・実ファイル補完で、レジストリに記載のないフェーズは出力から
+  導出し、食い違い（`completed` なのに出力なし／`pending` なのに全出力あり）はドリフトとして明示する。
+  両ビューは次コマンド生成のアクションメニュー（クリップボード、または `--exec` で `claude` 実行）、
+  選択行の文脈を添えて Claude に質問する新しい `a` キー、`?` のヘルプパネルを共有する。`--once` /
+  `--json` / `--md` は非対話レンダリング。契約テスト `tools/lib/pipeline_status_data.test.py` を追加。
+- **進捗レジストリの `in_progress` 契約（@skills/common/progress-registry.md）。** オーケストレータ
+  （`/architect:pipeline`、`/architect:start`、`/product:start`）は各フェーズを 2 回書くようになった —
+  スキル起動**前**に `in_progress` + `started_at`、復帰後に `completed`/`failed` と `completed_at` /
+  `outputs` / `summary`。長いフェーズは任意で `note` / `updated_at` を更新する。これが実行中フェーズを
+  実行中のまま可視化する唯一の手段であり、トークン使用量フックのコスト按分もこれに依存する（無いと
+  トークンは pending バケットに溜まる）。
 - **`/architect:capture-followup`（新規スキル、sonnet）: バックログデリバリー向けフォローアップ捕捉。**
   デリバリー中に発見される作業 — 先送りタスク、スコープ外の指摘、ドキュメントドリフト、Issue 分割で
   切り出したスコープ、マージ時に waive された受入条件 — は従来コメントやレビュー文中で行き止まりに

@@ -21,6 +21,8 @@
       "status": "pending|in_progress|completed|failed|skipped",
       "started_at": null,
       "completed_at": null,
+      "updated_at": null,
+      "note": "",
       "outputs": [],
       "summary": ""
     }
@@ -40,6 +42,18 @@
 | `confirm_versions` | `true` \| `false` | Project default for confirming resolved dependency versions with the user before pinning them (see @rules/dependency-versions.md). Absent → interactive runs ask, `--auto` runs adopt. Overridden per run by `--confirm-versions` / `--no-confirm-versions`. |
 | `skip_phases` | list of phase names | Phases the user excluded |
 
+## Phase Fields
+
+| Field | Written when | Meaning |
+|-------|--------------|---------|
+| `status` | always | See Status Values below |
+| `started_at` | entering the phase | ISO8601 stamp set together with `in_progress` |
+| `completed_at` | leaving the phase | ISO8601 stamp set together with `completed` |
+| `updated_at` | any write | ISO8601 stamp of the last change to this entry |
+| `note` | optional, during a long phase | One short line describing the step in flight (e.g. `"step 3/7: ubiquitous language"`) — surfaced verbatim by the status dashboard |
+| `outputs` | on completion | The files the phase actually wrote |
+| `summary` | on completion | One or two lines of what it concluded |
+
 ## Status Values
 
 | Status | Meaning |
@@ -49,6 +63,26 @@
 | completed | Finished successfully |
 | failed | Execution failed |
 | skipped | Skipped (condition not met or user-specified) |
+
+## The `in_progress` Contract
+
+**Write `in_progress` before invoking the skill, not after it returns.** The registry is
+the only source that can say a phase is running *while* it runs — its declared outputs do
+not exist yet, so nothing else on disk shows it. `/architect:report-status` and
+`/product:report-status` render this directly, and the token-usage hook attributes cost
+to whichever phases are `in_progress`, so a phase that skips this step has its tokens
+land in the pending bucket.
+
+Per phase, an orchestrator (`/architect:pipeline`, `/architect:start`, `/product:start`)
+therefore writes twice:
+
+1. **Before the skill runs** — `status: "in_progress"`, `started_at`, `updated_at`.
+   Parallel phases each get their own entry set at the same time.
+2. **After it returns** — `status: "completed"` (or `"failed"` / `"skipped"`),
+   `completed_at`, `updated_at`, `outputs`, `summary`.
+
+A skill invoked on its own does the same for its own phase. Long phases may refresh
+`note` and `updated_at` between steps; nothing depends on it, and it is never required.
 
 ## Resume Behavior
 

@@ -4,10 +4,12 @@ description: |
   delivery status (todo/doing/review/done/blocked) and its Implemented / Reviewed /
   Merged stages — on the terminal, live or as a one-shot render.
   /architect:report-backlog-status [--once] [--sync] [--exec] [--epic=<id>] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en] to invoke.
-  Wraps ${CLAUDE_PLUGIN_ROOT}/tools/backlog-status.sh, which on a terminal defaults to a
-  live dashboard polling backlog-manifest.json every 10s, with an action menu that
-  generates the next slash command per item (copy to clipboard, or run via claude with
-  --exec). The live mode runs in the user's own terminal, so pass --once for an
+  Wraps ${CLAUDE_PLUGIN_ROOT}/tools/backlog-status.sh (the backlog view of
+  tools/nexus-status.sh), which on a terminal defaults to a live dashboard polling
+  backlog-manifest.json every 10s, with an action menu that generates the next slash
+  command per item (copy to clipboard, or run via claude with --exec), an `a` key that
+  asks Claude about the selected item, and a Tab key that switches to the pipeline
+  progress view. The live mode runs in the user's own terminal, so pass --once for an
   in-session render. Only runs when explicitly invoked.
 model: haiku
 user_invocable: true
@@ -35,7 +37,10 @@ command to run next.
 
 ## Execution
 
-One script does the whole job: `${CLAUDE_PLUGIN_ROOT}/tools/backlog-status.sh`.
+One script does the whole job: `${CLAUDE_PLUGIN_ROOT}/tools/backlog-status.sh` — a thin
+alias for `tools/nexus-status.sh --view=backlog`, so every option below is also available
+on the unified tool, and `Tab` inside the dashboard switches to the pipeline view
+(`/architect:report-status`).
 
 | Invocation | Command | Effect |
 |-----------|---------|--------|
@@ -88,4 +93,5 @@ After relaying a `--once` render:
 | /architect:deliver-backlog | The loop this dashboard observes; its stages are the action menu |
 | /architect:implement-backlog, /architect:review-issue, /architect:merge-issue | The commands the action menu generates |
 | /architect:capture-followup | Follow-up queue surfaced in the header and menu |
+| /architect:report-status | The pipeline view of the same tool (Tab key) |
 | /architect:report-token-cost | Sibling terminal dashboard; shares display conventions |
