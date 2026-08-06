@@ -28,6 +28,7 @@ Exit status 0 = all checks pass, 1 = at least one failed.
 """
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -67,12 +68,16 @@ def build_fixture(root):
         write(os.path.join(root, "reports", "01_analysis", name))
     # design-microservices: 1 of 2 outputs, no registry entry -> derived in_progress
     write(os.path.join(root, "reports", "03_design", "target-architecture.md"))
-    # design-implementation (extension tier): directory output with a file in it
+    # design-implementation (extension tier): 1 of its 4 declared spec files
     write(os.path.join(root, "reports", "06_implementation", "value-objects-spec.md"))
-    # generate-test-specs (extension tier): directory exists but is empty -> not written
-    os.makedirs(os.path.join(root, "reports", "07_test-specs"), exist_ok=True)
+    # generate-infra-code (extension tier): directory output with a file in it
+    write(os.path.join(root, "generated", "infrastructure", "k8s", "deployment.yaml"))
+    # generate-test-specs (extension tier): its declared directory exists but is empty
+    os.makedirs(os.path.join(root, "reports", "07_test-specs", "bdd-scenarios"),
+                exist_ok=True)
     # map-domains: registry claims completed, nothing on disk -> drift
-    # redesign: registry says pending, both outputs present -> the other drift
+    # redesign: registry never left pending, both outputs present -> the other drift,
+    #           and the files win over the unstamped entry
     for name in ("bounded-contexts-redesign.md", "context-map.md"):
         write(os.path.join(root, "reports", "03_design", name))
 
@@ -87,6 +92,8 @@ def build_fixture(root):
                             "note": "step 3/4", "outputs": []},
             "map-domains": {"status": "completed", "completed_at": "2026-08-06T09:30:00Z"},
             "redesign": {"status": "pending"},
+            # pending with nothing on disk: the entry and the files agree, no drift
+            "design-api": {"status": "pending"},
             "evaluate-mmi": {"status": "failed"},
             "hand-written-phase": {"status": "completed"},
         },
@@ -178,6 +185,70 @@ def check_real_manifests():
           order.index("analyze") > order.index("investigate")
           and order.index("review-synthesizer") > order.index("review-consistency"),
           order[:6])
+
+
+# The manual extension tier as CLAUDE.md and README describe it. The dashboard claims to
+# cover the tier, so a skill added there must be added here too — that is what this pins.
+DOC_EXTENSION_TIER = [
+    "investigate-security", "select-scalardb-edition", "design-scalardb-analytics",
+    "design-implementation", "generate-test-specs", "generate-scalardb-code",
+    "generate-infra-code", "generate-docs", "design-infrastructure", "design-security",
+    "design-observability", "design-disaster-recovery", "estimate-cost",
+    "estimate-token-cost", "report-token-cost",
+]
+
+
+def check_extension_tier():
+    print("extension tier coverage")
+    root = P.plugin_root()
+    arch = P.load_phase_manifest("architect")
+    missing = [n for n in DOC_EXTENSION_TIER if n not in arch]
+    check("every documented extension-tier skill is known to the dashboard",
+          not missing, missing)
+    extra = [n for n, s in arch.items()
+             if s["tier"] == "extension" and n not in DOC_EXTENSION_TIER]
+    check("the dashboard invents no extension phase the docs do not list", not extra,
+          extra)
+    unshipped = [n for n in DOC_EXTENSION_TIER
+                 if not os.path.isfile(os.path.join(root, "skills", n, "SKILL.md"))]
+    check("every extension-tier phase has a SKILL.md", not unshipped, unshipped)
+
+    # A declared output is a path this tool globs against a real project, and a filename
+    # the skill itself has to write. `architect:investigate-security.md` shipped as one
+    # for a while: a colon in a filename, off-convention, and unmatchable in practice.
+    bad = []
+    for name in DOC_EXTENSION_TIER:
+        for pattern in arch[name]["outputs"]:
+            base = os.path.basename(pattern.rstrip("/"))
+            # kebab-case is the rule for the reports/ tree (@rules/output-conventions.md);
+            # generated code keeps its ecosystem's names (Dockerfile, build.gradle).
+            kebab = not pattern.startswith("reports/") or re.match(
+                r"^[a-z0-9*{}][a-z0-9*.{}-]*$", base)
+            if ":" in pattern or not kebab:
+                bad.append("%s -> %s" % (name, pattern))
+    check("declared extension outputs are colon-free, kebab-case under reports/",
+          not bad, bad)
+
+    # Each extension phase's outputs must appear in its own SKILL.md Output table, or the
+    # dashboard measures progress against files the skill never promised to write. The
+    # skills spell their placeholders out ({service}); this tool globs them.
+    def variants(pattern):
+        stem = pattern.rstrip("/")
+        return {stem, stem.replace("*", "{service}"), stem.replace("*", "{project}")}
+
+    undocumented = []
+    for name in DOC_EXTENSION_TIER:
+        try:
+            with open(os.path.join(root, "skills", name, "SKILL.md"),
+                      encoding="utf-8") as fh:
+                body = fh.read()
+        except OSError:
+            continue
+        for pattern in arch[name]["outputs"]:
+            if not any(v in body for v in variants(pattern)):
+                undocumented.append("%s -> %s" % (name, pattern))
+    check("every declared extension output is named in its SKILL.md", not undocumented,
+          undocumented)
 
 
 # ------------------------------------------------------- invalidation (stale) fixture
@@ -379,16 +450,26 @@ def run(root, plugin=None):
     check("completed with no output written -> outputs-missing",
           phases["map-domains"]["drift"] == "outputs-missing", phases["map-domains"])
     check("pending with every output present -> outputs-present",
-          phases["redesign"]["drift"] == "outputs-present"
-          and phases["redesign"]["status"] == "pending", phases["redesign"])
+          phases["redesign"]["drift"] == "outputs-present", phases["redesign"])
+    check("an unstamped pending entry loses to the files that exist",
+          phases["redesign"]["status"] == "completed"
+          and phases["redesign"]["source"] == "derived", phases["redesign"])
+    check("a pending entry with nothing written stays pending",
+          phases["design-api"]["status"] == "pending"
+          and phases["design-api"]["drift"] is None, phases["design-api"])
     check("agreement raises no drift", phases["investigate"]["drift"] is None)
 
     print("output counting")
     check("{project} glob resolves (2 of 4 investigate outputs)",
           (phases["investigate"]["written"], phases["investigate"]["declared"]) == (2, 4),
           phases["investigate"]["outputs"])
+    check("extension outputs are counted per declared file (1 of 4 specs)",
+          (phases["design-implementation"]["written"],
+           phases["design-implementation"]["declared"]) == (1, 4),
+          phases["design-implementation"]["outputs"])
     check("directory with a file counts as written",
-          phases["design-implementation"]["written"] == 1)
+          phases["generate-infra-code"]["written"] == 1,
+          phases["generate-infra-code"]["outputs"])
     check("empty directory does not count",
           phases["generate-test-specs"]["written"] == 0,
           phases["generate-test-specs"]["outputs"])
@@ -489,9 +570,34 @@ def run(root, plugin=None):
           gate == {"verdict": "go", "open_assumptions": ["A1"]}, gate)
 
 
+def check_backlog_strip(root):
+    """The backlog tab's pipeline strip must agree with the pipeline tab beside it."""
+    print("backlog view's pipeline strip")
+    import backlog_status_data as B
+    strip = B.load_pipeline(root)
+    state = P.derive_all(root)
+    registry_entries = len((P.load_progress(root) or {}).get("phases") or {})
+    check("strip totals the manifest's phases, not the registry's entries",
+          strip["total"] == state["summary"]["total"]
+          and strip["total"] > registry_entries,
+          (strip, registry_entries))
+    check("strip's completed count matches the pipeline view",
+          strip["completed"] == state["summary"]["completed"], strip)
+    check("strip carries the current phase and the stale count",
+          strip["current"] == state["current"]
+          and strip["stale"] == state["summary"]["stale"], strip)
+    bare = tempfile.mkdtemp(prefix="nx-no-pipeline-")
+    try:
+        check("a project with no pipeline gets no strip at all",
+              B.load_pipeline(bare) is None)
+    finally:
+        shutil.rmtree(bare, ignore_errors=True)
+
+
 def main():
     check_yaml_reader()
     check_real_manifests()
+    check_extension_tier()
     if len(sys.argv) > 1:
         root, cleanup = os.path.abspath(sys.argv[1]), None
         print("checking %s" % root)
@@ -508,6 +614,7 @@ def main():
         print("checking scratch fixture project at %s" % root)
         build_fixture(root)
         run(root)
+        check_backlog_strip(root)
         check_staleness(root)
         check_hostile_inputs(root)
     if cleanup:

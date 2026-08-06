@@ -43,11 +43,19 @@ def status_cell(state):
     return c(STATUS_ANSI[state["status"]], text)
 
 
-def tree_rows(manifest, children, states, queue_count):
-    """(prefix+title, markers, status, stages, counts) per visible node, fully expanded."""
+def visible_nodes(children, states):
+    """The rows an --epic filter leaves, in draw order — the one visibility rule.
+
+    Every renderer walks this, so `--epic` narrows the JSON exactly as it narrows the
+    tree instead of the two disagreeing about what "limit to one Epic" means.
+    """
+    return B.flatten_tree(children, states, epic_filter=EPIC_FILTER)
+
+
+def tree_rows(children, states):
+    """(prefix+title, markers, counts, state) per visible node, fully expanded."""
     rows = []
-    for node, depth, stack in B.flatten_tree(children, states,
-                                             epic_filter=EPIC_FILTER):
+    for node, depth, stack in visible_nodes(children, states):
         lid = node["local_id"]
         state = states[lid]
         marks = []
@@ -57,7 +65,6 @@ def tree_rows(manifest, children, states, queue_count):
             marks.append(B.SG["drift"])
         counts = ""
         if node.get("level") in ("epic", "sub-epic"):
-            by_id, _ = B.build_tree(manifest["nodes"])
             done, total = B.descendant_issue_counts(node, children, states)
             counts = "%d/%d" % (done, total)
         rows.append((B.tree_prefix(depth, stack) + "%s  %s" % (lid, node.get("title", "")),
@@ -78,6 +85,8 @@ def render_text(manifest, children, states, summary, pipeline, queue_count, sync
         D.bar(frac, bar_w), counts))
     if pipeline:
         cur = " %s %s" % (B.SG["current"], pipeline["current"]) if pipeline["current"] else ""
+        if pipeline.get("stale"):
+            cur += " %s %d" % (B.SG["stale"], pipeline["stale"])
         lines.append(c(DIM, "%s %d/%d%s" % (T["pipeline"], pipeline["completed"],
                                             pipeline["total"], cur)))
     sync_note = "%s %s" % (T["synced"], synced_at.strftime("%H:%M")) if synced_at \
@@ -85,7 +94,11 @@ def render_text(manifest, children, states, summary, pipeline, queue_count, sync
     lines.append(c(DIM, sync_note))
     lines.append(D.hrule(min(WIDTH, 100)))
 
-    rows = tree_rows(manifest, children, states, queue_count)
+    rows = tree_rows(children, states)
+    if not rows:
+        lines.append(c(DIM, "  %s%s" % (T["empty"], "  (--epic=%s)" % EPIC_FILTER
+                                        if EPIC_FILTER else "")))
+        return "\n".join(lines)
     title_w = max(D.dw(r[0]) for r in rows) if rows else 0
     title_w = min(title_w, WIDTH - 30)
     for title, marks, counts, state in rows:
@@ -107,10 +120,11 @@ def render_text(manifest, children, states, summary, pipeline, queue_count, sync
 
 
 def render_json(manifest, children, states, summary, pipeline, queue_count, synced_at):
+    visible = {n["local_id"] for n, _, _ in visible_nodes(children, states)}
     nodes = []
     for n in manifest["nodes"]:
         lid = n.get("local_id")
-        if lid not in states:
+        if lid not in states or lid not in visible:
             continue
         s = states[lid]
         nodes.append({
@@ -127,6 +141,9 @@ def render_json(manifest, children, states, summary, pipeline, queue_count, sync
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         "platform": manifest.get("platform"), "project": manifest.get("project"),
         "group": manifest.get("group"), "summary": summary,
+        # What the reader is looking at, so a narrowed `nodes` list is never mistaken
+        # for the whole backlog. `summary` always covers the whole manifest.
+        "filters": {"epic": EPIC_FILTER},
         "pipeline": pipeline, "followup_queue": queue_count,
         "synced_at": synced_at.isoformat(timespec="seconds") if synced_at else None,
         "nodes": nodes,
@@ -162,6 +179,16 @@ def main():
         except RuntimeError as exc:
             print("backlog-status: %s: %s" % (T["sync_failed"], exc), file=sys.stderr)
     by_id, children, states = B.derive_all(manifest, sync_cache)
+    # A misspelled --epic used to render an empty tree and exit 0, which reads like
+    # "this Epic has nothing in it" rather than "no such Epic".
+    if EPIC_FILTER:
+        roots = [n["local_id"] for n in children.get(None, [])]
+        if EPIC_FILTER not in roots:
+            print("backlog-status: %s" % (T["unknown_epic"] % EPIC_FILTER),
+                  file=sys.stderr)
+            print("backlog-status: %s" % (T["known_epics"] % (", ".join(roots) or "-")),
+                  file=sys.stderr)
+            return 2
     summary = B.overall_summary(manifest, states)
     pipeline = B.load_pipeline(PROJ)
     queue_count = B.followup_queue_count(PROJ)

@@ -47,10 +47,18 @@ One script does the whole job: `${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh`.
 | core phases only | `... --group=core` | Hide the manual extension tier |
 | extension tier only | `... --group=extension` | Only the skills the pipeline never runs |
 | one phase | `... --phase=analyze --once` | Render a single phase with its outputs (one-shot renders only; the live dashboard ignores it) |
+| force the pipeline | `... --plugin=product\|architect` | Override the pipeline detected from the recorded phase names |
 | run from the dashboard | `... --exec` | The action menu's `e` key and the `a` ask key suspend the dashboard and run `claude` in the foreground (requires the `claude` CLI) |
-| machine-readable | `... --json` | Derived phase states as JSON |
+| machine-readable | `... --json` | Derived phase states as JSON. `--group` / `--phase` narrow it exactly as they narrow the tree, and the `filters` object records what was applied — `summary` always covers the whole project |
 | report file | `... --md[=PATH]` | Also write Markdown (default `reports/pipeline-status.md`) |
-| display fixes | `... --ascii`, `--ambiguous-width=2`, `--lang=ja\|en`, `--width=N`, `--debug` | Same semantics as `tools/token-cost-report.sh` — see that skill's "When the bars look wrong" table |
+| custom poll interval | `... --watch=SEC` | Live dashboard re-checking the inputs every SEC seconds (default 10; `--live` is the same flag) |
+| display fixes | `... --ascii`, `--glyphs=auto\|ascii\|unicode`, `--ambiguous-width=2`, `--color\|--no-color`, `--lang=ja\|en`, `--width=N`, `--debug` | Same semantics as `tools/token-cost-report.sh` — see that skill's "When the bars look wrong" table |
+
+Exit codes: `0` rendered, `1` no project (or the view's input file is missing), `2` bad
+usage — an unknown option, and also an unknown `--phase`, which is reported with the
+pipeline's real phase names instead of rendering an empty tree. A filter that legally
+matches nothing (`--group=extension` on a product project) renders a "nothing to show"
+line and exits `0`.
 
 **Live modes belong in the user's own terminal, not in an in-session tool call.** When
 the user asks to watch progress live, do not run the dashboard yourself — tell them to
@@ -98,7 +106,8 @@ the script starts the live dashboard on a terminal, which never exits on its own
 - A half-written or loosely-shaped registry degrades instead of failing: a phase
   recorded as a bare string is read as that status, an unrecognized value falls back to
   filesystem derivation, and malformed sections are dropped.
-- Contracts are asserted by `tools/lib/pipeline_status_data.test.py`.
+- Contracts are asserted by `tools/lib/pipeline_status_data.test.py` (state derivation)
+  and `tools/nexus-status.test.sh` (the CLI: exit codes, output modes, filters).
 
 ## Reporting Back
 

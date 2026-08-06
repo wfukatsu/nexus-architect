@@ -69,6 +69,22 @@ def activity_cell(phase, now):
     return ""
 
 
+def visible_phases(state):
+    """The phases --group / --phase leave, in draw order — the one visibility rule.
+
+    Every renderer walks this, so the filters narrow the JSON exactly as they narrow the
+    tree instead of the two disagreeing about what the flags mean.
+    """
+    out = []
+    for row, _, _ in P.flatten(state, tier_filter=TIER):
+        if row["kind"] != "phase":
+            continue
+        if PHASE_FILTER and row["phase"]["name"] != PHASE_FILTER:
+            continue
+        out.append(row["phase"])
+    return out
+
+
 def rows_for(state):
     """(left, counts, marks, status, activity, cost, style_status) per visible row."""
     now = datetime.now(timezone.utc).timestamp()
@@ -147,6 +163,17 @@ def render_text(state):
     lines = header_lines(state)
     lines.append(D.hrule(min(WIDTH, 100)))
     rows = rows_for(state)
+    if not rows:
+        why = []
+        if PHASE_FILTER:
+            why.append("--phase=%s" % PHASE_FILTER)
+        if TIER:
+            why.append("--group=%s" % TIER)
+        lines.append(c(DIM, "  %s%s" % (T["empty"],
+                                        "  (%s)" % " ".join(why) if why else "")))
+        if TIER == "extension" and state["plugin"] == "product":
+            lines.append(c(DIM, "  %s" % T["no_extension_tier"]))
+        return "\n".join(lines)
     name_w = max((D.dw(r[0]) for r in rows), default=0)
     name_w = min(name_w, max(20, WIDTH - 46))
     for name, counts, marks, phase, activity, cost, status in rows:
@@ -163,17 +190,20 @@ def render_text(state):
             D.pad(c(STATUS_ANSI[status], status_txt), 13 + (9 if COLOR else 0)),
             D.pad(activity, 10),
             D.pad(cost, 8, "r")))
-    stale = [p for p in state["phases"].values() if p["stale"]]
+    # The per-phase footers report on what was asked for: with a filter active they
+    # cover the rows on screen, not phases the reader deliberately narrowed away.
+    shown = visible_phases(state)
+    stale = [p for p in shown if p["stale"]]
     if stale:
         lines.append(c(MAGENTA, "%s (%s):" % (P.STALE, T["stale_hint"])))
         for phase in stale[:8]:
             lines.append(c(MAGENTA, "  " + stale_note(state, phase)))
         if len(stale) > 8:
             lines.append(c(MAGENTA, "  ... +%d" % (len(stale) - 8)))
-    drifted = [n for n, p in state["phases"].items() if p["drift"]]
+    drifted = [p["name"] for p in shown if p["drift"]]
     if drifted:
         lines.append(c(YELLOW, "drift: %s" % ", ".join(sorted(drifted))))
-    failed = [n for n, p in state["phases"].items() if p["status"] == "failed"]
+    failed = [p["name"] for p in shown if p["status"] == "failed"]
     if failed:
         lines.append(c(RED, "failed: %s" % ", ".join(sorted(failed))))
     for err in state["errors"][:5]:
@@ -185,7 +215,8 @@ def render_text(state):
 
 def render_json(state):
     phases = []
-    for name, p in state["phases"].items():
+    for p in visible_phases(state):
+        name = p["name"]
         phases.append({
             "name": name, "group": "extension" if p["tier"] == "extension"
             else p["category"], "tier": p["tier"], "model": p["model"],
@@ -213,6 +244,9 @@ def render_json(state):
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         "plugin": state["plugin"], "project": state["project"],
         "has_progress": state["has_progress"], "options": state["options"],
+        # What the reader is looking at, so a narrowed `phases` list is never mistaken
+        # for the whole pipeline. `summary` always covers the whole project.
+        "filters": {"group": TIER, "phase": PHASE_FILTER},
         "summary": state["summary"], "gate": state["gate"],
         "current": state["current"], "next": state["next"],
         "backlog": {"issues_done": backlog[0], "issues_total": backlog[1]}
@@ -240,6 +274,13 @@ def render_md(state, text):
 
 def main():
     state = P.derive_all(PROJ, plugin=PLUGIN)
+    # A misspelled --phase used to render an empty tree and exit 0, which reads like
+    # "this phase has nothing" rather than "no such phase".
+    if PHASE_FILTER and PHASE_FILTER not in state["phases"]:
+        print("nexus-status: %s" % (T["unknown_phase"] % PHASE_FILTER), file=sys.stderr)
+        print("nexus-status: %s" % (T["known_phases"] % (
+            state["plugin"], ", ".join(state["phases"]))), file=sys.stderr)
+        return 2
     if JSON_OUT:
         print(render_json(state))
         return 0

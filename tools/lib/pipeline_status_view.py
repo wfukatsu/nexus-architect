@@ -28,6 +28,13 @@ TIER = env("NX_GROUP", "") or None
 WATCH = ("work/pipeline-progress.json", "work/token-usage.json",
          "work/token-usage.jsonl")
 
+# How far into reports/ | design-system/ | generated/ the change poll looks, and how
+# many entries it is allowed to stat before giving up. 3 covers the deepest declared
+# output (reports/before/{project}/*.md); the budget keeps a generated/ tree with a
+# node_modules/ in it from turning a 10s poll into a filesystem crawl.
+WALK_DEPTH = 3
+WALK_BUDGET = 4000
+
 
 class PipelineView(S.BaseView):
     name = "pipeline"
@@ -48,29 +55,40 @@ class PipelineView(S.BaseView):
         return WATCH
 
     def extra_stamp(self):
-        """Newest mtime two levels into the output trees.
+        """Newest mtime in the output trees, files included, to WALK_DEPTH levels.
 
         A phase writing its third report file changes only the mtime of the directory
         holding it, so watching `reports/` alone would miss it and the tree would sit
-        stale until the registry happened to change. Two levels of scandir is a handful
-        of stats per poll and catches every phase's declared output directory.
+        still until the registry happened to change.
+
+        Directory mtimes alone are not enough either: **overwriting an existing file
+        leaves every parent directory untouched**, and that is exactly the case
+        staleness is about — a rerun or a hand edit of a report that already exists.
+        Architect writes those three levels down (`reports/before/{project}/*.md`,
+        `reports/review/individual/*.json`), so the files themselves are stat'ed, to a
+        bounded depth and a bounded count: a few hundred stats per poll at most.
         """
         newest = 0.0
+        seen = 0
         for top in ("reports", "design-system", "generated"):
-            root = os.path.join(self.project_dir, top)
-            try:
-                entries = list(os.scandir(root))
-            except OSError:
-                continue
-            newest = max(newest, os.path.getmtime(root))
-            for entry in entries:
+            stack = [(os.path.join(self.project_dir, top), 0)]
+            while stack:
+                path, depth = stack.pop()
                 try:
-                    newest = max(newest, entry.stat().st_mtime)
-                    if entry.is_dir():
-                        for sub in os.scandir(entry.path):
-                            newest = max(newest, sub.stat().st_mtime)
+                    entries = list(os.scandir(path))
+                    newest = max(newest, os.path.getmtime(path))
                 except OSError:
                     continue
+                for entry in entries:
+                    if seen >= WALK_BUDGET:
+                        return newest
+                    seen += 1
+                    try:
+                        newest = max(newest, entry.stat().st_mtime)
+                        if entry.is_dir() and depth + 1 < WALK_DEPTH:
+                            stack.append((entry.path, depth + 1))
+                    except OSError:
+                        continue
         return newest
 
     def load(self):

@@ -32,7 +32,7 @@ Evaluate the security posture of the target system and report vulnerabilities an
 
 | File | Content |
 |------|---------|
-| `reports/before/{project}/architect:investigate-security.md` | OWASP assessment, access control, vulnerability list |
+| `reports/before/{project}/security-assessment.md` | OWASP assessment, access control, vulnerability list |
 
 Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
