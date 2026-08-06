@@ -9,6 +9,9 @@ this asserts those rules as behaviour, against a scratch project it builds itsel
 - status precedence: the progress registry wins, the filesystem fills the gap, and the
   two disagreeing raises drift (completed with nothing written / pending with all
   outputs present);
+- invalidation: a completed phase whose upstream wrote later is `stale`, staleness
+  propagates down the dependency chain, leaves the done fraction, and becomes the
+  suggested next command — while an in-run write-ordering gap does not trip it;
 - output counting: files, `{project}` globs, and directories (empty = not written);
 - exclusion: `options.skip_phases` and `conditions:` against the project options;
 - dependency state: blocked_by / runnable / the "next phase to run" pick;
@@ -28,6 +31,7 @@ import os
 import shutil
 import sys
 import tempfile
+import time
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -174,6 +178,127 @@ def check_real_manifests():
           order.index("analyze") > order.index("investigate")
           and order.index("review-synthesizer") > order.index("review-consistency"),
           order[:6])
+
+
+# ------------------------------------------------------- invalidation (stale) fixture
+# A finished stretch of the architect pipeline, written in dependency order an hour ago:
+# investigate -> analyze -> evaluate-mmi / evaluate-ddd -> integrate-evaluations.
+STALE_CHAIN = [
+    ("investigate", ["reports/before/demo/technology-stack.md",
+                     "reports/before/demo/codebase-structure.md",
+                     "reports/before/demo/issues-and-debt.md",
+                     "reports/before/demo/ddd-readiness.md"]),
+    ("analyze", ["reports/01_analysis/system-overview.md",
+                 "reports/01_analysis/ubiquitous-language.md",
+                 "reports/01_analysis/actors-roles-permissions.md",
+                 "reports/01_analysis/domain-code-mapping.md"]),
+    ("evaluate-mmi", ["reports/02_evaluation/mmi-overview.md",
+                      "reports/02_evaluation/mmi-by-module.md"]),
+    ("evaluate-ddd", ["reports/02_evaluation/ddd-strategic-evaluation.md",
+                      "reports/02_evaluation/ddd-tactical-architecture-evaluation.md"]),
+    ("integrate-evaluations", ["reports/02_evaluation/integrated-evaluation.md",
+                               "reports/02_evaluation/unified-improvement-plan.md"]),
+]
+
+
+def build_stale_fixture(root, base):
+    """Write the chain with each phase's files older than the phase that consumed them."""
+    for step, (_, paths) in enumerate(STALE_CHAIN):
+        for path in paths:
+            full = os.path.join(root, path)
+            write(full)
+            os.utime(full, (base + step * 60, base + step * 60))
+    # The last phase is left out of the registry, so derived-completed is covered too.
+    write(os.path.join(root, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "demo",
+        "options": {"scalardb_enabled": False},
+        "phases": {name: {"status": "completed"} for name, _ in STALE_CHAIN[:-1]},
+    }))
+
+
+def check_staleness(root):
+    print("invalidation of completed phases")
+    proj = os.path.join(root, "stale")
+    base = time.time() - 3600
+    build_stale_fixture(proj, base)
+
+    phases = P.derive_all(proj)["phases"]
+    check("a chain written in dependency order is not stale",
+          not any(p["stale"] for p in phases.values()),
+          [n for n, p in phases.items() if p["stale"]])
+    check("and its phases still read completed",
+          phases["analyze"]["display_status"] == "completed"
+          and phases["integrate-evaluations"]["display_status"] == "completed")
+
+    # An upstream output written a hair later than its consumer — same-run ordering,
+    # not a change — must stay inside the grace window.
+    edited = os.path.join(proj, STALE_CHAIN[0][1][0])
+    nudged = base + 60 + P.STALE_GRACE - 1
+    os.utime(edited, (nudged, nudged))
+    phases = P.derive_all(proj)["phases"]
+    check("an upstream write inside the grace window does not invalidate",
+          not phases["analyze"]["stale"], phases["analyze"]["stale_by"])
+
+    # Now the real thing: the first phase of the chain is fixed after the fact.
+    os.utime(edited, None)
+    state = P.derive_all(proj)
+    phases = state["phases"]
+    check("the phase reading the edited output goes stale",
+          phases["analyze"]["stale"] and phases["analyze"]["stale_by"] == ["investigate"],
+          phases["analyze"])
+    check("the edited phase itself stays completed",
+          not phases["investigate"]["stale"]
+          and phases["investigate"]["display_status"] == "completed")
+    check("staleness propagates down the chain",
+          phases["evaluate-mmi"]["stale_inherited"] == ["analyze"]
+          and phases["integrate-evaluations"]["stale_inherited"] == ["evaluate-mmi",
+                                                                    "evaluate-ddd"],
+          phases["integrate-evaluations"])
+    check("a derived-completed phase is invalidated too (no registry entry)",
+          phases["integrate-evaluations"]["source"] == "derived"
+          and phases["integrate-evaluations"]["stale"])
+    check("the status column reads stale, the recorded status is untouched",
+          phases["analyze"]["display_status"] == "stale"
+          and phases["analyze"]["status"] == "completed")
+    check("the change timestamp is carried for display",
+          phases["analyze"]["stale_at"] and phases["analyze"]["stale_at"] > base + 3000,
+          phases["analyze"]["stale_at"])
+
+    print("what the invalidation does to the summary and the next command")
+    stale = {"analyze", "evaluate-mmi", "evaluate-ddd", "integrate-evaluations"}
+    check("every invalidated phase is listed on the state",
+          set(state["stale"]) == stale and state["summary"]["stale"] == 4,
+          state["stale"])
+    check("stale phases leave the done fraction",
+          state["summary"]["by_status"]["stale"] == 4
+          and state["summary"]["completed"] == sum(
+              1 for p in phases.values()
+              if p["tier"] == "core" and p["display_status"] in ("completed", "skipped")),
+          state["summary"])
+    check("next = the earliest stale phase, not the first pending one",
+          state["next"] == "analyze", state["next"])
+    check("a stale phase is runnable again",
+          phases["analyze"]["runnable"] and not phases["analyze"]["blocked_by"])
+    check("but does not block its dependents",
+          "analyze" not in phases["evaluate-mmi"]["blocked_by"],
+          phases["evaluate-mmi"]["blocked_by"])
+    cmd = P.default_action(state, phases["analyze"])
+    check("its default action is a rerun, not opening the output",
+          cmd == ("rerun phase", "/architect:analyze"), cmd)
+    rows = P.flatten(state, status_filter="stale")
+    check("the stale filter selects exactly those phases",
+          {r[0]["key"] for r in rows if r[0]["kind"] == "phase"} == stale, rows)
+    group = next(g for g in state["groups"] if g["key"] == "evaluation")
+    check("group counts drop the invalidated phases",
+          P.group_counts(group) == (0, len(group["phases"])), P.group_counts(group))
+
+    print("invalidation is not claimed where it cannot be known")
+    check("a pending upstream invalidates nothing",
+          not phases["redesign"]["stale"] and not phases["map-domains"]["stale"])
+    check("a phase that declares outputs but wrote none is drift, not stale",
+          not any(p["stale"] for p in phases.values() if p["declared"]
+                  and not p["written"]),
+          [n for n, p in phases.items() if p["stale"] and not p["written"]])
 
 
 def check_hostile_inputs(root):
@@ -383,6 +508,7 @@ def main():
         print("checking scratch fixture project at %s" % root)
         build_fixture(root)
         run(root)
+        check_staleness(root)
         check_hostile_inputs(root)
     if cleanup:
         shutil.rmtree(cleanup, ignore_errors=True)

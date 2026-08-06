@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
+## [Unreleased]
+
+### Changed
+- **`completed` now expires: `/architect:report-status` and `/product:report-status` invalidate a
+  finished phase when its upstream changes.** The dashboard read the progress registry as the last
+  word on status, so fixing an earlier phase — rerunning it, or hand-editing the report it wrote —
+  left every phase downstream sitting at `completed`, and the tree kept claiming a finished
+  pipeline built from inputs that no longer existed. A completed phase whose dependency wrote an
+  output *after* it finished is now shown as **`stale`** (`↺`, `@` in ASCII) in place of
+  `completed`, naming the dependency that changed and when it changed. Invalidation propagates down
+  the dependency graph in one topological sweep, so one edit at the top of the pipeline
+  un-completes the whole chain below it: those phases leave the `n/m done` fraction and the group
+  counts, become runnable again, take a rerun as their default action, answer the `f` status
+  filter, and the suggested `next:` becomes the earliest of them — rerunning from the top is what
+  clears the rest. Nothing is written back: the registry is untouched and `--json` carries both
+  `status` (as recorded) and `display_status`. Deliberate limits, so the flag stays trustworthy: a
+  5-second grace absorbs same-run write ordering, a dependency that never ran invalidates nothing,
+  and a phase that declares outputs but wrote none stays plain drift — a claim already contradicted
+  by the filesystem is no basis for deciding what it is older than. Asserted by
+  `tools/lib/pipeline_status_data.test.py`.
+
 ## [0.21.0] - 2026-08-06
 
 ### Added

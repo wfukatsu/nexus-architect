@@ -31,7 +31,7 @@ T = P.labels(LANG)
 
 DIM, BOLD, CYAN, GREEN, YELLOW, RED, MAGENTA = "2", "1", "36", "32", "33", "31", "35"
 STATUS_ANSI = {"pending": DIM, "in_progress": YELLOW, "completed": GREEN,
-               "failed": RED, "skipped": DIM}
+               "failed": RED, "skipped": DIM, "stale": MAGENTA}
 
 
 def c(code, text):
@@ -48,6 +48,17 @@ def phase_marks(phase):
     if phase["optional"] and not phase["drift"] and not phase["gate"]:
         marks.append("?")
     return "".join(marks)
+
+
+def stale_note(state, phase):
+    """'analyze (upstream 08-06 14:20)' — what invalidated a stale phase."""
+    T = P.labels(LANG)
+    causes = phase["stale_by"] + phase["stale_inherited"]
+    when = ""
+    if phase["stale_at"]:
+        when = " %s %s" % (T["stale_changed"], datetime.fromtimestamp(
+            phase["stale_at"]).strftime("%m-%d %H:%M"))
+    return "%s <- %s%s" % (phase["name"], ", ".join(causes), when)
 
 
 def activity_cell(phase, now):
@@ -81,7 +92,7 @@ def rows_for(state):
                     phase,
                     activity_cell(phase, now),
                     D.money(phase["cost_usd"]) if phase["cost_usd"] else "",
-                    phase["status"]))
+                    phase["display_status"]))
     return out
 
 
@@ -92,7 +103,7 @@ def header_lines(state):
     lines.append(c(BOLD, title))
     frac = s["completed"] / s["total"] if s["total"] else 0
     counts = (" %s " % D.G["sep"]).join(
-        "%s %d" % (st, s["by_status"][st]) for st in P.PHASE_STATUSES
+        "%s %d" % (st, s["by_status"][st]) for st in P.DISPLAY_STATUSES
         if s["by_status"][st])
     lines.append("%s %d/%d %s  %s  %s" % (
         T["phases"], s["completed"], s["total"], T["done"],
@@ -152,6 +163,13 @@ def render_text(state):
             D.pad(c(STATUS_ANSI[status], status_txt), 13 + (9 if COLOR else 0)),
             D.pad(activity, 10),
             D.pad(cost, 8, "r")))
+    stale = [p for p in state["phases"].values() if p["stale"]]
+    if stale:
+        lines.append(c(MAGENTA, "%s (%s):" % (P.STALE, T["stale_hint"])))
+        for phase in stale[:8]:
+            lines.append(c(MAGENTA, "  " + stale_note(state, phase)))
+        if len(stale) > 8:
+            lines.append(c(MAGENTA, "  ... +%d" % (len(stale) - 8)))
     drifted = [n for n, p in state["phases"].items() if p["drift"]]
     if drifted:
         lines.append(c(YELLOW, "drift: %s" % ", ".join(sorted(drifted))))
@@ -171,7 +189,12 @@ def render_json(state):
         phases.append({
             "name": name, "group": "extension" if p["tier"] == "extension"
             else p["category"], "tier": p["tier"], "model": p["model"],
-            "status": p["status"], "source": p["source"], "drift": p["drift"],
+            "status": p["status"], "display_status": p["display_status"],
+            "stale": p["stale"], "stale_by": p["stale_by"] + p["stale_inherited"],
+            "stale_at": datetime.fromtimestamp(
+                p["stale_at"], timezone.utc).isoformat(timespec="seconds")
+            if p["stale_at"] else None,
+            "source": p["source"], "drift": p["drift"],
             "excluded": p["excluded"], "optional": p["optional"], "gate": p["gate"],
             "outputs_written": p["written"], "outputs_declared": p["declared"],
             "outputs": p["outputs"], "depends_on": p["depends_on"],

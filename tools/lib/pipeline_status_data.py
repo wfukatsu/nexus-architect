@@ -17,6 +17,11 @@ flag when the two disagree (claimed completed with nothing written, or every out
 present while still pending). Phases with no registry entry — notably the architect
 manual extension tier — are derived from the filesystem alone.
 
+`completed` is not permanent: a phase whose upstream was rerun or hand-edited afterwards
+is reported as **stale**, and the invalidation propagates down the dependency graph, so
+fixing an early phase visibly un-completes everything derived from it instead of leaving
+a tree that claims to be finished.
+
 Consumed by tools/lib/pipeline_status_report.py (one-shot / JSON / Markdown) and
 tools/lib/pipeline_status_view.py (the live dashboard's pipeline tab). Display helpers
 (dw/pad/clip/bar/glyphs/ASCII detection) come from token_cost_data, which reads the same
@@ -35,22 +40,34 @@ import token_cost_data as D  # noqa: E402  (display helpers + load_json/parse_ts
 
 PHASE_STATUSES = ["pending", "in_progress", "completed", "failed", "skipped"]
 
+# `stale` is not a registry status — no skill ever writes it. It is derived (see
+# mark_stale) and shown in the status column in place of `completed`, so the displayed
+# set is one wider than the recorded set.
+STALE = "stale"
+DISPLAY_STATUSES = PHASE_STATUSES + [STALE]
+
 # Phase-status glyphs. Same rules as the backlog set: Ambiguous/Neutral width only, and
 # the ASCII table engages automatically in ASCII mode.
 PHASE_GLYPHS_UNICODE = {"pending": "○", "in_progress": "◐", "completed": "●",
                         "failed": "✗", "skipped": "–", "current": "▶", "drift": "↯",
-                        "active": "•", "gate": "G"}
+                        "active": "•", "gate": "G", "stale": "↺"}
 PHASE_GLYPHS_ASCII = {"pending": "o", "in_progress": "~", "completed": "*",
                       "failed": "x", "skipped": "-", "current": ">", "drift": "!",
-                      "active": ".", "gate": "G"}
+                      "active": ".", "gate": "G", "stale": "@"}
 PG = PHASE_GLYPHS_ASCII if D.ASCII_ONLY else PHASE_GLYPHS_UNICODE
 
 PHASE_STYLE = {"pending": "dim", "in_progress": "warn", "completed": "accent",
-               "failed": "alert", "skipped": "dim"}
+               "failed": "alert", "skipped": "dim", "stale": "warn"}
 
 # A phase counts as "running now" when the project produced tokens or wrote one of its
 # outputs within this many seconds.
 ACTIVE_WINDOW = 300
+
+# An upstream output has to be this many seconds newer than the phase's own newest output
+# before it counts as an upstream change. It only absorbs same-run write ordering (a
+# dependency's directory mtime settling a moment after the phase that consumed it); a
+# real rerun or a hand edit is minutes or hours newer, never seconds.
+STALE_GRACE = 5.0
 
 PS_LABELS = {
     "en": {
@@ -66,6 +83,10 @@ PS_LABELS = {
         "note": "note", "summary": "summary", "errors": "errors", "warnings": "warnings",
         "drift_missing": "recorded completed, but no declared output exists",
         "drift_present": "every declared output exists, but still recorded pending",
+        "stale_upstream": "upstream changed after this phase finished: %s",
+        "stale_inherited": "upstream is stale: %s",
+        "stale_changed": "changed",
+        "stale_hint": "rerun this phase to pick the change up",
         "source": "source", "source_progress": "progress registry",
         "source_derived": "derived from outputs", "source_condition": "condition",
         "optional": "optional", "rerunnable": "rerunnable", "standalone": "standalone",
@@ -87,12 +108,15 @@ PS_LABELS = {
         "help_glyphs": "pipeline glyphs",
         "help_outputs": "declared outputs that exist on disk",
         "help_drift": "drift: the registry and the filesystem disagree",
+        "help_stale": "stale: an upstream phase changed after this one finished",
         "help_active": "active: tokens or an output written in the last 5 minutes",
         "help_optional": "optional phase (not part of the required path)",
         "ask_free": "free input...",
         "ask_why": "Why is this phase still %s?",
         "ask_next": "What should I run next, and why?",
         "ask_summary": "Summarize this phase's outputs.",
+        "ask_stale": "Which upstream change invalidated this phase, and what has to "
+                     "be rerun?",
     },
     "ja": {
         "title": "パイプライン進捗", "phases": "フェーズ", "done": "完了",
@@ -107,6 +131,10 @@ PS_LABELS = {
         "note": "メモ", "summary": "要約", "errors": "エラー", "warnings": "警告",
         "drift_missing": "completed 記録だが宣言された出力が1つも無い",
         "drift_present": "宣言された出力は全て存在するが pending 記録のまま",
+        "stale_upstream": "このフェーズの完了後に上流が更新された: %s",
+        "stale_inherited": "上流が stale: %s",
+        "stale_changed": "更新",
+        "stale_hint": "このフェーズを再実行すると変更が反映される",
         "source": "情報源", "source_progress": "進捗レジストリ",
         "source_derived": "出力から導出", "source_condition": "条件",
         "optional": "任意", "rerunnable": "再実行可", "standalone": "独立実行",
@@ -128,12 +156,14 @@ PS_LABELS = {
         "help_glyphs": "パイプラインの記号",
         "help_outputs": "宣言された出力のうち実在するもの",
         "help_drift": "ドリフト: 進捗レジストリと実ファイルが食い違っている",
+        "help_stale": "stale: 完了後に上流フェーズが更新された (再実行が必要)",
         "help_active": "稼働中: 直近5分にトークン消費または出力の書き込みがあった",
         "help_optional": "任意フェーズ (必須の経路ではない)",
         "ask_free": "自由入力...",
         "ask_why": "このフェーズがまだ %s なのはなぜ？",
         "ask_next": "次に実行すべきことは？その理由は？",
         "ask_summary": "このフェーズの出力を要約して。",
+        "ask_stale": "どの上流の変更でこのフェーズは無効になった？何を再実行すべき？",
     },
 }
 
@@ -570,6 +600,12 @@ def load_activity(project_dir, tail=80):
 
 
 # ------------------------------------------------------------------- state derivation
+def _stamp(value):
+    """An ISO timestamp from the registry as an epoch, 0.0 when unusable."""
+    parsed = D.parse_ts(value) if value else None
+    return parsed.timestamp() if parsed else 0.0
+
+
 def _conditions_ok(conditions, options):
     for cond in conditions:
         if cond == "scalardb_enabled" and not options.get("scalardb_enabled", True):
@@ -621,6 +657,15 @@ def derive_phase(name, spec, entry, project_dir, options, project_name,
             drift = "outputs-present"
 
     last_activity = max(last_write, activity.get(name, 0.0))
+    # When the phase last produced something, for the upstream-change comparison. Files
+    # are the truth; the registry stamp stands in only for a phase that declares no
+    # inspectable output at all (generate-docs writes into the target project's own
+    # tree). A phase that declares outputs and wrote none is left without a timestamp:
+    # that is drift, and a claim already contradicted by the filesystem is no basis for
+    # deciding what it is older than.
+    finished_at = last_write or (0.0 if declared else
+                                 _stamp((entry or {}).get("completed_at"))
+                                 or _stamp((entry or {}).get("updated_at")))
     return {
         "name": name,
         "category": spec.get("category") or "core",
@@ -633,6 +678,11 @@ def derive_phase(name, spec, entry, project_dir, options, project_name,
         "depends_on": list(spec.get("depends_on") or []),
         "conditions": list(spec.get("conditions") or []),
         "status": status, "source": source, "excluded": excluded, "drift": drift,
+        # `stale` and the display status are filled in by mark_stale, once every phase's
+        # timestamp is known.
+        "stale": False, "stale_by": [], "stale_inherited": [], "stale_at": None,
+        "display_status": status,
+        "last_write": last_write or None, "finished_at": finished_at or None,
         "outputs": outputs, "written": written, "declared": declared,
         "started_at": (entry or {}).get("started_at"),
         "completed_at": (entry or {}).get("completed_at"),
@@ -645,6 +695,52 @@ def derive_phase(name, spec, entry, project_dir, options, project_name,
         "blocked_by": [],   # filled in by derive_all, once every status is known
         "runnable": False,
     }
+
+
+def mark_stale(phases, grace=STALE_GRACE):
+    """Invalidate every `completed` phase an upstream change has overtaken.
+
+    Fixing an earlier phase does not un-write the reports the later ones already
+    produced, so nothing in the registry ever contradicts itself — `completed` simply
+    stays `completed`, and the tree keeps claiming the project is finished from work
+    that no longer reflects its own inputs. That is what this pass corrects.
+
+    A completed phase is stale when a direct dependency **wrote an output after it
+    finished** (a rerun, or a hand edit of the report), or when that dependency is itself
+    stale — so a single edit at the top of the pipeline invalidates the whole chain below
+    it in one topological sweep. `phases` must therefore be in dependency order, which is
+    what order_phases produces.
+
+    Deliberately not stale: a phase whose dependency never ran or is excluded (there is
+    no newer input to miss), and one with no timestamp to compare (a foreign or
+    undeclared output tree) — an unknowable answer is left as recorded rather than
+    guessed at.
+    """
+    for state in phases.values():
+        if state["status"] != "completed" or state["excluded"]:
+            continue
+        own = state["finished_at"]
+        if not own:
+            continue
+        newer, inherited, newest = [], [], 0.0
+        for dep in state["depends_on"]:
+            up = phases.get(dep)
+            if up is None or up["excluded"] or up["status"] in ("skipped", "pending"):
+                continue
+            # Only real writes invalidate: an upstream registry stamp says when it was
+            # recorded, not that the artefact this phase read has actually changed.
+            up_write = up["last_write"] or 0.0
+            if up_write > own + grace:
+                newer.append(dep)
+                newest = max(newest, up_write)
+            elif up["stale"]:
+                inherited.append(dep)
+                newest = max(newest, up["stale_at"] or 0.0)
+        if not newer and not inherited:
+            continue
+        state.update(stale=True, stale_by=newer, stale_inherited=inherited,
+                     stale_at=newest or None, display_status=STALE)
+    return phases
 
 
 def order_phases(manifest):
@@ -693,11 +789,15 @@ def derive_all(project_dir, plugin=None, progress=None):
                                         entry, project_dir, options, project_name,
                                         costs, activity, now)
 
+    mark_stale(phases)
+
     done = ("completed", "skipped")
     for state in phases.values():
         state["blocked_by"] = [d for d in state["depends_on"]
                                if d in phases and phases[d]["status"] not in done]
-        state["runnable"] = (state["status"] in ("pending", "failed")
+        # A stale phase is work to redo, so it is runnable again — but it is not
+        # *blocking* its dependents, which already hold outputs and are stale themselves.
+        state["runnable"] = ((state["status"] in ("pending", "failed") or state["stale"])
                              and not state["blocked_by"] and not state["excluded"])
 
     groups = []
@@ -709,15 +809,20 @@ def derive_all(project_dir, plugin=None, progress=None):
             groups.append(index[key])
         index[key]["phases"].append(state)
 
-    counts = {s: 0 for s in PHASE_STATUSES}
+    counts = {s: 0 for s in DISPLAY_STATUSES}
     for state in phases.values():
         if state["tier"] == "core":
-            counts[state["status"]] += 1
+            counts[state["display_status"]] += 1
     core_total = sum(counts.values())
+    stale = [s["name"] for s in phases.values() if s["stale"]]
     summary = {
         "by_status": counts,
         "total": core_total,
+        # Stale phases leave the done column on purpose: the fraction has to fall when an
+        # upstream fix invalidates work, or the bar keeps reporting a finished pipeline
+        # that no longer matches its own inputs.
         "completed": counts["completed"] + counts["skipped"],
+        "stale": len(stale),
         "total_cost_usd": total_cost,
         "unassigned_cost_usd": unassigned_cost,
         "latest_activity": latest_activity or None,
@@ -731,11 +836,14 @@ def derive_all(project_dir, plugin=None, progress=None):
                 if s["tier"] == "core" and s["runnable"]]
     nxt = next((n for n in runnable if not phases[n]["optional"]),
                runnable[0] if runnable else None)
+    # Redoing invalidated work comes first, and from the top of the chain: rerunning the
+    # earliest stale phase is what lets everything below it stop being stale at all.
+    nxt = next((n for n in runnable if phases[n]["stale"]), nxt)
     return {
         "plugin": plugin, "project": project_name, "project_dir": project_dir,
         "has_progress": progress is not None, "options": options,
         "phases": phases, "groups": groups, "summary": summary,
-        "current": current, "next": nxt,
+        "current": current, "next": nxt, "stale": stale,
         "gate": read_gate(progress),
         "errors": (progress or {}).get("errors") or [],
         "warnings": (progress or {}).get("warnings") or [],
@@ -797,7 +905,7 @@ def flatten(state, collapsed=None, status_filter=None, group_filter=None,
     visible = []
     for group in groups:
         phases = [p for p in group["phases"]
-                  if not status_filter or p["status"] == status_filter]
+                  if not status_filter or p["display_status"] == status_filter]
         if phases:
             visible.append((group, phases))
     for group, phases in visible:
@@ -815,10 +923,10 @@ def flatten(state, collapsed=None, status_filter=None, group_filter=None,
 
 
 def group_counts(group):
-    """(completed_or_skipped, total) for a group header."""
+    """(done, total) for a group header — stale phases are not done."""
     total = len(group["phases"])
     done = sum(1 for p in group["phases"]
-               if p["status"] in ("completed", "skipped"))
+               if p["display_status"] in ("completed", "skipped"))
     return done, total
 
 
@@ -847,7 +955,8 @@ def actions_for(state, phase):
     prefix = PLUGINS[state["plugin"]]["prefix"]
     orchestrator = PLUGINS[state["plugin"]]["orchestrator"]
     name = phase["name"]
-    out = [("run phase", "%s%s" % (prefix, name))]
+    label = "rerun phase" if phase["stale"] else "run phase"
+    out = [(label, "%s%s" % (prefix, name))]
     if state["plugin"] == "architect":
         out += [("resume from here", "%s --resume-from=%s" % (orchestrator, name)),
                 ("rerun from here", "%s --rerun-from=%s" % (orchestrator, name))]
@@ -871,6 +980,8 @@ def default_action(state, phase):
         return None
     if phase["blocked_by"]:
         prefer = "run blocking phase"
+    elif phase["stale"]:
+        prefer = "rerun phase"
     elif phase["status"] in ("completed", "skipped"):
         prefer = "open output"
     else:
@@ -883,9 +994,12 @@ def default_action(state, phase):
 
 def phase_context(state, phase, T):
     """One-line context prefix for the ask feature: what the user is looking at."""
-    bits = ["%s %s" % (state["plugin"], phase["name"]), phase["status"]]
+    bits = ["%s %s" % (state["plugin"], phase["name"]), phase["display_status"]]
     if phase["declared"]:
         bits.append("%d/%d %s" % (phase["written"], phase["declared"], T["outputs"]))
+    if phase["stale"]:
+        bits.append(T["stale_upstream"] % ", ".join(phase["stale_by"]
+                                                    + phase["stale_inherited"]))
     if phase["blocked_by"]:
         bits.append("%s %s" % (T["blocked_by"], ", ".join(phase["blocked_by"])))
     return " / ".join(bits)

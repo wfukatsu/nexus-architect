@@ -103,7 +103,7 @@ class PipelineView(S.BaseView):
     def row_style(self, row):
         if row["kind"] == "group":
             return "head"
-        return P.PHASE_STYLE.get(row["phase"]["status"], "")
+        return P.PHASE_STYLE.get(row["phase"]["display_status"], "")
 
     def row_line(self, row, depth, stack, width):
         if row["kind"] == "group":
@@ -122,6 +122,7 @@ class PipelineView(S.BaseView):
             marks = P.PG["gate"]
         elif phase["optional"]:
             marks = "?"
+        status = phase["display_status"]
         activity = ""
         if phase["active"]:
             activity = "%s %s" % (P.PG["active"],
@@ -132,7 +133,7 @@ class PipelineView(S.BaseView):
             if phase["declared"] else ""
         right = "%s %s %s %s %s %s" % (
             P.output_bar(phase), D.pad(counts, 5, "r"), D.pad(marks, 1),
-            D.pad("%s %s" % (P.PG[phase["status"]], phase["status"]), 13),
+            D.pad("%s %s" % (P.PG[status], status), 13),
             D.pad(activity, 7),
             D.pad(D.money(phase["cost_usd"]) if phase["cost_usd"] else "", 7, "r"))
         left_w = min(self.name_w, max(10, width - D.dw(right) - 2))
@@ -165,7 +166,7 @@ class PipelineView(S.BaseView):
         s = state["summary"]
         frac = s["completed"] / s["total"] if s["total"] else 0
         counts = (" %s " % D.G["sep"]).join(
-            "%s %d" % (st, s["by_status"][st]) for st in P.PHASE_STATUSES
+            "%s %d" % (st, s["by_status"][st]) for st in P.DISPLAY_STATUSES
             if s["by_status"][st])
         lines = [("%s %d/%d %s  %s  %s" % (
             T["phases"], s["completed"], s["total"], T["done"],
@@ -213,19 +214,29 @@ class PipelineView(S.BaseView):
             done, total = P.group_counts(row["group"])
             lines = [("%s %d/%d" % (T["done"], done, total), "head")]
             for phase in row["group"]["phases"]:
-                lines.append(("  %s %s %s" % (P.PG[phase["status"]],
-                                              D.pad(phase["name"], 28),
-                                              phase["status"]),
-                              P.PHASE_STYLE.get(phase["status"], "")))
+                status = phase["display_status"]
+                lines.append(("  %s %s %s" % (P.PG[status],
+                                              D.pad(phase["name"], 28), status),
+                              P.PHASE_STYLE.get(status, "")))
             return lines
 
         phase = row["phase"]
         lines = []
-        src = "%s %s  (%s: %s)" % (T["status"], phase["status"], T["source"],
+        src = "%s %s  (%s: %s)" % (T["status"], phase["display_status"], T["source"],
                                    {"progress": T["source_progress"],
                                     "derived": T["source_derived"],
                                     "condition": T["source_condition"]}[phase["source"]])
-        lines.append((src, P.PHASE_STYLE.get(phase["status"], "")))
+        lines.append((src, P.PHASE_STYLE.get(phase["display_status"], "")))
+        if phase["stale"]:
+            if phase["stale_by"]:
+                lines.append((T["stale_upstream"] % ", ".join(phase["stale_by"]), "warn"))
+            if phase["stale_inherited"]:
+                lines.append((T["stale_inherited"] % ", ".join(phase["stale_inherited"]),
+                              "warn"))
+            if phase["stale_at"]:
+                lines.append(("  %s: %s" % (T["stale_changed"], datetime.fromtimestamp(
+                    phase["stale_at"]).strftime("%m-%d %H:%M")), "dim"))
+            lines.append((T["stale_hint"], "dim"))
         if phase["drift"]:
             lines.append((T["drift_missing"] if phase["drift"] == "outputs-missing"
                           else T["drift_present"], "warn"))
@@ -299,6 +310,8 @@ class PipelineView(S.BaseView):
         T = self.T
         if row["kind"] == "group":
             return [T["ask_next"], T["ask_summary"]]
+        if row["phase"]["stale"]:
+            return [T["ask_stale"], T["ask_next"], T["ask_summary"]]
         return [T["ask_why"] % row["phase"]["status"], T["ask_next"], T["ask_summary"]]
 
     def ask_prompt(self, row, question):
@@ -316,17 +329,18 @@ class PipelineView(S.BaseView):
 
     def help_lines(self):
         T = self.T
-        statuses = "  ".join("%s %s" % (P.PG[s], s) for s in P.PHASE_STATUSES)
+        statuses = "  ".join("%s %s" % (P.PG[s], s) for s in P.DISPLAY_STATUSES)
         return [(T["help_glyphs"], "head"),
                 ("  " + statuses, ""),
                 ("  [==..]    %s" % T["help_outputs"], ""),
+                ("  %s         %s" % (P.PG["stale"], T["help_stale"]), ""),
                 ("  %s         %s" % (P.PG["drift"], T["help_drift"]), ""),
                 ("  %s         %s" % (P.PG["active"], T["help_active"]), ""),
                 ("  ?         %s" % T["help_optional"], "")]
 
     def on_key(self, key, app):
         if key == ord("f"):
-            order = [None] + P.PHASE_STATUSES
+            order = [None] + P.DISPLAY_STATUSES
             self.status_filter = order[(order.index(self.status_filter) + 1)
                                        % len(order)]
             return True

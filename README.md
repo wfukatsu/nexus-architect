@@ -175,7 +175,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Hands off to `/archit
 | `/product:define-nfr` | Turn SLOs into measurable NFRs (availability, latency p95/p99, ...) |
 | `/product:review` | Review product artifacts (consistency, traceability, extensibility, strategy) |
 | `/product:report` | Consolidate artifacts into one self-contained HTML report (validation status first) |
-| `/product:report-status` | Live terminal dashboard of product-pipeline progress: phase tree with status, declared-output completion, the validation gate's verdict and open assumptions, per-phase cost, and a next-command action menu |
+| `/product:report-status` | Live terminal dashboard of product-pipeline progress: phase tree with status (`stale` once an upstream phase changed after it finished), declared-output completion, the validation gate's verdict and open assumptions, per-phase cost, and a next-command action menu |
 | `/product:adapt-change` | Re-propagation engine: compute affected scope and re-run only impacted skills |
 
 ### Orchestration
@@ -291,7 +291,7 @@ source of truth.
 | `/architect:estimate-cost` | Infrastructure, license, and operational costs |
 | `/architect:estimate-token-cost` | Token usage and USD cost of *running the agent* (a-priori from LOC, calibrated by recorded actuals) |
 | `/architect:report-token-cost` | Report the recorded actual agent cost from `work/token-usage.json`/`.jsonl` on the terminal — interactive two-pane dashboard by default (10s poll; pick a phase/model/session/day/event above, read its detail — a session shows its transcript log — below), `--once` single render, `--follow` event stream, `--session=ID` one session + its log, plus `--since`, `--breakdown=cost`, `--ascii` (ASCII bars for terminals that garble the Unicode ones), `--ambiguous-width=2` (terminals that render East Asian ambiguous characters double-width), `--debug`, `--md`, `--json` |
-| `/architect:report-status` | Live terminal dashboard of pipeline progress: every phase's status, how many of its declared outputs exist, what is running now, unmet dependencies, per-phase cost — plus an action menu that generates the next command and an `a` key that asks Claude about the selected phase (`Tab` switches to the backlog view) |
+| `/architect:report-status` | Live terminal dashboard of pipeline progress: every phase's status (`stale` once an upstream phase changed after it finished), how many of its declared outputs exist, what is running now, unmet dependencies, per-phase cost — plus an action menu that generates the next command and an `a` key that asks Claude about the selected phase (`Tab` switches to the backlog view) |
 | `/architect:update-knowledge` | Fetch/update the OKF ScalarDB/ScalarDL knowledge bundle from remote (`--latest`, `--status`) |
 
 ### Database Migration
@@ -389,7 +389,8 @@ all live with `tools/nexus-status.sh` — one dashboard with two views, `Tab` be
 **backlog** view (`/architect:report-backlog-status`, or the `tools/backlog-status.sh` alias) shows
 the tree, per-item delivery stages and an action menu that hands you the next command; the
 **pipeline** view (`/architect:report-status`, `/product:report-status`) shows the phase tree with
-each phase's status, declared-output completion, what is running right now and its cost. Both let
+each phase's status, declared-output completion, what is running right now and its cost — and marks
+a finished phase `stale` once an upstream one changed after it, down the whole dependency chain. Both let
 you ask Claude about the selected row (`a`) and launch the generated command (`--exec`).
 
 **C. Frontend** — `/product:generate-frontend` (offered by `/product:start` after the UI mocks) emits
