@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
-## [Unreleased]
+## [0.21.2] - 2026-08-07
 
 ### Fixed
 - **The pipeline dashboard reported a finished project as entirely `pending`.** The
@@ -963,6 +963,7 @@ with 75 skills total.
 ### Changed
 - Restructured the repository into a Claude Code plugin-compatible layout.
 
+[0.21.2]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.21.2
 [0.21.1]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.21.1
 [0.21.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.21.0
 [0.20.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.20.0
