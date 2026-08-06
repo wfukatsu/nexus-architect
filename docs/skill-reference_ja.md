@@ -121,7 +121,7 @@
 | `/architect:estimate-cost` | sonnet | インフラ、ライセンス、運用コスト |
 | `/architect:estimate-token-cost` | sonnet | エージェント実行のトークン使用量と USD コスト（事前見積り、実績で校正） |
 | `/architect:report-token-cost` | haiku | 記録済み実績コストのターミナルレポート（既定は対話型2ペインダッシュボード/10秒間隔・上ペインで選択、下ペインに詳細やセッションログ、`--once` 単発、`--follow` ストリーム、`--session=ID` 単一セッション+ログ、`--since`、`--breakdown=cost`、`--ascii`（グリフ欠落で文字化けする端末向けの ASCII 描画）、`--ambiguous-width=2`（East Asian Ambiguous 文字を2桁で描画する端末向けの幅補正）、`--debug`、`--md`、`--json`） |
-| `/architect:report-status` | haiku | パイプライン進捗のターミナルダッシュボード: フェーズツリーに状態・宣言出力の充足度・稼働中ハートビート・未充足の依存・フェーズ別コストを表示、次コマンド生成のアクションメニュー、Claude への質問キー、`Tab` でバックログビューへ切替(`tools/nexus-status.sh` をラップ) |
+| `/architect:report-status` | haiku | パイプライン進捗のターミナルダッシュボード: フェーズツリーに状態(完了後に上流が更新されたフェーズは `stale`)・宣言出力の充足度・稼働中ハートビート・未充足の依存・フェーズ別コストを表示、次コマンド生成のアクションメニュー、Claude への質問キー、`Tab` でバックログビューへ切替(`tools/nexus-status.sh` をラップ) |
 
 ## ユーティリティ
 
@@ -193,5 +193,5 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 | `/product:design-architecture` | opus | 4/5. 統合 | 全体アーキテクチャ図（構成/クリティカルパス/デプロイ）＋ 技術適合度評価（Kong / ScalarDB / ScalarDB Analytics / ScalarDL）と採用/条件付/不採用の根拠 |
 | `/product:review` | opus | R. レビュー & レポート | プロダクト成果物をレビュー（整合性、トレーサビリティ、拡張性、戦略） |
 | `/product:report` | sonnet | R. レビュー & レポート | 成果物を 1 つの自己完結型 HTML レポートに統合（冒頭に検証ステータス） |
-| `/product:report-status` | haiku | R. レビュー & レポート | プロダクトパイプライン進捗のターミナルダッシュボード: フェーズツリーに状態・宣言出力の充足度・ゲート判定と未検証の前提・フェーズ別コストを表示、次コマンド生成のアクションメニュー付き(`tools/nexus-status.sh` をラップ) |
+| `/product:report-status` | haiku | R. レビュー & レポート | プロダクトパイプライン進捗のターミナルダッシュボード: フェーズツリーに状態(完了後に上流が更新されたフェーズは `stale`)・宣言出力の充足度・ゲート判定と未検証の前提・フェーズ別コストを表示、次コマンド生成のアクションメニュー付き(`tools/nexus-status.sh` をラップ) |
 | `/product:adapt-change` | opus | 6. 適応 | 再伝播エンジン：変化から影響範囲を算定し、影響を受けるスキルのみ再実行 |

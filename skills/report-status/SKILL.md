@@ -1,9 +1,10 @@
 ---
 description: |
   Show where the architect pipeline stands — every phase's status
-  (pending/in_progress/completed/failed/skipped), how many of its declared outputs
-  exist, whether it is running right now, and what it has cost — on the terminal,
-  live or as a one-shot render.
+  (pending/in_progress/completed/failed/skipped, plus stale when an upstream phase
+  changed after it finished), how many of its declared outputs exist, whether it is
+  running right now, and what it has cost — on the terminal, live or as a one-shot
+  render.
   /architect:report-status [--once] [--group=core|extension] [--phase=<name>] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en] to invoke.
   Wraps ${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh, which on a terminal defaults to a
   live dashboard polling work/pipeline-progress.json every 10s, with an action menu that
@@ -70,6 +71,16 @@ the script starts the live dashboard on a terminal, which never exits on its own
 - **Drift** is raised, not hidden, when the record and the filesystem disagree:
   `completed` with no declared output on disk, or `pending` with every output present.
   The registry still wins on status — the flag says the two need reconciling.
+- **`completed` expires.** A finished phase whose upstream wrote something afterwards —
+  a rerun, or a hand edit of the earlier report — is shown as **`stale`** (`↺`) instead
+  of `completed`, naming the dependency that changed and when. Invalidation propagates
+  down the dependency chain, so fixing one early phase visibly un-completes everything
+  derived from it: those phases leave the `n/m done` fraction, become runnable again,
+  their default action is a rerun, and the suggested `next:` is the earliest of them —
+  rerunning from the top is what clears the rest. The recorded status is untouched
+  (`--json` carries both `status` and `display_status`); nothing rewrites the registry.
+  Staleness is claimed only where it is knowable: a phase that declares outputs but
+  wrote none is drift, not stale, and a dependency that never ran invalidates nothing.
 - **"Running now"** means a declared output was written, or tokens were attributed to
   the phase, in the last 5 minutes. A phase that thinks for a long time without writing
   anything will not blink; the registry's `in_progress` status is the reliable signal,
@@ -92,7 +103,8 @@ the script starts the live dashboard on a terminal, which never exits on its own
 ## Reporting Back
 
 After relaying a `--once` render:
-1. Lead with anything that needs a human decision: `failed` phases, drift, recorded errors.
+1. Lead with anything that needs a human decision: `failed` phases, `stale` phases and
+   what invalidated them, drift, recorded errors.
 2. State the current phase and the suggested next one (the dashboard's `next:`), which
    skips optional entry points in favour of the required path.
 3. Mention the follow-up: `/architect:report-backlog-status` once delivery has started.

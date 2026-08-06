@@ -1,9 +1,10 @@
 ---
 description: |
   Show where the product pipeline stands — every phase's status
-  (pending/in_progress/completed/failed/skipped), how many of its declared outputs
-  exist, whether it is running right now, and the validation gate's verdict — on the
-  terminal, live or as a one-shot render.
+  (pending/in_progress/completed/failed/skipped, plus stale when an upstream phase
+  changed after it finished), how many of its declared outputs exist, whether it is
+  running right now, and the validation gate's verdict — on the terminal, live or as a
+  one-shot render.
   /product:report-status [--once] [--phase=<name>] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en] to invoke.
   Wraps ${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh, which on a terminal defaults to a
   live dashboard polling work/pipeline-progress.json every 10s, with an action menu that
@@ -67,6 +68,15 @@ Always pass `--once` (or `--json`/`--md`) when running it yourself.
 - **Drift** is raised when the record and the filesystem disagree — `completed` with
   nothing written, or `pending` with every output present. The registry still wins on
   status; the flag says the two need reconciling.
+- **`completed` expires.** A finished phase whose upstream wrote something afterwards —
+  a rerun, or a hand edit of the earlier artifact — is shown as **`stale`** (`↺`)
+  instead of `completed`, naming the dependency that changed and when. Invalidation
+  propagates down the chain, so revising the vision visibly un-completes the personas,
+  mocks and features derived from it: they leave the `n/m done` fraction, become
+  runnable again, and the suggested `next:` is the earliest of them. On this pipeline
+  the deliberate reply to that is usually `/product:adapt-change`, which re-runs the
+  affected skills rather than the whole tail. The recorded status is untouched
+  (`--json` carries both `status` and `display_status`).
 - **The gate is reported, never inferred**: the header shows
   `gates.validate-assumptions.verdict` verbatim (`pending` until the skill writes one)
   with the count of open assumptions. A `go` verdict here is the only thing that means
@@ -85,7 +95,8 @@ Always pass `--once` (or `--json`/`--md`) when running it yourself.
 After relaying a `--once` render:
 1. Lead with the gate: verdict and open assumptions — that is what governs whether deep
    design work should continue at all.
-2. Then anything needing a decision: `failed` phases, drift, recorded errors.
+2. Then anything needing a decision: `failed` phases, `stale` phases and what
+   invalidated them, drift, recorded errors.
 3. State the current phase and the suggested next one.
 
 ## Related Skills
