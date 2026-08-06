@@ -8,7 +8,7 @@ glab / gh ("sync"); per the backlog contract the tracker wins over the manifest,
 node's `labels` array is NEVER read as state — it is the creation seed.
 
 Consumed by tools/lib/backlog_status_report.py (one-shot / JSON / Markdown) and
-tools/lib/backlog_status_tui.py (live dashboard). Generic display helpers (dw/pad/clip/
+tools/lib/backlog_status_view.py (the live dashboard's backlog tab). Display helpers (dw/pad/clip/
 bar/glyphs/ASCII detection) are imported from token_cost_data, which reads the same NX_*
 environment the launcher exports.
 """
@@ -65,6 +65,13 @@ BS_LABELS = {
         "menu_keys": "Enter copy | e run via claude | Esc close",
         "filter": "filter", "all": "all", "unparented": "(unparented)",
         "too_small": "terminal too small",
+        "help_glyphs": "backlog glyphs",
+        "help_stages": "implemented / reviewed / merged",
+        "help_followup": "follow-up item (captured mid-delivery)",
+        "help_drift": "drift: the tracker and the manifest disagree (tracker wins)",
+        "ask_why": "Why is this item still %s?",
+        "ask_next": "What should I run next on this item, and why?",
+        "ask_summary": "Summarize what has happened on this item so far.",
     },
     "ja": {
         "title": "バックログデリバリー", "live": "LIVE", "issues": "Issues", "done": "done",
@@ -86,6 +93,13 @@ BS_LABELS = {
         "menu_keys": "Enter コピー | e claude 実行 | Esc 閉じる",
         "filter": "フィルタ", "all": "全て", "unparented": "(親なし)",
         "too_small": "画面が小さすぎます",
+        "help_glyphs": "バックログの記号",
+        "help_stages": "実装 / レビュー / マージ",
+        "help_followup": "フォローアップ項目 (デリバリー中に発見)",
+        "help_drift": "ドリフト: トラッカーとマニフェストの食い違い (トラッカー優先)",
+        "ask_why": "この項目がまだ %s なのはなぜ？",
+        "ask_next": "この項目について次に実行すべきことは？その理由は？",
+        "ask_summary": "この項目でこれまでに起きたことを要約して。",
     },
 }
 
@@ -462,8 +476,11 @@ def flatten_tree(children, states, collapsed=None, status_filter=None, epic_filt
         roots = [n for n in roots if n["local_id"] == epic_filter]
     for i, root in enumerate(roots):
         walk(root, 0, [])
-    for orphan in children.get("?", []):
-        rows.append((orphan, 0, ()))
+    # Orphans belong to no Epic, so an epic filter excludes them entirely.
+    if not epic_filter:
+        for orphan in children.get("?", []):
+            if matches(orphan):
+                rows.append((orphan, 0, ()))
     return rows
 
 

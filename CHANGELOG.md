@@ -10,6 +10,31 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 ## [Unreleased]
 
 ### Added
+- **`/architect:report-status` and `/product:report-status` (new skills, haiku): live pipeline
+  progress, in the same dashboard as the backlog.** The backlog delivery loop already had a live
+  terminal view; the product and architect pipelines that precede it had none — `work/pipeline-progress.json`
+  was readable only as raw JSON, and most skills only wrote to it when a phase finished, so
+  "where are we right now" was unanswerable. The dashboard is now one tool, `tools/nexus-status.sh`,
+  with two views switched by `Tab`: **pipeline** (new) and **backlog** (the existing one;
+  `tools/backlog-status.sh` remains as a thin alias and `/architect:report-backlog-status` is
+  unchanged). The pipeline view renders the phase tree grouped by category — the architect manual
+  extension tier is its own foldable group — with each phase's status, how many of its declared
+  `outputs:` actually exist (`[==..] 2/4`), whether it wrote a file or burned tokens in the last
+  five minutes, its unmet dependencies, its model tier and its recorded cost; the product view adds
+  the `validate-assumptions` gate verdict and open-assumption count in the header. Status is
+  registry-first and filesystem-second: a phase with no registry entry is derived from its outputs,
+  and a disagreement (`completed` with nothing written, `pending` with everything written) is
+  flagged as drift rather than smoothed over. Both views share the action menu that generates the
+  next slash command (clipboard, or `claude` under `--exec`), a new `a` key that asks Claude about
+  the selected row with its context attached, and `?` for a help panel. `--once`, `--json` and
+  `--md` render non-interactively for in-session use. New contract test:
+  `tools/lib/pipeline_status_data.test.py`.
+- **Progress registry `in_progress` contract (@skills/common/progress-registry.md).** Orchestrators
+  (`/architect:pipeline`, `/architect:start`, `/product:start`) now write each phase twice —
+  `in_progress` + `started_at` *before* invoking the skill, then `completed`/`failed` with
+  `completed_at`, `outputs` and `summary` after — plus optional `note`/`updated_at` for a long
+  phase's current step. This is what makes a running phase visible while it runs, and it is also
+  what the token-usage hook uses to attribute cost; without it, tokens land in the pending bucket.
 - **`/architect:capture-followup` (new skill, sonnet): follow-up capture for backlog delivery.**
   Work discovered mid-delivery — deferred tasks, out-of-scope findings, doc drift, split-off scope,
   waived acceptance criteria — previously dead-ended in comments and review prose. The skill

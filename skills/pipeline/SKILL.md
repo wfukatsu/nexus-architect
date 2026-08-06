@@ -34,7 +34,13 @@ part of the automated run.
 4. Execute each skill and verify its output before proceeding to the next
 5. Execute skills with `parallel_with` in parallel via Task
 6. Enable or disable ScalarDB-related skills based on the `conditions` field
-7. Record progress in `work/pipeline-progress.json`
+7. Record progress in `work/pipeline-progress.json` **twice per phase**: set
+   `status: "in_progress"` with `started_at` *before* invoking the skill (all of them at
+   once for a parallel group), then `completed` / `failed` / `skipped` with
+   `completed_at`, `outputs` and `summary` once it returns. The pre-write is the only
+   signal that a phase is running while it runs — `/architect:report-status` renders it,
+   and the token-usage hook attributes cost to whatever is `in_progress`
+   (@skills/common/progress-registry.md)
 8. Accumulate findings in `work/context.md` between phases
 
 ## Command-Line Options
