@@ -7,7 +7,7 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 3 つのプラグイン（`product`・`architect`・`scalardb`）は同一の番号で一括リリースされます。
 
-## [Unreleased]
+## [0.21.0] - 2026-08-06
 
 ### 追加
 - **`/architect:report-status` / `/product:report-status`（新規スキル、haiku）: パイプライン進捗を
@@ -77,6 +77,17 @@ Nexus Architect の主な変更点を記録します。
   （機械可読の情報源は引き続きラベルと `impl.status`）。**既存アイテムはレトロフィット**:
   セクションを持たない本文を編集しようとするスキルが、ライブのトラッカー状態から初期化して
   先に追記する。`export-backlog --update` は本文同期時にセクションとチェック済みボックスを保持。
+
+### ドキュメント
+- **`docs/analysis-mechanism_ja.md`（新規）: architect プラグインが既存コード・設計ドキュメントを
+  どう解析しているか。** `skills/common/skill-dependencies.yaml` に従うパイプライン、2 つの入口
+  （コードを読む `investigate`、RFP・議事録・既存設計書を読む `define-requirements`）、AST 優先の
+  ツール階層（Serena MCP → Glob/Grep → Read → サブエージェント）を辿ったうえで、内部ロジックに
+  踏み込む: シンボル参照のたどり方と別名実装（naming drift）の検出、評価を文書化済みの証拠に
+  限定する 2 段階ルーブリック採点、テンプレート突合とギャップ駆動ヒアリング、決定論的スキーマで
+  拘束される LLM 読解、ユビキタス言語の導出手順。最後に進捗レジストリという状態機械、exit 2 に
+  よるフックの自己修正ループ、5 視点 × 3 次元の二重並列レビューと externalize された品質ゲート、
+  架空のレガシー EC モノリスを通した具体例まで。日本語のみ。
 
 ## [0.20.0] - 2026-08-05
 
@@ -835,6 +846,7 @@ Nexus Architect の主な変更点を記録します。
 ### 変更
 - リポジトリを Claude Code プラグイン互換の構成に再編。
 
+[0.21.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.21.0
 [0.20.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.20.0
 [0.19.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.19.0
 [0.18.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.18.0

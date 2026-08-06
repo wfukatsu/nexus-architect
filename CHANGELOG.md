@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
-## [Unreleased]
+## [0.21.0] - 2026-08-06
 
 ### Added
 - **`/architect:report-status` and `/product:report-status` (new skills, haiku): live pipeline
@@ -82,6 +82,18 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
   source of truth. **Existing items are retrofitted**: any skill about to edit a body that lacks
   the section first appends it, initialized from the live tracker state. `export-backlog --update`
   preserves the section (and all ticked boxes) when syncing bodies.
+
+### Documentation
+- **`docs/analysis-mechanism_ja.md` (new): how the architect plugin actually analyzes existing code
+  and design documents.** Walks the pipeline from `skills/common/skill-dependencies.yaml`, the two
+  intake paths (`investigate` over code, `define-requirements` over RFPs/minutes/design docs), and
+  the AST-first tool hierarchy (Serena MCP → Glob/Grep → Read → sub-agents), then opens the internal
+  logic: symbol/reference traversal and how it detects naming drift, the two-stage rubric scoring
+  that keeps evaluators on documented evidence, template-matching + gap-driven elicitation, LLM
+  reading constrained by deterministic schemas, and the ubiquitous-language derivation. Closes with
+  the progress-registry state machine, the exit-2 hook self-correction loop, the 5-perspective ×
+  3-dimension review with its externalized quality gate, and a worked example on a fictional legacy
+  EC monolith. Japanese only.
 
 ## [0.20.0] - 2026-08-05
 
@@ -864,6 +876,7 @@ with 75 skills total.
 ### Changed
 - Restructured the repository into a Claude Code plugin-compatible layout.
 
+[0.21.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.21.0
 [0.20.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.20.0
 [0.19.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.19.0
 [0.18.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.18.0
