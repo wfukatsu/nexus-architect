@@ -149,16 +149,20 @@ If the verdict has `[B]` blockers and `--no-fix` is not set (and the verdict is 
      approach / split the Issue / adjust acceptance criteria). When the user chooses **split the
      Issue**, queue the split-off scope via `/architect:capture-followup <title> --queue-only` so it
      becomes a linked follow-up Issue instead of a comment-only intention.
-   - Set the Issue to `status::blocked`.
+   - Set the Issue to `status::blocked` (rewriting its `Status:` line to match).
    - Ask the user via AskUserQuestion how to proceed, and stop.
 
 ### Step 5 — Raise the PR/MR (blockers = 0)
-- **Reconcile the acceptance-criteria checklist first** (per @skills/common/backlog-checklists.md):
-  the review is the verification step, so tick (`[ ]` → `[x]`) every criterion the verdict confirms,
-  and **untick** any box `implement-backlog` ticked that the review or a fix round showed is not
-  met — naming the reason in the Issue comment. Edit the body in place (flip markers only). If
-  criteria remain unticked, say so in the PR/MR body rather than opening it as if the Issue were
-  complete.
+- **Reconcile the checklists first** (per @skills/common/backlog-checklists.md): the review is the
+  verification step, so tick (`[ ]` → `[x]`) every criterion the verdict confirms, and **untick**
+  any box `implement-backlog` ticked that the review or a fix round showed is not met — naming the
+  reason in the Issue comment. Reconcile the Issue's box in the parent's child task list the same
+  way: it renders implementation state, so tick it when the verdict confirms every criterion (with
+  tests passing), and untick it — stating why — when the review refuted completeness. Apply the same
+  reconciliation to the `Implemented` stage in the Issue's `## Delivery Status` section (retrofit
+  the section from live state if the item predates it). Edit bodies in
+  place (flip markers only). If criteria remain unticked, say so in the PR/MR body rather than
+  opening it as if the Issue were complete.
 - Push the working branch. Open a PR/MR that links and closes the Issue (`Closes #<iid>`), with a
   body assembled from the Issue, the review summary, the acceptance-criteria checklist, and any
   remaining `[S]`/`[Q]` notes. An `[S]`/`[Q]` finding that warrants its own work item (too large
@@ -169,8 +173,9 @@ If the verdict has `[B]` blockers and `--no-fix` is not set (and the verdict is 
 - Gate creation on user confirmation unless `--auto`. On `--dry-run`, stop after Step 3b (the
   review doc and the local knowledge-base update still happen) with no fixes, comments, or PR/MR —
   report what would happen.
-- Set the Issue to `status::review`, comment the PR/MR URL on the Issue, and update the manifest
-  node (`impl.status`, `pr: { url, iid/number }`).
+- Set the Issue to `status::review` — rewriting the `Status:` line and **ticking the `Reviewed`
+  stage** in its `## Delivery Status` section — comment the PR/MR URL on the Issue, and update the
+  manifest node (`impl.status`, `pr: { url, iid/number }`).
 - **Stop here** and ask the user to review and approve the PR/MR. Print the URL and state that
   `/architect:merge-issue` performs the merge after approval.
 

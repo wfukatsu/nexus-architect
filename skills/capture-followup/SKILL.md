@@ -185,8 +185,10 @@ Skip when there is no new task to capture (bare `--flush`). Otherwise:
    re-confirms it).
 3. **Draft the body** — delegate to a **haiku sub-agent**: `## How` (the approach, from the
    finding), `## Acceptance Criteria` (unticked `- [ ]` boxes, one per verifiable criterion —
-   derived from the finding, `TBD` when unknown, never invented), `## References` (the
-   `origin.reference` plus any traceability IDs carried by the finding).
+   derived from the finding, `TBD` when unknown, never invented), `## Delivery Status` (status
+   line `Status: \`status::todo\`` + the unticked Issue stage checklist, per
+   @skills/common/backlog-checklists.md), `## References` (the `origin.reference` plus any
+   traceability IDs carried by the finding).
 4. **Append** the `FQ-<n>` entry to `reports/backlog/followup-queue.md` (creating the file with
    frontmatter on first use).
 
@@ -220,7 +222,8 @@ For each approved `queued` entry (skip any that already carries a created URL):
      <title>` box to the parent's `## Issues` (or `## Sub-Epics` for an Epic-direct follow-up)
      via the in-place edit mechanics of @skills/common/backlog-checklists.md — read the body,
      append the one line, write it back; skip if `#<iid>` is already listed; never regenerate
-     the body from the manifest. Ticking the box remains `/architect:merge-issue`'s.
+     the body from the manifest. Ticking the box remains `/architect:implement-backlog`'s, once
+     the follow-up is implemented and tested.
    - GitHub native sub-issues (enhancement): attempt `addSubIssue` GraphQL only if
      `export-backlog` recorded that it works; on any error, silently fall back to the task list.
 4. **Write back immediately** — append the node (with `origin` and `remote`) to

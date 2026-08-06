@@ -24,6 +24,26 @@ Nexus Architect の主な変更点を記録します。
   契約は `skills/capture-followup/followup-contract.test.py` が検証し、チェックリスト契約には本スキルが
   所有する「未チェック子ボックスの追記」操作が加わる。
 
+### 変更
+- **チェックボックスの意味を「マージ済み」から「実装状態」に変更。** Epic/Sub-Epic の子タスクリストの
+  ボックスは従来 `merge-issue` がマージ時にのみチェックしていたため、実装・テスト完了でレビュー待ちの
+  Epic でも進捗 0% と表示されていた。チェックリスト契約を再定義し、**チェックボックス = 実装+テスト
+  完了**（全受入条件がテスト証跡付きでチェックされた時点で `implement-backlog` がチェックし、
+  `review-issue` が照合 — 未達が判明すれば理由付きでチェックを外す）、**デリバリー状態
+  （マージ/done）= `status::*` ラベルと `impl.status`** に分離。`merge-issue` は通常フローでは
+  チェックせず、マージ時に検証してチェック漏れのみ補完する（マージ済み・CI グリーンが証跡）。
+  `backlog-checklists.md`・`implement-backlog`・`review-issue`・`merge-issue`・`deliver-backlog`・
+  `capture-followup` に反映。
+- **全 Epic/Sub-Epic/Issue の本文に `## Delivery Status` セクションを追加** — トラッカーラベルを
+  ミラーする `Status:` 行と、ステージ別チェックリスト（`Implemented` / `Reviewed` / `Merged`、
+  親アイテムは `Implemented`/`Merged` の 2 段）。実装チェックボックスが意図的に持たない
+  「マージされたか」を本文が答えられるようにする。新規アイテムは `export-backlog` と
+  `capture-followup` が起票時に付与し、`implement-backlog`・`review-issue`・`merge-issue` は
+  自分が確立したステージをチェックしてラベル遷移のたびに `Status:` 行を書き換える
+  （機械可読の情報源は引き続きラベルと `impl.status`）。**既存アイテムはレトロフィット**:
+  セクションを持たない本文を編集しようとするスキルが、ライブのトラッカー状態から初期化して
+  先に追記する。`export-backlog --update` は本文同期時にセクションとチェック済みボックスを保持。
+
 ## [0.20.0] - 2026-08-05
 
 ### 追加
