@@ -6,19 +6,22 @@ help panel, the transient notice bar, the poll-and-reload loop, and the key hand
 Each view (pipeline_status_view.BacklogView / PipelineView) supplies the data and the
 per-row rendering through the protocol below; the shell never imports either.
 
-View protocol
+View protocol (BaseView supplies a default for the optional ones)
     name                        "pipeline" | "backlog"
     title                       localized pane title
     available                   False when this project has no such input
     watch_files()               project-relative paths whose mtime triggers a reload
+    extra_stamp()               a number that changes when non-file inputs changed
     load()                      (re)read the inputs
-    header_lines(width)         [(text, style)] shown under the tab strip
+    project_label()             what the title bar calls this project
+    empty_message()             shown in place of the tree when there are no rows
+    header_lines(width)         [(text, style)] shown under the tab strip (max 4)
     rows()                      [(row, depth, last_stack)] in draw order
     row_key(row)                stable id used to keep the selection across reloads
     row_line(row, depth, stack, width)  the formatted line for one row
     row_style(row)              style name for an unselected row
     has_children(row)           whether ← / → fold this row
-    fold(key, collapse)         apply the fold
+    fold(collapse)              apply the fold to the current selection (self.sel_key)
     detail_title(row)           label shown on the separator
     detail_lines(row, width)    [(text, style)] for the lower pane
     actions_for(row)            [(label, command)] for the action menu
@@ -26,7 +29,12 @@ View protocol
     open_target(row)            URL or path for the `o` key, or None
     ask_questions(row)          [canned question, ...]
     ask_prompt(row, question)   the full prompt sent to claude
+    keys_hint()                 the bottom-bar key legend
+    help_lines()                [(text, style)] this view adds to the help panel
     on_key(key, app)            view-specific keys (`s`, `f`, ...); True when handled
+
+Keys the shell owns, so every view gets them: ↑↓/jk, ←→/hl, Tab / Shift-Tab, Enter,
+a, c, o, r, g/G, PgUp/PgDn, Ctrl-U/Ctrl-D, ?, q/Esc. A view's keys_hint() should say so.
 
 Invoked by tools/lib/nexus_status_tui.py, which builds the views and hands them over.
 """

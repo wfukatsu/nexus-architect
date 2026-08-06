@@ -12,10 +12,13 @@ three sources, in this order of authority:
   3. `<project>/work/token-usage.{json,jsonl}` — per-phase cost, and the heartbeat that
      says which phase produced tokens in the last few minutes.
 
-The registry wins on status; the filesystem drives the output bar and raises a drift
-flag when the two disagree (claimed completed with nothing written, or every output
-present while still pending). Phases with no registry entry — notably the architect
-manual extension tier — are derived from the filesystem alone.
+The registry wins on status, with one exception: `pending` is the value every phase is
+born with, so an entry still sitting there while its declared outputs exist on disk is a
+skill that forgot to stamp itself, not a phase that never ran — the filesystem wins and
+the status is derived. The filesystem also drives the output bar, and raises a drift flag
+whenever the two disagree (claimed completed with nothing written, or every output
+present while still recorded pending). Phases with no registry entry — notably the
+architect manual extension tier — are derived from the filesystem alone.
 
 `completed` is not permanent: a phase whose upstream was rerun or hand-edited afterwards
 is reported as **stale**, and the invalidation propagates down the dependency graph, so
@@ -82,7 +85,8 @@ PS_LABELS = {
         "started": "started", "completed_at": "completed", "updated": "updated",
         "note": "note", "summary": "summary", "errors": "errors", "warnings": "warnings",
         "drift_missing": "recorded completed, but no declared output exists",
-        "drift_present": "every declared output exists, but still recorded pending",
+        "drift_present": "every declared output exists, but the registry was never "
+                         "stamped — completed here is derived from the files",
         "stale_upstream": "upstream changed after this phase finished: %s",
         "stale_inherited": "upstream is stale: %s",
         "stale_changed": "changed",
@@ -94,6 +98,9 @@ PS_LABELS = {
         "skipped_condition": "excluded by project options",
         "backlog": "backlog", "issues_done": "%d/%d issues done",
         "total_cost": "total cost", "unassigned": "unassigned",
+        "empty": "nothing to show", "unknown_phase": "unknown phase: %s",
+        "known_phases": "phases in the %s pipeline: %s",
+        "no_extension_tier": "the product pipeline has no manual extension tier",
         "keys": " ^v/jk select | <> fold | Enter actions | Tab view | a ask"
                 " | f filter | o open | c copy | r refresh | ? help | q quit",
         "group_requirements": "Requirements", "group_investigation": "Investigation",
@@ -130,7 +137,8 @@ PS_LABELS = {
         "started": "開始", "completed_at": "完了", "updated": "更新",
         "note": "メモ", "summary": "要約", "errors": "エラー", "warnings": "警告",
         "drift_missing": "completed 記録だが宣言された出力が1つも無い",
-        "drift_present": "宣言された出力は全て存在するが pending 記録のまま",
+        "drift_present": "宣言された出力は全て存在するがレジストリが未更新 — "
+                         "ここでの completed は実ファイルから導出",
         "stale_upstream": "このフェーズの完了後に上流が更新された: %s",
         "stale_inherited": "上流が stale: %s",
         "stale_changed": "更新",
@@ -142,6 +150,9 @@ PS_LABELS = {
         "skipped_condition": "プロジェクト設定で除外",
         "backlog": "バックログ", "issues_done": "Issue %d/%d 完了",
         "total_cost": "合計コスト", "unassigned": "未割当",
+        "empty": "表示するものがありません", "unknown_phase": "存在しないフェーズ: %s",
+        "known_phases": "%s パイプラインのフェーズ: %s",
+        "no_extension_tier": "product パイプラインに手動拡張ティアはありません",
         "keys": " ^v/jk 選択 | <> 開閉 | Enter アクション | Tab ビュー | a 質問"
                 " | f フィルタ | o 開く | c コピー | r 更新 | ? ヘルプ | q 終了",
         "group_requirements": "要件定義", "group_investigation": "調査",
@@ -367,24 +378,40 @@ PLUGINS = {
 
 # The architect manual extension tier: real skills that /architect:pipeline never runs,
 # so they have no entry in skill-dependencies.yaml. Their outputs are listed here so the
-# dashboard can derive their state from the filesystem when the registry is silent.
-# (generate-docs writes into the target project's own source tree, which this tool
-# cannot locate — it is shown, but only the registry can give it a status.)
+# dashboard can derive their state from the filesystem when the registry is silent, and
+# are kept in step with each skill's own Output table — every file the skill promises, so
+# the output bar measures real progress instead of collapsing to 0/1.
+#
+# Two members declare nothing on purpose: `generate-docs` writes into the target
+# project's own source tree, which this tool cannot locate, and `report-token-cost` only
+# renders to a terminal. Both are listed so the tier is complete, and both can only take
+# a status from the registry.
 EXTENSION_PHASES = {
     "investigate-security": dict(category="extension", model="sonnet", depends_on=["investigate"],
-                                 outputs=["reports/before/{project}/architect:investigate-security.md"]),
+                                 outputs=["reports/before/{project}/security-assessment.md"]),
     "select-scalardb-edition": dict(category="extension", model="sonnet", depends_on=[],
                                     outputs=["reports/03_design/scalardb-edition-selection.md"]),
     "design-scalardb-analytics": dict(category="extension", model="opus", depends_on=["design-scalardb"],
                                       outputs=["reports/03_design/scalardb-analytics-design.md"]),
     "design-implementation": dict(category="extension", model="opus", depends_on=["design-api"],
-                                  outputs=["reports/06_implementation/"]),
+                                  outputs=["reports/06_implementation/domain-services-spec.md",
+                                           "reports/06_implementation/repository-interfaces-spec.md",
+                                           "reports/06_implementation/value-objects-spec.md",
+                                           "reports/06_implementation/exception-mapping-spec.md"]),
     "generate-test-specs": dict(category="extension", model="sonnet", depends_on=["design-implementation"],
-                                outputs=["reports/07_test-specs/"]),
+                                outputs=["reports/07_test-specs/unit-test-specs.md",
+                                         "reports/07_test-specs/integration-test-specs.md",
+                                         "reports/07_test-specs/performance-test-specs.md",
+                                         "reports/07_test-specs/bdd-scenarios/"]),
     "generate-scalardb-code": dict(category="extension", model="sonnet", depends_on=["design-implementation"],
-                                   outputs=["generated/*/src/main/java/"]),
+                                   outputs=["generated/*/src/main/java/",
+                                            "generated/*/build.gradle",
+                                            "generated/*/scalardb.properties",
+                                            "generated/*/Dockerfile"]),
     "generate-infra-code": dict(category="extension", model="sonnet", depends_on=["design-infrastructure"],
-                                outputs=["generated/infrastructure/"]),
+                                outputs=["generated/infrastructure/k8s/",
+                                         "generated/infrastructure/helm/",
+                                         "generated/infrastructure/terraform/"]),
     "generate-docs": dict(category="extension", model="sonnet", depends_on=[], outputs=[]),
     "design-infrastructure": dict(category="extension", model="sonnet", depends_on=["design-microservices"],
                                   outputs=["reports/08_infrastructure/infrastructure-architecture.md",
@@ -396,9 +423,12 @@ EXTENSION_PHASES = {
     "design-disaster-recovery": dict(category="extension", model="sonnet", depends_on=[],
                                      outputs=["reports/08_infrastructure/disaster-recovery-design.md"]),
     "estimate-cost": dict(category="extension", model="sonnet", depends_on=[],
-                          outputs=["reports/05_estimate/cost-summary.md"]),
+                          outputs=["reports/05_estimate/cost-summary.md",
+                                   "reports/05_estimate/infrastructure-detail.md",
+                                   "reports/05_estimate/scalardb-sizing.md"]),
     "estimate-token-cost": dict(category="extension", model="sonnet", depends_on=[],
                                 outputs=["reports/05_estimate/token-cost-estimate.md"]),
+    "report-token-cost": dict(category="extension", model="sonnet", depends_on=[], outputs=[]),
 }
 
 _manifest_cache = {}
@@ -638,7 +668,13 @@ def derive_phase(name, spec, entry, project_dir, options, project_name,
     elif not _conditions_ok(spec.get("conditions") or [], options):
         excluded = "condition"
 
-    if recorded:
+    # `pending` is the registry's initial value, not a claim: every phase starts there and
+    # only leaves it if a skill remembers to stamp itself. Files on disk are evidence that
+    # it ran, so they outrank an entry still sitting at the default. Every other recorded
+    # status is a statement some skill actually made, and keeps its authority.
+    unstamped = recorded == "pending" and written > 0
+
+    if recorded and not unstamped:
         status, source = recorded, "progress"
     elif excluded:
         status, source = "skipped", "condition"
@@ -649,11 +685,14 @@ def derive_phase(name, spec, entry, project_dir, options, project_name,
     else:
         status, source = "pending", "derived"
 
+    # Drift is judged against what the registry *recorded*, not against the status shown:
+    # the unstamped case is exactly a disagreement, so resolving it in the filesystem's
+    # favour must not also hide it.
     drift = None
-    if source == "progress" and declared:
-        if status == "completed" and written == 0:
+    if recorded and declared:
+        if recorded == "completed" and written == 0:
             drift = "outputs-missing"
-        elif status == "pending" and written == declared:
+        elif recorded == "pending" and written == declared:
             drift = "outputs-present"
 
     last_activity = max(last_write, activity.get(name, 0.0))

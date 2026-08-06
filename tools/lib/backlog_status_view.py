@@ -143,6 +143,8 @@ class BacklogView(S.BaseView):
         if self.pipeline:
             cur = " %s %s" % (B.SG["current"], self.pipeline["current"]) \
                 if self.pipeline["current"] else ""
+            if self.pipeline.get("stale"):
+                cur += " %s %d" % (B.SG["stale"], self.pipeline["stale"])
             meta.append("%s %d/%d%s" % (T["pipeline"], self.pipeline["completed"],
                                         self.pipeline["total"], cur))
         meta.append("%s %s" % (T["synced"], self.synced_at.strftime("%H:%M"))

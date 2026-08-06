@@ -42,9 +42,15 @@
 #   --plugin=product|architect     force the pipeline the project is running
 #                      (default: detected from the recorded phase names)
 #   --group=core|extension|all     pipeline view: limit to the manifest phases or to
-#                      the manual extension tier (default all)
-#   --phase=<name>     pipeline view: render only that phase (with --once/--md)
-#   --epic=<id>        backlog view: limit the tree to one Epic (e.g. --epic=E1)
+#                      the manual extension tier (default all; architect only — the
+#                      product pipeline has no extension tier)
+#   --phase=<name>     pipeline view: render only that phase (--once/--md/--json; the
+#                      live dashboard ignores it). An unknown name is a usage error
+#   --epic=<id>        backlog view: limit the tree to one Epic (e.g. --epic=E1;
+#                      --once/--md/--json). An unknown id is a usage error
+#
+# --group/--phase/--epic narrow --json exactly as they narrow the tree, and the emitted
+# `filters` object records which were applied; `summary` always covers the whole project.
 #   --sync             backlog view: fetch live status::* labels once at startup (also: s)
 #   --exec             enable running commands from the dashboard: the action menu's `e`
 #                      key and the `a` ask key suspend the dashboard and run `claude`
@@ -63,7 +69,11 @@
 #
 # PROJECT_DIR defaults to the nearest ancestor of $PWD that holds
 # work/pipeline-progress.json or reports/backlog/backlog-manifest.json.
-# Exit codes: 0 ok, 1 no project / no python3, 2 bad usage.
+# Exit codes: 0 ok, 1 no project / no python3, 2 bad usage (unknown option, or an
+# unknown --phase / --epic). A filter that legally matches nothing renders a
+# "nothing to show" line and exits 0.
+#
+# Contract asserted by tools/nexus-status.test.sh.
 
 set -euo pipefail
 

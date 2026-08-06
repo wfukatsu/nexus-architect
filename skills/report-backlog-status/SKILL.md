@@ -48,10 +48,20 @@ on the unified tool, and `Tab` inside the dashboard switches to the pipeline vie
 | in-session render | `tools/backlog-status.sh --once` | Static tree, prints and exits — **always use this when running it yourself** |
 | tracker truth | `... --sync` | Fetch live `status::*` labels once at startup (also the `s` key) |
 | run from the dashboard | `... --exec` | The action menu's `e` key suspends the dashboard and runs `claude "<command>"` in the foreground (requires the `claude` CLI) |
-| one Epic | `... --epic=E1` | Limit the tree to that Epic |
-| machine-readable | `... --json` | Derived states as JSON |
+| one Epic | `... --epic=E1` | Limit the tree to that Epic (and its subtree). Orphans belong to no Epic, so a filter excludes them |
+| machine-readable | `... --json` | Derived states as JSON. `--epic` narrows it exactly as it narrows the tree, and the `filters` object records what was applied — `summary` always covers the whole manifest |
 | report file | `... --md[=PATH]` | Also write Markdown (default `reports/backlog/backlog-status.md`) |
-| display fixes | `... --ascii`, `--ambiguous-width=2`, `--lang=ja\|en`, `--width=N`, `--debug` | Same semantics as `tools/token-cost-report.sh` — see that skill's "When the bars look wrong" table |
+| custom poll interval | `... --watch=SEC` | Live dashboard re-checking the manifest every SEC seconds (default 10; `--live` is the same flag) |
+| display fixes | `... --ascii`, `--glyphs=auto\|ascii\|unicode`, `--ambiguous-width=2`, `--color\|--no-color`, `--lang=ja\|en`, `--width=N`, `--debug` | Same semantics as `tools/token-cost-report.sh` — see that skill's "When the bars look wrong" table |
+
+Exit codes: `0` rendered, `1` no project or no `backlog-manifest.json`, `2` bad usage —
+including an unknown `--epic`, which is reported with the manifest's real Epic IDs instead
+of rendering an empty tree.
+
+The header's pipeline strip (`pipeline 9/24 ▶ define-scope ↺ 2`) is derived by the same
+state layer as the pipeline view, so it counts the manifest's phases — not just the ones
+the registry happens to mention — and drops invalidated (`stale`) phases from the
+completed count exactly as that view does.
 
 **Live modes belong in the user's own terminal, not in an in-session tool call.** When
 the user asks to watch progress live, do not run the dashboard yourself — tell them to
@@ -75,7 +85,8 @@ the script starts the live dashboard on a terminal, which never exits on its own
   authoritative rendering (this tool does not fetch live bodies).
 - **Parents** use their own `impl.status` (merge-issue writes roll-ups) or aggregate
   their children; `n/m` counts descend over Issues.
-- Contracts are asserted by `tools/lib/backlog_status_data.test.py`.
+- Contracts are asserted by `tools/lib/backlog_status_data.test.py` (state derivation)
+  and `tools/nexus-status.test.sh` (the CLI: exit codes, output modes, filters).
 
 ## Reporting Back
 

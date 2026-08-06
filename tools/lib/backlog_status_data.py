@@ -30,10 +30,14 @@ FOLLOWUP_ID = re.compile(r"^I(\d+(?:\.\d+)*)\.F(\d+)$")
 # Delivery-status glyphs. All Unicode picks are East Asian Ambiguous or Neutral and go
 # through D.dw(), so --ambiguous-width=2 keeps columns honest; the ASCII set engages
 # automatically in ASCII mode (--ascii, --lang=ja, or a non-UTF-8 stdout).
+# `stale` is not a delivery status — it is the pipeline strip's invalidated-phase count,
+# kept identical to the pipeline view's glyph so one symbol means one thing in both tabs.
 STATUS_GLYPHS_UNICODE = {"todo": "○", "doing": "◐", "review": "◎", "done": "●",
-                         "blocked": "✗", "followup": "F", "drift": "↯", "current": "▶"}
+                         "blocked": "✗", "followup": "F", "drift": "↯", "current": "▶",
+                         "stale": "↺"}
 STATUS_GLYPHS_ASCII = {"todo": "o", "doing": "~", "review": "?", "done": "*",
-                       "blocked": "x", "followup": "F", "drift": "!", "current": ">"}
+                       "blocked": "x", "followup": "F", "drift": "!", "current": ">",
+                       "stale": "@"}
 SG = STATUS_GLYPHS_ASCII if D.ASCII_ONLY else STATUS_GLYPHS_UNICODE
 
 # Tree-drawing glyphs, kept local (not added to token_cost_data's tables).
@@ -60,11 +64,13 @@ BS_LABELS = {
         "no_clipboard": "clipboard unavailable - command shown above",
         "paste_hint": "(paste into Claude Code)",
         "exec_hint": "run with --exec to launch claude from here",
-        "actions": "actions", "keys": " ^v/jk select | <> fold | Enter actions | s sync"
-                                     " | f filter | o url | c copy | r refresh | q quit",
+        "actions": "actions", "keys": " ^v/jk select | <> fold | Enter actions | Tab view"
+                                     " | a ask | s sync | f filter | o url | c copy"
+                                     " | r refresh | ? help | q quit",
         "menu_keys": "Enter copy | e run via claude | Esc close",
         "filter": "filter", "all": "all", "unparented": "(unparented)",
-        "too_small": "terminal too small",
+        "too_small": "terminal too small", "empty": "nothing to show",
+        "unknown_epic": "unknown epic: %s", "known_epics": "epics in this manifest: %s",
         "help_glyphs": "backlog glyphs",
         "help_stages": "implemented / reviewed / merged",
         "help_followup": "follow-up item (captured mid-delivery)",
@@ -74,12 +80,12 @@ BS_LABELS = {
         "ask_summary": "Summarize what has happened on this item so far.",
     },
     "ja": {
-        "title": "バックログデリバリー", "live": "LIVE", "issues": "Issues", "done": "done",
+        "title": "バックログデリバリー", "live": "LIVE", "issues": "Issue", "done": "完了",
         "detail": "詳細", "no_manifest": "バックログマニフェストがありません",
         "pipeline": "パイプライン", "checked": "確認", "every": "%s秒毎",
         "synced": "トラッカー同期", "not_synced": "トラッカー未同期 (s)",
         "syncing": "トラッカー同期中...", "sync_failed": "トラッカー同期失敗",
-        "status": "状態", "stages": "ステージ", "issue": "issue", "pr": "pr",
+        "status": "状態", "stages": "ステージ", "issue": "Issue", "pr": "PR",
         "origin": "起源", "updated": "更新", "impl_files": "ファイル",
         "decisions": "決定", "review_doc": "レビュー", "queue": "フォローアップキュー",
         "queued_entries": "未処理 %d 件", "drift": "トラッカー %s / マニフェスト %s - トラッカー優先",
@@ -88,11 +94,14 @@ BS_LABELS = {
         "no_clipboard": "クリップボード利用不可 - 上記コマンドを使用",
         "paste_hint": "(Claude Code に貼り付け)",
         "exec_hint": "--exec 付きで起動すると claude をここから実行できます",
-        "actions": "アクション", "keys": " ^v/jk 選択 | <> 開閉 | Enter アクション | s 同期"
-                                        " | f フィルタ | o URL | c コピー | r 更新 | q 終了",
+        "actions": "アクション", "keys": " ^v/jk 選択 | <> 開閉 | Enter アクション"
+                                        " | Tab ビュー | a 質問 | s 同期 | f フィルタ"
+                                        " | o URL | c コピー | r 更新 | ? ヘルプ | q 終了",
         "menu_keys": "Enter コピー | e claude 実行 | Esc 閉じる",
         "filter": "フィルタ", "all": "全て", "unparented": "(親なし)",
-        "too_small": "画面が小さすぎます",
+        "too_small": "画面が小さすぎます", "empty": "表示するものがありません",
+        "unknown_epic": "存在しない Epic: %s",
+        "known_epics": "このマニフェストの Epic: %s",
         "help_glyphs": "バックログの記号",
         "help_stages": "実装 / レビュー / マージ",
         "help_followup": "フォローアップ項目 (デリバリー中に発見)",
@@ -257,7 +266,34 @@ def overall_summary(manifest, states):
 
 # ----------------------------------------------------------------- side inputs
 def load_pipeline(project_dir):
-    """Phase progress strip data from work/pipeline-progress.json, or None."""
+    """Phase progress strip data for the backlog header, or None.
+
+    Derived by the pipeline view's own state layer rather than counted off the registry,
+    so this strip cannot contradict the pipeline tab sitting one Tab away: the manifest
+    supplies the phase total (not "however many the registry happens to mention"), the
+    filesystem fills in phases no skill recorded, and an invalidated phase leaves the
+    completed count the same way it does there.
+
+    Returns None when the project has no pipeline at all. If the pipeline module is
+    unusable for any reason the registry count stands in, so the backlog view keeps
+    working on its own.
+    """
+    try:
+        import pipeline_status_data as P
+        state = P.derive_all(project_dir)
+        if not state["has_progress"] and not any(
+                p["written"] for p in state["phases"].values()):
+            return None
+        s = state["summary"]
+        return {"total": s["total"], "completed": s["completed"],
+                "current": state["current"], "stale": s["stale"],
+                "next": state["next"]}
+    except Exception:
+        return _pipeline_from_registry(project_dir)
+
+
+def _pipeline_from_registry(project_dir):
+    """Fallback strip: the raw registry counts, with no manifest or filesystem input."""
     data = D.load_json(os.path.join(project_dir, "work", "pipeline-progress.json"))
     if not isinstance(data, dict) or not isinstance(data.get("phases"), dict):
         return None
@@ -266,7 +302,8 @@ def load_pipeline(project_dir):
                     if (p or {}).get("status") in ("completed", "skipped"))
     current = next((name for name, p in phases.items()
                     if (p or {}).get("status") == "in_progress"), None)
-    return {"total": len(phases), "completed": completed, "current": current}
+    return {"total": len(phases), "completed": completed, "current": current,
+            "stale": 0, "next": None}
 
 
 def followup_queue_count(project_dir):

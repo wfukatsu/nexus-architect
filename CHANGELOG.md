@@ -7,6 +7,72 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
+## [Unreleased]
+
+### Fixed
+- **The pipeline dashboard reported a finished project as entirely `pending`.** The
+  progress registry held unconditional authority over a phase's status, but it is written
+  by a soft "update `pipeline-progress.json`" step at the end of each SKILL.md — a step
+  that is routinely skipped, and never runs at all when a phase is invoked outside an
+  orchestrator. Every unstamped phase therefore stayed at the `pending` it was born with,
+  so a project with all 23 phases' reports on disk rendered `2/23 完了`, with each row
+  contradicting itself (`[====] 4/4 ○ pending`). `pending` is now treated as what it is —
+  the initial value, asserting nothing — and loses to declared outputs that actually
+  exist; `in_progress` / `completed` / `failed` / `skipped` are claims a skill really made
+  and keep their authority. The disagreement is still surfaced as drift, so an unstamped
+  registry stays visible rather than being silently papered over. This also restores
+  staleness on those phases: a `pending` phase can never go stale, so the invalidation
+  chain that un-completes everything downstream of an edited report was suppressed
+  wherever the registry had gone unstamped.
+- **The status dashboard's two tabs no longer contradict each other.** The backlog view's
+  pipeline strip counted the progress registry directly — so its total was "however many
+  phases the registry happens to mention" and it ignored staleness, leaving the same
+  screen reading `pipeline 2/5` in one tab and `Phases 2/24 done` in the other one Tab
+  away. The strip is now derived by the pipeline view's own state layer: the manifest
+  supplies the total, the filesystem fills in phases no skill recorded, invalidated
+  phases leave the completed count, and the strip carries their number (`↺ 2`).
+- **The backlog view's key legend and Japanese labels caught up with the unified
+  dashboard.** `Tab` (switch view), `a` (ask Claude) and `?` (help) all worked but were
+  missing from the bottom bar, and four header labels stayed English under `--lang=ja`
+  (`Issues 1/2 done` beside the pipeline tab's fully localized `フェーズ 1/24 完了`).
+- **`/architect:investigate-security` declared an output filename it should never have
+  written**: `reports/before/{project}/architect:investigate-security.md` — a colon in a
+  filename, off the kebab-case convention, and unmatchable in practice. It is now
+  `security-assessment.md`, in the skill and in the dashboard's output table alike.
+- **A misspelled `--phase` / `--epic` is a usage error (exit 2), not an empty tree.** Both
+  rendered a header with nothing under it and exited 0, which reads like "this phase is
+  empty" rather than "no such phase"; they now name the real phases / Epic IDs on stderr.
+  A filter that legally matches nothing — `--group=extension` on a product project —
+  says so on the render ("nothing to show", plus the reason) and still exits 0.
+
+### Changed
+- **`--group` / `--phase` / `--epic` now narrow `--json` exactly as they narrow the
+  tree**, instead of being silently dropped, and every JSON render carries a `filters`
+  object recording what was applied (`summary` still covers the whole project). The
+  per-phase footers of a filtered text render — stale, drift, failed — likewise report on
+  the rows on screen rather than on phases the reader deliberately narrowed away.
+- **The live dashboard notices an overwritten report.** The refresh poll compared
+  directory mtimes two levels into `reports/`, and overwriting an existing file changes no
+  directory mtime at all — precisely the case staleness is about, and precisely where
+  architect writes (`reports/before/{project}/*.md`, `reports/review/individual/*.json`).
+  It now stats the files themselves, three levels deep, under a bounded entry budget.
+- **The manual extension tier is declared as completely as the core pipeline.** Its
+  phases listed one output where the skill writes three or four (`estimate-cost`,
+  `design-implementation`, `generate-test-specs`, `generate-scalardb-code`,
+  `generate-infra-code`), so their output bars could only read 0/1 or 1/1; each now lists
+  what its SKILL.md promises. `report-token-cost` joins the tier as its fifteenth member.
+
+### Added
+- **`tools/nexus-status.test.sh`** — an executable check of the dashboard's CLI contract,
+  the layer above the two data modules: project resolution and the 0/1/2 exit codes, view
+  selection, every output mode (including `--md` frontmatter and `--ascii` purity), the
+  filters applying to `--json`, unknown filters failing as usage, the two views agreeing,
+  and the refresh poll noticing an overwritten depth-3 report. The derivation test now
+  also pins the extension tier against the docs and each skill's own Output table, so a
+  skill added to the tier cannot quietly go unrepresented in the dashboard.
+- Dashboard options that existed but were undocumented are now in the skill docs:
+  `--watch[=SEC]` / `--live`, `--glyphs`, `--color` / `--no-color`, and `--plugin`.
+
 ## [0.21.1] - 2026-08-07
 
 ### Fixed
