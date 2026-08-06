@@ -84,6 +84,7 @@ Requires `gh` / `glab` authenticated.
 | `/architect:implement-backlog` | sonnet | Implements one item Epic-consistently on a working branch; Step 5b runs `generate-docs` so docs ship in the same PR/MR |
 | `/architect:review-issue` | opus | Whole-Epic consistency review, bounded blocker auto-fix loop, opens the PR/MR and hands off for approval |
 | `/architect:merge-issue` | opus | Merge preflight + explicit confirmation, merge, close the Issue, roll up to Sub-Epic/Epic |
+| `/architect:capture-followup` | sonnet | Queue follow-up work discovered mid-delivery, then register it as Issues linked to the in-flight Sub-Epic/Epic (`F`-namespace manifest nodes) |
 
 Progress is reflected on the tracker as `status::*` labels, progress comments, and ticked
 checkboxes (acceptance criteria when implemented/verified; a parent's task-list box when its child

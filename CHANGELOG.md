@@ -9,6 +9,22 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+### Added
+- **`/architect:capture-followup` (new skill, sonnet): follow-up capture for backlog delivery.**
+  Work discovered mid-delivery — deferred tasks, out-of-scope findings, doc drift, split-off scope,
+  waived acceptance criteria — previously dead-ended in comments and review prose. The skill
+  captures it into a reviewable queue (`reports/backlog/followup-queue.md`) without interrupting
+  the semi-autonomous implement run, then, after an explicit approval gate, registers the entries
+  as tracker Issues labeled `status::todo`, linked to the in-flight Sub-Epic/Epic (native Epic
+  link, or an unticked child box appended in place), and appended to `backlog-manifest.json` under
+  a dedicated `F`-suffixed local-ID namespace (`I1.2.F1`) with an `origin` trail — disjoint by
+  construction from `export-backlog`'s positional IDs, which now explicitly preserve follow-up
+  nodes on `--update`. `implement-backlog`, `review-issue`, and `merge-issue` route their deferral
+  points to the queue via `--queue-only`; `deliver-backlog` picks the created Issues up as
+  ordinary `status::todo` work. The ID/manifest contract is asserted by
+  `skills/capture-followup/followup-contract.test.py`, and the checklist contract gains the
+  "append an unticked child box" operation owned by this skill.
+
 ## [0.20.0] - 2026-08-05
 
 ### Added

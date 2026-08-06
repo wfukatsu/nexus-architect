@@ -45,6 +45,10 @@ is the creation seed `export-backlog` wrote and is not advanced as work progress
 would re-deliver finished Issues. When the two disagree, the tracker wins and the manifest is
 brought up to date.
 
+Follow-up nodes added by `/architect:capture-followup` (`F`-suffixed local IDs, an `origin` field)
+are ordinary Issues to this orchestrator: they join the working set as `status::todo` and flow
+through the same implement → review → merge loop, with no special handling.
+
 ## Command-Line Options
 
 - `--epic=<id>`: Deliver the Issues under this Epic. If omitted, the target Epic is chosen interactively.
@@ -125,4 +129,5 @@ Epic's overall progress.
 | /architect:implement-backlog | Stage (a) — implements each Issue |
 | /architect:review-issue | Stage (b) — reviews, auto-fixes blockers, raises the PR/MR |
 | /architect:merge-issue | Stage (d) — merges after approval and rolls up |
+| /architect:capture-followup | Adds follow-up Issues mid-delivery; they enter this loop as `status::todo` |
 | /architect:pipeline | Analogue — the analysis/design pipeline orchestrator |

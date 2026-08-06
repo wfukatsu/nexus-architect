@@ -9,6 +9,21 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+### 追加
+- **`/architect:capture-followup`（新規スキル、sonnet）: バックログデリバリー向けフォローアップ捕捉。**
+  デリバリー中に発見される作業 — 先送りタスク、スコープ外の指摘、ドキュメントドリフト、Issue 分割で
+  切り出したスコープ、マージ時に waive された受入条件 — は従来コメントやレビュー文中で行き止まりに
+  なっていた。本スキルはそれらをレビュー可能なキュー（`reports/backlog/followup-queue.md`）に、
+  半自律の実装ランを中断せずに捕捉し、明示的な承認ゲートを経てトラッカー Issue として起票する:
+  `status::todo` ラベル付与、対応中の Sub-Epic/Epic への紐付け（ネイティブ Epic リンク、または
+  未チェックの子ボックスをインプレース追記）、`backlog-manifest.json` への `F` 番台ローカル ID
+  （`I1.2.F1`）+ `origin` トレイル付きノード追記。`F` 番台は `export-backlog` の位置採番 ID と
+  構造的に非交差で、`--update` はフォローアップノードを明示的に保持する。`implement-backlog`・
+  `review-issue`・`merge-issue` は各先送りポイントを `--queue-only` でキューに接続し、
+  `deliver-backlog` は起票された Issue を通常の `status::todo` 作業として取り込む。ID/マニフェスト
+  契約は `skills/capture-followup/followup-contract.test.py` が検証し、チェックリスト契約には本スキルが
+  所有する「未チェック子ボックスの追記」操作が加わる。
+
 ## [0.20.0] - 2026-08-05
 
 ### 追加

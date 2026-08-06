@@ -146,7 +146,9 @@ If the verdict has `[B]` blockers and `--no-fix` is not set (and the verdict is 
 4. **On non-convergence** (guard tripped with blockers remaining): do **not** keep looping.
    - Append a comment to the Issue listing the unresolved blocker(s), what was tried each round, and
      an explicit **"Decision needed"** request with concrete options (e.g. accept-as-is / change
-     approach / split the Issue / adjust acceptance criteria).
+     approach / split the Issue / adjust acceptance criteria). When the user chooses **split the
+     Issue**, queue the split-off scope via `/architect:capture-followup <title> --queue-only` so it
+     becomes a linked follow-up Issue instead of a comment-only intention.
    - Set the Issue to `status::blocked`.
    - Ask the user via AskUserQuestion how to proceed, and stop.
 
@@ -159,7 +161,10 @@ If the verdict has `[B]` blockers and `--no-fix` is not set (and the verdict is 
   complete.
 - Push the working branch. Open a PR/MR that links and closes the Issue (`Closes #<iid>`), with a
   body assembled from the Issue, the review summary, the acceptance-criteria checklist, and any
-  remaining `[S]`/`[Q]` notes. GitLab: `glab mr create -s <branch> -t <base> --title … --description …`;
+  remaining `[S]`/`[Q]` notes. An `[S]`/`[Q]` finding that warrants its own work item (too large
+  for this Issue, or deliberately deferred) is additionally queued via
+  `/architect:capture-followup <title> --queue-only`, and its queue entry is named in the PR/MR
+  body — surfacing it in prose alone leaves it undeliverable. GitLab: `glab mr create -s <branch> -t <base> --title … --description …`;
   GitHub: `gh pr create --base <base> --head <branch> --title … --body …`.
 - Gate creation on user confirmation unless `--auto`. On `--dry-run`, stop after Step 3b (the
   review doc and the local knowledge-base update still happen) with no fixes, comments, or PR/MR —
@@ -195,3 +200,4 @@ If the verdict has `[B]` blockers and `--no-fix` is not set (and the verdict is 
 | /architect:merge-issue | Downstream — merges the PR/MR this skill raises, after approval |
 | /architect:export-backlog | Source of the manifest and Epic/Sub-Epic/Issue hierarchy |
 | /architect:review-consistency, /architect:review-synthesizer | Review lenses reused for the whole-Epic check |
+| /architect:capture-followup | Sink for split-off scope and deferred `[S]`/`[Q]` findings — queues them as follow-up Issues |

@@ -235,7 +235,10 @@ and the relevant `coding-standards.md` excerpts, and writes code under that root
 branch, following `coding-standards.md`, reusing/aligning sibling contracts, and satisfying the
 item's acceptance criteria — returning the changed-file list and self-review notes, not file
 contents. Sub-agents write only inside the resolved root; a unit that needs to write elsewhere
-stops and reports it instead of widening the scope on its own.
+stops and reports it instead of widening the scope on its own. When such a stop is genuinely
+deferrable work (not a blocker for this Issue), the orchestrator queues it via
+`/architect:capture-followup <title> --queue-only` so it becomes a tracked follow-up Issue
+instead of a dead-end note.
 Escalate a unit to opus only when it involves judgment-heavy design (2PC boundaries, cross-service
 data ownership, ambiguous contracts). Generate tests following the
 `/architect:generate-test-specs` conventions when the item warrants them. Apply the relevant
@@ -252,7 +255,9 @@ Run `/architect:generate-docs --scope=changed --source-root=<resolved root> --is
 changed. It updates in place (only its own marked sections; human prose is preserved), verifies the
 commands it documents against real build targets, and commits the doc changes to the **same working
 branch** — so they reach the same PR/MR as the code and are reviewed together in Step 6. Any
-design-vs-code drift it reports is appended to the Issue as a finding, not resolved in prose. Skip
+design-vs-code drift it reports is appended to the Issue as a finding, not resolved in prose —
+and, when fixing the drift is out of this Issue's scope, also queued via
+`/architect:capture-followup --queue-only` so it stays deliverable. Skip
 only when the item changes no documented surface (e.g. an internal-only refactor with no behaviour,
 config, interface, or command change) — say so in the Step 7 comment when skipped.
 
@@ -263,7 +268,9 @@ config, interface, or command change) — say so in the Step 7 comment when skip
    and the Step 3 digest, and returns a pass/findings verdict: does the change conflict with
    sibling Issues' contracts or recorded decisions (naming, API shapes, data model, ubiquitous
    language, NFR budgets)? Fix small inconsistencies (route them back to the Step 5 implementer);
-   surface larger ones as findings on the item and, if needed, on the Epic.
+   surface larger ones as findings on the item and, if needed, on the Epic — and queue the ones
+   that warrant their own work item via `/architect:capture-followup --queue-only`, so a finding
+   too big for this Issue becomes a follow-up Issue rather than prose.
 3. **Record cross-cutting decisions** — any new decision that affects other items is appended to
    `shared-context/decisions.md`, closing the consistency loop.
 4. **On-demand Epic roll-up** — `--review-epic[=<id>]` **delegates to an opus sub-agent** a
@@ -278,7 +285,9 @@ the comments and the `impl-log/` mirror to a haiku sub-agent** (mechanical summa
 collected results); the orchestrator executes the actual `glab`/`gh` writes. On `--dry-run`, stop
 before any remote write and report the intended changes.
 - **Issue** — comment with what was implemented (files, key decisions, deviations), the
-  acceptance-criteria checklist status, and the review result; transition status to
+  acceptance-criteria checklist status, any follow-ups queued during this item (their
+  `followup-queue.md` entries, so the deferral is visible on the tracker), and the review result;
+  transition status to
   **`status::review` at most**. **Tick the acceptance-criteria checkboxes** this item's committed
   code actually satisfies — edit the Issue body in place per @skills/common/backlog-checklists.md,
   flipping only `[ ]` → `[x]` on the criteria you can point at a commit/test/doc for, and list every
@@ -295,7 +304,9 @@ before any remote write and report the intended changes.
   the node in `backlog-manifest.json` with `impl: { status, files, decisions, updated_at }`.
 
 ### Step 8 — Continue
-Offer the next `doing` / `todo` item under the same Epic (confirm before starting) or stop.
+If this item queued follow-ups, offer to flush them now (`/architect:capture-followup --flush` —
+its approval gate applies) so the deferred work becomes tracker Issues while the context is fresh.
+Then offer the next `doing` / `todo` item under the same Epic (confirm before starting) or stop.
 
 ## Acceptance Criteria
 
@@ -330,4 +341,5 @@ Offer the next `doing` / `todo` item under the same Epic (confirm before startin
 | /architect:generate-scalardb-code | Reference for code layout/conventions — note it emits regenerable scaffolding to `generated/{service}/`, whereas this skill writes merge-bound code to the source tree |
 | /architect:generate-test-specs | Reference for test generation |
 | /architect:generate-docs | Step 5b — documents the implemented code onto the same branch/PR |
+| /architect:capture-followup | Sink for deferrable work discovered in Steps 5/5b/6 — queues it, then turns it into linked follow-up Issues |
 | /architect:review-consistency, /architect:review-synthesizer | Review lenses reused by the Epic roll-up |

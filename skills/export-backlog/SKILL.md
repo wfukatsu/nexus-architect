@@ -134,7 +134,9 @@ pre-empted in the Issues you synthesize (see Step 2).
 
 ### Step 2 — Synthesize the hierarchy
 Apply the Mapping Model. Assign stable local IDs: `E1`, `SE1.1`, `I1.1.1` … (Epic → Sub-Epic →
-Issue). Attach labels: `type:epic|sub-epic|issue`, a domain label per Sub-Epic
+Issue). These **positional IDs** are the only namespace this skill owns: follow-up nodes added
+later by `/architect:capture-followup` carry `F`-suffixed IDs (`I1.2.F1`) and an `origin` field —
+never assign, renumber, or reassign those, here or on a re-run. Attach labels: `type:epic|sub-epic|issue`, a domain label per Sub-Epic
 (`domain:<context>`), `tier:core|supporting|generic` where known, and an initial **status label**
 `status::todo` (GitHub form: `status:todo`) on every node so the downstream
 `/architect:implement-backlog` skill can select in-progress work. Keep every node traceable to at
@@ -173,7 +175,9 @@ not approved.
 ### Step 5 — Create the hierarchy (idempotent)
 Process the manifest top-down (Epics → Sub-Epics → Issues). For each node, if
 `remote.url` is already set (or an item with the same title + `type:` label already exists on the
-target), **skip creation** and, with `--update`, sync title/body/labels instead. Write
+target), **skip creation** and, with `--update`, sync title/body/labels instead. Nodes with an
+`F`-suffixed `local_id` or an `origin` field belong to `/architect:capture-followup`: preserve
+them verbatim in the manifest and never re-synthesize, renumber, or `--update` them from reports. Write
 `remote: { id, iid, url, created_at }` back into `backlog-manifest.json` immediately after each
 successful create so an interrupted run resumes cleanly.
 
