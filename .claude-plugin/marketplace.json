@@ -86,6 +86,7 @@
         "./skills/review-issue",
         "./skills/merge-issue",
         "./skills/capture-followup",
+        "./skills/report-backlog-status",
         "./skills/migrate-database",
         "./skills/migrate-oracle",
         "./skills/migrate-mysql",
