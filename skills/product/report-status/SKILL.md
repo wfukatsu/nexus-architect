@@ -8,9 +8,11 @@ description: |
   /product:report-status [--once] [--phase=<name>] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en] to invoke.
   Wraps ${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh, which on a terminal defaults to a
   live dashboard polling work/pipeline-progress.json every 10s, with an action menu that
-  generates the next slash command per phase and an `a` key that asks Claude about the
-  selected phase. The live mode runs in the user's own terminal, so pass --once for an
-  in-session render. Only runs when explicitly invoked.
+  generates the next slash command per phase, an `a` key that asks Claude about the
+  selected phase, and a Tab key that cycles the dashboard's other views — Architect (the
+  architect pipeline), Code Generation and Backlog Delivery. The live mode runs in the
+  user's own terminal, so pass --once for an in-session render.
+  Only runs when explicitly invoked.
 model: haiku
 user_invocable: true
 disable-model-invocation: true
@@ -40,19 +42,25 @@ One script does the whole job: `${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh`.
 
 | Invocation | Command | Effect |
 |-----------|---------|--------|
-| default (user's TTY) | `tools/nexus-status.sh --plugin=product` | Live dashboard: foldable phase tree grouped by pipeline stage + detail pane + action menu |
-| in-session render | `tools/nexus-status.sh --view=pipeline --once` | Static tree, prints and exits — **always use this when running it yourself** |
+| default (user's TTY) | `tools/nexus-status.sh --view=product` | Live dashboard: foldable phase tree grouped by pipeline stage + detail pane + action menu |
+| in-session render | `tools/nexus-status.sh --view=product --once` | Static tree, prints and exits — **always use this when running it yourself** |
+| the frontend codegen | `... --view=codegen --once` | `/product:generate-frontend` lives in the Code Generation view with the architect codegen phases, not in this tree |
 | one phase | `... --phase=validate-assumptions --once` | Render a single phase with its outputs (one-shot renders only; the live dashboard ignores it) |
 | run from the dashboard | `... --exec` | The action menu's `e` key and the `a` ask key suspend the dashboard and run `claude` in the foreground (requires the `claude` CLI) |
 | machine-readable | `... --json` | Derived phase states as JSON (includes the gate verdict). `--phase` narrows it exactly as it narrows the tree, and the `filters` object records what was applied — `summary` always covers the whole project |
-| report file | `... --md[=PATH]` | Also write Markdown (default `reports/pipeline-status.md`) |
+| report file | `... --md[=PATH]` | Also write Markdown (default `reports/pipeline-status.md`, or `reports/codegen-status.md` for `--view=codegen`) |
 | custom poll interval | `... --watch=SEC` | Live dashboard re-checking the inputs every SEC seconds (default 10; `--live` is the same flag) |
 | display fixes | `... --ascii`, `--glyphs=auto\|ascii\|unicode`, `--ambiguous-width=2`, `--color\|--no-color`, `--lang=ja\|en`, `--width=N`, `--debug` | Same semantics as `tools/token-cost-report.sh` |
 
-The pipeline is detected from the recorded phase names; `--plugin=product` forces it for
-a project whose registry is still empty. `--group=core|extension` is an architect-only
-filter — the product pipeline has no manual extension tier, so `--group=extension` here
-renders a "nothing to show" line saying exactly that.
+Product and architect are separate pipelines, so they are separate views: `--view=product`
+names this one outright rather than relying on the plugin detected from the recorded phase
+names (which `--view=auto` and `--plugin=product` still do). `--group=core|extension` is an
+architect-only filter — the product pipeline has no manual extension tier, so
+`--group=extension` here renders a "nothing to show" line saying exactly that.
+
+`/product:generate-frontend` is **not** in this tree. Code generation is run by hand after
+the pipeline and emits code rather than reports, so it has its own view alongside the
+architect codegen phases (`--view=codegen`, or `Tab` twice from here).
 
 Exit codes: `0` rendered, `1` no project, `2` bad usage — including an unknown `--phase`,
 which is reported with the pipeline's real phase names instead of an empty tree.
@@ -61,7 +69,7 @@ which is reported with the pipeline's real phase names instead of an empty tree.
 the user asks to watch progress live, tell them to run, prefixing with `!` inside
 Claude Code:
 
-- `!${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh --plugin=product`
+- `!${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh --view=product`
 - add `--exec` to launch phases (and ask questions) straight from the menu
 
 Always pass `--once` (or `--json`/`--md`) when running it yourself.
@@ -112,5 +120,6 @@ After relaying a `--once` render:
 |-------|-------------|
 | /product:start | The run this dashboard observes; it writes the registry it reads |
 | /product:validate-assumptions | Owns the gate verdict shown in the header |
-| /architect:report-status | The same dashboard for the architect pipeline |
-| /architect:report-backlog-status | The backlog delivery view of the same tool (Tab key) |
+| /product:generate-frontend | Tracked in the same tool's Code Generation view, not in this one |
+| /architect:report-status | The Architect view of the same tool (Tab key) |
+| /architect:report-backlog-status | The Backlog Delivery view of the same tool (Tab key) |

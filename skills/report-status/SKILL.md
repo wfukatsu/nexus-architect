@@ -9,8 +9,9 @@ description: |
   Wraps ${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh, which on a terminal defaults to a
   live dashboard polling work/pipeline-progress.json every 10s, with an action menu that
   generates the next slash command per phase, an `a` key that asks Claude about the
-  selected phase, and a Tab key that switches to the backlog delivery view. The live
-  mode runs in the user's own terminal, so pass --once for an in-session render.
+  selected phase, and a Tab key that cycles the dashboard's other views — Product (the
+  product pipeline), Code Generation and Backlog Delivery. The live mode runs in the
+  user's own terminal, so pass --once for an in-session render.
   Only runs when explicitly invoked.
 model: haiku
 user_invocable: true
@@ -34,7 +35,7 @@ disagree — and can pick a phase and get the exact slash command to run next.
 | `@skills/common/skill-dependencies.yaml` | this repo | Phase order, dependencies, declared outputs, model tier |
 | `reports/**` (the declared outputs) | the phase skills | Progress inside a running phase, and the activity timestamp |
 | `work/token-usage.json`, `work/token-usage.jsonl` | `record_token_usage.py` hook | Per-phase cost and the "running now" heartbeat |
-| `reports/backlog/backlog-manifest.json` | /architect:export-backlog | Optional — backlog summary line and the Tab view |
+| `reports/backlog/backlog-manifest.json` | /architect:export-backlog | Optional — backlog summary line and the Backlog Delivery tab |
 
 ## Execution
 
@@ -43,14 +44,16 @@ One script does the whole job: `${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh`.
 | Invocation | Command | Effect |
 |-----------|---------|--------|
 | default (user's TTY) | `tools/nexus-status.sh` | Live dashboard: foldable phase tree + detail pane + action menu, inputs re-checked every 10s |
-| in-session render | `tools/nexus-status.sh --view=pipeline --once` | Static tree, prints and exits — **always use this when running it yourself** |
+| in-session render | `tools/nexus-status.sh --view=architect --once` | Static tree, prints and exits — **always use this when running it yourself** |
+| the other pipeline | `... --view=product --once` | The product pipeline's tree — a separate pipeline, so a separate view (`/product:report-status`) |
+| code generation | `... --view=codegen --once` | The code-generation phases of both plugins, grouped by plugin — they are not part of either pipeline tree |
 | core phases only | `... --group=core` | Hide the manual extension tier |
 | extension tier only | `... --group=extension` | Only the skills the pipeline never runs |
 | one phase | `... --phase=analyze --once` | Render a single phase with its outputs (one-shot renders only; the live dashboard ignores it) |
-| force the pipeline | `... --plugin=product\|architect` | Override the pipeline detected from the recorded phase names |
+| force the pipeline | `... --plugin=product\|architect` | Which pipeline `--view=pipeline\|auto` resolves to, when the detection from the recorded phase names is wrong |
 | run from the dashboard | `... --exec` | The action menu's `e` key and the `a` ask key suspend the dashboard and run `claude` in the foreground (requires the `claude` CLI) |
 | machine-readable | `... --json` | Derived phase states as JSON. `--group` / `--phase` narrow it exactly as they narrow the tree, and the `filters` object records what was applied — `summary` always covers the whole project |
-| report file | `... --md[=PATH]` | Also write Markdown (default `reports/pipeline-status.md`) |
+| report file | `... --md[=PATH]` | Also write Markdown (default `reports/pipeline-status.md`, or `reports/codegen-status.md` for `--view=codegen`) |
 | custom poll interval | `... --watch=SEC` | Live dashboard re-checking the inputs every SEC seconds (default 10; `--live` is the same flag) |
 | display fixes | `... --ascii`, `--glyphs=auto\|ascii\|unicode`, `--ambiguous-width=2`, `--color\|--no-color`, `--lang=ja\|en`, `--width=N`, `--debug` | Same semantics as `tools/token-cost-report.sh` — see that skill's "When the bars look wrong" table |
 
@@ -69,6 +72,33 @@ run, prefixing with `!` inside Claude Code:
 
 Always pass `--once` (or `--json`/`--md`) when running it yourself: with no mode flag
 the script starts the live dashboard on a terminal, which never exits on its own.
+
+## The four views
+
+The dashboard is one tool with four tabs, cycled with `Tab` / `Shift-Tab` and selectable
+directly with `--view=`. Each keeps its own selection, folds and status filter, and a tab
+this project has nothing behind is dimmed and skipped by `Tab`.
+
+| View | `--view=` | What it holds |
+|------|-----------|---------------|
+| Product | `product` | The product pipeline's phases (`skills/product/common/skill-dependencies.yaml`) |
+| Architect | `architect` | The architect pipeline's phases, core tier plus the manual extension tier |
+| Code Generation | `codegen` | `generate-scalardb-code`, `generate-infra-code`, `generate-docs` and `/product:generate-frontend`, grouped by plugin |
+| Backlog Delivery | `backlog` | The Epic → Sub-Epic → Issue tree (`/architect:report-backlog-status`) |
+
+Why they are separate rather than one tree:
+
+- **Product and architect are two pipelines**, with their own manifests, phase names and
+  entry points. Which one a tab shows is stated, never guessed — the old single view had
+  to detect a plugin from the recorded phase names and then hid the other one entirely.
+  A project that ran both shows both; `--view=auto` still opens the detected one.
+- **Code generation is neither.** It runs by hand after whichever pipeline designed the
+  system, it emits code into the target project rather than reports under `reports/`, and
+  the same tab covers both plugins — so each row offers *its own* plugin's slash command.
+  `generate-test-specs` stays in the architect pipeline: it writes specs, not code.
+- Dependencies still cross the boundary. `generate-scalardb-code` is blocked by
+  `design-implementation` on the Architect tab, and staleness propagates between them —
+  only the grouping and the progress fraction are per-view.
 
 ## How state is derived (and its honest limits)
 
@@ -123,7 +153,8 @@ After relaying a `--once` render:
 | Skill | Relationship |
 |-------|-------------|
 | /architect:pipeline, /architect:start | The runs this dashboard observes; they write the registry it reads |
-| /architect:report-backlog-status | The other view of the same tool (Tab key) |
+| /architect:report-backlog-status | The Backlog Delivery view of the same tool (Tab key) |
+| /architect:generate-scalardb-code, /architect:generate-infra-code, /architect:generate-docs | The phases the Code Generation view (`--view=codegen`) tracks |
 | /architect:report-token-cost | Sibling terminal dashboard; shares display conventions |
 | /architect:estimate-token-cost | A-priori cost estimate; this shows the recorded actual |
 | /product:report-status | The same dashboard for the product pipeline |

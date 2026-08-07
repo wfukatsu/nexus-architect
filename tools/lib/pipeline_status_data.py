@@ -25,6 +25,11 @@ is reported as **stale**, and the invalidation propagates down the dependency gr
 fixing an early phase visibly un-completes everything derived from it instead of leaving
 a tree that claims to be finished.
 
+product and architect are two separate pipelines, and code generation is neither — so a
+state describes one `plugin` and one `section` ("pipeline" or "codegen"), which is what
+the dashboard's Product / Architect / Code Generation tabs each ask for. derive_codegen
+merges both plugins' codegen sections into the single tree that tab shows.
+
 Consumed by tools/lib/pipeline_status_report.py (one-shot / JSON / Markdown) and
 tools/lib/pipeline_status_view.py (the live dashboard's pipeline tab). Display helpers
 (dw/pad/clip/bar/glyphs/ASCII detection) come from token_cost_data, which reads the same
@@ -75,6 +80,13 @@ STALE_GRACE = 5.0
 PS_LABELS = {
     "en": {
         "title": "Pipeline Progress", "phases": "Phases", "done": "done",
+        "tab_product": "Product", "tab_architect": "Architect",
+        "tab_codegen": "Code Generation",
+        "title_product": "Product Pipeline", "title_architect": "Architect Pipeline",
+        "title_codegen": "Code Generation",
+        "no_product": "the product pipeline has not run in this project",
+        "no_architect": "the architect pipeline has not run in this project",
+        "no_codegen": "no code-generation phase is available yet",
         "no_progress": "no work/pipeline-progress.json",
         "status": "status",
         "outputs": "outputs", "declared": "declared outputs", "deps": "depends on",
@@ -111,6 +123,8 @@ PS_LABELS = {
         "group_spec": "Specification", "group_codegen": "Code Generation",
         "group_domain": "Domain & API", "group_quality": "Quality & NFR",
         "group_adaptation": "Adaptation",
+        "group_product": "Product (frontend)",
+        "group_architect": "Architect (services & infrastructure)",
         "group_other": "Recorded outside the manifest",
         "help_glyphs": "pipeline glyphs",
         "help_outputs": "declared outputs that exist on disk",
@@ -127,6 +141,14 @@ PS_LABELS = {
     },
     "ja": {
         "title": "パイプライン進捗", "phases": "フェーズ", "done": "完了",
+        "tab_product": "プロダクト", "tab_architect": "アーキテクト",
+        "tab_codegen": "コード生成",
+        "title_product": "プロダクトパイプライン",
+        "title_architect": "アーキテクトパイプライン",
+        "title_codegen": "コード生成",
+        "no_product": "このプロジェクトでは product パイプラインは実行されていません",
+        "no_architect": "このプロジェクトでは architect パイプラインは実行されていません",
+        "no_codegen": "実行可能なコード生成フェーズがまだありません",
         "no_progress": "work/pipeline-progress.json がありません",
         "status": "状態",
         "outputs": "出力", "declared": "宣言された出力", "deps": "依存",
@@ -163,6 +185,8 @@ PS_LABELS = {
         "group_spec": "仕様化", "group_codegen": "コード生成",
         "group_domain": "ドメイン & API", "group_quality": "品質 & NFR",
         "group_adaptation": "変更適応",
+        "group_product": "プロダクト (フロントエンド)",
+        "group_architect": "アーキテクト (サービス & インフラ)",
         "group_other": "マニフェスト外の記録",
         "help_glyphs": "パイプラインの記号",
         "help_outputs": "宣言された出力のうち実在するもの",
@@ -431,6 +455,25 @@ EXTENSION_PHASES = {
     "report-token-cost": dict(category="extension", model="sonnet", depends_on=[], outputs=[]),
 }
 
+# Code generation is its own dashboard tab, not a step of either pipeline. These phases
+# emit runnable code — or the documentation for code that exists — into the target
+# project rather than a design report, they are run by hand after the pipeline that
+# designed them, and they are the same kind of work whichever plugin they belong to.
+# Naming them here is what takes them out of their plugin's pipeline tab and collects
+# them, both plugins together, in the codegen tab.
+#
+# `generate-test-specs` deliberately stays in the architect pipeline: it writes
+# specifications under reports/, not code.
+CODEGEN_PHASES = {
+    "architect": ("generate-scalardb-code", "generate-infra-code", "generate-docs"),
+    "product": ("generate-frontend",),
+}
+
+SECTIONS = ("pipeline", "codegen")
+
+# Tab order for anything that shows both plugins side by side.
+PLUGIN_ORDER = ("product", "architect")
+
 _manifest_cache = {}
 
 
@@ -443,7 +486,11 @@ def plugin_root():
 
 
 def load_phase_manifest(plugin, root=None):
-    """{phase_name: spec} in file order, extension tier appended for architect."""
+    """{phase_name: spec} in file order, extension tier appended for architect.
+
+    Every spec carries a `section` — "pipeline" or "codegen" — which is what splits the
+    manifest across the dashboard's tabs (see CODEGEN_PHASES).
+    """
     root = root or plugin_root()
     key = (plugin, root)
     if key in _manifest_cache:
@@ -471,8 +518,26 @@ def load_phase_manifest(plugin, root=None):
             spec.update(outputs=list(spec["outputs"]), depends_on=list(spec["depends_on"]),
                         conditions=[], tier="extension")
             phases[name] = spec
+    codegen = set(CODEGEN_PHASES.get(plugin, ()))
+    for name, spec in phases.items():
+        spec["section"] = "codegen" if name in codegen else "pipeline"
     _manifest_cache[key] = phases
     return phases
+
+
+def exclusive_phases(plugin, root=None):
+    """The phase names only this plugin's manifest defines.
+
+    The two manifests share several names (`map-domains`, `design-api`, `report`,
+    `create-domain-story`, ...), so a registry entry under a shared name says nothing
+    about which pipeline wrote it. Only the names one manifest alone defines can settle
+    that, which is what tells the dashboard whether a plugin's tab has anything behind it.
+    """
+    own = set(load_phase_manifest(plugin, root))
+    for other in PLUGINS:
+        if other != plugin:
+            own -= set(load_phase_manifest(other, root))
+    return own
 
 
 def _as_list(value):
@@ -646,7 +711,7 @@ def _conditions_ok(conditions, options):
 
 
 def derive_phase(name, spec, entry, project_dir, options, project_name,
-                 costs, activity, now):
+                 costs, activity, now, plugin=None):
     """One phase's full state. The registry wins on status; files drive the bar."""
     outputs = []
     written = 0
@@ -707,8 +772,12 @@ def derive_phase(name, spec, entry, project_dir, options, project_name,
                                  or _stamp((entry or {}).get("updated_at")))
     return {
         "name": name,
+        "plugin": plugin,
         "category": spec.get("category") or "core",
         "tier": spec.get("tier") or "core",
+        "section": spec.get("section") or "pipeline",
+        # The group header this phase is filed under; set by whoever builds the groups.
+        "group": None,
         "model": spec.get("model"),
         "optional": bool(spec.get("optional")),
         "rerunnable": bool(spec.get("rerunnable")),
@@ -801,11 +870,23 @@ def order_phases(manifest):
     return order
 
 
-def derive_all(project_dir, plugin=None, progress=None):
-    """Everything the renderers need: phases, groups, summary, gate, next command."""
+def derive_all(project_dir, plugin=None, progress=None, section="pipeline"):
+    """Everything the renderers need: phases, groups, summary, gate, next command.
+
+    `plugin` picks which pipeline is being described — the dashboard shows product and
+    architect as separate tabs, so it always names one rather than letting detection
+    choose. `section` picks which half of that manifest: "pipeline" (the design phases,
+    the default) or "codegen" (the code-generation phases, which have their own tab).
+
+    Both sections are derived together first — dependencies and staleness cross the
+    boundary, and a codegen phase's `blocked_by` is meaningless without the design phase
+    it reads — and only the grouping, the summary and the next-command pick are narrowed
+    to the requested section.
+    """
     raw = progress if progress is not None else load_progress(project_dir)
     progress = normalize_progress(raw)
-    plugin = detect_plugin(progress, project_dir, plugin)
+    detected = detect_plugin(progress, project_dir)
+    plugin = plugin if plugin in PLUGINS else detected
     manifest = load_phase_manifest(plugin)
     options = (progress or {}).get("options") or {}
     project_name = (progress or {}).get("project_name") or os.path.basename(
@@ -818,15 +899,22 @@ def derive_all(project_dir, plugin=None, progress=None):
     phases = {}
     for name in order_phases(manifest):
         phases[name] = derive_phase(name, manifest[name], entries.get(name), project_dir,
-                                    options, project_name, costs, activity, now)
+                                    options, project_name, costs, activity, now, plugin)
 
     # Registry entries for phases this plugin's manifest does not know (hand-written or
-    # renamed) are still shown, so nothing recorded is silently dropped.
+    # renamed) are still shown, so nothing recorded is silently dropped — except the ones
+    # the *other* plugin's manifest does know. Both pipelines write the same registry, and
+    # a product phase listed among the architect tree's unmanifested leftovers is not a
+    # finding, it is the tab next door.
+    foreign = set()
+    for other in PLUGINS:
+        if other != plugin:
+            foreign |= set(load_phase_manifest(other))
     for name, entry in entries.items():
-        if name not in phases:
+        if name not in phases and name not in foreign:
             phases[name] = derive_phase(name, {"category": "other", "tier": "other"},
                                         entry, project_dir, options, project_name,
-                                        costs, activity, now)
+                                        costs, activity, now, plugin)
 
     mark_stale(phases)
 
@@ -839,24 +927,30 @@ def derive_all(project_dir, plugin=None, progress=None):
         state["runnable"] = ((state["status"] in ("pending", "failed") or state["stale"])
                              and not state["blocked_by"] and not state["excluded"])
 
+    visible = {n: s for n, s in phases.items() if s["section"] == section}
+
     groups = []
     index = {}
-    for name, state in phases.items():
+    for name, state in visible.items():
         key = "extension" if state["tier"] == "extension" else state["category"]
+        state["group"] = key
         if key not in index:
             index[key] = {"key": key, "phases": []}
             groups.append(index[key])
         index[key]["phases"].append(state)
 
+    # What the progress fraction is measured over. On the pipeline section that is the
+    # required path — the manual extension tier is opt-in work, not outstanding work. The
+    # codegen section is entirely manual, so there every phase counts.
+    countable = [s for s in visible.values()
+                 if section != "pipeline" or s["tier"] == "core"]
     counts = {s: 0 for s in DISPLAY_STATUSES}
-    for state in phases.values():
-        if state["tier"] == "core":
-            counts[state["display_status"]] += 1
-    core_total = sum(counts.values())
-    stale = [s["name"] for s in phases.values() if s["stale"]]
+    for state in countable:
+        counts[state["display_status"]] += 1
+    stale = [s["name"] for s in visible.values() if s["stale"]]
     summary = {
         "by_status": counts,
-        "total": core_total,
+        "total": sum(counts.values()),
         # Stale phases leave the done column on purpose: the fraction has to fall when an
         # upstream fix invalidates work, or the bar keeps reporting a finished pipeline
         # that no longer matches its own inputs.
@@ -866,29 +960,110 @@ def derive_all(project_dir, plugin=None, progress=None):
         "unassigned_cost_usd": unassigned_cost,
         "latest_activity": latest_activity or None,
     }
-    current = next((s["name"] for s in phases.values()
-                    if s["tier"] == "core" and s["status"] == "in_progress"), None)
+    current = next((s["name"] for s in countable if s["status"] == "in_progress"), None)
     # The suggested next phase prefers the required path: an optional phase (a greenfield
     # entry point, an on-demand skill) is runnable from the start and would otherwise
     # always win, which is not what "what do I run next" means mid-pipeline.
-    runnable = [s["name"] for s in phases.values()
-                if s["tier"] == "core" and s["runnable"]]
+    runnable = [s["name"] for s in countable if s["runnable"]]
     nxt = next((n for n in runnable if not phases[n]["optional"]),
                runnable[0] if runnable else None)
     # Redoing invalidated work comes first, and from the top of the chain: rerunning the
     # earliest stale phase is what lets everything below it stop being stale at all.
     nxt = next((n for n in runnable if phases[n]["stale"]), nxt)
+
+    # Whether this plugin's section has anything behind it, which is what decides if the
+    # dashboard offers its tab at all: an output actually on disk, or a registry entry
+    # under a name no other plugin's manifest also defines.
+    exclusive = exclusive_phases(plugin)
+    evidence = any(s["written"] for s in visible.values()) or any(
+        n in entries for n in visible if n in exclusive)
     return {
-        "plugin": plugin, "project": project_name, "project_dir": project_dir,
-        "has_progress": progress is not None, "options": options,
-        "phases": phases, "groups": groups, "summary": summary,
+        "plugin": plugin, "detected_plugin": detected, "section": section,
+        "project": project_name, "project_dir": project_dir,
+        "has_progress": progress is not None, "options": options, "evidence": evidence,
+        # `phases` is the section on screen; `all_phases` keeps the whole manifest, which
+        # is what dependency and staleness answers were computed against.
+        "phases": visible, "all_phases": phases,
+        "groups": groups, "summary": summary,
         "current": current, "next": nxt, "stale": stale,
-        "gate": read_gate(progress),
+        "gate": read_gate(progress) if section == "pipeline" else None,
         "errors": (progress or {}).get("errors") or [],
         "warnings": (progress or {}).get("warnings") or [],
-        "backlog": backlog_summary(project_dir),
+        "backlog": backlog_summary(project_dir) if section == "pipeline" else None,
         "updated_at": (progress or {}).get("updated_at"),
     }
+
+
+def codegen_plugins(project_dir, progress=None):
+    """Which plugins the codegen tab shows a group for: those whose pipeline ran.
+
+    A project that never ran the product pipeline has no frontend to generate, and one
+    that never ran architect has no services to scaffold — listing both regardless would
+    fill the tab with phases that cannot start. When neither pipeline has left a trace
+    yet the detected one stands in, so a freshly initialized project still has a tab.
+    """
+    raw = progress if progress is not None else load_progress(project_dir)
+    found = [p for p in PLUGIN_ORDER
+             if derive_all(project_dir, plugin=p, progress=raw)["evidence"]]
+    return found or [detect_plugin(normalize_progress(raw), project_dir)]
+
+
+def derive_codegen(project_dir, progress=None, plugins=None):
+    """The code-generation tab's state: both plugins' codegen phases in one tree.
+
+    Code generation is not a step of one pipeline — architect scaffolds the services and
+    the infrastructure, product scaffolds the React frontend — so the tab is assembled
+    from both manifests and grouped by the plugin each phase came from, rather than by
+    category. Otherwise it is an ordinary pipeline state and every renderer walks it the
+    same way; `state["plugin"]` is "codegen" (not a real plugin), which is the signal to
+    take each command's prefix from the phase instead of from the view.
+
+    Pass `plugins` when the caller already knows which pipelines ran (the dashboard does
+    — its two pipeline tabs derived exactly that a moment earlier) to avoid re-deriving.
+    """
+    raw = progress if progress is not None else load_progress(project_dir)
+    if plugins is None:
+        plugins = codegen_plugins(project_dir, raw)
+    parts = [(p, derive_all(project_dir, plugin=p, progress=raw, section="codegen"))
+             for p in PLUGIN_ORDER if p in plugins]
+    if not parts:
+        parts = [(PLUGIN_ORDER[0], derive_all(project_dir, plugin=PLUGIN_ORDER[0],
+                                              progress=raw, section="codegen"))]
+
+    phases, groups, everything = {}, [], {}
+    for plugin, part in parts:
+        everything.update(part["all_phases"])
+        group = {"key": plugin, "phases": []}
+        for name, phase in part["phases"].items():
+            phase["group"] = plugin
+            phases.setdefault(name, phase)
+            group["phases"].append(phase)
+        if group["phases"]:
+            groups.append(group)
+
+    counts = {s: 0 for s in DISPLAY_STATUSES}
+    for phase in phases.values():
+        counts[phase["display_status"]] += 1
+    stale = [p["name"] for p in phases.values() if p["stale"]]
+    cost = sum(p["cost_usd"] or 0 for p in phases.values())
+    activity = [p["last_activity"] for p in phases.values() if p["last_activity"]]
+    summary = {
+        "by_status": counts, "total": sum(counts.values()),
+        "completed": counts["completed"] + counts["skipped"], "stale": len(stale),
+        "total_cost_usd": cost or None, "unassigned_cost_usd": None,
+        "latest_activity": max(activity) if activity else None,
+    }
+    runnable = [p["name"] for p in phases.values() if p["runnable"]]
+    base = parts[0][1]
+    return dict(base,
+                plugin="codegen", section="codegen", phases=phases, groups=groups,
+                all_phases=everything, summary=summary, gate=None, backlog=None,
+                stale=stale,
+                current=next((p["name"] for p in phases.values()
+                              if p["status"] == "in_progress"), None),
+                next=next((n for n in runnable if phases[n]["stale"]),
+                          runnable[0] if runnable else None),
+                evidence=any(part["evidence"] for _, part in parts))
 
 
 def backlog_summary(project_dir):
@@ -937,10 +1112,13 @@ def flatten(state, collapsed=None, status_filter=None, group_filter=None,
     rows = []
     groups = [g for g in state["groups"]
               if not group_filter or g["key"] == group_filter]
-    if tier_filter == "core":
-        groups = [g for g in groups if g["key"] != "extension"]
-    elif tier_filter == "extension":
-        groups = [g for g in groups if g["key"] == "extension"]
+    # The tier filter is a statement about the architect pipeline's core/extension split,
+    # so it has nothing to say about the codegen tab, whose groups are plugins.
+    if state.get("section", "pipeline") == "pipeline":
+        if tier_filter == "core":
+            groups = [g for g in groups if g["key"] != "extension"]
+        elif tier_filter == "extension":
+            groups = [g for g in groups if g["key"] == "extension"]
     visible = []
     for group in groups:
         phases = [p for p in group["phases"]
@@ -989,14 +1167,26 @@ def rel_time(epoch, now=None):
 
 
 # ------------------------------------------------------------------- actions
+def phase_plugin(state, phase):
+    """Which plugin's slash commands a phase answers to.
+
+    The view's plugin normally decides, but the codegen tab spans both, so there
+    `state["plugin"]` is not a real plugin and the phase carries its own.
+    """
+    if state.get("plugin") in PLUGINS:
+        return state["plugin"]
+    return phase.get("plugin") or PLUGIN_ORDER[-1]
+
+
 def actions_for(state, phase):
     """(label, command) entries for the action menu / default `c` copy."""
-    prefix = PLUGINS[state["plugin"]]["prefix"]
-    orchestrator = PLUGINS[state["plugin"]]["orchestrator"]
+    plugin = phase_plugin(state, phase)
+    prefix = PLUGINS[plugin]["prefix"]
+    orchestrator = PLUGINS[plugin]["orchestrator"]
     name = phase["name"]
     label = "rerun phase" if phase["stale"] else "run phase"
     out = [(label, "%s%s" % (prefix, name))]
-    if state["plugin"] == "architect":
+    if plugin == "architect":
         out += [("resume from here", "%s --resume-from=%s" % (orchestrator, name)),
                 ("rerun from here", "%s --rerun-from=%s" % (orchestrator, name))]
     else:
@@ -1033,7 +1223,8 @@ def default_action(state, phase):
 
 def phase_context(state, phase, T):
     """One-line context prefix for the ask feature: what the user is looking at."""
-    bits = ["%s %s" % (state["plugin"], phase["name"]), phase["display_status"]]
+    bits = ["%s %s" % (phase_plugin(state, phase), phase["name"]),
+            phase["display_status"]]
     if phase["declared"]:
         bits.append("%d/%d %s" % (phase["written"], phase["declared"], T["outputs"]))
     if phase["stale"]:
