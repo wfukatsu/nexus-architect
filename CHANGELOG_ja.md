@@ -7,7 +7,7 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 3 つのプラグイン（`product`・`architect`・`scalardb`）は同一の番号で一括リリースされます。
 
-## [Unreleased]
+## [0.22.0] - 2026-08-07
 
 ### 変更
 - **ステータスダッシュボードのビューを 2 つから 4 つに分割した (プロダクト / アーキテクト /
@@ -955,6 +955,7 @@ Nexus Architect の主な変更点を記録します。
 ### 変更
 - リポジトリを Claude Code プラグイン互換の構成に再編。
 
+[0.22.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.22.0
 [0.21.2]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.21.2
 [0.21.1]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.21.1
 [0.21.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.21.0
