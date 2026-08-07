@@ -249,7 +249,7 @@ above, this path writes **merge-bound code into the project's real source tree**
 | `/architect:review-issue` | Whole-Epic consistency review, bounded blocker auto-fix, opens the PR/MR |
 | `/architect:merge-issue` | Merge preflight + confirmation, merge, close the Issue, roll up to Sub-Epic/Epic |
 | `/architect:capture-followup` | Queues follow-up work discovered mid-delivery, then registers it as Issues linked to the in-flight Sub-Epic/Epic |
-| `/architect:report-backlog-status` | Live terminal dashboard: Epic/Sub-Epic/Issue tree with delivery status + Implemented/Reviewed/Merged stages, and an action menu that generates the next command |
+| `/architect:report-backlog-status` | Live terminal dashboard: Epic/Sub-Epic/Issue tree with delivery status + Implemented/Reviewed/Merged stages, and an action menu that generates the next command (the Backlog Delivery view of the same dashboard) |
 
 Progress is visible on the tracker: `status::*` labels, progress comments, and the items' markdown
 checkboxes — acceptance criteria are ticked as they are implemented and verified, and a parent's
@@ -291,7 +291,7 @@ source of truth.
 | `/architect:estimate-cost` | Infrastructure, license, and operational costs |
 | `/architect:estimate-token-cost` | Token usage and USD cost of *running the agent* (a-priori from LOC, calibrated by recorded actuals) |
 | `/architect:report-token-cost` | Report the recorded actual agent cost from `work/token-usage.json`/`.jsonl` on the terminal — interactive two-pane dashboard by default (10s poll; pick a phase/model/session/day/event above, read its detail — a session shows its transcript log — below), `--once` single render, `--follow` event stream, `--session=ID` one session + its log, plus `--since`, `--breakdown=cost`, `--ascii` (ASCII bars for terminals that garble the Unicode ones), `--ambiguous-width=2` (terminals that render East Asian ambiguous characters double-width), `--debug`, `--md`, `--json` |
-| `/architect:report-status` | Live terminal dashboard of pipeline progress: every phase's status (`stale` once an upstream phase changed after it finished), how many of its declared outputs exist, what is running now, unmet dependencies, per-phase cost — plus an action menu that generates the next command and an `a` key that asks Claude about the selected phase (`Tab` switches to the backlog view) |
+| `/architect:report-status` | Live terminal dashboard of pipeline progress: every phase's status (`stale` once an upstream phase changed after it finished), how many of its declared outputs exist, what is running now, unmet dependencies, per-phase cost — plus an action menu that generates the next command and an `a` key that asks Claude about the selected phase. `Tab` cycles its four views: **Product** and **Architect** (two pipelines, one tab each), **Code Generation** (the codegen phases of both plugins, which belong to neither pipeline tree) and **Backlog Delivery** |
 | `/architect:update-knowledge` | Fetch/update the OKF ScalarDB/ScalarDL knowledge bundle from remote (`--latest`, `--status`) |
 
 ### Database Migration

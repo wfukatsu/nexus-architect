@@ -1,9 +1,22 @@
-"""The pipeline tab of the nexus-status dashboard.
+"""The pipeline tabs of the nexus-status dashboard.
 
-The product / architect phase tree grouped by category (the architect manual extension
-tier is its own foldable group), showing each phase's status, how many of its declared
-outputs exist, whether it is producing tokens right now, and its recorded cost. The
-detail pane shows the declared outputs with their real state, unmet dependencies, the
+Three of the dashboard's four tabs are built from this module, because they show the same
+thing about different work:
+
+  PipelineView(plugin="product")    the product pipeline's phase tree
+  PipelineView(plugin="architect")  the architect pipeline's phase tree
+  CodegenView                       the code-generation phases of both plugins
+
+Product and architect are separate pipelines with separate manifests, so they get
+separate tabs rather than one tree whose contents depend on which plugin was detected.
+Code generation is run by hand after either of them and emits code instead of reports, so
+it gets a third — grouped by the plugin each phase belongs to, and offering that plugin's
+slash commands.
+
+Each tree is grouped and foldable (for a pipeline tab by category, with the architect
+manual extension tier its own group), showing each phase's status, how many of its
+declared outputs exist, whether it is producing tokens right now, and its recorded cost.
+The detail pane shows the declared outputs with their real state, unmet dependencies, the
 registry timestamps and note, and the product validation gate.
 
 The rendering shell (layout, menus, keys, refresh) lives in status_tui.App; this module
@@ -22,7 +35,6 @@ import token_cost_data as D  # noqa: E402
 
 env = os.environ.get
 PROJ = env("NX_PROJECT_DIR", ".")
-PLUGIN = env("NX_PLUGIN", "") or None
 TIER = env("NX_GROUP", "") or None
 
 WATCH = ("work/pipeline-progress.json", "work/token-usage.json",
@@ -37,20 +49,36 @@ WALK_BUDGET = 4000
 
 
 class PipelineView(S.BaseView):
-    name = "pipeline"
+    """One plugin's design pipeline. `plugin` is always named — never detected here."""
 
-    def __init__(self, project_dir, lang):
+    def __init__(self, project_dir, lang, plugin="architect"):
         S.BaseView.__init__(self)
         self.project_dir = project_dir
+        self.plugin = plugin
+        self.name = plugin
         self.T = P.labels(lang)
-        self.title = self.T["title"]
+        self.title = self.T["tab_%s" % plugin]
         self.state = None
         self.backlog = None
-        self.available = os.path.isfile(
-            os.path.join(project_dir, "work", "pipeline-progress.json"))
+        self.available = False
         self.load()
 
     # ------------------------------------------------------------------ data
+    def derive(self):
+        return P.derive_all(self.project_dir, plugin=self.plugin)
+
+    def is_available(self):
+        """Whether this tab has anything behind it.
+
+        A project that only ever ran architect must not offer a Product tab full of
+        phases that were never part of it — but one that has just been initialized has no
+        evidence either way yet, and there the detected plugin's tab still opens.
+        """
+        state = self.state
+        return bool(state["evidence"]
+                    or (state["has_progress"]
+                        and state["plugin"] == state["detected_plugin"]))
+
     def watch_files(self):
         return WATCH
 
@@ -92,9 +120,8 @@ class PipelineView(S.BaseView):
         return newest
 
     def load(self):
-        self.state = P.derive_all(self.project_dir, plugin=PLUGIN)
-        self.available = self.state["has_progress"] or any(
-            p["written"] for p in self.state["phases"].values())
+        self.state = self.derive()
+        self.available = self.is_available()
         # One name column for every row, so the status block lines up instead of
         # floating at the far right of a 160-column terminal. Phase rows carry a
         # two-segment tree prefix (a gap for the group level plus the connector).
@@ -105,10 +132,14 @@ class PipelineView(S.BaseView):
         self.backlog = self.state["backlog"]
 
     def project_label(self):
-        return "%s (%s)" % (self.state["project"], self.state["plugin"])
+        # The tab strip already names the pipeline, so the title bar only has to name
+        # the project.
+        return self.state["project"]
 
     def empty_message(self):
-        return self.T["no_progress"]
+        if not self.state["has_progress"]:
+            return self.T["no_progress"]
+        return self.T["no_%s" % self.name]
 
     # ------------------------------------------------------------------ rows
     def rows(self):
@@ -173,9 +204,7 @@ class PipelineView(S.BaseView):
                 self.collapsed.discard(row["key"])
             return
         if collapse:                       # from a phase, ← jumps to its group header
-            group = "extension" if row["phase"]["tier"] == "extension" \
-                else row["phase"]["category"]
-            self.sel_key = "group:%s" % group
+            self.sel_key = "group:%s" % row["phase"]["group"]
 
     # ------------------------------------------------------------------ panes
     def header_lines(self, width):
@@ -338,9 +367,9 @@ class PipelineView(S.BaseView):
                                  P.group_title(self.T, row["key"]))
         else:
             context = P.phase_context(self.state, row["phase"], self.T)
-        return ("[nexus pipeline: %s] %s\n\nProject: %s. Read "
-                "work/pipeline-progress.json and the phase's declared outputs under "
-                "reports/ before answering." % (context, question, PROJ))
+        return ("[nexus %s: %s] %s\n\nProject: %s. Read "
+                "work/pipeline-progress.json and the phase's declared outputs before "
+                "answering." % (self.name, context, question, PROJ))
 
     def keys_hint(self):
         return self.T["keys"]
@@ -363,3 +392,33 @@ class PipelineView(S.BaseView):
                                        % len(order)]
             return True
         return False
+
+
+class CodegenView(PipelineView):
+    """The code-generation tab: both plugins' codegen phases, grouped by plugin.
+
+    Its rows, detail pane, action menu and keys are the pipeline view's — a codegen phase
+    is an ordinary phase with declared outputs, dependencies and a cost. What differs is
+    where it comes from: the tree spans both manifests, so the commands it offers come
+    from each phase's own plugin, and the core/extension tier filter does not apply.
+
+    `sources` is the list of plugins to show. The dashboard passes the pipeline tabs it
+    already built, so deciding which pipelines ran costs nothing here; a caller that
+    passes nothing has it worked out from the project.
+    """
+
+    def __init__(self, project_dir, lang, sources=None):
+        self.sources = sources
+        PipelineView.__init__(self, project_dir, lang, plugin="codegen")
+
+    def derive(self):
+        plugins = self.sources() if callable(self.sources) else self.sources
+        return P.derive_codegen(self.project_dir, plugins=plugins)
+
+    def is_available(self):
+        # Codegen is where you go to *start* generating, so the tab opens as soon as the
+        # project has a pipeline at all — not only once something has been generated.
+        return bool(self.state["has_progress"] or self.state["evidence"])
+
+    def rows(self):
+        return P.flatten(self.state, self.collapsed, self.status_filter)

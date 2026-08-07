@@ -3,11 +3,12 @@
 Owns everything that is not specific to what is being watched: the three-pane layout
 (header / foldable tree / detail), the tab strip, the action menu, the ask panel, the
 help panel, the transient notice bar, the poll-and-reload loop, and the key handling.
-Each view (pipeline_status_view.BacklogView / PipelineView) supplies the data and the
-per-row rendering through the protocol below; the shell never imports either.
+Each view (pipeline_status_view.PipelineView / CodegenView, backlog_status_view.
+BacklogView) supplies the data and the per-row rendering through the protocol below; the
+shell never imports any of them.
 
 View protocol (BaseView supplies a default for the optional ones)
-    name                        "pipeline" | "backlog"
+    name                        "product" | "architect" | "codegen" | "backlog"
     title                       localized pane title
     available                   False when this project has no such input
     watch_files()               project-relative paths whose mtime triggers a reload

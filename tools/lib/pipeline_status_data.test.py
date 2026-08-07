@@ -467,9 +467,10 @@ def run(root, plugin=None):
           (phases["design-implementation"]["written"],
            phases["design-implementation"]["declared"]) == (1, 4),
           phases["design-implementation"]["outputs"])
+    codegen = P.derive_codegen(root)["phases"]
     check("directory with a file counts as written",
-          phases["generate-infra-code"]["written"] == 1,
-          phases["generate-infra-code"]["outputs"])
+          codegen["generate-infra-code"]["written"] == 1,
+          codegen["generate-infra-code"]["outputs"])
     check("empty directory does not count",
           phases["generate-test-specs"]["written"] == 0,
           phases["generate-test-specs"]["outputs"])
@@ -477,7 +478,7 @@ def run(root, plugin=None):
           P.output_bar(phases["investigate"]) == "[==..]",
           P.output_bar(phases["investigate"]))
     check("nothing declared -> blank bar",
-          P.output_bar(phases["generate-docs"]).strip() == "")
+          P.output_bar(codegen["generate-docs"]).strip() == "")
 
     print("exclusion")
     check("skip_phases excludes analyze-data-model",
@@ -570,6 +571,88 @@ def run(root, plugin=None):
           gate == {"verdict": "go", "open_assumptions": ["A1"]}, gate)
 
 
+def check_sections(root):
+    """product / architect / codegen are three separate trees, not one detected tree."""
+    print("pipeline / codegen split")
+    arch = P.load_phase_manifest("architect")
+    prod = P.load_phase_manifest("product")
+    check("every codegen phase is named in its manifest",
+          all(n in arch for n in P.CODEGEN_PHASES["architect"])
+          and all(n in prod for n in P.CODEGEN_PHASES["product"]),
+          P.CODEGEN_PHASES)
+    check("the manifests mark exactly those phases as codegen",
+          {n for n, s in arch.items() if s["section"] == "codegen"}
+          == set(P.CODEGEN_PHASES["architect"])
+          and {n for n, s in prod.items() if s["section"] == "codegen"}
+          == set(P.CODEGEN_PHASES["product"]),
+          [n for n, s in arch.items() if s["section"] == "codegen"])
+    check("generate-test-specs writes specs, so it stays in the pipeline",
+          arch["generate-test-specs"]["section"] == "pipeline")
+
+    pipeline = P.derive_all(root, plugin="architect")
+    check("the pipeline tree holds no codegen phase",
+          not any(n in pipeline["phases"] for n in P.CODEGEN_PHASES["architect"]),
+          sorted(pipeline["phases"]))
+    check("but the whole manifest is still there for dependencies to resolve against",
+          all(n in pipeline["all_phases"] for n in P.CODEGEN_PHASES["architect"]))
+
+    codegen = P.derive_codegen(root)
+    check("the codegen tree holds only codegen phases",
+          set(codegen["phases"]) <= (set(P.CODEGEN_PHASES["architect"])
+                                     | set(P.CODEGEN_PHASES["product"])),
+          sorted(codegen["phases"]))
+    check("codegen groups by plugin, not by category",
+          [g["key"] for g in codegen["groups"]] == ["architect"],
+          [g["key"] for g in codegen["groups"]])
+    check("a plugin that never ran gets no codegen group",
+          "product" not in [g["key"] for g in codegen["groups"]])
+    check("codegen dependencies still point at the design phases that feed them",
+          codegen["phases"]["generate-scalardb-code"]["depends_on"]
+          == ["design-implementation"],
+          codegen["phases"]["generate-scalardb-code"]["depends_on"])
+    check("codegen counts every phase, since the whole tier is manual",
+          codegen["summary"]["total"] == len(codegen["phases"]),
+          codegen["summary"])
+
+    both = P.derive_codegen(root, plugins=["product", "architect"])
+    check("asking for both plugins puts product first",
+          [g["key"] for g in both["groups"]] == ["product", "architect"],
+          [g["key"] for g in both["groups"]])
+    frontend = both["phases"]["generate-frontend"]
+    infra = both["phases"]["generate-infra-code"]
+    check("each codegen phase carries the plugin it came from",
+          (frontend["plugin"], infra["plugin"]) == ("product", "architect"),
+          (frontend["plugin"], infra["plugin"]))
+    check("and offers that plugin's slash command, not the view's",
+          dict(P.actions_for(both, frontend))["run phase"]
+          == "/product:generate-frontend"
+          and dict(P.actions_for(both, infra))["run phase"]
+          == "/architect:generate-infra-code",
+          [P.actions_for(both, frontend)[0], P.actions_for(both, infra)[0]])
+    check("the tier filter does not apply to the codegen tree",
+          len(P.flatten(both, tier_filter="core")) == len(P.flatten(both)),
+          len(P.flatten(both, tier_filter="core")))
+
+    print("which pipelines this project ran")
+    check("architect has evidence, product does not",
+          P.derive_all(root, plugin="architect")["evidence"]
+          and not P.derive_all(root, plugin="product")["evidence"])
+    check("so only architect is offered a codegen group",
+          P.codegen_plugins(root) == ["architect"], P.codegen_plugins(root))
+    check("shared phase names are no evidence on their own",
+          "design-api" not in P.exclusive_phases("product")
+          and "define-vision" in P.exclusive_phases("product"))
+
+    bare = tempfile.mkdtemp(prefix="nx-bare-")
+    try:
+        write(os.path.join(bare, "work", "pipeline-progress.json"),
+              json.dumps({"gates": {"validate-assumptions": {}}, "phases": {}}))
+        check("a freshly initialized project still falls back to its detected pipeline",
+              P.codegen_plugins(bare) == ["product"], P.codegen_plugins(bare))
+    finally:
+        shutil.rmtree(bare, ignore_errors=True)
+
+
 def check_backlog_strip(root):
     """The backlog tab's pipeline strip must agree with the pipeline tab beside it."""
     print("backlog view's pipeline strip")
@@ -614,6 +697,7 @@ def main():
         print("checking scratch fixture project at %s" % root)
         build_fixture(root)
         run(root)
+        check_sections(root)
         check_backlog_strip(root)
         check_staleness(root)
         check_hostile_inputs(root)

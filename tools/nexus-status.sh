@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
-# Live dashboard for a nexus-architect project, in two views:
+# Live dashboard for a nexus-architect project, in four views:
 #
-#   pipeline  the product / architect phase tree — each phase's status
-#             (pending/in_progress/completed/failed/skipped), how many of its declared
-#             outputs exist, whether it is producing tokens right now, and its cost
-#   backlog   the Epic -> Sub-Epic -> Issue delivery tree with each item's status and
-#             its Implemented / Reviewed / Merged stages
+#   product    the product pipeline's phase tree — each phase's status
+#              (pending/in_progress/completed/failed/skipped), how many of its declared
+#              outputs exist, whether it is producing tokens right now, and its cost
+#   architect  the architect pipeline's phase tree, the same way (product and architect
+#              are separate pipelines with separate manifests, so they are separate tabs)
+#   codegen    the code-generation phases of both plugins, grouped by plugin — run by
+#              hand after either pipeline, and emitting code rather than reports
+#   backlog    the Epic -> Sub-Epic -> Issue delivery tree with each item's status and
+#              its Implemented / Reviewed / Merged stages
 #
-# Both views share the action menu that generates the slash command to run next, the
-# `a` key that asks Claude about the selected row, and `?` for help. Tab switches views.
+# Every view shares the action menu that generates the slash command to run next, the
+# `a` key that asks Claude about the selected row, and `?` for help. Tab switches views,
+# skipping the ones this project has nothing behind.
 #
 # Input:
 #   work/pipeline-progress.json             pipeline view: the phase registry
@@ -37,15 +42,19 @@
 #   r          refresh now                                q  quit
 #
 # Options:
-#   --view=pipeline|backlog|auto   which view to open (default auto: pipeline when the
-#                      project has work/pipeline-progress.json, else backlog)
-#   --plugin=product|architect     force the pipeline the project is running
+#   --view=product|architect|codegen|backlog|pipeline|auto
+#                      which view to open (default auto: the detected pipeline when the
+#                      project has work/pipeline-progress.json, else backlog).
+#                      `pipeline` means "whichever pipeline this project runs", resolved
+#                      from --plugin or from the recorded phase names
+#   --plugin=product|architect     which pipeline --view=pipeline|auto resolves to
 #                      (default: detected from the recorded phase names)
-#   --group=core|extension|all     pipeline view: limit to the manifest phases or to
+#   --group=core|extension|all     pipeline views: limit to the manifest phases or to
 #                      the manual extension tier (default all; architect only — the
-#                      product pipeline has no extension tier)
-#   --phase=<name>     pipeline view: render only that phase (--once/--md/--json; the
-#                      live dashboard ignores it). An unknown name is a usage error
+#                      product pipeline has no extension tier, and the codegen view has
+#                      no tier split)
+#   --phase=<name>     pipeline/codegen view: render only that phase (--once/--md/--json;
+#                      the live dashboard ignores it). An unknown name is a usage error
 #   --epic=<id>        backlog view: limit the tree to one Epic (e.g. --epic=E1;
 #                      --once/--md/--json). An unknown id is a usage error
 #
@@ -64,7 +73,9 @@
 #   --debug[=PATH]     log rendering diagnostics (default PATH: work/nexus-status-debug.log)
 #   --json             emit the derived states as JSON instead of the rendered tree
 #   --md[=PATH]        also write the tree as Markdown (default PATH depends on the view:
-#                      reports/pipeline-status.md / reports/backlog/backlog-status.md)
+#                      reports/pipeline-status.md for a pipeline view,
+#                      reports/codegen-status.md for codegen,
+#                      reports/backlog/backlog-status.md for the backlog)
 #   -h, --help         show this help
 #
 # PROJECT_DIR defaults to the nearest ancestor of $PWD that holds
@@ -138,7 +149,10 @@ done
 command -v python3 >/dev/null 2>&1 || die "python3 is required"
 [ -f "$LIB/pipeline_status_data.py" ] || die "missing helper: $LIB/pipeline_status_data.py"
 
-case "$VIEW" in pipeline|backlog|auto) ;; *) usage_die "--view must be pipeline, backlog or auto" ;; esac
+case "$VIEW" in
+  product|architect|codegen|pipeline|backlog|auto) ;;
+  *) usage_die "--view must be product, architect, codegen, backlog, pipeline or auto" ;;
+esac
 case "$PLUGIN" in ""|product|architect) ;; *) usage_die "--plugin must be product or architect" ;; esac
 case "$GROUP" in ""|all|core|extension) ;; *) usage_die "--group must be core, extension or all" ;; esac
 
@@ -179,14 +193,18 @@ if [ "$VIEW" = "backlog" ] && [ ! -f "$MANIFEST" ]; then
   die "no $BACKLOG_MARK in $PROJECT_DIR
 The manifest is written by /architect:export-backlog."
 fi
-if [ "$VIEW" = "pipeline" ] && [ ! -f "$PROGRESS" ]; then
+# Every view but the backlog is derived from the phase manifests plus this registry.
+if [ "$VIEW" != "backlog" ] && [ ! -f "$PROGRESS" ]; then
   die "no $PIPELINE_MARK in $PROJECT_DIR
 The progress registry is written by /architect:init-output or /product:init-output."
 fi
 
 if [ "$MD_REQUESTED" = 1 ] && [ -z "$MD_OUT" ]; then
-  if [ "$VIEW" = "pipeline" ]; then MD_OUT="reports/pipeline-status.md"
-  else MD_OUT="reports/backlog/backlog-status.md"; fi
+  case "$VIEW" in
+    backlog) MD_OUT="reports/backlog/backlog-status.md" ;;
+    codegen) MD_OUT="reports/codegen-status.md" ;;
+    *)       MD_OUT="reports/pipeline-status.md" ;;
+  esac
 fi
 
 # --- display settings -------------------------------------------------------------------
@@ -243,10 +261,10 @@ export NX_LANG="$LANG_OPT" NX_WIDTH="$WIDTH" NX_COLOR="$USE_COLOR" \
 
 case "$MODE" in
   once)
-    if [ "$VIEW" = "pipeline" ]; then
-      exec python3 "$LIB/pipeline_status_report.py" "$PROJECT_DIR"
-    else
+    if [ "$VIEW" = "backlog" ]; then
       exec python3 "$LIB/backlog_status_report.py" "$MANIFEST"
+    else
+      exec python3 "$LIB/pipeline_status_report.py" "$PROJECT_DIR"
     fi
     ;;
   live)

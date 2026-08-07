@@ -5,8 +5,9 @@
 #
 # This is the backlog view of tools/nexus-status.sh, kept under its original name so
 # existing docs, skills and habits keep working. Every option is the same; the unified
-# tool adds a `pipeline` view (product / architect phase progress) reachable with the
-# Tab key, or directly with `nexus-status.sh --view=pipeline`.
+# tool adds three more views reachable with the Tab key, or directly with
+# `nexus-status.sh --view=<name>`: `product` and `architect` (the two pipelines' phase
+# progress, one tab each) and `codegen` (the code-generation phases of both).
 #
 #   tools/backlog-status.sh [PROJECT_DIR] [options]   ==  nexus-status.sh --view=backlog
 #

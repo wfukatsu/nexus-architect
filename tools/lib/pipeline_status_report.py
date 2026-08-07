@@ -1,7 +1,9 @@
-"""One-shot renders of the pipeline phase tree: ANSI text, JSON, Markdown.
+"""One-shot renders of a phase tree: ANSI text, JSON, Markdown.
 
 Non-interactive counterpart of pipeline_status_view.py — this is what the agent runs
-in-session (--once) and what --json / --md emit for other programs and reports.
+in-session (--once) and what --json / --md emit for other programs and reports. NX_VIEW
+picks which of that module's three trees is rendered: the product pipeline, the architect
+pipeline, or code generation (both plugins' codegen phases).
 
 Usage: pipeline_status_report.py <project-dir>
 """
@@ -26,8 +28,17 @@ MD_OUT = env("NX_MD", "")
 PLUGIN = env("NX_PLUGIN", "") or None
 TIER = env("NX_GROUP", "") or None
 PHASE_FILTER = env("NX_PHASE", "") or None
+VIEW = env("NX_VIEW", "") or "pipeline"
 
 T = P.labels(LANG)
+
+
+def derive():
+    """The state NX_VIEW asked for: one plugin's pipeline, or the codegen tree."""
+    if VIEW == "codegen":
+        return P.derive_codegen(PROJ)
+    plugin = PLUGIN or (VIEW if VIEW in P.PLUGINS else None)
+    return P.derive_all(PROJ, plugin=plugin)
 
 DIM, BOLD, CYAN, GREEN, YELLOW, RED, MAGENTA = "2", "1", "36", "32", "33", "31", "35"
 STATUS_ANSI = {"pending": DIM, "in_progress": YELLOW, "completed": GREEN,
@@ -112,11 +123,15 @@ def rows_for(state):
     return out
 
 
+def view_title(state):
+    """'Architect Pipeline' / 'Code Generation' — what this render is of."""
+    return T.get("title_%s" % state["plugin"], T["title"])
+
+
 def header_lines(state):
     lines = []
     s = state["summary"]
-    title = "%s %s %s (%s)" % (state["project"], D.G["sep"], T["title"], state["plugin"])
-    lines.append(c(BOLD, title))
+    lines.append(c(BOLD, "%s %s %s" % (state["project"], D.G["sep"], view_title(state))))
     frac = s["completed"] / s["total"] if s["total"] else 0
     counts = (" %s " % D.G["sep"]).join(
         "%s %d" % (st, s["by_status"][st]) for st in P.DISPLAY_STATUSES
@@ -173,6 +188,8 @@ def render_text(state):
                                         "  (%s)" % " ".join(why) if why else "")))
         if TIER == "extension" and state["plugin"] == "product":
             lines.append(c(DIM, "  %s" % T["no_extension_tier"]))
+        elif not why and state["plugin"] in ("product", "architect"):
+            lines.append(c(DIM, "  %s" % T["no_%s" % state["plugin"]]))
         return "\n".join(lines)
     name_w = max((D.dw(r[0]) for r in rows), default=0)
     name_w = min(name_w, max(20, WIDTH - 46))
@@ -218,8 +235,8 @@ def render_json(state):
     for p in visible_phases(state):
         name = p["name"]
         phases.append({
-            "name": name, "group": "extension" if p["tier"] == "extension"
-            else p["category"], "tier": p["tier"], "model": p["model"],
+            "name": name, "group": p["group"], "plugin": P.phase_plugin(state, p),
+            "section": p["section"], "tier": p["tier"], "model": p["model"],
             "status": p["status"], "display_status": p["display_status"],
             "stale": p["stale"], "stale_by": p["stale_by"] + p["stale_inherited"],
             "stale_at": datetime.fromtimestamp(
@@ -237,15 +254,16 @@ def render_json(state):
             "cost_usd": p["cost_usd"], "started_at": p["started_at"],
             "completed_at": p["completed_at"], "updated_at": p["updated_at"],
             "note": p["note"], "summary": p["summary"],
-            "command": "%s%s" % (P.PLUGINS[state["plugin"]]["prefix"], name),
+            "command": "%s%s" % (P.PLUGINS[P.phase_plugin(state, p)]["prefix"], name),
         })
     backlog = state["backlog"]
     return json.dumps({
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+        "view": state["plugin"], "section": state["section"],
         "plugin": state["plugin"], "project": state["project"],
         "has_progress": state["has_progress"], "options": state["options"],
         # What the reader is looking at, so a narrowed `phases` list is never mistaken
-        # for the whole pipeline. `summary` always covers the whole project.
+        # for the whole pipeline. `summary` always covers this view's whole tree.
         "filters": {"group": TIER, "phase": PHASE_FILTER},
         "summary": state["summary"], "gate": state["gate"],
         "current": state["current"], "next": state["next"],
@@ -258,9 +276,13 @@ def render_json(state):
 
 def render_md(state, text):
     now = datetime.now().astimezone().isoformat(timespec="seconds")
+    heading = {"product": "Product Pipeline Progress",
+               "architect": "Architect Pipeline Progress",
+               "codegen": "Code Generation Progress"}.get(state["plugin"],
+                                                          "Pipeline Progress")
     fm = "\n".join((
         "---",
-        'title: "Pipeline Progress"',
+        'title: "%s"' % heading,
         "schema_version: 1",
         'phase: "Pipeline Status"',
         "skill: report-status",
@@ -269,11 +291,11 @@ def render_md(state, text):
         "  - work/pipeline-progress.json",
         "---",
     ))
-    return "%s\n\n# Pipeline Progress\n\n```text\n%s\n```\n" % (fm, D.plain(text))
+    return "%s\n\n# %s\n\n```text\n%s\n```\n" % (fm, heading, D.plain(text))
 
 
 def main():
-    state = P.derive_all(PROJ, plugin=PLUGIN)
+    state = derive()
     # A misspelled --phase used to render an empty tree and exit 0, which reads like
     # "this phase has nothing" rather than "no such phase".
     if PHASE_FILTER and PHASE_FILTER not in state["phases"]:

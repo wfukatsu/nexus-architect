@@ -138,14 +138,51 @@ check "PROJECT_DIR resolves from a subdirectory" "$?"
 # ------------------------------------------------------------------------ view selection
 echo "view selection"
 out="$("$NX" "$PROD" --once "${COMMON[@]}" --lang=en)"
-contains "$out" "Pipeline Progress"
-check "--view=auto picks the pipeline when a registry exists" "$?" "$out"
+contains "$out" "Product Pipeline"
+check "--view=auto picks the detected pipeline when a registry exists" "$?" "$out"
+out="$("$NX" "$ARCH" --once "${COMMON[@]}" --lang=en)"
+contains "$out" "Architect Pipeline"
+check "--view=auto follows the detection, not a fixed plugin" "$?" "$out"
 out="$("$NX" "$BLONLY" --once "${COMMON[@]}" --lang=en)"
 contains "$out" "Backlog Delivery"
 check "--view=auto falls back to the backlog with no registry" "$?" "$out"
 out="$("$BL" "$PROD" --once "${COMMON[@]}" --lang=en)"
 contains "$out" "Backlog Delivery"
 check "backlog-status.sh alias opens the backlog view" "$?" "$out"
+
+# product and architect are separate pipelines, so each is addressable on its own and
+# neither shows the other's phases.
+out="$("$NX" "$PROD" --once "${COMMON[@]}" --view=architect --lang=en)"
+contains "$out" "Architect Pipeline" && contains "$out" "investigate" \
+  && ! contains "$out" "define-vision"
+check "--view=architect renders the architect tree in a product project" "$?" "$out"
+out="$("$NX" "$PROD" --once "${COMMON[@]}" --view=product --lang=en)"
+contains "$out" "define-vision" && ! contains "$out" "review-synthesizer"
+check "--view=product renders only the product tree" "$?" "$out"
+
+# code generation is its own view: not in either pipeline tree, and grouped by plugin.
+out="$("$NX" "$PROD" --once "${COMMON[@]}" --view=product --lang=en)"
+! contains "$out" "generate-frontend"
+check "the product pipeline view drops its codegen phase" "$?" "$out"
+out="$("$NX" "$ARCH" --once "${COMMON[@]}" --view=architect --lang=en)"
+! contains "$out" "generate-infra-code" && contains "$out" "generate-test-specs"
+check "the architect pipeline view drops codegen but keeps the spec phases" "$?" "$out"
+out="$("$NX" "$PROD" --once "${COMMON[@]}" --view=codegen --lang=en)"
+contains "$out" "Code Generation" && contains "$out" "generate-frontend" \
+  && ! contains "$out" "define-vision"
+check "--view=codegen renders only the code-generation phases" "$?" "$out"
+out="$("$NX" "$PROD" --once "${COMMON[@]}" --view=codegen --lang=en --json)"
+python3 - "$out" <<'PY'
+import json, sys
+d = json.loads(sys.argv[1])
+names = {p["name"]: p for p in d["phases"]}
+ok = (d["view"] == "codegen" and d["section"] == "codegen"
+      and names["generate-frontend"]["command"] == "/product:generate-frontend"
+      and names["generate-frontend"]["group"] == "product"
+      and all(p["section"] == "codegen" for p in d["phases"]))
+sys.exit(0 if ok else 1)
+PY
+check "--json says it is the codegen view and each phase keeps its own plugin" "$?" "$out"
 
 # -------------------------------------------------------------------------- output modes
 echo "output modes"
@@ -156,8 +193,11 @@ contains "$out" "define-scope" && contains "$out" "in_progress" \
 check "one-shot text carries status, staleness, the gate and unmanifested phases" "$?" \
   "$out"
 out="$("$NX" "$PROD" --once "${COMMON[@]}" --lang=ja)"
-contains "$out" "パイプライン進捗" && contains "$out" "ゲート"
+contains "$out" "プロダクトパイプライン" && contains "$out" "ゲート"
 check "--lang=ja localizes the pipeline view" "$?" "$out"
+out="$("$NX" "$PROD" --once "${COMMON[@]}" --view=codegen --lang=ja)"
+contains "$out" "コード生成" && contains "$out" "プロダクト (フロントエンド)"
+check "--lang=ja localizes the codegen view and its plugin groups" "$?" "$out"
 out="$("$NX" "$PROD" --once "${COMMON[@]}" --view=backlog --lang=ja)"
 contains "$out" "Issue 1/3 完了" && ! contains "$out" "Issues 1/3 done"
 check "--lang=ja localizes the backlog header too" "$?" "$out"
