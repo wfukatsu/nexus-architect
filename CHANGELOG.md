@@ -27,6 +27,15 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
   status, whatever it says — and falls back to output corroboration where the field is absent.
 
 ### Fixed
+- **`AGENTS.md` and `OMNIGENT.md` now document the handoff they were driving.** The repo runs the
+  same skills under three orchestrators and requires their entry docs to stay in sync, but only
+  `CLAUDE.md` mentioned the product→architect handoff at all — Codex and the omnigent loader were
+  given no detection rule, no artifact mapping, and crucially no statement that
+  `pipeline-progress.json`, `traceability.json` and `context.md` are shared by both pipelines and
+  must be written additively. Both now carry the detection glob, a pointer to the `docs/design.md`
+  §1 contract, the per-file additive rules including the `plugin` stamp and the four ambiguous
+  phase names, and `adapt-change`'s report-and-stop boundary. `CLAUDE.md` gained the same
+  shared-state paragraph.
 - **Three skills wrote nodes nothing downstream could cite.** `research-landscape`,
   `generate-ui-mock` and `generate-frontend` all appended to the trace graph without saying
   under which ID prefix, which broke two chains for real: `/product:adapt-change --type=market`

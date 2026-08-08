@@ -83,6 +83,32 @@ read each skill file in order and execute it before moving to the next phase.
 The `disable-model-invocation: true` frontmatter in that file is a Claude Code plugin hint; Codex
 does not interpret it, so treat the file as the orchestration specification described above.
 
+## Product → Architect Handoff
+
+`product` and `architect` are two pipelines with two manifests
+(`skills/product/common/skill-dependencies.yaml`, `skills/common/skill-dependencies.yaml`), run
+one after the other in the same project directory. `/product:*` ends at SLA/NFR and hands off to
+`define-requirements`, which reads the product reports instead of re-eliciting them. The contract
+is `docs/design.md` §1 — read it before running either side of the boundary.
+
+Detect the handoff by globbing `reports/00_core/`, `reports/01_ux/`, `reports/02_spec/`,
+`reports/03_domain/`, `reports/04_quality/` and `work/traceability.json`. When any exist, run
+`define-requirements` with them as inputs; §1.3 maps each product artifact to its deliverable and
+§1.4 lists what product deliberately does *not* supply (per-process transaction consistency,
+physical DB inventory, actor/role/permission) — those are what still gets elicited.
+
+Three files under `work/` are **shared by both pipelines**, so every write is additive:
+
+| File | Rule |
+|------|------|
+| `pipeline-progress.json` | Holds both pipelines' phases in one map keyed by bare phase name. Never re-register the map, never drop an entry your manifest does not define, never reset another pipeline's `options` (notably `output_language`). Write `"plugin": "product"\|"architect"` on every entry you stamp — `map-domains`, `design-api`, `create-domain-story` and `report` are defined by **both** manifests, so that field is the only thing that says whose entry it is. Where it is absent, confirm a `completed` against the phase's declared `outputs:` on disk before treating it as done |
+| `traceability.json` | One graph for the whole project. `define-requirements` appends `FR-`/`NFR-` nodes to what product wrote; never start a second file and never truncate it to `[]`. ID prefixes are declared per phase as `id_prefix` in the manifests |
+| `context.md` | Carries decisions and the Open Questions table across phases and across the boundary. Create it only when absent; never overwrite it |
+
+`/product:adapt-change` walks the shared graph, so its blast radius reaches architect's nodes. It
+**reports** them and stops — it never re-runs an architect skill or rewrites an architect
+artifact (`docs/design.md` §7.5).
+
 ## Model Recommendations
 
 Claude Code switches models automatically based on each skill's assignment. Codex ignores the
