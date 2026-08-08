@@ -38,8 +38,11 @@
 #   a          ask Claude about the selected row          ?  help
 #   s          sync tracker labels (backlog view)         f  cycle status filter
 #   o          open the item's URL / newest output        c  copy the default command
+#              (c always copies — o is the key that opens)
 #   PgUp/PgDn, Ctrl-U/Ctrl-D  scroll detail              g/G  detail top / bottom
 #   r          refresh now                                q  quit
+#   Esc        close a menu or the help panel — Esc does not quit, because a terminal
+#              that emits an escape sequence ncurses cannot map delivers a bare Esc
 #
 # Options:
 #   --view=product|architect|codegen|backlog|pipeline|auto
@@ -54,9 +57,10 @@
 #                      product pipeline has no extension tier, and the codegen view has
 #                      no tier split)
 #   --phase=<name>     pipeline/codegen view: render only that phase (--once/--md/--json;
-#                      the live dashboard ignores it). An unknown name is a usage error
-#   --epic=<id>        backlog view: limit the tree to one Epic (e.g. --epic=E1;
-#                      --once/--md/--json). An unknown id is a usage error
+#                      the live dashboard ignores it, but still rejects an unknown name).
+#                      An unknown name is a usage error in every mode
+#   --epic=<id>        backlog view: limit the tree to one Epic (e.g. --epic=E1; applies
+#                      to the live dashboard too). An unknown id is a usage error
 #
 # --group/--phase/--epic narrow --json exactly as they narrow the tree, and the emitted
 # `filters` object records which were applied; `summary` always covers the whole project.

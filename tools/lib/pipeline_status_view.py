@@ -48,6 +48,7 @@ WALK_DEPTH = 3
 WALK_BUDGET = 4000
 
 
+
 class PipelineView(S.BaseView):
     """One plugin's design pipeline. `plugin` is always named — never detected here."""
 
@@ -81,6 +82,12 @@ class PipelineView(S.BaseView):
 
     def watch_files(self):
         return WATCH
+
+    def stamp_key(self):
+        """The walk below reads the project and nothing else, so the three pipeline tabs
+        over one project all produce the same number. Telling the shell that lets it run
+        the scan once per poll instead of once per tab."""
+        return ("pipeline-tree", os.path.abspath(self.project_dir))
 
     def extra_stamp(self):
         """Newest mtime in the output trees, files included, to WALK_DEPTH levels.
@@ -136,7 +143,29 @@ class PipelineView(S.BaseView):
         # the project.
         return self.state["project"]
 
+    def active_filters(self):
+        """The filters currently narrowing this tab, as the user set them.
+
+        What an empty tree means depends entirely on this: with no filter it says the
+        pipeline never ran, with one it says nothing matched. Reporting the first when
+        the second is true contradicts the header on the same screen.
+        """
+        active = []
+        if self.status_filter:
+            active.append("%s=%s" % (self.T["filter"], self.status_filter))
+        if TIER in ("core", "extension") and self.state.get("section") == "pipeline":
+            active.append("--group=%s" % TIER)
+        return active
+
     def empty_message(self):
+        active = self.active_filters()
+        if active:
+            msg = self.T["no_match"] % ", ".join(active)
+            # `f` clears the status filter and nothing else — --group came from the
+            # command line and needs a relaunch, so only offer the key that works.
+            if self.status_filter:
+                msg += " - %s" % self.T["clear_filter"]
+            return msg
         if not self.state["has_progress"]:
             return self.T["no_progress"]
         return self.T["no_%s" % self.name]
@@ -226,9 +255,19 @@ class PipelineView(S.BaseView):
             line.append("%s: %s" % (T["next"], state["next"]))
         if s["latest_activity"]:
             line.append(T["ago"] % P.rel_time(s["latest_activity"]))
-        if self.status_filter:
-            line.append("filter: %s" % self.status_filter)
-        lines.append(((" %s " % D.G["sep"]).join(line), "head"))
+        line += self.active_filters()
+        if line:
+            lines.append(((" %s " % D.G["sep"]).join(line), "head"))
+
+        # A failure has to reach the headline. The progress fraction is measured over the
+        # required path only (@pipeline_status_data.derive_all), so a phase that failed in
+        # the manual extension tier — or one recorded outside the manifest entirely — is
+        # missing from the status counts above and its row can sit below the fold.
+        failed = [p["name"] for p in self.state["phases"].values()
+                  if p["display_status"] == "failed"]
+        if failed:
+            lines.append(("%s %s: %s" % (P.PG["failed"], T["failed_phases"],
+                                         ", ".join(failed)), "alert"))
 
         gate = state["gate"]
         if gate:
@@ -359,7 +398,12 @@ class PipelineView(S.BaseView):
             return [T["ask_next"], T["ask_summary"]]
         if row["phase"]["stale"]:
             return [T["ask_stale"], T["ask_next"], T["ask_summary"]]
-        return [T["ask_why"] % row["phase"]["status"], T["ask_next"], T["ask_summary"]]
+        # "still pending" / "still failed" is the question worth asking; "still completed"
+        # is not, so a finished phase leads with what it produced instead.
+        if row["phase"]["display_status"] in ("completed", "skipped"):
+            return [T["ask_summary"], T["ask_next"]]
+        return [T["ask_why"] % row["phase"]["display_status"], T["ask_next"],
+                T["ask_summary"]]
 
     def ask_prompt(self, row, question):
         if row["kind"] == "group":

@@ -24,7 +24,9 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import backlog_status_data as B  # noqa: E402
 import backlog_status_view as BV  # noqa: E402
+import pipeline_status_data as P  # noqa: E402
 import pipeline_status_view as PV  # noqa: E402
 import status_tui as S  # noqa: E402
 import token_cost_data as D  # noqa: E402
@@ -34,6 +36,8 @@ env = os.environ.get
 LANG = env("NX_LANG", "en")
 VIEW = env("NX_VIEW", "auto")
 PLUGIN = env("NX_PLUGIN", "") or None
+PHASE_FILTER = env("NX_PHASE", "") or None
+EPIC_FILTER = env("NX_EPIC", "") or None
 
 
 def build_views():
@@ -70,6 +74,43 @@ def initial_view(views):
     return next((i for i, v in enumerate(views) if v.available), idx)
 
 
+def validate_filters(views):
+    """Reject a misspelled --phase / --epic before the dashboard opens; 0 when clean.
+
+    The one-shot renderers already exit 2 on an unknown name. Live mode used to accept
+    one silently — the dashboard ignores --phase when drawing a tree, and an unknown
+    --epic drew an empty backlog — so a typo looked like an answer instead of an error.
+    """
+    T = P.labels(LANG)
+    if PHASE_FILTER:
+        # Live mode offers every pipeline tab this project has, so the name may legally
+        # belong to any of them; the message names the tabs it actually searched.
+        tabs = [v for v in views if isinstance(v, PV.PipelineView) and v.available]
+        known = {}
+        for view in tabs:
+            known.update(view.state["phases"])
+        if PHASE_FILTER not in known:
+            print("nexus-status: %s" % (T["unknown_phase"] % PHASE_FILTER),
+                  file=sys.stderr)
+            print("nexus-status: %s" % (T["known_phases"] % (
+                "/".join(v.name for v in tabs) or "-",
+                ", ".join(sorted(known)) or "-")), file=sys.stderr)
+            return 2
+    if EPIC_FILTER:
+        backlog = next((v for v in views if isinstance(v, BV.BacklogView)), None)
+        # Same notion of "an Epic" as backlog_status_report: a root of the node tree.
+        roots = [n["local_id"] for n in
+                 (backlog.children.get(None, []) if backlog else [])]
+        if EPIC_FILTER not in roots:
+            BT = B.labels(LANG)
+            print("nexus-status: %s" % (BT["unknown_epic"] % EPIC_FILTER),
+                  file=sys.stderr)
+            print("nexus-status: %s" % (BT["known_epics"] % (", ".join(roots) or "-")),
+                  file=sys.stderr)
+            return 2
+    return 0
+
+
 def main(stdscr):
     S.debug("start term=%s encoding=%s locale=%s ncurses=%s size=%dx%d "
             "glyphs=%s ambiguous_wide=%s view=%s",
@@ -97,6 +138,11 @@ def main(stdscr):
 
 if __name__ == "__main__":
     locale.setlocale(locale.LC_ALL, "")
+    # The filters are checked before curses takes the screen, so a usage error reaches
+    # the terminal as a message and an exit code instead of flashing past a teardown.
+    code = validate_filters(build_views())
+    if code:
+        sys.exit(code)
     try:
         curses.wrapper(main)
     except KeyboardInterrupt:

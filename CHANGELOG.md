@@ -43,6 +43,47 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 ## [0.21.2] - 2026-08-07
 
 ### Fixed
+- **The status dashboard's `c` key opened a browser instead of copying.** `c` is documented
+  as "copy the default command for the selected row", but the default action for a finished
+  row is an open (`open URL` on a merged Issue, `open output` on a completed phase) and the
+  shell dispatched on the label alone — so `c` launched a browser tab or an editor and
+  reported it as `command <url>`, having copied nothing. `c` now always copies, including
+  the path or URL of an open-type default; `o` remains the key that opens, and choosing
+  `open output` from the action menu still opens it.
+- **A filtered-empty tree claimed the pipeline had never run.** With `f` cycled to a status
+  nothing matched, or `--group`/`--epic` narrowing to nothing, the dashboard printed "the
+  product pipeline has not run in this project" / "no backlog manifest" directly beneath a
+  header summarizing the phases and Issues it had just counted. The empty state now names
+  the filter responsible, and offers `f` only when `f` is what would clear it.
+- **`Esc` quit the dashboard on a stray escape sequence.** A terminal that emits a sequence
+  ncurses cannot map — application-cursor-mode off, a mouse report, a bracketed-paste or
+  focus-change marker, an unknown `$TERM` — delivers the leading `27` as a bare keypress,
+  which the shell bound to quit. `Esc` now only closes a menu or the help panel; `q` is the
+  only key that quits, and `? help | q quit` is pinned to the bottom bar so it survives a
+  key legend too long for the terminal (the Japanese legend overflows before 120 columns).
+- **The action menu never said how to close itself without `--exec`.** Building the hint by
+  slicing the legend at its first separator dropped `Esc close` along with the run key.
+  Relatedly, pressing `e` on an `open output` entry *with* `--exec` enabled answered "run
+  with `--exec` to launch claude from here" — it now opens the entry — and pressing `e`
+  without `--exec` no longer closes the menu, so the selection is not lost to a hint.
+- **The help panel printed its glyph legend once per tab and ran off the bottom of the
+  screen.** The three pipeline tabs are one class returning one legend, so it appeared two
+  or three times; the panel had no height bound either, and below ~30 rows its closing
+  border and its "how to close this" hint were clipped away with no way to scroll. The
+  legend is now de-duplicated and the panel scrolls (`^v`/PgUp/PgDn/`g`/`G`) when it does
+  not fit — verified at 80x24.
+- **A `failed` phase could be invisible.** The progress fraction is measured over the
+  required path, so a phase that failed in the manual extension tier — or one recorded
+  outside the manifest — was absent from the header's status counts and its row sat below
+  the fold, while the one-shot renderer printed an explicit `failed:` footer. The dashboard
+  header now names every failed phase, as the static render always did.
+- **A misspelled `--phase` / `--epic` was accepted by the live dashboard.** The one-shot
+  renderers exit 2 on an unknown name; live mode ignored `--phase` entirely and drew an
+  empty backlog for an unknown `--epic`, so a typo looked like an answer. Both are now
+  checked before curses takes the screen, in every mode.
+- **The 10-second poll walked the output tree once per pipeline tab.** Product, Architect
+  and Code Generation scan the same project directory, and each did so independently. The
+  shell now computes one walk per poll for views that declare the same `stamp_key`.
 - **The pipeline dashboard reported a finished project as entirely `pending`.** The
   progress registry held unconditional authority over a phase's status, but it is written
   by a soft "update `pipeline-progress.json`" step at the end of each SKILL.md — a step

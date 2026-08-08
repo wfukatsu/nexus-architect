@@ -68,7 +68,22 @@ class BacklogView(S.BaseView):
         return (self.manifest or {}).get("project") or os.path.basename(
             os.path.abspath(PROJ))
 
+    def active_filters(self):
+        """The filters currently narrowing the tree — see PipelineView.active_filters."""
+        active = []
+        if self.status_filter:
+            active.append("%s=%s" % (self.T["filter"], self.status_filter))
+        if EPIC_FILTER:
+            active.append("--epic=%s" % EPIC_FILTER)
+        return active
+
     def empty_message(self):
+        active = self.active_filters()
+        if active:
+            msg = self.T["no_match"] % ", ".join(active)
+            if self.status_filter:      # --epic needs a relaunch; only `f` is live
+                msg += " - %s" % self.T["clear_filter"]
+            return msg
         return self.T["no_manifest"]
 
     def sync(self, app):
@@ -149,8 +164,7 @@ class BacklogView(S.BaseView):
                                         self.pipeline["total"], cur))
         meta.append("%s %s" % (T["synced"], self.synced_at.strftime("%H:%M"))
                     if self.synced_at else T["not_synced"])
-        if self.status_filter:
-            meta.append("%s: %s" % (T["filter"], self.status_filter))
+        meta += self.active_filters()
         if self.queue_count:
             meta.append("%s %s" % (T["queue"], T["queued_entries"] % self.queue_count))
         lines.append(((" %s " % D.G["sep"]).join(meta), "dim"))

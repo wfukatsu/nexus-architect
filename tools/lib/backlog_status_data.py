@@ -52,6 +52,7 @@ BS_LABELS = {
     "en": {
         "title": "Backlog Delivery", "live": "LIVE", "issues": "Issues", "done": "done",
         "detail": "Detail", "no_manifest": "no backlog manifest",
+        "no_match": "no item matches %s", "clear_filter": "press f to clear it",
         "pipeline": "pipeline", "checked": "checked", "every": "every %ss",
         "synced": "tracker synced", "not_synced": "tracker not synced (s)",
         "syncing": "syncing tracker...", "sync_failed": "tracker sync failed",
@@ -66,7 +67,7 @@ BS_LABELS = {
         "exec_hint": "run with --exec to launch claude from here",
         "actions": "actions", "keys": " ^v/jk select | <> fold | Enter actions | Tab view"
                                      " | a ask | s sync | f filter | o url | c copy"
-                                     " | r refresh | ? help | q quit",
+                                     " | r refresh",
         "menu_keys": "Enter copy | e run via claude | Esc close",
         "filter": "filter", "all": "all", "unparented": "(unparented)",
         "too_small": "terminal too small", "empty": "nothing to show",
@@ -82,6 +83,7 @@ BS_LABELS = {
     "ja": {
         "title": "バックログデリバリー", "live": "LIVE", "issues": "Issue", "done": "完了",
         "detail": "詳細", "no_manifest": "バックログマニフェストがありません",
+        "no_match": "%s に一致する項目はありません", "clear_filter": "f で解除",
         "pipeline": "パイプライン", "checked": "確認", "every": "%s秒毎",
         "synced": "トラッカー同期", "not_synced": "トラッカー未同期 (s)",
         "syncing": "トラッカー同期中...", "sync_failed": "トラッカー同期失敗",
@@ -96,7 +98,7 @@ BS_LABELS = {
         "exec_hint": "--exec 付きで起動すると claude をここから実行できます",
         "actions": "アクション", "keys": " ^v/jk 選択 | <> 開閉 | Enter アクション"
                                         " | Tab ビュー | a 質問 | s 同期 | f フィルタ"
-                                        " | o URL | c コピー | r 更新 | ? ヘルプ | q 終了",
+                                        " | o URL | c コピー | r 更新",
         "menu_keys": "Enter コピー | e claude 実行 | Esc 閉じる",
         "filter": "フィルタ", "all": "全て", "unparented": "(親なし)",
         "too_small": "画面が小さすぎます", "empty": "表示するものがありません",

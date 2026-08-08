@@ -10,7 +10,8 @@
 #   - the filters narrow every mode alike: --group / --phase / --epic apply to --json,
 #     not just to the tree, and each render states what it filtered
 #   - a render filtered down to nothing says so instead of printing a bare header
-#   - a misspelled --phase / --epic is a usage error (2), not a silent empty tree
+#   - a misspelled --phase / --epic is a usage error (2), not a silent empty tree — in
+#     the live dashboard too, where it used to be accepted and quietly ignored
 #   - the backlog view's pipeline strip agrees with the pipeline view's own count
 #   - the live-refresh poll notices an *overwritten* file three levels down
 #
@@ -268,6 +269,23 @@ check "a misspelled --epic is a usage error (2) that lists the real Epics" "$?" 
 err="$("$NX" "$PROD" --once --phase=nope 2>&1 >/dev/null)"
 contains "$err" "存在しないフェーズ"
 check "the usage error is localized like everything else" "$?" "$err"
+
+# The live dashboard ignores --phase when drawing a tree, and applies --epic; either way
+# a misspelling used to be swallowed, so a typo looked like an answer. The check runs
+# before curses takes the screen, so it is reachable without a terminal.
+run_tui() {  # run_tui <project> <env assignments...>
+  ( cd "$ROOT" && env NX_PLUGIN_ROOT="$ROOT" NX_PROJECT_DIR="$1" NX_LANG=en \
+      "${@:2}" python3 tools/lib/nexus_status_tui.py "$1" 2>&1 >/dev/null )
+}
+err="$(run_tui "$PROD" NX_PHASE=nope)"; code=$?
+{ [ "$code" -eq 2 ] && contains "$err" "unknown phase: nope"; }
+check "the live dashboard rejects an unknown --phase too" "$?" "code=$code $err"
+err="$(run_tui "$PROD" NX_EPIC=NOPE)"; code=$?
+{ [ "$code" -eq 2 ] && contains "$err" "unknown epic: NOPE" && contains "$err" "E1, E2"; }
+check "the live dashboard rejects an unknown --epic too" "$?" "code=$code $err"
+err="$(run_tui "$PROD" NX_PHASE=define-scope NX_NOOP=1)"; code=$?
+[ "$code" -ne 2 ]
+check "a --phase that does exist is not rejected" "$?" "code=$code $err"
 
 # ------------------------------------------------------------------- cross-view agreement
 echo "the two views agree"
