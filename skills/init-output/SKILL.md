@@ -42,7 +42,8 @@ chose during the product run.
 
    - **Absent** — create it, registering every phase from
      `@skills/common/skill-dependencies.yaml` as `"pending"`, each with the fields defined in
-     @skills/common/progress-registry.md.
+     @skills/common/progress-registry.md — including `"plugin": "architect"`, which is what
+     makes an entry attributable once both pipelines share the file.
    - **Present** — keep the file and add only the phase entries it does not already have, as
      `"pending"`. Never reset an entry that exists, never remove a phase this manifest does
      not define (the product pipeline registers its own phases in the same file), and leave
@@ -54,10 +55,13 @@ chose during the product run.
    - **Colliding phase names.** Four names are defined by *both* manifests — `map-domains`,
      `design-api`, `create-domain-story`, `report` — and the registry keys phases by bare
      name, so an existing entry under one of them may describe the **product** phase rather
-     than this one. Leave it exactly as it is, and append one line to `warnings[]` for each
-     such name found already `completed`, naming it and stating that its status may belong to
-     the product pipeline and that the architect phase is therefore unverified. The status
-     dashboard renders `warnings[]`, so the ambiguity is visible instead of reading as done.
+     than this one. Leave it exactly as it is. If it carries `"plugin": "product"` the
+     question is settled and there is nothing to report; if it carries no `plugin` at all
+     and is already `completed`, append one line to `warnings[]` naming it and stating that
+     its status may belong to the product pipeline, so the architect phase is unverified.
+     The status dashboard renders `warnings[]`, so the ambiguity is visible instead of
+     reading as done. **Never add `"plugin": "architect"` to an entry you did not create** —
+     that would claim the neighbour's work as this pipeline's.
 
 3. Create `work/context.md` **only if it is absent**. If it exists, leave its content in
    place: phases append to it, and on the handoff path it carries the product Open Questions

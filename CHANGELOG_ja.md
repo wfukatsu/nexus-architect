@@ -9,7 +9,32 @@ Nexus Architect の主な変更点を記録します。
 
 ## [Unreleased]
 
+### 追加
+- **レジストリの phase エントリが自分のパイプラインを名乗るようになった。** `work/pipeline-progress.json`
+  の各エントリが `"plugin": "product" | "architect"` を持つ。`init-output` と各オーケストレーターの
+  `in_progress` スタンプ時に書き込まれる。1 つのレジストリを両パイプラインが共有し、phase を bare 名で
+  キーにしているため、両 manifest が定義する 4 つの名前については、このフィールドだけが「誰のエントリか」
+  を示す。`tools/nexus-status.sh` はこれを読んで一意に解決し（もう一方のパイプラインのラベルが付いた
+  エントリは、何と書いてあってもこの phase の状態ではない）、フィールドが無い場合のみ output の裏付けに
+  フォールバックする。
+
 ### 修正
+- **トークンコストがパイプライン境界を越えて合算されなくなった。** `work/token-usage.json` もレジストリと
+  同様に bare 名キーだったため、`map-domains`（および `design-api` / `create-domain-story` / `report`）の
+  product と architect の費用が、どちらのビューも主張できない 1 つのバケットに蓄積されていた。
+  `hooks/record_token_usage.py` はこの 4 つをレジストリエントリの `plugin` フィールドから取って
+  `<plugin>:<phase>` で記録するようになった。ダッシュボードはバケットを自分のパイプラインにのみ計上し、
+  もう一方のものはそのタブに任せ、名前空間化されていない旧バケットは「開いているタブ」に付け替えるのでは
+  なく未割当として報告する。その他の phase 名は従来どおり bare で記録される。
+- **`/product:adapt-change` が architect 境界で「未定義」ではなく「停止」するようになった。**
+  ハンドオフ後はトレースグラフに architect のノードが含まれるため、影響範囲の閉包は設計上そこに到達するが、
+  スキルはその扱いを何も述べていなかった。確定した影響集合をノードの所有者で分割し、product 側のみを
+  再実行し、影響を受ける `FR-` / `NFR-`・所有スキル・対処コマンドを列挙した `## Architect-Side Impact`
+  セクションを書くようになった。architect 成果物は書き換えない — product 側の変更は product 仕様を
+  改訂する根拠ではあっても、バックログ項目や出荷済みコードが依存する要件文書を書き換える権限ではない。
+  `docs/design.md` §7.5 が新しい契約で、§7.2 は再実行が越境するかのような記述をやめた。
+- **`/architect:pipeline` のハンドオフ検知が `define-requirements` の読む範囲と一致した** —
+  `/architect:start` で既に修正したのと同じグロブ不一致。
 - **`init-output` がもう一方のパイプラインの状態を破棄しなくなった。** `/architect:init-output`
   と `/product:init-output` の双方を明示的に加算的（additive）な動作に変更した。既存の
   `work/pipeline-progress.json` は全 phase を `pending` で再登録するのではなくマージし、設定済みの

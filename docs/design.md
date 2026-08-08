@@ -181,11 +181,12 @@ me) is the reverse of `upstream`, and that is the direction propagation follows.
    `reports/05_adaptation/impact-analysis.md`.
 4. **Human confirmation** — present the confirmed impact set via `AskUserQuestion` (skipped under
    `--auto`).
-5. **Minimal re-run** — re-run only the confirmed affected skills, feeding existing artifacts as
-   input, and update the corresponding edges in `traceability.json`.
+5. **Minimal re-run** — re-run only the confirmed affected **product** skills, feeding existing
+   artifacts as input, and update the corresponding edges in `traceability.json`.
 6. **Coherence check** — run `/product:review` (consistency + traceability lenses) to catch
    contradictions introduced by the re-propagation. When the change reaches the architect boundary,
    the §1.5 cross-plugin check applies too.
+7. **Report the architect-side impact** — see §7.5. The engine stops at the plugin boundary.
 
 ### 7.3 Principles
 
@@ -209,3 +210,30 @@ graph, seeding step 2's "directly touched" set:
 | `market` / `competitor` | market-landscape / positioning (`POS-`) |
 | `tech` | `TECH-` / `ARCH-` (tech-fitness, architecture) |
 | `regulation` | constraints / `NFR-` |
+
+### 7.5 The Architect Boundary
+
+§1.5 puts architect's nodes in the same graph, so after a handoff the step-2 closure reaches
+them: `FR-` derived from a `FEAT-`, architect-originated `NFR-`, the physical-only nodes. That
+is deliberate — the point of one graph is that the chain stays visible across the boundary.
+
+What the engine does with them is **report, not re-run**:
+
+| | Product-owned nodes | Architect-owned nodes |
+|---|---|---|
+| In the closure | yes | yes |
+| Judged (step 3) | yes | yes |
+| Re-run (step 5) | yes | **no** |
+| Artifact rewritten | yes | **no** |
+| Result | updated artifact + diff | a row in `impact-analysis.md` § Architect-Side Impact, naming the owning skill and the command to act on it |
+
+Ownership is read off the node: its `skill` field, corroborated by `source_file`
+(`reports/00_requirements/…` and later architect directories are architect's).
+
+The reason is authority, not capability. A product-side change is grounds to revise the product
+spec; it is not grounds for a product skill to silently rewrite a requirements or architecture
+document that implementation, backlog items and possibly shipped code depend on. Re-running that
+side is the user's decision, taken with `/architect:define-requirements` (or the later architect
+skill the node names) once they have seen what moved. An empty section is reported explicitly —
+"the change does not cross the boundary" — so its absence means the check ran, not that it was
+forgotten.

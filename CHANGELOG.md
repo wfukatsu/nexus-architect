@@ -9,7 +9,35 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 
 ## [Unreleased]
 
+### Added
+- **Registry phase entries name their pipeline.** Every entry in
+  `work/pipeline-progress.json` now carries `"plugin": "product" | "architect"`, written by
+  `init-output` and by each orchestrator on its `in_progress` stamp. One registry serves both
+  pipelines and keys phases by bare name, so for the four names both manifests define this
+  field is the only thing that says whose entry it is. `tools/nexus-status.sh` reads it to
+  settle the question outright — an entry labelled for the other pipeline is not this phase's
+  status, whatever it says — and falls back to output corroboration where the field is absent.
+
 ### Fixed
+- **Token cost is no longer merged across the pipeline boundary.** `work/token-usage.json` was
+  keyed by bare phase name like the registry, so the product and architect spend on
+  `map-domains` (or `design-api` / `create-domain-story` / `report`) accumulated in one bucket
+  that neither view could claim. `hooks/record_token_usage.py` now records those four under
+  `<plugin>:<phase>`, taken from the registry entry's `plugin` field; the dashboard charges a
+  bucket only to its own pipeline, leaves the neighbour's to its own tab, and reports a legacy
+  un-namespaced bucket as unassigned rather than to whichever tab happens to be open. Every
+  other phase name is recorded bare, as before.
+- **`/product:adapt-change` stops at the architect boundary instead of leaving it undefined.**
+  After a handoff the trace graph holds architect's nodes, so the blast-radius closure reaches
+  them by design — but the skill said nothing about what to do with them. It now splits the
+  confirmed impact set by node ownership, re-runs only the product side, and writes an
+  `## Architect-Side Impact` section naming each affected `FR-` / `NFR-`, the skill that owns
+  it and the command to act on it. It never rewrites an architect artifact: a product-side
+  change is grounds to revise the product spec, not authority to rewrite requirements that
+  backlog items and shipped code depend on. `docs/design.md` §7.5 is the new contract, and
+  §7.2 no longer implies the re-run crosses over.
+- **`/architect:pipeline` detects a product handoff over the same reports `define-requirements`
+  reads** — the same glob mismatch already fixed in `/architect:start`.
 - **`init-output` no longer discards the other pipeline's state.** Both `/architect:init-output`
   and `/product:init-output` are now explicitly additive: they merge into an existing
   `work/pipeline-progress.json` instead of re-registering every phase as `pending`, keep the

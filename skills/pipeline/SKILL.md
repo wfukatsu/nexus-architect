@@ -30,17 +30,20 @@ part of the automated run.
 
 1. Load the dependency graph from `skill-dependencies.yaml`
 2. Initialize output directories with `/architect:init-output`
-3. **Product handoff detection** — glob `reports/03_domain/`, `reports/04_quality/`, `reports/02_spec/` and `work/traceability.json`. If product artifacts exist, run `define-requirements` first with them as inputs (the product→architect handoff, @docs/design.md §1); it auto-detects and carries product IDs forward. Otherwise run the standard greenfield/legacy entry.
+3. **Product handoff detection** — glob the same set `define-requirements` ingests: `reports/00_core/`, `reports/01_ux/`, `reports/02_spec/`, `reports/03_domain/`, `reports/04_quality/` and `work/traceability.json`. Keep the two sets identical — a run that stopped early (`--profile=mvp` writes only `reports/00_core/`) is still a handoff. If product artifacts exist, run `define-requirements` first with them as inputs (the product→architect handoff, @docs/design.md §1); it auto-detects and carries product IDs forward. Otherwise run the standard greenfield/legacy entry.
 4. Execute each skill and verify its output before proceeding to the next
 5. Execute skills with `parallel_with` in parallel via Task
 6. Enable or disable ScalarDB-related skills based on the `conditions` field
 7. Record progress in `work/pipeline-progress.json` **twice per phase**: set
-   `status: "in_progress"` with `started_at` *before* invoking the skill (all of them at
-   once for a parallel group), then `completed` / `failed` / `skipped` with
-   `completed_at`, `outputs` and `summary` once it returns. The pre-write is the only
-   signal that a phase is running while it runs — `/architect:report-status` renders it,
-   and the token-usage hook attributes cost to whatever is `in_progress`
-   (@skills/common/progress-registry.md)
+   `status: "in_progress"` with `plugin: "architect"` and `started_at` *before* invoking
+   the skill (all of them at once for a parallel group), then `completed` / `failed` /
+   `skipped` with `completed_at`, `outputs` and `summary` once it returns. The pre-write
+   is the only signal that a phase is running while it runs — `/architect:report-status`
+   renders it, and the token-usage hook attributes cost to whatever is `in_progress`,
+   using `plugin` to keep the two pipelines' spend separable under the four phase names
+   both manifests define. The product pipeline writes this same file, so never re-register
+   or reset an entry that is not this manifest's — including under `--rerun-from`
+   (@skills/common/progress-registry.md § One Registry, Two Pipelines)
 8. Accumulate findings in `work/context.md` between phases
 
 ## Command-Line Options

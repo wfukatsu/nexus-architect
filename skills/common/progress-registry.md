@@ -19,6 +19,7 @@
   "phases": {
     "investigate": {
       "status": "pending|in_progress|completed|failed|skipped",
+      "plugin": "product|architect",
       "started_at": null,
       "completed_at": null,
       "updated_at": null,
@@ -47,6 +48,7 @@
 | Field | Written when | Meaning |
 |-------|--------------|---------|
 | `status` | always | See Status Values below |
+| `plugin` | always | `"product"` or `"architect"` — which pipeline's phase this entry is. Both pipelines write this one file and it is keyed by bare phase name, so for the four names both manifests define this field is the only thing that says whose entry it is (see One Registry, Two Pipelines). The token-usage hook reads it to keep the two pipelines' spend in separate ledger buckets |
 | `started_at` | entering the phase | ISO8601 stamp set together with `in_progress` |
 | `completed_at` | leaving the phase | ISO8601 stamp set together with `completed` |
 | `updated_at` | any write | ISO8601 stamp of the last change to this entry |
@@ -76,8 +78,11 @@ land in the pending bucket.
 Per phase, an orchestrator (`/architect:pipeline`, `/architect:start`, `/product:start`)
 therefore writes twice:
 
-1. **Before the skill runs** — `status: "in_progress"`, `started_at`, `updated_at`.
-   Parallel phases each get their own entry set at the same time.
+1. **Before the skill runs** — `status: "in_progress"`, `plugin`, `started_at`,
+   `updated_at`. Parallel phases each get their own entry set at the same time. `plugin`
+   goes in on this first write: the token-usage hook attributes cost from what the
+   registry says *while* the phase runs, so a phase that names its pipeline only at the
+   end has its spend recorded unattributably.
 2. **After it returns** — `status: "completed"` (or `"failed"` / `"skipped"`),
    `completed_at`, `updated_at`, `outputs`, `summary`.
 
@@ -95,13 +100,21 @@ orchestrator:
    whose name your manifest does not define, and never reset an `options` value another
    pipeline set (notably `output_language`). This is also why `init-output` merges rather
    than initializes when the file already exists.
-2. **Four phase names are ambiguous.** `map-domains`, `design-api`, `create-domain-story`
-   and `report` are defined by **both** manifests, and the map is keyed by bare phase
-   name — so an entry under one of them may belong to the other pipeline. Before treating
-   such an entry as satisfied (resume, dependency checks, "already done"), **confirm it
-   against the phase's own declared `outputs:` on disk**. A `completed` with none of your
-   manifest's outputs written is the neighbour's stamp, not your phase: run the phase.
-   `tools/nexus-status.sh` applies the same rule and flags these as `shared-name` drift.
+2. **Every entry names its pipeline.** `map-domains`, `design-api`, `create-domain-story`
+   and `report` are defined by **both** manifests and the map is keyed by bare phase name,
+   so an entry under one of them is otherwise unattributable. Write `"plugin"` on every
+   phase entry you create or stamp, and **read another pipeline's entry as none of your
+   business** — not as your phase being done.
+   - Where the field is missing (an entry written before this contract), fall back to the
+     evidence: before treating such an entry as satisfied (resume, dependency checks,
+     "already done"), **confirm it against the phase's own declared `outputs:` on disk**. A
+     `completed` with none of your manifest's outputs written is the neighbour's stamp:
+     run the phase. `tools/nexus-status.sh` applies exactly this — `plugin` when present,
+     output corroboration when not — and flags the unresolved ones as `shared-name` drift.
+   - The token-usage hook reads `plugin` too, recording a shared name's spend under
+     `<plugin>:<phase>` in `work/token-usage.json` so the two pipelines' cost stays
+     separable. An entry with no `plugin` leaves its spend unattributable, and the
+     dashboard reports it as unassigned rather than charging it to whichever tab is open.
 
 ## Resume Behavior
 

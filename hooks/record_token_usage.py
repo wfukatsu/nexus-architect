@@ -15,6 +15,13 @@ appended assistant turns, and attributes each delta to a pipeline phase:
      SubagentStop) with still nothing to attribute to, pending is flushed to
      the permanent "_unassigned" bucket.
 
+Phase names that both plugins' manifests define (`map-domains`, `design-api`,
+`create-domain-story`, `report`) are recorded as "<plugin>:<phase>", taken from
+the `plugin` field on the registry entry — one registry serves both pipelines
+and keys phases by bare name, so an un-namespaced bucket would merge the
+product and architect spend on the same-named phase into one number neither
+tab could claim. Every other name is recorded bare, as before.
+
 Artifacts (both under work/, git-ignored):
   - token-usage.json   aggregated per-phase / per-model usage + USD cost
   - token-usage.jsonl  append-only audit log, one record per firing
@@ -168,11 +175,52 @@ def recompute(ledger, pricing):
     ledger["total_cost_usd"] = round(grand + pend_cost, 4)
 
 
+# Phase names both plugins' manifests define. One registry serves both pipelines and
+# keys phases by bare name, so a ledger bucket under one of these would merge the two
+# pipelines' spend; these are recorded as `<plugin>:<phase>` instead, using the `plugin`
+# field the registry entry carries. The set is derived from the manifests by
+# tools/lib/pipeline_status_data.shared_phase_names(); this literal is the fallback for
+# when that import is unavailable, and pipeline_status_data.test.py asserts they agree.
+SHARED_PHASE_NAMES = ("map-domains", "design-api", "create-domain-story", "report")
+
+
+def shared_phase_names():
+    """The manifests' answer when reachable, the frozen literal when not.
+
+    This hook must never fail the session, so a broken or moved tools/lib is not an
+    error here — it costs the single-source-of-truth, not the run.
+    """
+    try:
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                        "..", "tools", "lib"))
+        import pipeline_status_data
+        names = pipeline_status_data.shared_phase_names()
+        if names:
+            return set(names)
+    except Exception:
+        pass
+    return set(SHARED_PHASE_NAMES)
+
+
+def phase_key(name, plugin, shared):
+    """The ledger bucket for one phase: namespaced only where the name is ambiguous."""
+    return "%s:%s" % (plugin, name) if plugin and name in shared else name
+
+
 def read_progress(progress_path):
     data = load_json(progress_path) or {}
     phases = data.get("phases", {}) or {}
-    in_progress = sorted(n for n, p in phases.items() if isinstance(p, dict) and p.get("status") == "in_progress")
-    completed = sorted(n for n, p in phases.items() if isinstance(p, dict) and p.get("status") == "completed")
+    shared = shared_phase_names()
+
+    def key(name):
+        entry = phases.get(name) or {}
+        plugin = entry.get("plugin") if isinstance(entry, dict) else None
+        return phase_key(name, plugin if plugin in ("product", "architect") else None, shared)
+
+    in_progress = sorted(key(n) for n, p in phases.items()
+                         if isinstance(p, dict) and p.get("status") == "in_progress")
+    completed = sorted(key(n) for n, p in phases.items()
+                       if isinstance(p, dict) and p.get("status") == "completed")
     return data.get("project_name", ""), in_progress, completed
 
 

@@ -376,6 +376,22 @@ def check_staleness(root):
           [n for n, p in phases.items() if p["stale"] and not p["written"]])
 
 
+_HOOK = []
+
+
+def hook_module():
+    """hooks/record_token_usage.py, imported by path — it is not on sys.path."""
+    if not _HOOK:
+        import importlib.util
+        root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        path = os.path.join(root, "hooks", "record_token_usage.py")
+        spec = importlib.util.spec_from_file_location("record_token_usage", path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        _HOOK.append(mod)
+    return _HOOK[0]
+
+
 def check_shared_phase_names(root):
     """Both pipelines write one registry keyed by bare phase name.
 
@@ -426,6 +442,59 @@ def check_shared_phase_names(root):
           phases["create-domain-story"]["status"] == "pending"
           and phases["create-domain-story"]["drift"] == "shared-name",
           phases["create-domain-story"])
+
+    # The registry entry naming its own pipeline settles the question outright — no
+    # output corroboration needed, and it holds for every status including in_progress.
+    labelled = os.path.join(root, "shared-labelled")
+    write(os.path.join(labelled, "reports", "03_domain", "domain-map.md"))
+    write(os.path.join(labelled, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "demo", "options": {"scalardb_enabled": False},
+        "phases": {"map-domains": {"status": "completed", "plugin": "product"},
+                   "design-api": {"status": "in_progress", "plugin": "product"}},
+    }))
+    phases = P.derive_all(labelled, plugin="architect")["phases"]
+    check("an entry labelled for the other pipeline is not this phase's status",
+          phases["map-domains"]["status"] == "pending"
+          and phases["design-api"]["status"] == "pending", phases["map-domains"])
+    phases = P.derive_all(labelled, plugin="product")["phases"]
+    check("and it is that phase's status on its own pipeline",
+          phases["map-domains"]["status"] == "completed"
+          and phases["design-api"]["status"] == "in_progress", phases["design-api"])
+    check("a labelled entry raises no shared-name drift — it is not ambiguous",
+          phases["map-domains"]["drift"] is None
+          and P.derive_all(labelled, plugin="architect")["phases"]["map-domains"]["drift"]
+          is None)
+
+    print("token-usage buckets under a shared phase name")
+    check("the hook's fallback shared set matches the manifests",
+          set(hook_module().SHARED_PHASE_NAMES) == shared,
+          hook_module().SHARED_PHASE_NAMES)
+    check("the hook namespaces a shared name and leaves the rest bare",
+          (hook_module().phase_key("map-domains", "product", shared),
+           hook_module().phase_key("investigate", "architect", shared),
+           hook_module().phase_key("map-domains", None, shared))
+          == ("product:map-domains", "investigate", "map-domains"))
+
+    ledger = os.path.join(root, "shared-cost")
+    write(os.path.join(ledger, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "demo", "options": {"scalardb_enabled": False}, "phases": {}}))
+    write(os.path.join(ledger, "work", "token-usage.json"), json.dumps({
+        "phases": {"architect:map-domains": {"cost_usd": 1.5},
+                   "product:map-domains": {"cost_usd": 2.5},
+                   "investigate": {"cost_usd": 4.0},
+                   "map-domains": {"cost_usd": 8.0},      # legacy, un-namespaced
+                   "_unassigned": {"cost_usd": 0.5}},
+        "total_cost_usd": 16.5}))
+    costs, total, unassigned = P.load_cost(ledger, "architect")
+    check("a namespaced bucket is charged only to its own pipeline",
+          costs.get("map-domains") == 1.5, costs)
+    check("an unshared name still resolves without a prefix",
+          costs.get("investigate") == 4.0, costs)
+    check("a legacy bare bucket under a shared name is unassignable, not either side's",
+          unassigned == 8.5 and total == 16.5, (unassigned, total))
+    check("the neighbour's bucket is not unassigned either — it is charged on its own tab",
+          P.load_cost(ledger, "product")[0].get("map-domains") == 2.5,
+          P.load_cost(ledger, "product")[0])
 
     # ...but a skip this project actually asked for is this pipeline's own decision.
     excluded = os.path.join(root, "shared-skip")

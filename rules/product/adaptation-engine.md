@@ -35,10 +35,19 @@ me) is the reverse of `upstream` and is what propagation follows.
    `impact-analysis.md`.
 4. **Human confirmation** — present the confirmed impact set via `AskUserQuestion` (skipped under
    `--auto`).
-5. **Minimal re-run** — re-run only the confirmed affected skills, feeding existing artifacts as
-   input, and update the corresponding edges in `traceability.json`.
+4b. **Split at the plugin boundary** — after a handoff the graph holds architect's nodes too
+   (`FR-`, architect-originated `NFR-`, the physical-only nodes), so the closure reaches them by
+   design. Partition the confirmed set by each node's `skill` field, corroborated by its
+   `source_file` (`reports/00_requirements/…` and later architect directories are architect's).
+5. **Minimal re-run** — re-run only the confirmed affected **product** skills, feeding existing
+   artifacts as input, and update the corresponding edges in `traceability.json`. Architect-owned
+   nodes are never re-run and their artifacts are never rewritten here (design.md §7.5).
 6. **Coherence check** — run `review` (consistency + traceability lenses) to catch contradictions
-   introduced by the re-propagation.
+   introduced by the re-propagation; when the set crossed the boundary, the design.md §1.5
+   cross-plugin check applies as well.
+7. **Report the architect-side impact** — an `## Architect-Side Impact` section in
+   `impact-analysis.md`: one row per architect-owned ID with its artifact, why the change reaches
+   it, the owning skill, and the command to act on it. Say so explicitly when it is empty.
 
 ## Principles (§7.3)
 

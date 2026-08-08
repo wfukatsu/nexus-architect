@@ -81,11 +81,14 @@ If yes, ask which domains to cover (present the bounded context list from `bound
 2. Determine the path and relevant phases (product handoff → greenfield)
 3. Run `/architect:init-output` to initialize the output directory
 4. Execute skills in dependency order per `skill-dependencies.yaml`, recording each phase
-   in `work/pipeline-progress.json` **twice**: `status: "in_progress"` with `started_at`
-   *before* invoking the skill, then `completed` / `failed` with `completed_at`,
-   `outputs` and `summary` after it returns (@skills/common/progress-registry.md). The
-   pre-write is what makes `/architect:report-status` show the phase as running and what
-   attributes its token cost to it
+   in `work/pipeline-progress.json` **twice**: `status: "in_progress"` with
+   `plugin: "architect"` and `started_at` *before* invoking the skill, then `completed` /
+   `failed` with `completed_at`, `outputs` and `summary` after it returns
+   (@skills/common/progress-registry.md). The pre-write is what makes
+   `/architect:report-status` show the phase as running and what attributes its token cost
+   to it; `plugin` is what keeps that attribution off the product pipeline's phase of the
+   same name. On the handoff path this file already holds product's phases — add to it,
+   never re-register it
 5. After `redesign`: offer Domain Story generation (see Domain Story Option above)
 6. Accumulate findings in `work/context.md` between phases
 7. Determine which phases to skip if not applicable
