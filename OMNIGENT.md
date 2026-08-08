@@ -179,7 +179,8 @@ analysis themselves. To run a pipeline under Omnigent:
    `review-scalardb`; `scalardb_disabled` selects `review-data-integrity`).
 3. Track progress in `work/pipeline-progress.json` (plain data — not a Claude construct).
    It also holds `options.output_language` (`en` default, `ja` supported) and
-   `options.confirm_versions` (see Dependency Versions).
+   `options.confirm_versions` (see Dependency Versions). **Both pipelines write this one
+   file** — see Product → Architect Handoff for the rules that makes necessary.
 
 The `disable-model-invocation: true` frontmatter on orchestrator files is a Claude Code
 hint; Omnigent ignores it and treats the file as the orchestration spec above.
@@ -193,6 +194,37 @@ hint; Omnigent ignores it and treats the file as the orchestration spec above.
   (unless `--auto`).
 - Keep generated outputs in the documented output directories with YAML frontmatter.
 - After writing any report `.md` or Mermaid diagram, run **both** validation hooks and fix
+## Product → Architect Handoff
+
+The two pipelines run one after the other in the same project directory: `/product:*` ends
+at SLA/NFR and hands off to `define-requirements`, which reads the product reports rather
+than re-eliciting them. `docs/design.md` §1 is the contract — read it before running either
+side of the boundary; §1.3 maps each product artifact to its deliverable and §1.4 lists what
+product deliberately does not supply.
+
+Detect the handoff by globbing `reports/00_core/`, `reports/01_ux/`, `reports/02_spec/`,
+`reports/03_domain/`, `reports/04_quality/` and `work/traceability.json`.
+
+Three files under `work/` are shared, so **every write is additive** — read before writing
+and merge into what is there:
+
+- **`pipeline-progress.json`** — one `phases` map, keyed by bare phase name, holding both
+  pipelines' entries. Never re-register the map, never drop an entry the manifest you are
+  running does not define, never reset another pipeline's `options`. Stamp
+  `"plugin": "product"` or `"architect"` on every entry you write: `map-domains`,
+  `design-api`, `create-domain-story` and `report` exist in **both** manifests, and that
+  field is the only thing that distinguishes them. Where it is absent, confirm a `completed`
+  against the phase's declared `outputs:` on disk before skipping the phase as done.
+- **`traceability.json`** — one graph for the project; `define-requirements` appends
+  `FR-`/`NFR-` nodes to what product wrote. Never start a second file, never truncate it to
+  `[]`. Which skill mints which ID prefix is declared as `id_prefix` on each manifest phase.
+- **`context.md`** — decisions and the Open Questions table, carried across phases and
+  across the boundary. Create only when absent; never overwrite.
+
+`adapt-change` walks the shared graph, so its blast radius reaches architect's nodes. It
+reports them and stops: no architect skill is re-run and no architect artifact is rewritten
+(`docs/design.md` §7.5).
+
   any non-zero exit before proceeding.
 
 ## ScalarDB / ScalarDL / ScalarDB Saga Knowledge Bundle

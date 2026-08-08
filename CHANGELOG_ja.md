@@ -26,6 +26,14 @@ Nexus Architect の主な変更点を記録します。
   フォールバックする。
 
 ### 修正
+- **`AGENTS.md` と `OMNIGENT.md` が、自分が駆動しているハンドオフを記述するようになった。** 本リポジトリは
+  同じスキル群を 3 つのオーケストレーターで動かし、各エントリドキュメントの同期を要求しているが、
+  product→architect ハンドオフに言及していたのは `CLAUDE.md` だけだった。Codex と omnigent ローダーには
+  検知規則も成果物マッピングも与えられておらず、決定的に、`pipeline-progress.json` /
+  `traceability.json` / `context.md` が両パイプラインの共有物であり加算的に書かねばならないことが
+  書かれていなかった。両者に検知グロブ、`docs/design.md` §1 契約への参照、`plugin` スタンプと曖昧な
+  4 つの phase 名を含むファイル別の加算規則、`adapt-change` の「報告して止まる」境界を追加した。
+  `CLAUDE.md` にも同じ共有状態の段落を追加。
 - **3 つのスキルが、下流から参照できないノードを書いていた。** `research-landscape` /
   `generate-ui-mock` / `generate-frontend` は、どの ID 接頭辞で書くかを述べないままトレースグラフに
   追記していた。これは 2 つの連鎖を実際に切っていた — `/product:adapt-change --type=market` は
