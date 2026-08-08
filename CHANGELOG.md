@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
+## [Unreleased]
+
+### Fixed
+- **`init-output` no longer discards the other pipeline's state.** Both `/architect:init-output`
+  and `/product:init-output` are now explicitly additive: they merge into an existing
+  `work/pipeline-progress.json` instead of re-registering every phase as `pending`, keep the
+  `options` already set (notably the `output_language` the user chose), and create
+  `work/context.md` / `work/traceability.json` only when absent. On the product→architect
+  handoff `/architect:start` runs `init-output` immediately before
+  `/architect:define-requirements` — and `init-output` used to create `work/context.md` "as an
+  empty file", erasing the product-side Open Questions table that `define-requirements` reads
+  in its very next step. `/product:init-output` likewise no longer truncates
+  `work/traceability.json`, which is the single cross-plugin trace graph architect appends its
+  `FR-` / `NFR-` nodes to (`docs/design.md` §1.5).
+- **A phase name both pipelines define is no longer read as done on one pipeline's word.**
+  `map-domains`, `design-api`, `create-domain-story` and `report` are defined by both
+  manifests, and the progress registry keys phases by bare name — so a *product* phase
+  recorded `completed` rendered as the *architect* phase being complete, and
+  `/architect:pipeline --resume-from` would have skipped it. `tools/nexus-status.sh` now
+  trusts such an entry only when the phase's own declared outputs exist to corroborate it,
+  and otherwise derives the status from the filesystem and reports `shared-name` drift; a
+  running phase (`in_progress`) and a skip the project actually asked for are exempt.
+  `skills/common/progress-registry.md` states the same rule for the orchestrators — confirm
+  an ambiguous entry against the outputs on disk before treating it as satisfied — plus the
+  additive-write rule the shared registry requires. `init-output` additionally records each
+  such entry in `warnings[]`.
+- **`/architect:start` detects a product handoff over the same reports `define-requirements`
+  reads.** Detection globbed only `reports/02_spec|03_domain|04_quality`, so a product run
+  that stopped early (`--profile=mvp` writes only `reports/00_core/`) could be announced as
+  having no product artifacts by the skill about to consume them. The two sets are now
+  identical.
+
 ## [0.22.1] - 2026-08-08
 
 ### Fixed

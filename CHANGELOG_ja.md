@@ -7,6 +7,34 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 3 つのプラグイン（`product`・`architect`・`scalardb`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+### 修正
+- **`init-output` がもう一方のパイプラインの状態を破棄しなくなった。** `/architect:init-output`
+  と `/product:init-output` の双方を明示的に加算的（additive）な動作に変更した。既存の
+  `work/pipeline-progress.json` は全 phase を `pending` で再登録するのではなくマージし、設定済みの
+  `options`（特に user が選んだ `output_language`）を保持し、`work/context.md` と
+  `work/traceability.json` は存在しない場合にのみ作成する。product→architect のハンドオフでは
+  `/architect:start` が `/architect:define-requirements` の直前に `init-output` を実行するが、
+  従来の `init-output` は `work/context.md` を「空ファイルとして作成」していたため、直後の
+  `define-requirements` が読む product 側の Open Questions 表を消去していた。
+  `/product:init-output` も同様に `work/traceability.json` を切り詰めなくなった。これは architect が
+  `FR-` / `NFR-` ノードを追記する唯一のプラグイン横断トレースグラフである（`docs/design.md` §1.5）。
+- **両パイプラインが定義する phase 名を、片方の記録だけで「完了」と読まなくなった。**
+  `map-domains`・`design-api`・`create-domain-story`・`report` は両方の manifest が定義しており、
+  進捗レジストリは phase を bare 名でキーにしているため、**product** 側の `completed` が
+  **architect** 側の完了として表示され、`/architect:pipeline --resume-from` ではスキップされる
+  状態だった。`tools/nexus-status.sh` は、当該 phase 自身の宣言 output が実在して裏付けが取れる
+  場合にのみそのエントリを信頼し、そうでなければ実ファイルから状態を導出して `shared-name`
+  ドリフトとして報告するようになった（実行中の `in_progress`、およびプロジェクトが実際に指定した
+  skip は対象外）。`skills/common/progress-registry.md` にオーケストレーター向けの同じ規則
+  — 曖昧なエントリは満たされたと見なす前に実ファイルで確認する — と、共有レジストリが要求する
+  加算的書き込み規則を明記した。`init-output` は該当エントリを `warnings[]` にも記録する。
+- **`/architect:start` のハンドオフ検知が `define-requirements` の読む範囲と一致した。**
+  検知は `reports/02_spec|03_domain|04_quality` しか見ていなかったため、早期に停止した product
+  実行（`--profile=mvp` は `reports/00_core/` のみ出力）が、まさにそれを消費するスキルによって
+  「product 成果物なし」と宣言され得た。両者の集合を一致させた。
+
 ## [0.22.1] - 2026-08-08
 
 ### 修正

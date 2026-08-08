@@ -30,8 +30,13 @@ overrides it.
 ## Product Handoff Detection
 
 Before selecting a path, check whether the **product** plugin already ran in this project:
-glob `reports/03_domain/`, `reports/04_quality/`, `reports/02_spec/` and `work/traceability.json`.
-If any product artifacts exist, this is a **product→architect handoff** (see @docs/design.md §1.1–1.5).
+glob the same set `/architect:define-requirements` ingests — `reports/00_core/`,
+`reports/01_ux/`, `reports/02_spec/`, `reports/03_domain/`, `reports/04_quality/` and
+`work/traceability.json` (non-empty `nodes`). Keep the two sets identical: a run that stopped
+early (`--profile=mvp` writes only `reports/00_core/`) is still a handoff, and detecting less
+than the consuming skill reads means announcing "no product artifacts" over reports it is
+about to use. If any product artifacts exist, this is a **product→architect handoff** (see
+@docs/design.md §1.1–1.5).
 Announce it and route to the greenfield path with the product reports fed in — do **not** re-elicit
 what they already answer:
 

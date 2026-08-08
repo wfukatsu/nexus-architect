@@ -324,8 +324,9 @@ class PipelineView(S.BaseView):
                     phase["stale_at"]).strftime("%m-%d %H:%M")), "dim"))
             lines.append((T["stale_hint"], "dim"))
         if phase["drift"]:
-            lines.append((T["drift_missing"] if phase["drift"] == "outputs-missing"
-                          else T["drift_present"], "warn"))
+            lines.append((T[{"outputs-missing": "drift_missing",
+                             "shared-name": "drift_shared"}.get(
+                                 phase["drift"], "drift_present")], "warn"))
         if phase["excluded"]:
             lines.append((T["skipped_option"] if phase["excluded"] == "option"
                           else T["skipped_condition"], "dim"))

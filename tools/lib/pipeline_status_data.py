@@ -12,13 +12,17 @@ three sources, in this order of authority:
   3. `<project>/work/token-usage.{json,jsonl}` — per-phase cost, and the heartbeat that
      says which phase produced tokens in the last few minutes.
 
-The registry wins on status, with one exception: `pending` is the value every phase is
+The registry wins on status, with two exceptions. `pending` is the value every phase is
 born with, so an entry still sitting there while its declared outputs exist on disk is a
 skill that forgot to stamp itself, not a phase that never ran — the filesystem wins and
-the status is derived. The filesystem also drives the output bar, and raises a drift flag
-whenever the two disagree (claimed completed with nothing written, or every output
-present while still recorded pending). Phases with no registry entry — notably the
-architect manual extension tier — are derived from the filesystem alone.
+the status is derived. And both pipelines write this one registry, keyed by bare phase
+name, so an entry under a name both manifests define (`map-domains`, `design-api`,
+`create-domain-story`, `report`) is only trusted to say *this* phase finished when this
+phase's own outputs exist to corroborate it. The filesystem also drives the output bar,
+and raises a drift flag whenever the two disagree (claimed completed with nothing written,
+every output present while still recorded pending, or that shared-name ambiguity). Phases
+with no registry entry — notably the architect manual extension tier — are derived from
+the filesystem alone.
 
 `completed` is not permanent: a phase whose upstream was rerun or hand-edited afterwards
 is reported as **stale**, and the invalidation propagates down the dependency graph, so
@@ -99,6 +103,9 @@ PS_LABELS = {
         "drift_missing": "recorded completed, but no declared output exists",
         "drift_present": "every declared output exists, but the registry was never "
                          "stamped — completed here is derived from the files",
+        "drift_shared": "both pipelines define this phase name and the registry keys "
+                        "phases by name, so the recorded status may be the other "
+                        "pipeline's — nothing is written here, so it is not read as done",
         "stale_upstream": "upstream changed after this phase finished: %s",
         "stale_inherited": "upstream is stale: %s",
         "stale_changed": "changed",
@@ -163,6 +170,9 @@ PS_LABELS = {
         "drift_missing": "completed 記録だが宣言された出力が1つも無い",
         "drift_present": "宣言された出力は全て存在するがレジストリが未更新 — "
                          "ここでの completed は実ファイルから導出",
+        "drift_shared": "このフェーズ名は両パイプラインが定義しており、レジストリは"
+                        "フェーズ名をキーにしているため記録された状態はもう一方の"
+                        "ものかもしれない — 出力が無いので完了とは読まない",
         "stale_upstream": "このフェーズの完了後に上流が更新された: %s",
         "stale_inherited": "上流が stale: %s",
         "stale_changed": "更新",
@@ -544,6 +554,22 @@ def exclusive_phases(plugin, root=None):
     return own
 
 
+def shared_phase_names(root=None):
+    """The phase names more than one plugin's manifest defines.
+
+    The inverse of exclusive_phases, and the reason it exists: both pipelines write the
+    same `work/pipeline-progress.json` and it keys phases by bare name, so an entry under
+    one of these names carries no evidence of which pipeline wrote it. `derive_phase`
+    refuses to read such an entry as this plugin's phase being finished.
+    """
+    seen, shared = set(), set()
+    for plugin in PLUGINS:
+        names = set(load_phase_manifest(plugin, root))
+        shared |= seen & names
+        seen |= names
+    return shared
+
+
 def _as_list(value):
     if value is None:
         return []
@@ -743,7 +769,20 @@ def derive_phase(name, spec, entry, project_dir, options, project_name,
     # status is a statement some skill actually made, and keeps its authority.
     unstamped = recorded == "pending" and written > 0
 
-    if recorded and not unstamped:
+    # A handful of phase names live in both manifests (`map-domains`, `design-api`,
+    # `create-domain-story`, `report`) and the registry keys phases by bare name, so a
+    # `completed` entry under one of them may be the *other* pipeline's phase. When this
+    # phase declares outputs and none of them exist, the entry has nothing corroborating
+    # it here: read it as the neighbour's stamp and derive from the filesystem instead.
+    # `in_progress` is deliberately exempt — the registry is the only thing that can say a
+    # phase is running, and a running phase legitimately has nothing written yet. A
+    # recorded `skipped` is only suspect when this project gives no reason to skip it.
+    ambiguous = (
+        name in shared_phase_names()
+        and declared and written == 0
+        and (recorded == "completed" or (recorded == "skipped" and not excluded)))
+
+    if recorded and not unstamped and not ambiguous:
         status, source = recorded, "progress"
     elif excluded:
         status, source = "skipped", "condition"
@@ -759,7 +798,9 @@ def derive_phase(name, spec, entry, project_dir, options, project_name,
     # favour must not also hide it.
     drift = None
     if recorded and declared:
-        if recorded == "completed" and written == 0:
+        if ambiguous:
+            drift = "shared-name"
+        elif recorded == "completed" and written == 0:
             drift = "outputs-missing"
         elif recorded == "pending" and written == declared:
             drift = "outputs-present"

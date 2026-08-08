@@ -75,7 +75,10 @@ def build_fixture(root):
     # generate-test-specs (extension tier): its declared directory exists but is empty
     os.makedirs(os.path.join(root, "reports", "07_test-specs", "bdd-scenarios"),
                 exist_ok=True)
-    # map-domains: registry claims completed, nothing on disk -> drift
+    # review-report: registry claims completed, nothing on disk -> drift. The name is
+    #           architect's alone, so the claim is unambiguous and only the files refute it.
+    # map-domains: the same claim under a name BOTH manifests define -> the entry may be
+    #           the product pipeline's, so it is not read as this phase being done.
     # redesign: registry never left pending, both outputs present -> the other drift,
     #           and the files win over the unstamped entry
     for name in ("bounded-contexts-redesign.md", "context-map.md"):
@@ -90,6 +93,7 @@ def build_fixture(root):
         "phases": {
             "investigate": {"status": "in_progress", "started_at": "2026-08-06T09:00:00Z",
                             "note": "step 3/4", "outputs": []},
+            "review-report": {"status": "completed", "completed_at": "2026-08-06T09:30:00Z"},
             "map-domains": {"status": "completed", "completed_at": "2026-08-06T09:30:00Z"},
             "redesign": {"status": "pending"},
             # pending with nothing on disk: the entry and the files agree, no drift
@@ -372,6 +376,71 @@ def check_staleness(root):
           [n for n, p in phases.items() if p["stale"] and not p["written"]])
 
 
+def check_shared_phase_names(root):
+    """Both pipelines write one registry keyed by bare phase name.
+
+    So a `completed` entry under a name both manifests define carries no evidence of
+    which pipeline wrote it, and the architect tab used to render the product pipeline's
+    `map-domains` as its own — which `/architect:pipeline --resume-from` would then skip.
+    An entry is only distrusted when this phase has nothing on disk to corroborate it.
+    """
+    print("phase names shared by both manifests")
+    shared = P.shared_phase_names()
+    check("the shared set is exactly the four colliding names",
+          shared == {"map-domains", "design-api", "create-domain-story", "report"}, shared)
+    check("shared and exclusive partition each manifest",
+          not (shared & P.exclusive_phases("architect"))
+          and not (shared & P.exclusive_phases("product")))
+
+    # The main fixture's registry: `map-domains` completed, no architect output on disk.
+    phases = P.derive_all(root)["phases"]
+    check("a shared completed entry with nothing written is not read as done",
+          phases["map-domains"]["status"] == "pending"
+          and phases["map-domains"]["source"] == "derived", phases["map-domains"])
+    check("and it is reported as drift, named for the reason",
+          phases["map-domains"]["drift"] == "shared-name", phases["map-domains"])
+    check("a shared pending entry is left alone, as before",
+          phases["design-api"]["status"] == "pending"
+          and phases["design-api"]["drift"] is None, phases["design-api"])
+
+    # Same registry claim, but this pipeline's own output exists: the claim is corroborated.
+    corroborated = os.path.join(root, "shared-ok")
+    write(os.path.join(corroborated, "reports", "03_design", "domain-analysis.md"))
+    write(os.path.join(corroborated, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "demo", "options": {"scalardb_enabled": False},
+        "phases": {"map-domains": {"status": "completed"},
+                   # in_progress is exempt: the registry is the only thing that can say a
+                   # phase is running, and a running phase has written nothing yet.
+                   "design-api": {"status": "in_progress"},
+                   "create-domain-story": {"status": "skipped"}},
+    }))
+    phases = P.derive_all(corroborated)["phases"]
+    check("a shared entry backed by this pipeline's own output keeps its status",
+          phases["map-domains"]["status"] == "completed"
+          and phases["map-domains"]["source"] == "progress"
+          and phases["map-domains"]["drift"] is None, phases["map-domains"])
+    check("in_progress under a shared name is never demoted",
+          phases["design-api"]["status"] == "in_progress"
+          and phases["design-api"]["source"] == "progress", phases["design-api"])
+    check("an unexplained shared skipped is distrusted like completed",
+          phases["create-domain-story"]["status"] == "pending"
+          and phases["create-domain-story"]["drift"] == "shared-name",
+          phases["create-domain-story"])
+
+    # ...but a skip this project actually asked for is this pipeline's own decision.
+    excluded = os.path.join(root, "shared-skip")
+    write(os.path.join(excluded, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "demo",
+        "options": {"scalardb_enabled": False, "skip_phases": ["create-domain-story"]},
+        "phases": {"create-domain-story": {"status": "skipped"}},
+    }))
+    phases = P.derive_all(excluded)["phases"]
+    check("a shared skipped with a skip_phases reason is honoured",
+          phases["create-domain-story"]["status"] == "skipped"
+          and phases["create-domain-story"]["drift"] is None,
+          phases["create-domain-story"])
+
+
 def check_hostile_inputs(root):
     """The registry is agent-written mid-run: a loose shape must degrade, not crash."""
     print("malformed inputs degrade instead of raising")
@@ -448,7 +517,10 @@ def run(root, plugin=None):
 
     print("drift")
     check("completed with no output written -> outputs-missing",
-          phases["map-domains"]["drift"] == "outputs-missing", phases["map-domains"])
+          phases["review-report"]["drift"] == "outputs-missing", phases["review-report"])
+    check("and the recorded completed still wins, because the name is unambiguous",
+          phases["review-report"]["status"] == "completed"
+          and phases["review-report"]["source"] == "progress", phases["review-report"])
     check("pending with every output present -> outputs-present",
           phases["redesign"]["drift"] == "outputs-present", phases["redesign"])
     check("an unstamped pending entry loses to the files that exist",
@@ -700,6 +772,7 @@ def main():
         check_sections(root)
         check_backlog_strip(root)
         check_staleness(root)
+        check_shared_phase_names(root)
         check_hostile_inputs(root)
     if cleanup:
         shutil.rmtree(cleanup, ignore_errors=True)
