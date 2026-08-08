@@ -7,40 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
-## [0.22.0] - 2026-08-07
-
-### Changed
-- **The status dashboard now has four views instead of two: Product, Architect, Code
-  Generation and Backlog Delivery.** The single "pipeline" tab had to *detect* whether a
-  project was running the product or the architect pipeline and then showed only that
-  one — so on a project that ran both, one pipeline was simply unreachable, and every
-  phase the other manifest knew was dumped into the tab's "recorded outside the manifest"
-  group as if it were an anomaly. Product and architect are separate pipelines with
-  separate manifests, so they are now separate tabs, each stating which pipeline it shows
-  rather than guessing; `Tab` / `Shift-Tab` cycle all four, dimming and skipping any the
-  project has nothing behind. A registry entry the other plugin's manifest defines is no
-  longer reported as unmanifested — it is the tab next door.
-- **Code generation is its own view.** `generate-scalardb-code`, `generate-infra-code`,
-  `generate-docs` and `/product:generate-frontend` are run by hand after whichever
-  pipeline designed the system and emit code into the target project rather than reports
-  under `reports/`, so they no longer sit inside a pipeline tree they are not a step of.
-  The Code Generation view collects them from **both** plugins, grouped by plugin, and
-  each row offers its own plugin's slash command (`/product:generate-frontend`,
-  `/architect:generate-infra-code`) rather than the view's. `generate-test-specs` stays in
-  the architect pipeline: it writes specifications, not code. Cross-boundary dependencies
-  and staleness are unaffected — `generate-scalardb-code` is still blocked by
-  `design-implementation` and still goes stale when it is rerun; only the grouping and the
-  progress fraction are per-view.
-- **`--view=` takes the new names**: `product`, `architect`, `codegen`, `backlog`, plus
-  `pipeline` (whichever pipeline this project runs, from `--plugin=` or detection) and
-  `auto` (unchanged: the detected pipeline, else the backlog). `--group=core|extension`
-  keeps applying to the architect pipeline view only; it has no meaning in the codegen
-  view, whose groups are plugins. `--md` for the codegen view defaults to
-  `reports/codegen-status.md`. `--json` gained `view`, `section`, and a per-phase
-  `plugin` / `section`, and each phase's `group` is now the group header it actually
-  renders under.
-
-## [0.21.2] - 2026-08-07
+## [0.22.1] - 2026-08-08
 
 ### Fixed
 - **The status dashboard's `c` key opened a browser instead of copying.** `c` is documented
@@ -84,6 +51,43 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 - **The 10-second poll walked the output tree once per pipeline tab.** Product, Architect
   and Code Generation scan the same project directory, and each did so independently. The
   shell now computes one walk per poll for views that declare the same `stamp_key`.
+
+## [0.22.0] - 2026-08-07
+
+### Changed
+- **The status dashboard now has four views instead of two: Product, Architect, Code
+  Generation and Backlog Delivery.** The single "pipeline" tab had to *detect* whether a
+  project was running the product or the architect pipeline and then showed only that
+  one — so on a project that ran both, one pipeline was simply unreachable, and every
+  phase the other manifest knew was dumped into the tab's "recorded outside the manifest"
+  group as if it were an anomaly. Product and architect are separate pipelines with
+  separate manifests, so they are now separate tabs, each stating which pipeline it shows
+  rather than guessing; `Tab` / `Shift-Tab` cycle all four, dimming and skipping any the
+  project has nothing behind. A registry entry the other plugin's manifest defines is no
+  longer reported as unmanifested — it is the tab next door.
+- **Code generation is its own view.** `generate-scalardb-code`, `generate-infra-code`,
+  `generate-docs` and `/product:generate-frontend` are run by hand after whichever
+  pipeline designed the system and emit code into the target project rather than reports
+  under `reports/`, so they no longer sit inside a pipeline tree they are not a step of.
+  The Code Generation view collects them from **both** plugins, grouped by plugin, and
+  each row offers its own plugin's slash command (`/product:generate-frontend`,
+  `/architect:generate-infra-code`) rather than the view's. `generate-test-specs` stays in
+  the architect pipeline: it writes specifications, not code. Cross-boundary dependencies
+  and staleness are unaffected — `generate-scalardb-code` is still blocked by
+  `design-implementation` and still goes stale when it is rerun; only the grouping and the
+  progress fraction are per-view.
+- **`--view=` takes the new names**: `product`, `architect`, `codegen`, `backlog`, plus
+  `pipeline` (whichever pipeline this project runs, from `--plugin=` or detection) and
+  `auto` (unchanged: the detected pipeline, else the backlog). `--group=core|extension`
+  keeps applying to the architect pipeline view only; it has no meaning in the codegen
+  view, whose groups are plugins. `--md` for the codegen view defaults to
+  `reports/codegen-status.md`. `--json` gained `view`, `section`, and a per-phase
+  `plugin` / `section`, and each phase's `group` is now the group header it actually
+  renders under.
+
+## [0.21.2] - 2026-08-07
+
+### Fixed
 - **The pipeline dashboard reported a finished project as entirely `pending`.** The
   progress registry held unconditional authority over a phase's status, but it is written
   by a soft "update `pipeline-progress.json`" step at the end of each SKILL.md — a step
