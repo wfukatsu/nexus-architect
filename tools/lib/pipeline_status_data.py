@@ -676,11 +676,33 @@ def resolve_output(project_dir, pattern, project_name=None):
     return False, 0.0, None
 
 
-def load_cost(project_dir):
+def resolve_ledger_key(key, plugin, shared):
+    """(phase_name, kind) for one bucket name written by the token-usage hook.
+
+    Buckets under a name both manifests define are namespaced `<plugin>:<phase>`, so
+    the two pipelines' spend on `map-domains` stays separable. `kind` is:
+
+    - `mine`      — this view's phase; attribute it.
+    - `other`     — the neighbouring pipeline's phase. Not this view's to show, and not
+                    unassigned either: it is attributed on its own tab.
+    - `ambiguous` — a bare bucket under a shared name, written before the hook carried
+                    the plugin. No longer attributable to either side, so it is reported
+                    as unassigned instead of charged to whichever tab happens to be open.
+    """
+    prefix, sep, rest = key.partition(":")
+    if sep and prefix in PLUGINS:
+        return rest, "mine" if (plugin is None or prefix == plugin) else "other"
+    if plugin and key in shared:
+        return key, "ambiguous"
+    return key, "mine"
+
+
+def load_cost(project_dir, plugin=None):
     """{phase: usd} from work/token-usage.json, joined "a+b" keys split evenly."""
     ledger = D.load_json(os.path.join(project_dir, "work", "token-usage.json"))
     if not isinstance(ledger, dict):
         return {}, 0.0, 0.0
+    shared = shared_phase_names()
     per_phase, unassigned = {}, 0.0
     for key, entry in (ledger.get("phases") or {}).items():
         cost = float((entry or {}).get("cost_usd") or 0.0)
@@ -689,19 +711,28 @@ def load_cost(project_dir):
             continue
         names = [n for n in key.split("+") if n]
         for name in names:
-            per_phase[name] = per_phase.get(name, 0.0) + cost / len(names)
+            resolved, kind = resolve_ledger_key(name, plugin, shared)
+            if kind == "mine":
+                per_phase[resolved] = per_phase.get(resolved, 0.0) + cost / len(names)
+            elif kind == "ambiguous":
+                unassigned += cost / len(names)
     total = float(ledger.get("total_cost_usd") or 0.0)
     return per_phase, total, unassigned
 
 
-def load_activity(project_dir, tail=80):
-    """({phase: epoch}, latest_epoch) from the tail of work/token-usage.jsonl."""
+def load_activity(project_dir, tail=80, plugin=None):
+    """({phase: epoch}, latest_epoch) from the tail of work/token-usage.jsonl.
+
+    The records carry the same bucket names as the ledger, so they resolve the same
+    way — the neighbouring pipeline's activity must not light up this view's phase.
+    """
     path = os.path.join(project_dir, "work", "token-usage.jsonl")
     try:
         with open(path, "r", encoding="utf-8") as f:
             lines = f.readlines()[-tail:]
     except OSError:
         return {}, 0.0
+    shared = shared_phase_names()
     per_phase, latest = {}, 0.0
     for line in lines:
         try:
@@ -720,7 +751,9 @@ def load_activity(project_dir, tail=80):
         if target and not target.startswith("_"):
             names.update(n for n in target.split("+") if n)
         for name in names:
-            per_phase[name] = max(per_phase.get(name, 0.0), epoch)
+            resolved, kind = resolve_ledger_key(name, plugin, shared)
+            if kind == "mine":
+                per_phase[resolved] = max(per_phase.get(resolved, 0.0), epoch)
     return per_phase, latest
 
 
@@ -757,6 +790,11 @@ def derive_phase(name, spec, entry, project_dir, options, project_name,
 
     recorded = (entry or {}).get("status")
     recorded = recorded if recorded in PHASE_STATUSES else None
+    # An entry that names its own pipeline settles the shared-name question outright:
+    # the neighbour's entry is not this phase's status at all, whatever it says.
+    owner = (entry or {}).get("plugin")
+    if owner in PLUGINS and plugin in PLUGINS and owner != plugin:
+        recorded, entry = None, None
     excluded = None
     if name in _as_list(options.get("skip_phases")):
         excluded = "option"
@@ -771,14 +809,17 @@ def derive_phase(name, spec, entry, project_dir, options, project_name,
 
     # A handful of phase names live in both manifests (`map-domains`, `design-api`,
     # `create-domain-story`, `report`) and the registry keys phases by bare name, so a
-    # `completed` entry under one of them may be the *other* pipeline's phase. When this
-    # phase declares outputs and none of them exist, the entry has nothing corroborating
-    # it here: read it as the neighbour's stamp and derive from the filesystem instead.
-    # `in_progress` is deliberately exempt — the registry is the only thing that can say a
-    # phase is running, and a running phase legitimately has nothing written yet. A
-    # recorded `skipped` is only suspect when this project gives no reason to skip it.
+    # `completed` entry under one of them may be the *other* pipeline's phase. An entry
+    # that names its own `plugin` has already been resolved above; this is the fallback
+    # for one that does not. When this phase declares outputs and none of them exist, the
+    # entry has nothing corroborating it here: read it as the neighbour's stamp and derive
+    # from the filesystem instead. `in_progress` is deliberately exempt — the registry is
+    # the only thing that can say a phase is running, and a running phase legitimately has
+    # nothing written yet. A recorded `skipped` is only suspect when this project gives no
+    # reason to skip it.
     ambiguous = (
-        name in shared_phase_names()
+        not owner
+        and name in shared_phase_names()
         and declared and written == 0
         and (recorded == "completed" or (recorded == "skipped" and not excluded)))
 
@@ -937,8 +978,8 @@ def derive_all(project_dir, plugin=None, progress=None, section="pipeline"):
     project_name = (progress or {}).get("project_name") or os.path.basename(
         os.path.abspath(project_dir))
     entries = ((progress or {}).get("phases") or {})
-    costs, total_cost, unassigned_cost = load_cost(project_dir)
-    activity, latest_activity = load_activity(project_dir)
+    costs, total_cost, unassigned_cost = load_cost(project_dir, plugin)
+    activity, latest_activity = load_activity(project_dir, plugin=plugin)
     now = datetime.now(timezone.utc).timestamp()
 
     phases = {}

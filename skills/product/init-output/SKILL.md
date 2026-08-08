@@ -39,17 +39,20 @@ it and merge into what is there; only `--reset` replaces, and only after a backu
    exists, add only the entries it lacks — never reset an existing entry, never remove a phase
    this manifest does not define (the architect pipeline registers its own phases in the same
    file), keep every `options` value already set, and leave other top-level keys untouched.
+   Every entry this skill creates carries `"plugin": "product"` — with both pipelines in one
+   file, that field is what makes an entry attributable (@skills/common/progress-registry.md).
    `map-domains`, `design-api`, `create-domain-story` and `report` are defined by **both**
    manifests and the registry keys phases by bare name, so an existing entry under one of
-   those names may be the architect phase: leave it as it is and append a line to `warnings[]`
-   naming each one found already `completed`.
+   those names may be the architect phase: leave it as it is — never relabel it `product` —
+   and append a line to `warnings[]` for each one found already `completed` with no `plugin`
+   field to settle it.
 
    ```json
    {
      "schema_version": 1,
      "options": { "output_language": "en", "confirm_versions": true, "no_research": false, "profile": "full", "design_system": null, "frontend": null },
      "phases": {
-       "define-vision": { "status": "pending", "started_at": null, "completed_at": null, "updated_at": null, "note": null, "outputs": [] }
+       "define-vision": { "status": "pending", "plugin": "product", "started_at": null, "completed_at": null, "updated_at": null, "note": null, "outputs": [] }
      },
      "gates": { "validate-assumptions": { "verdict": "pending", "open_assumptions": [] } }
    }

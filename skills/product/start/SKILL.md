@@ -49,11 +49,13 @@ before pinning them (see @rules/dependency-versions.md), and record it as
    `implemented` flag.
 2. Run `/product:init-output` to create the output tree and state files.
 3. Execute implemented skills in dependency order, updating `work/pipeline-progress.json`
-   **twice per phase** — `status: "in_progress"` with `started_at` *before* invoking the
-   skill, then `completed` (or `failed`) with `completed_at`, `outputs` and `summary`
-   after it returns (@skills/common/progress-registry.md). The pre-write is what makes
-   `/product:report-status` show the phase as running and what attributes its tokens to
-   it. Append key decisions to `work/context.md` after each phase.
+   **twice per phase** — `status: "in_progress"` with `plugin: "product"` and `started_at`
+   *before* invoking the skill, then `completed` (or `failed`) with `completed_at`,
+   `outputs` and `summary` after it returns (@skills/common/progress-registry.md). The
+   pre-write is what makes `/product:report-status` show the phase as running and what
+   attributes its tokens to it; `plugin` is what keeps that attribution off the architect
+   pipeline's phase of the same name, since both pipelines write this one file — add to it,
+   never re-register it. Append key decisions to `work/context.md` after each phase.
 4. **Validation gate** — after Phase 1 (`define-vision`, `define-scope`), run
    `/product:validate-assumptions`. Read its verdict from `pipeline-progress.json` → `gates`:
    - `no-go`: stop forward progress and help the user revise Phase 1 artifacts (a forward
