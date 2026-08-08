@@ -13,6 +13,14 @@ user_invocable: true
 
 Create the directory structure and state files required to run the `product` pipeline.
 
+## Existing State Is Never Discarded
+
+This skill is **additive**. All three state files are shared — `work/pipeline-progress.json`
+holds both pipelines' phases, `work/traceability.json` is the single trace graph that
+`/architect:define-requirements` appends its `FR-` / `NFR-` nodes to (@docs/design.md §1.5),
+and `work/context.md` is the Open Questions store both plugins read. Read each before writing
+it and merge into what is there; only `--reset` replaces, and only after a backup.
+
 ## Execution Steps
 
 1. Create the following directories (only those that do not yet exist):
@@ -26,8 +34,15 @@ Create the directory structure and state files required to run the `product` pip
    - `reports/report/`
    - `work/`
 
-2. Initialize `work/pipeline-progress.json` with this schema (register every phase from
-   `@skills/product/common/skill-dependencies.yaml` as `"pending"`):
+2. Create **or merge** `work/pipeline-progress.json` with this schema, registering every phase
+   from `@skills/product/common/skill-dependencies.yaml` as `"pending"`. When the file already
+   exists, add only the entries it lacks — never reset an existing entry, never remove a phase
+   this manifest does not define (the architect pipeline registers its own phases in the same
+   file), keep every `options` value already set, and leave other top-level keys untouched.
+   `map-domains`, `design-api`, `create-domain-story` and `report` are defined by **both**
+   manifests and the registry keys phases by bare name, so an existing entry under one of
+   those names may be the architect phase: leave it as it is and append a line to `warnings[]`
+   naming each one found already `completed`.
 
    ```json
    {
@@ -49,24 +64,43 @@ Create the directory structure and state files required to run the `product` pip
    `/product:generate-frontend` confirms the dependency versions it resolves before pinning them —
    see @rules/dependency-versions.md.
 
-3. Initialize `work/traceability.json` as an empty graph — this is what makes
-   `/product:adapt-change` work; every skill appends to it:
+3. Initialize `work/traceability.json` **only if it is absent**, as an empty graph — this is
+   what makes `/product:adapt-change` work; every skill appends to it:
 
    ```json
    { "schema_version": 1, "nodes": [] }
    ```
 
-4. Create `work/context.md` as an empty file (carries decisions between phases).
+   If it already exists, keep it and its `nodes` as they are. It is the single trace graph
+   for the project: `/architect:define-requirements` appends `FR-` / `NFR-` nodes to this same
+   file (@docs/design.md §1.5), and truncating it to `[]` would sever the cross-plugin chain.
+
+4. Create `work/context.md` **only if it is absent**, carrying decisions between phases and
+   seeded with an empty `## Open Questions` section — the Open Questions store every skill
+   appends to (row shape in @rules/open-questions.md §6):
+
+   ```markdown
+   ## Open Questions
+
+   | ID | Question | Status | Answer | Options offered | Owner | Impact | Asked at |
+   |----|----------|--------|--------|-----------------|-------|--------|----------|
+   ```
+
+   If it exists, leave its content in place and only append the `## Open Questions` header
+   when the file does not already have one.
 
 ## Options
 
 - `--reset`: Back up existing `work/pipeline-progress.json` and `work/traceability.json`
-  (copy to `*.bak`) before reinitializing.
+  (copy to `*.bak`) before reinitializing. Reinitializing re-registers **this manifest's**
+  phases as `"pending"` and preserves any architect phases and any architect-written
+  traceability nodes; `work/context.md` is not touched.
 
 ## Completion Criteria
 
 The directory tree, `work/pipeline-progress.json`, `work/traceability.json`, and
-`work/context.md` all exist.
+`work/context.md` all exist, the last with its `## Open Questions` table header in place, and
+no pre-existing phase entry, option value, traceability node, or `context.md` content was lost.
 
 ## Related Skills
 
