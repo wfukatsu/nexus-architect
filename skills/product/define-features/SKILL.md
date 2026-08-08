@@ -58,7 +58,11 @@ Produce one deliverable:
 3. **Reconcile scope** — drop Out-of-Scope; defer Should/Could.
 4. **Consolidate** — merge duplicates across screens; assign MoSCoW.
 5. **Trace** — link each `FEAT-` to `JOB-`/`JNY-`/`NSM-`.
-6. **Append traceability** — add `FEAT-` nodes to `work/traceability.json` with Upstream references.
+6. **Append traceability** — add `FEAT-` nodes to `work/traceability.json` with Upstream
+   `SCR-` (the screen whose action this feature is), `JOB-`/`JNY-` and `NSM-` references. The
+   `SCR-` edge is what carries the chain across the UI mocks: `/architect:define-requirements`
+   derives each `FR-` from a `FEAT-`, so a `FEAT-` with no screen upstream leaves the requirement
+   traceable only halfway back (@docs/design.md §1.5).
 7. **Record** — write the file; append decisions to `work/context.md`; log `TBD`s.
 
 ## Output

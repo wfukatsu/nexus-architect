@@ -106,9 +106,11 @@ Produce one deliverable:
 6. **Annotate** — tag each screen with `STORY-` (when present) / `JNY-` / `JOB-` and the `CMP-` used.
 7. **Verify navigability** — confirm every screen is reachable by clicking from its flow index to the
    last activity, with no dead ends (gaps appear only as `TBD` links).
-8. **Append traceability** — add screen nodes to `work/traceability.json` with Upstream
-   `STORY-`/`JNY-`/`CMP-` references, the `next`/`prev` screen edges, and the selected-approach
-   rationale.
+8. **Append traceability** — add one `SCR-` node per screen to `work/traceability.json` with
+   Upstream `STORY-`/`JNY-`/`CMP-` references, the `next`/`prev` screen edges, and the
+   selected-approach rationale. The `SCR-` ID is what `define-features` cites as each `FEAT-`'s
+   upstream, so the chain from journey through story to feature runs through these IDs — a screen
+   without one breaks it exactly here.
 9. **Record** — write the HTML files + the flow indexes + the exploration note; append decisions to
    `work/context.md`.
 

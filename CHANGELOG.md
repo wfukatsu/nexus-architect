@@ -10,6 +10,14 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
 ## [Unreleased]
 
 ### Added
+- **The ID prefix namespace is declared, not just described.** Each phase in both
+  `skill-dependencies.yaml` files now carries `id_prefix`, making the manifests the registry
+  of which skill mints which ID prefix. The prefixes previously existed only in each SKILL.md's
+  prose, where nothing could detect a collision or an omission — and three skills turned out to
+  declare none at all. `tools/lib/pipeline_status_data.test.py` now asserts that every skill
+  which appends to `work/traceability.json` declares a prefix, that its SKILL.md actually uses
+  it, and that no two skills in one manifest claim the same one (`NFR-` is the single
+  deliberate cross-manifest claim — the §1.5 carry-over, asserted as such).
 - **Registry phase entries name their pipeline.** Every entry in
   `work/pipeline-progress.json` now carries `"plugin": "product" | "architect"`, written by
   `init-output` and by each orchestrator on its `in_progress` stamp. One registry serves both
@@ -19,6 +27,15 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
   status, whatever it says — and falls back to output corroboration where the field is absent.
 
 ### Fixed
+- **Three skills wrote nodes nothing downstream could cite.** `research-landscape`,
+  `generate-ui-mock` and `generate-frontend` all appended to the trace graph without saying
+  under which ID prefix, which broke two chains for real: `/product:adapt-change --type=market`
+  seeds its blast radius from market-landscape nodes that had no ID to seed from, and the
+  journey → story → **screen** → feature chain had no screen ID to run through. They now mint
+  `MKT-`, `SCR-` and `PG-` respectively, and `define-features` cites the `SCR-` each `FEAT-`
+  comes from — so a `FR-` derived downstream traces all the way back. A generated React
+  component creates no node of its own: it is the implementation of a design-system `CMP-` and
+  is recorded on that node instead of being duplicated under a second ID.
 - **Token cost is no longer merged across the pipeline boundary.** `work/token-usage.json` was
   keyed by bare phase name like the registry, so the product and architect spend on
   `map-domains` (or `design-api` / `create-domain-story` / `report`) accumulated in one bucket

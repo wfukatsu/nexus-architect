@@ -94,6 +94,16 @@ that other files cite by name.
 Fit legend: ✓✓ near 1:1 · ✓ covers · △ partial (architect must extend) · → bridges to a
 later architect skill, not define-requirements.
 
+**The ID prefixes are not documented here — they are declared.** Each phase's `id_prefix` in
+`skills/product/common/skill-dependencies.yaml` (and `skills/common/skill-dependencies.yaml`
+for architect's `define-requirements`) is the registry: one place that says which skill owns
+which prefix, machine-readable so `tools/lib/pipeline_status_data.test.py` can assert that
+every graph-writing skill declares one, that its SKILL.md actually uses it, and that no two
+skills within a manifest claim the same prefix. The table above lists only the prefixes that
+cross the plugin boundary; the registry lists all of them. `NFR-` is deliberately claimed by
+both manifests — that is the §1.5 carry-over rule (product `NFR-` IDs are reused verbatim,
+never re-numbered), not a collision.
+
 ### 1.4 Designed Gaps (product does **not** supply these)
 
 These are intentionally left to `define-requirements` elicitation / later architect
@@ -207,7 +217,7 @@ graph, seeding step 2's "directly touched" set:
 | `--type` | Entry nodes |
 |----------|-------------|
 | `constraint` | `CON-` / `SCP-` (constraints, scope) |
-| `market` / `competitor` | market-landscape / positioning (`POS-`) |
+| `market` / `competitor` | `MKT-` (market-landscape findings) / `POS-` (positioning) |
 | `tech` | `TECH-` / `ARCH-` (tech-fitness, architecture) |
 | `regulation` | constraints / `NFR-` |
 

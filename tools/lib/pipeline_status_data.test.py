@@ -379,6 +379,71 @@ def check_staleness(root):
 _HOOK = []
 
 
+def check_id_prefix_registry():
+    """`id_prefix` in the manifests is the ID namespace's single source of truth.
+
+    Every skill that appends to `work/traceability.json` mints IDs under a prefix, and the
+    whole traceability contract (docs/design.md §1.3/§1.5, and adapt-change's blast radius)
+    assumes those prefixes are known and distinct. They used to live only in each SKILL.md's
+    prose, where three skills turned out to declare none at all — a screen or a market
+    finding with no ID is a node nothing downstream can cite.
+    """
+    print("ID prefix registry")
+    root = P.plugin_root()
+
+    def skill_path(plugin, name):
+        parts = [root, "skills"] + (["product"] if plugin == "product" else []) + [name, "SKILL.md"]
+        return os.path.join(*parts)
+
+    claims, missing_decl, unused, malformed = {}, [], [], []
+    for plugin in ("product", "architect"):
+        for name, spec in P.load_phase_manifest(plugin).items():
+            prefixes = spec.get("id_prefix") or []
+            if not prefixes:
+                continue
+            path = skill_path(plugin, name)
+            body = open(path, encoding="utf-8").read() if os.path.exists(path) else ""
+            for prefix in prefixes:
+                if not (prefix.endswith("-") and prefix[:-1].isupper()):
+                    malformed.append((name, prefix))
+                claims.setdefault(prefix, []).append((plugin, name))
+                if body and prefix not in body:
+                    unused.append((name, prefix))
+
+    check("declared prefixes are UPPERCASE and end in '-'", not malformed, malformed)
+    check("every declared prefix appears in its own SKILL.md", not unused, unused)
+
+    # The inverse: a skill that writes to the graph must say under which prefix.
+    for plugin in ("product", "architect"):
+        for name, spec in P.load_phase_manifest(plugin).items():
+            if spec.get("id_prefix"):
+                continue
+            path = skill_path(plugin, name)
+            if not os.path.exists(path):
+                continue
+            body = open(path, encoding="utf-8").read()
+            if "Append traceability" in body:
+                missing_decl.append((plugin, name))
+    check("every skill that appends to the graph declares a prefix", not missing_decl,
+          missing_decl)
+
+    # Distinct within a manifest; NFR- is the one deliberate cross-manifest claim (§1.5).
+    dupes = {p: c for p, c in claims.items()
+             if len({(pl, n) for pl, n in c}) > 1 and len({pl for pl, _ in c}) == 1}
+    check("no two skills in one manifest claim the same prefix", not dupes, dupes)
+    crossing = sorted(p for p, c in claims.items() if len({pl for pl, _ in c}) > 1)
+    check("NFR- is the only prefix both manifests claim — the §1.5 carry-over",
+          crossing == ["NFR-"], crossing)
+
+    # The three that had none, and the edge that closes the journey->feature chain.
+    for name, prefix in (("research-landscape", "MKT-"), ("generate-ui-mock", "SCR-"),
+                         ("generate-frontend", "PG-")):
+        check("%s mints %s" % (name, prefix),
+              prefix in (P.load_phase_manifest("product")[name].get("id_prefix") or []))
+    check("define-features cites the screen it came from",
+          "SCR-" in open(skill_path("product", "define-features"), encoding="utf-8").read())
+
+
 def hook_module():
     """hooks/record_token_usage.py, imported by path — it is not on sys.path."""
     if not _HOOK:
@@ -841,6 +906,7 @@ def main():
         check_sections(root)
         check_backlog_strip(root)
         check_staleness(root)
+        check_id_prefix_registry()
         check_shared_phase_names(root)
         check_hostile_inputs(root)
     if cleanup:

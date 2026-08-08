@@ -65,7 +65,10 @@ Every figure, competitor, and claim carries a source (name + URL). This file is 
 4. **Compare** — build the competitive matrix on segment-relevant dimensions; identify white space.
 5. **Classify & recommend** — Kano (Must-be→PoP, Delighter→PoD); recommend the differentiation
    strategy. Apply `@rules/product/positioning-kano-hook.md` and `@rules/product/revenue-models.md`.
-6. **Append traceability** — add nodes for key findings to `work/traceability.json`.
+6. **Append traceability** — add `MKT-` nodes to `work/traceability.json`, one per key finding
+   (market size, trend, competitor, alternative), each with the source it is cited from. These are
+   what `/product:adapt-change --type=market|competitor` seeds its blast radius from
+   (@docs/design.md §7.4), so a finding without an ID is a finding a market change cannot reach.
 7. **Record** — write the file; append decisions to `work/context.md`; log `TBD`s to Open Questions.
 
 ## Output
