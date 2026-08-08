@@ -13,10 +13,12 @@ View protocol (BaseView supplies a default for the optional ones)
     available                   False when this project has no such input
     watch_files()               project-relative paths whose mtime triggers a reload
     extra_stamp()               a number that changes when non-file inputs changed
+    stamp_key()                 identity of what extra_stamp reads, so tabs that read the
+                                same thing compute it once per poll (None = per-view)
     load()                      (re)read the inputs
     project_label()             what the title bar calls this project
     empty_message()             shown in place of the tree when there are no rows
-    header_lines(width)         [(text, style)] shown under the tab strip (max 4)
+    header_lines(width)         [(text, style)] shown under the tab strip (max 5)
     rows()                      [(row, depth, last_stack)] in draw order
     row_key(row)                stable id used to keep the selection across reloads
     row_line(row, depth, stack, width)  the formatted line for one row
@@ -35,7 +37,13 @@ View protocol (BaseView supplies a default for the optional ones)
     on_key(key, app)            view-specific keys (`s`, `f`, ...); True when handled
 
 Keys the shell owns, so every view gets them: ↑↓/jk, ←→/hl, Tab / Shift-Tab, Enter,
-a, c, o, r, g/G, PgUp/PgDn, Ctrl-U/Ctrl-D, ?, q/Esc. A view's keys_hint() should say so.
+a, c, o, r, g/G, PgUp/PgDn, Ctrl-U/Ctrl-D, ?, q. A view's keys_hint() should say so.
+
+Esc closes a modal or the help panel; it never quits. A terminal that sends an escape
+sequence ncurses cannot map to a key — application-cursor-mode off, a mouse report, a
+bracketed-paste or focus-change marker, an unknown $TERM — delivers the leading 27 as a
+bare keypress, so binding Esc to quit takes the dashboard down on a stray sequence. Only
+`q` quits.
 
 Invoked by tools/lib/nexus_status_tui.py, which builds the views and hands them over.
 """
@@ -57,6 +65,12 @@ PROJ = env("NX_PROJECT_DIR", ".")
 DEBUG_LOG = env("NX_DEBUG_LOG", "")
 EXEC_ENABLED = env("NX_EXEC", "0") == "1"
 
+# Action labels whose "command" is a path or a URL rather than a slash command, so the
+# shell has to open it instead of pasting it. pipeline_status_data.actions_for and
+# backlog_status_data.actions_for emit these exact strings; both sides of that contract
+# are asserted by status_tui.test.py rather than left to matching literals by hand.
+OPEN_LABELS = ("open URL", "open output")
+
 # style names -> (color pair index, attribute)
 STYLES = {"": (0, 0), "bold": (0, curses.A_BOLD), "dim": (3, curses.A_DIM),
           "head": (1, curses.A_BOLD), "accent": (4, 0), "warn": (5, 0),
@@ -69,11 +83,14 @@ SHELL_LABELS = {
         "no_clipboard": "clipboard unavailable - command shown above",
         "paste_hint": "(paste into Claude Code)",
         "exec_hint": "run with --exec to launch claude from here",
+        "opened": "opened", "open_failed": "could not open",
         "actions": "actions", "menu_keys": "Enter copy | e run via claude | Esc close",
         "ask": "ask", "ask_free": "free input...", "ask_prompt": "question: ",
         "ask_copied": "question copied", "ask_keys": "Enter ask | Esc close",
-        "help": "help", "help_close": "any key closes",
-        "empty": "nothing to show",
+        "help": "help", "help_close": "any other key closes",
+        "help_scroll": "^v scroll",
+        "keys_essential": "? help | q quit",
+        "empty": "nothing to show", "quit_hint": "press q to quit",
     },
     "ja": {
         "live": "LIVE", "detail": "詳細", "checked": "確認", "every": "%s秒毎",
@@ -81,11 +98,14 @@ SHELL_LABELS = {
         "no_clipboard": "クリップボード利用不可 - 上記コマンドを使用",
         "paste_hint": "(Claude Code に貼り付け)",
         "exec_hint": "--exec 付きで起動すると claude をここから実行できます",
+        "opened": "開きました", "open_failed": "開けませんでした",
         "actions": "アクション", "menu_keys": "Enter コピー | e claude 実行 | Esc 閉じる",
         "ask": "質問", "ask_free": "自由入力...", "ask_prompt": "質問: ",
         "ask_copied": "質問をコピーしました", "ask_keys": "Enter 質問 | Esc 閉じる",
-        "help": "ヘルプ", "help_close": "任意のキーで閉じる",
-        "empty": "表示するものがありません",
+        "help": "ヘルプ", "help_close": "他の任意のキーで閉じる",
+        "help_scroll": "^v スクロール",
+        "keys_essential": "? ヘルプ | q 終了",
+        "empty": "表示するものがありません", "quit_hint": "q で終了します",
     },
 }
 
@@ -101,7 +121,8 @@ HELP_LINES = {
         ("  a             ask Claude about the selected row", ""),
         ("  o             open the row's URL or newest output", ""),
         ("  s             sync tracker labels (backlog view)", ""),
-        ("  f             cycle the status filter        q / Esc  quit", ""),
+        ("  f             cycle the status filter", ""),
+        ("  Esc           close a menu or this panel     q          quit", ""),
     ],
     "ja": [
         ("移動", "head"),
@@ -114,9 +135,44 @@ HELP_LINES = {
         ("  a             選択行について Claude に質問", ""),
         ("  o             行の URL または最新の出力を開く", ""),
         ("  s             トラッカーのラベルを同期 (バックログビュー)", ""),
-        ("  f             状態フィルタを切替              q / Esc  終了", ""),
+        ("  f             状態フィルタを切替", ""),
+        ("  Esc           メニュー / このパネルを閉じる    q          終了", ""),
     ],
 }
+
+
+def menu_hint(T, exec_enabled):
+    """The action menu's key legend.
+
+    Without --exec the run-via-claude key is replaced by the hint that says how to turn
+    it on — but never at the cost of `Esc close`, which is the only documented way out
+    of the box. Slicing the legend at the first separator dropped it.
+    """
+    parts = [p.strip() for p in T["menu_keys"].split("|")]
+    if exec_enabled or len(parts) < 3:
+        return " | ".join(parts)
+    return " | ".join([parts[0]] + parts[2:] + [T["exec_hint"]])
+
+
+def help_panel_lines(views, lang):
+    """The help box contents: the shell's own keys, then each *distinct* view legend.
+
+    The three pipeline tabs are the same class and return the same glyph table, so the
+    blocks are de-duplicated — otherwise the legend is printed once per available tab and
+    the panel outgrows the screen for nothing.
+    """
+    lines = list(HELP_LINES.get(lang, HELP_LINES["en"]))
+    if D.ASCII_ONLY:
+        lines = [(D.plain(t), s) for t, s in lines]
+    blocks = []
+    for view in views:
+        if not view.available:
+            continue
+        block = view.help_lines()
+        if block and block not in blocks:
+            blocks.append(block)
+            lines += block
+    return lines
 
 
 def shell_labels(lang):
@@ -209,6 +265,7 @@ class App:
         self.T = shell_labels(LANG)
         self.modal = None         # {"kind","row","entries","sel","title","hint"}
         self.help_open = False
+        self.help_top = 0         # the help panel scrolls when it outgrows the screen
         self.notice = None        # (text, style, expires_at)
         self.clip_tool = clipboard_tool()
         self.stamps = ()
@@ -223,13 +280,24 @@ class App:
 
     def stamps_now(self):
         out = []
+        # Views whose extra_stamp() reads the same thing say so with a shared stamp_key,
+        # and the scan behind it runs once per poll rather than once per tab — three of
+        # the four tabs are pipelines over one project directory. The memo lives here, for
+        # the length of one poll, so extra_stamp() itself stays honest for any caller.
+        computed = {}
         for view in self.views:
             for rel in view.watch_files():
                 try:
                     out.append(os.path.getmtime(os.path.join(PROJ, rel)))
                 except OSError:
                     out.append(0)
-            out.append(view.extra_stamp())
+            key = view.stamp_key()
+            if key is None:
+                out.append(view.extra_stamp())
+            else:
+                if key not in computed:
+                    computed[key] = view.extra_stamp()
+                out.append(computed[key])
         return tuple(out)
 
     def load(self):
@@ -301,8 +369,7 @@ class App:
         self.modal = {"kind": "actions", "row": row, "entries": entries, "sel": idx,
                       "title": " %s %s " % (D.clip(self.view.detail_title(row), 40),
                                             self.T["actions"]),
-                      "hint": self.T["menu_keys"] if EXEC_ENABLED
-                      else self.T["menu_keys"].split("|")[0] + "| " + self.T["exec_hint"]}
+                      "hint": menu_hint(self.T, EXEC_ENABLED)}
 
     def open_ask(self, row):
         questions = self.view.ask_questions(row)
@@ -312,17 +379,34 @@ class App:
                                             self.T["ask"]),
                       "hint": self.T["ask_keys"]}
 
-    def perform(self, row, label, command, execute=False):
-        if label == "open URL" or label == "open output":
+    def perform(self, row, label, command, execute=False, allow_open=True):
+        """Carry out one action-menu entry.
+
+        `allow_open` is what separates the two ways in. Choosing `open output` from the
+        menu is an explicit instruction to open it, so the opener runs. The `c` key is
+        not: it promises to copy the selected row's default command, and for a finished
+        row that default *is* an open entry — launching a browser or an editor there is
+        not what the key legend says, so the path or URL is copied instead.
+        """
+        if label in OPEN_LABELS:
+            if not allow_open:
+                self.copy_or_show(command)
+                return
             target = command
             if not target.startswith("http") and not os.path.isabs(target):
                 target = os.path.join(PROJ, target)
-            open_target(target)
-            self.flash("%s %s" % (self.T["shown"], command), "dim")
+            if open_target(target):
+                self.flash("%s %s" % (self.T["opened"], command), "dim")
+            else:
+                self.flash("%s: %s" % (self.T["open_failed"], command), "warn")
             return
         if execute:
             self.run_claude(command)
             return
+        self.copy_or_show(command)
+
+    def copy_or_show(self, command):
+        """Clipboard when there is one, otherwise print it where it can be read off."""
         if copy_clipboard(self.clip_tool, command):
             self.flash("%s %s %s  %s" % (self.T["copied"], D.G["arrow"], command,
                                          self.T["paste_hint"]), "accent", seconds=8)
@@ -354,12 +438,16 @@ class App:
         curses.echo()
         curses.curs_set(1)
         self.stdscr.timeout(-1)
+        # getstr() does its own line editing; with keypad on, ncurses hands it translated
+        # KEY_* codes for the arrows and it stores their raw bytes in the buffer.
+        self.stdscr.keypad(False)
         try:
-            raw = self.stdscr.getstr(height - 1, min(width - 2, D.dw(prompt) + 2), 200)
+            raw = self.stdscr.getstr(height - 1, min(width - 2, D.dw(prompt) + 2), 400)
             text = raw.decode("utf-8", "replace").strip()
         except Exception:
             text = ""
         finally:
+            self.stdscr.keypad(True)
             curses.noecho()
             curses.curs_set(0)
             self.stdscr.timeout(500)
@@ -407,7 +495,7 @@ class App:
         put(stdscr, 1, max(x, width - D.dw(meta) - 1), meta, width - x, "dim")
 
         y = 2
-        for text, style in view.header_lines(width)[:4]:
+        for text, style in view.header_lines(width)[:5]:
             put(stdscr, y, 0, text, width, style)
             y += 1
 
@@ -473,8 +561,14 @@ class App:
             put(stdscr, height - 1, 0, D.pad(" " + text, width - 1), width - 1, style)
         else:
             self.notice = None
-            put(stdscr, height - 1, 0, D.pad(view.keys_hint(), width - 1),
-                width - 1, "dim")
+            # `? help` and `q quit` are pinned to the right and drawn last, so the two
+            # ways out of the dashboard survive a hint too long for the terminal — the
+            # localized legends overflow well before 120 columns, and since Esc no longer
+            # quits, `q` being the part that got clipped left no visible exit at all.
+            essential = " %s " % self.T["keys_essential"]
+            rest = width - 1 - D.dw(essential)
+            put(stdscr, height - 1, 0, D.pad(view.keys_hint(), rest), rest, "dim")
+            put(stdscr, height - 1, max(0, rest), essential, D.dw(essential), "dim")
 
         if self.help_open:
             self.draw_help(height, width)
@@ -522,20 +616,43 @@ class App:
                       sel=modal["sel"])
 
     def draw_help(self, height, width):
-        lines = list(HELP_LINES.get(LANG, HELP_LINES["en"]))
-        if D.ASCII_ONLY:
-            lines = [(D.plain(t), s) for t, s in lines]
         # Each view documents its own glyphs, so the legend always shows the set that
         # is actually on screen (Unicode or ASCII).
-        for view in self.views:
-            if view.available:
-                lines += view.help_lines()
-        box_w = min(width - 4, max(D.dw(t) for t, _ in lines) + 4)
-        box_h = len(lines) + 4
-        y0 = max(0, (height - box_h) // 2)
+        lines = help_panel_lines(self.views, LANG)
+        # The panel has to fit the terminal: four rows go to the two borders, the title
+        # and the hint. What is left over scrolls, because a legend clipped off the
+        # bottom edge takes the closing border and the "how to close this" hint with it.
+        body_h = max(1, min(len(lines), height - 4))
+        self.help_top = max(0, min(self.help_top, len(lines) - body_h))
+        shown = lines[self.help_top:self.help_top + body_h]
+        hint = self.T["help_close"]
+        if len(lines) > body_h:
+            hint = "%s %d-%d/%d  %s" % (self.T["help_scroll"], self.help_top + 1,
+                                        self.help_top + body_h, len(lines), hint)
+        box_w = min(width - 4, max([D.dw(t) for t, _ in shown]
+                                   + [D.dw(hint) + 2]) + 4)
+        y0 = max(0, (height - (len(shown) + 4)) // 2)
         x0 = max(1, (width - box_w) // 2)
-        self.draw_box(y0, x0, box_w, " %s " % self.T["help"], lines,
-                      self.T["help_close"])
+        self.draw_box(y0, x0, box_w, " %s " % self.T["help"], shown, hint)
+
+    def scroll_help(self, key):
+        """Scroll the help panel; False when the key was not a scroll and should close."""
+        if key in (curses.KEY_DOWN, ord("j")):
+            self.help_top += 1
+        elif key in (curses.KEY_UP, ord("k")):
+            self.help_top -= 1
+        elif key in (curses.KEY_NPAGE, 4):
+            self.help_top += 10
+        elif key in (curses.KEY_PPAGE, 21):
+            self.help_top -= 10
+        elif key in (curses.KEY_HOME, ord("g")):
+            self.help_top = 0
+        elif key in (curses.KEY_END, ord("G")):
+            self.help_top = 10 ** 6
+        else:
+            return False
+        self.help_top = max(0, self.help_top)
+        return True
 
     # ------------------------------------------------------------------- loop
     def handle_modal_key(self, key):
@@ -573,11 +690,20 @@ class App:
         if key == ord("e") and modal["kind"] == "actions":
             label, cmd = entries[modal["sel"]]
             row = modal["row"]
-            self.modal = None
-            if EXEC_ENABLED and label not in ("open URL", "open output"):
-                self.perform(row, label, cmd, execute=True)
-            else:
+            if label in OPEN_LABELS:
+                # There is no command to hand to claude here, and `e` means "do the
+                # selected thing" — for an open entry that is the open, whatever --exec
+                # is set to. Saying "run with --exec" would be false when it is already on.
+                self.modal = None
+                self.perform(row, label, cmd)
+                return
+            if not EXEC_ENABLED:
+                # Keep the menu open: the user has not made a choice yet, and closing it
+                # would cost them their place for a message they can act on next run.
                 self.flash(self.T["exec_hint"], "warn")
+                return
+            self.modal = None
+            self.perform(row, label, cmd, execute=True)
 
     def run(self):
         stdscr = self.stdscr
@@ -592,65 +718,77 @@ class App:
             if key == -1:
                 self.maybe_refresh()
                 continue
-            if self.help_open:
-                self.help_open = False
-                continue
-            if self.modal:
-                self.handle_modal_key(key)
-                continue
-            view = self.view
-            if key in (ord("q"), ord("Q"), 27):
+            if not self.handle_key(key):
                 return
-            elif key in (curses.KEY_DOWN, ord("j")):
-                self.move(1)
-            elif key in (curses.KEY_UP, ord("k")):
-                self.move(-1)
-            elif key in (curses.KEY_LEFT, ord("h")):
-                view.fold(collapse=True)
-            elif key in (curses.KEY_RIGHT, ord("l")):
-                view.fold(collapse=False)
-            elif key == 9:                              # Tab
-                self.switch_view(1)
-            elif key in (curses.KEY_BTAB, 353):         # Shift-Tab
-                self.switch_view(-1)
-            elif key in (curses.KEY_ENTER, 10, 13):
-                row = self.selected_row()
-                if row is not None:
-                    self.open_menu(row)
-            elif key == ord("a"):
-                row = self.selected_row()
-                if row is not None:
-                    self.open_ask(row)
-            elif key == ord("?"):
-                self.help_open = True
-            elif key == ord("c"):
-                row = self.selected_row()
-                act = view.default_action(row) if row is not None else None
-                if act:
-                    self.perform(row, act[0], act[1])
-            elif key == ord("o"):
-                row = self.selected_row()
-                target = view.open_target(row) if row is not None else None
-                if target:
-                    full = target if target.startswith("http") or os.path.isabs(target) \
-                        else os.path.join(PROJ, target)
-                    open_target(full)
-                    self.flash(target, "dim")
-            elif key in (curses.KEY_NPAGE, 4):          # PgDn / Ctrl-D
-                view.detail_top += 10
-            elif key in (curses.KEY_PPAGE, 21):         # PgUp / Ctrl-U
-                view.detail_top = max(0, view.detail_top - 10)
-            elif key in (curses.KEY_HOME, ord("g")):
-                view.detail_top = 0
-            elif key in (curses.KEY_END, ord("G")):
-                view.detail_top = 10 ** 6
-            elif key in (ord("r"), ord("R")):
-                self.maybe_refresh(force=True)
-            elif key == curses.KEY_RESIZE:
-                pass
-            else:
-                view.on_key(key, self)
             self.maybe_refresh()
+
+    def handle_key(self, key):
+        """Dispatch one keypress. False means quit — the only way out of run()."""
+        if self.help_open:
+            if not self.scroll_help(key):
+                self.help_open = False
+                self.help_top = 0
+            return True
+        if self.modal:
+            self.handle_modal_key(key)
+            return True
+        view = self.view
+        if key in (ord("q"), ord("Q")):
+            return False
+        elif key == 27:
+            # Esc closes things; it does not quit. See the module docstring — a stray
+            # escape sequence would otherwise take the dashboard down.
+            self.flash(self.T["quit_hint"], "dim", seconds=3)
+        elif key in (curses.KEY_DOWN, ord("j")):
+            self.move(1)
+        elif key in (curses.KEY_UP, ord("k")):
+            self.move(-1)
+        elif key in (curses.KEY_LEFT, ord("h")):
+            view.fold(collapse=True)
+        elif key in (curses.KEY_RIGHT, ord("l")):
+            view.fold(collapse=False)
+        elif key == 9:                              # Tab
+            self.switch_view(1)
+        elif key in (curses.KEY_BTAB, 353):         # Shift-Tab
+            self.switch_view(-1)
+        elif key in (curses.KEY_ENTER, 10, 13):
+            row = self.selected_row()
+            if row is not None:
+                self.open_menu(row)
+        elif key == ord("a"):
+            row = self.selected_row()
+            if row is not None:
+                self.open_ask(row)
+        elif key == ord("?"):
+            self.help_open = True
+        elif key == ord("c"):
+            row = self.selected_row()
+            act = view.default_action(row) if row is not None else None
+            if act:
+                self.perform(row, act[0], act[1], allow_open=False)
+        elif key == ord("o"):
+            row = self.selected_row()
+            target = view.open_target(row) if row is not None else None
+            if target:
+                full = target if target.startswith("http") or os.path.isabs(target) \
+                    else os.path.join(PROJ, target)
+                open_target(full)
+                self.flash(target, "dim")
+        elif key in (curses.KEY_NPAGE, 4):          # PgDn / Ctrl-D
+            view.detail_top += 10
+        elif key in (curses.KEY_PPAGE, 21):         # PgUp / Ctrl-U
+            view.detail_top = max(0, view.detail_top - 10)
+        elif key in (curses.KEY_HOME, ord("g")):
+            view.detail_top = 0
+        elif key in (curses.KEY_END, ord("G")):
+            view.detail_top = 10 ** 6
+        elif key in (ord("r"), ord("R")):
+            self.maybe_refresh(force=True)
+        elif key == curses.KEY_RESIZE:
+            pass
+        else:
+            view.on_key(key, self)
+        return True
 
 
 class BaseView:
@@ -683,6 +821,11 @@ class BaseView:
     def extra_stamp(self):
         """A number that changes when this view's non-file inputs changed."""
         return 0
+
+    def stamp_key(self):
+        """Identifies what extra_stamp() reads, so views that read the same thing compute
+        it once per poll. None means "unique to this view" — compute it every time."""
+        return None
 
     def has_children(self, row):
         return False
