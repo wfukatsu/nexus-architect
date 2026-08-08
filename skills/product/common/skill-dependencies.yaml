@@ -18,6 +18,7 @@ phases:
   # ---- Phase 1: Product Core ----
   define-vision:
     category: core
+    id_prefix: [VIS-]
     depends_on: []
     implemented: true
     outputs: [reports/00_core/vision-mission-value.md, reports/00_core/pr-faq.md]
@@ -25,6 +26,7 @@ phases:
 
   define-success-metrics:
     category: core
+    id_prefix: [NSM-]
     depends_on: [define-vision]
     implemented: true
     outputs: [reports/00_core/success-metrics.md]
@@ -32,6 +34,7 @@ phases:
 
   research-landscape:
     category: core
+    id_prefix: [MKT-]
     depends_on: []
     optional: true
     implemented: true
@@ -40,6 +43,7 @@ phases:
 
   design-revenue:
     category: core
+    id_prefix: [REV-]
     depends_on: [define-vision, define-success-metrics]
     implemented: true
     outputs: [reports/00_core/revenue-model.md, reports/00_core/benefit-evaluation.md]
@@ -47,6 +51,7 @@ phases:
 
   define-scope:
     category: core
+    id_prefix: [CON-, SCP-]
     depends_on: [define-vision]            # M1: success-metrics not yet required; uses it when present
     implemented: true
     outputs: [reports/00_core/constraints.md, reports/00_core/scope-definition.md]
@@ -54,6 +59,7 @@ phases:
 
   name-product:
     category: core
+    id_prefix: [NAM-]
     depends_on: [define-vision]
     soft_depends_on: [design-positioning, generate-persona, define-scope]  # tone + differentiation vocabulary when present
     optional: true
@@ -65,6 +71,7 @@ phases:
   # ---- GATE: Validation (rerunnable) ----
   validate-assumptions:
     category: validation
+    id_prefix: [ASM-]
     depends_on: [define-vision, define-scope]
     gate: true
     rerunnable: true
@@ -75,18 +82,21 @@ phases:
   # ---- Phase 2: UX Foundation ----
   generate-persona:
     category: ux
+    id_prefix: [PER-, JOB-]
     depends_on: [define-vision]
     implemented: true
     outputs: [reports/01_ux/personas.md]
     model: opus
   map-journey:
     category: ux
+    id_prefix: [JNY-]
     depends_on: [generate-persona]
     implemented: true
     outputs: [reports/01_ux/journey-maps.md]
     model: sonnet
   design-positioning:
     category: ux
+    id_prefix: [POS-, HOOK-]
     depends_on: [map-journey]              # research-landscape is soft: used when present (e.g. ux-to-spec profile omits it)
     soft_depends_on: [research-landscape]
     implemented: true
@@ -94,6 +104,7 @@ phases:
     model: opus
   create-domain-story:
     category: ux
+    id_prefix: [STORY-]
     depends_on: [generate-persona, map-journey]   # actors=personas, activities ordered by journey
     soft_depends_on: [map-domains, define-data-model]  # CTX-/ENT- enrichment when present (e.g. on rerun)
     optional: true
@@ -102,6 +113,7 @@ phases:
     model: opus
   design-system:
     category: ux
+    id_prefix: [DS-, TOK-, CMP-]
     depends_on: []                          # standalone; uses positioning/personas when present
     soft_depends_on: [design-positioning, generate-persona, define-vision]
     optional: true
@@ -113,6 +125,7 @@ phases:
   # ---- Phase 3: UX -> Spec ----
   generate-ui-mock:
     category: spec
+    id_prefix: [SCR-]
     depends_on: [map-journey, design-positioning]
     soft_depends_on: [create-domain-story, design-system]   # story = screen flow; design-system = visual language
     implemented: true
@@ -120,12 +133,14 @@ phases:
     model: sonnet
   define-features:
     category: spec
+    id_prefix: [FEAT-]
     depends_on: [generate-ui-mock, define-scope]
     implemented: true
     outputs: [reports/02_spec/feature-list.md]
     model: sonnet
   define-data-model:
     category: spec
+    id_prefix: [ENT-]
     depends_on: [define-features, generate-ui-mock]
     implemented: true
     outputs: [reports/02_spec/data-model.md]
@@ -134,6 +149,7 @@ phases:
   # ---- Phase 3b: Frontend Codegen (React + Storybook) ----
   generate-frontend:
     category: codegen
+    id_prefix: [PG-]
     depends_on: [generate-ui-mock]
     soft_depends_on: [design-system, define-features]   # design-system = tokens/components; features = screen actions
     optional: true
@@ -144,12 +160,14 @@ phases:
   # ---- Phase 4: Domain & API ----
   map-domains:
     category: domain
+    id_prefix: [CTX-]
     depends_on: [define-data-model, define-features]
     implemented: true
     outputs: [reports/03_domain/domain-map.md, reports/03_domain/bounded-contexts.md, reports/03_domain/ubiquitous-language.md]
     model: opus
   design-api:
     category: domain
+    id_prefix: [API-]
     depends_on: [map-domains, define-data-model]
     implemented: true
     outputs: [reports/03_domain/api-design.md]
@@ -158,12 +176,14 @@ phases:
   # ---- Phase 5: Quality & NFR ----
   design-sla:
     category: quality
+    id_prefix: [SLA-, SLO-]
     depends_on: [define-features, design-positioning]
     implemented: true
     outputs: [reports/04_quality/sla.md]
     model: sonnet
   define-nfr:
     category: quality
+    id_prefix: [NFR-]
     depends_on: [design-sla, map-domains]
     implemented: true
     outputs: [reports/04_quality/nfr.md]
@@ -172,6 +192,7 @@ phases:
   # ---- Synthesis: Architecture & Technology Fitness (capstone of Phase 4/5) ----
   design-architecture:
     category: domain
+    id_prefix: [ARCH-, TECH-]
     depends_on: [design-api, map-domains, define-data-model]
     soft_depends_on: [define-nfr, define-scope]   # uses NFR scaling + constraints when present
     implemented: true

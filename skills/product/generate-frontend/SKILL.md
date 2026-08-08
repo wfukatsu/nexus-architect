@@ -103,7 +103,7 @@ skill turns both into reusable, story-backed React components organized by **Ato
 | `reports/02_spec/ui-mocks/` | Required | `/product:generate-ui-mock` | stop and report — there are no screens to implement |
 | `design-system/{active}/tokens.css` + `components.md` | Recommended | `/product:design-system` | proceed with atoms inferred from the mocks and ad-hoc CSS; note no token theme/components were available |
 | `reports/02_spec/feature-list.md` | Recommended | `/product:define-features` | proceed; derive screen actions from the mocks directly, note the thinner basis |
-| `work/traceability.json` | Recommended | `/product:init-output` | proceed; create page/component nodes without upstream edges and note it |
+| `work/traceability.json` | Recommended | `/product:init-output` | proceed; create `PG-` nodes without upstream edges and note it |
 
 ## Process
 
@@ -129,8 +129,11 @@ skill turns both into reusable, story-backed React components organized by **Ato
    `index.html`, `src/main.tsx`, `src/App.tsx`.
 9. **Verify** — logically check that every `CMP-`/screen produced a component/page + story, imports
    resolve, props/stories are consistent, and no `*.module.css` uses a raw value. List any `TBD`.
-10. **Append traceability** — add component nodes (Upstream `CMP-`/`TOK-`) and page nodes (Upstream
-    `STORY-`/screen, with `next`/`prev` route edges) to `work/traceability.json`.
+10. **Append traceability** — add one `PG-` node per page to `work/traceability.json` (Upstream the
+    `SCR-` it renders and the `STORY-` that ordered it, with `next`/`prev` route edges). Generated
+    **components create no node of their own**: a React component is the implementation of a design
+    system `CMP-`, so record it on that `CMP-` node (its generated path and Storybook story) rather
+    than duplicating the component into the graph under a second ID.
 11. **Record** — write all files; append the component-mapping decisions and every `TBD` to
     `work/context.md`.
 

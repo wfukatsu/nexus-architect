@@ -8,6 +8,9 @@ phases:
   # Phase: Requirements (greenfield entry point; optional on legacy path)
   define-requirements:
     category: requirements
+    # NFR- is shared with the product manifest on purpose: a product NFR- carried across the
+    # handoff keeps its ID verbatim and gets no second node (docs/design.md §1.5).
+    id_prefix: [FR-, NFR-]
     depends_on: []
     optional: true
     outputs:

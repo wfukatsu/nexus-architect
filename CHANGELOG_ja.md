@@ -10,6 +10,13 @@ Nexus Architect の主な変更点を記録します。
 ## [Unreleased]
 
 ### 追加
+- **ID 接頭辞の名前空間が「記述」ではなく「宣言」になった。** 2 つの `skill-dependencies.yaml` の各
+  phase に `id_prefix` を追加し、manifest を「どのスキルがどの接頭辞を発行するか」の正典にした。
+  従来は各 SKILL.md の散文にしか存在せず、衝突も宣言漏れも検出できない状態で、実際に 3 つのスキルが
+  接頭辞を一切宣言していなかった。`tools/lib/pipeline_status_data.test.py` が、
+  `work/traceability.json` に追記する全スキルが接頭辞を宣言していること、その接頭辞を自身の SKILL.md
+  で実際に使っていること、同一 manifest 内で重複がないことを assert する（`NFR-` だけが manifest を
+  またぐ意図的な主張 — §1.5 のキャリーオーバー — であることも明示的に検査する）。
 - **レジストリの phase エントリが自分のパイプラインを名乗るようになった。** `work/pipeline-progress.json`
   の各エントリが `"plugin": "product" | "architect"` を持つ。`init-output` と各オーケストレーターの
   `in_progress` スタンプ時に書き込まれる。1 つのレジストリを両パイプラインが共有し、phase を bare 名で
@@ -19,6 +26,15 @@ Nexus Architect の主な変更点を記録します。
   フォールバックする。
 
 ### 修正
+- **3 つのスキルが、下流から参照できないノードを書いていた。** `research-landscape` /
+  `generate-ui-mock` / `generate-frontend` は、どの ID 接頭辞で書くかを述べないままトレースグラフに
+  追記していた。これは 2 つの連鎖を実際に切っていた — `/product:adapt-change --type=market` は
+  market-landscape ノードから影響範囲をシードするが、そのノードに ID が無くシードできない。
+  journey → story → **画面** → feature の連鎖も、画面の ID が無いため画面のところで切れていた。
+  それぞれ `MKT-` / `SCR-` / `PG-` を発行するようにし、`define-features` は各 `FEAT-` の由来である
+  `SCR-` を引くようにした。これで下流で導出される `FR-` が最後まで遡れる。生成された React
+  コンポーネントは独自のノードを作らない — それは design-system の `CMP-` の実装なので、2 つ目の ID で
+  重複させず当該 `CMP-` ノードに記録する。
 - **トークンコストがパイプライン境界を越えて合算されなくなった。** `work/token-usage.json` もレジストリと
   同様に bare 名キーだったため、`map-domains`（および `design-api` / `create-domain-story` / `report`）の
   product と architect の費用が、どちらのビューも主張できない 1 つのバケットに蓄積されていた。
