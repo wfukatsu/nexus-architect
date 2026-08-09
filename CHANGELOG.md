@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
-## [Unreleased]
+## [0.23.3] - 2026-08-09
 
 ### Changed
 - **The user-facing docs now describe the handoff the code enforces.** 0.23.0–0.23.2 turned the
