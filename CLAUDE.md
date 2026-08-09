@@ -204,7 +204,7 @@ three files under `work/`: `pipeline-progress.json` (one `phases` map holding bo
 entries, keyed by bare phase name — hence the `plugin` field, since `map-domains`, `design-api`,
 `create-domain-story` and `report` are defined by both manifests), `traceability.json` (one graph;
 `define-requirements` appends `FR-`/`NFR-` to what product wrote, and `id_prefix` on each manifest
-phase says which skill mints which prefix), and `context.md` (decisions + Open Questions). **Every
+phase says which skill mints which prefix), and `context.md` (decisions, plus **the** Open Questions store for both plugins — `reports/00_requirements/open-questions.md` is a view rendered from it, and `OQ-` IDs are allocated `max + 1` over the store so the two pipelines cannot mint the same one). **Every
 write to them is additive** — see @skills/common/progress-registry.md § One Registry, Two Pipelines
 and @docs/design.md §1 for the contract, §7.5 for why `adapt-change` reports at the boundary rather
 than crossing it.

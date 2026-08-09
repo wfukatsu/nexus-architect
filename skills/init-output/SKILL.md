@@ -20,9 +20,10 @@ because the `product` pipeline ran first and this is the product→architect han
 before writing it and merge into what is there. Only `--reset` replaces anything, and only
 after a backup.
 
-What is at stake: `work/context.md` is the product-side Open Questions store
-(@rules/open-questions.md §6) that `/architect:define-requirements` reads in its Step 2 to
-re-ask the `deferred` / `unasked` entries it needs; `work/pipeline-progress.json` is shared
+What is at stake: `work/context.md` is **the** Open Questions store for the whole project — both
+pipelines' questions, in one file (@rules/open-questions.md §6) — which
+`/architect:define-requirements` reads in its Step 2 to re-ask the `deferred` / `unasked` entries
+it needs and answer them in place; `work/pipeline-progress.json` is shared
 by both pipelines and already holds the product phases and the `output_language` the user
 chose during the product run.
 
@@ -63,9 +64,12 @@ chose during the product run.
      reading as done. **Never add `"plugin": "architect"` to an entry you did not create** —
      that would claim the neighbour's work as this pipeline's.
 
-3. Create `work/context.md` **only if it is absent**. If it exists, leave its content in
-   place: phases append to it, and on the handoff path it carries the product Open Questions
-   table that `/architect:define-requirements` is about to read.
+3. Create `work/context.md` **only if it is absent**, seeded with an empty `## Open Questions`
+   section in the @rules/open-questions.md §6 row shape. If it exists, leave its content in
+   place: phases append to it, and it is **the** Open Questions store for the whole project —
+   both pipelines' questions live in this one file, so on the handoff path it already holds the
+   entries `/architect:define-requirements` is about to read, re-ask and answer in place.
+   `reports/00_requirements/open-questions.md` is a view rendered from it, never a second store.
 
 ## Options
 

@@ -220,8 +220,11 @@ and merge into what is there:
 - **`traceability.json`** — one graph for the project; `define-requirements` appends
   `FR-`/`NFR-` nodes to what product wrote. Never start a second file, never truncate it to
   `[]`. Which skill mints which ID prefix is declared as `id_prefix` on each manifest phase.
-- **`context.md`** — decisions and the Open Questions table, carried across phases and
-  across the boundary. Create only when absent; never overwrite.
+- **`context.md`** — decisions, and **the** Open Questions store for the whole project: both
+  pipelines' questions live in this one file and are answered in place under their existing
+  `OQ-` IDs, so an architect answer is visible to a later product rerun.
+  `reports/00_requirements/open-questions.md` is a view rendered from it, never a second store.
+  New IDs are `max(OQ-###) + 1` over the store. Create only when absent; never overwrite.
 
 `adapt-change` walks the shared graph, so its blast radius reaches architect's nodes. It
 reports them and stops: no architect skill is re-run and no architect artifact is rewritten

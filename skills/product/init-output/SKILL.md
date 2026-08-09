@@ -79,8 +79,10 @@ it and merge into what is there; only `--reset` replaces, and only after a backu
    file (@docs/design.md §1.5), and truncating it to `[]` would sever the cross-plugin chain.
 
 4. Create `work/context.md` **only if it is absent**, carrying decisions between phases and
-   seeded with an empty `## Open Questions` section — the Open Questions store every skill
-   appends to (row shape in @rules/open-questions.md §6):
+   seeded with an empty `## Open Questions` section — **the** Open Questions store for the whole
+   project, product and architect alike, that every skill appends to and answers in place
+   (row shape in @rules/open-questions.md §6; `reports/00_requirements/open-questions.md` is a
+   view rendered from it, not a second store):
 
    ```markdown
    ## Open Questions

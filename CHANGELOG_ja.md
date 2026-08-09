@@ -7,6 +7,20 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 3 つのプラグイン（`product`・`architect`・`scalardb`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+### 変更
+- **Open Questions ストアを 1 ファイルに統一し、architect の成果物はそのビューになった。** プロトコルは
+  `work/context.md` § Open Questions と `reports/00_requirements/open-questions.md` の 2 つを
+  ストアとして挙げていたが、どちらが正典かも、ID をどこから採番するかも書いていなかった。通常の
+  ハンドオフ実行で到達し得る帰結が 2 つある — 次の ID をどこから採るかの規則が無いため product と
+  architect が別々の質問に同じ `OQ-004` を割り当て得ること、そして片方で記録した回答がもう片方に
+  届かず、architect が解決した質問が後の product 再実行では `unasked` のまま残ること。
+  `work/context.md` をプロジェクト全体の**唯一の**ストアとし、
+  `reports/00_requirements/open-questions.md` は 2 つ目の情報源ではなくそこから描画される成果物に、
+  新しい ID はストア全体の `max(OQ-###) + 1` とした。`work/traceability.json` が既に従っていた
+  「2 つ目のファイルを作らない」という規則を、境界を双方向に越える質問にも適用した形。
+
 ## [0.23.0] - 2026-08-09
 
 ### 追加
