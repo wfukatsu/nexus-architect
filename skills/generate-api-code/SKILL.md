@@ -85,6 +85,28 @@ Where an operation declares an `Idempotency-Key` obligation, generate the key ha
 idempotency record written **inside the business transaction** (@rules/api-error-standard.md §5) —
 a record committed separately reintroduces the duplicate the key exists to prevent.
 
+## The Build Must Accept What Was Generated
+
+The API layer brings its own runtime dependencies, and code the project cannot compile is not a
+deliverable. Before finishing, add every dependency the generated layer requires and **verify the
+module compiles** — a run that emits sources and leaves the build broken has produced nothing usable.
+
+The ones most often missed, because the design implies them without naming them:
+
+| Generated because the design says… | Dependency |
+|---|---|
+| OIDC / JWT authentication, `@AuthenticationPrincipal Jwt` | `spring-boot-starter-oauth2-resource-server` |
+| Bean Validation on DTOs | `spring-boot-starter-validation` |
+| `@PreAuthorize` method-level authorization | `spring-boot-starter-security` (and method security enabled — the annotation is silently inert without it) |
+| ScalarDB exception types in the handler | the ScalarDB artifact for the pinned edition |
+
+`@PreAuthorize` deserves the emphasis: it compiles, reads as an authorization control, and enforces
+nothing until method security is switched on. Generate the enabling configuration alongside it, or
+the security review finds an operation whose declared authorization exists only as an annotation.
+
+Run the compile before writing the contract map, and report the command and its exit code in the run
+summary — the same evidence standard the quality gate applies (@rules/ai-code-quality-gate.md).
+
 ## Dependency Versions
 
 Any build file this skill touches pins versions, so follow @rules/dependency-versions.md: resolve
@@ -118,11 +140,17 @@ rather than re-resolving and drifting. Confirm per `--confirm-versions` / `--no-
 5. **Generate controllers** — one method per `operationId`, delegating to the application service the
    API layer specification names, with the authorization check at the point the security design named.
 6. **Generate the exception handler and the problem type constants** from the registry.
-7. **Write the contract map** — `reports/06_implementation/api-contract-map.{md,json}` per
-   @rules/api-contract-fidelity.md §4, with both `unmapped` arrays populated from what actually
-   happened, never emptied for appearance.
-8. **Report.** Operations generated, operations skipped and why, contract-quality findings, and the
-   version decision table.
+7. **Enumerate every route that already exists in the target tree** — not only the ones generated —
+   and classify each as a mapped operation or an `out_of_scope_handlers` entry
+   (@rules/api-contract-fidelity.md §4). A brownfield tree contains controllers that predate the
+   contract; reporting an empty `handlers_without_spec_operation` because only the generated package
+   was scanned is a map that passes its own check while hiding real endpoints.
+8. **Compile.** Run the project's build target and report the exit code.
+9. **Write the contract map** — `reports/06_implementation/api-contract-map.{md,json}` per
+   @rules/api-contract-fidelity.md §4, with the declared scope and both `unmapped` arrays populated
+   from what actually happened, never emptied for appearance.
+10. **Report.** Operations generated, operations skipped and why, routes found out of scope,
+    contract-quality findings, the compile result, and the version decision table.
 
 `--dry-run` performs steps 1–2 and reports the plan and findings, writing no code.
 
@@ -150,7 +178,10 @@ Code identifiers, schema names and `operationId`s stay in English.
 - Every problem type in the registry is reachable from the exception handler, and
   `UnknownTransactionStatusException` is handled by its own branch per §3.1
 - No error path bypasses the Problem Details handler
-- `api-contract-map.json` exists with both `unmapped` arrays present and derived from the actual result
+- `api-contract-map.json` exists with its `scope` declared and both `unmapped` arrays derived from a
+  scan of the whole target tree — every reachable route appears in `operations` or `out_of_scope_handlers`
+- The module compiles after generation, with the command and exit code reported, and every dependency
+  the generated layer needs was added
 - Every pinned version was looked up, is stable, and is recorded in the version decision table
 
 ## Related Skills
