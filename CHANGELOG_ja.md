@@ -26,6 +26,22 @@ Nexus Architect の主な変更点を記録します。
   フォールバックする。
 
 ### 修正
+- **ScalarDB を使わないプロジェクトが 3/4 出力のまま止まらなくなった。** architect manifest は
+  `scalardb-applicability.md` を `define-requirements` の無条件 output に並べていたが、スキルは
+  ScalarDB が関係する場合にのみこれを書く。そのため ScalarDB 不使用のプロジェクトでは出力バーが
+  永久に埋まらず、「書くものが無かったフェーズ」ではなく「未完了のフェーズ」に見えていた。manifest に
+  `conditional_outputs`（`"<条件>:<パス>"`）を追加し、ダッシュボードはプロジェクトのオプションが条件を
+  満たす場合にのみカウントする。
+- **バリデーションゲートが「誰のものか」を示すようになった。** ゲートは **product** パイプラインのもので、
+  architect タブにも意図的に表示している（要件が未検証の前提の上にあることは architect が知るべき情報
+  だから）。しかしラベルの無い `gate: no-go` が architect のツリー上に出ると、architect 自身の判定と
+  読めてしまう。product ビュー以外では `Product gate: no-go` と表示するようにした。
+- **ハンドオフ検知がディレクトリではなくファイルを見るようになった。** `/product:init-output` は
+  `reports/01_ux/domain-stories/` と `reports/02_spec/ui-mocks/` を空で作るため、ディレクトリ存在
+  テストは、フェーズが 1 つも実行されていない初期化済み product プロジェクトでもハンドオフを報告して
+  いた。`/architect:start`・`/architect:pipeline`・`define-requirements`・`AGENTS.md`・`OMNIGENT.md`
+  を修正。`define-requirements` はさらに、どの product 成果物が見つかり、どれが無かったかを出力に明記する
+  （部分的な product 実行はキャリーオーバーできる内容を変えるため）。
 - **`AGENTS.md` と `OMNIGENT.md` が、自分が駆動しているハンドオフを記述するようになった。** 本リポジトリは
   同じスキル群を 3 つのオーケストレーターで動かし、各エントリドキュメントの同期を要求しているが、
   product→architect ハンドオフに言及していたのは `CLAUDE.md` だけだった。Codex と omnigent ローダーには

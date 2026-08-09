@@ -273,8 +273,10 @@ class PipelineView(S.BaseView):
         if gate:
             note = "  %s %d" % (T["open_assumptions"], len(gate["open_assumptions"])) \
                 if gate["open_assumptions"] else ""
-            lines.append(("%s %s: %s%s" % (P.PG["gate"], T["gate"], gate["verdict"],
-                                           note),
+            # Owned by product; named as such on any other tab (see pipeline_status_data).
+            label = T["gate"] if state["plugin"] == gate.get("plugin") else \
+                T["gate_of"] % T["tab_%s" % gate.get("plugin", "product")]
+            lines.append(("%s %s: %s%s" % (P.PG["gate"], label, gate["verdict"], note),
                           "accent" if gate["verdict"] == "go" else "warn"))
         meta = []
         if self.backlog:

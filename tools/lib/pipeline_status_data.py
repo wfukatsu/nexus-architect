@@ -95,7 +95,8 @@ PS_LABELS = {
         "status": "status",
         "outputs": "outputs", "declared": "declared outputs", "deps": "depends on",
         "blocked_by": "waiting on", "model": "model", "cost": "cost",
-        "gate": "gate", "verdict": "verdict", "open_assumptions": "open assumptions",
+        "gate": "gate", "gate_of": "%s gate", "verdict": "verdict",
+        "open_assumptions": "open assumptions",
         "next": "next", "current": "running", "active": "active",
         "ago": "%s ago", "never": "no activity recorded",
         "started": "started", "completed_at": "completed", "updated": "updated",
@@ -162,7 +163,8 @@ PS_LABELS = {
         "status": "状態",
         "outputs": "出力", "declared": "宣言された出力", "deps": "依存",
         "blocked_by": "未充足の依存", "model": "モデル", "cost": "コスト",
-        "gate": "ゲート", "verdict": "判定", "open_assumptions": "未検証の前提",
+        "gate": "ゲート", "gate_of": "%sのゲート", "verdict": "判定",
+        "open_assumptions": "未検証の前提",
         "next": "次", "current": "実行中", "active": "稼働中",
         "ago": "%s前", "never": "稼働記録なし",
         "started": "開始", "completed_at": "完了", "updated": "更新",
@@ -779,7 +781,15 @@ def derive_phase(name, spec, entry, project_dir, options, project_name,
     outputs = []
     written = 0
     last_write = 0.0
-    for pattern in spec.get("outputs") or []:
+    # `conditional_outputs` holds "<condition>:<path>" entries — a file the skill writes only
+    # when the project's options say so. Counting one the run will never produce pins the
+    # phase below full forever, which reads as unfinished rather than as nothing to write.
+    declared_patterns = list(spec.get("outputs") or [])
+    for declaration in spec.get("conditional_outputs") or []:
+        condition, _, pattern = str(declaration).partition(":")
+        if pattern and _conditions_ok([condition], options):
+            declared_patterns.append(pattern)
+    for pattern in declared_patterns:
         exists, mtime, resolved = resolve_output(project_dir, pattern, project_name)
         outputs.append({"path": pattern, "exists": exists, "mtime": mtime,
                         "resolved": resolved})
@@ -1182,7 +1192,12 @@ def read_gate(progress):
     entry = gates.get("validate-assumptions")
     if not isinstance(entry, dict):
         return None
+    # The gate is the *product* pipeline's, and it is shown on the architect tab too —
+    # requirements resting on an unvalidated premise is exactly what an architect wants to
+    # know. But an unlabelled "gate: no-go" over the architect tree reads as architect's
+    # own verdict, so the owner travels with it and the views name it when it is not theirs.
     return {"verdict": entry.get("verdict") or "pending",
+            "plugin": "product",
             "open_assumptions": _as_list(entry.get("open_assumptions"))}
 
 

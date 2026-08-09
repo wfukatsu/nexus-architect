@@ -92,7 +92,7 @@ one after the other in the same project directory. `/product:*` ends at SLA/NFR 
 is `docs/design.md` §1 — read it before running either side of the boundary.
 
 Detect the handoff by globbing `reports/00_core/`, `reports/01_ux/`, `reports/02_spec/`,
-`reports/03_domain/`, `reports/04_quality/` and `work/traceability.json`. When any exist, run
+`reports/03_domain/`, `reports/04_quality/` and `work/traceability.json` — matching **files**, not directories, since `/product:init-output` creates two of those directories empty. When any exist, run
 `define-requirements` with them as inputs; §1.3 maps each product artifact to its deliverable and
 §1.4 lists what product deliberately does *not* supply (per-process transaction consistency,
 physical DB inventory, actor/role/permission) — those are what still gets elicited.

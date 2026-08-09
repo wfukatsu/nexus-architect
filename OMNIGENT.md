@@ -203,7 +203,9 @@ side of the boundary; §1.3 maps each product artifact to its deliverable and §
 product deliberately does not supply.
 
 Detect the handoff by globbing `reports/00_core/`, `reports/01_ux/`, `reports/02_spec/`,
-`reports/03_domain/`, `reports/04_quality/` and `work/traceability.json`.
+`reports/03_domain/`, `reports/04_quality/` and `work/traceability.json` — matching **files**,
+not directories: `/product:init-output` creates two of those directories empty, so a
+directory-existence test passes on any initialized product project.
 
 Three files under `work/` are shared, so **every write is additive** — read before writing
 and merge into what is there:

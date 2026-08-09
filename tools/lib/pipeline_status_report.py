@@ -155,7 +155,11 @@ def header_lines(state):
         style = GREEN if gate["verdict"] == "go" else YELLOW
         note = "  %s %d" % (T["open_assumptions"], len(gate["open_assumptions"])) \
             if gate["open_assumptions"] else ""
-        lines.append(c(style, "%s %s: %s%s" % (P.PG["gate"], T["gate"],
+        # The gate belongs to product; name its owner whenever this is not the product view,
+        # so "gate: no-go" over the architect tree cannot read as architect's own verdict.
+        label = T["gate"] if state["plugin"] == gate.get("plugin") else \
+            T["gate_of"] % T["tab_%s" % gate.get("plugin", "product")]
+        lines.append(c(style, "%s %s: %s%s" % (P.PG["gate"], label,
                                                gate["verdict"], note)))
 
     backlog = state["backlog"]
