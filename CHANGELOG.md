@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
+## [0.25.0] - 2026-08-09
+
+### Added
+- **`samples/scalardb-transaction-tests/` — the ScalarDB transaction rules, as tests that run.**
+  Four rules in this repository were written or corrected across 0.24.1–0.24.3 because a test failed,
+  and those tests lived in a scratch directory that does not survive the session. They are the only
+  executable evidence that the rules describe how ScalarDB actually behaves, so they now ship:
+  `./gradlew integrationTest` runs 25 tests against a real ScalarDB 3.19.0 engine in about ten
+  seconds. SQLite storage runs in-process — no container to start, no external service, nothing to
+  clean up. Verified from a fresh clone.
+- The README maps each test class to the rule it backs — `BlindWriteProbeIT` to the blind-`Put`
+  behaviour in `scalardb-crud-patterns.md`, `TwoPhaseCommitIT` to the one-manager-per-participant and
+  unchecked-protocol-misuse sections of `scalardb-2pc-patterns.md`, `SagaCompensationIT` to the
+  composite-clustering-key rule, `OrderTransactionIT` to the idempotency-replay authorization rule in
+  `api-error-standard.md`. A future ScalarDB upgrade that invalidates a premise now **fails a test**
+  instead of leaving a rule quietly stale.
+- Two implementations ship on purpose. `ConformingOrderService` follows TX-001..TX-004 as designed;
+  `NonConformingOrderService` carries the violations a review is meant to catch, so the tests can
+  assert that the defects are detectable. The README labels the second as **not a template** and
+  records why it exists: an independent reviewer read it, correctly reported its authorization and
+  transaction defects, and never noticed that its writes cannot commit at all.
+
+### Changed
+- The sample is deliberately narrower than the scratch original it came from: Spring, the HTTP layer
+  and the OpenAPI contract are gone. None of them are needed to exercise a transaction, and their
+  absence is the point — the contract tier asserts the shape of a response and by construction cannot
+  reach any of this behaviour. Stage 3 of the quality gate does not substitute for stage 4.
+- `CLAUDE.md` notes the suite sits outside the CLI test set, because it needs network for dependency
+  resolution, and says when to run it: after a ScalarDB version bump.
+
 ## [0.24.3] - 2026-08-09
 
 ### Fixed
