@@ -176,6 +176,12 @@ Specific to this toolkit, and invisible to a generic API scanner:
 - A 2PC participant operation reachable without the coordinator's authorization context.
 - An idempotency record stored outside the business transaction, letting a replay bypass a check
   (@rules/api-error-standard.md §5).
+- **A replay path that returns before the authorization check runs.** The early return on a stored
+  idempotency record is the one code path with no ownership predicate on it unless the predicate was
+  put there deliberately — and a record keyed only on `(tenant_id, key)` is readable by every caller
+  in the tenant. **critical**: it is object-level authorization bypass (API1) reached through a
+  header. Check the replay branch specifically; the non-replay branch being correct proves nothing
+  about it.
 
 ## Evidence
 
