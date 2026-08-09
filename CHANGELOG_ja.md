@@ -7,6 +7,19 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 3 つのプラグイン（`product`・`architect`・`scalardb`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+### 修正
+- **`NFR-` ID が 2 つのスキルによって別々の要件に二重採番され得た。** `docs/design.md` §1.5 は
+  architect 由来の `NFR-` ノードを作れと言うだけで採番元を書いておらず、product が既に `define-nfr` を
+  実行済みであることを暗黙に前提していた。しかし常にそうとは限らない — `--profile=mvp` で止まった
+  product 実行が `define-requirements` にハンドオフすると、`NFR-` が 1 つも無いので `NFR-001` を採番し、
+  その後 product パイプラインを再開すると `define-nfr` も `NFR-001` を採番する。full プロファイルの
+  end-to-end 実行でまさにこれが発生した — 両プラグインが共有する単一グラフの中に、1 つの ID が 2 つの
+  意味を持つものが 6 件。§1.5 に rule 4 を追加した: 新しい ID は接頭辞ごとにグラフ全体の `max + 1` から
+  採番する（`OQ-` と同じ規則）。§1.5 の検証項目にも「同一 ID が 2 回現れないこと」を追加したので、
+  再発は `review-consistency` と `/product:review` が検出する。
+
 ## [0.23.1] - 2026-08-09
 
 ### 変更

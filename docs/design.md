@@ -141,6 +141,14 @@ Rules:
    node**; the product `NFR-` node already exists and is reused verbatim. Create a node
    only for NFRs that originate in architect (elicited targets product never set),
    `type: "nfr"`, `upstream` pointing to the `SLO-`/`CTX-` or business driver.
+4. **Allocate every new ID as `max` over the graph, per prefix, `+ 1`.** `NFR-` is minted by
+   two skills — product's `define-nfr` and architect's `define-requirements` — and numbering
+   from your own report instead of from the graph collides. It is not hypothetical: a product
+   run that stops before `define-nfr` (`--profile=mvp`) hands off to `define-requirements`,
+   which finds no `NFR-` and mints `NFR-001`; when the product pipeline is later resumed,
+   `define-nfr` mints `NFR-001` too, and the graph carries one ID with two meanings. Read the
+   graph, take the highest existing number for the prefix, and continue from there — the same
+   rule the Open Questions store follows for `OQ-` (@rules/open-questions.md §6).
 4. **Physical-only nodes** (transaction-consistency classes, DB-inventory entries,
    actor/role/permission — the §1.4 gaps) have **no product upstream**; record them with
    empty `upstream` so the graph shows them as architect-originated.
@@ -148,8 +156,9 @@ Rules:
 **Verification (this is what makes the contract more than prose).** The product
 `review` (traceability lens) and architect `review-consistency` check the joined graph
 for: every `FR-` reachable from a `FEAT-` or flagged as fresh; no product `NFR-`
-silently re-numbered; no dangling `upstream` IDs across the plugin boundary. A break is
-a consistency finding, not a silent drift.
+silently re-numbered; **no ID appearing twice in the graph** (rule 4 — the check that catches
+two skills having minted the same `NFR-` from their own reports); no dangling `upstream` IDs
+across the plugin boundary. A break is a consistency finding, not a silent drift.
 
 > Sections 2–6 (other plugin internals) are not yet migrated into this document. Section 7
 > is the canonical specification for the product adaptation engine; `rules/product/adaptation-engine.md`

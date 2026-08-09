@@ -51,7 +51,9 @@ Produce one deliverable:
 3. **Scope** — attach NFRs to the relevant bounded contexts.
 4. **Trace** — link each `NFR-` to its source `SLO-`.
 5. **Append traceability** — add `NFR-` nodes to `work/traceability.json` with Upstream `SLO-`/`CTX-`
-   references.
+   references. **Allocate each new ID as the highest `NFR-` already in the graph + 1**, not by
+   numbering from this report: `/architect:define-requirements` mints `NFR-` too, so a handoff that
+   happened before this phase ran has already used some of the range (@docs/design.md §1.5 rule 4).
 6. **Record** — write the file; append decisions to `work/context.md`;
    ask remaining unknowns and log only what stays open (@rules/open-questions.md).
 
