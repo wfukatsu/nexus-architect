@@ -1,0 +1,38 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.example'
+version = '1.0.0'
+java.sourceCompatibility = JavaVersion.VERSION_17
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Versions resolved from the registries per rules/dependency-versions.md, 2026-08-09.
+    implementation 'com.scalar-labs:scalardb:3.19.0'
+    implementation 'org.slf4j:slf4j-simple:2.0.16'
+
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // SQLite lets ScalarDB run in-process: no container, no external service.
+    testRuntimeOnly 'org.xerial:sqlite-jdbc:3.53.2.1'
+}
+
+tasks.register('integrationTest', Test) {
+    description = 'Runs the transaction scenarios against a real ScalarDB engine.'
+    group = 'verification'
+    useJUnitPlatform()
+    filter { includeTestsMatching '*IT' }
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    testLogging { events 'passed', 'failed'; showStandardStreams = false }
+    // A filter that matches nothing is a green task and an ungated build
+    // (rules/ai-code-quality-gate.md) — fail instead.
+    filter { failOnNoMatchingTests = true }
+}
+
+test { useJUnitPlatform() }
