@@ -26,8 +26,9 @@ visually consistent (the same token CSS is injected into each HTML file — no s
   steps; generate semantic aliases (`color.bg`, `color.fg`, `color.primary`, `color.danger`, …).
 - **Incorporate (brownfield)** — `--import=<path>` reads an existing system and **normalizes it to
   the same token schema**: Tailwind config, W3C DTCG JSON, Figma Tokens export, or a CSS/SCSS
-  variable theme (MUI/Chakra). Unmapped values → `TBD` with an Open Question; never invent brand
-  values silently.
+  variable theme (MUI/Chakra). An unmapped value is asked — which token it belongs to, or the raw
+  value via free text — and becomes `TBD` with an Open Question only if it stays unanswered
+  (@rules/open-questions.md); never invent brand values silently.
 
 Both modes converge on **one DTCG token file**, so downstream tooling is identical.
 

@@ -110,6 +110,50 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
   having no product artifacts by the skill about to consume them. The two sets are now
   identical.
 
+### Changed
+- **Open Questions are asked, not filed.** Every skill that could write `TBD` now runs the
+  protocol in the new `rules/open-questions.md`: an unknown it cannot resolve from its own
+  inputs is put to the user with `AskUserQuestion` — 2–4 candidate answers the skill derived
+  from context, each described by what it changes downstream — and only what the user defers,
+  cannot answer in-session, or was never asked (`--auto`) becomes a `TBD`. Previously an
+  unknown went straight to "record it as `TBD` in Open Questions", so a question the user
+  could have answered in one click was instead deferred into a report nobody re-opened.
+- **Anything the options cannot express is answered in free text.** Skills never author an
+  "Other" option (the harness appends one, and that is the free-text path) and never round a
+  free-text answer to the nearest option — it is recorded verbatim and marked as free text,
+  with only units/IDs normalized and the normalization echoed back. Inherently free-form
+  answers are asked as representative bands (`p95 < 100 ms` / `< 500 ms` / `< 1 s`) so the
+  exact figure arrives through "Other", or in prose when no meaningful bands exist — never
+  skipped to `TBD` because the answer would not fit a menu.
+- **What stays open now says why.** Open Questions entries carry an `OQ-` ID, a status
+  (`answered` / `deferred` / `unasked` / `external`), the answer, the options offered, an
+  owner and the downstream impact; a `TBD` in an artifact carries its question ID
+  (`TBD (OQ-012)`). `/product:report` groups the header by status so a question nobody was
+  asked is visibly different from one the user consciously deferred, and `/product:review`
+  reports an unasked `TBD` as a finding. `--auto` runs record the question *and the options
+  that would have been offered*, so a later pass can answer instead of re-deriving.
+- **Questions carry across phases.** Each skill picks up the `deferred` / `unasked` entries in
+  its own domain at its read-context step, re-asks them in its first question batch, and
+  updates them in place under the same `OQ-` ID — no duplicates, and nothing already answered
+  is re-asked. `/product:init-output` seeds `work/context.md` with the `## Open Questions`
+  table; the product→architect handoff carries the IDs into
+  `reports/00_requirements/open-questions.md`.
+- Wired through `CLAUDE.md`, `AGENTS.md` and `OMNIGENT.md`: Codex and the omnigent loader have
+  no harness-appended "Other", so they print an explicit "or type your own answer" line under
+  the numbered choices and record a non-matching reply as a free-text answer.
+- **The token-cost dashboard now prices its component columns.** In the live
+  `/architect:report-token-cost` dashboard the per-model `in` / `out` / `cache-read` /
+  `cache-write` columns hold money (`$`) instead of token counts — the dashboard is read to
+  answer "what did this cost", and the token total is already its own column. `b` switches
+  them back to counts and the bottom bar names the current unit, so the toggle is
+  discoverable rather than documented-only. The static and `--md` report keeps token counts
+  (there the columns break down the token total the same table carries); `--breakdown=` still
+  overrides either default.
+- **A nonzero cost never renders as `$0.0000`.** Amounts below a hundredth of a cent now show
+  as `<$0.0001` (`<¥1` under `--currency=jpy`), instead of rounding a real charge down to
+  something that reads as free — visible now that the dashboard prices per-component columns,
+  where cheap models land in that range.
+
 ## [0.22.1] - 2026-08-08
 
 ### Fixed

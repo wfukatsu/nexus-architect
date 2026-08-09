@@ -59,7 +59,8 @@ Produce one deliverable:
 5. **Diagram** — render the Mermaid ER diagram of the final model.
 6. **Append traceability** — add `ENT-` nodes to `work/traceability.json` with Upstream
    `FEAT-`/`JOB-` references.
-7. **Record** — write the file; append decisions to `work/context.md`; log `TBD`s.
+7. **Record** — write the file; append decisions to `work/context.md`;
+   ask remaining unknowns and log only what stays open (@rules/open-questions.md).
 
 ## Output
 

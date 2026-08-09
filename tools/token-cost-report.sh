@@ -25,13 +25,14 @@
 # Live dashboard keys:
 #   ↑↓ / j k      move the selection in the upper pane
 #   ←→ / Tab / 1-5 switch view      PgUp/PgDn, Ctrl-U/Ctrl-D  scroll the detail pane
-#   g / G         detail top / bottom     b  toggle token/cost breakdown
+#   g / G         detail top / bottom     b  in/out/cache columns: $ <-> tokens
 #   r             refresh now              q  quit
 #
 # Options:
 #   --top=N            rows in the per-model / session / timeline tables (default 10)
 #   --breakdown=WHAT   what the per-model in/out/cache-read/cache-write columns hold:
-#                      tokens (default) or cost
+#                      cost (money, in $) or tokens (counts). Default: cost in the live
+#                      dashboard, tokens in the static/--md report
 #   --since=SPEC       limit timeline+events: 24h, 7d, 30d, 2026-07-01, or all (default all)
 #   --log-tail=N       with --session, print only the last N log entries
 #   --lang=ja|en       display language (default: options.output_language, else en)
@@ -74,7 +75,7 @@ MODE="auto"
 INTERVAL=10
 TAIL_N=8
 TOP=10
-BREAKDOWN="tokens"
+BREAKDOWN=""          # unset -> per-mode default resolved after MODE is known
 LANG_OPT=""
 SINCE="all"
 SESSION=""
@@ -180,7 +181,7 @@ esac
 
 [ "$INTERVAL" -ge 1 ] 2>/dev/null || INTERVAL=10
 [ "$TOP" -ge 1 ] 2>/dev/null || TOP=10
-case "$BREAKDOWN" in tokens|cost) ;; *) die "--breakdown must be tokens or cost" ;; esac
+case "$BREAKDOWN" in ""|tokens|cost) ;; *) die "--breakdown must be tokens or cost" ;; esac
 case "$GLYPHS" in auto|ascii|unicode) ;; *) die "--glyphs must be auto, ascii or unicode" ;; esac
 case "$AMBIGUOUS" in 1|2) ;; *) die "--ambiguous-width must be 1 or 2" ;; esac
 if [ "$CURRENCY" = "jpy" ] && [ -z "$FX" ]; then
@@ -195,6 +196,14 @@ if [ "$MODE" = "auto" ]; then
   else
     MODE=once
   fi
+fi
+
+# Per-mode default for the in/out/cache-read/cache-write columns: the live dashboard is read
+# to answer "what did this cost", so it prices them; the static/Markdown report keeps token
+# counts, where they break down the token total the same table already carries. An explicit
+# --breakdown wins in either mode.
+if [ -z "$BREAKDOWN" ]; then
+  case "$MODE" in live) BREAKDOWN="cost" ;; *) BREAKDOWN="tokens" ;; esac
 fi
 
 export NX_GLYPHS="$GLYPHS" NX_AMBIGUOUS="$AMBIGUOUS"

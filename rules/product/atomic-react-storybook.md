@@ -22,8 +22,9 @@ guidelines). Map it to Atomic Design like this:
 
 **Classification rule:** a `CMP-` is an **atom** if it has no other `CMP-` inside it; a **molecule**
 if it composes only atoms; an **organism** if it composes molecules/atoms into a standalone section.
-When a screen needs a part the design system does not declare, generate it at the inferred level and
-flag it `TBD` with an Open Question — do not silently invent design-system parts.
+When a screen needs a part the design system does not declare, ask whether to reuse a named existing
+part or add a new one (@rules/open-questions.md); only if that stays unanswered, generate it at the
+inferred level and flag it `TBD` with an Open Question — do not silently invent design-system parts.
 
 ## Tokens → styling (CSS Modules + CSS variables)
 

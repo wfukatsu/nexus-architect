@@ -66,7 +66,8 @@ before pinning them (see @rules/dependency-versions.md), and record it as
    `design-system` writes to `design-system/{name}/` (not `reports/`) and sets
    `options.design_system` in `pipeline-progress.json` so the mocks inject `tokens.css`. Mode:
    - `--auto`: build a neutral, accessible default system (or `--import=<path>` when the user
-     supplied one); never fabricate brand values — unknowns become `TBD`.
+     supplied one); never fabricate brand values — unknowns become `TBD`, recorded `unasked`
+     (@rules/open-questions.md §5).
    - interactive: offer **build** (derive tokens from positioning/personas) vs **incorporate**
      (`--import` an existing Tailwind / DTCG / Figma Tokens / CSS theme).
    If skipped, `generate-ui-mock` falls back to its built-in defaults.
@@ -96,8 +97,11 @@ If a phase is skipped, downstream skills treat its output as absent (`TBD`), nev
 
 ## Context Management
 
-For long runs, periodically update `work/context.md`: key decisions, open assumptions,
-unresolved questions.
+For long runs, periodically update `work/context.md`: key decisions, open assumptions, and the
+`## Open Questions` table. Open Questions are carried across phases, not restated per phase — each
+skill re-asks the `deferred` / `unasked` entries it needs and updates them in place under their
+existing `OQ-` IDs (@rules/open-questions.md §7). Under `--auto` / `--profile=…` nothing is asked;
+the entries are recorded `unasked` and surfaced by `/product:report`.
 
 ## Handoff
 

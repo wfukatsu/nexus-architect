@@ -26,7 +26,11 @@ LANG = env("NX_LANG", "en")
 CUR = env("NX_CURRENCY", "usd")
 FX = float(env("NX_FX", "0") or 0)
 SINCE = env("NX_SINCE", "all")
-BREAKDOWN = env("NX_BREAKDOWN", "tokens")
+# The dashboard is read to answer "what did this cost", so the per-model components are
+# priced by default; `b` switches them back to token counts. The static report keeps
+# tokens as its default (see token_cost_report.py) — there, the columns are a breakdown of
+# the token total the table already shows.
+BREAKDOWN = env("NX_BREAKDOWN", "cost")
 INTERVAL = max(1, int(env("NX_INTERVAL", "10") or 10))
 PROJ = env("NX_PROJECT_DIR", ".")
 DEBUG_LOG = env("NX_DEBUG_LOG", "")
@@ -537,6 +541,12 @@ class App:
         # off the screen and curses returns ERR, which dropped the last cell of this row on
         # every frame. (--debug surfaced it; it had been failing silently.)
         put(stdscr, height - 1, 0, D.pad(T["keys"], width - 1), width - 1, "dim")
+        # Which unit the in/out/cache columns are in, pinned right: the columns themselves
+        # carry no unit, so without this the reader cannot tell $ from token counts at a
+        # glance — and `b` is the only way back.
+        bd = T["k_bd_cost"] if self.breakdown == "cost" else T["k_bd_tokens"]
+        if D.dw(T["keys"]) + D.dw(bd) + 3 <= width - 1:
+            put(stdscr, height - 1, width - D.dw(bd) - 2, bd, width - 1, "dim")
         # Discard what curses believes is on the screen and repaint every line. Its model
         # miscounts East Asian double-width cells, so the update optimizer skips cells it
         # thinks already match and fragments of the previous frame survive — a session's cost

@@ -26,7 +26,7 @@ Produce one deliverable:
 
 | Argument/Flag | Required | Description |
 |---------------|----------|-------------|
-| `--auto` | Optional | Derive without elicitation; open questions → `TBD` |
+| `--auto` | Optional | Derive without elicitation; open questions are recorded `unasked` with the options that would have been offered (@rules/open-questions.md §5) |
 | `--lang` | Optional | Override output language |
 
 ## Decision Criteria
@@ -58,7 +58,8 @@ Produce one deliverable:
 5. **Graph & sketches** — build the dependency graph; write an OAS sketch per API.
 6. **Append traceability** — add `API-` nodes to `work/traceability.json` with Upstream
    `ENT-`/`FEAT-`/`CTX-` references.
-7. **Record** — write the file; append decisions to `work/context.md`; log `TBD`s.
+7. **Record** — write the file; append decisions to `work/context.md`;
+   ask remaining unknowns and log only what stays open (@rules/open-questions.md).
 
 ## Output
 

@@ -59,8 +59,10 @@ workflow; use the architect one on the legacy-refactoring path.
   system-internal steps that have no UI.
 - **Reuse existing vocabulary verbatim.** Actor and work-item names match the personas, journey, and
   (if present) ubiquitous language. Do not invent synonyms.
-- **Do not fabricate steps.** If the journey/job story does not cover a step, mark it `TBD` and add
-  an Open Question rather than inventing business behavior.
+- **Do not fabricate steps.** If the journey/job story does not cover a step, ask the user what
+  happens there (AskUserQuestion with the plausible flows as options; ask in prose when the step has
+  no candidate shape) and mark it `TBD` + Open Question only if it stays unanswered — never invent
+  business behavior (@rules/open-questions.md).
 - **Stop condition**: for each targeted persona×job, the file exists with an actors table (≥1 `PER-`),
   a work-items table, a numbered main flow whose activities trace to `JOB-`/`JNY-`, and a Mermaid
   sequence diagram.
@@ -91,14 +93,16 @@ If personas are absent, do not silently degrade to a generic flow — tell the u
    link to `ENT-` entities when a data model exists.
 5. **Order activities** — turn the `JOB-` story ("When … I want to … so I can …") and the matching
    journey actions/stages into a numbered happy-path sequence at user-task granularity: who does
-   what, with which work item, to whom. Uncovered steps → `TBD` + Open Question.
+   what, with which work item, to whom. Uncovered steps are asked (@rules/open-questions.md); only
+   what stays unanswered → `TBD` + Open Question.
 6. **Capture exceptions** — up to 3 significant alternative/error paths (from journey pains or
    Moments of Truth).
 7. **Interactive mode only** — present the draft for confirmation before writing; in `--auto`, write
    directly.
 8. **Append traceability** — add `STORY-` nodes to `work/traceability.json` with Upstream references
    to the `PER-`, `JOB-`, and `JNY-` (and `CTX-` when scoped) it derives from.
-9. **Record** — write the file(s); append decisions to `work/context.md`; log every `TBD`.
+9. **Record** — write the file(s); append decisions to `work/context.md`;
+   ask remaining unknowns and log only what stays open (@rules/open-questions.md).
 
 ## Output
 

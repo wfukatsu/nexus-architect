@@ -60,7 +60,8 @@ skill turns both into reusable, story-backed React components organized by **Ato
 - **Atomic Design is the decomposition, the design system is the source of parts.** Map each `CMP-`
   to exactly one atomic level (atom/molecule/organism) and each UI-mock screen to a template + page.
   Do not invent components that have no `CMP-` or screen origin; if a screen needs a part the design
-  system lacks, generate it at the inferred level and flag it `TBD` with an Open Question.
+  system lacks, ask whether to reuse a named existing part or add a new one (@rules/open-questions.md);
+  only if that stays unanswered, generate it at the inferred level and flag it `TBD` with an Open Question.
 - **Tokens only, never raw values.** Every `*.module.css` references `var(--token-*)` from
   `tokens.css`. A hard-coded color/space/type value is a defect. No active design system → copy the
   ad-hoc lo-fi styling from the mocks and note that no token theme was applied.

@@ -67,7 +67,8 @@ Produce one deliverable:
 5. **Refresh plan** — schedule replenishment of Kano delighters.
 6. **Append traceability** — add `POS-`/`HOOK-` nodes to `work/traceability.json` with Upstream
    `JNY-`/`NSM-`/market references.
-7. **Record** — write the file; append decisions to `work/context.md`; log `TBD`s.
+7. **Record** — write the file; append decisions to `work/context.md`;
+   ask remaining unknowns and log only what stays open (@rules/open-questions.md).
 
 ## Output
 

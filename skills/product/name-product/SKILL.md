@@ -42,7 +42,7 @@ mock, so it must survive the same value story those artifacts tell.
 | `--count=N` | Optional | Number of candidate names to generate (default 5) |
 | `--style` | Optional | `acronym` = pronounced as a word (NEXUS); `initialism` = spelled out letter-by-letter (SDK); `hybrid`. Default `acronym` |
 | `--seed=<letters\|word>` | Optional | Fix letters or backronym a given base word (e.g. `--seed=SCALAR` finds a word per letter) |
-| `--auto` | Optional | Skip elicitation; generate from inputs only. Unknowns → `TBD` |
+| `--auto` | Optional | Skip elicitation; generate from inputs only. Unknowns → `TBD`, recorded `unasked` with the options that would have been offered (@rules/open-questions.md §5) |
 | `--lang` | Optional | Override output language |
 
 ## Decision Criteria
@@ -87,13 +87,16 @@ mock, so it must survive the same value story those artifacts tell.
 5. **Screen** — score each candidate on the six naming criteria; drop any with a forced or generic
    expansion. Note pronunciation and syllable count.
 6. **Availability** — list the exact checks to run (trademark class, `.com`/domain, app-store,
-   collision with the word bank's own competitors) as **Open Questions**; never mark them cleared.
+   collision with the word bank's own competitors) as **Open Questions** with status `external` — they
+   need outside verification, so they are recorded with an owner rather than put to the user
+   (@rules/open-questions.md §2); never mark them cleared.
 7. **Shortlist & recommend** — pick 3, then 1, with rationale that cites the `VIS-` IDs the expansion
    satisfies. Assign `NAM-` IDs.
 8. **Append traceability** — for each `NAM-` node add `{id, type:"name", title, skill:"name-product",
    source_file, upstream:[VIS-…, POS-…]}` to `work/traceability.json`.
 9. **Record** — write `reports/00_core/product-name.md`; append the recommendation to
-   `work/context.md`; log availability checks and any `TBD` to Open Questions.
+   `work/context.md`; ask remaining unknowns and log only what stays open
+   (@rules/open-questions.md) — availability checks always stay open as `external`.
 
 ## Output
 

@@ -37,7 +37,7 @@ The Go/No-Go criteria here are not decoration: they become the real gate enforce
 |---------------|----------|-------------|
 | `target` | Optional | Product name / one-line idea |
 | `--input=<file\|dir>` | Optional, repeatable | Business brief, RFP, notes, prior docs |
-| `--auto` | Optional | Skip elicitation; generate from inputs only. Unknowns → `TBD` |
+| `--auto` | Optional | Skip elicitation; generate from inputs only. Unknowns → `TBD`, recorded `unasked` with the options that would have been offered (@rules/open-questions.md §5) |
 | `--lang` | Optional | Override output language |
 | `--no-research` | Optional | Suppress web research |
 
@@ -46,7 +46,9 @@ The Go/No-Go criteria here are not decoration: they become the real gate enforce
 - **Vision**: ambitious, memorable, one sentence.
 - **Target Group**: must be segmented — never "everyone".
 - **Never fabricate.** Market facts, competitor names, and numbers come from `--input`, user
-  answers, or cited web research. Unknowns become `TBD` in Open Questions — never guessed.
+  answers, or cited web research. Unknowns are asked with AskUserQuestion (derived candidates as
+  options, free text through "Other") and become `TBD` in Open Questions only if they stay
+  unanswered — never guessed (@rules/open-questions.md).
 - **Stop condition**: all five Vision Board elements are filled (or explicitly `TBD`), and the
   PR-FAQ has a problem, a differentiated solution, and Go/No-Go criteria.
 
@@ -71,8 +73,8 @@ The Go/No-Go criteria here are not decoration: they become the real gate enforce
 5. **Validate** — target is segmented; differentiation is explicit; Go/No-Go criteria present.
 6. **Append traceability** — for each `VIS-` ID add a node to `work/traceability.json`
    (`{id, type:"vision", title, skill:"define-vision", source_file, upstream:[]}`).
-7. **Record** — write both files; append key decisions to `work/context.md`; log unknowns to
-   Open Questions.
+7. **Record** — write both files; append key decisions to `work/context.md`;
+   ask remaining unknowns and log only what stays open (@rules/open-questions.md).
 
 ## Output
 

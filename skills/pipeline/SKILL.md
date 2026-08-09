@@ -83,7 +83,8 @@ work/context.md structure:
 - Domain knowledge extracted from analysis
 - Evaluation scores and improvement priorities
 - Important decisions made during design
-- Unresolved issues
+- Open Questions (`OQ-` ID, status, owner) — carried across phases; the phase that needs an answer
+  re-asks it and updates the entry in place (@rules/open-questions.md)
 ```
 
 ## Progress Registry

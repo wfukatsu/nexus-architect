@@ -85,7 +85,8 @@ Produce two deliverables:
 4. **Trace** — map every diagram node to an id; link each `TECH-` decision to the signals it cites.
 5. **Append traceability** — add `ARCH-`/`TECH-` nodes to `work/traceability.json` with Upstream
    `CTX-`/`API-`/`ENT-`/`NFR-`/`CON-`/`SCP-` references.
-6. **Record** — write both files; append decisions to `work/context.md`; log `TBD`s. If ScalarDB/
+6. **Record** — write both files; append decisions to `work/context.md`;
+   ask remaining unknowns and log only what stays open (@rules/open-questions.md). If ScalarDB/
    ScalarDB Saga/ScalarDL is Adopt, note the handoff to the architect plugin.
 
 ## Handoff

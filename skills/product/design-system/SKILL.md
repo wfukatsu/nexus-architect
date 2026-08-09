@@ -48,8 +48,11 @@ each screen does; the design system decides the shared *visual language*.
 - **Tokens are the foundation.** Everything (components, mocks) references tokens, never raw values —
   so one source of truth governs the visual language and self-contained mocks stay consistent.
 - **Build vs incorporate is explicit.** `--import` → normalize the existing system to the DTCG
-  schema; unmapped values become `TBD` + Open Question. No `--import` → derive tokens from brand.
-- **Never fabricate brand values.** In incorporate mode, an unknown maps to `TBD`, not a guess.
+  schema; an unmapped value is asked (which token it maps to, or the raw value, via free text) and
+  becomes `TBD` + Open Question only if it stays unanswered (@rules/open-questions.md). No `--import`
+  → derive tokens from brand.
+- **Never fabricate brand values.** In incorporate mode, an unknown is asked, then `TBD` if it stays
+  unanswered — never a guess.
 - **Accessibility is a gate (build mode).** Body contrast ≥ 4.5:1, large text ≥ 3:1; meaning never
   by color alone; honor reduced motion. Record the checked pairs.
 - **Managed separately.** Write to `design-system/{name}/`, not under `reports/`; bump `version` on
@@ -76,7 +79,8 @@ each screen does; the design system decides the shared *visual language*.
    type scale, spacing scale (4/8 base), radius/elevation steps; derive semantic aliases. Apply
    `@rules/product/design-system.md`. Run the contrast gate.
 3. **Incorporate mode** — read `--import`; map its values into the DTCG schema (colors, type, spacing,
-   radius, …). Record every unmapped concept as `TBD` + Open Question.
+   radius, …). Ask about every unmapped concept (@rules/open-questions.md) and record only what stays
+   unanswered as `TBD` + Open Question.
 4. **Emit tokens** — write `tokens.json` (DTCG) and the paired `tokens.css` (`:root` variables).
 5. **Inventory components** — write `components.md` with `CMP-` entries (variants/states) and, for
    **mid** fidelity, token-based CSS classes.
@@ -86,7 +90,8 @@ each screen does; the design system decides the shared *visual language*.
 8. **Activate** — set `work/pipeline-progress.json` → `options.design_system = "{name}"`.
 9. **Append traceability** — add `DS-`/`TOK-`/`CMP-` nodes to `work/traceability.json` with Upstream
    `POS-`/`PER-` references (build) or `source` provenance (incorporate).
-10. **Record** — append decisions to `work/context.md`; log every `TBD`.
+10. **Record** — append decisions to `work/context.md`;
+    ask remaining unknowns and log only what stays open (@rules/open-questions.md).
 
 ## Output
 

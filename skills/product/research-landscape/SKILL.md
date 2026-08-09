@@ -69,7 +69,8 @@ Every figure, competitor, and claim carries a source (name + URL). This file is 
    (market size, trend, competitor, alternative), each with the source it is cited from. These are
    what `/product:adapt-change --type=market|competitor` seeds its blast radius from
    (@docs/design.md §7.4), so a finding without an ID is a finding a market change cannot reach.
-7. **Record** — write the file; append decisions to `work/context.md`; log `TBD`s to Open Questions.
+7. **Record** — write the file; append decisions to `work/context.md`;
+   ask remaining unknowns and log only what stays open (@rules/open-questions.md).
 
 ## Output
 

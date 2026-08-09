@@ -46,8 +46,9 @@ letter) or nonsensical as a phrase — even if the string itself is attractive.
 
 Do not state that a name, domain, trademark, or handle is available. List the concrete checks as
 **Open Questions** for external verification: trademark class(es), `.com` and relevant TLDs,
-app-store name, social handles, and collision with known competitors. Availability is cleared by a
-human/registry lookup, never by this skill.
+app-store name, social handles, and collision with known competitors. These are `external` entries
+with an owner, not questions to put to the user in-session (@rules/open-questions.md §2).
+Availability is cleared by a human/registry lookup, never by this skill.
 
 ## ID convention
 

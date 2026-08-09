@@ -67,7 +67,8 @@ Produce three deliverables:
 6. **Define language** — the ubiquitous language per context.
 7. **Append traceability** — add `CTX-` nodes to `work/traceability.json` with Upstream
    `ENT-`/`FEAT-` references.
-8. **Record** — write the three files; append decisions to `work/context.md`; log `TBD`s.
+8. **Record** — write the three files; append decisions to `work/context.md`;
+   ask remaining unknowns and log only what stays open (@rules/open-questions.md).
 
 ## Handoff
 

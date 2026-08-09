@@ -115,7 +115,7 @@ they are understood as *by-design*, not accidental omissions:
 | **Transaction-consistency per business process** (Strong/ACID · Eventual/Saga · Local Tx) | define-requirements Step 3 | The spine of `data-transaction-requirements.md`. Product emits no *binding* per-process classification, but `map-domains` now seeds a coarse per-`CTX-` `Strong`/`Eventual`/`TBD` hint; architect confirms/overrides it and makes the binding ACID/Saga/Local-Tx call. |
 | **Physical DB inventory** (engines, versions, volumes) | define-requirements Step 3 | Product `data-model.md` is a logical ER only. |
 | **Actor / role / permission matrix** | `/architect:analyze` | Product personas are JTBD segments; system roles/permissions are derived downstream. |
-| **Numeric NFR targets not yet decided** | define-requirements (TBD → open-questions.md) | Product records `TBD`s in `work/context.md`; carry them into `open-questions.md`. |
+| **Numeric NFR targets not yet decided** | define-requirements (TBD → open-questions.md) | Product records `TBD`s in `work/context.md` § Open Questions with their `OQ-` IDs; architect carries them into `open-questions.md` and **re-asks the ones it needs** in its Step 2 elicitation, updating each entry in place under its existing ID (@rules/open-questions.md §7). |
 
 ### 1.5 Cross-Plugin Traceability Write-Back
 

@@ -37,8 +37,9 @@ Each persona gets a `PER-xxx` ID.
 - **Research-based** — backed by interviews/data (`--input`). Promote proto → research-based by
   replacing assumptions with cited evidence.
 
-**Never fabricate demographics or quotes.** Unknowns are `TBD` in Open Questions. Prefer research
-data over generation whenever it exists.
+**Never fabricate demographics or quotes.** Unknowns are asked (@rules/open-questions.md) and are
+`TBD` in Open Questions only when they stay unanswered. Prefer research data over generation
+whenever it exists.
 
 ## Prioritize
 

@@ -32,7 +32,7 @@ value hypotheses in `design-revenue`.
 
 | Argument/Flag | Required | Description |
 |---------------|----------|-------------|
-| `--auto` | Optional | Skip elicitation; generate from the vision only. Unknowns → `TBD` |
+| `--auto` | Optional | Skip elicitation; generate from the vision only. Unknowns → `TBD`, recorded `unasked` with the options that would have been offered (@rules/open-questions.md §5) |
 | `--lang` | Optional | Override output language |
 
 ## Decision Criteria
@@ -64,7 +64,8 @@ value hypotheses in `design-revenue`.
    metric; record measurement method/source.
 6. **Append traceability** — add `NSM-` nodes to `work/traceability.json` with Upstream `VIS-`
    references.
-7. **Record** — write the file; append decisions to `work/context.md`; log `TBD`s to Open Questions.
+7. **Record** — write the file; append decisions to `work/context.md`;
+   ask remaining unknowns and log only what stays open (@rules/open-questions.md).
 
 ## Output
 

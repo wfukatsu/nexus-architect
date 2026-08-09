@@ -121,7 +121,7 @@ merges).
 | `/architect:render-mermaid` | haiku | Mermaid to PNG/SVG + syntax fix |
 | `/architect:estimate-cost` | sonnet | Infrastructure, license, and operational costs |
 | `/architect:estimate-token-cost` | sonnet | Token usage and USD cost of running the agent (a-priori, calibrated by actuals) |
-| `/architect:report-token-cost` | haiku | Terminal report of the recorded actual agent cost — interactive two-pane dashboard by default (10s poll; selection above, detail/session log below), `--once`, `--follow`, `--session=ID`, `--since`, `--breakdown=cost`, `--ascii`, `--ambiguous-width=2`, `--debug`, `--md`, `--json` |
+| `/architect:report-token-cost` | haiku | Terminal report of the recorded actual agent cost — interactive two-pane dashboard by default (10s poll; selection above, detail/session log below), `--once`, `--follow`, `--session=ID`, `--since`, `--breakdown=tokens\|cost` (dashboard defaults to `$`, `b` toggles), `--ascii`, `--ambiguous-width=2`, `--debug`, `--md`, `--json` |
 | `/architect:report-status` | haiku | Terminal dashboard for pipeline progress: phase tree with status (`stale` once an upstream phase changed after it finished), declared-output completion, "running now" heartbeat, unmet dependencies and per-phase cost, with a next-command action menu, an ask-Claude key and `Tab` cycling its four views — Product, Architect, Code Generation, Backlog Delivery (wraps `tools/nexus-status.sh`) |
 
 ## Utility
