@@ -30,6 +30,16 @@ Run in this order; the cheap deterministic stages fail fast before the expensive
 | 2 | **Unit tests** | All pass; no test disabled or deleted in this change without a recorded reason | Command + counts (run/passed/skipped) |
 | 3 | **Contract tests** | Every `operationId` the change touches is exercised and validates against the specification (@rules/api-contract-fidelity.md §7) | Command + per-operation results |
 | 4 | **Integration tests** | All pass, including the transaction scenarios the design requires — OCC conflict, 2PC failure, saga compensation | Command + counts |
+
+**Stage 4 is not substitutable by stages 3 and 8.** Contract tests prove the shape of what the API
+returns; conformance review proves the code says what the design said. Neither runs a transaction
+against a real engine, and some defects exist only there. Running this pipeline's own reference
+implementations against a real ScalarDB instance failed an operation that both a contract suite and
+an independent static reviewer had passed over: a `Put` on a record the transaction never read,
+which is legal Java, reviews cleanly, and cannot commit
+(@rules/scalardb-crud-patterns.md). Where a project has no integration suite, that is
+`not-configured` and a reported gap — not a stage the other two cover.
+
 | 5 | **SAST** | No new high/critical finding | Tool + version + finding counts by severity, new vs pre-existing |
 | 6 | **Dependency scan** | No new high/critical CVE, and no dependency added that the version rules reject (@rules/dependency-versions.md) | Tool + advisory IDs |
 | 7 | **API security** | `review-api-security --mode=code` returns no critical, and no unresolved major (@rules/api-security-checks.md) | `ASEC-` findings with severities |

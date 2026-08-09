@@ -127,6 +127,11 @@ Against `scalardb-transaction.md` (or the data-layer design) and the saga defini
 - A transaction boundary in code that does not exist in the design.
 - A read-modify-write with no transaction, or a transaction never committed (including read-only
   transactions, which must still commit).
+- **A `Put`/mutation on a record the transaction never read.** Consensus Commit infers insert-vs-update
+  from read history, so a blind `Put` on an existing record fails at `commit()` with a *conflict*
+  error that reads like contention and no retry can clear (@rules/scalardb-crud-patterns.md).
+  **major**, rising to critical where the write is on the success path of a state-changing operation —
+  the operation simply cannot succeed.
 - Conflict exceptions reaching the API layer with no retry applied first
   (@rules/api-error-standard.md §3).
 - Catch order wrong — a parent caught before its conflict subclass, making the conflict branch
