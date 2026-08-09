@@ -131,6 +131,7 @@ Claude Code continues to use the plugin metadata and slash commands unchanged. S
 /architect:design-implementation
 /architect:generate-scalardb-code
 /architect:generate-docs
+/architect:verify-implementation --gate
 
 # Backlog delivery (merge-bound code: implement -> review -> merge, per Issue)
 /architect:export-backlog --target=github --repo=<owner>/<name>
@@ -235,6 +236,7 @@ the order below (see [Code Generation & Delivery](#code-generation--delivery)).
 | `/architect:generate-scalardb-code` | Spring Boot + ScalarDB code generation | `reports/06_implementation/` + `scalardb-schema.md` |
 | `/architect:generate-infra-code` | K8s/Terraform/Helm code generation | `reports/08_infrastructure/` (from `design-infrastructure`) |
 | `/architect:generate-docs` | README + `docs/` for the generated/implemented code — runs after codegen, and as Step 5b of `implement-backlog` | generated or implemented code |
+| `/architect:verify-implementation` | Verifies the code against the design — API contract, transaction placement, security controls, requirement coverage — and reports the divergences instead of reconciling them. `--gate` adds the eight-stage AI code quality gate (build / unit / contract / integration / SAST / dependency scan / API security / conformance), which is Step 5c of `implement-backlog` | generated or implemented code + the design reports |
 
 ### Backlog Delivery
 
@@ -245,7 +247,7 @@ above, this path writes **merge-bound code into the project's real source tree**
 |---------|-------------|
 | `/architect:export-backlog` | Reports → Epic / Sub-Epic / Issue hierarchy on GitLab or GitHub (review-first, idempotent) |
 | `/architect:deliver-backlog` | Orchestrates implement → review → approval → merge for each Issue under an Epic |
-| `/architect:implement-backlog` | Implements one item, Epic-consistently; Step 5b runs `generate-docs` onto the same branch |
+| `/architect:implement-backlog` | Implements one item, Epic-consistently; Step 5b runs `generate-docs` onto the same branch, Step 5c runs the quality gate before any human is asked to review |
 | `/architect:review-issue` | Whole-Epic consistency review, bounded blocker auto-fix, opens the PR/MR |
 | `/architect:merge-issue` | Merge preflight + confirmation, merge, close the Issue, roll up to Sub-Epic/Epic |
 | `/architect:capture-followup` | Queues follow-up work discovered mid-delivery, then registers it as Issues linked to the in-flight Sub-Epic/Epic |
@@ -269,7 +271,7 @@ source of truth.
 | `/architect:design-observability` | Monitoring, tracing, alerting |
 | `/architect:design-disaster-recovery` | RTO/RPO, backup, DR |
 
-### Review (5-perspective parallel)
+### Review (6-perspective parallel)
 
 | Command | Description |
 |---------|-------------|
@@ -278,6 +280,7 @@ source of truth.
 | `/architect:review-data-integrity` | Data integrity (non-ScalarDB) |
 | `/architect:review-operations` | Operational readiness |
 | `/architect:review-risk` | Distributed system risks |
+| `/architect:review-api-security` | OWASP API Security Top 10, tenant isolation, transaction-boundary security (`--mode=code` re-runs it against the implemented source) |
 | `/architect:review-business` | Business requirements |
 | `/architect:review-synthesizer` | Consolidation and quality gate |
 
@@ -386,6 +389,7 @@ paths, and they differ in what the output *is*.
   -> /architect:generate-scalardb-code     # -> generated/{service}/
   -> /architect:generate-infra-code        # -> generated/infrastructure/
   -> /architect:generate-docs              # READMEs + docs/ for what was emitted
+  -> /architect:verify-implementation      # design <-> code conformance; --gate runs the quality gate
 ```
 
 Each step only needs the reports of the step before it, so you can enter the chain partway. A re-run

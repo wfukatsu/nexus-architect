@@ -196,7 +196,8 @@ def check_real_manifests():
 DOC_EXTENSION_TIER = [
     "investigate-security", "select-scalardb-edition", "design-scalardb-analytics",
     "design-implementation", "generate-test-specs", "generate-scalardb-code",
-    "generate-infra-code", "generate-docs", "design-infrastructure", "design-security",
+    "generate-infra-code", "generate-docs", "verify-implementation",
+    "design-infrastructure", "design-security",
     "design-observability", "design-disaster-recovery", "estimate-cost",
     "estimate-token-cost", "report-token-cost",
 ]
@@ -714,9 +715,9 @@ def run(root, plugin=None):
     check("{project} glob resolves (2 of 4 investigate outputs)",
           (phases["investigate"]["written"], phases["investigate"]["declared"]) == (2, 4),
           phases["investigate"]["outputs"])
-    check("extension outputs are counted per declared file (1 of 4 specs)",
+    check("extension outputs are counted per declared file (1 of 5 specs)",
           (phases["design-implementation"]["written"],
-           phases["design-implementation"]["declared"]) == (1, 4),
+           phases["design-implementation"]["declared"]) == (1, 5),
           phases["design-implementation"]["outputs"])
     codegen = P.derive_codegen(root)["phases"]
     check("directory with a file counts as written",

@@ -56,7 +56,7 @@
 | `/architect:design-scalardb` | opus | ScalarDB | スキーマとトランザクション設計 |
 | `/architect:design-scalardb-analytics` | sonnet | Analytics Option | HTAP分析プラットフォーム設計 |
 | `/architect:design-data-layer` | opus | ScalarDB以外 | 汎用DB設計 |
-| `/architect:design-api` | opus | - | REST/GraphQL/gRPC/AsyncAPI |
+| `/architect:design-api` | opus | - | 検証可能な契約としての REST/GraphQL/gRPC/AsyncAPI — 名前付きスキーマ、全ステータスコードの宣言、RFC 9457 problem type レジストリ、operation ごとの認可/冪等性/タイムアウト |
 
 ## 実装
 
@@ -65,11 +65,12 @@
 
 | コマンド | モデル | 前提 | 説明 |
 |---------|-------|------|------|
-| `/architect:design-implementation` | opus | `reports/03_design/` | 実装仕様（サービス、リポジトリ、VO） |
-| `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/ユニット/統合テスト仕様 |
+| `/architect:design-implementation` | opus | `reports/03_design/` | 実装仕様 — API レイヤー（Controller/DTO/バリデーション/マッパー、トランザクション境界、認可の実施点）＋サービス、リポジトリ、VO |
+| `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/契約/ユニット/統合/性能テスト仕様 |
 | `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB コード生成 |
 | `/architect:generate-infra-code` | sonnet | `reports/08_infrastructure/` | K8s/Terraform/Helm コード生成 |
 | `/architect:generate-docs` | sonnet | 生成・実装済みコード | 生成・実装済みコードの README と `docs/`（コード生成の後、および implement-backlog の Step 5b で実行） |
+| `/architect:verify-implementation` | opus | 生成・実装済みコード＋設計 | 設計 ↕ コードの適合性検証（契約・トランザクション・セキュリティ・要件の4軸）。`--gate` で8段階の AI コード品質ゲートを実行（implement-backlog の Step 5c） |
 
 ## バックログ配送
 
@@ -99,6 +100,7 @@
 | `/architect:review-data-integrity` | sonnet | DIN- | データ整合性（ScalarDB以外） |
 | `/architect:review-operations` | sonnet | OPS- | 運用準備状況 |
 | `/architect:review-risk` | opus | RSK- | 分散システムリスク |
+| `/architect:review-api-security` | opus | ASEC- | OWASP API Security Top 10、テナント分離、トランザクション境界のセキュリティ。`--mode=code` で実装済みソースに対して再実行 |
 | `/architect:review-business` | sonnet | BIZ- | ビジネス要件 |
 | `/architect:review-synthesizer` | sonnet | SYN- | 統合と品質ゲート |
 
@@ -107,7 +109,7 @@
 | コマンド | モデル | 説明 |
 |---------|-------|------|
 | `/architect:design-infrastructure` | opus | K8s、IaC、マルチ環境 |
-| `/architect:design-security` | sonnet | 認証、認可、シークレット管理 |
+| `/architect:design-security` | sonnet | 認証、オブジェクトレベル認可、テナント分離、シークレット管理、OWASP API Security Top 10 マッピング |
 | `/architect:design-observability` | sonnet | モニタリング、トレーシング、アラート |
 | `/architect:design-disaster-recovery` | sonnet | RTO/RPO、バックアップ、DR |
 

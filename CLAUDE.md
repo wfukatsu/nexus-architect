@@ -117,18 +117,22 @@ Validation-driven pipeline from product vision to SLA/NFR. Skills are namespaced
 - `/architect:generate-infra-code` — K8s/Terraform/Helm code generation
 - `/architect:generate-docs [target] [--scope=changed|service|repo] [--source-root=<path>] [--readme-only] [--issue=<id>] [--dry-run] [--auto] [--lang=en|ja]` — Create/update the documentation for code that was generated or implemented: per-service READMEs and `docs/` pages (overview, build & run, configuration, layout, API, operations, traceability) derived from the code that actually exists, with design reports supplying the *why*. Updates in place via ownership markers (`<!-- nexus:begin:<section> -->`) so human-authored prose is preserved, verifies every documented command against a real build target, and reports design-vs-code drift instead of smoothing it over. Runs after the codegen skills (scaffold mode) and as Step 5b of `implement-backlog` (delivery mode — commits the doc changes to the working branch so they land in the same PR/MR)
 
+### Verification
+- `/architect:verify-implementation [target_path] [--service=<name>] [--scope=changed|service|repo] [--source-root=<path>] [--gate] [--item=<backlog-id>] [--auto] [--lang=en|ja]` — Verify that the code that exists actually implements the design, on four conformance axes: **contract** (every `operationId` bound 1:1 to a handler, DTO shapes, status codes, RFC 9457 error envelope, the `UnknownTransactionStatusException` branch), **transaction** (an operation the design placed in one transaction implemented as one; retry, catch order, saga compensations, 2PC participant completeness), **security** (delegated to `/architect:review-api-security --mode=code`), and **requirement** (`FR-` to code, acceptance criteria to tests). Reports every divergence rather than reconciling it — the design and the source tree are both left untouched — and rewrites `reports/06_implementation/api-contract-map.json` from what the code actually binds. With `--gate` it runs the eight-stage quality gate of @rules/ai-code-quality-gate.md (build / unit / contract / integration / SAST / dependency scan / API security / conformance), where every stage carries evidence or a recorded skip reason. Runs after codegen, and as Step 5c of `implement-backlog`
+
 ### Infrastructure
 - `/architect:design-infrastructure` — K8s, IaC, multi-environment
 - `/architect:design-security` — Auth, secrets management
 - `/architect:design-observability` — Monitoring, tracing, alerting
 - `/architect:design-disaster-recovery` — RTO/RPO, backup, DR
 
-### Review (5 parallel reviews — scalardb and data-integrity are mutually exclusive)
+### Review (6 parallel reviews — scalardb and data-integrity are mutually exclusive)
 - `/architect:review-consistency` — Structural coherence (CON-)
 - `/architect:review-scalardb` — ScalarDB constraints (SDB-) — runs when scalardb_enabled
 - `/architect:review-data-integrity` — Data integrity (DIN-) — runs when scalardb_disabled
 - `/architect:review-operations` — Operational readiness (OPS-)
 - `/architect:review-risk` — Distributed system risks (RSK-)
+- `/architect:review-api-security` — OWASP API Security Top 10, tenant isolation, transaction-boundary security (ASEC-); `--mode=code` re-runs it against the implemented source as the quality gate's security stage
 - `/architect:review-business` — Business requirements (BIZ-)
 - `/architect:review-synthesizer` — Consolidation and quality gate
 
@@ -176,7 +180,7 @@ Validation-driven pipeline from product vision to SLA/NFR. Skills are namespaced
 investigate -> analyze -> [evaluate-mmi, evaluate-ddd] -> integrate-evaluations
   -> redesign -> [create-domain-story (optional, per domain)]
   -> design-microservices -> [design-scalardb | design-data-layer, design-api]
-  -> [review-consistency, review-scalardb|review-data-integrity, review-operations, review-risk, review-business]
+  -> [review-consistency, review-scalardb|review-data-integrity, review-api-security, review-operations, review-risk, review-business]
   -> review-synthesizer -> report -> review-report
 ```
 
@@ -185,8 +189,8 @@ Dependency manifest (architect): @skills/common/skill-dependencies.yaml
 The manifest covers the core pipeline only. The remaining architect skills —
 `investigate-security`, `select-scalardb-edition`, `design-scalardb-analytics`,
 `design-implementation`, `generate-test-specs`, `generate-scalardb-code`,
-`generate-infra-code`, `generate-docs`, `design-infrastructure`, `design-security`,
-`design-observability`, `design-disaster-recovery`, `estimate-cost`,
+`generate-infra-code`, `generate-docs`, `verify-implementation`, `design-infrastructure`,
+`design-security`, `design-observability`, `design-disaster-recovery`, `estimate-cost`,
 `estimate-token-cost`, `report-token-cost` — form a
 **manual extension tier**: they are not executed by `/architect:pipeline` — nor by
 `/architect:start`, which also runs only the manifest's phases — and are invoked
@@ -252,6 +256,10 @@ do not load ScalarDB rules for non-ScalarDB work.
 | architect input requirements | docs/architect-input-requirements.md | Inputs the user must supply before running the architect pipeline (legacy or greenfield) |
 | Open Questions protocol | rules/open-questions.md | Any point where a skill would write `TBD` — how to ask the user with AskUserQuestion (free text via the appended "Other"), what never to ask, and how to record what stays open |
 | Token pricing & usage tracking | rules/token-pricing.md | Estimating run cost, or reading the `work/token-usage.json` ledger recorded during execution |
+| API contract fidelity | rules/api-contract-fidelity.md | Designing an API surface, generating API-layer code or contract tests, or verifying code against the contract — OpenAPI as the single contract, the `operationId` binding, the contract map, the drift protocol, the contract test stack |
+| API error standard | rules/api-error-standard.md | Designing error responses, generating an exception handler, or reviewing either — RFC 9457 Problem Details, the problem type registry, and the ScalarDB exception to HTTP mapping (incl. the `UnknownTransactionStatusException` branch) |
+| API security checks | rules/api-security-checks.md | Reviewing an API design or API-layer code — OWASP API Security Top 10 (2023) as concrete checks, plus tenant-isolation and transaction-boundary security |
+| AI code quality gate | rules/ai-code-quality-gate.md | Gating generated or AI-written code before human review — the eight stages, their evidence requirements, and the verdict rules |
 | Dependency version selection | rules/dependency-versions.md | Writing any file that pins a version (build.gradle/pom, package.json, image tags, Helm/Terraform/K8s) — how to look up the current stable release and whether to confirm it with the user |
 | OKF knowledge bundle (ScalarDB/ScalarDL/ScalarDB Saga official docs, version-pinned) | rules/okf-knowledge-bundle.md | Any ScalarDB/ScalarDL/ScalarDB Saga design, implementation, review, or migration decision — resolve the bundle, pin product/version/edition, ground the answer in that release's docs |
 | ScalarDB exception handling | rules/scalardb-exception-handling.md | Exception handling, retry logic |

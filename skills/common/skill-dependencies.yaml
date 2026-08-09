@@ -142,16 +142,24 @@ phases:
   review-consistency:
     category: review
     depends_on: [design-api]
-    parallel_with: [review-scalardb, review-data-integrity, review-operations, review-risk, review-business]
+    parallel_with: [review-scalardb, review-data-integrity, review-operations, review-risk, review-business, review-api-security]
     outputs:
       - reports/review/individual/review-consistency.json
     model: sonnet
+
+  review-api-security:
+    category: review
+    depends_on: [design-api]
+    parallel_with: [review-consistency, review-scalardb, review-data-integrity, review-operations, review-risk, review-business]
+    outputs:
+      - reports/review/individual/review-api-security.json
+    model: opus
 
   review-scalardb:
     category: review
     depends_on: [design-scalardb]
     conditions: [scalardb_enabled]
-    parallel_with: [review-consistency, review-operations, review-risk, review-business]
+    parallel_with: [review-consistency, review-operations, review-risk, review-business, review-api-security]
     outputs:
       - reports/review/individual/review-scalardb.json
     model: sonnet
@@ -160,7 +168,7 @@ phases:
     category: review
     depends_on: [design-data-layer]
     conditions: [scalardb_disabled]
-    parallel_with: [review-consistency, review-operations, review-risk, review-business]
+    parallel_with: [review-consistency, review-operations, review-risk, review-business, review-api-security]
     outputs:
       - reports/review/individual/review-data-integrity.json
     model: sonnet
@@ -168,7 +176,7 @@ phases:
   review-operations:
     category: review
     depends_on: [design-api]
-    parallel_with: [review-consistency, review-scalardb, review-data-integrity, review-risk, review-business]
+    parallel_with: [review-consistency, review-scalardb, review-data-integrity, review-risk, review-business, review-api-security]
     outputs:
       - reports/review/individual/review-operations.json
     model: sonnet
@@ -176,7 +184,7 @@ phases:
   review-risk:
     category: review
     depends_on: [design-api]
-    parallel_with: [review-consistency, review-scalardb, review-data-integrity, review-operations, review-business]
+    parallel_with: [review-consistency, review-scalardb, review-data-integrity, review-operations, review-business, review-api-security]
     outputs:
       - reports/review/individual/review-risk.json
     model: opus
@@ -184,7 +192,7 @@ phases:
   review-business:
     category: review
     depends_on: [design-api]
-    parallel_with: [review-consistency, review-scalardb, review-data-integrity, review-operations, review-risk]
+    parallel_with: [review-consistency, review-scalardb, review-data-integrity, review-operations, review-risk, review-api-security]
     outputs:
       - reports/review/individual/review-business.json
     model: sonnet
@@ -196,6 +204,7 @@ phases:
     # The orchestrator must skip the absent branch when resolving dependencies.
     depends_on:
       - review-consistency
+      - review-api-security
       - review-operations
       - review-risk
       - review-business
