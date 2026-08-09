@@ -37,6 +37,14 @@ Specify, per `operationId` in `reports/03_design/api-specifications/`:
 | Indeterminate commit | Where the operation can raise `UnknownTransactionStatusException`, the contracted §3.1 response is asserted — 503 with `Retry-After` when idempotency-protected, 500 without it otherwise. Not a generic 500 |
 | Architecture | The layering rules from `api-layer-spec.md`: controller -> application service -> domain -> repository, no reverse dependency, no persistence or ScalarDB type in a controller signature |
 
+The transaction scenarios belong to the **integration** specs, not here, and they are the ones a
+contract suite cannot reach: concurrent writers on one record (exactly one wins, the loser fails
+cleanly rather than silently succeeding), a participant whose `prepare()` conflicts (every
+participant rolls back, no half-applied state), and a saga whose later step fails (earlier steps
+compensate, and the compensation is idempotent under redelivery). Specify each against the
+transaction design's own TX- entries, and note that a 2PC scenario needs **one manager per
+participant** or it does not exercise 2PC at all (@rules/scalardb-2pc-patterns.md).
+
 Record the **selected stack** per @rules/api-contract-fidelity.md §7 — the Spring default
 (`swagger-request-validator` driven from `@WebMvcTest`/`@SpringBootTest` slices) plus any opt-ins
 (Schemathesis, Pact, ArchUnit) with the reason each was selected or skipped. `generate-contract-tests`

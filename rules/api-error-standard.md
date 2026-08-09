@@ -82,6 +82,14 @@ release whose documented retryability differs, the pinned OKF bundle wins
 | `CrudException`, `CommitException`, `PreparationException`, `ValidationException` (non-conflict) | 500 | `transaction-failed` | No |
 | `TransactionException` (unclassified) | 500 | `transaction-failed` | No |
 | Connectivity / cluster unavailable | 503 | `service-unavailable` | Yes — set `Retry-After` |
+| `IllegalStateException` from 2PC protocol misuse (commit before prepare, reusing a finished transaction) | 500 | `internal-error` | No |
+
+The last row is easy to miss and the handler must cover it explicitly: 2PC protocol misuse throws an
+**unchecked** `IllegalStateException`, not a `TransactionException`
+(@rules/scalardb-2pc-patterns.md). A handler written as `catch (TransactionException e)` never sees
+it, so it escapes as an unhandled 500 with a framework error page — which is also a §4 disclosure
+problem. It is a server defect rather than a transaction outcome: map it to a generic internal error,
+never to `transaction-failed`, and alert on it rather than filing it with the retryable family.
 
 A conflict exception must **not** reach the API layer before the service has applied its own retry
 policy. A 409 that a single retry would have cleared is an implementation defect, not an error

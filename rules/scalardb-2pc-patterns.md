@@ -38,6 +38,41 @@ Coordinator: begin() → CRUD → prepare() → validate() → commit()
 Participant: join(txId) → CRUD → (wait) → prepare() → validate() → commit()
 ```
 
+## One Manager Per Participant
+
+`join(txId)` resolves the transaction **within the manager instance it is called on**. Calling it on
+the same manager that began the transaction returns **that same transaction object**, not a second
+participant — the next `prepare()` then fails with
+`IllegalStateException: DB-CORE-10043: The transaction is not active. Status: PREPARED`.
+
+In production this is invisible, because each service owns its own manager. It bites in **tests and
+single-process prototypes**, where the natural thing to write is one manager and two variables:
+
+```java
+// WRONG — participant IS coordinator; the second prepare() throws
+TwoPhaseCommitTransaction coordinator = manager.begin();
+TwoPhaseCommitTransaction participant  = manager.join(coordinator.getId());
+
+// RIGHT — one manager per participating service, even in a test
+TwoPhaseCommitTransaction coordinator = orderManager.begin();
+TwoPhaseCommitTransaction participant  = inventoryManager.join(coordinator.getId());
+```
+
+A 2PC integration test built on one manager does not exercise 2PC. Build a second
+`TransactionFactory` over the same configuration and take its manager (verified on ScalarDB 3.19.0).
+
+## Protocol Misuse Is Unchecked
+
+`commit()` before `prepare()` — and the other out-of-order calls — throw **`IllegalStateException`**,
+not a `TransactionException`. It is unchecked, so the compiler does not demand it and a handler
+written as `catch (TransactionException e)` never sees it: it escapes the transaction layer entirely
+and surfaces as an unhandled 500.
+
+This matters for the API layer's exception mapping (@rules/api-error-standard.md §3): the
+`@RestControllerAdvice` needs a branch for it, and it is **not** `transaction-failed` — a protocol
+misuse is a server defect, not a transaction outcome. Treat it as an unhandled internal error and
+alert on it, rather than folding it into the retryable family.
+
 ## Coordinator vs Participant
 
 - **Coordinator** calls `begin()` or `start()` — initiates the transaction

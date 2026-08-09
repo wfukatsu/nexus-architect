@@ -103,6 +103,27 @@ Key.newBuilder()
     .build();
 ```
 
+## Composite Clustering Keys Are ONE Key
+
+`clusteringKey(...)` is a **setter, not an appender**. Chaining it once per column silently keeps
+only the last call, and the operation then fails at execution with
+`DB-CORE-10021: The clustering key is not properly specified`.
+
+```java
+// WRONG — saga_id is dropped; only step survives
+.clusteringKey(Key.ofText("saga_id", sagaId))
+.clusteringKey(Key.ofText("step", step))
+
+// RIGHT — one Key carrying both columns, in clustering-key order
+.clusteringKey(Key.newBuilder()
+        .addText("saga_id", sagaId)
+        .addText("step", step)
+        .build())
+```
+
+The same applies to a multi-column partition key. Column order must match the order declared in the
+table metadata.
+
 ## Check Optional<Result> Properly
 
 `get()` returns `Optional<Result>`. Always check before accessing:
