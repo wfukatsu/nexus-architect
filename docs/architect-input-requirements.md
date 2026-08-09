@@ -78,6 +78,23 @@ When product-pipeline artifacts exist, running `/architect:define-requirements` 
 | `tech-stack-fitness.md` | Prior for the ScalarDB applicability verdict |
 | `work/traceability.json` | ID trace (maintains the single trace chain from `VIS-`/`NSM-`) |
 
+Three points that are easy to miss:
+
+- **A partial product run still hands off.** `--profile=mvp` stops before `feature-list.md` and
+  `nfr.md`; `define-requirements` reports which artifacts it found and which were absent, and any
+  `FR-` it elicits fresh is recorded as fresh rather than attributed to a feature that never existed.
+- **Open Questions are one store, not two.** `work/context.md` § Open Questions holds every
+  plugin's questions; `reports/00_requirements/open-questions.md` is rendered from it. An entry
+  product recorded `unasked` is the entry architect answers, under the same `OQ-` ID.
+- **New IDs are allocated from the graph.** `NFR-` is minted by both `define-nfr` and
+  `define-requirements`, so a new one is `max` over `work/traceability.json` for that prefix `+ 1`
+  — never numbered from a single report (see design.md §1.5 rule 4).
+
+What product deliberately does **not** supply — and therefore what elicitation still asks about — is
+the binding transaction-consistency class per business process, the physical DB inventory, and the
+actor/role/permission matrix (design.md §1.4).
+
+
 > Items product **deliberately does not supply** (per-business-process transaction consistency, physical DB inventory, actor/role/permission) are confirmed via dialogue on the architect side.
 
 ## Summary — Fastest Way to Start

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
+## [Unreleased]
+
+### Changed
+- **The user-facing docs now describe the handoff the code enforces.** 0.23.0–0.23.2 turned the
+  product→architect boundary into a contract with real invariants, but `README.md` and the getting
+  started guides still showed it as a single arrow — a reader had no way to know that `NFR-` IDs
+  are reused verbatim, that `FEAT-`→`FR-` links are recorded, that three things are left
+  unanswered *by design*, or that both pipelines then share three files under `work/`. README
+  gained a crosses/stays-behind table, both getting-started guides gained a "what the handoff
+  actually does" section, and both architect input-requirements guides gained the three points
+  that are easy to miss: a partial product run still hands off, Open Questions are one store, and
+  new IDs are allocated from the graph. `docs/design.md` remains the contract; these are the
+  doorways into it.
+
 ## [0.23.2] - 2026-08-09
 
 ### Fixed

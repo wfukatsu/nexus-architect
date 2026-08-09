@@ -52,6 +52,37 @@ Need a name for the product? `/product:name-product` builds an **acronym name** 
 
 See the [Skill Reference](skill-reference.md) for the full product skill catalog, and the [product Input Requirements](product-input-requirements.md) for the inputs you should prepare before running the pipeline.
 
+#### What the handoff actually does
+
+`/architect:define-requirements` is not a fresh start. Run it in the same project directory and it
+finds the product reports itself, so you are confirming and extending rather than re-answering.
+The full contract is [design.md §1](design.md#1-product--architect-handoff-contract); the parts
+worth knowing before you run it:
+
+**What crosses.** Features become functional requirements and keep the link (`FEAT-012` →
+`FR-007`), so a requirement can be traced back to the screen, the job story and the vision it came
+from. NFRs are **reused verbatim** — the same `NFR-` IDs, not re-numbered — so the targets product
+set are the targets architect designs against. Scope, constraints, bounded contexts and the
+validation gate's open assumptions all carry over. Personas seed the actor list, but only as a
+seed: they are user segments, not a role/permission matrix.
+
+**What does not, by design.** Three things are deliberately left for architect to elicit, because
+they are physical decisions a logical product spec should not make: the binding
+transaction-consistency class per business process, the physical DB inventory (engines, versions,
+volumes), and the actor/role/permission matrix. Seeing them asked is the contract working, not
+product having forgotten something.
+
+**A partial product run still hands off.** Stopping at `--profile=mvp` is fine —
+`define-requirements` states which product artifacts it found and which were absent, and any `FR-`
+it had to elicit fresh is recorded as such rather than attributed to a feature that was never
+written.
+
+**Both pipelines then share three files under `work/`** — the progress registry, one traceability
+graph, and one Open Questions store. Every skill writes to them additively, so running architect
+never resets product's state, and a question architect answers is answered for a later product
+rerun too. If you are writing your own tooling against these files, read
+[design.md §1.5](design.md) and `skills/common/progress-registry.md` first.
+
 ### 2. Analyzing a Legacy System
 
 ```bash

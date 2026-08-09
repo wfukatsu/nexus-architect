@@ -331,6 +331,29 @@ vision -> success-metrics / revenue -> scope -> validate-assumptions [gate]
   -> domains/API -> SLA/NFR -> review -> report -> /architect:define-requirements
 ```
 
+### Product → Architect Handoff
+
+The arrow above is a contract, not a suggestion. Run `/architect:define-requirements` in the same
+project directory and it detects the product reports, so system design continues from the product
+spec instead of re-eliciting it. Full contract: [docs/design.md §1](docs/design.md).
+
+| | Crosses the boundary | Stays behind, by design |
+|---|---|---|
+| Requirements | `FEAT-` → `FR-`, link recorded | The binding transaction-consistency class per business process |
+| Non-functional | `NFR-` reused **verbatim**, never re-numbered | The physical DB inventory (engines, versions, volumes) |
+| Structure | Bounded contexts, scope, constraints | The actor/role/permission matrix |
+| Open items | The validation gate's verdict and open assumptions | — |
+| People | Personas seed the actor list — a seed only | — |
+
+The three right-hand items are physical decisions a logical product spec should not make, so
+`define-requirements` elicits them. A partial product run (`--profile=mvp`) still hands off; the
+requirements state which product artifacts were found and which were absent.
+
+Both pipelines then share three files under `work/`: the progress registry, one traceability graph
+(`FEAT-` → `FR-` → downstream, in a single chain), and one Open Questions store. Every write is
+additive — running architect never resets product's state, and an answer recorded on either side
+is visible to the other.
+
 ### Legacy Refactoring
 
 Analyze existing systems, evaluate architecture maturity, and design microservices transformation.
