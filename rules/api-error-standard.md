@@ -101,6 +101,11 @@ idempotency-protected (§5):
 Both carry the ScalarDB transaction ID as the `transaction_id` extension member and log it
 server-side. Neither rolls the transaction back.
 
+Read the ID from **`getUnknownTransactionId()`**, the accessor this exception defines for exactly
+this purpose. The inherited `getTransactionId()` happens to return the same value on ScalarDB 3.19,
+so the wrong one compiles and passes a test — verify the accessor against the pinned release rather
+than reusing the generic one out of habit (@rules/okf-knowledge-bundle.md).
+
 This is the single most consequential row in this file. A generated `@RestControllerAdvice` that
 folds `UnknownTransactionStatusException` into a generic 500 handler, or that maps it to a
 `Retry-After`-bearing 503 on an unprotected operation, is a **blocker-severity** finding for
@@ -138,6 +143,24 @@ obligation per operation. The error surface that comes with it:
 The stored idempotency record and the business write must land in the **same** ScalarDB transaction.
 A record committed separately reintroduces exactly the duplicate the key exists to prevent, and it is
 what makes the §3.1 503 path safe.
+
+### The replay path is an authorization path
+
+A replay returns the original response **without re-running the operation** — which means it returns
+it without re-running the operation's authorization unless you make it. Two rules, both violated by
+the obvious implementation:
+
+1. **Scope the record to the caller, not only to the tenant.** A record keyed on
+   `(tenant_id, idempotency_key)` is readable by every caller in the tenant. Key it on the
+   principal too, or store the principal in the record and compare.
+2. **Evaluate the ownership predicate before returning a replay**, exactly as the original request
+   did. The natural shape — check for a stored record first, return early if found — puts the replay
+   *ahead* of the ownership read, so the early return is the one path with no authorization on it.
+
+Get this wrong and the key becomes an object-level authorization bypass (@rules/api-security-checks.md
+API1): a caller who obtains another customer's key and order ID reads back that order's outcome. It
+is not a hypothetical — an independent review of this pipeline's own reference implementation found
+exactly this, in code whose non-replay path checked ownership correctly.
 
 ## 6. Non-HTTP protocols
 

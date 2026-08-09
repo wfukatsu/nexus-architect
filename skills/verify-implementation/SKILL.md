@@ -116,6 +116,14 @@ Against `scalardb-transaction.md` (or the data-layer design) and the saga defini
 
 - An operation the design places inside **one** transaction implemented as two or more, or as
   non-transactional writes — **critical**, this is silent data corruption.
+- **A transaction that omits a participant the design named.** The inverse of the split above and
+  easier to miss, because the code looks clean: the design says TX-003 spans order + inventory +
+  payment, the implementation writes order only, and nothing about the code signals the absence.
+  Read the design's participant list per transaction and check each one is actually written —
+  **critical**, since it commits a state the rest of the system contradicts (an order confirmed
+  against unreserved stock).
+- A replay path — idempotency, cache, short-circuit — that returns before the authorization the
+  full path performs (@rules/api-error-standard.md §5).
 - A transaction boundary in code that does not exist in the design.
 - A read-modify-write with no transaction, or a transaction never committed (including read-only
   transactions, which must still commit).

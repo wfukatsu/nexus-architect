@@ -95,8 +95,21 @@ validator and record which one.
    source tree for mapped routes and assert every one is declared by the specification or listed in
    the map's `out_of_scope_handlers`. An assertion that only re-reads `api-contract-map.json` passes
    whenever the map is wrong, which is exactly when it needs to fail: the first real run of this
-   pipeline produced a map claiming nothing unmapped while six routes — including `/api/admin/users` —
-   were reachable and undeclared (@rules/api-security-checks.md API9).
+   pipeline produced a map claiming nothing unmapped while ten routes — including an unauthenticated
+   `/api/admin/users` — were reachable and undeclared (@rules/api-security-checks.md API9).
+
+   **The unit of comparison is `(HTTP method, normalized path)`, and normalization renames path
+   variables positionally.** Both halves matter, and getting either wrong under-counts silently:
+
+   - Rewrite each path variable to its **position** — `/api/orders/{id}` and `/orders/{orderId}`
+     both become `/api/orders/{1}` and `/orders/{1}`. Rewriting to a *fixed name* instead makes
+     genuinely different paths collide and vanish into a dedup.
+   - Key on the method too. `GET /orders` and `POST /orders` are two operations; deduping on path
+     alone counts them once.
+
+   An independent reviewer of that same first run counted ten undeclared operations where the
+   generated assertion reported six — the whole gap was these two mistakes. State the counting rule
+   in the generated test so a reader can check it, and report the count alongside the list.
 5. **Generate ArchUnit rules** when selected — layer direction, no persistence or ScalarDB type in a
    controller signature, no domain type in a response DTO.
 6. **Wire the build** — a test task the quality gate can invoke by name
