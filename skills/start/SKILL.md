@@ -35,7 +35,9 @@ glob the same set `/architect:define-requirements` ingests — `reports/00_core/
 `work/traceability.json` (non-empty `nodes`). Keep the two sets identical: a run that stopped
 early (`--profile=mvp` writes only `reports/00_core/`) is still a handoff, and detecting less
 than the consuming skill reads means announcing "no product artifacts" over reports it is
-about to use. If any product artifacts exist, this is a **product→architect handoff** (see
+about to use. **Match files, not directories** — `/product:init-output` creates
+`reports/01_ux/domain-stories/` and `reports/02_spec/ui-mocks/` empty, so a directory-existence
+test passes on any initialized product project whether or not a phase ever ran. If any product artifacts exist, this is a **product→architect handoff** (see
 @docs/design.md §1.1–1.5).
 Announce it and route to the greenfield path with the product reports fed in — do **not** re-elicit
 what they already answer:

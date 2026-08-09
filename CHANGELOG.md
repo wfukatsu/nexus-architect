@@ -27,6 +27,23 @@ all three plugins (`product`, `architect`, `scalardb`) are released together und
   status, whatever it says — and falls back to output corroboration where the field is absent.
 
 ### Fixed
+- **A ScalarDB-free project no longer sits at 3/4 outputs forever.** The architect manifest listed
+  `scalardb-applicability.md` among `define-requirements`' unconditional outputs, but the skill
+  writes it only when ScalarDB is in play — so on a ScalarDB-free project the output bar could
+  never fill and the phase read as unfinished rather than as one with nothing left to write. The
+  manifest gained `conditional_outputs` (`"<condition>:<path>"`), and the dashboard counts such an
+  output only when the project's options satisfy its condition.
+- **The validation gate now says whose it is.** The gate is the *product* pipeline's, and it is
+  deliberately surfaced on the architect tab as well — requirements resting on an unvalidated
+  premise is exactly what an architect wants to know — but an unlabelled `gate: no-go` printed over
+  the architect tree read as architect's own verdict. It now renders as `Product gate: no-go`
+  everywhere except the product view.
+- **Handoff detection matches files, not directories.** `/product:init-output` creates
+  `reports/01_ux/domain-stories/` and `reports/02_spec/ui-mocks/` empty, so a directory-existence
+  test reported a product handoff on any initialized product project, whether or not a phase had
+  ever run. Corrected in `/architect:start`, `/architect:pipeline`, `define-requirements`,
+  `AGENTS.md` and `OMNIGENT.md`; `define-requirements` additionally states which product artifacts
+  it found and which were absent, since a partial product run changes what can be carried over.
 - **`AGENTS.md` and `OMNIGENT.md` now document the handoff they were driving.** The repo runs the
   same skills under three orchestrators and requires their entry docs to stay in sync, but only
   `CLAUDE.md` mentioned the product→architect handoff at all — Codex and the omnigent loader were

@@ -444,6 +444,51 @@ def check_id_prefix_registry():
           "SCR-" in open(skill_path("product", "define-features"), encoding="utf-8").read())
 
 
+def check_conditional_outputs_and_gate(root):
+    """Two things an end-to-end run surfaced that a synthetic fixture had not.
+
+    `define-requirements` writes `scalardb-applicability.md` only when ScalarDB is in play,
+    but the manifest listed it unconditionally — so a ScalarDB-free project sat at 3/4
+    outputs forever, reading as an unfinished phase rather than one with nothing to write.
+    And the validation gate belongs to *product*, yet an unlabelled `gate: no-go` was
+    printed over the architect tree as if architect had rendered that verdict.
+    """
+    print("conditional outputs and gate ownership")
+    spec = P.load_phase_manifest("architect")["define-requirements"]
+    check("the conditional output is declared apart from the unconditional ones",
+          "reports/00_requirements/scalardb-applicability.md" not in (spec.get("outputs") or [])
+          and any("scalardb-applicability.md" in e
+                  for e in spec.get("conditional_outputs") or []), spec)
+
+    proj = os.path.join(root, "conditional")
+    for name in ("requirements-definition.md", "data-transaction-requirements.md",
+                 "open-questions.md"):
+        write(os.path.join(proj, "reports", "00_requirements", name))
+    reg = {"project_name": "demo", "options": {"scalardb_enabled": False},
+           "phases": {"define-requirements": {"status": "completed", "plugin": "architect"}},
+           "gates": {"validate-assumptions": {"verdict": "no-go",
+                                              "open_assumptions": ["ASM-001"]}}}
+    write(os.path.join(proj, "work", "pipeline-progress.json"), json.dumps(reg))
+
+    off = P.derive_all(proj, plugin="architect")
+    state = off["phases"]["define-requirements"]
+    check("ScalarDB off: the conditional output is not counted (3 of 3)",
+          (state["written"], state["declared"]) == (3, 3), state["outputs"])
+    check("and the phase reads completed with no drift",
+          state["status"] == "completed" and state["drift"] is None, state)
+
+    reg["options"]["scalardb_enabled"] = True
+    write(os.path.join(proj, "work", "pipeline-progress.json"), json.dumps(reg))
+    on = P.derive_all(proj, plugin="architect")["phases"]["define-requirements"]
+    check("ScalarDB on: it is counted and missing (3 of 4)",
+          (on["written"], on["declared"]) == (3, 4), on["outputs"])
+
+    check("the gate carries its owning pipeline",
+          off["gate"]["plugin"] == "product", off["gate"])
+    check("the product gate is still surfaced on the architect view",
+          off["gate"]["verdict"] == "no-go")
+
+
 def hook_module():
     """hooks/record_token_usage.py, imported by path — it is not on sys.path."""
     if not _HOOK:
@@ -773,8 +818,8 @@ def run(root, plugin=None):
     check("gate is None for architect", state["gate"] is None)
     gate = P.read_gate({"gates": {"validate-assumptions": {"verdict": "go",
                                                            "open_assumptions": ["A1"]}}})
-    check("product gate verdict is read",
-          gate == {"verdict": "go", "open_assumptions": ["A1"]}, gate)
+    check("product gate verdict is read, carrying the pipeline that owns it",
+          gate == {"verdict": "go", "plugin": "product", "open_assumptions": ["A1"]}, gate)
 
 
 def check_sections(root):
@@ -907,6 +952,7 @@ def main():
         check_backlog_strip(root)
         check_staleness(root)
         check_id_prefix_registry()
+        check_conditional_outputs_and_gate(root)
         check_shared_phase_names(root)
         check_hostile_inputs(root)
     if cleanup:
