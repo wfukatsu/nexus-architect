@@ -7,7 +7,7 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 3 つのプラグイン（`product`・`architect`・`scalardb`）は同一の番号で一括リリースされます。
 
-## [Unreleased]
+## [0.23.2] - 2026-08-09
 
 ### 修正
 - **`NFR-` ID が 2 つのスキルによって別々の要件に二重採番され得た。** `docs/design.md` §1.5 は
