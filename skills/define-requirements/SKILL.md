@@ -116,7 +116,7 @@ Also pick up here any `deferred` / `unasked` Open Question that this run needs a
 
 1. Present the draft deliverables for user confirmation (skipped with `--auto`)
 2. Incorporate corrections, then write the four output files
-3. **Write back to the traceability graph** (@docs/design.md §1.5): locate `work/traceability.json` or create it as `{ "schema_version": 1, "nodes": [] }` if absent, then append one node per requirement — `FR-` nodes (`type: "requirement"`, `upstream: ["FEAT-…"]`, empty `upstream` when elicited fresh) and architect-originated `NFR-` nodes (`type: "nfr"`). Do **not** duplicate a product `NFR-` that was reused verbatim; physical-only items (transaction-consistency classes, DB inventory, actor/role/permission) get empty `upstream`.
+3. **Write back to the traceability graph** (@docs/design.md §1.5): locate `work/traceability.json` or create it as `{ "schema_version": 1, "nodes": [] }` if absent, then append one node per requirement. Allocate every new `FR-`/`NFR-` as the highest of that prefix already in the graph + 1 (§1.5 rule 4) — product's `define-nfr` mints `NFR-` as well, and a product run resumed after this handoff will continue from what it finds, so numbering from this skill's own reports produces one ID with two meanings — `FR-` nodes (`type: "requirement"`, `upstream: ["FEAT-…"]`, empty `upstream` when elicited fresh) and architect-originated `NFR-` nodes (`type: "nfr"`). Do **not** duplicate a product `NFR-` that was reused verbatim; physical-only items (transaction-consistency classes, DB inventory, actor/role/permission) get empty `upstream`.
 4. Update `work/pipeline-progress.json`: mark the `define-requirements` phase `completed`
 
 ## Output

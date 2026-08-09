@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
+## [Unreleased]
+
+### Fixed
+- **`NFR-` IDs could be minted twice, by two skills, for different requirements.** `docs/design.md`
+  §1.5 told architect to create `NFR-` nodes for architect-originated NFRs without saying where the
+  number comes from, which silently assumed product had already run `define-nfr`. It has not always:
+  a product run that stops at `--profile=mvp` hands off to `define-requirements`, which finds no
+  `NFR-` and mints `NFR-001`; resume the product pipeline afterwards and `define-nfr` mints
+  `NFR-001` too. An end-to-end run through the full profile produced exactly this — six IDs, each
+  with two meanings, in the single graph both plugins share. §1.5 gained rule 4: allocate every new
+  ID as `max` over the graph for that prefix `+ 1`, the same rule `OQ-` follows. The §1.5
+  verification list now includes "no ID appearing twice", so `review-consistency` and
+  `/product:review` catch a recurrence instead of leaving it to a later reader.
+
 ## [0.23.1] - 2026-08-09
 
 ### Changed
