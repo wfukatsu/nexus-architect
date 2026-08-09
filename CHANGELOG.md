@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
-## [Unreleased]
+## [0.23.1] - 2026-08-09
 
 ### Changed
 - **The Open Questions store is one file, and the architect deliverable is a view of it.** The
