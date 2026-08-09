@@ -78,6 +78,23 @@ product パイプラインの成果物が存在する状態で `/architect:defin
 | `tech-stack-fitness.md` | ScalarDB 適用判定の事前判断 |
 | `work/traceability.json` | ID トレース（`VIS-`/`NSM-` からの単一トレースチェーンを維持） |
 
+見落としやすい点が 3 つあります。
+
+- **部分実行でもハンドオフは成立します。** `--profile=mvp` は `feature-list.md` と `nfr.md` の前で
+  止まりますが、`define-requirements` はどの成果物が見つかり、どれが無かったかを報告し、新規に
+  ヒアリングした `FR-` は「新規」として記録します（存在しなかった機能には紐づけません）。
+- **Open Questions のストアは 1 つです。** `work/context.md` § Open Questions が全プラグインの質問を
+  保持し、`reports/00_requirements/open-questions.md` はそこから描画されます。product が `unasked` で
+  記録したエントリを、architect が同じ `OQ-` ID のまま回答します。
+- **新しい ID はグラフから採番します。** `NFR-` は `define-nfr` と `define-requirements` の両方が発行
+  するため、新規 ID は `work/traceability.json` 内の当該接頭辞の `max + 1` です（design.md §1.5 rule 4）。
+  単一のレポートを見て採番してはいけません。
+
+product が意図的に**供給しない**もの — つまりヒアリングで訊かれるもの — は、ビジネスプロセスごとの
+確定的なトランザクション整合性分類、物理 DB インベントリ、アクター/ロール/権限マトリクスです
+（design.md §1.4）。
+
+
 > product 側が**意図的に提供しない**項目（業務プロセスごとのトランザクション整合性、物理DBインベントリ、アクター/ロール/権限）は、architect 側の対話で確認されます。
 
 ## まとめ（最短で始めるには）
