@@ -67,7 +67,9 @@
 |---------|-------|------|------|
 | `/architect:design-implementation` | opus | `reports/03_design/` | 実装仕様 — API レイヤー（Controller/DTO/バリデーション/マッパー、トランザクション境界、認可の実施点）＋サービス、リポジトリ、VO |
 | `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/契約/ユニット/統合/性能テスト仕様 |
-| `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB コード生成 |
+| `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB コード生成 — `domain/` と `infrastructure/` を担当 |
+| `/architect:generate-api-code` | opus | `api-specifications/` + `api-layer-spec.md` | OpenAPI 契約から API レイヤーを生成 — `operationId` と 1:1 の Controller、スキーマ制約から導出した Bean Validation 付き DTO、マッパー、RFC 9457 ハンドラ、`api-contract-map.json` |
+| `/architect:generate-contract-tests` | sonnet | `api-contract-map.json` + `contract-test-specs.md` | 実行可能な契約テスト（既定は swagger-request-validator + `@WebMvcTest`、Schemathesis / Pact / ArchUnit はオプトイン） |
 | `/architect:generate-infra-code` | sonnet | `reports/08_infrastructure/` | K8s/Terraform/Helm コード生成 |
 | `/architect:generate-docs` | sonnet | 生成・実装済みコード | 生成・実装済みコードの README と `docs/`（コード生成の後、および implement-backlog の Step 5b で実行） |
 | `/architect:verify-implementation` | opus | 生成・実装済みコード＋設計 | 設計 ↕ コードの適合性検証（契約・トランザクション・セキュリティ・要件の4軸）。`--gate` で8段階の AI コード品質ゲートを実行（implement-backlog の Step 5c） |

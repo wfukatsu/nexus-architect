@@ -196,6 +196,7 @@ def check_real_manifests():
 DOC_EXTENSION_TIER = [
     "investigate-security", "select-scalardb-edition", "design-scalardb-analytics",
     "design-implementation", "generate-test-specs", "generate-scalardb-code",
+    "generate-api-code", "generate-contract-tests",
     "generate-infra-code", "generate-docs", "verify-implementation",
     "design-infrastructure", "design-security",
     "design-observability", "design-disaster-recovery", "estimate-cost",

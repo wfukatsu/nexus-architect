@@ -138,7 +138,9 @@ phases. Run them yourself afterwards, in this order:
 /architect:generate-test-specs
 
 # 3. Application code                               (requires reports/06_implementation/ + scalardb-schema.md)
-/architect:generate-scalardb-code                   # -> generated/{service}/
+/architect:generate-scalardb-code                   # -> generated/{service}/  domain/ + infrastructure/
+/architect:generate-api-code                        # -> generated/{service}/  api/, bound to the OpenAPI contract
+/architect:generate-contract-tests                  # -> generated/{service}/src/test/
 
 # 4. Infrastructure code                            (requires reports/08_infrastructure/)
 /architect:design-infrastructure                    # run this first if you have no infra reports yet
@@ -146,6 +148,9 @@ phases. Run them yourself afterwards, in this order:
 
 # 5. Documentation for what was just emitted
 /architect:generate-docs
+
+# 6. Verify the code against the design, and run the quality gate
+/architect:verify-implementation --gate
 ```
 
 Each step needs only the reports produced by the step before it, so you can enter the chain partway

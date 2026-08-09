@@ -450,6 +450,13 @@ EXTENSION_PHASES = {
                                             "generated/*/build.gradle",
                                             "generated/*/scalardb.properties",
                                             "generated/*/Dockerfile"]),
+    "generate-api-code": dict(category="extension", model="opus", depends_on=["design-implementation"],
+                              outputs=["generated/*/src/main/java/",
+                                       "reports/06_implementation/api-contract-map.md",
+                                       "reports/06_implementation/api-contract-map.json"]),
+    "generate-contract-tests": dict(category="extension", model="sonnet", depends_on=["generate-api-code"],
+                                    outputs=["generated/*/src/test/java/",
+                                             "reports/07_test-specs/contract-test-coverage.md"]),
     "generate-infra-code": dict(category="extension", model="sonnet", depends_on=["design-infrastructure"],
                                 outputs=["generated/infrastructure/k8s/",
                                          "generated/infrastructure/helm/",
@@ -488,7 +495,8 @@ EXTENSION_PHASES = {
 # `generate-test-specs` deliberately stays in the architect pipeline: it writes
 # specifications under reports/, not code.
 CODEGEN_PHASES = {
-    "architect": ("generate-scalardb-code", "generate-infra-code", "generate-docs"),
+    "architect": ("generate-scalardb-code", "generate-api-code", "generate-contract-tests",
+                  "generate-infra-code", "generate-docs"),
     "product": ("generate-frontend",),
 }
 

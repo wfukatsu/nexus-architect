@@ -130,6 +130,8 @@ Claude Code continues to use the plugin metadata and slash commands unchanged. S
 # Code generation (after the design pipeline — see Code Generation & Delivery below)
 /architect:design-implementation
 /architect:generate-scalardb-code
+/architect:generate-api-code
+/architect:generate-contract-tests
 /architect:generate-docs
 /architect:verify-implementation --gate
 
@@ -232,9 +234,11 @@ the order below (see [Code Generation & Delivery](#code-generation--delivery)).
 | Command | Description | Requires |
 |---------|-------------|----------|
 | `/architect:design-implementation` | Implementation specifications | `reports/03_design/` |
-| `/architect:generate-test-specs` | BDD/unit/integration test specifications | `reports/06_implementation/` |
-| `/architect:generate-scalardb-code` | Spring Boot + ScalarDB code generation | `reports/06_implementation/` + `scalardb-schema.md` |
-| `/architect:generate-infra-code` | K8s/Terraform/Helm code generation | `reports/08_infrastructure/` (from `design-infrastructure`) |
+| `/architect:generate-test-specs` | BDD/contract/unit/integration/performance test specifications | `reports/06_implementation/` |
+| `/architect:generate-scalardb-code` | Spring Boot + ScalarDB code generation — owns `domain/` and `infrastructure/` | `reports/06_implementation/` + `scalardb-schema.md` |
+| `/architect:generate-api-code` | The API layer from the OpenAPI contract — controllers 1:1 with `operationId`, DTOs with validation derived from the schema, mappers, the RFC 9457 handler, and `api-contract-map.json`. Generates only what the specification declares | `api-specifications/` + `api-layer-spec.md` |
+| `/architect:generate-contract-tests` | Executable contract tests, so a contract break fails a build instead of surviving a review | `api-contract-map.json` + `contract-test-specs.md` |
+| `/architect:generate-infra-code` | K8s/Terraform/Helm code generation, plus the CI workflow that runs the quality gate | `reports/08_infrastructure/` (from `design-infrastructure`) |
 | `/architect:generate-docs` | README + `docs/` for the generated/implemented code — runs after codegen, and as Step 5b of `implement-backlog` | generated or implemented code |
 | `/architect:verify-implementation` | Verifies the code against the design — API contract, transaction placement, security controls, requirement coverage — and reports the divergences instead of reconciling them. `--gate` adds the eight-stage AI code quality gate (build / unit / contract / integration / SAST / dependency scan / API security / conformance), which is Step 5c of `implement-backlog` | generated or implemented code + the design reports |
 
@@ -386,8 +390,10 @@ paths, and they differ in what the output *is*.
   -> /architect:design-implementation      # requires reports/03_design/
   -> /architect:generate-test-specs        # requires reports/06_implementation/
   -> /architect:design-infrastructure      # requires target-architecture.md   (infra path only)
-  -> /architect:generate-scalardb-code     # -> generated/{service}/
-  -> /architect:generate-infra-code        # -> generated/infrastructure/
+  -> /architect:generate-scalardb-code     # -> generated/{service}/  (domain/ + infrastructure/)
+  -> /architect:generate-api-code          # -> generated/{service}/  (api/, bound to the OpenAPI contract)
+  -> /architect:generate-contract-tests    # -> generated/{service}/src/test/  (contract breaks fail the build)
+  -> /architect:generate-infra-code        # -> generated/infrastructure/  (+ the quality-gate CI workflow)
   -> /architect:generate-docs              # READMEs + docs/ for what was emitted
   -> /architect:verify-implementation      # design <-> code conformance; --gate runs the quality gate
 ```
