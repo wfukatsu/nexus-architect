@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
+## [Unreleased]
+
+### Changed
+- **The Open Questions store is one file, and the architect deliverable is a view of it.** The
+  protocol named two stores — `work/context.md` § Open Questions and
+  `reports/00_requirements/open-questions.md` — without saying which was authoritative or how IDs
+  were allocated. Two consequences, both reachable in a normal handoff run: product and architect
+  could mint the same `OQ-004` for different questions, since neither had a rule saying where the
+  next ID comes from; and an answer recorded on one side never reached the other, so a question
+  architect resolved stayed `unasked` for a later product rerun. `work/context.md` is now **the**
+  store for the whole project, `reports/00_requirements/open-questions.md` is rendered from it as
+  a deliverable rather than kept as a second source, and a new ID is `max(OQ-###) + 1` over the
+  store. This is the same rule `work/traceability.json` already followed — never start a second
+  file — applied to the question that crosses the boundary in both directions.
+
 ## [0.23.0] - 2026-08-09
 
 ### Added

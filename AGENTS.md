@@ -103,7 +103,7 @@ Three files under `work/` are **shared by both pipelines**, so every write is ad
 |------|------|
 | `pipeline-progress.json` | Holds both pipelines' phases in one map keyed by bare phase name. Never re-register the map, never drop an entry your manifest does not define, never reset another pipeline's `options` (notably `output_language`). Write `"plugin": "product"\|"architect"` on every entry you stamp — `map-domains`, `design-api`, `create-domain-story` and `report` are defined by **both** manifests, so that field is the only thing that says whose entry it is. Where it is absent, confirm a `completed` against the phase's declared `outputs:` on disk before treating it as done |
 | `traceability.json` | One graph for the whole project. `define-requirements` appends `FR-`/`NFR-` nodes to what product wrote; never start a second file and never truncate it to `[]`. ID prefixes are declared per phase as `id_prefix` in the manifests |
-| `context.md` | Carries decisions and the Open Questions table across phases and across the boundary. Create it only when absent; never overwrite it |
+| `context.md` | Decisions, and **the** Open Questions store for the whole project — both pipelines' questions live in this one file, answered in place under their existing `OQ-` IDs; `reports/00_requirements/open-questions.md` is a view rendered from it, not a second store. Allocate a new ID as `max(OQ-###) + 1` over the store, never by numbering from your own reports. Create it only when absent; never overwrite it |
 
 `/product:adapt-change` walks the shared graph, so its blast radius reaches architect's nodes. It
 **reports** them and stops — it never re-runs an architect skill or rewrites an architect

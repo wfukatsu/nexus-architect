@@ -83,15 +83,38 @@ The appended "Other" option accepts arbitrary text. Design every question so tha
 Do not ask. Every unresolved item becomes an Open Questions entry with status `unasked`, carrying
 **the question text and the options that would have been offered**, so a later interactive pass — or
 the user reading the report — can answer it directly instead of rediscovering it. `report` and
-`review` surface these prominently — product via `work/context.md`
-(@rules/product/review-and-report.md), architect via `reports/00_requirements/open-questions.md`,
-which `define-requirements` writes as a first-class deliverable.
+`review` surface these prominently, both reading the one store (§6) —
+`/product:report` renders them into its HTML header (@rules/product/review-and-report.md), and
+`define-requirements` renders the architect-relevant rows into
+`reports/00_requirements/open-questions.md` as a first-class deliverable.
 
 ## 6. Recording
 
-Open Questions are written to the run's Open Questions store — `reports/00_requirements/open-questions.md`
-(architect), `work/context.md` § Open Questions (product), plus the artifact's own `## Open Questions`
-section where its template has one. One row per question:
+### The store is one file
+
+**`work/context.md` § Open Questions is the store — for every plugin, for the whole project.**
+Not one per plugin: a question the product run recorded and the architect run answers is the same
+question, and two files cannot hold one answer without drifting. This is the same rule
+`work/traceability.json` follows (@docs/design.md §1.5 — never start a second graph).
+
+`reports/00_requirements/open-questions.md` remains a **deliverable**, but it is a *view*: the rows
+from the store that the architect run needs a reader to see, rendered at the point
+`define-requirements` writes its reports. It is regenerated from the store, never edited as a
+source. An artifact's own `## Open Questions` section is a view in the same sense — the rows that
+artifact's `TBD`s point at.
+
+Consequences that are easy to get wrong:
+
+- **Allocate IDs from the store, never from a view.** The next ID is `max(OQ-###) + 1` over the
+  whole store. Both pipelines write it, so an ID chosen by scanning only your own reports collides:
+  product minting `OQ-004` and architect minting `OQ-004` for different questions produces two
+  questions with one ID and no way to tell them apart afterwards.
+- **Answer in the store, then re-render the views.** Updating a view alone loses the answer the
+  moment anything reads the store — which is what the next skill does at its read-context step (§7).
+- **A view never holds a row the store does not.** If a skill has a question worth writing into its
+  own `## Open Questions` section, the row goes into the store first.
+
+One row per question:
 
 | Field | Meaning |
 |-------|---------|
@@ -118,11 +141,18 @@ Rules:
 
 ## 7. Carrying questions forward
 
-At its "read context" step, every skill loads the existing Open Questions and picks up any
-`deferred` / `unasked` entry **in its own domain that it now needs an answer to**. It re-asks that
-entry in its own first `AskUserQuestion` batch — reusing the recorded options, refined by what is
-now known — and updates the entry **in place under the same `OQ-` ID**. Answering never creates a
-duplicate entry, and a question already `answered` is never re-asked.
+At its "read context" step, every skill loads the store (§6) and picks up any `deferred` /
+`unasked` entry **in its own domain that it now needs an answer to**. It re-asks that entry in its
+own first `AskUserQuestion` batch — reusing the recorded options, refined by what is now known —
+and updates the entry **in place in the store, under the same `OQ-` ID**, then re-renders any view
+that shows it. Answering never creates a duplicate entry, and a question already `answered` is
+never re-asked.
+
+This is what makes the store single-file rather than per-plugin: the entry `/product:define-scope`
+recorded `unasked` is the entry `/architect:define-requirements` answers, and the entry a later
+`/product:adapt-change` reads back as answered. Questions cross the plugin boundary in both
+directions — product asks what architect resolves, and an architect answer changes what a product
+rerun may assume — so neither side owns the file.
 
 ## 8. Other runtimes
 

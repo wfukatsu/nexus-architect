@@ -85,7 +85,7 @@ Read the `_en` or `_ja` variant matching `options.output_language`. Reference th
 
 Run the 5-stage facilitation below using AskUserQuestion, asking **only items on the gap list**. Present what the materials already established and request confirmation or correction. Batch each stage into one call of at most 3 questions, each offering 2–4 derived candidate answers plus, where deferral is legitimate, an explicit "Defer — record as TBD" option; free text always reaches the user through the appended "Other". Items with no meaningful option set (a name, a rationale, a list) are asked in prose rather than skipped. Update the gap list after each answer; finish when every item is answered, deferred with an owner, or judged external. Question construction, free-text handling and recording: @rules/open-questions.md.
 
-Also pick up here any `deferred` / `unasked` Open Question from an earlier run (`work/context.md`, `reports/00_requirements/open-questions.md`) that this run needs an answer to — re-ask it in the matching stage's batch and update the entry in place under its existing `OQ-` ID (@rules/open-questions.md §7).
+Also pick up here any `deferred` / `unasked` Open Question that this run needs an answer to from **the store** — `work/context.md` § Open Questions, which holds every plugin's questions for the whole project (@rules/open-questions.md §6). Re-ask it in the matching stage's batch and update the entry **in the store**, in place under its existing `OQ-` ID (§7). New questions this run raises are appended to the store too, with IDs allocated as `max(OQ-###) + 1` over the whole store — never by numbering from this skill's own reports, which would collide with the IDs the product run already minted.
 
 | Stage | Items to confirm |
 |-------|------------------|
@@ -128,7 +128,7 @@ Write to `reports/00_requirements/`:
 | `reports/00_requirements/requirements-definition.md` | Business context, scope, FR/NFR classification table, priorities, actor list | Always |
 | `reports/00_requirements/data-transaction-requirements.md` | DB inventory, transaction requirements matrix, consistency level assessment | Always |
 | `reports/00_requirements/scalardb-applicability.md` | Decision tree result (Mermaid) per business process — ScalarDB / ScalarDB Saga / neither — XA comparison table, rationale | Unless `--no-scalardb` |
-| `reports/00_requirements/open-questions.md` | One row per question in the @rules/open-questions.md §6 shape — `OQ-` ID, question, status (`answered`/`deferred`/`unasked`/`external`), answer (free-text answers verbatim), options offered, owner, downstream impact, asked-at | Always |
+| `reports/00_requirements/open-questions.md` | **A view rendered from the store**, not a second source (@rules/open-questions.md §6): the `work/context.md` § Open Questions rows a reader of these requirements needs, in the §6 row shape — `OQ-` ID, question, status (`answered`/`deferred`/`unasked`/`external`), answer (free-text answers verbatim), options offered, owner, downstream impact, asked-at. Write the store first, then render this; never edit it as the source, and never let it carry a row the store lacks. Note at the top which rows came across the product handoff, so a reader can tell what this run raised from what it inherited | Always |
 
 Write all document content in the language configured in `work/pipeline-progress.json` (`options.output_language`). YAML frontmatter keys remain in English regardless of the output language.
 
