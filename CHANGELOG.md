@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
+## [0.24.1] - 2026-08-09
+
+### Fixed
+- **Six defects the first end-to-end run of the 0.24.0 pipeline exposed.** 0.24.0 shipped the
+  contract-fidelity chain without ever having been executed. Running it for real — `design-api` →
+  `design-implementation` → `generate-api-code` → `generate-contract-tests` →
+  `verify-implementation --gate` against a Java 17 / Spring Boot 3.2.5 service, compiling and testing
+  against ScalarDB 3.19.0 and the actual validator library — broke it in four places on contact.
+- **The contract map had no notion of scope, so it could pass its own check while hiding endpoints.**
+  In a brownfield tree — the legacy-refactoring case this toolkit exists for — controllers predate the
+  contract, and a generator scanning only its own package emits `handlers_without_spec_operation: []`
+  while real routes stay undeclared. The run produced exactly that: six reachable routes, including
+  `/api/admin/users`, absent from the contract and from the map. The map now declares a `scope` with
+  an explicit `out_of_scope_handlers` list derived from the tree, every reachable route must be
+  accounted for by one list or the other, and out-of-scope entries are still reported as findings —
+  the field records that the omission was named, not that it is acceptable.
+- **The generated inventory assertion read the contract map instead of the code**, so it passed
+  precisely when the map was wrong — which is when it needed to fail. It is now derived from the
+  source tree and compared against the specification. Consumers are told, in the rule, never to
+  conclude coverage from the map alone.
+- **The default contract-test coordinate does not exist.** Atlassian publishes the library under both
+  `com.atlassian.oai:swagger-request-validator-*` and `com.atlassian.oai:openapi-request-validator-*`;
+  the MockMvc integration is the `-mockmvc` module, and there is no `-spring-mvc` artifact under
+  either name. Pinning the documented name yielded an unresolvable dependency.
+- **The current major of that library is Java 21 and will not compile into a Java 17 service**
+  (`bad class file … version 65.0 … should be 61.0`). The `2.x` line is a Java 8 baseline and is the
+  correct pin. Resolving the coordinate now means listing the group directory and checking the
+  artifact's JDK baseline against the project's target release — @rules/dependency-versions.md §2 in
+  its most literal form.
+- **The contract tests loaded the specification from `reports/`, which is git-ignored** — green for
+  the author, red in CI on a fresh checkout, so the contract stage would fail for everyone else. The
+  spec is now pinned into `src/test/resources/contract/openapi/` and loaded from the classpath;
+  `verify-implementation` compares the copy against the design original so a stale copy is not
+  invisible drift.
+- **`gitleaks detect` in a non-git tree reported "0 commits scanned … no leaks found" and exited 0** —
+  a clean secrets scan that examined nothing, which the gate would have recorded as evidence.
+  Directory mode over the same tree scanned 239 KB and found a leak. The gate now requires per-stage
+  **coverage** evidence and treats zero coverage as `not-configured`, never `passed`; the same rule
+  covers a test filter that matches no class, which is a green task and an ungated build.
+- **`generate-api-code` reported success on code the project could not compile.** It emitted a
+  controller using `@AuthenticationPrincipal Jwt` without adding
+  `spring-boot-starter-oauth2-resource-server`. It now adds the dependencies its own output requires
+  and compiles before reporting, with the command and exit code in the run summary.
+- **`verify-implementation` now checks that a declared authorization control is enforced, not merely
+  present.** `@PreAuthorize` compiles, reads as a control, and does nothing until method security is
+  enabled — an operation whose authorization exists only as an annotation now raises a finding.
+
+### Verified
+The same run confirms the parts that were right: the RFC 9457 handler compiles against real ScalarDB
+3.19.0, and the `UnknownTransactionStatusException` branch returns 503 with `Retry-After`,
+`transaction_id` and `retry_after_ms` on an idempotency-protected operation — asserted by a passing
+contract test. 404-not-403 for a non-owned order, the confidential field absent from the response,
+and schema-derived validation returning Problem Details with `errors[]` pass the same way. The gate's
+stage 1 caught the compile failure and stage 3 caught the inventory gap, which is the gate working as
+designed.
+
 ## [0.24.0] - 2026-08-09
 
 ### Added

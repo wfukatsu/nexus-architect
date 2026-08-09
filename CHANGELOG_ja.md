@@ -7,6 +7,57 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 3 つのプラグイン（`product`・`architect`・`scalardb`）は同一の番号で一括リリースされます。
 
+## [0.24.1] - 2026-08-09
+
+### 修正
+- **0.24.0 のパイプラインを初めて実際に通した結果、判明した 6 件の欠陥。** 0.24.0 は契約整合性チェーンを
+  一度も実行しないまま出荷していました。Java 17 / Spring Boot 3.2.5 の実サービスに対し
+  `design-api` → `design-implementation` → `generate-api-code` → `generate-contract-tests` →
+  `verify-implementation --gate` を実行し、ScalarDB 3.19.0 と実際の validator ライブラリでコンパイル・
+  テストしたところ、4 箇所が即座に破綻しました。
+- **契約マップに scope の概念が無く、自分自身のチェックを通しながらエンドポイントを隠せてしまいました。**
+  brownfield ツリー（本ツールキットが対象とするレガシー刷新のケース）では Controller が契約より先に存在し、
+  生成パッケージだけを走査した生成器は実ルートが未宣言のまま `handlers_without_spec_operation: []` を
+  出力します。実行結果はまさにそれで、**`/api/admin/users` を含む 6 本の到達可能なルート**が契約にも
+  マップにも現れませんでした。マップは `scope` と、ツリーから導出した `out_of_scope_handlers` を宣言する
+  ようになり、到達可能な全ルートがいずれかのリストで説明されることを必須とします。スコープ外エントリも
+  finding として報告されます — この欄は「見落としが許容された」ではなく「見落としが名指しされた」ことの記録です。
+- **生成されたインベントリ検証がコードではなく契約マップを読んでいました。** マップが誤っているときにこそ
+  通ってしまう — 落ちるべきまさにその場面で。現在はソースツリーから導出して仕様と突き合わせます。
+  ルール側にも「マップ単体からカバレッジを結論してはならない」と明記しました。
+- **既定の契約テスト座標が存在しませんでした。** Atlassian は同ライブラリを
+  `com.atlassian.oai:swagger-request-validator-*` と `com.atlassian.oai:openapi-request-validator-*` の
+  両系統で公開しており、MockMvc 連携は `-mockmvc` モジュールです。どちらの系統にも `-spring-mvc` という
+  artifact は存在せず、記載どおりに pin すると解決不能な依存になります。
+- **同ライブラリの現行 major は Java 21 ビルドで、Java 17 サービスにコンパイルできません**
+  （`bad class file … version 65.0 … should be 61.0`）。`2.x` 系が Java 8 baseline で正しい pin です。
+  座標解決時にグループディレクトリを列挙し、artifact の JDK baseline をプロジェクトのターゲットリリースと
+  照合することを必須にしました — @rules/dependency-versions.md §2 の文字どおりの適用です。
+- **契約テストが git-ignore 配下の `reports/` から仕様を読んでいました。** 作者の手元では緑、fresh checkout
+  の CI では赤になり、契約ステージが作者以外の全員で失敗します。仕様は
+  `src/test/resources/contract/openapi/` に固定してクラスパスから読み込むようになり、
+  `verify-implementation` がそのコピーと設計側の原本を比較するため、コピーの陳腐化が不可視のドリフトに
+  なりません。
+- **`gitleaks detect` が非 git ツリーで「0 commits scanned … no leaks found」と報告し exit 0 を返しました** —
+  何も検査していないクリーンスキャンで、ゲートはこれを証跡として記録してしまいます。同じツリーを dir モードで
+  走査すると 239 KB を検査して leak を 1 件検出しました。ゲートはステージごとに**カバレッジ**の証跡を要求し、
+  カバレッジ 0 は `passed` ではなく `not-configured` として扱います。1 クラスもマッチしないテストフィルタ
+  （緑のタスクでありゲートされていないビルド）にも同じ規則が適用されます。
+- **`generate-api-code` がコンパイルできないコードを「完了」と報告していました。**
+  `@AuthenticationPrincipal Jwt` を使う Controller を出力しながら
+  `spring-boot-starter-oauth2-resource-server` を追加していませんでした。現在は自身の出力が要求する依存を
+  追加し、コンパイルを実行してからコマンドと exit code を実行サマリに記載します。
+- **`verify-implementation` が、宣言された認可制御が「存在する」だけでなく「実際に効いている」かを
+  検査するようになりました。** `@PreAuthorize` はコンパイルが通り、制御のように読め、メソッドセキュリティが
+  有効化されるまで何もしません。アノテーションとしてしか存在しない認可は finding として報告されます。
+
+### 確認できたこと
+同じ実行が、正しかった部分も裏づけています。RFC 9457 ハンドラは実 ScalarDB 3.19.0 に対してコンパイルが通り、
+`UnknownTransactionStatusException` 分岐は冪等キー保護 operation で 503 + `Retry-After` + `transaction_id`
++ `retry_after_ms` を返します（契約テストで assert・PASS）。非所有オーダーの 404（403 ではない）、レスポンス
+からの機密フィールド非露出、スキーマ由来バリデーションの Problem Details + `errors[]` も同様に PASS。
+ゲートは stage 1 でコンパイル失敗を、stage 3 でインベントリ欠落を捕捉しており、設計どおりに機能しています。
+
 ## [0.24.0] - 2026-08-09
 
 ### 追加
