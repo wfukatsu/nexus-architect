@@ -53,6 +53,35 @@ transaction.upsert(Upsert.newBuilder()...build());
 transaction.update(Update.newBuilder()...build());
 ```
 
+### A `Put` with no preceding `Get` is an INSERT, and fails on an existing record
+
+This is the trap the deprecation above exists to remove, and it is invisible until commit.
+
+Consensus Commit decides what a `Put` means from **whether the transaction read the record first**.
+With no preceding `Get` in the same transaction it attaches an implicit `PutIfNotExists`, so:
+
+| In one transaction | Record absent | Record exists |
+|--------------------|---------------|---------------|
+| `put(...)` alone | commits — inserts | **`CommitConflictException` at commit** — `DB-CORE-20013: The record being prepared already exists` |
+| `get(...)` then `put(...)` | commits — inserts | commits — updates |
+
+Verified against ScalarDB 3.19.0. The failure surfaces at `commit()`, not at `put()`, so the write
+looks accepted and the transaction fails later with a *conflict* error that reads like contention —
+sending you to retry logic for a bug that no retry can fix. Retrying is in fact the wrong response:
+every attempt fails identically.
+
+Two consequences for generated and hand-written code:
+
+- **A read-modify-write must actually read.** `get()` the record in the same transaction before
+  `put()`, which you need anyway to evaluate any precondition or ownership predicate on it.
+- **Prefer the explicit operations** (`insert` / `upsert` / `update`) precisely because they state
+  the intent instead of inferring it from read history. An `update()` on a missing record does
+  nothing rather than surprising you; an `upsert()` works whether or not the record exists.
+
+Static review does not catch this. An independent reviewer reading a blind-`Put` implementation
+flagged its missing authorization check and its split transactions, and never noted that the
+operation could not succeed at all — that took executing it (@rules/ai-code-quality-gate.md stage 4).
+
 ## Key Construction
 
 Use the typed factory methods:
