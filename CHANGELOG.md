@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
+## [0.24.2] - 2026-08-09
+
+### Fixed
+- **Four defects an independent reviewer found in the verification layer.** 0.24.1's end-to-end run
+  had one structural weakness: the same agent generated the code and verified it, so the
+  judgment-based checks — BOLA detection, transaction conformance — were never actually tested. Two
+  Codex passes over a real Java 17 / Spring Boot service closed that gap: an API security review
+  against `rules/api-security-checks.md`, and a **blind** transaction-conformance review of two
+  candidate application-service implementations, one written to the design and one seeded with
+  violations. The blind pass found every seeded violation, picked the right candidate as closer to
+  the design, and reported none of the seven checks as undecidable — which is the evidence those
+  checks were missing. It also found four defects in the candidate written *to* the design, and two
+  of those are rule gaps rather than coding slips.
+- **The idempotency replay path is an authorization path, and nothing said so.**
+  @rules/api-error-standard.md §5 specified where the record is written and never specified who may
+  read it back. The obvious implementation checks for a stored record first and returns early, which
+  puts the replay *ahead* of the ownership read — the early return becomes the one path with no
+  authorization on it. A record keyed on `(tenant_id, key)` compounds it: readable by every caller in
+  the tenant, so a caller holding another customer's key and order ID reads back that order's
+  outcome. This repo's own reference implementation had exactly that, with a correct non-replay path
+  sitting next to it. Now specified in §5 and checked as a **critical** API1 finding in
+  `api-security-checks.md`, with the warning that the non-replay branch being correct proves nothing
+  about the replay branch.
+- **`verify-implementation` checked for transactions that split, not for transactions that omit.**
+  The design said TX-003 spans order + inventory + payment; the implementation wrote order only. That
+  code looks clean — one transaction, correct retry, correct catch order — and an omission leaves no
+  trace in the code that made it. Axis 2 now reads the design's participant list per transaction and
+  checks each one is actually written. Critical, because it commits a state the rest of the system
+  contradicts: an order confirmed against unreserved stock.
+- **The generated inventory assertion under-counted.** The independent pass found ten undeclared
+  operations where the assertion reported six. Two causes, both now specified in
+  `generate-contract-tests`: path variables are normalized **positionally** (`{id}` and `{orderId}`
+  are the same shape, not the same path), and the comparison key is `(method, path)` — deduping on
+  path alone folds `GET` and `POST` on one route into a single entry.
+- **`UnknownTransactionStatusException` has its own accessor.** `getUnknownTransactionId()` is what
+  the exception defines; the inherited `getTransactionId()` returns the same value on ScalarDB 3.19,
+  so the wrong one compiles and passes a test. Resolved against the pinned release rather than reused
+  out of habit.
+
+### Verified
+The independent pass re-found two defects 0.24.1 had already fixed — the contract map claiming an
+empty unmapped list while real routes were reachable, and `@PreAuthorize` being inert without method
+security — confirming those were not artifacts of an agent grading its own work. It also confirmed
+what the seeded-wrong candidate was seeded with, item for item. The load-bearing result is the
+uncomfortable one: three critical defects survived in an implementation its author believed matched
+the design, which is the case `verify-implementation` exists for.
+
 ## [0.24.1] - 2026-08-09
 
 ### Fixed
