@@ -67,7 +67,10 @@ Flag any sections that appear to be in the wrong language (heuristic: detect maj
 - TOC anchor `href` values must correspond to existing `id` attributes in the document
 - No `<section id="...">` should be unreachable from the sidebar navigation
 - All `<table>` elements must have a `<thead>` row
-- No TODO / placeholder text (e.g. "[TBD]", "PLACEHOLDER", "TODO") should appear in the final output
+- No TODO / placeholder text (e.g. "[TBD]", "PLACEHOLDER", "TODO") should appear in the final output.
+  A `TBD` that carries its question ID (`TBD (OQ-012)`) and is explained in the Open Questions section
+  is **intentional**, not a placeholder (@rules/open-questions.md) — a bare `TBD` with no `OQ-` ID is
+  still a defect
 
 ---
 
@@ -279,7 +282,7 @@ Check for:
 1. Every href="#<anchor>" in the sidebar nav has a matching id="<anchor>" in the document
 2. Every <section id="..."> is linked from the sidebar
 3. All <table> elements have a header row (<thead> or first <tr> with <th> elements)
-4. No placeholder text: "[TBD]", "TODO", "PLACEHOLDER", "〇〇", "＊＊＊" in visible text
+4. No placeholder text: "[TBD]", "TODO", "PLACEHOLDER", "〇〇", "＊＊＊" in visible text (a `TBD (OQ-…)` carrying its question ID and explained under Open Questions is intentional, not a placeholder)
 5. The <title> element is non-empty and descriptive
 6. The page has exactly one <h1> element (in the hero section)
 

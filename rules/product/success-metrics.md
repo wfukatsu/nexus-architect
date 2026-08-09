@@ -35,8 +35,10 @@ Pick the framework that fits the product; do not fill both mechanically.
 
 For each metric record: **definition**, **measurement method/source**, **target value**, and a
 **guardrail** (a counter-metric that must not degrade while optimizing the NSM — e.g. don't grow
-engagement by harming retention or support load). Targets without a credible source are marked
-`TBD` in Open Questions — never invented.
+engagement by harming retention or support load). A target with no credible source is asked before
+it is deferred — offer plausible target bands as options so the real figure arrives through free
+text — and is marked `TBD` in Open Questions only if it stays unanswered, never invented
+(@rules/open-questions.md).
 
 ## ID convention
 

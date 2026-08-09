@@ -11,8 +11,9 @@ sizing** and **Revenue model taxonomy** sections; `design-revenue` uses **Busine
 - **SOM** (Serviceable Obtainable Market) — the realistic share you can win near-term.
 
 Prefer **bottom-up** sizing (# target customers × price × frequency) over top-down "X% of a big
-number". Every figure carries a source (name + URL). Unsourced numbers are not written — they
-become `TBD` in Open Questions.
+number". Every figure carries a source (name + URL). Unsourced numbers are not written — ask the
+user for the figure or its source (bands as options, the exact value through free text) and record
+`TBD` in Open Questions only for what stays unanswered (@rules/open-questions.md).
 
 ## Revenue model taxonomy
 

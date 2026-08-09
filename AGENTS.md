@@ -38,7 +38,7 @@ Many skill files mention Claude Code tools. In Codex, interpret them as follows:
 - `Glob`: use `rg --files` or `find`
 - `LS`: use `ls`
 - `WebFetch` / `WebSearch`: use Codex web access, Context7, or `curl` when network access is approved
-- `AskUserQuestion` / `Question`: present numbered choices in chat and wait for the user's reply
+- `AskUserQuestion` / `Question`: present numbered choices in chat, add an explicit "or type your own answer" line (Codex has no harness-appended "Other"), and wait for the user's reply
 - `Task` / `Subagent`: run the steps in the main Codex thread unless the user explicitly asks for sub-agents
 - `Parallel`: use parallel shell reads where useful; keep code-writing steps coordinated
 - `TodoWrite` / `TodoRead`: use local todo files only if the task requires persistent todos
@@ -134,7 +134,8 @@ session model and preserve the delegation structure (sub-agents return digests, 
 ## Interaction Rules
 
 - Preserve Claude Code compatibility. Do not remove `.claude-plugin/`, `CLAUDE.md`, or Claude-specific frontmatter unless explicitly asked.
-- If a skill asks for multiple-choice input with `AskUserQuestion`, show the choices as a numbered list and wait for the user's answer before continuing.
+- If a skill asks for multiple-choice input with `AskUserQuestion`, show the choices as a numbered list, end with an explicit "or type your own answer" line, and wait for the user's answer before continuing. A reply that matches no number is a free-text answer: record it verbatim, never round it to the nearest choice.
+- When a skill hits an unknown it cannot resolve from its inputs, **ask it** rather than writing `TBD`: derive 2–4 candidate answers with their downstream consequences, present them as above, and only record `TBD` for what the user defers, cannot answer in-session, or was never asked (`--auto`) — each with its `OQ-` ID, status and owner. See `rules/open-questions.md`.
 - If a skill asks for parallel Claude subagents, execute the prerequisite steps in order and only parallelize independent shell reads or explicit user-approved agent work.
 - Keep generated outputs in the documented output directories and include YAML frontmatter for Markdown reports.
 - For any ScalarDB / ScalarDL / ScalarDB Saga design, implementation, review, or migration decision, ground the answer in the version-pinned OKF knowledge bundle at `knowledge/okf-scalardb-scalardl/okf/` (a git submodule; run `tools/update-okf-bundle.sh` to fetch it if absent, `update` to pull the newest, `status` to inspect). Pin product/version/edition first and answer only from that release's docs, per `rules/okf-knowledge-bundle.md`.

@@ -36,6 +36,9 @@ Produce one deliverable:
 - **Actionable, not cosmetic.** Every finding has a severity, a location (file + ID), and a fix.
 - **Surface goal–work misalignment** (strategy lens), not just typos.
 - **Never fabricate a pass.** Missing artifacts and `no-go` verdicts are reported as findings.
+- **An unasked `TBD` is a finding.** A `TBD` with no `OQ-` ID, or an Open Question left `unasked`
+  by an interactive run, means the user was never given the chance to answer — report it with the
+  question that should be put to them (@rules/open-questions.md).
 - **Stop condition**: all four lenses applied to the available artifacts and findings ranked by
   severity.
 
@@ -50,7 +53,8 @@ Produce one deliverable:
 ## Process
 
 1. **Read** all existing artifacts and `work/traceability.json`.
-2. **Consistency lens** — cross-check ID usage and terminology. Apply
+2. **Consistency lens** — cross-check ID usage and terminology, and join every `TBD` to its `OQ-`
+   entry in `work/context.md` (orphan `TBD`s and orphan entries are both findings). Apply
    `@rules/product/review-and-report.md`.
 3. **Traceability lens** — validate the graph; flag orphans and dangling references.
 4. **Extensibility lens** — test domain boundaries and API reuse against future features.

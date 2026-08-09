@@ -25,7 +25,7 @@ Produce one deliverable:
 
 | Argument/Flag | Required | Description |
 |---------------|----------|-------------|
-| `--auto` | Optional | Extract without elicitation; record open questions as `TBD` |
+| `--auto` | Optional | Extract without elicitation; open questions are recorded `unasked` with the options that would have been offered (@rules/open-questions.md §5) |
 | `--lang` | Optional | Override output language |
 
 ## Decision Criteria
@@ -63,7 +63,8 @@ Produce one deliverable:
    `SCR-` edge is what carries the chain across the UI mocks: `/architect:define-requirements`
    derives each `FR-` from a `FEAT-`, so a `FEAT-` with no screen upstream leaves the requirement
    traceable only halfway back (@docs/design.md §1.5).
-7. **Record** — write the file; append decisions to `work/context.md`; log `TBD`s.
+7. **Record** — write the file; append decisions to `work/context.md`;
+   ask remaining unknowns and log only what stays open (@rules/open-questions.md).
 
 ## Output
 

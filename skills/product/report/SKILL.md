@@ -15,7 +15,10 @@ Produce one deliverable:
 
 1. **Full report** — `reports/report/full-report.html`:
    - **Leads with "Key Assumptions & Validation Status"** — the gate verdict, untested/open
-     assumptions with thresholds, every `TBD` / `TBD-assumption`, and Open Questions
+     assumptions with thresholds, every `TBD` / `TBD-assumption`, and Open Questions grouped by
+     status (`deferred` / `unasked` / `external`) with their owners, so a question nobody has been
+     asked yet is visibly different from one the user consciously deferred
+     (@rules/open-questions.md §6)
    - Then a section per phase in pipeline order, each linking to its source file
    - Mermaid diagrams rendered inline; self-contained (inline CSS), no external assets beyond the
      Mermaid runtime
@@ -47,13 +50,15 @@ Produce one deliverable:
 | `reports/**/*.md` | Required | all prior skills | include whatever exists; note missing phases |
 | `work/pipeline-progress.json` | Required | `/product:init-output` | report the gate verdict; if absent, mark `TBD` |
 | `reports/00_core/assumptions.md` | Recommended | `/product:validate-assumptions` | assumptions section degrades to "not yet validated" |
-| `work/context.md` | Recommended | all skills | Open Questions section degrades to `TBD` |
+| `work/context.md` § Open Questions | Recommended | all skills | Open Questions section degrades to `TBD` |
 
 ## Process
 
 1. **Collect** — gather all `reports/**/*.md`, the gate verdict, assumptions, and Open Questions.
 2. **Build the header** — assemble "Key Assumptions & Validation Status" from the gate, open `ASM-`,
-   all `TBD`s, and Open Questions. Apply `@rules/product/review-and-report.md`.
+   all `TBD`s, and Open Questions grouped by status with owners; join each `TBD (OQ-…)` placeholder
+   to its question so the reader sees what is being assumed and who owes the answer. Apply
+   `@rules/product/review-and-report.md` and `@rules/open-questions.md`.
 3. **Assemble body** — one section per phase in pipeline order, linking source files; render Mermaid.
 4. **Self-contain** — inline CSS; verify no broken references.
 5. **Record** — write `full-report.html`; append a note to `work/context.md`.

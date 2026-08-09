@@ -7,9 +7,9 @@ For the product plugin, see [product-input-requirements.md](product-input-requir
 
 ## Common Principles
 
-- **Never fabricate.** Requirements and numbers must be grounded in an input document, an existing artifact, or a user answer. Unknowns are never guessed — they are recorded as `TBD` (Open Questions).
+- **Never fabricate.** Requirements and numbers must be grounded in an input document, an existing artifact, or a user answer. Unknowns are never guessed — they are **asked**: the skill offers 2-4 candidate answers via AskUserQuestion and the appended "Other" takes any answer the options cannot express, so you can always reply in your own words. Only what you defer, cannot answer in-session, or was never asked (`--auto`) is recorded as `TBD` (Open Questions), with its owner and impact. See [`rules/open-questions.md`](../rules/open-questions.md).
 - **Gap-driven elicitation.** Provided materials are read first; only items the materials do not answer are asked. The richer your inputs, the shorter the dialogue.
-- **Two execution modes.** Interactive (default) and `--auto` (skips elicitation, generates from input documents and existing artifacts only; unknowns become `TBD`). `--auto` errors out if there are no inputs at all.
+- **Two execution modes.** Interactive (default) and `--auto` (skips elicitation, generates from input documents and existing artifacts only; nothing is asked, so unknowns become `TBD` recorded as `unasked` — carrying the question and the options that would have been offered, so a later interactive pass can answer them). `--auto` errors out if there are no inputs at all.
 - **Output language.** Switched via `options.output_language` in `work/pipeline-progress.json` (`en` default / `ja`). The input material itself can be in any language (Japanese sources are fine).
 
 ## Purpose and Entry Points

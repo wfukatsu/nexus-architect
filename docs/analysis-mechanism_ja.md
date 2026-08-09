@@ -50,7 +50,11 @@ graph LR
   「資料で回答済み / 未回答」に分類したギャップリストを作る。
 - **Gap-driven elicitation**: ヒアリングは未回答項目だけ。資料が既に答えている内容を再質問しない。
 - **Never fabricate**: すべての要件は入力ドキュメント・既存成果物・ユーザー回答のいずれかに
-  根拠を持つ。不明値は捏造せず `TBD` として Open Questions に記録する。
+  根拠を持つ。不明値は捏造しない。
+- **Ask before TBD**: 資料で埋まらない項目は AskUserQuestion で質問する（候補 2〜4 個 +
+  自動付与の「Other」による自由入力）。`TBD` として Open Questions に記録されるのは、
+  保留・その場では回答不能・`--auto` で未質問のいずれかに該当するものだけ
+  （@rules/open-questions.md）。
 
 ## 3. コード解析の道具立て — AST 優先のツール階層
 
@@ -258,7 +262,8 @@ Global Transaction API / 2PC の選択は設計フェーズに委ねる）、
 
 指示文（`skills/define-requirements/SKILL.md`）:
 
-> - **Never fabricate requirements.** Every requirement must be grounded in an input document, an existing artifact, or a user answer. If a value is unknown, record it as `TBD` in Open Questions — do not guess.
+> - **Never fabricate requirements.** Every requirement must be grounded in an input document, an existing artifact, or a user answer. Never guess.
+> - **Ask before writing `TBD`.** An unknown the materials do not answer is put to the user with `AskUserQuestion` — 2–4 candidate answers derived from the materials, each described by what it changes downstream, with the harness-appended "Other" carrying any answer the options cannot express.
 > - **Gap-driven elicitation**: read all provided materials first, then ask only about items the materials did not answer.
 > - **Judge consistency requirements per business process**, not per system.
 
@@ -442,11 +447,12 @@ review-synthesizer は全視点の JSON を突合して統合する:
 |----------|----------------|------|
 | 可用性 | RFP「24/365、計画停止は月1回」 | NFR に反映（再質問しない） |
 | ピーク性能 | 議事録「セール時は通常の10倍」 | NFR に反映 |
-| p95 レイテンシ | 記載なし | **TBD** → Open Questions に記録 |
+| p95 レイテンシ | 記載なし | レンジ（`< 100ms` / `< 500ms` / `< 1s`）を選択肢に質問。正確な値は「Other」から自由入力。未回答なら **TBD** → Open Questions に記録 |
 | 決済の整合性 | 記載なし → ヒアリングで「強整合」と回答 | ACID 必須として記録（回答が根拠） |
 
-資料が答えた項目は再質問せず、未回答項目だけを質問する。
-不明のまま残る値は推測で埋めず TBD として明示する。
+資料が答えた項目は再質問せず、未回答項目だけを質問する。選択肢に収まらない回答は「Other」の
+自由入力で受け取り、原文のまま記録する（近い選択肢に丸めない）。質問しても埋まらなかった値だけを
+推測せず TBD として明示し、`OQ-` ID・状態・担当者を添える。
 
 ### トレーサビリティ — 出力ファイルのフロントマター例
 

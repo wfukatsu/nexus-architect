@@ -125,13 +125,22 @@ results — individual sub-agents only return their own findings (e.g. each revi
 When a skill asks a multiple-choice question (`AskUserQuestion`) or otherwise needs human
 input:
 
-1. Present the choices as a **numbered list**.
+1. Present the choices as a **numbered list**, followed by an explicit "or type your own
+   answer" line — Omnigent has no harness-appended "Other", so the free-text path must be
+   offered by hand.
 2. **Pause** the run and surface the question to the human via the orchestrator's gate.
-3. **Resume** when the human replies, using their selection.
+3. **Resume** when the human replies, using their selection. A reply matching no number is a
+   free-text answer: record it verbatim, never round it to the nearest choice.
+
+This is also how **Open Questions** are handled: an unknown a skill cannot resolve from its
+inputs is asked here, and only what the human defers, cannot answer in-session, or was never
+asked becomes a `TBD` — recorded with its `OQ-` ID, status and owner per
+`rules/open-questions.md`.
 
 When a skill is run with `--auto` (or a `--profile=...` in the product pipeline),
 interactivity is bypassed: pick the documented default for each gate and continue without
-pausing.
+pausing. Unresolved items are recorded as `unasked` Open Questions, carrying the question and
+the options that would have been offered.
 
 ## Hooks → Explicit Validation Gate
 
@@ -185,15 +194,6 @@ analysis themselves. To run a pipeline under Omnigent:
 The `disable-model-invocation: true` frontmatter on orchestrator files is a Claude Code
 hint; Omnigent ignores it and treats the file as the orchestration spec above.
 
-## Interaction Rules
-
-- **Non-invasive.** Do not modify `.claude-plugin/`, `CLAUDE.md`, `AGENTS.md`, the
-  `SKILL.md` bodies, `rules/`, `templates/`, or `hooks/`. Omnigent adds only this file and
-  the `tools/omnigent/` helpers; Claude Code compatibility is preserved.
-- Present `AskUserQuestion` choices as a numbered list and wait for the human's reply
-  (unless `--auto`).
-- Keep generated outputs in the documented output directories with YAML frontmatter.
-- After writing any report `.md` or Mermaid diagram, run **both** validation hooks and fix
 ## Product → Architect Handoff
 
 The two pipelines run one after the other in the same project directory: `/product:*` ends
@@ -227,6 +227,15 @@ and merge into what is there:
 reports them and stops: no architect skill is re-run and no architect artifact is rewritten
 (`docs/design.md` §7.5).
 
+## Interaction Rules
+
+- **Non-invasive.** Do not modify `.claude-plugin/`, `CLAUDE.md`, `AGENTS.md`, the
+  `SKILL.md` bodies, `rules/`, `templates/`, or `hooks/`. Omnigent adds only this file and
+  the `tools/omnigent/` helpers; Claude Code compatibility is preserved.
+- Present `AskUserQuestion` choices as a numbered list plus an "or type your own answer"
+  line, and wait for the human's reply (unless `--auto`).
+- Keep generated outputs in the documented output directories with YAML frontmatter.
+- After writing any report `.md` or Mermaid diagram, run **both** validation hooks and fix
   any non-zero exit before proceeding.
 
 ## ScalarDB / ScalarDL / ScalarDB Saga Knowledge Bundle

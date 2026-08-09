@@ -1,7 +1,7 @@
 ---
 description: |
   Report the actual token cost the agent recorded while running, straight from the ledger.
-  /architect:report-token-cost [--once] [--follow] [--session=ID] [--since=7d] [--breakdown=cost] [--ascii] [--ambiguous-width=2] [--md] [--json] [--lang=ja|en] to invoke.
+  /architect:report-token-cost [--once] [--follow] [--session=ID] [--since=7d] [--breakdown=tokens|cost] [--ascii] [--ambiguous-width=2] [--md] [--json] [--lang=ja|en] to invoke.
   Renders work/token-usage.json + work/token-usage.jsonl on the terminal — totals, per-phase
   and per-model cost (in / out / cache-read / cache-write columns), daily timeline, per-session
   cost with session names, and recent events. On a terminal it defaults to an interactive
@@ -45,7 +45,7 @@ One script does the whole job: `${CLAUDE_PLUGIN_ROOT}/tools/token-cost-report.sh
 | `/architect:report-token-cost` | `tools/token-cost-report.sh --once` | Render the report once (summary, per-phase, per-model, daily timeline, top sessions, recent events) |
 | `… --session=ID` | `--session=ID` | Print one session — cost, models, phases, and its transcript log (`ID` may be a prefix; `--log-tail=N` trims the log) |
 | `… --since=7d` | `--since=7d` | Limit timeline / sessions / events to a window (`24h`, `7d`, `30d`, `2026-07-01`, `all`) |
-| `… --breakdown=cost` | `--breakdown=cost` | Per-model in/out/cache-read/cache-write columns hold cost instead of token counts |
+| `… --breakdown=tokens` | `--breakdown=tokens` | What the per-model in/out/cache-read/cache-write columns hold. The live dashboard defaults to `cost` (money, in `$`); the static / `--md` report defaults to `tokens`, where the columns break down the token total that table already carries. Either default is overridden by passing the flag, and `b` toggles it live |
 | `… --md` | `--md` | Also write `reports/05_estimate/token-cost-actuals.md` (frontmatter per @rules/output-conventions.md) |
 | `… --json` | `--json` | Emit the aggregate as JSON for further processing |
 | `… --lang=ja` | `--lang=ja` | Force display language (default: `options.output_language`, else `en`) |
@@ -90,7 +90,7 @@ already non-interactive.
 user asks to watch cost live, do not run these yourself — tell them to run, prefixing with
 `!` inside Claude Code:
 
-- `tools/token-cost-report.sh` — interactive two-pane dashboard: the upper pane lists phases / models / sessions / days / events (`←→`, `Tab`, or `1`–`5` to switch view, `↑↓`/`j k` to select), the lower pane shows that row's detail — for a session, its transcript log including extended thinking. Re-checks the ledger every 10s and re-renders on change (`--watch=SEC` for another interval); `b` toggles the token/cost breakdown, `r` refreshes, `q` quits
+- `tools/token-cost-report.sh` — interactive two-pane dashboard: the upper pane lists phases / models / sessions / days / events (`←→`, `Tab`, or `1`–`5` to switch view, `↑↓`/`j k` to select), the lower pane shows that row's detail — for a session, its transcript log including extended thinking. Re-checks the ledger every 10s and re-renders on change (`--watch=SEC` for another interval); the per-model in/out/cache-read/cache-write columns are priced in `$` here, and `b` switches them to token counts (the bottom bar names the current unit), `r` refreshes, `q` quits
 - `tools/token-cost-report.sh --follow` — one line per recorded event as it is appended (`--follow=N` seeds with the last N, default 8)
 
 ## Session names and logs

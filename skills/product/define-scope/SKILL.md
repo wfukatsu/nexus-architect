@@ -30,7 +30,7 @@ Produce two deliverables:
 |---------------|----------|-------------|
 | `--constraints=<file\|text>` | Recommended | Budget / deadline / tech / legal / org constraints |
 | `--input=<file\|dir>` | Optional, repeatable | Additional source material |
-| `--auto` | Optional | Skip elicitation; unknowns → `TBD` |
+| `--auto` | Optional | Skip elicitation; unknowns → `TBD`, recorded `unasked` with the options that would have been offered (@rules/open-questions.md §5) |
 | `--lang` | Optional | Override output language |
 
 ## Decision Criteria
@@ -39,7 +39,9 @@ Produce two deliverables:
 - **No scope item may violate a constraint.** If it does, it is rejected or deferred with reason.
 - **RICE Impact ties to a metric, not a feeling** — reference `NSM-` IDs from
   `success-metrics.md` when it exists; otherwise note Impact is provisional (`TBD` basis).
-- **Never fabricate.** Unknown constraints become `TBD` in Open Questions.
+- **Never fabricate.** An unknown constraint is put to the user with AskUserQuestion — candidate
+  constraints as options, anything they cannot express via the appended "Other" — and becomes `TBD`
+  in Open Questions only if it stays unanswered (@rules/open-questions.md).
 - **Stop condition**: constraints are classified, and every candidate item is placed in
   In/Out-of-Scope with a MoSCoW band.
 
@@ -61,7 +63,8 @@ Produce two deliverables:
 5. **Draw boundary** — In-Scope / Out-of-Scope table; the Won't list is explicit.
 6. **Append traceability** — add `CON-`/`SCP-` nodes to `work/traceability.json` with upstream
    `VIS-`/`NSM-` references.
-7. **Record** — write both files; append decisions to `work/context.md`; log `TBD`s.
+7. **Record** — write both files; append decisions to `work/context.md`;
+   ask remaining unknowns and log only what stays open (@rules/open-questions.md).
 
 ## Output
 

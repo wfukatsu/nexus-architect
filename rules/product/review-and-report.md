@@ -31,7 +31,10 @@ content. It aggregates:
 - the gate verdict from `work/pipeline-progress.json` → `gates.validate-assumptions` (go / no-go)
 - untested / open assumptions (`ASM-` with no passing test) and their kill/pivot thresholds
 - every `TBD` and `TBD-assumption` across the artifacts
-- the Open Questions collected in `work/context.md`
+- the Open Questions collected in `work/context.md`, grouped by status — `deferred` (the user was
+  asked and chose to defer), `unasked` (never put to the user, e.g. an `--auto` run), `external`
+  (needs outside verification) — each with its owner and the `TBD`s it explains
+  (@rules/open-questions.md §6)
 
 This keeps the reader honest about what is decided vs. still a bet. Follow with a section per phase
 in pipeline order, each linking back to its source file. Keep it self-contained (inline CSS), no

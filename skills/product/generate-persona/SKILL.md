@@ -41,7 +41,9 @@ explicitly a **proto-persona** scaffold.
 - **Anchor to jobs, not demographics.** Every persona must carry at least one `JOB-` story.
 - **AI output is a scaffold.** Mark unvalidated claims `[proto]`; emotional validity is weak until
   research confirms it. Prefer research data wherever it exists.
-- **Never fabricate demographics or quotes.** Unknowns → `TBD` in Open Questions.
+- **Never fabricate demographics or quotes.** Ask the unknown with AskUserQuestion — free text via
+  the appended "Other" for anything the options cannot express — and record `TBD` in Open Questions
+  only for what stays unanswered (@rules/open-questions.md).
 - **Name a primary persona** — the product cannot be optimized for "everyone".
 - **Stop condition**: ≥1 job story per persona, each persona card complete (or `TBD`/`[proto]`),
   and a primary persona designated.
@@ -62,7 +64,9 @@ explicitly a **proto-persona** scaffold.
 4. **Prioritize** — designate the primary persona vs secondary / anti-personas.
 5. **Append traceability** — add `JOB-`/`PER-` nodes to `work/traceability.json` with Upstream
    `VIS-` references.
-6. **Record** — write the file; append decisions to `work/context.md`; log `TBD`/`[proto]` items.
+6. **Record** — write the file; append decisions to `work/context.md`; keep the `[proto]` markers on
+   unvalidated claims; ask remaining unknowns and log only what stays open
+   (@rules/open-questions.md).
 
 ## Output
 

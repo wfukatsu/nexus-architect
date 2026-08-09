@@ -97,7 +97,7 @@ When a skill asks to use Claude tools, Codex follows these mappings:
 | `Read`, `Glob`, `Grep`, `LS` | Use shell reads, `rg`, `rg --files`, `find`, or `ls` |
 | `Write`, `Edit`, `MultiEdit` | Edit files with `apply_patch` |
 | `Bash` | Run shell commands |
-| `AskUserQuestion` | Present numbered choices in chat and wait for the reply |
+| `AskUserQuestion` | Present numbered choices in chat, add an "or type your own answer" line, and wait for the reply |
 | `Task`, `Subagent` | Run in the main Codex thread unless the user explicitly asks for sub-agents |
 | `WebFetch`, `WebSearch` | Use Codex web access, Context7, or approved `curl` |
 
@@ -290,7 +290,7 @@ source of truth.
 | `/architect:render-mermaid` | Mermaid to PNG/SVG + syntax fix |
 | `/architect:estimate-cost` | Infrastructure, license, and operational costs |
 | `/architect:estimate-token-cost` | Token usage and USD cost of *running the agent* (a-priori from LOC, calibrated by recorded actuals) |
-| `/architect:report-token-cost` | Report the recorded actual agent cost from `work/token-usage.json`/`.jsonl` on the terminal — interactive two-pane dashboard by default (10s poll; pick a phase/model/session/day/event above, read its detail — a session shows its transcript log — below), `--once` single render, `--follow` event stream, `--session=ID` one session + its log, plus `--since`, `--breakdown=cost`, `--ascii` (ASCII bars for terminals that garble the Unicode ones), `--ambiguous-width=2` (terminals that render East Asian ambiguous characters double-width), `--debug`, `--md`, `--json` |
+| `/architect:report-token-cost` | Report the recorded actual agent cost from `work/token-usage.json`/`.jsonl` on the terminal — interactive two-pane dashboard by default (10s poll; pick a phase/model/session/day/event above, read its detail — a session shows its transcript log — below), `--once` single render, `--follow` event stream, `--session=ID` one session + its log, plus `--since`, `--breakdown=tokens\|cost` (the dashboard prices the in/out/cache columns in `$` by default; `b` toggles), `--ascii` (ASCII bars for terminals that garble the Unicode ones), `--ambiguous-width=2` (terminals that render East Asian ambiguous characters double-width), `--debug`, `--md`, `--json` |
 | `/architect:report-status` | Live terminal dashboard of pipeline progress: every phase's status (`stale` once an upstream phase changed after it finished), how many of its declared outputs exist, what is running now, unmet dependencies, per-phase cost — plus an action menu that generates the next command and an `a` key that asks Claude about the selected phase. `Tab` cycles its four views: **Product** and **Architect** (two pipelines, one tab each), **Code Generation** (the codegen phases of both plugins, which belong to neither pipeline tree) and **Backlog Delivery** |
 | `/architect:update-knowledge` | Fetch/update the OKF ScalarDB/ScalarDL knowledge bundle from remote (`--latest`, `--status`) |
 

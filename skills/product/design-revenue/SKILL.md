@@ -32,7 +32,7 @@ Produce two deliverables:
 | Argument/Flag | Required | Description |
 |---------------|----------|-------------|
 | `--input=<file\|dir>` | Optional, repeatable | Pricing material, financial assumptions, prior models |
-| `--auto` | Optional | Skip elicitation; unknowns → `TBD` / `TBD-assumption` |
+| `--auto` | Optional | Skip elicitation; unknowns → `TBD` / `TBD-assumption`, recorded `unasked` with the options that would have been offered (@rules/open-questions.md §5) |
 | `--lang` | Optional | Override output language |
 
 ## Decision Criteria

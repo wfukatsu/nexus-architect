@@ -53,7 +53,8 @@ Produce one deliverable:
 5. **Error budgets** — compute `1 − SLO`; state the policy.
 6. **Append traceability** — add `SLA-`/`SLO-` nodes to `work/traceability.json` with Upstream
    `FEAT-`/`POS-` references.
-7. **Record** — write the file; append decisions to `work/context.md`; log `TBD`s.
+7. **Record** — write the file; append decisions to `work/context.md`;
+   ask remaining unknowns and log only what stays open (@rules/open-questions.md).
 
 ## Output
 

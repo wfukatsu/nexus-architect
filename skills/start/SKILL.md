@@ -108,7 +108,8 @@ For long pipelines, periodically update `work/context.md`:
 - Key findings from investigation
 - Domain insights from analysis
 - Important decisions made during design
-- Unresolved questions
+- Open Questions — carried across phases under stable `OQ-` IDs, re-asked by the phase that needs
+  the answer rather than restated (@rules/open-questions.md §7)
 
 ## Dependency Manifest
 

@@ -551,8 +551,15 @@ def bar(frac, width):
 
 
 def money(value, currency="usd", fx=0.0):
+    # Anything nonzero stays visibly nonzero: rounding a real charge to "$0.0000" reads as
+    # "free", which is the one thing a cost column must never say by accident.
     if currency == "jpy" and fx > 0:
-        return "¥{:,.0f}".format(value * fx)
+        converted = value * fx
+        if 0 < converted < 1:
+            return "<¥1"
+        return "¥{:,.0f}".format(converted)
+    if 0 < value < 0.0001:
+        return "<$0.0001"
     if 0 < value < 0.01:
         return "${:.4f}".format(value)
     return "${:,.2f}".format(value)
@@ -602,6 +609,7 @@ LABELS = {
         no_transcript="transcript not found — the session log is unavailable",
         no_selection="nothing to select in this view",
         keys="↑↓ select · ←→/Tab view · PgUp/PgDn scroll detail · r refresh · q quit",
+        k_bd_cost="b columns: $", k_bd_tokens="b columns: tokens",
         refreshed="checked", watching="every {s}s", all_time="all time",
         ev_running="In progress", ev_completed="Completed", ev_flushed="Pending flushed",
         components="Components", contributors="Top contributors", used_by="Used by",
@@ -643,6 +651,7 @@ LABELS = {
         no_transcript="トランスクリプトが見つからないため、ログを表示できません",
         no_selection="この表示に選択できる項目がありません",
         keys="↑↓ 選択 · ←→/Tab 表示切替 · PgUp/PgDn 詳細スクロール · r 更新 · q 終了",
+        k_bd_cost="b 内訳列: $", k_bd_tokens="b 内訳列: トークン",
         refreshed="確認", watching="{s}秒間隔", all_time="全期間",
         ev_running="実行中", ev_completed="完了", ev_flushed="保留分を計上",
         components="内訳", contributors="主な内訳", used_by="使用箇所",

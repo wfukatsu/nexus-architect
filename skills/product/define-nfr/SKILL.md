@@ -52,7 +52,8 @@ Produce one deliverable:
 4. **Trace** — link each `NFR-` to its source `SLO-`.
 5. **Append traceability** — add `NFR-` nodes to `work/traceability.json` with Upstream `SLO-`/`CTX-`
    references.
-6. **Record** — write the file; append decisions to `work/context.md`; log `TBD`s.
+6. **Record** — write the file; append decisions to `work/context.md`;
+   ask remaining unknowns and log only what stays open (@rules/open-questions.md).
 
 ## Handoff
 
