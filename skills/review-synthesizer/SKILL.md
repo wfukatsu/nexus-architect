@@ -1,7 +1,7 @@
 ---
 description: |
   Consolidate parallel review results. Deduplicate findings, classify priorities, and determine quality gate verdict.
-  Handles variable input of 2-5 perspectives.
+  Handles variable input of 2-6 perspectives.
 model: sonnet
 user_invocable: true
 ---
@@ -27,7 +27,7 @@ Multiple reviewers may flag the same root cause from different angles.
 | Priority | Criteria |
 |----------|----------|
 | **P0 - Blocker** | Critical severity; causes data loss, security breach, or system failure |
-| **P1 - Must Fix** | Major from 2+ perspectives; major from risk or scalardb perspective |
+| **P1 - Must Fix** | Major from 2+ perspectives; major from risk, scalardb, or api-security perspective |
 | **P2 - Should Fix** | Major from only 1 perspective; minor common across 3+ perspectives |
 | **P3 - Consider** | Minor/info severity |
 
@@ -61,5 +61,5 @@ Headings: Verdict -> Score Summary -> P0 Blockers -> P1 Must Fix -> P2 Should Fi
 
 ## Variable Input Handling
 
-Operates with any combination of 2-5 perspectives.
+Operates with any combination of 2-6 perspectives.
 Reads the weights of enabled perspectives from `${CLAUDE_PLUGIN_ROOT}/skills/review-registry.json`, normalizes them, and aggregates scores.

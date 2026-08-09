@@ -44,6 +44,9 @@ tracked repository). It never edits nexus-architect itself.
   via AskUserQuestion. Never review-and-fix an item the user hasn't confirmed (unless `--auto`).
 - **Blocker vs non-blocker** — `[B]` blocks the PR/MR and triggers auto-fix. `[S]` (important) and
   `[Q]` (question) are recorded but do not block; surface them in the PR/MR description.
+- **The quality gate is a blocker source, not an advisory** — a FAIL verdict from
+  @rules/ai-code-quality-gate.md, and every `critical` finding from the API-security and conformance
+  stages, are `[B]` by definition. A gate FAIL cannot be argued down to `[S]` in the prose review.
 - **Convergence** — Stop the fix loop on zero blockers, on reaching `--max-fix-rounds` (default 3),
   or on no-progress (same blocker signature persists across two rounds, or the set oscillates).
   Never loop unbounded.
@@ -105,6 +108,19 @@ Collect, and hold in view for the review:
   duplication or conflict.
 - **Shared-context pack** — `architecture-guardrails.md`, `coding-standards.md`, `nfr-budgets.md`,
   `decisions.md`.
+
+### Step 2b — Run the quality gate
+Run `/architect:verify-implementation --gate --scope=changed --item=<local_id>` unless
+`implement-backlog` already produced a PASS for this exact commit range — the gate is cheap to skip
+and expensive to assume, so re-run it whenever the branch has moved since.
+
+Its result is **input to the review, not a parallel opinion**: every blocking `VER-` and `ASEC-`
+finding enters Step 3 as a `[B]`, and a gate verdict of FAIL means the Issue cannot reach Mergeable
+however clean the prose review looks. This is the check that catches what reading cannot — code that
+is plausible and does not do what the design said (@rules/ai-code-quality-gate.md).
+
+A CONDITIONAL verdict is carried into the review as `[S]` findings plus the recorded acceptance
+decision, so the human approving the PR/MR sees what was accepted rather than only what passed.
 
 ### Step 3 — Generate the review
 Write `reports/backlog/reviews/review-<issue>-round<R>.md` (required frontmatter, output language),

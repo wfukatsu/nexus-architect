@@ -104,7 +104,7 @@ Skill bodies mention Claude Code tools. Interpret them as Omnigent tools:
 
 ## `Task(...)` Blocks → Sequential Bodies or Orchestrator Dispatch
 
-Several skills (notably the 5-perspective parallel reviews and the migration routers)
+Several skills (notably the 6-perspective parallel reviews and the migration routers)
 spawn Claude sub-agents via `Task(...)`. Under Omnigent, for each `Task` prompt body:
 
 - **Default (sequential):** run each prompt body one after another in the same worker
@@ -260,6 +260,40 @@ mutually compatible release. Whether the resolved set is confirmed with the huma
 `work/pipeline-progress.json` as the project default (unset -> interactive runs ask, `--auto` runs
 adopt). Record the decision table in the artifact and in `work/version-decisions.json`. See
 [`rules/dependency-versions.md`](rules/dependency-versions.md).
+
+## API Contract Fidelity
+
+When a skill designs, generates, or reviews an HTTP API surface, the specification file under
+`reports/03_design/api-specifications/` is the **contract**, not an illustration of one. Generated or
+hand-written code may not add an endpoint, parameter, field, or status code the specification does
+not declare, may not contradict one it does, and a behaviour change edits the specification first.
+Every operation carries an `operationId` bound 1:1 to exactly one handler, and that binding is
+recorded in `reports/06_implementation/api-contract-map.json`, whose `unmapped` arrays are never
+omitted. Where code and contract disagree, **report the drift — do not silently reconcile it**. See
+[`rules/api-contract-fidelity.md`](rules/api-contract-fidelity.md).
+
+Every non-2xx response is an RFC 9457 Problem Details object served as `application/problem+json`,
+with its `type` drawn from the project's registry in
+`reports/03_design/api-specifications/problem-types.md`. A second, parallel error envelope anywhere
+in the project is a defect. `UnknownTransactionStatusException` never reaches a generic 500 handler:
+the commit may have succeeded, so it is 503 with `Retry-After` **only** when the operation is
+idempotency-key protected, and 500 with no retry hint and an explicit reconcile-don't-retry `detail`
+otherwise. See [`rules/api-error-standard.md`](rules/api-error-standard.md).
+
+## AI Code Quality Gate
+
+Generated or AI-written code passes an eight-stage gate before a human is asked to review it: build,
+unit tests, contract tests, integration tests, SAST, dependency scan, API security, and design↕code
+conformance. Under Omnigent the first six are `sys_os_shell` invocations and the last two are the
+`review-api-security` / `verify-implementation` skills.
+
+**Every stage produces evidence.** A stage passes when a command ran and exited zero, or when a skill
+returned findings — a worker's assessment that the code looks correct is not a stage result. A stage
+that did not run is recorded with its reason (`not-applicable` / `not-configured` / `skipped-by-user`),
+never omitted, because an omitted stage reads as a passed one. A FAIL verdict blocks the handoff to
+human review rather than becoming a note on it. See
+[`rules/ai-code-quality-gate.md`](rules/ai-code-quality-gate.md) and
+[`rules/api-security-checks.md`](rules/api-security-checks.md).
 
 ## Output Language
 

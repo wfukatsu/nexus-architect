@@ -56,7 +56,7 @@ For the inputs you should prepare before running each pipeline, see the
 | `/architect:design-scalardb` | opus | ScalarDB | Schema and transaction design |
 | `/architect:design-scalardb-analytics` | sonnet | Analytics Option | HTAP analytics platform design |
 | `/architect:design-data-layer` | opus | Non-ScalarDB | Generic DB design |
-| `/architect:design-api` | opus | - | REST/GraphQL/gRPC/AsyncAPI |
+| `/architect:design-api` | opus | - | REST/GraphQL/gRPC/AsyncAPI as a verifiable contract — named schemas, every status code declared, RFC 9457 problem-type registry, per-operation authorization/idempotency/timeout |
 
 ## Implementation
 
@@ -65,11 +65,12 @@ phases, in the listed order. Output lands under `generated/` (git-ignored, overw
 
 | Command | Model | Requires | Description |
 |---------|-------|----------|-------------|
-| `/architect:design-implementation` | opus | `reports/03_design/` | Implementation specifications (services, repositories, VOs) |
-| `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/unit/integration test specifications |
+| `/architect:design-implementation` | opus | `reports/03_design/` | Implementation specifications — API layer (controller/DTO/validation/mapper, transaction boundary, authorization point) plus services, repositories, VOs |
+| `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/contract/unit/integration/performance test specifications |
 | `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB code generation |
 | `/architect:generate-infra-code` | sonnet | `reports/08_infrastructure/` | K8s/Terraform/Helm code generation |
 | `/architect:generate-docs` | sonnet | generated/implemented code | README + `docs/` for generated/implemented code (runs after codegen; Step 5b of implement-backlog) |
+| `/architect:verify-implementation` | opus | generated/implemented code + design | Design ↕ code conformance on four axes (contract, transaction, security, requirement); `--gate` runs the eight-stage AI code quality gate (Step 5c of implement-backlog) |
 
 ## Backlog Delivery
 
@@ -100,6 +101,7 @@ merges).
 | `/architect:review-data-integrity` | sonnet | DIN- | Data integrity (non-ScalarDB) |
 | `/architect:review-operations` | sonnet | OPS- | Operational readiness |
 | `/architect:review-risk` | opus | RSK- | Distributed system risks |
+| `/architect:review-api-security` | opus | ASEC- | OWASP API Security Top 10, tenant isolation, transaction-boundary security; `--mode=code` re-runs it against the implemented source |
 | `/architect:review-business` | sonnet | BIZ- | Business requirements |
 | `/architect:review-synthesizer` | sonnet | SYN- | Consolidation and quality gate |
 
@@ -108,7 +110,7 @@ merges).
 | Command | Model | Description |
 |---------|-------|-------------|
 | `/architect:design-infrastructure` | opus | K8s, IaC, multi-environment |
-| `/architect:design-security` | sonnet | Authentication, authorization, secrets management |
+| `/architect:design-security` | sonnet | Authentication, object-level authorization, tenant isolation, secrets management, OWASP API Security Top 10 mapping |
 | `/architect:design-observability` | sonnet | Monitoring, tracing, alerting |
 | `/architect:design-disaster-recovery` | sonnet | RTO/RPO, backup, DR |
 

@@ -1,0 +1,180 @@
+---
+description: |
+  Verify that the code that exists actually implements the design — API contract, transaction placement,
+  security controls, and requirement coverage — and report every divergence instead of smoothing it over.
+  Optionally runs the AI code quality gate.
+  /architect:verify-implementation [target_path] [--service=<name>] [--scope=changed|service|repo]
+  [--source-root=<path>] [--gate] [--item=<backlog-id>] [--auto] [--lang=en|ja] to invoke.
+  Runs after code generation or backlog implementation, and as the conformance stage of the quality gate.
+model: opus
+user_invocable: true
+disable-model-invocation: true
+---
+
+# Implementation Verification (Design ↕ Code)
+
+## Desired Outcome
+
+A conformance report that answers one question the rest of the pipeline never asks: **does the code
+that exists do what the design said it would?**
+
+Design review checks the design. Code review checks whether the code looks right. Neither compares
+them. That gap is where generated code fails — a model produces plausible code far more reliably
+than correct code, and plausible code survives reading. This skill executes the comparison.
+
+Four conformance axes, each producing findings with the `VER-` prefix:
+
+1. **Contract conformance** — code against the API specification
+2. **Transaction conformance** — code against the transaction and saga design
+3. **Security conformance** — code against the security design's declared controls
+4. **Requirement conformance** — code and tests against the requirement graph
+
+## Decision Criteria
+
+- **Report drift; never silently reconcile it.** When code and design disagree, this skill does not
+  edit either one. It names both sides and the difference. Which one is wrong is a decision the user
+  makes — the code may be deliberate work the design has not caught up with
+  (@rules/api-contract-fidelity.md §6).
+- **Absence of evidence is a finding, not a pass.** An operation with no test, a transaction boundary
+  that cannot be located, a security control whose enforcement point cannot be found — each is
+  reported as unverifiable at the severity its subject warrants, never omitted.
+- **A design that cannot be verified against is a finding against the design.** A specification with
+  inline anonymous schemas, undeclared status codes, or operations with no declared authorization
+  fails @rules/api-contract-fidelity.md §3; report it as a contract-quality finding rather than
+  guessing what was meant.
+- **Read the code, not the summary.** Never conclude conformance from a generation run's report of
+  what it did.
+
+## Prerequisites
+
+| File | Required/Recommended | Source |
+|------|---------------------|--------|
+| The source tree under verification | Required | `generated/` for a scaffold, the project's real source tree for backlog delivery. Resolved per `--source-root`, then `api-contract-map.json`'s `source_root`, then the project's Output Location |
+| reports/03_design/api-specifications/ | Required when an API surface exists | /architect:design-api |
+| reports/03_design/api-specifications/problem-types.md | Required when an API surface exists | /architect:design-api |
+| reports/03_design/api-specifications/operation-contracts.md | Required when an API surface exists | /architect:design-api |
+| reports/06_implementation/api-layer-spec.md | Recommended | /architect:design-implementation |
+| reports/06_implementation/api-contract-map.json | Recommended | /architect:generate-api-code or /architect:implement-backlog — when absent, this skill derives the mapping itself and reports that it had to |
+| reports/03_design/scalardb-transaction.md | Required when scalardb_enabled | /architect:design-scalardb |
+| reports/08_infrastructure/security-design.md | Recommended | /architect:design-security |
+| reports/07_test-specs/ | Recommended | /architect:generate-test-specs |
+| work/traceability.json | Recommended | requirement graph for axis 4 |
+
+## Knowledge Grounding
+
+Transaction and exception claims are checked against the project's pinned ScalarDB release in the OKF
+bundle (@rules/okf-knowledge-bundle.md), not against memory — retryability, available cross-service
+mechanisms, and config keys differ by version and edition. Cite the concept `resource` URL when a
+finding depends on documented behavior.
+
+## Steps
+
+### Step 1 — Resolve scope and inputs
+
+Resolve the source root (see Prerequisites), the specification set, and the change scope:
+`--scope=changed` (default when a working branch exists — diff against the base), `service`, or `repo`.
+Record what was in scope; a narrow scope reported as a full verification is the failure mode to avoid.
+
+### Step 2 — Build the contract map
+
+Read `reports/06_implementation/api-contract-map.json` if present, and **verify it against the code**
+rather than trusting it — it is an input to check, not a source of truth. When it is absent, derive
+the mapping by reading the controllers.
+
+Produce, per @rules/api-contract-fidelity.md §4, the full operation list plus both `unmapped` arrays.
+Rewrite the map file with what was actually found.
+
+### Step 3 — Contract conformance (`VER-1xx`)
+
+Per operation, against the specification:
+
+| Check | Finding when |
+|-------|--------------|
+| Handler binding | An `operationId` has no handler, has more than one, or a handler serves no operation (`unmapped`) — the second is **critical**, the third is both a contract and an inventory finding (@rules/api-security-checks.md API9) |
+| Method and path | The route the code registers differs from the specification |
+| Request shape | A DTO field the schema does not declare, a declared field absent, a required/optional mismatch, a type mismatch |
+| Validation | A schema constraint with no corresponding Bean Validation annotation, or the request DTO not validated at the boundary |
+| Response shape | Same checks on the response DTO; a property the schema does not declare is also an excessive-data-exposure finding |
+| Status codes | A status the code can return that the contract does not declare, or a declared status unreachable in code |
+| Error envelope | Any non-2xx response that is not RFC 9457 Problem Details, any `type` with no registry row, any registry row unreachable (@rules/api-error-standard.md §7) |
+| `UnknownTransactionStatusException` | Handled by a generic branch, mapped to a `Retry-After`-bearing 503 on an operation with no idempotency protection, or rolled back — **blocker severity** (@rules/api-error-standard.md §3.1) |
+| Idempotency | An operation with a declared `Idempotency-Key` obligation whose key is not read, or whose idempotency record is written outside the business transaction |
+
+### Step 4 — Transaction conformance (`VER-2xx`)
+
+Against `scalardb-transaction.md` (or the data-layer design) and the saga definitions:
+
+- An operation the design places inside **one** transaction implemented as two or more, or as
+  non-transactional writes — **critical**, this is silent data corruption.
+- A transaction boundary in code that does not exist in the design.
+- A read-modify-write with no transaction, or a transaction never committed (including read-only
+  transactions, which must still commit).
+- Conflict exceptions reaching the API layer with no retry applied first
+  (@rules/api-error-standard.md §3).
+- Catch order wrong — a parent caught before its conflict subclass, making the conflict branch
+  unreachable (@rules/scalardb-exception-handling.md).
+- A saga step with no compensation, a compensation that is not idempotent, or a compensation that
+  drops the authorization or tenant scoping its forward step applied.
+- 2PC: prepare / validate / commit / abort not all present on a participant; a 2PC transaction
+  spanning more services than the design allows.
+- A cross-service transaction using a mechanism the pinned release or edition does not provide.
+
+### Step 5 — Security conformance (`VER-3xx`) — delegate
+
+Spawn `review-api-security --mode=code` over the same scope and adopt its `ASEC-` findings as this
+axis, rather than re-deriving them. Report the delegation, and report explicitly when it could not
+run — a security axis that silently did not execute is the failure this skill exists to prevent.
+
+### Step 6 — Requirement conformance (`VER-4xx`)
+
+Against `work/traceability.json` and the test specs: every `FR-` in scope reachable to code; every
+acceptance criterion reachable to at least one test; every `operationId` covered by a contract test.
+A requirement with no implementation and an implementation with no requirement are both findings.
+
+### Step 7 — Quality gate (`--gate` only)
+
+Run the eight stages of @rules/ai-code-quality-gate.md, using axes 1–4 above as stage 8 and the
+delegated `ASEC-` findings as stage 7. Execute stages 1–6 as real commands and record exit codes.
+Write `reports/09_verification/quality-gate.{json,md}`.
+
+Never report a stage as passed without its evidence, and never omit a stage without its reason.
+
+### Step 8 — Write the report
+
+Write both outputs, then print a summary: verdict, finding counts by severity and axis, and the
+blocking IDs.
+
+## Output
+
+Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+
+| File | Content |
+|------|---------|
+| `reports/09_verification/design-code-conformance.md` | Findings by axis, each with file:line, the design statement it contradicts, the failure scenario, and the fix |
+| `reports/09_verification/design-code-conformance.json` | The same findings, machine-readable, for the gate and the fix loop |
+| `reports/06_implementation/api-contract-map.json` | Rewritten with what the code actually binds (Step 2) |
+| `reports/09_verification/quality-gate.{json,md}` | `--gate` only — the eight-stage gate result |
+
+## Acceptance Criteria
+
+- Every finding names a file and line, the design artifact and statement it contradicts, and a
+  concrete failure scenario — a finding that cannot state one is reported as `info`, not inflated
+- Both `unmapped` arrays in the contract map are present and populated from the code
+- No design artifact and no source file was edited by this skill
+- Every axis reports a result, including "not applicable" with its reason — an axis that did not run
+  is never absent from the report
+- Under `--gate`, every stage carries either evidence or a recorded skip reason
+
+## Related Skills
+
+| Skill | Relationship |
+|-------|-------------|
+| /architect:design-api | Input source — the contract |
+| /architect:design-implementation | Input source — the API layer specification |
+| /architect:design-scalardb | Input source — transaction placement |
+| /architect:design-security | Input source — declared controls |
+| /architect:review-api-security | Delegated to for the security axis |
+| /architect:generate-api-code | Verification target |
+| /architect:generate-scalardb-code | Verification target |
+| /architect:implement-backlog | Calls this as Step 5c |
+| /architect:review-issue | Consumes the findings as `[B]` blockers |

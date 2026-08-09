@@ -121,7 +121,7 @@ See the [architect Input Requirements](architect-input-requirements.md) for the 
 ### 4. Running Reviews
 
 ```bash
-# 5-perspective parallel review (after design is complete)
+# 6-perspective parallel review (after design is complete)
 # /architect:pipeline runs this automatically, but you can also run it individually
 ```
 

@@ -26,6 +26,14 @@
       "model": "sonnet"
     },
     {
+      "name": "api-security",
+      "skill": "review-api-security",
+      "weight": 0.22,
+      "id_prefix": "ASEC",
+      "conditions": "always",
+      "model": "opus"
+    },
+    {
       "name": "operations",
       "skill": "review-operations",
       "weight": 0.20,

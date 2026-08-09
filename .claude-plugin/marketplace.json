@@ -12,7 +12,7 @@
     {
       "name": "architect",
       "strict": false,
-      "description": "System architecture agent for legacy refactoring, greenfield design, database migration (Oracle/MySQL/PostgreSQL to ScalarDB), and consulting deliverables. Includes 5-perspective parallel review system, MMI/DDD evaluation frameworks, and full code generation pipeline.",
+      "description": "System architecture agent for legacy refactoring, greenfield design, database migration (Oracle/MySQL/PostgreSQL to ScalarDB), and consulting deliverables. Includes 6-perspective parallel review system, MMI/DDD evaluation frameworks, and full code generation pipeline.",
       "version": "0.23.3",
       "author": {
         "name": "Wataru Fukatsu",
@@ -62,6 +62,7 @@
         "./skills/generate-scalardb-code",
         "./skills/generate-infra-code",
         "./skills/generate-docs",
+        "./skills/verify-implementation",
         "./skills/design-infrastructure",
         "./skills/design-security",
         "./skills/design-observability",
@@ -72,6 +73,7 @@
         "./skills/review-operations",
         "./skills/review-risk",
         "./skills/review-business",
+        "./skills/review-api-security",
         "./skills/review-synthesizer",
         "./skills/report",
         "./skills/review-report",

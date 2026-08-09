@@ -263,6 +263,30 @@ and, when fixing the drift is out of this Issue's scope, also queued via
 only when the item changes no documented surface (e.g. an internal-only refactor with no behaviour,
 config, interface, or command change) — say so in the Step 7 comment when skipped.
 
+### Step 5c — Quality gate (before a human is asked to look)
+Run the eight-stage gate of @rules/ai-code-quality-gate.md over the item's change, via
+`/architect:verify-implementation --gate --scope=changed --source-root=<resolved root>
+--item=<local_id> [--auto]`. It builds, runs the unit / contract / integration suites, runs SAST and
+the dependency scan, delegates the API-security stage to `/architect:review-api-security --mode=code`,
+and checks the change against the design on all four conformance axes.
+
+Two rules make this a gate rather than a report:
+
+1. **Evidence, not judgment.** A stage passes when a command ran and exited zero, or when a skill
+   returned findings. "It looks correct" is not a stage result, and a stage that did not run is
+   recorded with its reason (`not-applicable` / `not-configured` / `skipped-by-user`) — never omitted,
+   because an omitted stage reads as a passed one.
+2. **FAIL blocks the handoff.** On FAIL, route the blocking `VER-`/`ASEC-` findings back to the Step 5
+   implementer sub-agents and re-run the gate. Do not proceed to Step 6 with an unresolved FAIL and do
+   not open a PR/MR from a failing item — the whole point is that a human is never asked to review
+   code that has not passed. If it will not converge, stop and take it to the user, the same way
+   `review-issue` handles a non-converging fix loop.
+
+CONDITIONAL requires an explicit decision recorded on the Issue naming what was accepted and why; it
+never becomes a PASS by default. Attach `reports/09_verification/quality-gate.md` to the Step 7 comment.
+
+Skip only when the item ships no code (a docs-only or config-only item) — and say so in Step 7.
+
 ### Step 6 — Review (lightweight + on-demand)
 1. **Self-review** — done by each Step 5 implementer sub-agent against the item's acceptance
    criteria and the shared guardrails; the orchestrator only collates the notes.
