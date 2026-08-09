@@ -7,6 +7,73 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 3 つのプラグイン（`product`・`architect`・`scalardb`）は同一の番号で一括リリースされます。
 
+## [0.24.0] - 2026-08-09
+
+### 追加
+- **OpenAPI ドキュメントが「レポート」から「強制力のある契約」になりました。** 本ツールキットは API 設計は
+  十分に行える一方、そのコードが設計どおりかを判定する手段を持っていませんでした。`design-api` が OpenAPI を
+  出力し、`generate-scalardb-code` が Entity・Repository・ドメインサービスを出力する — その間のレイヤーを
+  生成するものも検査するものも存在せず、Controller も DTO もバリデーションもエラーハンドラも生成されず、
+  コードと設計を突き合わせる工程もありませんでした。AI が書いたコードではここが決定的です。モデルは
+  「正しいコード」よりはるかに高い確率で「もっともらしいコード」を生成し、もっともらしいコードは
+  レビューを通過してしまうからです。新規ルール 4 本と新規スキル 4 本でこれを塞ぎます。
+- `rules/api-contract-fidelity.md` — 仕様ファイルが契約そのもの。コードは契約を超えてはならず、矛盾しても
+  ならず、振る舞いを変えるときはまず仕様を変更します。`operationId` が結合キーとしてハンドラと 1:1 で束縛され、
+  `reports/06_implementation/api-contract-map.json` に記録されます（`unmapped` 配列は決して省略しません）。
+  コードと契約が食い違ったときは**報告し、勝手に整合させません** — `generate-docs` が既に守っている原則と同じです。
+- `rules/api-error-standard.md` — RFC 9457 Problem Details を唯一のエラー表現とし、プロジェクトごとの
+  problem type レジストリをトレーサビリティグラフや Open Questions ストアと同じ規律で割り当てます。ScalarDB
+  例外のマッピングもここに含み、特に影響が大きいのが `UnknownTransactionStatusException` の扱いです。単純な
+  500 でも一律の 503 でもありません。commit は成功しているかもしれないため、冪等キーで保護された operation の
+  場合**のみ** 503 + `Retry-After`、そうでなければ retry ヒントなしの 500 と「retry せず突合せよ」を明示した
+  `detail` を返します。
+- `rules/api-security-checks.md` — OWASP API Security Top 10 (2023) を具体的なチェックに落とし、各項目を
+  「設計の問い」と「コードの問い」に分割しました（両者は独立に失敗するため）。加えて、汎用スキャナには
+  見えないマルチテナントおよびトランザクション境界のケースを含みます。
+- `rules/ai-code-quality-gate.md` — 人間にレビューを依頼する前の 8 段ゲート。チェックリストではなくゲートたら
+  しめているのは、**各段が必ず証跡を残す**点です（exit code 付きのコマンド、または findings を返した Skill）。
+  未実行の段は理由付きで記録します。省略された段は「合格した段」に読めてしまい、ゲートが無いより悪いためです。
+  FAIL は PR 上の注記ではなく、レビュー引き渡しそのものをブロックします。
+- `/architect:verify-implementation` — 設計 ↕ コードの差分検出エンジン。4 軸で検査します。契約（ハンドラ束縛、
+  DTO の形、ステータスコード、エラー表現、不定コミット分岐）、トランザクション（設計が 1 トランザクションと
+  した処理が実際に 1 つか。retry、catch 順序、Saga 補償、2PC の完全性）、セキュリティ
+  （`review-api-security --mode=code` に委譲）、要件（`FR-` → コード、受入基準 → テスト）。本スキルは何も
+  編集しません。食い違いは双方を提示するだけで、どちらが誤りかの判断はユーザーのものだからです。`--gate` で
+  8 段ゲートを実行します。
+- `/architect:review-api-security` — OWASP API Top 10 の 3 次元レビュー。並列設計レビューの **6 本目**として、
+  また `--mode=code` でゲートのセキュリティ段として動作します。2 つのモードは冗長ではありません。正しい
+  ゼロトラスト設計を持ちながら、パスパラメータを信用する Controller を出荷することはあり得るからです。
+- `/architect:generate-api-code` — 契約から API レイヤーを生成。`operationId` ごとに Controller メソッドを 1 本、
+  DTO 名は `components/schemas` のキーから、Bean Validation はスキーマ制約から**導出**（選択ではなく）、
+  DTO↔ドメインのマッパーは明示的に生成します（リクエストボディを Entity に直接バインドするのが mass assignment
+  欠陥そのもののため）。RFC 9457 ハンドラは不定コミット分岐を含みます。仕様が宣言していないものは生成せず、
+  契約に不足があれば「もっともらしい推測」で埋めずに停止して確認します。ScalarDB 非依存です。
+- `/architect:generate-contract-tests` — 契約を実行可能なアサーションに変換。インプロセス OpenAPI 検証
+  （既定は `swagger-request-validator` + `@WebMvcTest`、Schemathesis / Pact / ArchUnit は記録されたオプトイン）、
+  Problem Details 適合、認可、冪等性、不定コミット契約、そして unmapped が 1 件でもあれば落ちるインベントリ
+  アサーション。期待値は必ず仕様から取り、実装からは決して取りません。実装に合わせて書いたテストは実装が
+  何をしても通ってしまうためです。
+
+### 変更
+- `design-api` を Contract Verifiability チェックリスト中心に全面改稿 — 名前付きスキーマ、全ステータスコードの
+  宣言、制約はスキーマに記述、operation ごとの認可 / 冪等性 / タイムアウト。各項目は「それが無いと特定の下流
+  チェックが不可能になる」から存在します。新規出力は `problem-types.md` と `operation-contracts.md`。
+- `design-implementation` に `api-layer-spec.md` を追加 — `operationId` ごとのハンドラ、DTO、バリデーション、
+  マッパー、トランザクション境界、認可の実施点。
+- `generate-test-specs` は契約テストを独立カテゴリ化して `contract-test-specs.md` を出力し、選択したテスト
+  スタックを記録します（`generate-contract-tests` が記録どおりに生成するため）。
+- `design-security` にオブジェクトレベル認可、テナント分離モデル、OWASP API Security Top 10 マッピングを追加。
+  コード時レビューが白紙ではなくベースラインを持って始められます。
+- `generate-scalardb-code` にパッケージ境界を明記 — 本スキルは `domain/` と `infrastructure/`、`api/` は
+  `generate-api-code`。ドメイン生成器から Controller を出すと、束縛されない 2 つ目の API 面が生まれます。
+- `generate-infra-code` が品質ゲートの CI ワークフローを出力。セッション内ゲートは高速フィードバック、CI は
+  実際に強制される側なので、生成ジョブに `continue-on-error` や `|| true` を付けることを禁止しています。
+- `implement-backlog` に Step 5c、`review-issue` に Step 2b を追加。人間に見てもらう前にゲートを実行し、
+  ブロッキングな `VER-` / `ASEC-` findings を `[B]` として既存の自動 fix ループに流します。
+- コード生成の後続順序が **生成 → テスト → ドキュメント → 検証**に、並列設計レビューが 5 視点から 6 視点に
+  なりました。README、`CLAUDE.md`、`AGENTS.md`、`OMNIGENT.md`、両言語のスキルリファレンスと
+  getting-started ガイドを更新しています。
+
 ## [0.23.3] - 2026-08-09
 
 ### 変更
