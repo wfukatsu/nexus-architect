@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
+## [0.24.3] - 2026-08-09
+
+### Fixed
+- **Four ScalarDB API traps, found by running the transactions instead of reading them.** The quality
+  gate names stage 4 — integration tests, "including the transaction scenarios the design requires:
+  OCC conflict, 2PC failure, saga compensation" — and until now this repo had never run it. It does
+  now: 25 tests against a real ScalarDB 3.19.0 engine (SQLite storage, in-process, no container),
+  exercising TX-001..TX-004 from the reference transaction design. Every defect below was invisible
+  to the contract suite and to an independent static reviewer, and appeared the moment the code
+  executed.
+- **A `Put` with no preceding `Get` is an INSERT.** Consensus Commit infers insert-vs-update from
+  whether the transaction read the record, attaching an implicit `PutIfNotExists` when it did not. A
+  blind `Put` on an existing record therefore fails at `commit()` — not at `put()` — with
+  `DB-CORE-20013: The record being prepared already exists`, a **conflict** error that reads like
+  contention and that no retry can clear. The existing "Put is deprecated" section said what to use
+  instead but never what goes wrong; `scalardb-crud-patterns.md` now carries the behaviour table and
+  the read-before-write rule, and `verify-implementation` axis 2 checks for it.
+- **`join(txId)` resolves within the manager it is called on.** Calling it on the manager that began
+  the transaction returns *that same transaction*, so the second `prepare()` throws
+  `The transaction is not active. Status: PREPARED`. Production hides this because each service owns
+  its own manager; it bites tests and single-process prototypes, where one manager and two variables
+  is the natural thing to write — and a 2PC test built that way does not exercise 2PC at all.
+- **2PC protocol misuse is unchecked.** `commit()` before `prepare()` throws `IllegalStateException`,
+  not a `TransactionException`. A handler written as `catch (TransactionException e)` never sees it,
+  so it escapes as an unhandled 500 with a framework error page — a §4 detail-disclosure problem as
+  well as a mapping gap. It is a server defect rather than a transaction outcome, so it maps to a
+  generic internal error and never to `transaction-failed`.
+- **`clusteringKey(...)` is a setter, not an appender.** Chaining it once per column silently keeps
+  only the last call, and the operation fails at execution with `DB-CORE-10021: The clustering key is
+  not properly specified`. A composite clustering key is one `Key` carrying every column in declared
+  order.
+
+### Changed
+- `rules/ai-code-quality-gate.md` now states why **stage 4 is not substitutable by stages 3 and 8**.
+  Contract tests prove the shape of the response; conformance review proves the code says what the
+  design said. Neither runs a transaction against a real engine, and the blind-`Put` defect is the
+  case in point: legal Java, reviews cleanly, cannot commit.
+- `generate-test-specs` now places the transaction scenarios in the **integration** specs rather than
+  the contract specs, and names the one-manager-per-participant requirement, so a generated 2PC
+  scenario is not vacuous.
+
+### Verified
+The scenarios that passed are now demonstrated rather than asserted: a stale writer loses and the
+winner's write survives; two concurrent confirms serialize so exactly one succeeds and the loser
+fails cleanly instead of silently double-applying; the service's retry absorbs a conflict that
+clears; a participant whose `prepare()` conflicts forces every participant to roll back, with no
+order committed against unreserved stock; a partial prepare leaves nothing behind; a saga compensates
+in reverse when a later step fails; a compensation replayed under redelivery does not inflate stock;
+and a step with no compensation leaks its effect — the defect a design review is meant to catch.
+
+The saga tests exercise the saga **pattern** over ScalarDB local transactions. They are not ScalarDB
+Saga the product (3.19.0-alpha.1), which is not a dependency here.
+
 ## [0.24.2] - 2026-08-09
 
 ### Fixed
