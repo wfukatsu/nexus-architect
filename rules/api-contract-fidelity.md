@@ -105,8 +105,42 @@ source tree for backlog delivery):
 ```
 
 `unmapped` is the part that matters. It is **never omitted and never silently empty** — a generator
-that cannot bind an operation records it there rather than dropping it. Both arrays empty is the
-only passing state, and it is an assertion `verify-implementation` makes, not a hope.
+that cannot bind an operation records it there rather than dropping it.
+
+### The map has a scope, and the scope is declared
+
+`handlers_without_spec_operation` is only meaningful against a stated scope. A greenfield scaffold
+emits one service and legitimately reports an empty array; a brownfield tree — the legacy-refactoring
+case this toolkit exists for — contains controllers that predate the contract, and there the same
+empty array is a lie. Declare the scope so the two cases are distinguishable:
+
+```jsonc
+"scope": {
+  "packages": ["com.example.ec.order.api"],      // what this map claims to cover
+  "route_prefixes": ["/orders"],
+  "out_of_scope_handlers": [                      // reachable, deliberately not covered here
+    {"handler": "com.example.ec.catalog.ProductController", "routes": ["/api/products/**"],
+     "why": "pre-existing monolith surface; no contract yet"}
+  ]
+}
+```
+
+Rules:
+
+1. **`out_of_scope_handlers` is derived from the source tree, not from intent.** Enumerate the
+   routes that actually exist, then classify. A handler that appears in neither `operations` nor
+   `out_of_scope_handlers` is a bug in the map.
+2. **Out of scope is not absolved.** Each entry is still reported — as a contract gap by
+   `verify-implementation` and as an inventory finding by `review-api-security`
+   (@rules/api-security-checks.md API9, where an undocumented endpoint is an unreviewed one). The
+   field records that the omission was *seen and named*, not that it is acceptable.
+3. **Both `unmapped` arrays empty, with every reachable route accounted for by `operations` or
+   `out_of_scope_handlers`, is the only passing state** — and it is an assertion, not a hope.
+
+**A consumer must never conclude coverage from the map alone.** The map is a claim by whoever wrote
+it; `verify-implementation` and the generated inventory test both derive the route list from the code
+and compare, because a generator that mis-scoped produces a map that passes its own check. This is
+not hypothetical: it is the defect the first end-to-end run of this pipeline produced.
 
 The `transaction` field joins each operation to the transaction design (`scalardb-transaction.md` /
 the saga definition), and `traces_to` joins it to the requirement graph. Together they are what let
@@ -155,7 +189,7 @@ A contract is only enforced to the extent something executable checks it. One de
 
 | Tier | Stack | When |
 |------|-------|------|
-| **Default (Spring)** | `swagger-request-validator` (Atlassian) driven from `@WebMvcTest` / `@SpringBootTest` slices | Always, for a Spring service. Every request and response the tests exercise is validated against the OpenAPI document in-process — no running server, no separate pipeline stage, and it fails at the assertion rather than in review |
+| **Default (Spring)** | Atlassian's OpenAPI request validator, MockMvc integration, driven from `@WebMvcTest` / `@SpringBootTest` slices | Always, for a Spring service. Every request and response the tests exercise is validated against the OpenAPI document in-process — no running server, no separate pipeline stage, and it fails at the assertion rather than in review |
 | Opt-in: runtime fuzzing | Schemathesis against a running instance | When the API is externally exposed, or the schema has enough constraint surface that property-based generation finds cases the examples do not |
 | Opt-in: consumer-driven | Pact | When named internal consumers exist and their expectations must gate the provider's deploy — inter-service surfaces, not public ones |
 | Opt-in: architecture | ArchUnit | Layering and dependency-direction rules from the API layer specification. Not contract testing strictly, but it is what stops a controller reaching past the application service into a repository, and it runs in the same suite |
@@ -168,6 +202,35 @@ time so the two agree.
 For a non-Spring or non-JVM service, choose the equivalent in-process OpenAPI validator for the
 framework and record it the same way — the requirement is in-process validation of every exercised
 request and response, not a specific library.
+
+### Resolving the validator coordinate (do not write it from memory)
+
+Two traps, both hit on the first real run of this pipeline. Resolve per
+@rules/dependency-versions.md and check **both** before pinning:
+
+1. **The artifact was renamed.** Atlassian publishes the same library under two coordinate families —
+   the original `com.atlassian.oai:swagger-request-validator-*` and the newer
+   `com.atlassian.oai:openapi-request-validator-*`. The MockMvc integration is the `-mockmvc`
+   artifact; there is **no** `-spring-mvc` artifact under either name, and pinning one yields an
+   unresolvable dependency. List the group directory rather than assuming the module name.
+2. **Check the artifact's JDK baseline against the project's.** The `3.x` line is compiled for
+   Java 21 (class file major 65); a Java 17 project fails to compile against it with
+   `bad class file … version 65.0 … should be 61.0`. The `2.x` line is a Java 8 baseline and is the
+   correct pin for a Java 17 service. This is @rules/dependency-versions.md §2 "compatibility gates
+   the choice" in its most literal form — the newest release is not the compatible one.
+
+Verify the baseline mechanically rather than by assumption: the two bytes at offset 6 of any
+`.class` in the jar are the major version (61 = Java 17, 65 = Java 21), and it must be **≤** the
+project's target release.
+
+### The spec the tests load must be inside the test tree
+
+The design copy of the contract lives under `reports/`, which is **git-ignored**. A committed test
+that loads it from there passes locally and fails on a fresh checkout — which means the CI contract
+stage fails for everyone but the author. Copy the specification into the service's test resources
+(`src/test/resources/contract/openapi/<service>.yaml`) and load it from the classpath, recording in
+the contract map which design file the copy came from. Refresh the copy whenever the contract
+changes; a stale copy is drift the tests cannot see, so `verify-implementation` compares the two.
 
 ## 8. Versioning
 

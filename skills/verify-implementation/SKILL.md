@@ -81,6 +81,14 @@ Read `reports/06_implementation/api-contract-map.json` if present, and **verify 
 rather than trusting it — it is an input to check, not a source of truth. When it is absent, derive
 the mapping by reading the controllers.
 
+**Derive the route inventory from the whole target tree, every time**, including packages the map's
+`scope` excludes. The map is a claim by whoever wrote it, and a generator that mis-scoped produces a
+map that passes its own check: the first real run of this pipeline emitted one asserting nothing
+unmapped while six routes — among them `/api/admin/users` — were reachable and undeclared. Classify
+each reachable route as a mapped operation, an `out_of_scope_handlers` entry, or a finding. An
+out-of-scope entry is still reported; the field records that the omission was named, not that it is
+acceptable.
+
 Produce, per @rules/api-contract-fidelity.md §4, the full operation list plus both `unmapped` arrays.
 Rewrite the map file with what was actually found.
 
@@ -91,6 +99,8 @@ Per operation, against the specification:
 | Check | Finding when |
 |-------|--------------|
 | Handler binding | An `operationId` has no handler, has more than one, or a handler serves no operation (`unmapped`) — the second is **critical**, the third is both a contract and an inventory finding (@rules/api-security-checks.md API9) |
+| Authorization actually enforced | A declared control that exists only as an inert annotation — `@PreAuthorize` without method security enabled, a filter chain whose matcher leaves the route uncovered. It reads as a control and enforces nothing |
+| Test spec freshness | The specification copy under the test tree differs from the design copy under `reports/` — the contract tests are asserting against a stale contract (@rules/api-contract-fidelity.md §7) |
 | Method and path | The route the code registers differs from the specification |
 | Request shape | A DTO field the schema does not declare, a declared field absent, a required/optional mismatch, a type mismatch |
 | Validation | A schema constraint with no corresponding Bean Validation annotation, or the request DTO not validated at the boundary |

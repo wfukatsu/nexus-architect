@@ -55,6 +55,31 @@ outcome and not a failure of the gate.
 CONDITIONAL requires an explicit human decision recorded on the Issue, naming what was accepted and
 why. It is not a synonym for PASS and never becomes one by default.
 
+## Exit code zero is not evidence of coverage
+
+A stage passes when its command ran **over the intended scope** and exited zero. Exit zero over an
+empty scope is a false pass, and it is the most dangerous result the gate can produce, because it
+reads as the strongest one.
+
+This is not theoretical. On the first real run of this pipeline, `gitleaks detect` in a directory
+that was not a git repository reported `0 commits scanned … no leaks found` and exited **0** — a
+clean secrets scan that examined nothing. Run in directory mode over the same tree it scanned 239 KB
+and found a leak.
+
+Every scanning stage therefore records **what it covered**, and the coverage is asserted:
+
+| Stage | Coverage evidence required |
+|-------|---------------------------|
+| Unit / contract / integration | Number of tests **run** — a suite that ran 0 tests is `not-configured`, never `passed` |
+| SAST | Files or rules scanned |
+| Dependency scan | Number of dependencies or manifests examined |
+| Secrets scan | Bytes or files scanned |
+| Image scan | The image reference actually pulled |
+
+A stage whose coverage is zero is recorded as `not-configured` with the reason, never as `passed`.
+The same applies to a filtered test task that matched nothing: `--tests '*ContractTest'` with no
+matching class is a green task and an ungated build.
+
 ## Stage-skipping is recorded, never silent
 
 A project without an API surface has no stage 3 or 7. A project with no SAST tool configured has no
@@ -82,7 +107,7 @@ the versions are looked up per @rules/dependency-versions.md rather than recalle
 | Integration | `./gradlew integrationTest` | `npm run test:integration` |
 | SAST | Semgrep (`--config auto`), or SpotBugs + `find-sec-bugs` | Semgrep |
 | Dependency | OSV-Scanner, or OWASP Dependency-Check | `npm audit --audit-level=high` / OSV-Scanner |
-| Secrets | Gitleaks over the change | Gitleaks |
+| Secrets | Gitleaks (`gitleaks dir <path>` when the tree is not a git repository — `detect` silently scans nothing there) | Gitleaks |
 | Container image (when one is built) | Trivy | Trivy |
 
 Never invent a command. If the documented build target does not exist, that is a stage-1 failure to
@@ -108,6 +133,8 @@ Written to `reports/09_verification/quality-gate.json`, and summarized in
      "command": "./gradlew test --tests '*ContractTest'", "exit_code": 1,
      "detail": "confirmOrder returned 500 for the transaction-status-unknown case; contract declares 503"},
     {"stage": "sast", "status": "skipped", "reason": "not-configured"},
+    {"stage": "secrets", "status": "skipped", "reason": "not-configured",
+     "detail": "gitleaks present, but `detect` scanned 0 bytes here — a zero-coverage pass is not a pass"},
     {"stage": "api-security", "status": "passed", "findings": {"critical": 0, "major": 1, "minor": 3}}
   ],
   "blocking": ["VER-004", "ASEC-011"]

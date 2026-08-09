@@ -79,13 +79,24 @@ validator and record which one.
 
 1. **Resolve the stack and the output root** — the recorded selection, overridden by `--stack`;
    `--out`, else the service's `src/test/` under the contract map's `source_root`.
-2. **Generate the validation harness** — the OpenAPI validator wired into the test slice, so every
-   request and response in the suite is checked without per-test boilerplate.
+2. **Pin the contract into the test tree** — copy the specification to
+   `src/test/resources/contract/openapi/<service>.yaml` and load it from the classpath. The design
+   copy lives under `reports/`, which is git-ignored: a committed test that reads it there passes for
+   its author and fails the CI contract stage on a fresh checkout
+   (@rules/api-contract-fidelity.md §7).
+3. **Generate the validation harness** — the OpenAPI validator wired into the test slice, so every
+   request and response in the suite is checked without per-test boilerplate. Resolve the validator
+   coordinate per @rules/api-contract-fidelity.md §7: the module is `-mockmvc` (there is no
+   `-spring-mvc` artifact), and its JDK baseline must be at or below the project's target release —
+   the `3.x` line is Java 21 and will not compile into a Java 17 service.
 3. **Generate per-operation tests** from `contract-test-specs.md`: request validation, response
    conformance, error conformance, authorization, idempotency, indeterminate commit.
-4. **Generate the inventory assertion** — every handler present in `api-contract-map.json` maps to a
-   specification operation, and both `unmapped` arrays are empty. This is what turns an undocumented
-   endpoint into a build failure (@rules/api-security-checks.md API9).
+4. **Generate the inventory assertion — derived from the code, not read from the map.** Walk the
+   source tree for mapped routes and assert every one is declared by the specification or listed in
+   the map's `out_of_scope_handlers`. An assertion that only re-reads `api-contract-map.json` passes
+   whenever the map is wrong, which is exactly when it needs to fail: the first real run of this
+   pipeline produced a map claiming nothing unmapped while six routes — including `/api/admin/users` —
+   were reachable and undeclared (@rules/api-security-checks.md API9).
 5. **Generate ArchUnit rules** when selected — layer direction, no persistence or ScalarDB type in a
    controller signature, no domain type in a response DTO.
 6. **Wire the build** — a test task the quality gate can invoke by name
@@ -110,6 +121,9 @@ Test code and identifiers stay in English.
 
 - Every `operationId` in the contract map has at least one generated test, or is listed as uncovered
   with the reason
+- The generated suite compiles and runs, and the task the gate invokes actually matched tests — a
+  filter matching nothing is a green task and an ungated build (@rules/ai-code-quality-gate.md)
+- The specification the tests load is inside the test tree, not under `reports/`
 - Every expected value in a generated test traces to the specification or the problem type registry —
   none read from the implementation
 - Every registered problem type has a conformance assertion
