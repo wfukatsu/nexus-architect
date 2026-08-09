@@ -60,6 +60,8 @@
         "./skills/design-implementation",
         "./skills/generate-test-specs",
         "./skills/generate-scalardb-code",
+        "./skills/generate-api-code",
+        "./skills/generate-contract-tests",
         "./skills/generate-infra-code",
         "./skills/generate-docs",
         "./skills/verify-implementation",

@@ -136,7 +136,9 @@ product スキルの全カタログは [スキルリファレンス](skill-refer
 /architect:generate-test-specs
 
 # 3. アプリケーションコード                    （要: reports/06_implementation/ + scalardb-schema.md）
-/architect:generate-scalardb-code             # -> generated/{service}/
+/architect:generate-scalardb-code             # -> generated/{service}/  domain/ + infrastructure/
+/architect:generate-api-code                  # -> generated/{service}/  api/（OpenAPI 契約に束縛）
+/architect:generate-contract-tests            # -> generated/{service}/src/test/
 
 # 4. インフラコード                            （要: reports/08_infrastructure/）
 /architect:design-infrastructure              # インフラのレポートがまだ無ければ先にこれ
@@ -144,6 +146,9 @@ product スキルの全カタログは [スキルリファレンス](skill-refer
 
 # 5. 生成物のドキュメント
 /architect:generate-docs
+
+# 6. 設計との適合性を検証し、品質ゲートを実行
+/architect:verify-implementation --gate
 ```
 
 各ステップが必要とするのは直前のステップのレポートだけなので、それらが既にあれば途中から入れます。

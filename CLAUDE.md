@@ -114,7 +114,9 @@ Validation-driven pipeline from product vision to SLA/NFR. Skills are namespaced
 - `/architect:design-implementation` — Implementation specs
 - `/architect:generate-test-specs` — BDD/unit/integration test specs
 - `/architect:generate-scalardb-code` — Spring Boot + ScalarDB code generation
-- `/architect:generate-infra-code` — K8s/Terraform/Helm code generation
+- `/architect:generate-api-code [--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]` — Generate the API layer from the OpenAPI contract: one controller method per `operationId` (1:1), request/response DTOs with Bean Validation **derived from the schema constraints**, explicit DTO↔domain mappers, and the RFC 9457 Problem Details `@RestControllerAdvice` — then emit `reports/06_implementation/api-contract-map.json`, the binding record downstream verification checks. Generates only what the specification declares; a gap in the contract stops the run rather than being filled in with a plausible guess. Owns the `api/` package, leaving `domain/`/`infrastructure/` to `generate-scalardb-code`. Independent of ScalarDB
+- `/architect:generate-contract-tests [--service=<name>] [--out=<path>] [--stack=default|schemathesis|pact|archunit] [--dry-run] [--auto] [--lang=en|ja]` — Turn the contract into executable tests so a contract break fails a build instead of surviving a review: in-process OpenAPI request/response validation (swagger-request-validator + `@WebMvcTest` by default; Schemathesis / Pact / ArchUnit as recorded opt-ins), Problem Details conformance, authorization and idempotency assertions, the `UnknownTransactionStatusException` contract, and an inventory assertion that fails when `api-contract-map.json` reports anything unmapped. Expected values come from the specification, never from the implementation
+- `/architect:generate-infra-code` — K8s/Terraform/Helm code generation, plus the CI workflow that runs the quality gate (@rules/ai-code-quality-gate.md) — the enforced half of the gate, since the in-session run only covers the session
 - `/architect:generate-docs [target] [--scope=changed|service|repo] [--source-root=<path>] [--readme-only] [--issue=<id>] [--dry-run] [--auto] [--lang=en|ja]` — Create/update the documentation for code that was generated or implemented: per-service READMEs and `docs/` pages (overview, build & run, configuration, layout, API, operations, traceability) derived from the code that actually exists, with design reports supplying the *why*. Updates in place via ownership markers (`<!-- nexus:begin:<section> -->`) so human-authored prose is preserved, verifies every documented command against a real build target, and reports design-vs-code drift instead of smoothing it over. Runs after the codegen skills (scaffold mode) and as Step 5b of `implement-backlog` (delivery mode — commits the doc changes to the working branch so they land in the same PR/MR)
 
 ### Verification
@@ -189,7 +191,8 @@ Dependency manifest (architect): @skills/common/skill-dependencies.yaml
 The manifest covers the core pipeline only. The remaining architect skills —
 `investigate-security`, `select-scalardb-edition`, `design-scalardb-analytics`,
 `design-implementation`, `generate-test-specs`, `generate-scalardb-code`,
-`generate-infra-code`, `generate-docs`, `verify-implementation`, `design-infrastructure`,
+`generate-api-code`, `generate-contract-tests`, `generate-infra-code`, `generate-docs`,
+`verify-implementation`, `design-infrastructure`,
 `design-security`, `design-observability`, `design-disaster-recovery`, `estimate-cost`,
 `estimate-token-cost`, `report-token-cost` — form a
 **manual extension tier**: they are not executed by `/architect:pipeline` — nor by
@@ -198,9 +201,12 @@ individually, typically after the core pipeline. See the invocation chains in
 README §Code Generation & Delivery and docs/getting-started.md §5–6.
 
 Within that tier the codegen skills have a fixed follow-on order — **generate code →
-`generate-docs`**: `generate-scalardb-code` / `generate-infra-code` (and
-`/product:generate-frontend`) emit the scaffold, then `generate-docs` documents what
-was emitted. On the backlog-delivery path the same step is automatic: it runs as Step 5b
+test it → document it → verify it**: `generate-api-code` (the `api/` package, bound to the
+OpenAPI contract) and `generate-scalardb-code` (`domain/` + `infrastructure/`) emit the
+service between them, `generate-contract-tests` turns the contract into executable tests,
+`generate-infra-code` emits the IaC plus the quality-gate CI workflow (and
+`/product:generate-frontend` the frontend), then `generate-docs` documents what was
+emitted and `verify-implementation` checks it against the design. On the backlog-delivery path the same step is automatic: it runs as Step 5b
 of `implement-backlog`, inside the implement → review → merge chain.
 
 **Product → architect handoff.** The two pipelines run in the same project directory and share
