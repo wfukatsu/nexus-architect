@@ -7,6 +7,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
+## [0.24.0] - 2026-08-09
+
+### Added
+- **The OpenAPI document is now an enforceable contract, not a report.** The toolkit designed APIs
+  well and had no way to tell whether the code implemented them: `design-api` emitted OpenAPI,
+  `generate-scalardb-code` emitted entities, repositories and domain services, and nothing generated
+  or checked the layer between them — no controller, no DTO, no validation, no error handler, and no
+  step anywhere comparing code to the design it came from. For AI-written code that is the gap that
+  matters, because a model produces plausible code far more reliably than correct code, and plausible
+  code survives reading. Four new rules and four new skills close it.
+- `rules/api-contract-fidelity.md` — the specification is the contract: code may not exceed it, may
+  not contradict it, and a behaviour change edits the specification first. `operationId` is the join
+  key, bound 1:1 to a handler and recorded in `reports/06_implementation/api-contract-map.json` whose
+  `unmapped` arrays are never omitted. Where code and contract disagree the drift is **reported, not
+  reconciled** — the same discipline `generate-docs` already follows.
+- `rules/api-error-standard.md` — RFC 9457 Problem Details as the single error envelope, with a
+  per-project problem type registry allocated the way the traceability graph and the Open Questions
+  store are. Carries the ScalarDB exception mapping, including the row with real consequences:
+  `UnknownTransactionStatusException` is neither a plain 500 nor a blanket 503. The commit may have
+  succeeded, so it is 503 with `Retry-After` **only** when the operation is idempotency-key
+  protected, and 500 with no retry hint and an explicit reconcile-don't-retry `detail` otherwise.
+- `rules/api-security-checks.md` — OWASP API Security Top 10 (2023) as concrete checks, each split
+  into a design question and a code question because they fail independently, plus the multi-tenant
+  and transaction-boundary cases a generic scanner cannot see.
+- `rules/ai-code-quality-gate.md` — eight stages before a human is asked to review. What makes it a
+  gate rather than a checklist: **every stage produces evidence** — a command with its exit code, or
+  a skill with its findings — and a stage that did not run is recorded with its reason. An omitted
+  stage reads as a passed one, which is worse than no gate. FAIL blocks the review handoff instead of
+  becoming a note on the PR.
+- `/architect:verify-implementation` — the design↕code differential engine, on four axes: contract
+  (handler binding, DTO shapes, status codes, error envelope, the indeterminate-commit branch),
+  transaction (an operation the design placed in one transaction implemented as one; retry, catch
+  order, saga compensations, 2PC completeness), security (delegated to `review-api-security --mode=code`),
+  and requirement (`FR-` to code, acceptance criteria to tests). It edits nothing — when the two
+  disagree it names both sides, because which one is wrong is the user's call. `--gate` runs the
+  eight-stage gate.
+- `/architect:review-api-security` — OWASP API Top 10 in three dimensions, as the **sixth** parallel
+  design review and, with `--mode=code`, as the gate's security stage. The two modes are not
+  redundant: a project can hold a correct Zero-Trust design and ship a controller that trusts a path
+  parameter.
+- `/architect:generate-api-code` — the API layer from the contract. One controller method per
+  `operationId`; DTOs named from `components/schemas` with Bean Validation **derived** from the schema
+  constraints rather than chosen; explicit DTO↔domain mappers, because binding a request body onto an
+  entity is the mass-assignment defect; the RFC 9457 handler with the indeterminate-commit branch. It
+  generates only what the specification declares, and stops rather than filling a gap with a plausible
+  guess. Independent of ScalarDB.
+- `/architect:generate-contract-tests` — the contract as executable assertions: in-process OpenAPI
+  validation (`swagger-request-validator` + `@WebMvcTest` by default; Schemathesis, Pact and ArchUnit
+  as recorded opt-ins), Problem Details conformance, authorization, idempotency, the
+  indeterminate-commit contract, and an inventory assertion that fails when anything is unmapped.
+  Expected values come from the specification, never from the implementation — a test written against
+  the code passes whatever the code does.
+
+### Changed
+- `design-api` rewritten around a Contract Verifiability checklist — named schemas, every status code
+  declared, constraints in the schema, per-operation authorization / idempotency / timeout. Each item
+  exists because a specific downstream check is impossible without it. New outputs: `problem-types.md`
+  and `operation-contracts.md`.
+- `design-implementation` gains `api-layer-spec.md`: the per-`operationId` handler, DTOs, validation,
+  mapper, transaction boundary and authorization enforcement point.
+- `generate-test-specs` makes contract testing its own category with `contract-test-specs.md`, and
+  records the selected test stack so `generate-contract-tests` emits what was decided.
+- `design-security` gains object-level authorization, the tenant isolation model, and an OWASP API
+  Security Top 10 mapping, so the code-time review has a baseline instead of a blank page.
+- `generate-scalardb-code` declares the package seam it now shares — `domain/` + `infrastructure/`
+  here, `api/` in `generate-api-code`. Emitting a controller from the domain generator would produce
+  a second, unbound API surface.
+- `generate-infra-code` emits the quality-gate CI workflow. The in-session gate is fast feedback; CI
+  is the half that is actually enforced, so its jobs may not carry `continue-on-error` or `|| true`.
+- `implement-backlog` gains Step 5c and `review-issue` gains Step 2b: the gate runs before a human is
+  asked to look, and blocking `VER-`/`ASEC-` findings enter the existing auto-fix loop as `[B]`.
+- The codegen follow-on order is now **generate → test → document → verify**, and the parallel design
+  review is six perspectives rather than five — corrected across README, `CLAUDE.md`, `AGENTS.md`,
+  `OMNIGENT.md`, both skill references and both getting-started guides.
+
 ## [0.23.3] - 2026-08-09
 
 ### Changed
