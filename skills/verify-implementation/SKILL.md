@@ -117,6 +117,7 @@ Per operation, against the specification:
 | Status codes | A status the code can return that the contract does not declare, or a declared status unreachable in code |
 | Error envelope | Any non-2xx response that is not RFC 9457 Problem Details, any `type` with no registry row, any registry row unreachable (@rules/api-error-standard.md §7) |
 | `UnknownTransactionStatusException` | Handled by a generic branch, mapped to a `Retry-After`-bearing 503 on an operation with no idempotency protection, or rolled back — **blocker severity** (@rules/api-error-standard.md §3.1) |
+| GraphQL unknown transaction status | An execution error does not use HTTP 200 and the registered `errors[].extensions.type`; protected and unprotected mutations mix retry/reconcile fields; or a raw ScalarDB transaction ID is exposed — **blocker severity** (@rules/api-error-standard.md §3.2) |
 | Idempotency | An operation with a declared `Idempotency-Key` obligation whose key is not read, or whose idempotency record is written outside the business transaction |
 
 GraphQL adds SDL/resolver 1:1 coverage, nullability/input validation, registered

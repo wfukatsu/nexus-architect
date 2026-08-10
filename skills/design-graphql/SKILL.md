@@ -125,7 +125,10 @@ defaults. Record CORS and CSWSH controls for browser/WebSocket consumers.
 Reuse the project's problem type registry. Execution errors carry its URI in
 `errors[].extensions.type`; do not invent a second error taxonomy. Give
 `UnknownTransactionStatusException` a dedicated branch consistent with idempotency and reconcile
-semantics in @rules/api-error-standard.md.
+semantics in @rules/api-error-standard.md. Record its GraphQL execution contract explicitly:
+HTTP 200; protected operations expose `retryable`, `retry_after_ms`, and same-key reuse guidance;
+unprotected operations expose `retryable: false` and `reconcile_required: true` without a retry
+delay. Do not expose a raw ScalarDB transaction ID in GraphQL extensions.
 
 Observe operation type/name, normalized document hash or persisted query ID, execution ID,
 authenticated tenant/principal identifier, duration, complexity and error classification. Do not

@@ -526,6 +526,41 @@ def check_graphql_condition(root):
     check("GraphQL/hybrid: GraphQL design is enabled",
           on["status"] == "pending" and on["excluded"] is None, on)
 
+    # design-api owns this inventory directory. Its presence must not complete
+    # the detailed design phase.
+    write(os.path.join(proj, "reports", "03_design", "api-specifications", "graphql",
+                       "inventory.md"), "inventory")
+    inventory_only = P.derive_all(proj)["phases"]["design-graphql"]
+    check("GraphQL inventory alone does not complete detailed design",
+          inventory_only["status"] == "pending" and inventory_only["written"] == 0,
+          inventory_only)
+
+    graphql_dir = os.path.join(proj, "reports", "03_design", "api-specifications", "graphql")
+    for name in ("customer.graphqls", "resolver-contracts.md", "authorization-matrix.md",
+                 "batch-loading-plan.md", "query-governance.md", "transport-design.md"):
+        write(os.path.join(graphql_dir, name), "contract")
+    complete = P.derive_all(proj)["phases"]["design-graphql"]
+    check("all six owned GraphQL contracts complete detailed design",
+          complete["status"] == "completed" and complete["written"] == 6,
+          complete)
+
+    codegen = os.path.join(root, "graphql-codegen-ownership")
+    write(os.path.join(codegen, "generated", "demo", "src", "main", "resources",
+                       "graphql", "schema.graphqls"), "schema")
+    write(os.path.join(codegen, "generated", "demo", "src", "main", "java",
+                       "Controller.java"), "class Controller {}")
+    write(os.path.join(codegen, "reports", "06_implementation", "api-contract-map.md"), "map")
+    write(os.path.join(codegen, "reports", "06_implementation", "api-contract-map.json"), "{}")
+    shared_only = P.derive_codegen(codegen, "architect")["phases"]["generate-graphql-code"]
+    check("shared source and map outputs do not complete GraphQL code generation",
+          shared_only["status"] == "pending" and shared_only["written"] == 0,
+          shared_only)
+    write(os.path.join(codegen, "reports", "06_implementation",
+                       "graphql-code-generation.md"), "evidence")
+    owned = P.derive_codegen(codegen, "architect")["phases"]["generate-graphql-code"]
+    check("unique generation evidence completes GraphQL code generation",
+          owned["status"] == "completed" and owned["written"] == 1, owned)
+
 
 def hook_module():
     """hooks/record_token_usage.py, imported by path — it is not on sys.path."""

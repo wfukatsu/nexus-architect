@@ -152,7 +152,10 @@ Test code and identifiers stay in English.
   none read from the implementation
 - Every registered problem type has a conformance assertion
 - The `UnknownTransactionStatusException` contract is asserted for every operation that can raise it,
-  including which of the two responses applies
+  including which of the two responses applies. For GraphQL execution, assert HTTP 200 and
+  `errors[].extensions.type`; protected mutations require same-key retry fields, while unprotected
+  mutations require reconcile-only fields. Assert forbidden retry fields, `Retry-After`, and raw
+  transaction identifiers are absent in the opposite branch (@rules/api-error-standard.md §3.2)
 - The inventory assertion exists and fails when `api-contract-map.json` reports anything unmapped
 - The build exposes a named task the quality gate can invoke, and it was verified to run
 - No generated test was disabled or weakened to make the suite green

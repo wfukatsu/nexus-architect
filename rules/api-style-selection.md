@@ -47,6 +47,26 @@ interface directly unless the user approves a documented exception after the pin
 confirms availability, edition, authentication/authorization, audit, query limits and network
 isolation. Database convenience is not sufficient justification.
 
+Every ScalarDB-backed surface records the following machine-readable fields in
+`reports/03_design/api-style-decisions.json`:
+
+| Field | Allowed value or requirement |
+|-------|------------------------------|
+| `graphql_provider` | `spring-for-graphql`, `scalardb-native`, or `not-applicable` |
+| `native_exposure` | `none`, `internal`, or `external` |
+| `approval` | `not-required`, `approved:<decision-id>`, or `rejected` |
+| `pinned_product` | Exact product name from the OKF decision |
+| `pinned_release` | Exact verified release; never inferred from an example |
+| `contracted_edition` | Edition whose entitlement and controls were verified |
+| `control_evidence` | References for authentication, authorization, audit, query limits, and network isolation |
+| `rationale` | Evidence for the selected boundary and rejected alternative |
+
+`scalardb-native` with `internal` or `external` exposure requires `approved:<decision-id>`, all
+five control-evidence references, and a matching pinned product/release/edition. Missing evidence
+is an open question and blocks design completion. External native exposure is a critical security
+review finding unless the documented exception demonstrates every control; prose approval without
+these structured fields is not approval.
+
 ## Spring execution model
 
 Use Spring MVC for synchronous database/client APIs by default. Choose WebFlux when the existing
@@ -55,7 +75,9 @@ blocking call. Adding `Mono` around blocking work does not make it non-blocking.
 
 ## Required decision fields
 
-For every surface record consumers, operations, selected style, client variability, cache needs,
-security model, transport, execution model, data access, transaction model, operational readiness,
-rejected alternatives and traced requirement IDs. Unknown security or transaction fields become
-open questions, never permissive defaults.
+For every surface record a stable `surface_id`, consumers, operations, selected style, client
+variability, cache needs, security model, transport, execution model, data access, transaction
+model, operational readiness, rejected alternatives and traced requirement IDs. The Markdown and
+JSON decisions must agree. ScalarDB-backed surfaces also include every structured field in the
+ScalarDB boundary table above. Unknown security, transaction, version, edition, exposure, approval,
+or control fields become open questions, never permissive defaults.

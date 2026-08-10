@@ -87,7 +87,11 @@ generating any API signature, exception handling, or configuration.
 - Generate `DataFetcherExceptionResolver` or `@GraphQlExceptionHandler` mappings using the shared
   problem type URIs in `errors[].extensions.type`.
 - Give `UnknownTransactionStatusException` its own mapping and preserve the designed retry/reconcile
-  guidance. Never leak exception messages or database identifiers.
+  guidance. For an execution error, use HTTP 200 and the GraphQL response envelope: an
+  idempotency-protected operation sets `extensions.retryable: true`, `retry_after_ms`, and
+  `idempotency_key_reuse: "required"`; an unprotected operation sets `retryable: false` and
+  `reconcile_required: true` with no retry delay. Never leak exception messages or raw ScalarDB
+  transaction identifiers. Apply the GraphQL override in @rules/api-error-standard.md.
 - Generate version-compatible GraphQL Java instrumentation/configuration for depth, complexity and
   other budgets. Look up exact class names for the managed GraphQL Java version; do not copy them
   from examples when the target version differs.
@@ -133,6 +137,7 @@ runtime-wiring source tree; never claim coverage from generated files alone.
 | `generated/{service}/src/main/java/` | GraphQL API/controller, DTO, mapper, context, security, error, loading and governance code |
 | `reports/06_implementation/api-contract-map.md` | Human-readable REST/GraphQL binding map |
 | `reports/06_implementation/api-contract-map.json` | Machine-readable combined binding map |
+| `reports/06_implementation/graphql-code-generation.md` | This run's inputs, generated inventory, version decisions, quality commands and exit codes; written only after all prior outputs succeed |
 
 ## Steps
 
@@ -143,8 +148,10 @@ runtime-wiring source tree; never claim coverage from generated files alone.
 5. Generate security/context, loading, error, governance and observation configuration.
 6. Generate unit and slice-test skeletons; leave full contract tests to
    `/architect:generate-contract-tests`.
-7. Derive source inventory and write the combined contract map last.
+7. Derive source inventory and write the combined contract map.
 8. Run build and relevant tests, recording commands and exit codes.
+9. Only after the map and checks succeed, write `graphql-code-generation.md` as this phase's unique
+   completion evidence. A failed or interrupted run must not create it.
 
 ## Acceptance Criteria
 
@@ -156,6 +163,7 @@ runtime-wiring source tree; never claim coverage from generated files alone.
 - Query limits and production tooling controls are executable configuration, not comments.
 - Contract map coverage is derived from source and preserves other protocol entries.
 - Build/test evidence is recorded; failures are not reported as success.
+- The unique completion report describes this run and is absent when generation did not finish.
 
 ## Related Skills
 
