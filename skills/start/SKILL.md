@@ -95,6 +95,10 @@ If yes, ask which domains to cover (present the bounded context list from `bound
 6. Accumulate findings in `work/context.md` between phases
 7. Determine which phases to skip if not applicable
 
+After `design-api`, read `options.api_style_graphql`. Run `design-graphql` for GraphQL/hybrid
+surfaces and mark it conditionally skipped for REST-only designs. A skipped conditional dependency
+is satisfied for the review phases.
+
 ## Error Handling
 
 On phase failure, present choices to the user via AskUserQuestion:

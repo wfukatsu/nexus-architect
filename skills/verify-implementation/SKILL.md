@@ -13,6 +13,10 @@ disable-model-invocation: true
 
 # Implementation Verification (Design ↕ Code)
 
+For GraphQL, apply @rules/graphql-contract-fidelity.md and
+@rules/graphql-security-checks.md. Inventory SDL field coordinates, annotated controller methods and
+programmatic runtime wiring independently; the contract map is a claim to verify.
+
 ## Desired Outcome
 
 A conformance report that answers one question the rest of the pipeline never asks: **does the code
@@ -92,6 +96,11 @@ acceptable.
 Produce, per @rules/api-contract-fidelity.md §4, the full operation list plus both `unmapped` arrays.
 Rewrite the map file with what was actually found.
 
+For GraphQL derive `@QueryMapping`, `@MutationMapping`, `@SubscriptionMapping`, `@SchemaMapping`,
+`@BatchMapping`, and programmatically registered DataFetchers. Compare every resolver-bound field
+coordinate with the SDL, preserve other protocols when rewriting, and interpret old entries without
+`protocol` as REST.
+
 ### Step 3 — Contract conformance (`VER-1xx`)
 
 Per operation, against the specification:
@@ -109,6 +118,11 @@ Per operation, against the specification:
 | Error envelope | Any non-2xx response that is not RFC 9457 Problem Details, any `type` with no registry row, any registry row unreachable (@rules/api-error-standard.md §7) |
 | `UnknownTransactionStatusException` | Handled by a generic branch, mapped to a `Retry-After`-bearing 503 on an operation with no idempotency protection, or rolled back — **blocker severity** (@rules/api-error-standard.md §3.1) |
 | Idempotency | An operation with a declared `Idempotency-Key` obligation whose key is not read, or whose idempotency record is written outside the business transaction |
+
+GraphQL adds SDL/resolver 1:1 coverage, nullability/input validation, registered
+`errors[].extensions.type`, nested-field and tenant authorization, DataLoader cache partitioning,
+N+1/batch behavior, query-governance enforcement, production tooling policy, safe observations and
+subscription origin/authentication/lifecycle checks.
 
 ### Step 4 — Transaction conformance (`VER-2xx`)
 
@@ -151,7 +165,8 @@ run — a security axis that silently did not execute is the failure this skill 
 ### Step 6 — Requirement conformance (`VER-4xx`)
 
 Against `work/traceability.json` and the test specs: every `FR-` in scope reachable to code; every
-acceptance criterion reachable to at least one test; every `operationId` covered by a contract test.
+acceptance criterion reachable to at least one test; every REST `operationId` and GraphQL resolver
+field coordinate covered by a contract test.
 A requirement with no implementation and an implementation with no requirement are both findings.
 
 ### Step 7 — Quality gate (`--gate` only)

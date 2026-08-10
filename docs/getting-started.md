@@ -140,6 +140,7 @@ phases. Run them yourself afterwards, in this order:
 # 3. Application code                               (requires reports/06_implementation/ + scalardb-schema.md)
 /architect:generate-scalardb-code                   # -> generated/{service}/  domain/ + infrastructure/
 /architect:generate-api-code                        # -> generated/{service}/  api/, bound to the OpenAPI contract
+/architect:generate-graphql-code                    # -> generated/{service}/  api/graphql/, when GraphQL/hybrid
 /architect:generate-contract-tests                  # -> generated/{service}/src/test/
 
 # 4. Infrastructure code                            (requires reports/08_infrastructure/)

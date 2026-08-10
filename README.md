@@ -1,9 +1,9 @@
 # Nexus Architect
 
-System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as three plugins with 93 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
+System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as three plugins with 95 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
 
 - **product** (27 skills) — Product direction: validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
-- **architect** (55 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
+- **architect** (57 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
 - **scalardb** (11 skills) — ScalarDB application development toolkit
 
 ## Installation
@@ -131,6 +131,7 @@ Claude Code continues to use the plugin metadata and slash commands unchanged. S
 /architect:design-implementation
 /architect:generate-scalardb-code
 /architect:generate-api-code
+/architect:generate-graphql-code
 /architect:generate-contract-tests
 /architect:generate-docs
 /architect:verify-implementation --gate
@@ -224,7 +225,8 @@ Validation-driven pipeline from product vision to SLA/NFR. Hands off to `/archit
 | `/architect:design-scalardb` | ScalarDB schema and transaction design |
 | `/architect:design-scalardb-analytics` | HTAP analytics platform design |
 | `/architect:design-data-layer` | Generic DB design (non-ScalarDB) |
-| `/architect:design-api` | REST/GraphQL/gRPC/AsyncAPI specifications |
+| `/architect:design-api` | Select REST/GraphQL/hybrid/gRPC/AsyncAPI per surface and generate common contracts |
+| `/architect:design-graphql` | Spring for GraphQL SDL, resolver, authorization, batch-loading, query-governance and transport design (conditional) |
 
 ### Implementation & Codegen
 
@@ -237,6 +239,7 @@ the order below (see [Code Generation & Delivery](#code-generation--delivery)).
 | `/architect:generate-test-specs` | BDD/contract/unit/integration/performance test specifications | `reports/06_implementation/` |
 | `/architect:generate-scalardb-code` | Spring Boot + ScalarDB code generation — owns `domain/` and `infrastructure/` | `reports/06_implementation/` + `scalardb-schema.md` |
 | `/architect:generate-api-code` | The API layer from the OpenAPI contract — controllers 1:1 with `operationId`, DTOs with validation derived from the schema, mappers, the RFC 9457 handler, and `api-contract-map.json`. Generates only what the specification declares | `api-specifications/` + `api-layer-spec.md` |
+| `/architect:generate-graphql-code` | Spring for GraphQL API layer from SDL — field-coordinate resolver bindings, DTOs/mappers, security/context, DataLoader, errors, query limits and combined `api-contract-map.json` | GraphQL specifications + `api-layer-spec.md` |
 | `/architect:generate-contract-tests` | Executable contract tests, so a contract break fails a build instead of surviving a review | `api-contract-map.json` + `contract-test-specs.md` |
 | `/architect:generate-infra-code` | K8s/Terraform/Helm code generation, plus the CI workflow that runs the quality gate | `reports/08_infrastructure/` (from `design-infrastructure`) |
 | `/architect:generate-docs` | README + `docs/` for the generated/implemented code — runs after codegen, and as Step 5b of `implement-backlog` | generated or implemented code |
@@ -392,6 +395,7 @@ paths, and they differ in what the output *is*.
   -> /architect:design-infrastructure      # requires target-architecture.md   (infra path only)
   -> /architect:generate-scalardb-code     # -> generated/{service}/  (domain/ + infrastructure/)
   -> /architect:generate-api-code          # -> generated/{service}/  (api/, bound to the OpenAPI contract)
+  -> /architect:generate-graphql-code      # -> generated/{service}/  (api/graphql/, when GraphQL/hybrid)
   -> /architect:generate-contract-tests    # -> generated/{service}/src/test/  (contract breaks fail the build)
   -> /architect:generate-infra-code        # -> generated/infrastructure/  (+ the quality-gate CI workflow)
   -> /architect:generate-docs              # READMEs + docs/ for what was emitted
@@ -453,7 +457,7 @@ migrate-database -> schema extraction -> migration analysis -> SP/trigger conver
 ```
 investigate -> analyze -> [evaluate-mmi, evaluate-ddd] -> integrate-evaluations
   -> redesign -> [create-domain-story (optional, per domain)]
-  -> design-microservices -> [design-scalardb | design-data-layer, design-api]
+  -> design-microservices -> [design-scalardb | design-data-layer, design-api -> design-graphql (conditional)]
   -> [review-consistency, review-scalardb | review-data-integrity,
      review-operations, review-risk, review-business]
   -> review-synthesizer -> report -> review-report

@@ -14,6 +14,9 @@ user_invocable: true
 ## Expected Outcome
 
 Evaluate the API surface against @rules/api-security-checks.md and output findings in JSON format.
+For every GraphQL surface, also apply @rules/graphql-security-checks.md. Treat SDL field coordinates
+as the operation inventory and derive annotated/runtime-wired resolvers from source rather than
+trusting the contract map.
 
 Two modes, same dimensions, different subject:
 
@@ -27,6 +30,12 @@ correct Zero-Trust design and ship a controller that trusts a path parameter. De
 whether the control was decided; code mode asks whether it was implemented.
 
 ## Review Dimensions
+
+GraphQL reviews additionally cover root and nested-field authorization, authenticated tenant
+predicates, DataLoader cache partitioning, depth/complexity/alias/batch/page/document limits,
+production GraphiQL/introspection/schema-printer policy, safe observations, and WebSocket origin,
+authentication expiry, connection limits and cleanup. Cross-tenant resolver or DataLoader access is
+critical; missing executable query-cost limits on an exposed surface are major.
 
 ### 1. Authorization and Tenant Isolation (weight: 0.40)
 - Object-level authorization: an ownership predicate per resource, evaluated against a **verified

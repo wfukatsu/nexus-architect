@@ -190,13 +190,21 @@ def check_real_manifests():
           and order.index("review-synthesizer") > order.index("review-consistency"),
           order[:6])
 
+    marketplace_path = os.path.join(P.plugin_root(), ".claude-plugin", "marketplace.json")
+    with open(marketplace_path, encoding="utf-8") as fh:
+        marketplace = json.load(fh)
+    architect = next(p for p in marketplace["plugins"] if p["name"] == "architect")
+    check("Claude marketplace discovers both GraphQL skills",
+          {"./skills/design-graphql", "./skills/generate-graphql-code"}
+          <= set(architect["skills"]), architect["skills"])
+
 
 # The manual extension tier as CLAUDE.md and README describe it. The dashboard claims to
 # cover the tier, so a skill added there must be added here too — that is what this pins.
 DOC_EXTENSION_TIER = [
     "investigate-security", "select-scalardb-edition", "design-scalardb-analytics",
     "design-implementation", "generate-test-specs", "generate-scalardb-code",
-    "generate-api-code", "generate-contract-tests",
+    "generate-api-code", "generate-graphql-code", "generate-contract-tests",
     "generate-infra-code", "generate-docs", "verify-implementation",
     "design-infrastructure", "design-security",
     "design-observability", "design-disaster-recovery", "estimate-cost",
@@ -489,6 +497,34 @@ def check_conditional_outputs_and_gate(root):
           off["gate"]["plugin"] == "product", off["gate"])
     check("the product gate is still surfaced on the architect view",
           off["gate"]["verdict"] == "no-go")
+
+
+def check_graphql_condition(root):
+    """GraphQL detailed design runs only after design-api selected that surface."""
+    print("GraphQL API-style condition")
+    spec = P.load_phase_manifest("architect")["design-graphql"]
+    check("design-graphql follows design-api and is condition-gated",
+          spec["depends_on"] == ["design-api"]
+          and spec["conditions"] == ["api_style_graphql"], spec)
+
+    proj = os.path.join(root, "graphql-condition")
+    write(os.path.join(proj, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "demo",
+        "options": {"scalardb_enabled": False, "api_style_graphql": False},
+        "phases": {},
+    }))
+    off = P.derive_all(proj)["phases"]["design-graphql"]
+    check("REST-only: GraphQL design is conditionally skipped",
+          off["status"] == "skipped" and off["excluded"] == "condition", off)
+
+    write(os.path.join(proj, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "demo",
+        "options": {"scalardb_enabled": False, "api_style_graphql": True},
+        "phases": {},
+    }))
+    on = P.derive_all(proj)["phases"]["design-graphql"]
+    check("GraphQL/hybrid: GraphQL design is enabled",
+          on["status"] == "pending" and on["excluded"] is None, on)
 
 
 def hook_module():
@@ -955,6 +991,7 @@ def main():
         check_staleness(root)
         check_id_prefix_registry()
         check_conditional_outputs_and_gate(root)
+        check_graphql_condition(root)
         check_shared_phase_names(root)
         check_hostile_inputs(root)
     if cleanup:

@@ -28,7 +28,7 @@ Run in this order; the cheap deterministic stages fail fast before the expensive
 |---|-------|-------------|----------|
 | 1 | **Compile / build** | The project's real build target succeeds | Command + exit code |
 | 2 | **Unit tests** | All pass; no test disabled or deleted in this change without a recorded reason | Command + counts (run/passed/skipped) |
-| 3 | **Contract tests** | Every `operationId` the change touches is exercised and validates against the specification (@rules/api-contract-fidelity.md §7) | Command + per-operation results |
+| 3 | **Contract tests** | Every REST `operationId` and GraphQL resolver field coordinate the change touches is exercised and validates against the specification (@rules/api-contract-fidelity.md §7) | Command + per-operation/field-coordinate results |
 | 4 | **Integration tests** | All pass, including the transaction scenarios the design requires — OCC conflict, 2PC failure, saga compensation | Command + counts |
 
 **Stage 4 is not substitutable by stages 3 and 8.** Contract tests prove the shape of what the API
@@ -42,7 +42,7 @@ which is legal Java, reviews cleanly, and cannot commit
 
 | 5 | **SAST** | No new high/critical finding | Tool + version + finding counts by severity, new vs pre-existing |
 | 6 | **Dependency scan** | No new high/critical CVE, and no dependency added that the version rules reject (@rules/dependency-versions.md) | Tool + advisory IDs |
-| 7 | **API security** | `review-api-security --mode=code` returns no critical, and no unresolved major (@rules/api-security-checks.md) | `ASEC-` findings with severities |
+| 7 | **API security** | `review-api-security --mode=code` returns no critical and no unresolved major, including GraphQL-specific checks when applicable (@rules/api-security-checks.md, @rules/graphql-security-checks.md) | `ASEC-` findings with severities |
 | 8 | **Architecture / conformance** | `verify-implementation` reports no contract, transaction, or security conformance break; ArchUnit layering rules pass | `VER-` findings + `api-contract-map.json` with both `unmapped` arrays empty |
 
 Stages 1–6 are commands. Stages 7–8 are skills that emit machine-readable findings. All eight write
@@ -113,7 +113,7 @@ the versions are looked up per @rules/dependency-versions.md rather than recalle
 |-------|----------------------|--------------|
 | Build | `./gradlew build -x test` | `npm run build` |
 | Unit | `./gradlew test` | `npm test` |
-| Contract | `./gradlew test --tests '*ContractTest'` (swagger-request-validator) | project's contract suite |
+| Contract | `./gradlew test --tests '*ContractTest'` (OpenAPI validator and/or GraphQlTester) | project's contract suite |
 | Integration | `./gradlew integrationTest` | `npm run test:integration` |
 | SAST | Semgrep (`--config auto`), or SpotBugs + `find-sec-bugs` | Semgrep |
 | Dependency | OSV-Scanner, or OWASP Dependency-Check | `npm audit --audit-level=high` / OSV-Scanner |

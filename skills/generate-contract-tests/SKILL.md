@@ -1,6 +1,7 @@
 ---
 description: |
-  Turn the API contract into executable tests — OpenAPI request/response validation, Problem Details
+  Turn the API contract into executable tests — OpenAPI request/response validation, GraphQlTester
+  schema/resolver validation, Problem Details
   conformance, authorization and idempotency assertions, and ArchUnit layering rules — so contract
   breaks fail a build instead of surviving a review.
   /architect:generate-contract-tests [--service=<name>] [--out=<path>] [--stack=default|schemathesis|pact|archunit]
@@ -12,6 +13,10 @@ disable-model-invocation: true
 ---
 
 # Contract Test Generation
+
+GraphQL surfaces use `GraphQlTester` and schema inspection rather than an OpenAPI validator. Select
+`ExecutionGraphQlServiceTester`, `WebGraphQlTester`, `HttpGraphQlTester`,
+`WebSocketGraphQlTester`, or `RSocketGraphQlTester` from the approved transport design.
 
 ## Desired Outcome
 
@@ -89,6 +94,10 @@ validator and record which one.
    coordinate per @rules/api-contract-fidelity.md §7: the module is `-mockmvc` (there is no
    `-spring-mvc` artifact), and its JDK baseline must be at or below the project's target release —
    the `3.x` line is Java 21 and will not compile into a Java 17 service.
+   For GraphQL, copy the approved SDL to test resources, configure the selected `GraphQlTester`,
+   inspect the executable schema, and derive resolver inventory independently. Test success shape,
+   nullability, validation, registered `errors[].extensions.type`, authorization, tenant isolation,
+   N+1 query count, query limits, and subscription controls per @rules/graphql-security-checks.md.
 3. **Generate per-operation tests** from `contract-test-specs.md`: request validation, response
    conformance, error conformance, authorization, idempotency, indeterminate commit.
 4. **Generate the inventory assertion — derived from the code, not read from the map.** Walk the
@@ -122,7 +131,7 @@ validator and record which one.
 
 | File | Content |
 |------|---------|
-| `generated/{service}/src/test/java/**/contract/` | Per-operation contract tests + the validation harness |
+| `generated/{service}/src/test/java/**/contract/` | Per-operation/field-coordinate tests plus OpenAPI or GraphQlTester validation harness |
 | `generated/{service}/src/test/java/**/architecture/` | ArchUnit rules (when selected) |
 | `generated/{service}/src/test/resources/contract/` | Fixtures derived from the contract's examples |
 | `reports/07_test-specs/contract-test-coverage.md` | Which operations are covered, by which assertions, and what is not |
@@ -134,6 +143,8 @@ Test code and identifiers stay in English.
 
 - Every `operationId` in the contract map has at least one generated test, or is listed as uncovered
   with the reason
+- Every GraphQL resolver-bound field coordinate has a generated test or an explicit uncovered entry;
+  SDL fields and source resolvers have no silent unmapped entries
 - The generated suite compiles and runs, and the task the gate invokes actually matched tests — a
   filter matching nothing is a green task and an ungated build (@rules/ai-code-quality-gate.md)
 - The specification the tests load is inside the test tree, not under `reports/`

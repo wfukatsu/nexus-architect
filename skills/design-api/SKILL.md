@@ -15,8 +15,9 @@ user_invocable: true
 Design the API surface for inter-service and client-facing communication, as specification files that
 downstream skills can generate code from and verify code against:
 
+- API style decision — REST, GraphQL, hybrid, gRPC or AsyncAPI per consumer/service surface
 - REST API — OpenAPI 3.1 (or 3.0 where a toolchain requires it) specification per service
-- GraphQL schema (as needed)
+- GraphQL inventory and handoff to `/architect:design-graphql` when selected
 - gRPC protobuf definitions (inter-service communication)
 - AsyncAPI (event-driven communication)
 - A problem type registry — the enumerable set of error kinds the API can return
@@ -29,7 +30,13 @@ contradict it, and changing behaviour means changing the specification first.
 ## Decision Criteria
 
 ### Protocol and surface
-- Select protocol by service classification (Process -> gRPC, Master -> REST, Integration -> AsyncAPI)
+- Apply @rules/api-style-selection.md. Select protocol from consumer variability, operation shape,
+  caching, governance, security and operations — never from service label or database product alone.
+- Decide per surface and allow a justified hybrid: flexible reads may use GraphQL while strict
+  commands, files and webhooks use REST/gRPC/events.
+- Record `access_surface`, `application_framework`, `data_access` and `transaction` separately.
+- When GraphQL or hybrid is selected, set `options.api_style_graphql: true` in
+  `work/pipeline-progress.json`; otherwise set it to `false`. Preserve every other option.
 - API versioning strategy, and what counts as a breaking change (@rules/api-contract-fidelity.md §8)
 - One project-wide convention for pagination, sorting and filtering — decided here, once
 
@@ -64,7 +71,8 @@ contract that cannot be implemented.
 
 ## Contract Verifiability (mandatory)
 
-Every operation this skill emits satisfies @rules/api-contract-fidelity.md §3. Restated as the
+Every REST operation this skill emits satisfies @rules/api-contract-fidelity.md §3. GraphQL surfaces
+must satisfy @rules/graphql-contract-fidelity.md through `/architect:design-graphql`. Restated as the
 checklist to apply before writing each specification file:
 
 - [ ] `operationId` on every operation — `camelCase` verb-noun, unique project-wide, naming the
@@ -104,8 +112,9 @@ defects that surface much later and much more expensively.
 
 | File | Content |
 |------|---------|
+| `reports/03_design/api-style-decisions.md` | Per-surface style decision, evidence, application framework, data access and transaction path |
 | `reports/03_design/api-specifications/openapi/` | REST API specifications — one per service |
-| `reports/03_design/api-specifications/graphql/` | GraphQL schemas |
+| `reports/03_design/api-specifications/graphql/` | GraphQL operation inventory here; detailed SDL and resolver/security/loading contracts from `/architect:design-graphql` |
 | `reports/03_design/api-specifications/grpc/` | Protobuf definitions |
 | `reports/03_design/api-specifications/asyncapi/` | Event specifications |
 | `reports/03_design/api-specifications/problem-types.md` | Problem type registry (@rules/api-error-standard.md §2) — every error kind, its `type` URI, status, and whether retry is safe |
@@ -121,6 +130,11 @@ Specification files themselves — schema names, `operationId`s, enum values —
 ## Acceptance Criteria
 
 - Every operation passes the Contract Verifiability checklist above
+- Every surface has a decision row with evidence and rejected alternatives; the database product is
+  never the sole reason for GraphQL
+- `options.api_style_graphql` matches whether any selected surface is GraphQL or hybrid
+- ScalarDB native GraphQL and a Spring for GraphQL application API are distinct choices; direct
+  native exposure requires the explicit exception in @rules/api-style-selection.md
 - Every error response references a `type` that has a row in `problem-types.md`, and every row in
   `problem-types.md` appears in at least one operation
 - Every operation in `operation-contracts.md` has a declared authorization rule — none left blank
@@ -136,6 +150,7 @@ Specification files themselves — schema names, `operationId`s, enum values —
 |-------|-------------|
 | /architect:design-microservices | Input source |
 | /architect:design-scalardb | Input source — transaction placement per operation |
+| /architect:design-graphql | Conditional downstream — produces detailed Spring GraphQL contracts |
 | /architect:design-implementation | Downstream — turns the contract into the API layer specification |
 | /architect:generate-api-code | Downstream — generates the API layer bound to this contract |
 | /architect:generate-contract-tests | Downstream — turns this contract into executable tests |

@@ -179,7 +179,7 @@ project and record it in the registry header:
 |----------|---------|
 | gRPC | `google.rpc.Status` with the registry `type` URI in an `ErrorInfo.reason`/`domain` pair; status code per the gRPC mapping recorded in the registry |
 | AsyncAPI / events | A `problem` object with the same members inside the message envelope; the `type` URI is identical to the REST one |
-| GraphQL | `errors[].extensions.type` carries the registry URI; the HTTP status stays 200 per the GraphQL contract |
+| GraphQL execution error | `errors[].extensions.type` carries the registry URI; transport status follows the GraphQL-over-HTTP contract. Parse/validation/transport failures and field execution failures remain distinct |
 
 A problem kind that exists on REST and on gRPC uses **one** registry row and one `type` URI. Two
 rows for the same problem is a finding.

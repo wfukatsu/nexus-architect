@@ -138,6 +138,7 @@ product スキルの全カタログは [スキルリファレンス](skill-refer
 # 3. アプリケーションコード                    （要: reports/06_implementation/ + scalardb-schema.md）
 /architect:generate-scalardb-code             # -> generated/{service}/  domain/ + infrastructure/
 /architect:generate-api-code                  # -> generated/{service}/  api/（OpenAPI 契約に束縛）
+/architect:generate-graphql-code              # -> generated/{service}/  api/graphql/（GraphQL/hybrid の場合）
 /architect:generate-contract-tests            # -> generated/{service}/src/test/
 
 # 4. インフラコード                            （要: reports/08_infrastructure/）

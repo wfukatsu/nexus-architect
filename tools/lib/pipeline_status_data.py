@@ -433,7 +433,8 @@ EXTENSION_PHASES = {
                                     outputs=["reports/03_design/scalardb-edition-selection.md"]),
     "design-scalardb-analytics": dict(category="extension", model="opus", depends_on=["design-scalardb"],
                                       outputs=["reports/03_design/scalardb-analytics-design.md"]),
-    "design-implementation": dict(category="extension", model="opus", depends_on=["design-api"],
+    "design-implementation": dict(category="extension", model="opus",
+                                  depends_on=["design-api", "design-graphql"],
                                   outputs=["reports/06_implementation/api-layer-spec.md",
                                            "reports/06_implementation/domain-services-spec.md",
                                            "reports/06_implementation/repository-interfaces-spec.md",
@@ -454,7 +455,14 @@ EXTENSION_PHASES = {
                               outputs=["generated/*/src/main/java/",
                                        "reports/06_implementation/api-contract-map.md",
                                        "reports/06_implementation/api-contract-map.json"]),
-    "generate-contract-tests": dict(category="extension", model="sonnet", depends_on=["generate-api-code"],
+    "generate-graphql-code": dict(category="extension", model="opus",
+                                  depends_on=["design-implementation", "design-graphql"],
+                                  outputs=["generated/*/src/main/resources/graphql/",
+                                           "generated/*/src/main/java/",
+                                           "reports/06_implementation/api-contract-map.md",
+                                           "reports/06_implementation/api-contract-map.json"]),
+    "generate-contract-tests": dict(category="extension", model="sonnet",
+                                    depends_on=["design-implementation"],
                                     outputs=["generated/*/src/test/java/",
                                              "reports/07_test-specs/contract-test-coverage.md"]),
     "generate-infra-code": dict(category="extension", model="sonnet", depends_on=["design-infrastructure"],
@@ -495,7 +503,8 @@ EXTENSION_PHASES = {
 # `generate-test-specs` deliberately stays in the architect pipeline: it writes
 # specifications under reports/, not code.
 CODEGEN_PHASES = {
-    "architect": ("generate-scalardb-code", "generate-api-code", "generate-contract-tests",
+    "architect": ("generate-scalardb-code", "generate-api-code", "generate-graphql-code",
+                  "generate-contract-tests",
                   "generate-infra-code", "generate-docs"),
     "product": ("generate-frontend",),
 }
@@ -786,6 +795,8 @@ def _conditions_ok(conditions, options):
         if cond == "scalardb_enabled" and not options.get("scalardb_enabled", True):
             return False
         if cond == "scalardb_disabled" and options.get("scalardb_enabled", True):
+            return False
+        if cond not in ("scalardb_enabled", "scalardb_disabled") and not options.get(cond, False):
             return False
     return True
 
