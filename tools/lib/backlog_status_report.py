@@ -115,7 +115,7 @@ def render_text(manifest, children, states, summary, pipeline, queue_count, sync
         lines.append(c(RED, "blocked: %s" % ", ".join(sorted(blocked))))
     drifted = [lid for lid, s in states.items() if s["drift"]]
     if drifted:
-        lines.append(c(YELLOW, "drift (tracker wins): %s" % ", ".join(sorted(drifted))))
+        lines.append(c(YELLOW, "drift: %s" % ", ".join(sorted(drifted))))
     return "\n".join(lines)
 
 
@@ -167,15 +167,18 @@ def render_md(manifest, children, states, summary, pipeline, queue_count, text):
 
 
 def main():
-    manifest = B.load_manifest(MANIFEST)
+    manifest = B.load_manifest(MANIFEST, PROJ)
     if manifest is None:
         print("backlog-status: unreadable manifest: %s" % MANIFEST, file=sys.stderr)
         return 1
     sync_cache, synced_at = None, None
     if SYNC:
         try:
-            sync_cache = B.sync_tracker(manifest)
+            sync_cache, warnings = B.sync_tracker(manifest)
             synced_at = datetime.now()
+            for warning in warnings:
+                print("backlog-status: %s: %s" % (T["sync_partial"], warning),
+                      file=sys.stderr)
         except RuntimeError as exc:
             print("backlog-status: %s: %s" % (T["sync_failed"], exc), file=sys.stderr)
     by_id, children, states = B.derive_all(manifest, sync_cache)

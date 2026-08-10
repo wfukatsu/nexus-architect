@@ -9,7 +9,11 @@ export-backlog / backlog-checklists contracts); this asserts them as behaviour:
 - stage derivation: M = pr.merged or done; R = M or pr.url; I = R or status review/done;
 - tree building: positional numeric order, F-nodes after positional siblings, orphans
   kept under a synthetic bucket;
-- parent roll-up: own impl.status wins, else child aggregation;
+- parent roll-up: own impl.status wins, else child aggregation, and a parent's own
+  tracker label is drift rather than an override;
+- tracker sync: the manifest header is inferred from the nodes' URLs, GitLab Epics are
+  fetched from the group as well as Issues from the project, and a group Epic iid never
+  collides with a project Issue iid;
 - summary counts.
 
     python3 tools/lib/backlog_status_data.test.py                 # embedded fixture
@@ -72,6 +76,90 @@ def check(name, cond, detail=""):
         FAILURES += 1
 
 
+GL = "https://gitlab.com"
+GL_PROJECT = "acme/team/app"
+GL_GROUP = "acme/team"
+
+
+def gl_node(lid, level, parent, kind, iid):
+    """A node carrying the kind of URL export-backlog records for it on GitLab."""
+    url = "%s/%s/-/%s/%d" % (GL, "groups/" + GL_GROUP if kind == "epic" else GL_PROJECT,
+                             "epics" if kind == "epic" else "work_items", iid)
+    n = node(lid, level, parent, iid=iid)
+    n["remote"] = {"iid": iid, "url": url}
+    return n
+
+
+# A bare node array, as the manifests written before the header existed look, with the
+# GitLab shape that used to break sync: Epics numbered from 1 in the group alongside
+# Issues numbered from 1 in the project.
+BARE = [
+    gl_node("E1", "epic", None, "epic", 1),
+    gl_node("SE1.1", "sub-epic", "E1", "epic", 2),
+    gl_node("I1.1.1", "issue", "SE1.1", "issue", 1),
+    gl_node("I1.1.2", "issue", "SE1.1", "issue", 2),
+]
+
+
+def run_sync_checks():
+    manifest = {"nodes": [dict(n) for n in BARE]}
+    B.infer_tracker(manifest)
+    check("a bare manifest infers its platform, project and group from the node URLs",
+          (manifest["platform"], manifest["project"], manifest["group"])
+          == ("gitlab", GL_PROJECT, GL_GROUP), manifest.get("project"))
+
+    sources = B.tracker_sources(manifest)
+    check("a GitLab manifest syncs the project's Issues and the group's Epics",
+          [(s[0], s[2]) for s in sources] == [("issues", "issue"), ("epics", "epic")],
+          sources)
+    check("the group path is URL-encoded for the epics endpoint",
+          "groups/acme%2Fteam/epics" in " ".join(sources[1][1]), sources[1][1])
+
+    # Two sources, both numbering from 1 — the collision that used to hand Epic 1 the
+    # status of Issue #1 as soon as anything was synced.
+    now = None
+    epics = B._entries([{"iid": 1, "web_url": BARE[0]["remote"]["url"],
+                         "labels": ["status::todo"], "state": "opened"},
+                        {"iid": 2, "web_url": BARE[1]["remote"]["url"],
+                         "labels": ["status::todo"], "state": "opened"}],
+                       "epic", "status::", "::", now)
+    issues = B._entries([{"iid": 1, "web_url": BARE[2]["remote"]["url"],
+                          "labels": ["status::done"], "state": "closed"},
+                         {"iid": 2, "web_url": BARE[3]["remote"]["url"],
+                          "labels": [], "state": "closed"}],
+                        "issue", "status::", "::", now)
+    cache = B._index(epics + issues)
+    check("a closed item with no status label still reads as done",
+          B.item_status({"labels": [], "state": "closed"}, "status::", "::") == "done")
+    check("the ambiguous bare iid is dropped when two kinds share it",
+          1 not in cache and 2 not in cache, sorted(str(k) for k in cache))
+    by_id, children, states = B.derive_all(manifest, cache)
+    check("Epic 1 keeps its own status instead of Issue #1's",
+          states["I1.1.1"]["status"] == "done" and states["E1"]["tracker_status"]
+          == "todo", (states["E1"], states["I1.1.1"]))
+    check("a parent aggregates its children over its own stale tracker label",
+          states["SE1.1"]["status"] == "done" and states["SE1.1"]["source"] == "rollup",
+          states["SE1.1"])
+    check("the disagreeing parent label is reported as drift",
+          states["SE1.1"]["drift"] and states["SE1.1"]["rollup"], states["SE1.1"])
+
+    # `gh issue list --limit 1000` returns a window, not the tracker; a node outside it
+    # used to be indistinguishable from an unlabelled one — both rendered as todo.
+    check("a node the fetch never returned is reported, not absorbed",
+          len(B.unreached({"nodes": manifest["nodes"] + [
+              gl_node("I1.1.9", "issue", "SE1.1", "issue", 99)]}, cache)) == 1,
+          B.unreached(manifest, cache))
+    check("an unlabelled open item is not mistaken for an unreached one",
+          B.unreached(manifest, cache) == [], B.unreached(manifest, cache))
+
+    check("a GitHub issue URL parses to one repository and no group",
+          B.parse_remote_url("https://github.com/acme/app/issues/12")
+          == ("github", "issue", "acme/app", 12))
+    check("/-/issues/ and /-/work_items/ are the same item",
+          B.tracker_key("%s/%s/-/issues/9" % (GL, GL_PROJECT))
+          == B.tracker_key("%s/%s/-/work_items/9" % (GL, GL_PROJECT)))
+
+
 def run(manifest):
     by_id, children, states = B.derive_all(manifest)
 
@@ -129,6 +217,9 @@ def run(manifest):
           summary)
     done, total = B.descendant_issue_counts(by_id["E1"], children, states)
     check("descendant counts over the epic", (done, total) == (2, 6), (done, total))
+
+    print("tracker sync")
+    run_sync_checks()
 
     print("actions")
     cmd = B.default_action(by_id["I1.1.2"], states["I1.1.2"])
