@@ -456,8 +456,12 @@ EXTENSION_PHASES = {
                               outputs=["generated/*/src/main/java/",
                                        "reports/06_implementation/api-contract-map.md",
                                        "reports/06_implementation/api-contract-map.json"]),
+    # Conditioned like its design phase: `design-graphql` being *skipped* satisfies the
+    # dependency (skipped counts as done), so without this the codegen view would offer
+    # GraphQL generation on a project whose canonical decision is REST-only.
     "generate-graphql-code": dict(category="extension", model="opus",
                                   depends_on=["design-implementation", "design-graphql"],
+                                  conditions=["api_style_graphql"],
                                   outputs=["reports/06_implementation/graphql-code-generation.md"]),
     "generate-contract-tests": dict(category="extension", model="sonnet",
                                     depends_on=["design-implementation"],
@@ -554,7 +558,7 @@ def load_phase_manifest(plugin, root=None):
                 continue
             spec = dict(spec)
             spec.update(outputs=list(spec["outputs"]), depends_on=list(spec["depends_on"]),
-                        conditions=[], tier="extension")
+                        conditions=_as_list(spec.get("conditions")), tier="extension")
             phases[name] = spec
     codegen = set(CODEGEN_PHASES.get(plugin, ()))
     for name, spec in phases.items():

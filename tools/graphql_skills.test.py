@@ -64,6 +64,46 @@ def main():
           generator)
     check("generator is shown in the codegen view",
           "generate-graphql-code" in pipeline.CODEGEN_PHASES["architect"])
+    check("generator is conditioned on the canonical decision",
+          pipeline.EXTENSION_PHASES["generate-graphql-code"].get("conditions")
+          == ["api_style_graphql"])
+
+    # `design-graphql` skipped satisfies the dependency, so only the condition keeps the
+    # codegen view from offering GraphQL generation on a REST-only project.
+    def codegen_state(document):
+        with tempfile.TemporaryDirectory() as project:
+            os.makedirs(os.path.join(project, "reports", "03_design"))
+            with open(os.path.join(project, "reports", "03_design",
+                                   "api-style-decisions.json"), "w",
+                      encoding="utf-8") as handle:
+                handle.write(document)
+            progress = {"project_name": "p", "options": {"scalardb_enabled": True},
+                        "phases": {name: {"status": "completed", "plugin": "architect"}
+                                   for name in ("design-api", "design-implementation")}}
+            derived = pipeline.derive_all(project, plugin="architect", progress=progress,
+                                          section="codegen")
+            for group in derived["groups"]:
+                for phase in group["phases"]:
+                    if phase["name"] == "generate-graphql-code":
+                        return phase
+        return None
+
+    rest_only = json.dumps({"surfaces": [decision_surface(
+        selected_style="rest", graphql_provider="not-applicable")]})
+    graphql = json.dumps({"surfaces": [decision_surface()]})
+    rest_state = codegen_state(rest_only)
+    graphql_state = codegen_state(graphql)
+    invalid_state = codegen_state("{ not json")
+    check("REST-only decision withdraws the GraphQL generator",
+          rest_state["excluded"] == "condition" and not rest_state["runnable"],
+          rest_state)
+    check("GraphQL decision keeps the generator, waiting on its design phase",
+          graphql_state["excluded"] is None
+          and graphql_state["blocked_by"] == ["design-graphql"],
+          graphql_state)
+    check("invalid decision fails the generator instead of offering it",
+          invalid_state["status"] == "failed" and not invalid_state["runnable"],
+          invalid_state)
 
     marketplace = json.loads(read(".claude-plugin/marketplace.json"))
     architect = next(item for item in marketplace["plugins"]

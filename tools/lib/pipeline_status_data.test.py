@@ -599,6 +599,10 @@ def check_graphql_condition(root):
           complete)
 
     codegen = os.path.join(root, "graphql-codegen-ownership")
+    # The generator is conditioned on the same canonical decision as its design phase,
+    # so a project that ran it necessarily carries a GraphQL surface.
+    write(os.path.join(codegen, "reports", "03_design", "api-style-decisions.json"),
+          json.dumps({"surfaces": [surface]}))
     write(os.path.join(codegen, "generated", "demo", "src", "main", "resources",
                        "graphql", "schema.graphqls"), "schema")
     write(os.path.join(codegen, "generated", "demo", "src", "main", "java",
@@ -614,6 +618,20 @@ def check_graphql_condition(root):
     owned = P.derive_codegen(codegen, "architect")["phases"]["generate-graphql-code"]
     check("unique generation evidence completes GraphQL code generation",
           owned["status"] == "completed" and owned["written"] == 1, owned)
+
+    # The extension tier used to hardcode conditions=[] when folding EXTENSION_PHASES into
+    # the manifest, which silently disarmed every condition an extension phase declared.
+    manifest = P.load_phase_manifest("architect")
+    check("the extension tier keeps the conditions its phases declare",
+          manifest["generate-graphql-code"]["conditions"] == ["api_style_graphql"],
+          manifest["generate-graphql-code"])
+    surface["selected_style"] = "rest"
+    write(os.path.join(codegen, "reports", "03_design", "api-style-decisions.json"),
+          json.dumps({"surfaces": [surface]}))
+    rest_codegen = P.derive_codegen(codegen, "architect")["phases"]["generate-graphql-code"]
+    check("a REST-only decision withdraws the GraphQL generator from the codegen view",
+          rest_codegen["excluded"] == "condition" and not rest_codegen["runnable"],
+          rest_codegen)
 
 
 def hook_module():
