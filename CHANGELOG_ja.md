@@ -7,6 +7,71 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 3 つのプラグイン（`product`・`architect`・`scalardb`）は同一の番号で一括リリースされます。
 
+## [0.26.0] - 2026-08-11
+
+### 追加
+- **Spring for GraphQL を第一級の API スタイルとして追加 — `/architect:design-graphql` と
+  `/architect:generate-graphql-code`。** これまでパイプラインは仕様書に GraphQL と書くことはできても、
+  それを**検証可能な契約**にする仕組みを持っていませんでした。REST には `operationId` の束縛・契約マップ・
+  実行可能テスト・適合性検査があるのに、GraphQL 面は散文に落ちていたということです。GraphQL も同じ機構に
+  乗り、結合キーだけが固有になります — フィールド座標 `<parentType>.<fieldName>` が resolver に 1:1 で
+  束縛され、`api-contract-map.json` は REST エントリと並べて `protocol: graphql` を持ち、
+  `verify-implementation` はマップの主張を信用せず**ソースから** resolver インベントリを導出します。
+- **API スタイルは「ラベル」ではなく「根拠を伴う決定」になりました。** `design-api` が
+  `reports/03_design/api-style-decisions.json` を書きます — 利用者に面する surface ごとに 1 エントリで、
+  選択したスタイル、却下した代替案、辿れる要件 ID、セキュリティ／トランザクション／実行モデルを
+  **個別のフィールド**として記録します。`api-style-decisions.md` は生成される投影であり、生成元 JSON の
+  `source_sha256` を持ちます。手で書くことも、決定の情報源として読むこともありません。
+  `tools/validate-api-style-decisions.py` が検証とレンダリングを担い、検証エラーはフェーズを止めます。
+- **データベースが API スタイルを決めることはなくなりました。** `rules/api-style-selection.md` により、
+  選択は利用者側の多様性・操作の性質・キャッシュ・ガバナンス・運用準備で決まり、`access_surface`・
+  `application_framework`・`data_access`・`transaction` を**別々に**記録することが必須になります。
+  「ScalarDB を使っているから」は GraphQL を公開する理由にならず、この 2 つの判断が 1 つに潰れていたためです。
+- **ScalarDB ネイティブ GraphQL と Spring for GraphQL アプリケーション API を、脅威面の異なる別製品として
+  扱います。** ネイティブインタフェースの公開には `approved:<decision-id>`、OKF バンドルで確認した
+  製品／リリース／エディションのピン留め、そして 5 つの統制（認証・認可・監査・クエリ制限・ネットワーク分離）
+  すべての参照エビデンスが必要です。**散文による承認は承認ではありません** — 構造化フィールドを欠いた
+  外部公開に対し、`review-api-security` は **critical** を上げます。
+- `rules/graphql-contract-fidelity.md` と `rules/graphql-security-checks.md` を追加 — SDL の nullability と
+  スキーマ進化のルール、`errors[].extensions.type` によるエラー伝達、および GraphQL 固有のセキュリティ検査
+  （ネストフィールドの認可、テナント単位の DataLoader キャッシュ分離、depth／complexity／alias／batch の予算、
+  Subscription の origin とライフサイクル統制）を既定 severity 付きで規定します。
+- `rules/api-error-standard.md` §3.2 — `UnknownTransactionStatusException` の GraphQL 実行契約。これは
+  トランスポートエラーではなく**フィールド実行エラー**です。HTTP 200 に登録済み problem type URI を載せ、
+  extensions は相互排他の 2 パターン — 冪等キーで保護された mutation は同一キーでのリトライ、保護されて
+  いない mutation は「リトライせず突合」。ScalarDB の生トランザクション ID は extensions に出しません。
+
+### 修正
+- **Code Generation ビューが、プロジェクトが選んでいない API スタイルの生成器を提示していました。**
+  REST-only プロジェクトで `design-graphql` は正しくスキップされますが、**スキップされた依存は充足扱い**の
+  ため `generate-graphql-code` が実行可能になり、次コマンドとして提示されていました。GraphQL-only
+  プロジェクトにおける `generate-api-code` も同様です。両者を canonical 決定に条件付けし、読めない決定は
+  REST 既定に倒れるのではなく**両方を fail-closed** にしました。
+- **拡張ティアはそもそも条件を表現できませんでした。** `EXTENSION_PHASES` を manifest に畳み込む際に
+  `conditions=[]` がハードコードされており、フェーズが宣言した条件を黙って捨てていました — ローダーを
+  直すまで上記の修正は効きませんでした。現在はすべての拡張フェーズが条件付き可能です。
+- canonical 決定から導出した条件が、ダッシュボードが「プロジェクト自身の設定」として表示する `options` に
+  混入しなくなりました。また、非 dict の不正な `options` は `dict()` に渡して例外を投げるのではなく
+  正規化されます。
+- 生成される `api-style-decisions.md` のフロントマターが `rules/output-conventions.md` に準拠しました
+  （`schema_version: 1`・`phase`・`input_files`）。`generated_at` は意図的に入れていません — この投影は
+  バイト単位で安定であることを assert しており、`source_sha256` がタイムスタンプの近似する対象を
+  厳密に同定しているためです。
+- バックログダッシュボードが、manifest の初期 `labels` ではなく**トラッカー**から納品ステータスを読むように
+  なりました。GitLab / GitHub 側で状態が動いた項目が、エクスポート時のステータスのまま表示されることは
+  なくなります。
+
+### 変更
+- `design-implementation`・`generate-test-specs`・`generate-contract-tests`・`generate-docs`・
+  `review-api-security`・`verify-implementation`・`implement-backlog` が、REST の `operationId` と
+  GraphQL のフィールド座標を並列のケースとして記述するようになり、品質ゲートの契約ステージと
+  API セキュリティステージも両方を対象にします。契約テストは OpenAPI バリデータではなく、承認された
+  トランスポート設計から `GraphQlTester` の種別を選択します。
+- `tools/graphql_skills.test.py` が新しい契約を 68 チェックで検証します — 決定スキーマとその fail-closed
+  検証、Markdown 投影の決定性とメタ文字エスケープ、外部プロジェクトから実行したときのバリデータの終了コード、
+  そして各 canonical 決定がどの生成器を提示／撤回するか。
+- セッション作業成果物（`todos/`・`*.local.md`）を追跡対象から外しました。
+
 ## [0.25.0] - 2026-08-09
 
 ### 追加
