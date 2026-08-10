@@ -1,13 +1,17 @@
 """Validation and rendering for API style and ScalarDB GraphQL decisions."""
 
 import hashlib
+import html
 import json
+import re
 
-BASE_FIELDS = (
-    "access_surface", "application_framework", "consumers", "operations", "selected_style",
-    "client_variability", "cache_needs", "security_model", "transport", "execution_model",
-    "data_access", "transaction_model", "operational_readiness", "rejected_alternatives",
-    "requirement_ids", "rationale",
+STRING_FIELDS = (
+    "access_surface", "application_framework", "selected_style", "client_variability",
+    "cache_needs", "security_model", "transport", "execution_model", "data_access",
+    "transaction_model", "operational_readiness", "rationale",
+)
+STRING_LIST_FIELDS = (
+    "consumers", "operations", "rejected_alternatives", "requirement_ids",
 )
 NATIVE_FIELDS = (
     "graphql_provider", "native_exposure", "approval", "pinned_product",
@@ -15,6 +19,14 @@ NATIVE_FIELDS = (
 )
 CONTROL_FIELDS = (
     "authentication", "authorization", "audit", "query_limits", "network_isolation",
+)
+DETAIL_FIELDS = (
+    "scalardb_backed", "access_surface", "application_framework", "consumers", "operations",
+    "selected_style", "client_variability", "cache_needs", "security_model", "transport",
+    "execution_model", "data_access", "transaction_model", "operational_readiness",
+    "rejected_alternatives", "requirement_ids", "rationale", "graphql_provider",
+    "native_exposure", "approval", "pinned_product", "pinned_release", "contracted_edition",
+    "control_evidence",
 )
 
 
@@ -39,14 +51,21 @@ def validate_document(document):
         if not isinstance(surface_id, str) or not surface_id.strip():
             errors.append("%s.surface_id: required" % prefix)
             surface_id = prefix
+        elif not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", surface_id):
+            errors.append("%s.surface_id: invalid stable identifier" % prefix)
         elif surface_id in seen:
             errors.append("%s.surface_id: duplicate %s" % (prefix, surface_id))
         seen.add(surface_id)
 
-        for field in BASE_FIELDS:
-            if field not in surface or surface[field] is None:
-                errors.append("%s.%s: required canonical decision field" %
-                              (surface_id, field))
+        for field in STRING_FIELDS:
+            value = surface.get(field)
+            if not isinstance(value, str) or not value.strip():
+                errors.append("%s.%s: required non-empty string" % (surface_id, field))
+        for field in STRING_LIST_FIELDS:
+            value = surface.get(field)
+            if not isinstance(value, list) or not value or not all(
+                    isinstance(item, str) and item.strip() for item in value):
+                errors.append("%s.%s: required non-empty string array" % (surface_id, field))
         if surface.get("selected_style") not in (
                 "rest", "graphql", "hybrid", "grpc", "asyncapi"):
             errors.append("%s.selected_style: invalid value" % surface_id)
@@ -115,9 +134,14 @@ def canonical_json(document):
 def _cell(value):
     if value is None:
         return "—"
-    if isinstance(value, (list, dict)):
-        value = json.dumps(value, ensure_ascii=False, sort_keys=True)
-    return str(value).replace("|", "\\|").replace("\n", " ")
+    if isinstance(value, list):
+        return "<br>".join(_cell(item) for item in value)
+    if isinstance(value, dict):
+        return "<br>".join("%s: %s" % (_cell(key), _cell(value[key]))
+                           for key in sorted(value, key=lambda item: str(item))) or "{}"
+    escaped = html.escape(str(value), quote=True)
+    return (escaped.replace("|", "&#124;").replace("`", "&#96;")
+            .replace("\r\n", "<br>").replace("\r", "<br>").replace("\n", "<br>"))
 
 
 def render_markdown(document, language="en"):
@@ -148,5 +172,15 @@ def render_markdown(document, language="en"):
                   surface.get("application_framework"), surface.get("data_access"),
                   transaction, surface.get("approval")]
         lines.append("| " + " | ".join(_cell(value) for value in values) + " |")
+    detail_title = "判断根拠" if ja else "Decision Evidence"
+    field_header = "フィールド" if ja else "Field"
+    value_header = "値" if ja else "Value"
+    for surface in surfaces:
+        lines.extend([
+            "", "## %s: %s" % (detail_title, _cell(surface.get("surface_id"))), "",
+            "| %s | %s |" % (field_header, value_header), "|---|---|",
+        ])
+        for field in DETAIL_FIELDS:
+            lines.append("| `%s` | %s |" % (field, _cell(surface.get(field))))
     lines.append("")
     return "\n".join(lines)

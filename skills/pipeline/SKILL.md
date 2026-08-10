@@ -34,7 +34,10 @@ part of the automated run.
 4. Execute each skill and verify its output before proceeding to the next
 5. Execute skills with `parallel_with` in parallel via Task
 6. Enable or disable conditional skills based on the `conditions` field: ScalarDB/data-layer from
-   `scalardb_enabled`, and `design-graphql` from `options.api_style_graphql` written by `design-api`
+   `scalardb_enabled`, and `design-graphql` directly from GraphQL/hybrid surfaces in canonical
+   `reports/03_design/api-style-decisions.json`. Before that artifact exists, a legacy
+   `options.api_style_graphql` is only a compatibility fallback. Invalid canonical JSON is a
+   blocking error and must never be interpreted as REST-only.
 7. Record progress in `work/pipeline-progress.json` **twice per phase**: set
    `status: "in_progress"` with `plugin: "architect"` and `started_at` *before* invoking
    the skill (all of them at once for a parallel group), then `completed` / `failed` /

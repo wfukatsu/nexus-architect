@@ -131,6 +131,27 @@ def main():
     check("canonical document requires the object envelope",
           validate_document([]) ==
           ["document: must be an object with a surfaces array"], validate_document([]))
+    for field in (
+            "access_surface", "application_framework", "selected_style", "client_variability", "cache_needs",
+            "security_model", "transport", "execution_model", "data_access",
+            "transaction_model", "operational_readiness", "rationale"):
+        wrong = {"surfaces": [decision_surface(**{field: []})]}
+        check("canonical string field rejects wrong type: %s" % field,
+              any((".%s:" % field) in error for error in validate_document(wrong)),
+              validate_document(wrong))
+    for field in ("consumers", "operations", "rejected_alternatives", "requirement_ids"):
+        wrong = {"surfaces": [decision_surface(**{field: "not-an-array"})]}
+        check("canonical array field rejects scalar: %s" % field,
+              any((".%s:" % field) in error for error in validate_document(wrong)),
+              validate_document(wrong))
+        empty_item = {"surfaces": [decision_surface(**{field: [""]})]}
+        check("canonical array field rejects empty item: %s" % field,
+              any((".%s:" % field) in error for error in validate_document(empty_item)),
+              validate_document(empty_item))
+    invalid_id = {"surfaces": [decision_surface(surface_id="bad id|row")]}
+    check("surface ID enforces the stable identifier shape",
+          any("invalid stable identifier" in error for error in validate_document(invalid_id)),
+          validate_document(invalid_id))
     approved_native = {"surfaces": [decision_surface(
         surface_id="admin-api", graphql_provider="scalardb-native",
         native_exposure="internal", approval="approved:ADR-042",
@@ -177,6 +198,22 @@ def main():
           rendered == render_markdown(approved_native, "ja")
           and "canonical_source: reports/03_design/api-style-decisions.json" in rendered
           and "source_sha256:" in rendered)
+    check("Markdown projection exposes every canonical decision field",
+          all(("`%s`" % field) in rendered for field in (
+              "consumers", "operations", "security_model", "control_evidence", "rationale",
+              "rejected_alternatives", "operational_readiness", "requirement_ids")))
+    check("Markdown projection includes decision evidence values",
+          all(value in rendered for value in (
+              "approved internal administration", "OIDC + field authorization",
+              "SEC-1", "native GraphQL", "FR-001")))
+    hostile = {"surfaces": [decision_surface(
+        rationale="<script>alert(1)</script>|row\nnext`code`",
+        control_evidence={"note": "a|b\r\nc"})]}
+    hostile_rendered = render_markdown(hostile, "en")
+    check("Markdown projection escapes structural and HTML metacharacters",
+          "<script>" not in hostile_rendered
+          and "&#124;" in hostile_rendered and "&#96;" in hostile_rendered
+          and "<br>" in hostile_rendered, hostile_rendered)
     check("downstream skills consume canonical JSON",
           "api-style-decisions.json" in design_skill
           and "api-style-decisions.json" in generator_skill
@@ -209,6 +246,20 @@ def main():
         check("rendered Markdown passes report hooks",
               frontmatter.returncode == 0 and mermaid.returncode == 0,
               frontmatter.stderr or mermaid.stderr)
+        ja_path = os.path.join(report_dir, "api-style-decisions-ja.md")
+        ja_result = subprocess.run(
+            [sys.executable, validator, json_path, "--render-markdown", ja_path,
+             "--lang", "ja"], cwd=external_project, capture_output=True, text=True)
+        ja_frontmatter = subprocess.run(
+            [os.path.join(ROOT, "hooks", "validate-frontmatter.sh"), ja_path],
+            cwd=external_project, capture_output=True, text=True)
+        ja_mermaid = subprocess.run(
+            [os.path.join(ROOT, "hooks", "validate-mermaid.sh"), ja_path],
+            cwd=external_project, capture_output=True, text=True)
+        check("Japanese rendered Markdown passes report hooks",
+              ja_result.returncode == 0 and ja_frontmatter.returncode == 0
+              and ja_mermaid.returncode == 0,
+              ja_result.stderr or ja_frontmatter.stderr or ja_mermaid.stderr)
         invalid_path = os.path.join(report_dir, "invalid.json")
         with open(invalid_path, "w", encoding="utf-8") as handle:
             json.dump(missing_flag, handle)

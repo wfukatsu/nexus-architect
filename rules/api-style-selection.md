@@ -86,3 +86,16 @@ canonical JSON. The surface array must not be empty. ScalarDB-backed surfaces al
 structured field in the
 ScalarDB boundary table above. Unknown security, transaction, version, edition, exposure, approval,
 or control fields become open questions, never permissive defaults.
+
+The canonical JSON uses these shapes:
+
+- `surface_id`: non-empty stable identifier matching `[A-Za-z0-9][A-Za-z0-9._-]*`;
+- `scalardb_backed`: JSON boolean;
+- `consumers`, `operations`, `rejected_alternatives`, `requirement_ids`: non-empty arrays of
+  non-empty strings;
+- all other required base decision fields: non-empty strings;
+- `control_evidence`: JSON object; for exposed native GraphQL, each required control is a non-empty
+  reference string.
+
+Do not coerce a scalar into an array or serialize a structured field into prose merely to satisfy
+the validator.

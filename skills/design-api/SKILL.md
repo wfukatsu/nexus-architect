@@ -40,8 +40,9 @@ contradict it, and changing behaviour means changing the specification first.
   ScalarDB-backed surface include `graphql_provider`, `native_exposure`, `approval`,
   `pinned_product`, `pinned_release`, `contracted_edition`, `control_evidence`, and `rationale` as
   defined by @rules/api-style-selection.md. Missing native-interface evidence blocks completion.
-- When GraphQL or hybrid is selected, set `options.api_style_graphql: true` in
-  `work/pipeline-progress.json`; otherwise set it to `false`. Preserve every other option.
+- The canonical JSON directly controls whether `design-graphql` runs. Do not copy the selection into
+  `options.api_style_graphql`; a legacy value may exist, but orchestration ignores it once the
+  canonical artifact exists.
 - API versioning strategy, and what counts as a breaking change (@rules/api-contract-fidelity.md §8)
 - One project-wide convention for pagination, sorting and filtering — decided here, once
 
@@ -118,7 +119,7 @@ defects that surface much later and much more expensively.
 | File | Content |
 |------|---------|
 | `reports/03_design/api-style-decisions.json` | Canonical decisions keyed by stable `surface_id`, including required boolean `scalardb_backed` and the ScalarDB native-exposure approval/control fields |
-| `reports/03_design/api-style-decisions.md` | Generated human-readable projection of the canonical JSON; never authored separately |
+| `reports/03_design/api-style-decisions.md` | Generated human-readable projection of every canonical field, including rationale, rejected alternatives, security/control evidence and requirement traces; never authored separately |
 | `reports/03_design/api-specifications/openapi/` | REST API specifications — one per service |
 | `reports/03_design/api-specifications/graphql/` | GraphQL operation inventory here; detailed SDL and resolver/security/loading contracts from `/architect:design-graphql` |
 | `reports/03_design/api-specifications/grpc/` | Protobuf definitions |
@@ -154,7 +155,7 @@ the generated report.
 - Markdown is generated from canonical JSON; every surface has a boolean `scalardb_backed`, and
   every ScalarDB-backed JSON entry contains the complete
   native-exposure decision schema from @rules/api-style-selection.md
-- `options.api_style_graphql` matches whether any selected surface is GraphQL or hybrid
+- Pipeline orchestration derives GraphQL/hybrid enablement directly from the canonical JSON
 - ScalarDB native GraphQL and a Spring for GraphQL application API are distinct choices; direct
   native exposure requires structured approval, pinned release/edition, and all five control
   evidence references from @rules/api-style-selection.md; prose alone is insufficient

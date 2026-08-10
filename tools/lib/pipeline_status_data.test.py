@@ -526,6 +526,60 @@ def check_graphql_condition(root):
     check("GraphQL/hybrid: GraphQL design is enabled",
           on["status"] == "pending" and on["excluded"] is None, on)
 
+    decision_path = os.path.join(proj, "reports", "03_design", "api-style-decisions.json")
+    surface = {
+        "surface_id": "customer", "scalardb_backed": False,
+        "access_surface": "external", "application_framework": "Spring for GraphQL",
+        "consumers": ["web"], "operations": ["Query.customer"],
+        "selected_style": "graphql", "client_variability": "variable projections",
+        "cache_needs": "application", "security_model": "OIDC",
+        "transport": "HTTP", "execution_model": "Spring MVC", "data_access": "JDBC",
+        "transaction_model": "local", "operational_readiness": "ready",
+        "rejected_alternatives": ["REST"], "requirement_ids": ["FR-001"],
+        "rationale": "consumer projections",
+    }
+    write(decision_path, json.dumps({"surfaces": [surface]}))
+    write(os.path.join(proj, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "demo",
+        "options": {"scalardb_enabled": False, "api_style_graphql": False},
+        "phases": {},
+    }))
+    canonical_graphql = P.derive_all(proj)
+    graphql_phase = canonical_graphql["phases"]["design-graphql"]
+    check("canonical GraphQL overrides a stale false option",
+          graphql_phase["status"] == "pending" and graphql_phase["excluded"] is None,
+          graphql_phase)
+    check("canonical/legacy disagreement is visible",
+          any("ignored stale options.api_style_graphql" in warning
+              for warning in canonical_graphql["warnings"]), canonical_graphql["warnings"])
+
+    surface["selected_style"] = "rest"
+    write(decision_path, json.dumps({"surfaces": [surface]}))
+    write(os.path.join(proj, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "demo",
+        "options": {"scalardb_enabled": False, "api_style_graphql": True},
+        "phases": {},
+    }))
+    canonical_rest = P.derive_all(proj)["phases"]["design-graphql"]
+    check("canonical REST overrides a stale true option",
+          canonical_rest["status"] == "skipped" and canonical_rest["excluded"] == "condition",
+          canonical_rest)
+
+    write(decision_path, "{broken")
+    invalid = P.derive_all(proj)
+    invalid_phase = invalid["phases"]["design-graphql"]
+    check("invalid canonical decision blocks GraphQL design as a condition failure",
+          invalid_phase["excluded"] == "condition-error"
+          and invalid_phase["status"] == "failed" and not invalid_phase["runnable"],
+          invalid_phase)
+    check("invalid canonical decision surfaces an actionable error",
+          any("invalid canonical API-style decision" in error for error in invalid["errors"]),
+          invalid["errors"])
+
+    # Restore the GraphQL contract for output-ownership fixtures below.
+    surface["selected_style"] = "graphql"
+    write(decision_path, json.dumps({"surfaces": [surface]}))
+
     # design-api owns this inventory directory. Its presence must not complete
     # the detailed design phase.
     write(os.path.join(proj, "reports", "03_design", "api-specifications", "graphql",
