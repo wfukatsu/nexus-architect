@@ -104,8 +104,14 @@ branch exists).
 Record the full list of found file paths — these will be passed to sub-agents. When a design file is
 missing, record it: a security review run without the security design is a weaker review and must say so.
 
-Run `python3 tools/validate-api-style-decisions.py
-reports/03_design/api-style-decisions.json` when the decision artifact exists. Any validation error
+Run the plugin-owned validator when the decision artifact exists:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/tools/validate-api-style-decisions.py" \
+  reports/03_design/api-style-decisions.json
+```
+
+Any validation error
 on a native GraphQL exposure becomes a critical finding; do not downgrade it to a missing-document
 note or accept equivalent prose elsewhere.
 

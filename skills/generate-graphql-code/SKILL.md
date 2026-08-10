@@ -21,7 +21,7 @@ field, argument, type, error or transport that the contract did not declare.
 
 | File | Requirement |
 |------|-------------|
-| `reports/03_design/api-style-decisions.md` | Required; target surface is GraphQL or hybrid |
+| `reports/03_design/api-style-decisions.json` | Required canonical contract; target surface is GraphQL or hybrid |
 | `reports/03_design/api-specifications/graphql/{service}.graphqls` | Required contract |
 | `reports/03_design/api-specifications/graphql/resolver-contracts.md` | Required bindings |
 | `reports/03_design/api-specifications/graphql/authorization-matrix.md` | Required controls |

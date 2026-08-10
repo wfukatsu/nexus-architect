@@ -24,7 +24,7 @@ from ScalarDB's edition-gated native GraphQL interface per @rules/api-style-sele
 
 ## Entry Condition
 
-Read `reports/03_design/api-style-decisions.md`. Run only when at least one in-scope surface is
+Read canonical `reports/03_design/api-style-decisions.json`. Run only when at least one in-scope surface is
 `graphql` or `hybrid`. Otherwise mark this conditional phase skipped with its reason.
 
 If the decision artifact is absent, stop and run `/architect:design-api`; do not infer the API style
@@ -34,7 +34,7 @@ from an existing `.graphqls` file or from the database product.
 
 | File | Requirement |
 |------|-------------|
-| `reports/03_design/api-style-decisions.md` | Required; selected surfaces and transport choices |
+| `reports/03_design/api-style-decisions.json` | Required canonical contract; selected surfaces, providers and transport choices |
 | `reports/03_design/target-architecture.md` | Required |
 | `reports/03_design/api-specifications/operation-contracts.md` | Required; business operations, authorization and transaction placement |
 | `reports/03_design/api-specifications/problem-types.md` | Required; shared error registry |

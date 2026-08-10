@@ -3,12 +3,14 @@
 
 import json
 import os
+import subprocess
 import sys
+import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools", "lib"))
 import pipeline_status_data as pipeline  # noqa: E402
-from api_style_decisions import validate_document  # noqa: E402
+from api_style_decisions import render_markdown, validate_document  # noqa: E402
 
 failures = 0
 
@@ -27,6 +29,26 @@ def check(label, condition, detail=""):
 def read(path):
     with open(os.path.join(ROOT, path), encoding="utf-8") as fh:
         return fh.read()
+
+
+def decision_surface(**overrides):
+    surface = {
+        "surface_id": "surface", "scalardb_backed": True,
+        "access_surface": "external", "application_framework": "Spring for GraphQL",
+        "consumers": ["web"], "operations": ["Query.customer"],
+        "selected_style": "graphql", "client_variability": "multiple projections",
+        "cache_needs": "application cache", "security_model": "OIDC + field authorization",
+        "transport": "HTTP", "execution_model": "Spring MVC", "data_access": "ScalarDB",
+        "transaction_model": "ScalarDB transaction", "operational_readiness": "ready",
+        "rejected_alternatives": ["native GraphQL"], "requirement_ids": ["FR-001"],
+        "rationale": "application security boundary",
+        "graphql_provider": "spring-for-graphql", "native_exposure": "none",
+        "approval": "not-required", "pinned_product": "ScalarDB",
+        "pinned_release": "verified-release", "contracted_edition": "verified-edition",
+        "control_evidence": {},
+    }
+    surface.update(overrides)
+    return surface
 
 
 def main():
@@ -90,46 +112,115 @@ def main():
     check("ScalarDB native exposure uses a structured decision contract",
           all(term in selection_rule and term in design_api_skill
               for term in required_native_fields))
+    check("ScalarDB applicability is explicit and fail-closed",
+          "scalardb_backed" in selection_rule
+          and "required boolean" in read("tools/lib/api_style_decisions.py"))
     check("native exposure without approval and controls is critical",
           "critical" in security_review.lower()
           and "approved:<decision-id>" in security_review
           and all(control in security_review for control in
                   ("authentication", "authorization", "audit", "query limits",
                    "network isolation")))
-    spring_surface = {"surfaces": [{
-        "surface_id": "customer-api", "scalardb_backed": True,
-        "graphql_provider": "spring-for-graphql", "native_exposure": "none",
-        "approval": "not-required", "pinned_product": "ScalarDB",
-        "pinned_release": "verified-release", "contracted_edition": "verified-edition",
-        "control_evidence": {}, "rationale": "application security boundary",
-    }]}
+    spring_surface = {"surfaces": [decision_surface(surface_id="customer-api")]}
     check("Spring facade decision fixture validates",
           validate_document(spring_surface) == [], validate_document(spring_surface))
-    approved_native = {"surfaces": [{
-        "surface_id": "admin-api", "scalardb_backed": True,
-        "graphql_provider": "scalardb-native", "native_exposure": "internal",
-        "approval": "approved:ADR-042", "pinned_product": "ScalarDB",
-        "pinned_release": "verified-release", "contracted_edition": "verified-edition",
-        "control_evidence": {
+    check("canonical decision list cannot be empty",
+          validate_document({"surfaces": []}) ==
+          ["document: surfaces must not be empty"],
+          validate_document({"surfaces": []}))
+    check("canonical document requires the object envelope",
+          validate_document([]) ==
+          ["document: must be an object with a surfaces array"], validate_document([]))
+    approved_native = {"surfaces": [decision_surface(
+        surface_id="admin-api", graphql_provider="scalardb-native",
+        native_exposure="internal", approval="approved:ADR-042",
+        control_evidence={
             "authentication": "SEC-1", "authorization": "SEC-2", "audit": "SEC-3",
             "query_limits": "SEC-4", "network_isolation": "SEC-5"},
-        "rationale": "approved internal administration",
-    }]}
+        rationale="approved internal administration",
+    )]}
     check("approved internal native decision fixture validates",
           validate_document(approved_native) == [], validate_document(approved_native))
-    unsafe_external = {"surfaces": [{
-        "surface_id": "public-api", "scalardb_backed": True,
-        "graphql_provider": "scalardb-native", "native_exposure": "external",
-        "approval": "not-required", "pinned_product": "ScalarDB",
-        "pinned_release": "verified-release", "contracted_edition": "verified-edition",
-        "control_evidence": {}, "rationale": "convenience",
-    }]}
+    missing_surface = decision_surface(
+        surface_id="bypass", graphql_provider="scalardb-native",
+        native_exposure="external")
+    del missing_surface["scalardb_backed"]
+    missing_flag = {"surfaces": [missing_surface]}
+    missing_flag_errors = validate_document(missing_flag)
+    check("omitting ScalarDB applicability cannot bypass native checks",
+          any("scalardb_backed" in error for error in missing_flag_errors)
+          and any("approval" in error for error in missing_flag_errors),
+          missing_flag_errors)
+    false_native = {"surfaces": [decision_surface(
+        surface_id="contradiction", scalardb_backed=False,
+        graphql_provider="scalardb-native", native_exposure="external")]}
+    check("non-ScalarDB surface cannot select native provider",
+          len(validate_document(false_native)) >= 2, validate_document(false_native))
+    for bad_value in (None, "true", 1):
+        bad_type = {"surfaces": [decision_surface(
+            surface_id="bad-type", scalardb_backed=bad_value)]}
+        check("ScalarDB applicability rejects %r" % bad_value,
+              any("required boolean" in error for error in validate_document(bad_type)),
+              validate_document(bad_type))
+    unsafe_external = {"surfaces": [decision_surface(
+        surface_id="public-api", graphql_provider="scalardb-native",
+        native_exposure="external", approval="not-required", control_evidence={},
+        rationale="convenience")]}
     unsafe_errors = validate_document(unsafe_external)
     check("unapproved external native decision fixture is rejected",
           any("approval" in error for error in unsafe_errors)
           and all(any(control in error for error in unsafe_errors)
                   for control in ("authentication", "authorization", "audit",
                                   "query_limits", "network_isolation")), unsafe_errors)
+    rendered = render_markdown(approved_native, "ja")
+    check("Markdown projection is deterministic and identifies canonical JSON",
+          rendered == render_markdown(approved_native, "ja")
+          and "canonical_source: reports/03_design/api-style-decisions.json" in rendered
+          and "source_sha256:" in rendered)
+    check("downstream skills consume canonical JSON",
+          "api-style-decisions.json" in design_skill
+          and "api-style-decisions.json" in generator_skill
+          and "api-style-decisions.md" not in design_skill
+          and "api-style-decisions.md" not in generator_skill)
+    check("plugin-owned validator uses plugin root",
+          '${CLAUDE_PLUGIN_ROOT}/tools/validate-api-style-decisions.py' in design_api_skill
+          and '${CLAUDE_PLUGIN_ROOT}/tools/validate-api-style-decisions.py' in security_review)
+
+    with tempfile.TemporaryDirectory() as external_project:
+        report_dir = os.path.join(external_project, "reports", "03_design")
+        os.makedirs(report_dir)
+        json_path = os.path.join(report_dir, "api-style-decisions.json")
+        md_path = os.path.join(report_dir, "api-style-decisions.md")
+        with open(json_path, "w", encoding="utf-8") as handle:
+            json.dump(approved_native, handle)
+        validator = os.path.join(ROOT, "tools", "validate-api-style-decisions.py")
+        result = subprocess.run(
+            [sys.executable, validator, json_path, "--render-markdown", md_path,
+             "--lang", "en"], cwd=external_project, capture_output=True, text=True)
+        check("validator runs from an external consumer workspace",
+              result.returncode == 0 and os.path.isfile(md_path),
+              result.stderr or result.stdout)
+        frontmatter = subprocess.run(
+            [os.path.join(ROOT, "hooks", "validate-frontmatter.sh"), md_path],
+            cwd=external_project, capture_output=True, text=True)
+        mermaid = subprocess.run(
+            [os.path.join(ROOT, "hooks", "validate-mermaid.sh"), md_path],
+            cwd=external_project, capture_output=True, text=True)
+        check("rendered Markdown passes report hooks",
+              frontmatter.returncode == 0 and mermaid.returncode == 0,
+              frontmatter.stderr or mermaid.stderr)
+        invalid_path = os.path.join(report_dir, "invalid.json")
+        with open(invalid_path, "w", encoding="utf-8") as handle:
+            json.dump(missing_flag, handle)
+        invalid = subprocess.run([sys.executable, validator, invalid_path],
+                                 cwd=external_project, capture_output=True, text=True)
+        check("validator preserves invalid-contract exit code",
+              invalid.returncode == 1, invalid.stderr or invalid.stdout)
+        unreadable = subprocess.run(
+            [sys.executable, validator, os.path.join(report_dir, "missing.json")],
+            cwd=external_project, capture_output=True, text=True)
+        check("validator preserves unreadable-input exit code",
+              unreadable.returncode == 2, unreadable.stderr or unreadable.stdout)
     normalized_generator = " ".join(generator_skill.lower().split())
     check("generator merges rather than truncates protocol maps",
           "preserve other protocol entries" in normalized_generator

@@ -35,7 +35,8 @@ contradict it, and changing behaviour means changing the specification first.
 - Decide per surface and allow a justified hybrid: flexible reads may use GraphQL while strict
   commands, files and webhooks use REST/gRPC/events.
 - Record `access_surface`, `application_framework`, `data_access` and `transaction` separately.
-- Write the same per-surface decisions to Markdown and machine-readable JSON. For every
+- Write per-surface decisions to canonical machine-readable JSON and generate its Markdown view
+  with the plugin validator. For every
   ScalarDB-backed surface include `graphql_provider`, `native_exposure`, `approval`,
   `pinned_product`, `pinned_release`, `contracted_edition`, `control_evidence`, and `rationale` as
   defined by @rules/api-style-selection.md. Missing native-interface evidence blocks completion.
@@ -116,8 +117,8 @@ defects that surface much later and much more expensively.
 
 | File | Content |
 |------|---------|
-| `reports/03_design/api-style-decisions.md` | Per-surface style decision, evidence, application framework, data access and transaction path |
-| `reports/03_design/api-style-decisions.json` | Machine-readable decisions keyed by stable `surface_id`, including the ScalarDB native-exposure approval and control evidence fields |
+| `reports/03_design/api-style-decisions.json` | Canonical decisions keyed by stable `surface_id`, including required boolean `scalardb_backed` and the ScalarDB native-exposure approval/control fields |
+| `reports/03_design/api-style-decisions.md` | Generated human-readable projection of the canonical JSON; never authored separately |
 | `reports/03_design/api-specifications/openapi/` | REST API specifications — one per service |
 | `reports/03_design/api-specifications/graphql/` | GraphQL operation inventory here; detailed SDL and resolver/security/loading contracts from `/architect:design-graphql` |
 | `reports/03_design/api-specifications/grpc/` | Protobuf definitions |
@@ -132,15 +133,26 @@ the human-readable half of the contract map they later produce (@rules/api-contr
 Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 Specification files themselves — schema names, `operationId`s, enum values — stay in English regardless.
 
-Run `python3 tools/validate-api-style-decisions.py
-reports/03_design/api-style-decisions.json` before completion. A validation error blocks the phase.
+Run the following before completion, substituting the configured `en` or `ja`. The validator is
+plugin-owned while both input and output paths are in the consumer project:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/tools/validate-api-style-decisions.py" \
+  reports/03_design/api-style-decisions.json \
+  --render-markdown reports/03_design/api-style-decisions.md \
+  --lang ja
+```
+
+A validation or render error blocks the phase. Then run the required Markdown validation hooks on
+the generated report.
 
 ## Acceptance Criteria
 
 - Every operation passes the Contract Verifiability checklist above
 - Every surface has a decision row with evidence and rejected alternatives; the database product is
   never the sole reason for GraphQL
-- Markdown and JSON decisions agree; every ScalarDB-backed JSON entry contains the complete
+- Markdown is generated from canonical JSON; every surface has a boolean `scalardb_backed`, and
+  every ScalarDB-backed JSON entry contains the complete
   native-exposure decision schema from @rules/api-style-selection.md
 - `options.api_style_graphql` matches whether any selected surface is GraphQL or hybrid
 - ScalarDB native GraphQL and a Spring for GraphQL application API are distinct choices; direct

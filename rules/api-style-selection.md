@@ -8,7 +8,9 @@ description: Select REST, GraphQL, hybrid, gRPC, or AsyncAPI per API surface wit
 
 Choose per consumer-facing or service-facing surface, not once for the whole system. Record one of
 `rest`, `graphql`, `hybrid`, `grpc`, or `asyncapi` in
-`reports/03_design/api-style-decisions.md`, together with evidence and rejected alternatives.
+`reports/03_design/api-style-decisions.json`, together with evidence and rejected alternatives.
+The JSON file is the canonical decision contract. `api-style-decisions.md` is a generated
+human-readable projection and must never be edited or consumed as an independent decision source.
 
 ## Selection criteria
 
@@ -52,6 +54,7 @@ Every ScalarDB-backed surface records the following machine-readable fields in
 
 | Field | Allowed value or requirement |
 |-------|------------------------------|
+| `scalardb_backed` | Required JSON boolean on every surface; never inferred from missing data |
 | `graphql_provider` | `spring-for-graphql`, `scalardb-native`, or `not-applicable` |
 | `native_exposure` | `none`, `internal`, or `external` |
 | `approval` | `not-required`, `approved:<decision-id>`, or `rejected` |
@@ -75,9 +78,11 @@ blocking call. Adding `Mono` around blocking work does not make it non-blocking.
 
 ## Required decision fields
 
-For every surface record a stable `surface_id`, consumers, operations, selected style, client
+For every surface record a stable `surface_id`, the required boolean `scalardb_backed`,
+`access_surface`, `application_framework`, consumers, operations, selected style, client
 variability, cache needs, security model, transport, execution model, data access, transaction
-model, operational readiness, rejected alternatives and traced requirement IDs. The Markdown and
-JSON decisions must agree. ScalarDB-backed surfaces also include every structured field in the
+model, operational readiness, rejected alternatives, rationale, and traced requirement IDs in the
+canonical JSON. The surface array must not be empty. ScalarDB-backed surfaces also include every
+structured field in the
 ScalarDB boundary table above. Unknown security, transaction, version, edition, exposure, approval,
 or control fields become open questions, never permissive defaults.
