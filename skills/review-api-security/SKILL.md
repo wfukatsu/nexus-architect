@@ -14,6 +14,9 @@ user_invocable: true
 ## Expected Outcome
 
 Evaluate the API surface against @rules/api-security-checks.md and output findings in JSON format.
+For every GraphQL surface, also apply @rules/graphql-security-checks.md. Treat SDL field coordinates
+as the operation inventory and derive annotated/runtime-wired resolvers from source rather than
+trusting the contract map.
 
 Two modes, same dimensions, different subject:
 
@@ -27,6 +30,19 @@ correct Zero-Trust design and ship a controller that trusts a path parameter. De
 whether the control was decided; code mode asks whether it was implemented.
 
 ## Review Dimensions
+
+GraphQL reviews additionally cover root and nested-field authorization, authenticated tenant
+predicates, DataLoader cache partitioning, depth/complexity/alias/batch/page/document limits,
+production GraphiQL/introspection/schema-printer policy, safe observations, and WebSocket origin,
+authentication expiry, connection limits and cleanup. Cross-tenant resolver or DataLoader access is
+critical; missing executable query-cost limits on an exposed surface are major.
+
+For every ScalarDB-backed surface, read `api-style-decisions.json` and validate the structured
+`graphql_provider`, `native_exposure`, `approval`, `pinned_product`, `pinned_release`,
+`contracted_edition`, `control_evidence`, and `rationale` fields against
+@rules/api-style-selection.md and the pinned OKF bundle. `scalardb-native` exposure without an
+`approved:<decision-id>` and evidence for authentication, authorization, audit, query limits, and
+network isolation is a **critical** finding. A prose statement does not satisfy this check.
 
 ### 1. Authorization and Tenant Isolation (weight: 0.40)
 - Object-level authorization: an ownership predicate per resource, evaluated against a **verified
@@ -73,6 +89,7 @@ absent is not "acceptable with a note".
 
 **Design mode** — glob:
 - `reports/03_design/api-specifications/**` (specifications, `problem-types.md`, `operation-contracts.md`)
+- `reports/03_design/api-style-decisions.json` (provider, exposure, approval, release/edition and control evidence)
 - `reports/03_design/api-gateway-design.md`
 - `reports/08_infrastructure/security-design.md`
 - `reports/03_design/target-architecture.md`
@@ -86,6 +103,17 @@ branch exists).
 
 Record the full list of found file paths — these will be passed to sub-agents. When a design file is
 missing, record it: a security review run without the security design is a weaker review and must say so.
+
+Run the plugin-owned validator when the decision artifact exists:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/tools/validate-api-style-decisions.py" \
+  reports/03_design/api-style-decisions.json
+```
+
+Any validation error
+on a native GraphQL exposure becomes a critical finding; do not downgrade it to a missing-document
+note or accept equivalent prose elsewhere.
 
 ### Step 2: Spawn three parallel dimension reviewers
 

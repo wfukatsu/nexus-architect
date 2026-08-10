@@ -135,13 +135,28 @@ phases:
     category: design
     depends_on: [design-microservices]
     outputs:
+      - reports/03_design/api-style-decisions.md
+      - reports/03_design/api-style-decisions.json
       - reports/03_design/api-specifications/
+    model: opus
+
+  design-graphql:
+    category: design
+    depends_on: [design-api]
+    conditions: [api_style_graphql]
+    outputs:
+      - reports/03_design/api-specifications/graphql/{service}.graphqls
+      - reports/03_design/api-specifications/graphql/resolver-contracts.md
+      - reports/03_design/api-specifications/graphql/authorization-matrix.md
+      - reports/03_design/api-specifications/graphql/batch-loading-plan.md
+      - reports/03_design/api-specifications/graphql/query-governance.md
+      - reports/03_design/api-specifications/graphql/transport-design.md
     model: opus
 
   # Phase: Review (parallel)
   review-consistency:
     category: review
-    depends_on: [design-api]
+    depends_on: [design-api, design-graphql]
     parallel_with: [review-scalardb, review-data-integrity, review-operations, review-risk, review-business, review-api-security]
     outputs:
       - reports/review/individual/review-consistency.json
@@ -149,7 +164,7 @@ phases:
 
   review-api-security:
     category: review
-    depends_on: [design-api]
+    depends_on: [design-api, design-graphql]
     parallel_with: [review-consistency, review-scalardb, review-data-integrity, review-operations, review-risk, review-business]
     outputs:
       - reports/review/individual/review-api-security.json
@@ -175,7 +190,7 @@ phases:
 
   review-operations:
     category: review
-    depends_on: [design-api]
+    depends_on: [design-api, design-graphql]
     parallel_with: [review-consistency, review-scalardb, review-data-integrity, review-risk, review-business, review-api-security]
     outputs:
       - reports/review/individual/review-operations.json
@@ -183,7 +198,7 @@ phases:
 
   review-risk:
     category: review
-    depends_on: [design-api]
+    depends_on: [design-api, design-graphql]
     parallel_with: [review-consistency, review-scalardb, review-data-integrity, review-operations, review-business, review-api-security]
     outputs:
       - reports/review/individual/review-risk.json
@@ -191,7 +206,7 @@ phases:
 
   review-business:
     category: review
-    depends_on: [design-api]
+    depends_on: [design-api, design-graphql]
     parallel_with: [review-consistency, review-scalardb, review-data-integrity, review-operations, review-risk, review-api-security]
     outputs:
       - reports/review/individual/review-business.json

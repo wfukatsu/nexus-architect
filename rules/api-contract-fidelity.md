@@ -1,12 +1,16 @@
 ---
-description: OpenAPI as the single API contract — what makes a contract verifiable, the operationId to handler binding, the contract map artifact, and the drift protocol. Applies when designing an API surface, generating API-layer code or tests, and verifying code against the design.
+description: Protocol specifications as the single API contract — verifiable REST operationId and GraphQL field-coordinate bindings, the shared contract map, and the drift protocol. Applies when designing, generating, testing, or verifying API code.
 ---
 
 # API Contract Fidelity
 
-Applies to `design-api`, `design-implementation`, `generate-api-code`, `generate-contract-tests`,
-`verify-implementation`, `review-api-security`, and to `implement-backlog` whenever the item it
+Applies to `design-api`, `design-implementation`, `generate-api-code`, `generate-graphql-code`,
+`generate-contract-tests`, `verify-implementation`, `review-api-security`, and to `implement-backlog` whenever the item it
 implements touches an API surface.
+
+GraphQL uses the same contract-first principle but its protocol-specific join key, schema rules and
+error carrier are defined by @rules/graphql-contract-fidelity.md. Do not force HTTP path/status-code
+semantics onto GraphQL execution fields.
 
 ## 1. The contract is the specification file, not the report
 
@@ -43,7 +47,8 @@ verification report, so it carries obligations beyond OpenAPI's own requirement 
   serves one `operationId`. A method serving two operations, or two methods serving one, is a
   finding — it is how request handling silently diverges between paths.
 
-For gRPC the join key is the fully-qualified `package.Service/Method`; for AsyncAPI it is the
+For GraphQL the join key is the field coordinate `<parentType>.<fieldName>`; for gRPC it is the
+fully-qualified `package.Service/Method`; for AsyncAPI it is the
 channel plus operation name. The 1:1 handler rule is identical.
 
 ## 3. What makes a contract verifiable
@@ -84,6 +89,7 @@ source tree for backlog delivery):
   "source_root": "services/order-service/src/main/java",
   "operations": [
     {
+      "protocol": "rest",
       "operation_id": "confirmOrder",
       "spec_file": "reports/03_design/api-specifications/openapi/order-service.yaml",
       "method": "POST", "path": "/orders/{orderId}/confirm",
@@ -103,6 +109,11 @@ source tree for backlog delivery):
   }
 }
 ```
+
+GraphQL entries set `protocol: "graphql"` and carry `parent_type`, `field`, input/output types and
+the resolver handler per @rules/graphql-contract-fidelity.md. For backward compatibility, an entry
+without `protocol` is interpreted as REST. Generators merge entries and never truncate another
+protocol's map.
 
 `unmapped` is the part that matters. It is **never omitted and never silently empty** — a generator
 that cannot bind an operation records it there rather than dropping it.
@@ -189,7 +200,8 @@ A contract is only enforced to the extent something executable checks it. One de
 
 | Tier | Stack | When |
 |------|-------|------|
-| **Default (Spring)** | Atlassian's OpenAPI request validator, MockMvc integration, driven from `@WebMvcTest` / `@SpringBootTest` slices | Always, for a Spring service. Every request and response the tests exercise is validated against the OpenAPI document in-process — no running server, no separate pipeline stage, and it fails at the assertion rather than in review |
+| **Default (Spring REST)** | Atlassian's OpenAPI request validator with MockMvc integration | Always for a Spring REST surface |
+| **Default (Spring GraphQL)** | `GraphQlTester` plus schema inspection and resolver inventory | Always for a Spring GraphQL surface; tester transport follows `transport-design.md` |
 | Opt-in: runtime fuzzing | Schemathesis against a running instance | When the API is externally exposed, or the schema has enough constraint surface that property-based generation finds cases the examples do not |
 | Opt-in: consumer-driven | Pact | When named internal consumers exist and their expectations must gate the provider's deploy — inter-service surfaces, not public ones |
 | Opt-in: architecture | ArchUnit | Layering and dependency-direction rules from the API layer specification. Not contract testing strictly, but it is what stops a controller reaching past the application service into a repository, and it runs in the same suite |

@@ -192,7 +192,7 @@ section content:
 | `build-and-run` | Prerequisites, build, run, test — verified commands only, in copy-pasteable blocks |
 | `configuration` | Config keys and environment variables: name, purpose, default, required/optional |
 | `layout` | Directory map with a line per significant directory |
-| `api` | Public interface summary (routes/operations) linking to the API specs for detail |
+| `api` | Public interface summary: REST routes/operationIds and GraphQL schema fields/operations, linking to the API specs for detail; include GraphQL transport, authentication, query limits, pagination, error extensions and deprecation policy when applicable |
 | `operations` | Deploy/rollback, health checks, logs/metrics, common failure modes (infra and service scaffolds) |
 | `traceability` | Links to the design reports and, in delivery mode, the Issue/Epic this work came from |
 | `findings` | Design-vs-code drift and documentation gaps recorded rather than resolved (scaffold mode — see Step 5). Written only when Step 5 produced findings; removed once they are resolved |

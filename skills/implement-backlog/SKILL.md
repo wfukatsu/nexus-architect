@@ -219,6 +219,12 @@ change.
 
 ### Step 5 — Implement
 
+When the item touches a GraphQL surface, read the approved SDL, resolver contracts and
+@rules/graphql-contract-fidelity.md before editing code. Update the SDL/design contract first for a
+behavior change, bind handlers by field coordinate, and apply @rules/graphql-security-checks.md.
+Do not add a resolver, field, argument, error kind or query limit only in code. Preserve REST/GraphQL
+authorization, transaction, error and idempotency parity in hybrid services.
+
 **Any new dependency this item introduces is version-resolved first**, per
 @rules/dependency-versions.md: look the version up in its registry (never recall it, never copy a
 number out of a skill/rules example), pick the stable, non-EOL release that is compatible with what

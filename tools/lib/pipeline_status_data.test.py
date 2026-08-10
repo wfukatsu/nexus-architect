@@ -190,13 +190,21 @@ def check_real_manifests():
           and order.index("review-synthesizer") > order.index("review-consistency"),
           order[:6])
 
+    marketplace_path = os.path.join(P.plugin_root(), ".claude-plugin", "marketplace.json")
+    with open(marketplace_path, encoding="utf-8") as fh:
+        marketplace = json.load(fh)
+    architect = next(p for p in marketplace["plugins"] if p["name"] == "architect")
+    check("Claude marketplace discovers both GraphQL skills",
+          {"./skills/design-graphql", "./skills/generate-graphql-code"}
+          <= set(architect["skills"]), architect["skills"])
+
 
 # The manual extension tier as CLAUDE.md and README describe it. The dashboard claims to
 # cover the tier, so a skill added there must be added here too — that is what this pins.
 DOC_EXTENSION_TIER = [
     "investigate-security", "select-scalardb-edition", "design-scalardb-analytics",
     "design-implementation", "generate-test-specs", "generate-scalardb-code",
-    "generate-api-code", "generate-contract-tests",
+    "generate-api-code", "generate-graphql-code", "generate-contract-tests",
     "generate-infra-code", "generate-docs", "verify-implementation",
     "design-infrastructure", "design-security",
     "design-observability", "design-disaster-recovery", "estimate-cost",
@@ -489,6 +497,141 @@ def check_conditional_outputs_and_gate(root):
           off["gate"]["plugin"] == "product", off["gate"])
     check("the product gate is still surfaced on the architect view",
           off["gate"]["verdict"] == "no-go")
+
+
+def check_graphql_condition(root):
+    """GraphQL detailed design runs only after design-api selected that surface."""
+    print("GraphQL API-style condition")
+    spec = P.load_phase_manifest("architect")["design-graphql"]
+    check("design-graphql follows design-api and is condition-gated",
+          spec["depends_on"] == ["design-api"]
+          and spec["conditions"] == ["api_style_graphql"], spec)
+
+    proj = os.path.join(root, "graphql-condition")
+    write(os.path.join(proj, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "demo",
+        "options": {"scalardb_enabled": False, "api_style_graphql": False},
+        "phases": {},
+    }))
+    off = P.derive_all(proj)["phases"]["design-graphql"]
+    check("REST-only: GraphQL design is conditionally skipped",
+          off["status"] == "skipped" and off["excluded"] == "condition", off)
+
+    write(os.path.join(proj, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "demo",
+        "options": {"scalardb_enabled": False, "api_style_graphql": True},
+        "phases": {},
+    }))
+    on = P.derive_all(proj)["phases"]["design-graphql"]
+    check("GraphQL/hybrid: GraphQL design is enabled",
+          on["status"] == "pending" and on["excluded"] is None, on)
+
+    decision_path = os.path.join(proj, "reports", "03_design", "api-style-decisions.json")
+    surface = {
+        "surface_id": "customer", "scalardb_backed": False,
+        "access_surface": "external", "application_framework": "Spring for GraphQL",
+        "consumers": ["web"], "operations": ["Query.customer"],
+        "selected_style": "graphql", "client_variability": "variable projections",
+        "cache_needs": "application", "security_model": "OIDC",
+        "transport": "HTTP", "execution_model": "Spring MVC", "data_access": "JDBC",
+        "transaction_model": "local", "operational_readiness": "ready",
+        "rejected_alternatives": ["REST"], "requirement_ids": ["FR-001"],
+        "rationale": "consumer projections",
+    }
+    write(decision_path, json.dumps({"surfaces": [surface]}))
+    write(os.path.join(proj, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "demo",
+        "options": {"scalardb_enabled": False, "api_style_graphql": False},
+        "phases": {},
+    }))
+    canonical_graphql = P.derive_all(proj)
+    graphql_phase = canonical_graphql["phases"]["design-graphql"]
+    check("canonical GraphQL overrides a stale false option",
+          graphql_phase["status"] == "pending" and graphql_phase["excluded"] is None,
+          graphql_phase)
+    check("canonical/legacy disagreement is visible",
+          any("ignored stale options.api_style_graphql" in warning
+              for warning in canonical_graphql["warnings"]), canonical_graphql["warnings"])
+
+    surface["selected_style"] = "rest"
+    write(decision_path, json.dumps({"surfaces": [surface]}))
+    write(os.path.join(proj, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "demo",
+        "options": {"scalardb_enabled": False, "api_style_graphql": True},
+        "phases": {},
+    }))
+    canonical_rest = P.derive_all(proj)["phases"]["design-graphql"]
+    check("canonical REST overrides a stale true option",
+          canonical_rest["status"] == "skipped" and canonical_rest["excluded"] == "condition",
+          canonical_rest)
+
+    write(decision_path, "{broken")
+    invalid = P.derive_all(proj)
+    invalid_phase = invalid["phases"]["design-graphql"]
+    check("invalid canonical decision blocks GraphQL design as a condition failure",
+          invalid_phase["excluded"] == "condition-error"
+          and invalid_phase["status"] == "failed" and not invalid_phase["runnable"],
+          invalid_phase)
+    check("invalid canonical decision surfaces an actionable error",
+          any("invalid canonical API-style decision" in error for error in invalid["errors"]),
+          invalid["errors"])
+
+    # Restore the GraphQL contract for output-ownership fixtures below.
+    surface["selected_style"] = "graphql"
+    write(decision_path, json.dumps({"surfaces": [surface]}))
+
+    # design-api owns this inventory directory. Its presence must not complete
+    # the detailed design phase.
+    write(os.path.join(proj, "reports", "03_design", "api-specifications", "graphql",
+                       "inventory.md"), "inventory")
+    inventory_only = P.derive_all(proj)["phases"]["design-graphql"]
+    check("GraphQL inventory alone does not complete detailed design",
+          inventory_only["status"] == "pending" and inventory_only["written"] == 0,
+          inventory_only)
+
+    graphql_dir = os.path.join(proj, "reports", "03_design", "api-specifications", "graphql")
+    for name in ("customer.graphqls", "resolver-contracts.md", "authorization-matrix.md",
+                 "batch-loading-plan.md", "query-governance.md", "transport-design.md"):
+        write(os.path.join(graphql_dir, name), "contract")
+    complete = P.derive_all(proj)["phases"]["design-graphql"]
+    check("all six owned GraphQL contracts complete detailed design",
+          complete["status"] == "completed" and complete["written"] == 6,
+          complete)
+
+    codegen = os.path.join(root, "graphql-codegen-ownership")
+    # The generator is conditioned on the same canonical decision as its design phase,
+    # so a project that ran it necessarily carries a GraphQL surface.
+    write(os.path.join(codegen, "reports", "03_design", "api-style-decisions.json"),
+          json.dumps({"surfaces": [surface]}))
+    write(os.path.join(codegen, "generated", "demo", "src", "main", "resources",
+                       "graphql", "schema.graphqls"), "schema")
+    write(os.path.join(codegen, "generated", "demo", "src", "main", "java",
+                       "Controller.java"), "class Controller {}")
+    write(os.path.join(codegen, "reports", "06_implementation", "api-contract-map.md"), "map")
+    write(os.path.join(codegen, "reports", "06_implementation", "api-contract-map.json"), "{}")
+    shared_only = P.derive_codegen(codegen, "architect")["phases"]["generate-graphql-code"]
+    check("shared source and map outputs do not complete GraphQL code generation",
+          shared_only["status"] == "pending" and shared_only["written"] == 0,
+          shared_only)
+    write(os.path.join(codegen, "reports", "06_implementation",
+                       "graphql-code-generation.md"), "evidence")
+    owned = P.derive_codegen(codegen, "architect")["phases"]["generate-graphql-code"]
+    check("unique generation evidence completes GraphQL code generation",
+          owned["status"] == "completed" and owned["written"] == 1, owned)
+
+    # The extension tier used to hardcode conditions=[] when folding EXTENSION_PHASES into
+    # the manifest, which silently disarmed every condition an extension phase declared.
+    manifest = P.load_phase_manifest("architect")
+    check("the extension tier keeps the conditions its phases declare",
+          manifest["generate-graphql-code"]["conditions"] == ["api_style_graphql"],
+          manifest["generate-graphql-code"])
+    surface["selected_style"] = "rest"
+    write(os.path.join(codegen, "reports", "03_design", "api-style-decisions.json"),
+          json.dumps({"surfaces": [surface]}))
+    rest_codegen = P.derive_codegen(codegen, "architect")["phases"]["generate-graphql-code"]
+    check("a REST-only decision withdraws the GraphQL generator from the codegen view",
+          rest_codegen["excluded"] == "condition" and not rest_codegen["runnable"],
+          rest_codegen)
 
 
 def hook_module():
@@ -955,6 +1098,7 @@ def main():
         check_staleness(root)
         check_id_prefix_registry()
         check_conditional_outputs_and_gate(root)
+        check_graphql_condition(root)
         check_shared_phase_names(root)
         check_hostile_inputs(root)
     if cleanup:

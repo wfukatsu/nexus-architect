@@ -95,6 +95,11 @@ If yes, ask which domains to cover (present the bounded context list from `bound
 6. Accumulate findings in `work/context.md` between phases
 7. Determine which phases to skip if not applicable
 
+After `design-api`, read canonical `reports/03_design/api-style-decisions.json`. Run
+`design-graphql` when any surface selects GraphQL/hybrid and mark it conditionally skipped only when
+the validated canonical document is REST-only. Invalid canonical JSON blocks progression; it is
+never a REST default. A skipped conditional dependency is satisfied for the review phases.
+
 ## Error Handling
 
 On phase failure, present choices to the user via AskUserQuestion:

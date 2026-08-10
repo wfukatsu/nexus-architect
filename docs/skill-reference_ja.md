@@ -56,7 +56,8 @@
 | `/architect:design-scalardb` | opus | ScalarDB | スキーマとトランザクション設計 |
 | `/architect:design-scalardb-analytics` | sonnet | Analytics Option | HTAP分析プラットフォーム設計 |
 | `/architect:design-data-layer` | opus | ScalarDB以外 | 汎用DB設計 |
-| `/architect:design-api` | opus | - | 検証可能な契約としての REST/GraphQL/gRPC/AsyncAPI — 名前付きスキーマ、全ステータスコードの宣言、RFC 9457 problem type レジストリ、operation ごとの認可/冪等性/タイムアウト |
+| `/architect:design-api` | opus | - | surface ごとに REST/GraphQL/hybrid/gRPC/AsyncAPI を選択し、共通の検証可能な契約を生成 |
+| `/architect:design-graphql` | opus | GraphQL/hybrid | Spring GraphQL SDL、field coordinate resolver 契約、認可、batch、query governance、transport 設計 |
 
 ## 実装
 
@@ -69,6 +70,7 @@
 | `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/契約/ユニット/統合/性能テスト仕様 |
 | `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB コード生成 — `domain/` と `infrastructure/` を担当 |
 | `/architect:generate-api-code` | opus | `api-specifications/` + `api-layer-spec.md` | OpenAPI 契約から API レイヤーを生成 — `operationId` と 1:1 の Controller、スキーマ制約から導出した Bean Validation 付き DTO、マッパー、RFC 9457 ハンドラ、`api-contract-map.json` |
+| `/architect:generate-graphql-code` | opus | GraphQL 仕様 + `api-layer-spec.md` | Spring GraphQL API レイヤー — resolver binding、DTO/mapper、security/context、DataLoader、error、query limit、統合 contract map |
 | `/architect:generate-contract-tests` | sonnet | `api-contract-map.json` + `contract-test-specs.md` | 実行可能な契約テスト（既定は swagger-request-validator + `@WebMvcTest`、Schemathesis / Pact / ArchUnit はオプトイン） |
 | `/architect:generate-infra-code` | sonnet | `reports/08_infrastructure/` | K8s/Terraform/Helm コード生成 |
 | `/architect:generate-docs` | sonnet | 生成・実装済みコード | 生成・実装済みコードの README と `docs/`（コード生成の後、および implement-backlog の Step 5b で実行） |

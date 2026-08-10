@@ -56,7 +56,8 @@ For the inputs you should prepare before running each pipeline, see the
 | `/architect:design-scalardb` | opus | ScalarDB | Schema and transaction design |
 | `/architect:design-scalardb-analytics` | sonnet | Analytics Option | HTAP analytics platform design |
 | `/architect:design-data-layer` | opus | Non-ScalarDB | Generic DB design |
-| `/architect:design-api` | opus | - | REST/GraphQL/gRPC/AsyncAPI as a verifiable contract — named schemas, every status code declared, RFC 9457 problem-type registry, per-operation authorization/idempotency/timeout |
+| `/architect:design-api` | opus | - | Select REST/GraphQL/hybrid/gRPC/AsyncAPI per surface and generate shared verifiable contracts |
+| `/architect:design-graphql` | opus | GraphQL/hybrid | Spring GraphQL SDL, field-coordinate resolver contracts, authorization, batching, query governance and transport design |
 
 ## Implementation
 
@@ -69,6 +70,7 @@ phases, in the listed order. Output lands under `generated/` (git-ignored, overw
 | `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/contract/unit/integration/performance test specifications |
 | `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB code generation — owns `domain/` and `infrastructure/` |
 | `/architect:generate-api-code` | opus | `api-specifications/` + `api-layer-spec.md` | API layer from the OpenAPI contract — controllers 1:1 with `operationId`, DTOs + derived Bean Validation, mappers, RFC 9457 handler, and `api-contract-map.json` |
+| `/architect:generate-graphql-code` | opus | GraphQL specifications + `api-layer-spec.md` | Spring GraphQL API layer — resolver bindings, DTOs/mappers, security/context, DataLoader, errors, query limits and combined contract map |
 | `/architect:generate-contract-tests` | sonnet | `api-contract-map.json` + `contract-test-specs.md` | Executable contract tests (swagger-request-validator + `@WebMvcTest` by default; Schemathesis / Pact / ArchUnit opt-in) |
 | `/architect:generate-infra-code` | sonnet | `reports/08_infrastructure/` | K8s/Terraform/Helm code generation |
 | `/architect:generate-docs` | sonnet | generated/implemented code | README + `docs/` for generated/implemented code (runs after codegen; Step 5b of implement-backlog) |

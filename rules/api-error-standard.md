@@ -119,6 +119,30 @@ folds `UnknownTransactionStatusException` into a generic 500 handler, or that ma
 `Retry-After`-bearing 503 on an unprotected operation, is a **blocker-severity** finding for
 `verify-implementation` and `review-api-security`.
 
+### 3.2 GraphQL execution override for unknown transaction status
+
+Section 3.1 defines the REST/Problem Details carrier. When the same exception occurs after a
+well-formed GraphQL mutation has entered execution, it is a **field execution error**, not a
+transport or request error. Return a GraphQL response with HTTP 200 and put the registered
+`transaction-status-unknown` URI in `errors[].extensions.type`; do not translate the REST 500/503
+status into the HTTP status of this execution response. Parse, validation, authentication-before-
+execution, malformed HTTP, and unsupported-media-type failures keep their distinct statuses under
+the project's GraphQL-over-HTTP contract.
+
+The execution-error extensions are fixed by idempotency protection:
+
+| The mutation | Required extensions | Forbidden extensions/headers |
+|--------------|---------------------|------------------------------|
+| **Is** idempotency-key protected | `type`, `retryable: true`, numeric `retry_after_ms`, `idempotency_key_reuse: "required"`, `reconcile_required: false` | Do not echo the key; do not use HTTP `Retry-After` on the 200 response |
+| Is **not** idempotency-key protected | `type`, `retryable: false`, `reconcile_required: true` and an opaque documented reconciliation reference or process | No `retry_after_ms`, no `idempotency_key_reuse`, no HTTP `Retry-After` |
+
+The client message says the outcome is indeterminate. The protected branch permits only a retry
+with the same idempotency key after the declared delay; the unprotected branch says reconcile and
+do not retry. Log the ScalarDB transaction ID against the execution/trace ID, but do not expose the
+raw transaction ID in GraphQL extensions by default. An explicitly designed, authorization-checked
+reconciliation API may return its own opaque reference. This GraphQL exception to the §3.1
+`transaction_id` carrier prevents an internal database identifier from becoming a field-level API.
+
 ## 4. What `detail` may never contain
 
 `detail` is attacker-readable. Excluding these is an OWASP API Security concern
@@ -179,7 +203,7 @@ project and record it in the registry header:
 |----------|---------|
 | gRPC | `google.rpc.Status` with the registry `type` URI in an `ErrorInfo.reason`/`domain` pair; status code per the gRPC mapping recorded in the registry |
 | AsyncAPI / events | A `problem` object with the same members inside the message envelope; the `type` URI is identical to the REST one |
-| GraphQL | `errors[].extensions.type` carries the registry URI; the HTTP status stays 200 per the GraphQL contract |
+| GraphQL execution error | `errors[].extensions.type` carries the registry URI; transport status follows the GraphQL-over-HTTP contract. Parse/validation/transport failures and field execution failures remain distinct |
 
 A problem kind that exists on REST and on gRPC uses **one** registry row and one `type` URI. Two
 rows for the same problem is a finding.
@@ -195,6 +219,8 @@ These are the assertions the downstream skills implement, listed here so all of 
 4. The generated exception handler covers every row in §3, with §3.1 handled by its own branch.
 5. No error envelope other than Problem Details appears in any response schema.
 6. No `detail` string in the generated code interpolates a §4-prohibited value.
+7. GraphQL unknown-status execution tests assert §3.2's HTTP 200 envelope and both mutually
+   exclusive extension sets, including absence of raw transaction IDs and invalid retry guidance.
 
-`generate-contract-tests` emits 1–5 as executable tests; `verify-implementation` checks all six
-against the code that exists.
+`generate-contract-tests` emits 1–5 and 7 as executable tests; `verify-implementation` checks all
+seven against the code that exists.

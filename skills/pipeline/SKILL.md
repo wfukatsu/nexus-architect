@@ -33,7 +33,11 @@ part of the automated run.
 3. **Product handoff detection** — glob the same set `define-requirements` ingests: `reports/00_core/`, `reports/01_ux/`, `reports/02_spec/`, `reports/03_domain/`, `reports/04_quality/` and `work/traceability.json`. Keep the two sets identical — a run that stopped early (`--profile=mvp` writes only `reports/00_core/`) is still a handoff. Match **files**, not directories: `/product:init-output` creates `reports/01_ux/domain-stories/` and `reports/02_spec/ui-mocks/` empty, so a directory test passes on any initialized product project. If product artifacts exist, run `define-requirements` first with them as inputs (the product→architect handoff, @docs/design.md §1); it auto-detects and carries product IDs forward. Otherwise run the standard greenfield/legacy entry.
 4. Execute each skill and verify its output before proceeding to the next
 5. Execute skills with `parallel_with` in parallel via Task
-6. Enable or disable ScalarDB-related skills based on the `conditions` field
+6. Enable or disable conditional skills based on the `conditions` field: ScalarDB/data-layer from
+   `scalardb_enabled`, and `design-graphql` directly from GraphQL/hybrid surfaces in canonical
+   `reports/03_design/api-style-decisions.json`. Before that artifact exists, a legacy
+   `options.api_style_graphql` is only a compatibility fallback. Invalid canonical JSON is a
+   blocking error and must never be interpreted as REST-only.
 7. Record progress in `work/pipeline-progress.json` **twice per phase**: set
    `status: "in_progress"` with `plugin: "architect"` and `started_at` *before* invoking
    the skill (all of them at once for a parallel group), then `completed` / `failed` /

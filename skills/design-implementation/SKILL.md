@@ -23,14 +23,16 @@ Generate detailed, coding-ready implementation specifications from design docume
 ## API Layer Specification
 
 This is the specification that closes the gap between the API contract and the domain: it says which
-class serves which `operationId`, and what happens between the wire and the aggregate. Governed by
-@rules/api-contract-fidelity.md.
+class serves which REST `operationId` or GraphQL field coordinate, and what happens between the wire
+and the aggregate. Governed by @rules/api-contract-fidelity.md and
+@rules/graphql-contract-fidelity.md.
 
-Specify, per `operationId` in `reports/03_design/api-specifications/`:
+Specify, per REST `operationId` or GraphQL `<parentType>.<fieldName>` in
+`reports/03_design/api-specifications/`:
 
 | Element | Content |
 |---------|---------|
-| Handler | The controller class and method that serves this operation, 1:1 (§2). Method name derives from the `operationId` |
+| Handler | The controller class and method that serves this operation, 1:1. REST names from `operationId`; GraphQL binds by field coordinate |
 | Request DTO | Class name from the `components/schemas` key. **Never the domain object and never the persistence entity** — binding a request body straight onto an entity is the mass-assignment defect |
 | Validation | The Bean Validation constraints derived from the schema: `minLength` -> `@Size`, `pattern` -> `@Pattern`, `enum` -> an enum type, `required` -> `@NotNull`. Derived, not hand-chosen; the request DTO is `@Valid` at the handler boundary |
 | Mapper | The explicit DTO <-> domain mapping, listing exactly the fields the schema declares |
@@ -61,6 +63,8 @@ service has applied its own retries, so the specification says where retry lives
 
 - Every `operationId` in the API specifications has exactly one handler specified, and no handler is
   specified that has no `operationId`
+- Every GraphQL resolver-bound field coordinate has exactly one handler specified, with no extra
+  annotated or runtime-wired handler
 - Every request DTO is distinct from the domain object and the persistence entity, with an explicit mapper
 - Every DTO field constraint is traceable to a schema constraint — no constraint invented, none dropped
 - Every operation's transaction boundary matches its placement in `operation-contracts.md`
@@ -78,6 +82,7 @@ service has applied its own retries, so the specification says where retry lives
 | reports/03_design/api-specifications/ | Required | /architect:design-api — the contract the API layer specification binds to |
 | reports/03_design/api-specifications/operation-contracts.md | Required | /architect:design-api — per-operation authorization, idempotency, timeout, transaction placement |
 | reports/03_design/api-specifications/problem-types.md | Required | /architect:design-api — the problem type registry the exception mapping resolves against |
+| reports/03_design/api-specifications/graphql/resolver-contracts.md | Required when GraphQL is selected | /architect:design-graphql |
 | reports/02_evaluation/ | Recommended | integrate-evaluations |
 
 ## Output

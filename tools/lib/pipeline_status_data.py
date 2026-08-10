@@ -48,6 +48,7 @@ import sys
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from api_style_decisions import validate_document  # noqa: E402
 import token_cost_data as D  # noqa: E402  (display helpers + load_json/parse_ts)
 
 PHASE_STATUSES = ["pending", "in_progress", "completed", "failed", "skipped"]
@@ -433,7 +434,8 @@ EXTENSION_PHASES = {
                                     outputs=["reports/03_design/scalardb-edition-selection.md"]),
     "design-scalardb-analytics": dict(category="extension", model="opus", depends_on=["design-scalardb"],
                                       outputs=["reports/03_design/scalardb-analytics-design.md"]),
-    "design-implementation": dict(category="extension", model="opus", depends_on=["design-api"],
+    "design-implementation": dict(category="extension", model="opus",
+                                  depends_on=["design-api", "design-graphql"],
                                   outputs=["reports/06_implementation/api-layer-spec.md",
                                            "reports/06_implementation/domain-services-spec.md",
                                            "reports/06_implementation/repository-interfaces-spec.md",
@@ -454,7 +456,15 @@ EXTENSION_PHASES = {
                               outputs=["generated/*/src/main/java/",
                                        "reports/06_implementation/api-contract-map.md",
                                        "reports/06_implementation/api-contract-map.json"]),
-    "generate-contract-tests": dict(category="extension", model="sonnet", depends_on=["generate-api-code"],
+    # Conditioned like its design phase: `design-graphql` being *skipped* satisfies the
+    # dependency (skipped counts as done), so without this the codegen view would offer
+    # GraphQL generation on a project whose canonical decision is REST-only.
+    "generate-graphql-code": dict(category="extension", model="opus",
+                                  depends_on=["design-implementation", "design-graphql"],
+                                  conditions=["api_style_graphql"],
+                                  outputs=["reports/06_implementation/graphql-code-generation.md"]),
+    "generate-contract-tests": dict(category="extension", model="sonnet",
+                                    depends_on=["design-implementation"],
                                     outputs=["generated/*/src/test/java/",
                                              "reports/07_test-specs/contract-test-coverage.md"]),
     "generate-infra-code": dict(category="extension", model="sonnet", depends_on=["design-infrastructure"],
@@ -495,7 +505,8 @@ EXTENSION_PHASES = {
 # `generate-test-specs` deliberately stays in the architect pipeline: it writes
 # specifications under reports/, not code.
 CODEGEN_PHASES = {
-    "architect": ("generate-scalardb-code", "generate-api-code", "generate-contract-tests",
+    "architect": ("generate-scalardb-code", "generate-api-code", "generate-graphql-code",
+                  "generate-contract-tests",
                   "generate-infra-code", "generate-docs"),
     "product": ("generate-frontend",),
 }
@@ -547,7 +558,7 @@ def load_phase_manifest(plugin, root=None):
                 continue
             spec = dict(spec)
             spec.update(outputs=list(spec["outputs"]), depends_on=list(spec["depends_on"]),
-                        conditions=[], tier="extension")
+                        conditions=_as_list(spec.get("conditions")), tier="extension")
             phases[name] = spec
     codegen = set(CODEGEN_PHASES.get(plugin, ()))
     for name, spec in phases.items():
@@ -787,7 +798,47 @@ def _conditions_ok(conditions, options):
             return False
         if cond == "scalardb_disabled" and options.get("scalardb_enabled", True):
             return False
+        if cond not in ("scalardb_enabled", "scalardb_disabled") and not options.get(cond, False):
+            return False
     return True
+
+
+def canonical_api_style_options(project_dir, options):
+    """Derive GraphQL enablement from the canonical API-style contract when present.
+
+    The progress option is retained only as a pre-design/legacy fallback. Invalid canonical
+    input marks the conditional phase failed (fail closed against silently skipping GraphQL design)
+    and returns an actionable error.
+    """
+    effective = dict(options)
+    path = os.path.join(project_dir, "reports", "03_design", "api-style-decisions.json")
+    if not os.path.isfile(path):
+        return effective, [], []
+    try:
+        with open(path, encoding="utf-8") as handle:
+            document = json.load(handle)
+    except (OSError, ValueError) as exc:
+        effective["api_style_graphql"] = True
+        effective["_invalid_conditions"] = ["api_style_graphql"]
+        return effective, ["invalid canonical API-style decision: %s" % exc], []
+
+    errors = validate_document(document)
+    if errors:
+        effective["api_style_graphql"] = True
+        effective["_invalid_conditions"] = ["api_style_graphql"]
+        return effective, ["invalid canonical API-style decision: %s" % error
+                           for error in errors], []
+
+    selected = any(surface["selected_style"] in ("graphql", "hybrid")
+                   for surface in document["surfaces"])
+    warnings = []
+    copied = options.get("api_style_graphql")
+    if isinstance(copied, bool) and copied != selected:
+        warnings.append(
+            "ignored stale options.api_style_graphql=%s; canonical API-style decision is %s" %
+            (str(copied).lower(), str(selected).lower()))
+    effective["api_style_graphql"] = selected
+    return effective, [], warnings
 
 
 def derive_phase(name, spec, entry, project_dir, options, project_name,
@@ -820,8 +871,13 @@ def derive_phase(name, spec, entry, project_dir, options, project_name,
     owner = (entry or {}).get("plugin")
     if owner in PLUGINS and plugin in PLUGINS and owner != plugin:
         recorded, entry = None, None
+    condition_error = any(
+        condition in _as_list(options.get("_invalid_conditions"))
+        for condition in spec.get("conditions") or [])
     excluded = None
-    if name in _as_list(options.get("skip_phases")):
+    if condition_error:
+        excluded = "condition-error"
+    elif name in _as_list(options.get("skip_phases")):
         excluded = "option"
     elif not _conditions_ok(spec.get("conditions") or [], options):
         excluded = "condition"
@@ -848,7 +904,9 @@ def derive_phase(name, spec, entry, project_dir, options, project_name,
         and declared and written == 0
         and (recorded == "completed" or (recorded == "skipped" and not excluded)))
 
-    if recorded and not unstamped and not ambiguous:
+    if condition_error:
+        status, source = "failed", "condition"
+    elif recorded and not unstamped and not ambiguous:
         status, source = recorded, "progress"
     elif excluded:
         status, source = "skipped", "condition"
@@ -1000,6 +1058,11 @@ def derive_all(project_dir, plugin=None, progress=None, section="pipeline"):
     plugin = plugin if plugin in PLUGINS else detected
     manifest = load_phase_manifest(plugin)
     options = (progress or {}).get("options") or {}
+    if plugin == "architect":
+        options, canonical_errors, canonical_warnings = canonical_api_style_options(
+            project_dir, options)
+    else:
+        options, canonical_errors, canonical_warnings = dict(options), [], []
     project_name = (progress or {}).get("project_name") or os.path.basename(
         os.path.abspath(project_dir))
     entries = ((progress or {}).get("phases") or {})
@@ -1098,8 +1161,8 @@ def derive_all(project_dir, plugin=None, progress=None, section="pipeline"):
         "groups": groups, "summary": summary,
         "current": current, "next": nxt, "stale": stale,
         "gate": read_gate(progress) if section == "pipeline" else None,
-        "errors": (progress or {}).get("errors") or [],
-        "warnings": (progress or {}).get("warnings") or [],
+        "errors": list((progress or {}).get("errors") or []) + canonical_errors,
+        "warnings": list((progress or {}).get("warnings") or []) + canonical_warnings,
         "backlog": backlog_summary(project_dir) if section == "pipeline" else None,
         "updated_at": (progress or {}).get("updated_at"),
     }

@@ -25,7 +25,8 @@ prove the pieces work together; contract tests prove the running API is the API 
 promised. They catch a different defect — a plausible response that is not the contracted response —
 and that defect is exactly what generated code produces most often.
 
-Specify, per `operationId` in `reports/03_design/api-specifications/`:
+Specify, per REST `operationId` or GraphQL resolver-bound field coordinate in
+`reports/03_design/api-specifications/`:
 
 | Assertion | Content |
 |-----------|---------|
@@ -55,6 +56,9 @@ emits exactly what is recorded here, so an unrecorded stack is one that never ge
 - Every aggregate's CRUD operations are covered by at least one BDD scenario
 - Every `operationId` has a contract test specification covering all seven assertion rows above that
   apply to it, and the selected stack is recorded
+- Every GraphQL field coordinate covers schema shape/nullability, validation, authorization, tenant
+  isolation, registered errors and query-governance limits; select the GraphQlTester variant from
+  the approved transport design
 - Includes test cases for boundary values, error cases, and concurrent processing
 - When using ScalarDB, includes OCC conflict scenario tests
 - Every acceptance criterion in the requirements is reachable from at least one specified test — an

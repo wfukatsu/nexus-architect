@@ -8,6 +8,9 @@ Applies to `review-api-security` (both modes), `verify-implementation`, `review-
 skill emitting API-layer code. The design-side baseline is `reports/08_infrastructure/security-design.md`
 (`/architect:design-security`); this file is what turns that baseline into findings.
 
+For GraphQL surfaces, apply @rules/graphql-security-checks.md as an additional protocol-specific
+layer; the general OWASP API checks still apply.
+
 **The premise: a secure design is not a secure implementation.** Every check below has a *design*
 question and a *code* question, and they fail independently. A project can hold a correct
 Zero-Trust design document and ship a controller that trusts a path parameter.

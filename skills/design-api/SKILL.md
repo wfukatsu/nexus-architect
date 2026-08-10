@@ -15,8 +15,9 @@ user_invocable: true
 Design the API surface for inter-service and client-facing communication, as specification files that
 downstream skills can generate code from and verify code against:
 
+- API style decision — REST, GraphQL, hybrid, gRPC or AsyncAPI per consumer/service surface
 - REST API — OpenAPI 3.1 (or 3.0 where a toolchain requires it) specification per service
-- GraphQL schema (as needed)
+- GraphQL inventory and handoff to `/architect:design-graphql` when selected
 - gRPC protobuf definitions (inter-service communication)
 - AsyncAPI (event-driven communication)
 - A problem type registry — the enumerable set of error kinds the API can return
@@ -29,7 +30,19 @@ contradict it, and changing behaviour means changing the specification first.
 ## Decision Criteria
 
 ### Protocol and surface
-- Select protocol by service classification (Process -> gRPC, Master -> REST, Integration -> AsyncAPI)
+- Apply @rules/api-style-selection.md. Select protocol from consumer variability, operation shape,
+  caching, governance, security and operations — never from service label or database product alone.
+- Decide per surface and allow a justified hybrid: flexible reads may use GraphQL while strict
+  commands, files and webhooks use REST/gRPC/events.
+- Record `access_surface`, `application_framework`, `data_access` and `transaction` separately.
+- Write per-surface decisions to canonical machine-readable JSON and generate its Markdown view
+  with the plugin validator. For every
+  ScalarDB-backed surface include `graphql_provider`, `native_exposure`, `approval`,
+  `pinned_product`, `pinned_release`, `contracted_edition`, `control_evidence`, and `rationale` as
+  defined by @rules/api-style-selection.md. Missing native-interface evidence blocks completion.
+- The canonical JSON directly controls whether `design-graphql` runs. Do not copy the selection into
+  `options.api_style_graphql`; a legacy value may exist, but orchestration ignores it once the
+  canonical artifact exists.
 - API versioning strategy, and what counts as a breaking change (@rules/api-contract-fidelity.md §8)
 - One project-wide convention for pagination, sorting and filtering — decided here, once
 
@@ -64,7 +77,8 @@ contract that cannot be implemented.
 
 ## Contract Verifiability (mandatory)
 
-Every operation this skill emits satisfies @rules/api-contract-fidelity.md §3. Restated as the
+Every REST operation this skill emits satisfies @rules/api-contract-fidelity.md §3. GraphQL surfaces
+must satisfy @rules/graphql-contract-fidelity.md through `/architect:design-graphql`. Restated as the
 checklist to apply before writing each specification file:
 
 - [ ] `operationId` on every operation — `camelCase` verb-noun, unique project-wide, naming the
@@ -104,8 +118,10 @@ defects that surface much later and much more expensively.
 
 | File | Content |
 |------|---------|
+| `reports/03_design/api-style-decisions.json` | Canonical decisions keyed by stable `surface_id`, including required boolean `scalardb_backed` and the ScalarDB native-exposure approval/control fields |
+| `reports/03_design/api-style-decisions.md` | Generated human-readable projection of every canonical field, including rationale, rejected alternatives, security/control evidence and requirement traces; never authored separately |
 | `reports/03_design/api-specifications/openapi/` | REST API specifications — one per service |
-| `reports/03_design/api-specifications/graphql/` | GraphQL schemas |
+| `reports/03_design/api-specifications/graphql/` | GraphQL operation inventory here; detailed SDL and resolver/security/loading contracts from `/architect:design-graphql` |
 | `reports/03_design/api-specifications/grpc/` | Protobuf definitions |
 | `reports/03_design/api-specifications/asyncapi/` | Event specifications |
 | `reports/03_design/api-specifications/problem-types.md` | Problem type registry (@rules/api-error-standard.md §2) — every error kind, its `type` URI, status, and whether retry is safe |
@@ -118,9 +134,31 @@ the human-readable half of the contract map they later produce (@rules/api-contr
 Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 Specification files themselves — schema names, `operationId`s, enum values — stay in English regardless.
 
+Run the following before completion, substituting the configured `en` or `ja`. The validator is
+plugin-owned while both input and output paths are in the consumer project:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/tools/validate-api-style-decisions.py" \
+  reports/03_design/api-style-decisions.json \
+  --render-markdown reports/03_design/api-style-decisions.md \
+  --lang ja
+```
+
+A validation or render error blocks the phase. Then run the required Markdown validation hooks on
+the generated report.
+
 ## Acceptance Criteria
 
 - Every operation passes the Contract Verifiability checklist above
+- Every surface has a decision row with evidence and rejected alternatives; the database product is
+  never the sole reason for GraphQL
+- Markdown is generated from canonical JSON; every surface has a boolean `scalardb_backed`, and
+  every ScalarDB-backed JSON entry contains the complete
+  native-exposure decision schema from @rules/api-style-selection.md
+- Pipeline orchestration derives GraphQL/hybrid enablement directly from the canonical JSON
+- ScalarDB native GraphQL and a Spring for GraphQL application API are distinct choices; direct
+  native exposure requires structured approval, pinned release/edition, and all five control
+  evidence references from @rules/api-style-selection.md; prose alone is insufficient
 - Every error response references a `type` that has a row in `problem-types.md`, and every row in
   `problem-types.md` appears in at least one operation
 - Every operation in `operation-contracts.md` has a declared authorization rule — none left blank
@@ -136,6 +174,7 @@ Specification files themselves — schema names, `operationId`s, enum values —
 |-------|-------------|
 | /architect:design-microservices | Input source |
 | /architect:design-scalardb | Input source — transaction placement per operation |
+| /architect:design-graphql | Conditional downstream — produces detailed Spring GraphQL contracts |
 | /architect:design-implementation | Downstream — turns the contract into the API layer specification |
 | /architect:generate-api-code | Downstream — generates the API layer bound to this contract |
 | /architect:generate-contract-tests | Downstream — turns this contract into executable tests |
