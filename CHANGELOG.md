@@ -7,6 +7,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
+## [0.26.0] - 2026-08-11
+
+### Added
+- **Spring for GraphQL as a first-class API style — `/architect:design-graphql` and
+  `/architect:generate-graphql-code`.** The pipeline could name GraphQL in a specification but had
+  nothing that turned it into a verifiable contract, so a GraphQL surface fell back to prose while
+  REST had an `operationId` binding, a contract map, executable tests and a conformance check.
+  GraphQL now uses the same machinery with its own join key: the field coordinate
+  `<parentType>.<fieldName>` binds 1:1 to a resolver, `api-contract-map.json` carries
+  `protocol: graphql` entries alongside the REST ones, and `verify-implementation` derives the
+  resolver inventory from source rather than trusting the map.
+- **The API style is a decision with evidence, not a label.** `design-api` writes
+  `reports/03_design/api-style-decisions.json` — one entry per consumer-facing surface, with the
+  selected style, rejected alternatives, traced requirement IDs, and the security/transaction/
+  execution model recorded as separate fields. `api-style-decisions.md` is a generated projection
+  carrying the `source_sha256` of the JSON it came from; it is never authored or read as a source.
+  `tools/validate-api-style-decisions.py` validates and renders it, and a validation error blocks
+  the phase.
+- **The database no longer selects the API style.** `rules/api-style-selection.md` makes the choice
+  turn on consumer variability, operation shape, caching, governance and operational readiness, and
+  requires `access_surface`, `application_framework`, `data_access` and `transaction` to be recorded
+  separately — because "we use ScalarDB" is not a reason to expose GraphQL, and the two decisions had
+  been collapsing into one.
+- **ScalarDB native GraphQL and a Spring for GraphQL application API are treated as different
+  products with different threat surfaces.** Exposing the native interface now requires
+  `approved:<decision-id>`, a pinned product/release/edition verified against the OKF bundle, and
+  reference evidence for all five controls (authentication, authorization, audit, query limits,
+  network isolation). Prose approval is not approval: `review-api-security` raises a **critical**
+  finding for external native exposure without the structured fields.
+- `rules/graphql-contract-fidelity.md` and `rules/graphql-security-checks.md` — SDL nullability and
+  evolution rules, the `errors[].extensions.type` error carrier, and GraphQL-specific security checks
+  (nested-field authorization, DataLoader cache partitioning per tenant, depth/complexity/alias/batch
+  budgets, subscription origin and lifecycle controls) with default severities.
+- `rules/api-error-standard.md` §3.2 — the GraphQL execution contract for
+  `UnknownTransactionStatusException`. It is a field execution error, not a transport error: HTTP 200
+  with the registered problem type URI, and two mutually exclusive extension sets — retry with the
+  same idempotency key when the mutation is protected, reconcile-and-do-not-retry when it is not.
+  Raw ScalarDB transaction IDs stay out of extensions.
+
+### Fixed
+- **The Code Generation view proposed generators for API styles the project had not chosen.**
+  `design-graphql` was correctly skipped on a REST-only project, but a *skipped* dependency counts as
+  satisfied, so `generate-graphql-code` became runnable and was offered as a next command. The
+  mirror held for `generate-api-code` on a GraphQL-only project. Both are now conditioned on the
+  canonical decision, and an unreadable decision fails both closed rather than defaulting to REST.
+- **The extension tier could not express a condition at all.** Folding `EXTENSION_PHASES` into the
+  manifest hardcoded `conditions=[]`, silently discarding whatever a phase declared — so the fix
+  above had no effect until the loader carried them through. Every extension phase can now be
+  conditional.
+- Conditions derived from the canonical decision no longer leak into the `options` map the dashboard
+  reports as the project's own settings, and a malformed non-dict `options` is normalized instead of
+  being passed to `dict()`, which raised.
+- The generated `api-style-decisions.md` frontmatter follows `rules/output-conventions.md`
+  (`schema_version: 1`, `phase`, `input_files`). `generated_at` is deliberately absent: the
+  projection is asserted byte-stable, and `source_sha256` identifies the exact input a timestamp
+  would only approximate.
+- The backlog dashboard reads delivery status from the tracker rather than from the manifest's seed
+  `labels`, so an item whose state moved on GitLab/GitHub is no longer reported at its exported
+  status.
+
+### Changed
+- `design-implementation`, `generate-test-specs`, `generate-contract-tests`, `generate-docs`,
+  `review-api-security`, `verify-implementation` and `implement-backlog` all describe REST
+  `operationId`s and GraphQL field coordinates as parallel cases, and the quality gate's contract and
+  API-security stages cover both. Contract tests select a `GraphQlTester` transport from the approved
+  transport design instead of an OpenAPI validator.
+- `tools/graphql_skills.test.py` asserts the new contract as 68 checks — the decision schema and its
+  fail-closed validation, the Markdown projection's determinism and metacharacter escaping, the
+  validator's exit codes from an external consumer workspace, and which generator each canonical
+  decision offers or withdraws.
+- Session working artifacts (`todos/`, `*.local.md`) are no longer tracked.
+
 ## [0.25.0] - 2026-08-09
 
 ### Added
