@@ -3,9 +3,20 @@
 Loads reports/backlog/backlog-manifest.json (written by /architect:export-backlog and
 advanced by implement-backlog / review-issue / merge-issue / capture-followup), derives
 each node's delivery status and Implemented/Reviewed/Merged stages, and builds the
-Epic -> Sub-Epic -> Issue tree. Optionally overlays live tracker labels fetched via
-glab / gh ("sync"); per the backlog contract the tracker wins over the manifest, and a
-node's `labels` array is NEVER read as state — it is the creation seed.
+Epic -> Sub-Epic -> Issue tree. Overlays live tracker labels fetched via glab / gh
+("sync"); per the backlog contract the tracker wins over the manifest, and a node's
+`labels` array is NEVER read as state — it is the creation seed.
+
+Syncing covers every place the tracker keeps the tree. On GitLab that is two endpoints,
+not one: Issues live in the project and Epics/Sub-Epics live in the *group*, so a
+project-only fetch left every parent unsynced — and, worse, group Epic iids restart at 1
+and collide with the project's Issue iids, so an iid-keyed cache silently gave Epic 1 the
+status of Issue #1. Items are therefore keyed by a canonical URL (platform + kind + path
++ iid), with iid lookups kept only as a fallback for manifests that record no URL.
+
+The manifest header (platform / project / group) is inferred from the nodes' own remote
+URLs when it is absent — early manifests were written as a bare node array, which used to
+make sync fail with "unknown platform" and pin the whole tree at todo.
 
 Consumed by tools/lib/backlog_status_report.py (one-shot / JSON / Markdown) and
 tools/lib/backlog_status_view.py (the live dashboard's backlog tab). Display helpers (dw/pad/clip/
@@ -20,6 +31,7 @@ import re
 import subprocess
 import sys
 from datetime import datetime
+from urllib.parse import quote
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import token_cost_data as D  # noqa: E402  (display helpers; no cost logic used)
@@ -60,6 +72,9 @@ BS_LABELS = {
         "origin": "origin", "updated": "updated", "impl_files": "files",
         "decisions": "decisions", "review_doc": "review", "queue": "follow-up queue",
         "queued_entries": "%d unflushed entries", "drift": "tracker %s / manifest %s - tracker wins",
+        "drift_rollup": "tracker says %s / children add up to %s - the children win",
+        "sync_partial": "partly synced", "no_tracker": "no tracker in manifest",
+        "unreached": "%d item(s) the tracker did not return, shown from the manifest: %s",
         "stages_note": "stages from manifest - body checkboxes are the authoritative rendering",
         "source": "source", "copied": "copied", "shown": "command",
         "no_clipboard": "clipboard unavailable - command shown above",
@@ -91,6 +106,9 @@ BS_LABELS = {
         "origin": "起源", "updated": "更新", "impl_files": "ファイル",
         "decisions": "決定", "review_doc": "レビュー", "queue": "フォローアップキュー",
         "queued_entries": "未処理 %d 件", "drift": "トラッカー %s / マニフェスト %s - トラッカー優先",
+        "drift_rollup": "トラッカー %s / 子アイテム集計 %s - 子アイテム優先",
+        "sync_partial": "一部のみ同期", "no_tracker": "マニフェストにトラッカー情報なし",
+        "unreached": "トラッカーが返さなかった %d 件はマニフェスト由来の表示: %s",
         "stages_note": "ステージはマニフェスト由来 - 正式な表示は本文のチェックボックス",
         "source": "情報源", "copied": "コピー済", "shown": "コマンド",
         "no_clipboard": "クリップボード利用不可 - 上記コマンドを使用",
@@ -122,16 +140,108 @@ def labels(lang):
     return table
 
 
+# ----------------------------------------------------------------- tracker URLs
+# GitLab paths carry the `/-/` separator and name the kind; a group Epic additionally
+# sits under /groups/. GitLab renders an Issue as either /-/issues/N or /-/work_items/N
+# depending on version and entry point, so both fold onto the same canonical kind.
+GITLAB_URL = re.compile(
+    r"^(?P<scheme>https?)://(?P<host>[^/]+)/(?P<path>.+?)/-/"
+    r"(?P<kind>issues|work_items|epics)/(?P<iid>\d+)")
+GITHUB_URL = re.compile(
+    r"^(?P<scheme>https?)://(?P<host>[^/]+)/(?P<path>[^/]+/[^/]+)/"
+    r"(?:issues|pull)/(?P<iid>\d+)")
+
+
+def parse_remote_url(url):
+    """(platform, kind, path, iid) for a tracker item URL, or None.
+
+    `kind` is "epic" or "issue" — never the URL's own spelling — and `path` is the
+    group/project path with GitLab's /groups/ prefix stripped, so the value matches what
+    the manifest header and the CLI flags call the same container.
+    """
+    if not url:
+        return None
+    m = GITLAB_URL.match(url)
+    if m:
+        kind = "epic" if m.group("kind") == "epics" else "issue"
+        path = re.sub(r"^groups/", "", m.group("path"))
+        return ("gitlab", kind, path, int(m.group("iid")))
+    m = GITHUB_URL.match(url)
+    if m:  # GitHub has no Epic type: the whole tree is issues in one repository
+        return ("github", "issue", m.group("path"), int(m.group("iid")))
+    return None
+
+
+def tracker_key(url):
+    """The cache key both sides of a sync agree on, or None for an unparseable URL."""
+    parsed = parse_remote_url(url)
+    if parsed is None:
+        return None
+    return "%s:%s:%s#%d" % parsed
+
+
 # ----------------------------------------------------------------- manifest loading
-def load_manifest(path):
-    """The manifest as {platform, project, group, nodes}; None when unreadable."""
+def load_manifest(path, project_dir=None):
+    """The manifest as {platform, project, group, nodes}; None when unreadable.
+
+    A bare node array — and a header missing platform/project/group — is completed from
+    the nodes' own remote URLs, falling back to the project's git remote. Without this
+    the manifests written before the header existed can be drawn but never synced.
+    """
     raw = D.load_json(path)
     if raw is None:
         return None
     if isinstance(raw, list):  # tolerate a bare node array
-        return {"platform": "", "project": "", "group": "", "nodes": raw}
+        raw = {"nodes": raw}
     raw.setdefault("nodes", [])
+    for key in ("platform", "project", "group"):
+        raw.setdefault(key, "")
+    if project_dir is None:
+        # <project>/reports/backlog/backlog-manifest.json
+        project_dir = os.path.dirname(os.path.dirname(os.path.dirname(
+            os.path.abspath(path))))
+    infer_tracker(raw, project_dir)
     return raw
+
+
+def infer_tracker(manifest, project_dir=None):
+    """Fill in absent platform/project/group from the nodes; recorded values are kept."""
+    for platform, kind, path, _ in filter(None, (
+            parse_remote_url((n.get("remote") or {}).get("url"))
+            for n in manifest.get("nodes") or [])):
+        manifest["platform"] = manifest.get("platform") or platform
+        if manifest["platform"] != platform:
+            continue
+        slot = "group" if kind == "epic" else "project"
+        manifest[slot] = manifest.get(slot) or path
+        if manifest.get("project") and (manifest.get("group") or platform != "gitlab"):
+            return manifest
+    if not manifest.get("project") and project_dir:
+        remote = git_remote(project_dir)
+        if remote:
+            manifest["platform"] = manifest.get("platform") or remote[0]
+            if manifest["platform"] == remote[0]:
+                manifest["project"] = remote[1]
+    return manifest
+
+
+def git_remote(project_dir):
+    """(platform, path) of the project's origin remote, or None when there is none."""
+    try:
+        proc = subprocess.run(["git", "-C", project_dir, "remote", "get-url", "origin"],
+                              capture_output=True, timeout=5)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if proc.returncode != 0:
+        return None
+    url = proc.stdout.decode("utf-8", "replace").strip()
+    m = re.match(r"^(?:https?://(?:[^@/]+@)?|(?:ssh://)?git@)([^/:]+)[/:](.+?)(?:\.git)?$",
+                 url)
+    if not m:
+        return None
+    host, path = m.group(1).lower(), m.group(2)
+    platform = "gitlab" if "gitlab" in host else "github" if "github" in host else None
+    return (platform, path) if platform else None
 
 
 def sort_key(local_id):
@@ -165,6 +275,28 @@ def build_tree(nodes):
 
 
 # ----------------------------------------------------------------- state derivation
+def tracker_lookup(node, sync_cache):
+    """This node's synced tracker entry, or None.
+
+    Matched on the canonical URL first: on GitLab a group Epic and a project Issue can
+    both be number 1, so the bare iid is only consulted for manifests that recorded no
+    URL — and then only under this node's own kind.
+    """
+    if not sync_cache:
+        return None
+    remote = node.get("remote") or {}
+    url, iid = remote.get("url"), remote.get("iid")
+    kind = (parse_remote_url(url) or (None, None))[1] or (
+        "epic" if node.get("level") in ("epic", "sub-epic") else "issue")
+    keys = [tracker_key(url)]
+    if iid is not None:
+        keys += ["%s#%s" % (kind, iid), iid]
+    for key in keys:
+        if key is not None and key in sync_cache:
+            return sync_cache[key]
+    return None
+
+
 def derive_state(node, sync_cache=None):
     """Delivery status + stages for one node, manifest-first, tracker-wins.
 
@@ -179,9 +311,9 @@ def derive_state(node, sync_cache=None):
 
     tracker_status = None
     drift = False
-    iid = (node.get("remote") or {}).get("iid")
-    if sync_cache and iid in sync_cache:
-        tracker_status = sync_cache[iid].get("status")
+    entry = tracker_lookup(node, sync_cache)
+    if entry:
+        tracker_status = entry.get("status")
         if tracker_status in STATUSES:
             drift = tracker_status != status and manifest_status is not None
             status = tracker_status
@@ -196,26 +328,47 @@ def derive_state(node, sync_cache=None):
         "tracker_status": tracker_status,
         "stages": {"implemented": implemented, "reviewed": reviewed, "merged": merged},
         "followup": bool(FOLLOWUP_ID.match(node.get("local_id") or "")),
+        "rollup": False,
     }
 
 
-def rollup_state(node, children, states):
-    """Parent status: own impl.status (merge-issue writes roll-ups) else child aggregate."""
-    own = derive_state(node)
+def aggregate_status(kid_states):
+    """One status for a parent from its children's."""
+    if all(s == "done" for s in kid_states):
+        return "done"
+    if any(s == "blocked" for s in kid_states):
+        return "blocked"
+    if any(s == "review" for s in kid_states):
+        return "review"
+    if any(s in ("doing", "done") for s in kid_states):
+        return "doing"
+    return "todo"
+
+
+def rollup_state(node, children, states, sync_cache=None):
+    """Parent status: own impl.status (merge-issue writes roll-ups) else child aggregate.
+
+    A parent's own tracker label is read but does not win here, which is where a parent
+    differs from an Issue. An Epic's `status::*` label is set by hand at creation and
+    then left behind — every one of this project's Epics still says todo while its
+    Issues are closed — so believing it would report a finished Sub-Epic as untouched.
+    What its children actually delivered is the honest answer; a label that disagrees is
+    surfaced as drift instead of overriding it. A parent with no children in the manifest
+    has nothing to aggregate, so there the tracker wins as usual.
+    """
+    own = derive_state(node, sync_cache)
     kid_states = [states[c["local_id"]]["status"] for c in children]
-    if own["source"] != "seed" or not kid_states:
+    manifest_status = (node.get("impl") or {}).get("status")
+    manifest_status = manifest_status if manifest_status in STATUSES else None
+    if not kid_states:
         agg = own["status"]
-    elif all(s == "done" for s in kid_states):
-        agg = "done"
-    elif any(s == "blocked" for s in kid_states):
-        agg = "blocked"
-    elif any(s == "review" for s in kid_states):
-        agg = "review"
-    elif any(s in ("doing", "done") for s in kid_states):
-        agg = "doing"
+    elif manifest_status:
+        agg, own["source"] = manifest_status, "manifest"
     else:
-        agg = "todo"
+        agg, own["source"] = aggregate_status(kid_states), "rollup"
+    own["drift"] = bool(own["tracker_status"]) and own["tracker_status"] != agg
     own["status"] = agg
+    own["rollup"] = True
     own["stages"] = {
         "implemented": bool(kid_states) and all(
             states[c["local_id"]]["stages"]["implemented"] for c in children),
@@ -238,7 +391,7 @@ def derive_all(manifest, sync_cache=None):
             if n.get("level") == level:
                 kids = [c for c in children.get(n["local_id"], [])
                         if c["local_id"] in states]
-                states[n["local_id"]] = rollup_state(n, kids, states)
+                states[n["local_id"]] = rollup_state(n, kids, states, sync_cache)
     return by_id, children, states
 
 
@@ -344,24 +497,38 @@ def impl_log_path(project_dir, node):
 
 
 # ----------------------------------------------------------------- tracker sync
-def sync_tracker(manifest, timeout=15):
-    """Fetch live status labels: {iid: {status, fetched_at}}. Raises RuntimeError
-    with a one-line reason on failure; the caller keeps its previous cache."""
+def tracker_sources(manifest):
+    """[(label, argv, kind, prefix, sep)] — every endpoint holding part of this tree.
+
+    GitLab keeps Issues in the project and Epics in the group, so a GitLab manifest with
+    both recorded has two sources; GitHub keeps everything in one repository.
+    """
     platform = manifest.get("platform") or ""
     project = manifest.get("project") or ""
+    group = manifest.get("group") or ""
+    out = []
     if platform == "gitlab":
-        cmd = ["glab", "issue", "list", "--output", "json", "--all", "--per-page", "200"]
         if project:
-            cmd += ["-R", project]
-        prefix, sep = "status::", "::"
+            out.append(("issues",
+                        ["glab", "issue", "list", "--output", "json", "--all",
+                         "--per-page", "200", "-R", project],
+                        "issue", "status::", "::"))
+        if group:
+            out.append(("epics",
+                        ["glab", "api",
+                         "groups/%s/epics?per_page=100" % quote(group, safe="")],
+                        "epic", "status::", "::"))
     elif platform == "github":
-        cmd = ["gh", "issue", "list", "--state", "all", "--limit", "1000",
-               "--json", "number,labels"]
         if project:
-            cmd += ["--repo", project]
-        prefix, sep = "status:", ":"
-    else:
-        raise RuntimeError("unknown platform in manifest: %r" % platform)
+            out.append(("issues",
+                        ["gh", "issue", "list", "--state", "all", "--limit", "1000",
+                         "--json", "number,labels,state,url", "--repo", project],
+                        "issue", "status:", ":"))
+    return out
+
+
+def _run_json(cmd, timeout):
+    """The command's stdout as a JSON list; RuntimeError with a one-line reason."""
     try:
         proc = subprocess.run(cmd, capture_output=True, timeout=timeout)
     except FileNotFoundError:
@@ -377,20 +544,109 @@ def sync_tracker(manifest, timeout=15):
         raise RuntimeError("unparseable %s output" % cmd[0])
     if isinstance(items, dict):  # some glab versions wrap the list
         items = items.get("issues") or items.get("items") or []
-    cache, now = {}, datetime.now()
+    return items if isinstance(items, list) else []
+
+
+def item_status(item, prefix, sep):
+    """The status a tracker item reports, or None when it reports nothing.
+
+    A `status::*` label is the contract and wins. A closed item carrying no such label
+    still says something unambiguous — it is done — and reading that is what keeps a
+    tree that was closed outside the deliver-backlog flow from showing as todo.
+    """
+    status = None
+    for lab in item.get("labels") or []:
+        name = lab.get("name") if isinstance(lab, dict) else lab
+        if name and name.startswith(prefix):
+            candidate = name.split(sep)[-1]
+            if candidate in STATUSES:
+                status = candidate
+    if status is None and str(item.get("state") or "").lower() in ("closed", "merged"):
+        status = "done"
+    return status
+
+
+def sync_tracker(manifest, timeout=15):
+    """Fetch live status from every tracker source: (cache, warnings).
+
+    The cache maps canonical URL keys — plus "<kind>#<iid>" and bare-iid aliases for
+    manifests without URLs — to {status, state, url, fetched_at}. A source that fails
+    becomes a warning so one unreachable endpoint (a group whose Epics need a licence
+    tier, say) cannot blank out the rest; RuntimeError is raised only when nothing at
+    all could be fetched, and the caller then keeps its previous cache.
+    """
+    platform = manifest.get("platform") or ""
+    if platform not in ("gitlab", "github"):
+        raise RuntimeError("unknown platform in manifest: %r" % platform)
+    sources = tracker_sources(manifest)
+    if not sources:
+        raise RuntimeError("manifest names no %s project or group to sync from"
+                           % platform)
+    found, errors, now = [], [], datetime.now()
+    for label, cmd, kind, prefix, sep in sources:
+        try:
+            items = _run_json(cmd, timeout)
+        except RuntimeError as exc:
+            errors.append("%s: %s" % (label, exc))
+            continue
+        found += _entries(items, kind, prefix, sep, now)
+    if errors and len(errors) == len(sources):
+        raise RuntimeError("; ".join(errors))
+    cache = _index(found)
+    return cache, errors + unreached(manifest, cache)
+
+
+def unreached(manifest, cache):
+    """[warning] when exported nodes were not in what the tracker returned.
+
+    `gh issue list --limit 1000` and `glab --per-page 200` return a window, not the
+    whole tracker, and an item outside it looks exactly like an item with nothing to
+    say — it falls back to the manifest and renders as todo. That is the failure this
+    whole change is about, so it is reported rather than absorbed.
+    """
+    missing = [n.get("local_id") for n in manifest.get("nodes") or []
+               if (n.get("remote") or {}).get("url") or (n.get("remote") or {}).get("iid")
+               if tracker_lookup(n, cache) is None]
+    if not missing:
+        return []
+    T = labels(os.environ.get("NX_LANG", "en"))
+    return [T["unreached"] % (len(missing), ", ".join(filter(None, missing[:5])))]
+
+
+def _entries(items, kind, prefix, sep, now):
+    """[(kind, iid, entry)] for one source's items.
+
+    Everything fetched is indexed, including items reporting no status (an open Issue
+    with no `status::*` label), because the cache answers two different questions: what
+    the tracker says about an item, and whether the tracker returned the item at all.
+    Conflating them made a node the fetch never reached indistinguishable from an
+    unlabelled one — both silently read as todo.
+    """
+    out = []
     for item in items:
-        iid = item.get("iid") or item.get("number")
+        iid = item.get("iid") if item.get("iid") is not None else item.get("number")
         if iid is None:
             continue
-        status = None
-        for lab in item.get("labels") or []:
-            name = lab.get("name") if isinstance(lab, dict) else lab
-            if name and name.startswith(prefix):
-                candidate = name.split(sep)[-1]
-                if candidate in STATUSES:
-                    status = candidate
-        if status:
-            cache[iid] = {"status": status, "fetched_at": now}
+        out.append((kind, iid, {
+            "status": item_status(item, prefix, sep), "state": item.get("state"),
+            "url": item.get("web_url") or item.get("url"), "fetched_at": now}))
+    return out
+
+
+def _index(found):
+    """Key every entry by canonical URL and "<kind>#<iid>"; add the bare iid only when
+    it is unambiguous across the whole sync (group Epic 1 vs project Issue 1 is not)."""
+    cache = {}
+    for kind, iid, entry in found:
+        for key in (tracker_key(entry["url"]), "%s#%s" % (kind, iid)):
+            if key:
+                cache[key] = entry
+    counts = {}
+    for _, iid, _ in found:
+        counts[iid] = counts.get(iid, 0) + 1
+    for kind, iid, entry in found:
+        if counts[iid] == 1:
+            cache[iid] = entry
     return cache
 
 

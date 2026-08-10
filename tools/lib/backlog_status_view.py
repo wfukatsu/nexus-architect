@@ -3,8 +3,11 @@
 The Epic -> Sub-Epic -> Issue tree with each node's delivery status and its
 Implemented/Reviewed/Merged stages; the detail pane shows where the status came from,
 the PR, the implementation files/decisions, the follow-up origin and the newest review
-document. `s` fetches live tracker labels via glab/gh — per the backlog contract the
-tracker wins and drift is marked.
+document. Live state is fetched from the tracker via glab/gh at startup, again in the
+background every SYNC_EVERY seconds, and on demand with `s`; per the backlog contract
+the tracker wins over the manifest for an Issue, and disagreement is marked as drift.
+The background fetch runs off a thread and hands its result to the poll loop through
+extra_stamp(), so a 1-2 second round trip to GitLab never freezes the keyboard.
 
 The rendering shell (layout, menus, keys, refresh) lives in status_tui.App; this module
 only answers what to show. Its state rules live in backlog_status_data.py.
@@ -12,6 +15,7 @@ only answers what to show. Its state rules live in backlog_status_data.py.
 
 import os
 import sys
+import threading
 from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -22,7 +26,12 @@ import token_cost_data as D  # noqa: E402
 env = os.environ.get
 PROJ = env("NX_PROJECT_DIR", ".")
 EPIC_FILTER = env("NX_EPIC", "") or None
-SYNC_AT_START = env("NX_SYNC", "0") == "1"
+# Tracker syncing as a whole: the startup fetch, `s`, and the background refresh.
+SYNC_ENABLED = env("NX_SYNC", "1") == "1"
+# How long a synced tracker snapshot is trusted before the view fetches a new one in the
+# background. The manifest only moves when a skill writes it, so without this the tab
+# went stale the moment anyone closed an Issue in the browser.
+SYNC_EVERY = max(30, int(env("NX_SYNC_EVERY", "180") or 180))
 
 WATCH = ("reports/backlog/backlog-manifest.json",
          "reports/backlog/followup-queue.md")
@@ -46,6 +55,12 @@ class BacklogView(S.BaseView):
         self.pipeline = None
         self.sync_cache = None
         self.synced_at = None
+        self.sync_warnings = []
+        self.sync_error = None
+        self._sync_thread = None
+        self._sync_result = None    # handed over by the background thread
+        self._last_attempt = None
+        self._sync_gen = 0          # bumped on arrival so the poll loop reloads
         self.available = os.path.isfile(manifest_path)
         self.load()
 
@@ -53,8 +68,11 @@ class BacklogView(S.BaseView):
     def watch_files(self):
         return WATCH
 
+    def has_tracker(self):
+        return bool(B.tracker_sources(self.manifest or {}))
+
     def load(self):
-        manifest = B.load_manifest(self.path)
+        manifest = B.load_manifest(self.path, PROJ)
         if manifest is not None:
             self.manifest = manifest
             self.by_id, self.children, self.states = B.derive_all(
@@ -87,17 +105,66 @@ class BacklogView(S.BaseView):
         return self.T["no_manifest"]
 
     def sync(self, app):
-        """Fetch tracker labels. Blocks the loop briefly; a banner says so first."""
+        """Fetch tracker labels now. Blocks the loop briefly; a banner says so first."""
+        if not self.has_tracker():
+            app.flash("%s: %s" % (self.T["sync_failed"], self.T["no_tracker"]),
+                      "alert", seconds=8)
+            return
         app.flash(self.T["syncing"], "warn", seconds=60)
         app.draw()
+        self._last_attempt = datetime.now()   # so the poll loop does not re-fetch at once
         try:
-            self.sync_cache = B.sync_tracker(self.manifest)
-            self.synced_at = datetime.now()
-            self.load()
+            self._apply_sync(*B.sync_tracker(self.manifest))
             app.flash("%s %s" % (self.T["synced"], self.synced_at.strftime("%H:%M:%S")),
                       "accent")
         except RuntimeError as exc:
+            self.sync_error = str(exc)
             app.flash("%s: %s" % (self.T["sync_failed"], exc), "alert", seconds=8)
+
+    def _apply_sync(self, cache, warnings):
+        self.sync_cache = cache
+        self.sync_warnings = warnings
+        self.sync_error = None
+        self.synced_at = datetime.now()
+        self.load()
+
+    def sync_background(self):
+        """Start a re-sync off the draw loop; at most one is ever in flight."""
+        if self._sync_thread is not None and self._sync_thread.is_alive():
+            return
+        if not self.has_tracker():
+            return
+        self._last_attempt = datetime.now()
+        manifest = self.manifest
+
+        def worker():
+            try:
+                self._sync_result = ("ok", B.sync_tracker(manifest))
+            except RuntimeError as exc:
+                self._sync_result = ("error", str(exc))
+
+        self._sync_thread = threading.Thread(target=worker, daemon=True)
+        self._sync_thread.start()
+
+    def extra_stamp(self):
+        """Drives the background sync from the poll loop, which is the only per-tick hook.
+
+        Returns a counter that changes exactly when a fetch lands, so App.maybe_refresh
+        redraws the tree on a tracker change the same way it does on a manifest change.
+        """
+        result, self._sync_result = self._sync_result, None
+        if result is not None:
+            if result[0] == "ok":
+                self._apply_sync(*result[1])
+            else:                    # a failed fetch keeps the previous snapshot
+                self.sync_error = result[1]
+            self._sync_gen += 1
+        # Off the attempt, not the last success: a tracker that is down would otherwise
+        # be retried on every 10-second poll for as long as the dashboard is open.
+        if SYNC_ENABLED and (self._last_attempt is None or (
+                datetime.now() - self._last_attempt).total_seconds() >= SYNC_EVERY):
+            self.sync_background()
+        return self._sync_gen
 
     # ------------------------------------------------------------------ rows
     def rows(self):
@@ -162,8 +229,21 @@ class BacklogView(S.BaseView):
                 cur += " %s %d" % (B.SG["stale"], self.pipeline["stale"])
             meta.append("%s %d/%d%s" % (T["pipeline"], self.pipeline["completed"],
                                         self.pipeline["total"], cur))
-        meta.append("%s %s" % (T["synced"], self.synced_at.strftime("%H:%M"))
-                    if self.synced_at else T["not_synced"])
+        # Why the tree says what it says: when it was last confirmed against the tracker,
+        # and — when a fetch failed — what failed, since the rows themselves look the
+        # same whether the snapshot behind them is a minute or an hour old.
+        trouble = ([self.sync_error] if self.sync_error else []) + self.sync_warnings
+        if self.synced_at:
+            note = "%s %s" % (T["synced"], self.synced_at.strftime("%H:%M"))
+            if trouble:
+                note += " (%s: %s)" % (T["sync_partial"], trouble[0])
+        elif not self.has_tracker():
+            note = T["no_tracker"]
+        elif trouble:
+            note = "%s: %s" % (T["sync_failed"], trouble[0])
+        else:
+            note = T["not_synced"]
+        meta.append(D.clip(note, max(20, width // 2)))
         meta += self.active_filters()
         if self.queue_count:
             meta.append("%s %s" % (T["queue"], T["queued_entries"] % self.queue_count))
@@ -181,7 +261,9 @@ class BacklogView(S.BaseView):
         src += "  (%s: %s)" % (T["source"], state["source"])
         lines.append((src, B.STATUS_STYLE.get(state["status"], "")))
         if state["drift"]:
-            lines.append((T["drift"] % (state["tracker_status"], "manifest"), "warn"))
+            lines.append((T["drift_rollup"] % (state["tracker_status"], state["status"])
+                          if state.get("rollup")
+                          else T["drift"] % (state["tracker_status"], "manifest"), "warn"))
         lines.append(("%s %s   %s" % (T["stages"], B.stage_boxes(state["stages"]),
                                       T["stages_note"]), "dim"))
         remote = node.get("remote") or {}
@@ -267,5 +349,5 @@ class BacklogView(S.BaseView):
         return False
 
     def sync_at_start(self, app):
-        if SYNC_AT_START and self.available:
+        if SYNC_ENABLED and self.available:
             self.sync(app)

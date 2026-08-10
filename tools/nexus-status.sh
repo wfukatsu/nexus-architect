@@ -64,7 +64,14 @@
 #
 # --group/--phase/--epic narrow --json exactly as they narrow the tree, and the emitted
 # `filters` object records which were applied; `summary` always covers the whole project.
-#   --sync             backlog view: fetch live status::* labels once at startup (also: s)
+#   --sync / --no-sync backlog view: fetch live state from the tracker (GitLab Issues +
+#                      group Epics via glab, GitHub Issues via gh). On by default — the
+#                      manifest only moves when a skill writes it, so an unsynced tree
+#                      shows what the last skill run recorded, not what the tracker says.
+#                      The live dashboard refreshes in the background every
+#                      NX_SYNC_EVERY seconds (default 180) and on `s`. Use --no-sync for
+#                      an offline/manifest-only read
+#                      (needs glab/gh on PATH and authenticated)
 #   --exec             enable running commands from the dashboard: the action menu's `e`
 #                      key and the `a` ask key suspend the dashboard and run `claude`
 #                      in the foreground (requires claude on PATH)
@@ -109,7 +116,7 @@ JSON_OUT=0
 MD_OUT=""
 MD_REQUESTED=0
 WIDTH=""
-SYNC=0
+SYNC="${NX_SYNC:-1}"   # pre-set NX_SYNC=0 for an offline default
 EXEC=0
 EPIC=""
 PLUGIN=""
@@ -130,6 +137,7 @@ for arg in "$@"; do
     --group=*)       GROUP="${arg#*=}" ;;
     --phase=*)       PHASE="${arg#*=}" ;;
     --sync)          SYNC=1 ;;
+    --no-sync)       SYNC=0 ;;
     --exec)          EXEC=1 ;;
     --epic=*)        EPIC="${arg#*=}" ;;
     --lang=*)        LANG_OPT="${arg#*=}" ;;

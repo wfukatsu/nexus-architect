@@ -24,6 +24,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 NX="$ROOT/tools/nexus-status.sh"
 BL="$ROOT/tools/backlog-status.sh"
 export NX_TEST_ROOT="$ROOT"
+# The fixtures name trackers that do not exist; syncing them would be a slow round trip
+# to a guaranteed error. Tracker behaviour is covered in backlog_status_data.test.py.
+export NX_SYNC=0
 FAILURES=0
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/nx-status-cli.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT

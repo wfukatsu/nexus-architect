@@ -3,7 +3,7 @@ description: |
   Show backlog delivery progress as an Epic -> Sub-Epic -> Issue tree — each item's
   delivery status (todo/doing/review/done/blocked) and its Implemented / Reviewed /
   Merged stages — on the terminal, live or as a one-shot render.
-  /architect:report-backlog-status [--once] [--sync] [--exec] [--epic=<id>] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en] to invoke.
+  /architect:report-backlog-status [--once] [--no-sync] [--exec] [--epic=<id>] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en] to invoke.
   Wraps ${CLAUDE_PLUGIN_ROOT}/tools/backlog-status.sh (the backlog view of
   tools/nexus-status.sh), which on a terminal defaults to a live dashboard polling
   backlog-manifest.json every 10s, with an action menu that generates the next slash
@@ -34,7 +34,7 @@ command to run next.
 | `reports/backlog/followup-queue.md` | /architect:capture-followup + feeders | Optional — unflushed follow-up count |
 | `reports/backlog/impl-log/`, `reports/backlog/reviews/` | implement/review skills | Optional — detail pane |
 | `work/pipeline-progress.json` | /architect:pipeline | Optional — pipeline phase strip, display language |
-| Tracker labels via `glab` / `gh` | — | Optional — `--sync` / `s` key; the tracker wins over the manifest |
+| Tracker state via `glab` / `gh` | — | **Default** — GitLab project Issues + group Epics, or GitHub Issues; `--no-sync` to skip, `s` to refetch. The tracker wins over the manifest |
 
 ## Execution
 
@@ -48,7 +48,7 @@ views) and Code Generation (`--view=codegen`).
 |-----------|---------|--------|
 | default (user's TTY) | `tools/backlog-status.sh` | Live dashboard: foldable tree + detail pane + action menu, manifest re-checked every 10s |
 | in-session render | `tools/backlog-status.sh --once` | Static tree, prints and exits — **always use this when running it yourself** |
-| tracker truth | `... --sync` | Fetch live `status::*` labels once at startup (also the `s` key) |
+| manifest only | `... --no-sync` | Skip the tracker fetch. **On by default**: the manifest only advances when a delivery skill writes it, so without a sync the tree shows the last recorded run, not what the tracker says. The live dashboard also refetches in the background every `NX_SYNC_EVERY` seconds (default 180) and on the `s` key |
 | run from the dashboard | `... --exec` | The action menu's `e` key suspends the dashboard and runs `claude "<command>"` in the foreground (requires the `claude` CLI) |
 | one Epic | `... --epic=E1` | Limit the tree to that Epic (and its subtree). Orphans belong to no Epic, so a filter excludes them |
 | machine-readable | `... --json` | Derived states as JSON. `--epic` narrows it exactly as it narrows the tree, and the `filters` object records what was applied — `summary` always covers the whole manifest |
@@ -70,23 +70,29 @@ the user asks to watch progress live, do not run the dashboard yourself — tell
 run, prefixing with `!` inside Claude Code:
 
 - `!${CLAUDE_PLUGIN_ROOT}/tools/backlog-status.sh` — the dashboard
-- add `--sync` for tracker truth, `--exec` to launch skills straight from the menu
+- add `--exec` to launch skills straight from the menu, `--no-sync` to read the manifest offline
 
 Always pass `--once` (or `--json`/`--md`) when running it yourself: with no mode flag
 the script starts the live dashboard on a terminal, which never exits on its own.
 
 ## How state is derived (and its honest limits)
 
-- **Delivery status precedence**: tracker label (after a sync) > manifest `impl.status`
-  > `todo`. A node's `labels` array is **never** read — it is the creation seed
-  (deliver-backlog contract). Divergence is flagged as drift; the tracker wins.
+- **Delivery status precedence** (Issues): tracker > manifest `impl.status` > `todo`.
+  The tracker reports a `status::*` label, or `done` for an item closed without one. A
+  node's `labels` array is **never** read — it is the creation seed (deliver-backlog
+  contract). Divergence is flagged as drift; the tracker wins.
+- **Where the tracker is read from**: on GitLab, both the project's Issues *and* the
+  group's Epics — Epic iids restart at 1 per group and collide with Issue iids, so items
+  are matched by URL, not number. On GitHub the whole tree is issues in one repository.
 - **Stages** `[I][R][M]` are derived from the manifest: `M` = `pr.merged` or status
   `done`; `R` = a `pr.url` exists; `I` = status `review`/`done` or a PR exists. While an
   Issue is still `doing` the manifest cannot express "implemented but unreviewed", so
   the boxes stay unmet — the item bodies' `## Delivery Status` checklists are the
   authoritative rendering (this tool does not fetch live bodies).
 - **Parents** use their own `impl.status` (merge-issue writes roll-ups) or aggregate
-  their children; `n/m` counts descend over Issues.
+  their children; `n/m` counts descend over Issues. A parent's *tracker* label does not
+  override that aggregate — an Epic's `status::*` is set once at creation and then goes
+  stale — so a disagreement shows as drift while the delivered children decide.
 - Contracts are asserted by `tools/lib/backlog_status_data.test.py` (state derivation)
   and `tools/nexus-status.test.sh` (the CLI: exit codes, output modes, filters).
 
