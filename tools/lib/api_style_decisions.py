@@ -157,9 +157,16 @@ def render_markdown(document, language="en"):
                if ja else
                ["Surface", "Style", "GraphQL provider", "Native exposure",
                 "Framework", "Data access", "Transaction", "Approval"])
+    # Frontmatter per @rules/output-conventions.md, with one deliberate omission:
+    # `generated_at` would make an unchanged decision render differently on every run, and
+    # this projection is asserted to be byte-stable. `source_sha256` identifies the exact
+    # input it was rendered from, which is the stronger claim a timestamp only approximates.
     lines = [
-        "---", "title: \"%s\"" % title, "schema_version: \"1.0\"",
-        "skill: design-api", "canonical_source: reports/03_design/api-style-decisions.json",
+        "---", "title: \"%s\"" % title, "schema_version: 1",
+        "phase: \"Phase 3: Design\"",
+        "skill: design-api", "input_files:",
+        "  - reports/03_design/api-style-decisions.json",
+        "canonical_source: reports/03_design/api-style-decisions.json",
         "source_sha256: %s" % digest, "---", "", "# %s" % title, "", note, "",
         "| " + " | ".join(headers) + " |",
         "|" + "|".join(["---"] * len(headers)) + "|",

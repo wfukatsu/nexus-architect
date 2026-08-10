@@ -453,6 +453,7 @@ EXTENSION_PHASES = {
                                             "generated/*/scalardb.properties",
                                             "generated/*/Dockerfile"]),
     "generate-api-code": dict(category="extension", model="opus", depends_on=["design-implementation"],
+                              conditions=["api_style_rest"],
                               outputs=["generated/*/src/main/java/",
                                        "reports/06_implementation/api-contract-map.md",
                                        "reports/06_implementation/api-contract-map.json"]),
@@ -793,6 +794,13 @@ def _stamp(value):
 
 
 def _conditions_ok(conditions, options):
+    """Whether a phase's declared conditions hold.
+
+    `scalardb_enabled` defaults to true (ScalarDB is the default path); every other
+    condition **fails closed** — an option nobody set does not enable the phase. A new
+    condition added to either manifest therefore needs someone to set its option, or to be
+    derived like `api_style_graphql` / `api_style_rest` in canonical_api_style_options().
+    """
     for cond in conditions:
         if cond == "scalardb_enabled" and not options.get("scalardb_enabled", True):
             return False
@@ -803,14 +811,24 @@ def _conditions_ok(conditions, options):
     return True
 
 
+STYLE_CONDITIONS = ("api_style_graphql", "api_style_rest")
+
+
 def canonical_api_style_options(project_dir, options):
-    """Derive GraphQL enablement from the canonical API-style contract when present.
+    """Derive per-style enablement from the canonical API-style contract when present.
 
     The progress option is retained only as a pre-design/legacy fallback. Invalid canonical
-    input marks the conditional phase failed (fail closed against silently skipping GraphQL design)
+    input marks the conditional phases failed (fail closed against silently skipping GraphQL design)
     and returns an actionable error.
+
+    The two styles are not symmetric when the contract is **absent**. `api_style_rest`
+    defaults to true because REST codegen predates this artifact: every project that never
+    ran the current `design-api` would otherwise lose `generate-api-code` from its codegen
+    view. GraphQL has no such history, so an absent contract leaves it to the legacy option
+    — which is normally unset, and unset means not selected.
     """
     effective = dict(options)
+    effective.setdefault("api_style_rest", True)
     path = os.path.join(project_dir, "reports", "03_design", "api-style-decisions.json")
     if not os.path.isfile(path):
         return effective, [], []
@@ -818,19 +836,15 @@ def canonical_api_style_options(project_dir, options):
         with open(path, encoding="utf-8") as handle:
             document = json.load(handle)
     except (OSError, ValueError) as exc:
-        effective["api_style_graphql"] = True
-        effective["_invalid_conditions"] = ["api_style_graphql"]
-        return effective, ["invalid canonical API-style decision: %s" % exc], []
+        return _invalid_api_style(effective, ["invalid canonical API-style decision: %s" % exc])
 
     errors = validate_document(document)
     if errors:
-        effective["api_style_graphql"] = True
-        effective["_invalid_conditions"] = ["api_style_graphql"]
-        return effective, ["invalid canonical API-style decision: %s" % error
-                           for error in errors], []
+        return _invalid_api_style(effective, ["invalid canonical API-style decision: %s" % error
+                                              for error in errors])
 
-    selected = any(surface["selected_style"] in ("graphql", "hybrid")
-                   for surface in document["surfaces"])
+    styles = [surface["selected_style"] for surface in document["surfaces"]]
+    selected = any(style in ("graphql", "hybrid") for style in styles)
     warnings = []
     copied = options.get("api_style_graphql")
     if isinstance(copied, bool) and copied != selected:
@@ -838,7 +852,18 @@ def canonical_api_style_options(project_dir, options):
             "ignored stale options.api_style_graphql=%s; canonical API-style decision is %s" %
             (str(copied).lower(), str(selected).lower()))
     effective["api_style_graphql"] = selected
+    # `graphql` is the one style that carries no REST surface; every other value the
+    # validator admits — rest, hybrid, grpc, asyncapi — is served by the REST/API generator.
+    effective["api_style_rest"] = any(style != "graphql" for style in styles)
     return effective, [], warnings
+
+
+def _invalid_api_style(effective, errors):
+    """A decision nobody can read enables nothing: fail both style conditions closed."""
+    for condition in STYLE_CONDITIONS:
+        effective[condition] = True
+    effective["_invalid_conditions"] = list(STYLE_CONDITIONS)
+    return effective, errors, []
 
 
 def derive_phase(name, spec, entry, project_dir, options, project_name,
@@ -1057,12 +1082,17 @@ def derive_all(project_dir, plugin=None, progress=None, section="pipeline"):
     detected = detect_plugin(progress, project_dir)
     plugin = plugin if plugin in PLUGINS else detected
     manifest = load_phase_manifest(plugin)
+    # `options` is what the project set and is reported as such; `effective` adds the
+    # conditions derived from the canonical API-style contract, which drive phase
+    # exclusion but are nobody's setting and must not be reported back as one.
     options = (progress or {}).get("options") or {}
+    if not isinstance(options, dict):
+        options = {}
     if plugin == "architect":
-        options, canonical_errors, canonical_warnings = canonical_api_style_options(
+        effective, canonical_errors, canonical_warnings = canonical_api_style_options(
             project_dir, options)
     else:
-        options, canonical_errors, canonical_warnings = dict(options), [], []
+        effective, canonical_errors, canonical_warnings = dict(options), [], []
     project_name = (progress or {}).get("project_name") or os.path.basename(
         os.path.abspath(project_dir))
     entries = ((progress or {}).get("phases") or {})
@@ -1073,7 +1103,7 @@ def derive_all(project_dir, plugin=None, progress=None, section="pipeline"):
     phases = {}
     for name in order_phases(manifest):
         phases[name] = derive_phase(name, manifest[name], entries.get(name), project_dir,
-                                    options, project_name, costs, activity, now, plugin)
+                                    effective, project_name, costs, activity, now, plugin)
 
     # Registry entries for phases this plugin's manifest does not know (hand-written or
     # renamed) are still shown, so nothing recorded is silently dropped — except the ones
@@ -1087,7 +1117,7 @@ def derive_all(project_dir, plugin=None, progress=None, section="pipeline"):
     for name, entry in entries.items():
         if name not in phases and name not in foreign:
             phases[name] = derive_phase(name, {"category": "other", "tier": "other"},
-                                        entry, project_dir, options, project_name,
+                                        entry, project_dir, effective, project_name,
                                         costs, activity, now, plugin)
 
     mark_stale(phases)

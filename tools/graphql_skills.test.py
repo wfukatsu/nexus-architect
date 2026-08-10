@@ -70,13 +70,14 @@ def main():
 
     # `design-graphql` skipped satisfies the dependency, so only the condition keeps the
     # codegen view from offering GraphQL generation on a REST-only project.
-    def codegen_state(document):
+    def codegen_state(document, phase_name="generate-graphql-code"):
         with tempfile.TemporaryDirectory() as project:
             os.makedirs(os.path.join(project, "reports", "03_design"))
-            with open(os.path.join(project, "reports", "03_design",
-                                   "api-style-decisions.json"), "w",
-                      encoding="utf-8") as handle:
-                handle.write(document)
+            if document is not None:
+                with open(os.path.join(project, "reports", "03_design",
+                                       "api-style-decisions.json"), "w",
+                          encoding="utf-8") as handle:
+                    handle.write(document)
             progress = {"project_name": "p", "options": {"scalardb_enabled": True},
                         "phases": {name: {"status": "completed", "plugin": "architect"}
                                    for name in ("design-api", "design-implementation")}}
@@ -84,7 +85,7 @@ def main():
                                           section="codegen")
             for group in derived["groups"]:
                 for phase in group["phases"]:
-                    if phase["name"] == "generate-graphql-code":
+                    if phase["name"] == phase_name:
                         return phase
         return None
 
@@ -104,6 +105,28 @@ def main():
     check("invalid decision fails the generator instead of offering it",
           invalid_state["status"] == "failed" and not invalid_state["runnable"],
           invalid_state)
+
+    # The mirror rule: a GraphQL-only decision withdraws the REST generator. Absent any
+    # decision it stays, because REST codegen predates the canonical artifact.
+    rest_gen_graphql_only = codegen_state(graphql, "generate-api-code")
+    rest_gen_rest_only = codegen_state(rest_only, "generate-api-code")
+    rest_gen_legacy = codegen_state(None, "generate-api-code")
+    rest_gen_invalid = codegen_state("{ not json", "generate-api-code")
+    check("GraphQL-only decision withdraws the REST generator",
+          rest_gen_graphql_only["excluded"] == "condition", rest_gen_graphql_only)
+    check("REST decision keeps the REST generator",
+          rest_gen_rest_only["excluded"] is None and rest_gen_rest_only["runnable"],
+          rest_gen_rest_only)
+    check("a project predating the canonical artifact keeps the REST generator",
+          rest_gen_legacy["excluded"] is None and rest_gen_legacy["runnable"],
+          rest_gen_legacy)
+    check("invalid decision fails the REST generator too",
+          rest_gen_invalid["status"] == "failed" and not rest_gen_invalid["runnable"],
+          rest_gen_invalid)
+    hybrid = json.dumps({"surfaces": [decision_surface(selected_style="hybrid")]})
+    check("a hybrid surface keeps both generators",
+          codegen_state(hybrid)["excluded"] is None
+          and codegen_state(hybrid, "generate-api-code")["excluded"] is None)
 
     marketplace = json.loads(read(".claude-plugin/marketplace.json"))
     architect = next(item for item in marketplace["plugins"]
