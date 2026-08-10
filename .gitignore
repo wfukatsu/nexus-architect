@@ -33,3 +33,7 @@ Thumbs.db
 .polly/
 .worktrees/
 .context/codex-session-id
+
+# Session working artifacts (findings queue, local review-agent config)
+todos/
+*.local.md
