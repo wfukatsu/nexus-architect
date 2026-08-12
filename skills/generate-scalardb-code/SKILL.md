@@ -42,6 +42,19 @@ bundle and pin the target ScalarDB version/edition per @rules/okf-knowledge-bund
 each exception; the local pattern rules below supply code shape but the pinned bundle wins on any
 disagreement.
 
+## Deprecation Check (mandatory)
+
+After resolving the ScalarDB version, verify the deprecation status of every ScalarDB API the
+design commits to **against the resolved artifact** (e.g. `javap` on the jar from the Gradle
+cache) or the pinned release notes in the OKF bundle — not against the pattern templates, which
+are dated examples. Known case: on 3.19+ the application-driven 2PC surface
+(`TwoPhaseCommitTransactionManager`, `TwoPhaseCommitTransaction`,
+`getTwoPhaseCommitTransactionManager()`, `getUnknownTransactionId()`) is `@Deprecated`
+(@rules/scalardb-2pc-patterns.md). Using a deprecated API deliberately (recorded design
+deviation) requires `@SuppressWarnings("deprecation")` scoped to the smallest element, an
+in-code comment naming the deviation and the non-deprecated migration path, and a line in the
+run summary. Unexplained deprecation warnings in the build output are a defect, not noise.
+
 ## Dependency Versions
 
 `build.gradle` and the `Dockerfile` pin versions, so follow @rules/dependency-versions.md before

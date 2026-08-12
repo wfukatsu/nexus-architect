@@ -15,7 +15,7 @@ longer the default answer for microservice transactions. Decide in this order:
 |---|-----------|----------|-----------------------|
 | 1 | **Shared-cluster, one-phase commit** | Every service can talk to one ScalarDB Cluster instance. The documented recommendation "whenever possible" | Ordinary one-phase `DistributedTransactionManager`; one service calls `commit()` |
 | 2 | **Global Transaction API** (3.19+, Cluster) | Services need their own Cluster instances (isolation, per-team administration) but you do not want the application sequencing the protocol | `GlobalTransactionManager` — one-phase code; the **Transaction Coordinator** node drives 2PC underneath. The same code also runs single-Cluster; only configuration selects which |
-| 3 | **Application-driven 2PC** (this document) | Pre-3.19, no Transaction Coordinator deployed, Core (Community) without Cluster, or Spring Data JDBC (which does not support the shared-cluster pattern) | `TwoPhaseCommitTransactionManager` — the application sequences `prepare`/`validate`/`commit` and handles partial failure |
+| 3 | **Application-driven 2PC** (this document) | Pre-3.19, no Transaction Coordinator deployed, Core (Community) without Cluster, or Spring Data JDBC (which does not support the shared-cluster pattern) | `TwoPhaseCommitTransactionManager` — the application sequences `prepare`/`validate`/`commit` and handles partial failure. **On 3.19+ this entire API surface (`TwoPhaseCommitTransactionManager`, `TwoPhaseCommitTransaction`, `getTwoPhaseCommitTransactionManager()`) is `@Deprecated` in favor of option 2.** Choosing it anyway (e.g. as a teaching reference) requires a recorded deviation in the transaction design document, `@SuppressWarnings("deprecation")` with an in-code rationale comment, and an explicit migration note pointing at options 1/2 |
 | 4 | **ScalarDB Saga** | A single ACID transaction across the services is not possible or not wanted — long-running steps, external systems, eventual consistency acceptable | Saga/TCC definitions with compensations. See @rules/scalardb-saga-patterns.md |
 
 Options 1–3 give strong consistency; option 4 trades it for compensation-based rollback and
@@ -122,13 +122,23 @@ private void rollbackAll(TwoPhaseCommitTransaction... txs) {
 }
 ```
 
-## Validate Is Conditional
+## Validate Is Version-Dependent — Verify Against the Pinned Release
 
-`validate()` is only required when BOTH conditions are true:
-- `scalar.db.consensus_commit.isolation_level=SERIALIZABLE`
-- `scalar.db.consensus_commit.serializable_strategy=EXTRA_READ`
+Whether `validate()` may be skipped **changed across releases**, and getting it wrong under
+SERIALIZABLE silently weakens isolation (the 2PC interface only runs the validation phase when the
+application calls `validate()`):
 
-If not using this combination, `validate()` can be skipped.
+- **ScalarDB 3.19+**: the `serializable_strategy` key no longer exists. The consensus-commit
+  documentation requires the validate-records phase **whenever `isolation_level=SERIALIZABLE`** —
+  so in application-driven 2PC, `validate()` MUST be called on every participant. There is no
+  skippable combination.
+- **Older lines (≤3.13 Community, and where `serializable_strategy` is documented)**: `validate()`
+  was required only for `SERIALIZABLE` + `EXTRA_READ`.
+
+Any design that omits `validate()` MUST cite the pinned release's `consensus-commit.md` from the
+OKF bundle (@rules/okf-knowledge-bundle.md) as evidence — a design document claiming "validate is
+optional" without a version-pinned citation is a review finding (this exact defect shipped once as
+SDB-101). When in doubt, call `validate()` unconditionally: it is correct on every release.
 
 ## Don't Reuse Transaction IDs
 

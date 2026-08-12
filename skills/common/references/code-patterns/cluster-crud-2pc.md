@@ -6,6 +6,14 @@ Production multi-service transactions using ScalarDB Cluster with the CRUD API.
 > release. Before emitting a `build.gradle`, resolve each pin per
 > `rules/dependency-versions.md` — the ScalarDB line, Java, and the logging/CLI libraries all
 > move independently of this document.
+>
+> **Deprecation check is mandatory before generating from this template.** On ScalarDB 3.19+ the
+> application-driven 2PC surface used below (`TwoPhaseCommitTransactionManager`,
+> `TwoPhaseCommitTransaction`, `getTwoPhaseCommitTransactionManager()`,
+> `getUnknownTransactionId()`) is `@Deprecated` in favor of the Global Transaction API
+> (option 2 in `rules/scalardb-2pc-patterns.md`). Verify against the resolved jar (`javap`) or the
+> pinned OKF release notes; deliberate use requires a recorded deviation,
+> `@SuppressWarnings("deprecation")` with an in-code rationale, and a migration note.
 
 ## build.gradle
 

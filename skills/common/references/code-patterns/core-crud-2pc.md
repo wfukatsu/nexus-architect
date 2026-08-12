@@ -6,6 +6,14 @@ For applications that need ACID transactions across multiple databases or micros
 > release. Before emitting a `build.gradle`, resolve each pin per
 > `rules/dependency-versions.md` — the ScalarDB line, Java, and the logging/CLI libraries all
 > move independently of this document.
+>
+> **Deprecation check is mandatory before generating from this template.** On ScalarDB 3.19+ the
+> application-driven 2PC surface used below (`TwoPhaseCommitTransactionManager`,
+> `TwoPhaseCommitTransaction`, `getTwoPhaseCommitTransactionManager()`,
+> `getUnknownTransactionId()`) is `@Deprecated` in favor of the Global Transaction API
+> (option 2 in `rules/scalardb-2pc-patterns.md`). Verify against the resolved jar (`javap`) or the
+> pinned OKF release notes; deliberate use requires a recorded deviation,
+> `@SuppressWarnings("deprecation")` with an in-code rationale, and a migration note.
 
 ## build.gradle
 
@@ -327,6 +335,6 @@ networks:
 2. **All** participants must be prepared before committing
 3. If **any** prepare fails, **all** must rollback
 4. If **any** commit succeeds, the transaction is considered committed
-5. `validate()` is only needed for `SERIALIZABLE` isolation with `EXTRA_READ` strategy
+5. `validate()` requirements are version-dependent: on 3.19+ it is REQUIRED whenever isolation is `SERIALIZABLE` (the `serializable_strategy` key no longer exists); on older lines it was needed only for `SERIALIZABLE` + `EXTRA_READ`. When in doubt call it unconditionally — see rules/scalardb-2pc-patterns.md "Validate Is Version-Dependent"
 6. Use different transaction IDs on retry (never reuse)
 7. Group commit cannot be used with 2PC

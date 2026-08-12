@@ -45,6 +45,22 @@ The layering is directional and the direction is part of the specification: cont
 service -> domain -> repository. No reverse dependency, and no persistence or ScalarDB type appearing
 in a controller signature. `generate-contract-tests` turns this into executable ArchUnit rules.
 
+## Repository Exception Strategy (specify it — do not leave it to codegen)
+
+`repository-interfaces-spec.md` MUST state one exception-propagation strategy for the whole
+project, because "technology-independent interfaces" and "single-point retry classification"
+pull in opposite directions and every code generator otherwise invents its own bridge:
+
+- **Standard form**: domain repository interfaces throw no checked infrastructure exceptions;
+  infrastructure implementations wrap ScalarDB's checked exceptions in one project-wide
+  **unchecked wrapper** carrying the original as its cause; the application layer's retry
+  template unwraps the cause and performs the *only* conflict/condition/permanent classification
+  in the project (@rules/scalardb-exception-handling.md catch-order rules apply there, once).
+- A project may instead declare `throws TransactionException` on the interfaces — but that is a
+  recorded decision in the spec, not a per-service improvisation. Either way, `TxContext` (or an
+  equivalent wrapper) keeps transaction objects out of interface signatures, and conditional
+  mutations may return `boolean` so `UnsatisfiedConditionException` never escapes a repository.
+
 ## Exception Mapping
 
 `exception-mapping-spec.md` covers two mappings, not one:

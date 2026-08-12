@@ -109,10 +109,13 @@ idempotency-protected (§5):
 Both carry the ScalarDB transaction ID as the `transaction_id` extension member and log it
 server-side. Neither rolls the transaction back.
 
-Read the ID from **`getUnknownTransactionId()`**, the accessor this exception defines for exactly
-this purpose. The inherited `getTransactionId()` happens to return the same value on ScalarDB 3.19,
-so the wrong one compiles and passes a test — verify the accessor against the pinned release rather
-than reusing the generic one out of habit (@rules/okf-knowledge-bundle.md).
+Read the ID from the accessor that is **not deprecated on the pinned release** — on ScalarDB 3.19
+that is the inherited **`TransactionException#getTransactionId()`**: `getUnknownTransactionId()`
+is `@Deprecated` there (part of the 3.19 deprecation of the application-driven 2PC surface,
+@rules/scalardb-2pc-patterns.md) and returns the same value. On older releases the dedicated
+`getUnknownTransactionId()` is the documented accessor. Verify against the pinned release before
+generating the handler (@rules/okf-knowledge-bundle.md) — both compile and pass tests, so only the
+version check catches the wrong choice.
 
 This is the single most consequential row in this file. A generated `@RestControllerAdvice` that
 folds `UnknownTransactionStatusException` into a generic 500 handler, or that maps it to a
