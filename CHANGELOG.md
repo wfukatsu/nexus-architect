@@ -7,6 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
+## [0.27.0] - 2026-08-12
+
+Guardrails distilled from the first full-pipeline reference run (an EC-order system exercising
+CRUD / application-driven 2PC / Saga / TCC / GraphQL end to end on ScalarDB 3.19): every entry
+below encodes a defect class that run actually produced — four critical review findings, a set of
+per-service codegen improvisations, and three contract gaps — so the next project is stopped at
+design time instead of at review.
+
+### Added
+- **`tools/validate-cross-references.py` — mechanical cross-artifact lint**, wired into the
+  completion criteria of `design-api` and `design-scalardb`. Five checks: schema-doc table counts
+  vs the tables actually defined; hand-written operation totals vs the OpenAPI files; problem-type
+  slugs used in OpenAPI that miss the registry (and example status codes that contradict the
+  registry row); phantom bare section references ("§3.1" resolving to no heading in the same
+  file); and singular/plural namespace-name variants ("order" vs "orders"). Validated against the
+  reference project: 19 genuine leftovers caught, then clean, with a re-injection regression test.
+- **Saga and TCC design checklists in `design-scalardb`** (mandatory when a process uses them).
+  Sagas must specify durable start co-committed with the triggering transaction, an enumeration
+  index for non-terminal sagas, a leased recovery worker, the pivot, and EXECUTED-only idempotency
+  guards; TCC/expiring state must specify sweeper lease exclusivity, checkpoint catch-up, a clock
+  -skew grace window, and in-transaction expiry races. Each item was a blocker-or-major finding
+  the one time it was left implicit.
+- **Replay-authorization items in `design-api`'s Contract Verifiability checklist.** Every
+  operation with a client-supplied idempotency/replay key declares the replay-branch ownership
+  predicate (foreign key → 404) and the principal-scoped record table, cross-referenced to the
+  schema; every ScalarDB-writing service's OpenAPI declares `transaction-status-unknown`.
+- **Repository Exception Strategy section in `design-implementation`** — one project-wide
+  propagation strategy (unchecked wrapper + single-point retry classification) specified in the
+  design, ending per-generator improvisation.
+- **Mandatory deprecation check in `generate-scalardb-code`** — verify every committed ScalarDB
+  API against the resolved artifact (javap) or the pinned release notes; deliberate deprecated
+  use carries a recorded deviation, a scoped `@SuppressWarnings`, and a migration note.
+- **Step 5 "Revision Propagation Check" in `review-synthesizer`** — a finding resolved by
+  revising one document is verified by grepping all artifacts (OpenAPI YAML and `.graphqls`
+  included) for the retracted claim; residue downgrades the resolution.
+
+### Fixed
+- **`rules/scalardb-2pc-patterns.md` was stale for 3.19 and produced a wrong design once
+  (SDB-101).** "Validate Is Conditional" is now "Validate Is Version-Dependent": on 3.19+ the
+  `serializable_strategy` key no longer exists and `validate()` is required whenever isolation is
+  SERIALIZABLE; omission now demands a version-pinned OKF citation. The option-3 row also records
+  that the whole application-driven 2PC surface is `@Deprecated` on 3.19+ and what a deliberate
+  adoption must carry.
+- **`rules/api-error-standard.md` §3.1** no longer prescribes `getUnknownTransactionId()`
+  unconditionally — it is `@Deprecated` on 3.19, where the inherited `getTransactionId()` is the
+  correct accessor; the rule now keys the choice to the pinned release.
+- **`code-patterns/{core,cluster}-crud-2pc.md`** carry a mandatory deprecation-check warning, and
+  the core template's "validate() only for SERIALIZABLE + EXTRA_READ" rule is corrected to the
+  version-dependent form.
+
 ## [0.26.0] - 2026-08-11
 
 ### Added
