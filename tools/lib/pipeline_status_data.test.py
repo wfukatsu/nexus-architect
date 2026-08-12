@@ -593,10 +593,33 @@ def check_graphql_condition(root):
     for name in ("customer.graphqls", "resolver-contracts.md", "authorization-matrix.md",
                  "batch-loading-plan.md", "query-governance.md", "transport-design.md"):
         write(os.path.join(graphql_dir, name), "contract")
+    artifact = lambda name: os.path.relpath(os.path.join(graphql_dir, name), proj)
+    manifest = {"surfaces": [{
+        "surface_id": "customer", "schema": artifact("customer.graphqls"),
+        "resolver_contracts": artifact("resolver-contracts.md"),
+        "authorization_matrix": artifact("authorization-matrix.md"),
+        "batch_loading_plan": artifact("batch-loading-plan.md"),
+        "query_governance": artifact("query-governance.md"),
+        "transport_design": artifact("transport-design.md"),
+    }]}
+    write(os.path.join(graphql_dir, "graphql-design-manifest.json"), json.dumps(manifest))
     complete = P.derive_all(proj)["phases"]["design-graphql"]
-    check("all six owned GraphQL contracts complete detailed design",
-          complete["status"] == "completed" and complete["written"] == 6,
+    check("validated GraphQL design manifest completes detailed design",
+          complete["status"] == "completed" and complete["written"] == 1,
           complete)
+
+    second = dict(surface, surface_id="orders")
+    write(decision_path, json.dumps({"surfaces": [surface, second]}))
+    partial_multi = P.derive_all(proj)
+    partial_phase = partial_multi["phases"]["design-graphql"]
+    check("one of two GraphQL services cannot complete detailed design",
+          partial_phase["status"] == "failed"
+          and partial_phase["excluded"] == "condition-error",
+          partial_phase)
+    check("multi-service manifest mismatch is visible",
+          any("surface set mismatch" in error for error in partial_multi["errors"]),
+          partial_multi["errors"])
+    write(decision_path, json.dumps({"surfaces": [surface]}))
 
     codegen = os.path.join(root, "graphql-codegen-ownership")
     # The generator is conditioned on the same canonical decision as its design phase,

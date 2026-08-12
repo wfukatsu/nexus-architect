@@ -65,7 +65,11 @@ Every ScalarDB-backed surface records the following machine-readable fields in
 | `rationale` | Evidence for the selected boundary and rejected alternative |
 
 `scalardb-native` with `internal` or `external` exposure requires `approved:<decision-id>`, all
-five control-evidence references, and a matching pinned product/release/edition. Missing evidence
+five control-evidence references, and a matching pinned product/release/edition. The decision ID
+must resolve exactly once in `reports/03_design/api-style-approvals.json`; that entry must contain
+non-empty `approved_by` and `approved_at` values. The release must match the verified ScalarDB entry
+in `work/version-decisions.json`, the release line must exist in the pinned OKF bundle, and the
+edition must occur in `reports/03_design/scalardb-edition-selection.md`. Missing evidence
 is an open question and blocks design completion. External native exposure is a critical security
 review finding unless the documented exception demonstrates every control; prose approval without
 these structured fields is not approval.
@@ -94,8 +98,13 @@ The canonical JSON uses these shapes:
 - `consumers`, `operations`, `rejected_alternatives`, `requirement_ids`: non-empty arrays of
   non-empty strings;
 - all other required base decision fields: non-empty strings;
-- `control_evidence`: JSON object; for exposed native GraphQL, each required control is a non-empty
-  reference string.
+- `control_evidence`: JSON object; for exposed native GraphQL, each required control is an object
+  shaped as `{ "path": "project-relative/file", "anchor": "optional-stable-id" }`. The path must
+  resolve to a file inside the project and a supplied anchor must occur in that file.
+
+The validator rejects documents larger than 1 MB, more than 100 surfaces, collections larger than
+500 entries, nesting deeper than 12 levels, and rendered reports larger than 2 MB. Rendering is an
+atomic replacement: invalid or unrenderable input must leave an existing report unchanged.
 
 Do not coerce a scalar into an array or serialize a structured field into prose merely to satisfy
 the validator.

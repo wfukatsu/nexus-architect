@@ -219,8 +219,11 @@ def main():
         surface_id="admin-api", graphql_provider="scalardb-native",
         native_exposure="internal", approval="approved:ADR-042",
         control_evidence={
-            "authentication": "SEC-1", "authorization": "SEC-2", "audit": "SEC-3",
-            "query_limits": "SEC-4", "network_isolation": "SEC-5"},
+            "authentication": {"path": "reports/security.md", "anchor": "SEC-1"},
+            "authorization": {"path": "reports/security.md", "anchor": "SEC-2"},
+            "audit": {"path": "reports/security.md", "anchor": "SEC-3"},
+            "query_limits": {"path": "reports/security.md", "anchor": "SEC-4"},
+            "network_isolation": {"path": "reports/security.md", "anchor": "SEC-5"}},
         rationale="approved internal administration",
     )]}
     check("approved internal native decision fixture validates",
@@ -292,7 +295,7 @@ def main():
         json_path = os.path.join(report_dir, "api-style-decisions.json")
         md_path = os.path.join(report_dir, "api-style-decisions.md")
         with open(json_path, "w", encoding="utf-8") as handle:
-            json.dump(approved_native, handle)
+            json.dump(spring_surface, handle)
         validator = os.path.join(ROOT, "tools", "validate-api-style-decisions.py")
         result = subprocess.run(
             [sys.executable, validator, json_path, "--render-markdown", md_path,
@@ -323,6 +326,66 @@ def main():
               ja_result.returncode == 0 and ja_frontmatter.returncode == 0
               and ja_mermaid.returncode == 0,
               ja_result.stderr or ja_frontmatter.stderr or ja_mermaid.stderr)
+        security_path = os.path.join(external_project, "reports", "security.md")
+        with open(security_path, "w", encoding="utf-8") as handle:
+            handle.write("SEC-1\nSEC-2\nSEC-3\nSEC-4\nSEC-5\n")
+        with open(os.path.join(report_dir, "api-style-approvals.json"), "w",
+                  encoding="utf-8") as handle:
+            json.dump({"approvals": [{"decision_id": "ADR-042", "approved_by": "user",
+                                      "approved_at": "2026-08-12T00:00:00Z"}]}, handle)
+        with open(os.path.join(report_dir, "scalardb-edition-selection.md"), "w",
+                  encoding="utf-8") as handle:
+            handle.write("Enterprise Premium")
+        work_dir = os.path.join(external_project, "work")
+        os.makedirs(work_dir)
+        with open(os.path.join(work_dir, "version-decisions.json"), "w",
+                  encoding="utf-8") as handle:
+            json.dump({"entries": [{"name": "com.scalar-labs:scalardb",
+                                    "chosen": "3.19.0", "verified": True}]}, handle)
+        resolved_native = {"surfaces": [decision_surface(
+            surface_id="native", graphql_provider="scalardb-native",
+            native_exposure="external", approval="approved:ADR-042",
+            pinned_release="3.19", contracted_edition="Enterprise Premium",
+            control_evidence={control: {"path": "reports/security.md",
+                                        "anchor": "SEC-%d" % (index + 1)}
+                              for index, control in enumerate(
+                                  ("authentication", "authorization", "audit",
+                                   "query_limits", "network_isolation"))})]}
+        with open(json_path, "w", encoding="utf-8") as handle:
+            json.dump(resolved_native, handle)
+        resolved = subprocess.run([sys.executable, validator, json_path], cwd=external_project,
+                                  capture_output=True, text=True)
+        check("native approval, version, edition and controls resolve",
+              resolved.returncode == 0, resolved.stderr or resolved.stdout)
+        fabricated = resolved_native.copy()
+        fabricated = json.loads(json.dumps(fabricated))
+        fabricated["surfaces"][0]["approval"] = "approved:DOES-NOT-EXIST"
+        fabricated["surfaces"][0]["pinned_release"] = "99.99"
+        with open(json_path, "w", encoding="utf-8") as handle:
+            json.dump(fabricated, handle)
+        rejected = subprocess.run([sys.executable, validator, json_path], cwd=external_project,
+                                  capture_output=True, text=True)
+        check("fabricated native evidence is rejected",
+              rejected.returncode == 1 and "does not resolve" in rejected.stderr,
+              rejected.stderr or rejected.stdout)
+
+        with open(md_path, "w", encoding="utf-8") as handle:
+            handle.write("ORIGINAL")
+        deeply_nested = decision_surface()
+        nested = "leaf"
+        for _ in range(20):
+            nested = {"x": nested}
+        deeply_nested["control_evidence"] = nested
+        with open(json_path, "w", encoding="utf-8") as handle:
+            json.dump({"surfaces": [deeply_nested]}, handle)
+        bounded = subprocess.run(
+            [sys.executable, validator, json_path, "--render-markdown", md_path],
+            cwd=external_project, capture_output=True, text=True)
+        with open(md_path, encoding="utf-8") as handle:
+            preserved = handle.read()
+        check("bounded failure preserves the previous report",
+              bounded.returncode == 1 and preserved == "ORIGINAL",
+              bounded.stderr or bounded.stdout)
         invalid_path = os.path.join(report_dir, "invalid.json")
         with open(invalid_path, "w", encoding="utf-8") as handle:
             json.dump(missing_flag, handle)

@@ -48,7 +48,8 @@ import sys
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from api_style_decisions import validate_document  # noqa: E402
+from api_style_decisions import MAX_DOCUMENT_BYTES, validate_document  # noqa: E402
+from graphql_design_manifest import load_and_validate  # noqa: E402
 import token_cost_data as D  # noqa: E402  (display helpers + load_json/parse_ts)
 
 PHASE_STATUSES = ["pending", "in_progress", "completed", "failed", "skipped"]
@@ -833,12 +834,22 @@ def canonical_api_style_options(project_dir, options):
     if not os.path.isfile(path):
         return effective, [], []
     try:
+        if os.path.getsize(path) > MAX_DOCUMENT_BYTES:
+            return _invalid_api_style(
+                effective,
+                ["invalid canonical API-style decision: input exceeds %d bytes" %
+                 MAX_DOCUMENT_BYTES])
+    except OSError as exc:
+        return _invalid_api_style(effective, ["invalid canonical API-style decision: %s" % exc])
+    try:
         with open(path, encoding="utf-8") as handle:
             document = json.load(handle)
     except (OSError, ValueError) as exc:
         return _invalid_api_style(effective, ["invalid canonical API-style decision: %s" % exc])
 
-    errors = validate_document(document)
+    repository_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    okf_root = os.path.join(repository_root, "knowledge", "okf-scalardb-scalardl", "okf")
+    errors = validate_document(document, project_dir=project_dir, okf_root=okf_root)
     if errors:
         return _invalid_api_style(effective, ["invalid canonical API-style decision: %s" % error
                                               for error in errors])
@@ -855,6 +866,11 @@ def canonical_api_style_options(project_dir, options):
     # `graphql` is the one style that carries no REST surface; every other value the
     # validator admits — rest, hybrid, grpc, asyncapi — is served by the REST/API generator.
     effective["api_style_rest"] = any(style != "graphql" for style in styles)
+    if selected:
+        manifest_errors = load_and_validate(project_dir, document)
+        if manifest_errors:
+            effective["_invalid_conditions"] = ["api_style_graphql"]
+            return effective, manifest_errors, warnings
     return effective, [], warnings
 
 

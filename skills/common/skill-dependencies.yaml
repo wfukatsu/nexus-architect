@@ -145,12 +145,7 @@ phases:
     depends_on: [design-api]
     conditions: [api_style_graphql]
     outputs:
-      - reports/03_design/api-specifications/graphql/{service}.graphqls
-      - reports/03_design/api-specifications/graphql/resolver-contracts.md
-      - reports/03_design/api-specifications/graphql/authorization-matrix.md
-      - reports/03_design/api-specifications/graphql/batch-loading-plan.md
-      - reports/03_design/api-specifications/graphql/query-governance.md
-      - reports/03_design/api-specifications/graphql/transport-design.md
+      - reports/03_design/api-specifications/graphql/graphql-design-manifest.json
     model: opus
 
   # Phase: Review (parallel)

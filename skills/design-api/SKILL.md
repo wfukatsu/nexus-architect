@@ -39,7 +39,11 @@ contradict it, and changing behaviour means changing the specification first.
   with the plugin validator. For every
   ScalarDB-backed surface include `graphql_provider`, `native_exposure`, `approval`,
   `pinned_product`, `pinned_release`, `contracted_edition`, `control_evidence`, and `rationale` as
-  defined by @rules/api-style-selection.md. Missing native-interface evidence blocks completion.
+  defined by @rules/api-style-selection.md. For exposed native GraphQL, create the separate human
+  approval registry at `reports/03_design/api-style-approvals.json`, use project-relative control
+  evidence references, and resolve release and edition against the version decision, pinned OKF
+  line, and edition-selection report. Missing or fabricated native-interface evidence blocks
+  completion, including when progress is recomputed without rerunning this skill.
 - The canonical JSON directly controls whether `design-graphql` runs. Do not copy the selection into
   `options.api_style_graphql`; a legacy value may exist, but orchestration ignores it once the
   canonical artifact exists.

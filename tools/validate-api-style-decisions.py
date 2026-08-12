@@ -5,9 +5,10 @@ import argparse
 import json
 import os
 import sys
+import tempfile
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
-from api_style_decisions import render_markdown, validate_document  # noqa: E402
+from api_style_decisions import MAX_DOCUMENT_BYTES, render_markdown, validate_document  # noqa: E402
 
 
 def parse_args(argv):
@@ -22,24 +23,47 @@ def parse_args(argv):
 def main(argv):
     args = parse_args(argv)
     try:
+        if os.path.getsize(args.path) > MAX_DOCUMENT_BYTES:
+            print("api-style-decisions: input exceeds %d bytes" % MAX_DOCUMENT_BYTES,
+                  file=sys.stderr)
+            return 1
         with open(args.path, encoding="utf-8") as handle:
             document = json.load(handle)
     except (OSError, json.JSONDecodeError) as exc:
         print("api-style-decisions: %s" % exc, file=sys.stderr)
         return 2
-    errors = validate_document(document)
+    project_dir = os.path.abspath(os.path.join(os.path.dirname(args.path), "..", ".."))
+    plugin_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    okf_root = os.path.join(plugin_root, "knowledge", "okf-scalardb-scalardl", "okf")
+    errors = validate_document(document, project_dir=project_dir, okf_root=okf_root)
     for error in errors:
         print(error, file=sys.stderr)
     if errors:
         print("api-style-decisions: %d error(s)" % len(errors), file=sys.stderr)
         return 1
     if args.render_markdown:
+        temp_path = None
         try:
-            with open(args.render_markdown, "w", encoding="utf-8") as handle:
-                handle.write(render_markdown(document, args.lang))
-        except OSError as exc:
+            rendered = render_markdown(document, args.lang)
+            destination = os.path.abspath(args.render_markdown)
+            os.makedirs(os.path.dirname(destination), exist_ok=True)
+            fd, temp_path = tempfile.mkstemp(prefix=".api-style-decisions-", suffix=".tmp",
+                                             dir=os.path.dirname(destination), text=True)
+            with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                handle.write(rendered)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temp_path, destination)
+            temp_path = None
+        except (OSError, ValueError, RecursionError) as exc:
             print("api-style-decisions: %s" % exc, file=sys.stderr)
             return 2
+        finally:
+            if temp_path:
+                try:
+                    os.unlink(temp_path)
+                except OSError:
+                    pass
     print("api-style-decisions: valid")
     return 0
 

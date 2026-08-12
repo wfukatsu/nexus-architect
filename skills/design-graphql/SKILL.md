@@ -146,6 +146,28 @@ Write reports in `options.output_language`; keep SDL identifiers in English.
 | `reports/03_design/api-specifications/graphql/batch-loading-plan.md` | Projection/DataLoader plan and tenant-safe cache policy |
 | `reports/03_design/api-specifications/graphql/query-governance.md` | Numeric resource limits and production tooling policy |
 | `reports/03_design/api-specifications/graphql/transport-design.md` | MVC/WebFlux and HTTP/WebSocket/RSocket decisions |
+| `reports/03_design/api-specifications/graphql/graphql-design-manifest.json` | Completion evidence listing every canonical GraphQL/hybrid `surface_id`, its unique SDL, and the five required design artifact paths |
+
+Write the manifest last. Its `surfaces` set must exactly equal the canonical GraphQL/hybrid surface
+set; every referenced file must exist and be non-empty, schema paths must be unique, and no orphan
+`.graphqls`/`.gqls` file may exist. A partial service run must not write or preserve a valid-looking
+manifest.
+
+Use one entry per surface with this exact path-bearing shape (paths are project-relative):
+
+```json
+{
+  "surfaces": [{
+    "surface_id": "customer-api",
+    "schema": "reports/03_design/api-specifications/graphql/customer.graphqls",
+    "resolver_contracts": "reports/03_design/api-specifications/graphql/resolver-contracts.md",
+    "authorization_matrix": "reports/03_design/api-specifications/graphql/authorization-matrix.md",
+    "batch_loading_plan": "reports/03_design/api-specifications/graphql/batch-loading-plan.md",
+    "query_governance": "reports/03_design/api-specifications/graphql/query-governance.md",
+    "transport_design": "reports/03_design/api-specifications/graphql/transport-design.md"
+  }]
+}
+```
 
 Validate every Markdown output with `hooks/validate-frontmatter.sh` and
 `hooks/validate-mermaid.sh` before marking the phase complete.

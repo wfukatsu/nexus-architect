@@ -3,7 +3,14 @@
 import hashlib
 import html
 import json
+import os
 import re
+
+MAX_DOCUMENT_BYTES = 1_000_000
+MAX_SURFACES = 100
+MAX_COLLECTION_ITEMS = 500
+MAX_NESTING = 12
+MAX_RENDERED_BYTES = 2_000_000
 
 STRING_FIELDS = (
     "access_surface", "application_framework", "selected_style", "client_variability",
@@ -30,15 +37,41 @@ DETAIL_FIELDS = (
 )
 
 
-def validate_document(document):
+def validate_limits(document):
+    errors = []
+    stack = [(document, 0, "document")]
+    while stack:
+        value, depth, path = stack.pop()
+        if depth > MAX_NESTING:
+            errors.append("%s: nesting exceeds %d" % (path, MAX_NESTING))
+            continue
+        if isinstance(value, dict):
+            if len(value) > MAX_COLLECTION_ITEMS:
+                errors.append("%s: object exceeds %d entries" % (path, MAX_COLLECTION_ITEMS))
+            stack.extend((item, depth + 1, "%s.%s" % (path, key))
+                         for key, item in value.items())
+        elif isinstance(value, list):
+            if len(value) > MAX_COLLECTION_ITEMS:
+                errors.append("%s: array exceeds %d items" % (path, MAX_COLLECTION_ITEMS))
+            stack.extend((item, depth + 1, "%s[%d]" % (path, index))
+                         for index, item in enumerate(value))
+    return errors
+
+
+def validate_document(document, project_dir=None, okf_root=None):
     """Return stable error strings for an api-style-decisions JSON document."""
     if not isinstance(document, dict):
         return ["document: must be an object with a surfaces array"]
+    limit_errors = validate_limits(document)
+    if limit_errors:
+        return limit_errors
     surfaces = document.get("surfaces")
     if not isinstance(surfaces, list):
         return ["document: surfaces must be an array"]
     if not surfaces:
         return ["document: surfaces must not be empty"]
+    if len(surfaces) > MAX_SURFACES:
+        return ["document: surfaces exceeds %d" % MAX_SURFACES]
 
     errors = []
     seen = set()
@@ -119,9 +152,93 @@ def validate_document(document):
             if isinstance(evidence, dict):
                 for control in CONTROL_FIELDS:
                     value = evidence.get(control)
-                    if not isinstance(value, str) or not value.strip():
-                        errors.append("%s.control_evidence.%s: reference required" %
+                    if not isinstance(value, dict) or not isinstance(value.get("path"), str) \
+                            or not value["path"].strip():
+                        errors.append("%s.control_evidence.%s: {path, anchor?} reference required" %
                                       (surface_id, control))
+            if project_dir:
+                errors.extend(_validate_native_references(surface, surface_id, project_dir,
+                                                           okf_root))
+    return errors
+
+
+def _read_json(path):
+    try:
+        with open(path, encoding="utf-8") as handle:
+            return json.load(handle)
+    except (OSError, ValueError):
+        return None
+
+
+def _validate_native_references(surface, surface_id, project_dir, okf_root):
+    errors = []
+    approval_id = surface.get("approval", "").removeprefix("approved:")
+    approvals = _read_json(os.path.join(project_dir, "reports", "03_design",
+                                        "api-style-approvals.json")) or {}
+    approval_entries = approvals.get("approvals", []) if isinstance(approvals, dict) else []
+    matches = [entry for entry in approval_entries
+               if isinstance(entry, dict) and entry.get("decision_id") == approval_id]
+    owner = matches[0].get("approved_by") if len(matches) == 1 else None
+    approved_at = matches[0].get("approved_at") if len(matches) == 1 else None
+    if len(matches) != 1 or not isinstance(owner, str) or not owner.strip() or not (
+            isinstance(approved_at, str) and re.fullmatch(
+                r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})",
+                approved_at)):
+        errors.append("%s.approval: decision does not resolve to one recorded human approval" %
+                      surface_id)
+
+    versions = _read_json(os.path.join(project_dir, "work", "version-decisions.json")) or {}
+    version_entries = versions.get("entries", []) if isinstance(versions, dict) else []
+    version_matches = [entry for entry in version_entries
+                       if isinstance(entry, dict) and entry.get("name") in
+                       ("scalardb", "com.scalar-labs:scalardb") and entry.get("verified") is True]
+    chosen = str(version_matches[0].get("chosen", "")) if len(version_matches) == 1 else ""
+    pinned = str(surface.get("pinned_release", ""))
+    chosen_line = ".".join(chosen.split(".")[:2])
+    pinned_line = ".".join(pinned.split(".")[:2])
+    if not chosen or chosen_line != pinned_line:
+        errors.append("%s.pinned_release: does not match verified version decision" % surface_id)
+    if surface.get("pinned_product") != "ScalarDB":
+        errors.append("%s.pinned_product: must resolve to ScalarDB" % surface_id)
+    release_line = pinned_line
+    if okf_root:
+        graphql_index = os.path.join(okf_root, "products", "scalardb", release_line,
+                                     "scalardb-graphql", "index.md")
+        if not os.path.isfile(graphql_index):
+            errors.append("%s.pinned_release: ScalarDB GraphQL is not resolved in pinned OKF line" %
+                          surface_id)
+
+    edition_path = os.path.join(project_dir, "reports", "03_design",
+                                "scalardb-edition-selection.md")
+    try:
+        with open(edition_path, encoding="utf-8") as handle:
+            edition_text = handle.read()
+    except OSError:
+        edition_text = ""
+    if surface.get("contracted_edition") not in edition_text:
+        errors.append("%s.contracted_edition: does not resolve to edition selection" % surface_id)
+
+    for control in CONTROL_FIELDS:
+        ref = (surface.get("control_evidence") or {}).get(control)
+        if not isinstance(ref, dict):
+            continue
+        rel = ref.get("path", "")
+        target = os.path.realpath(os.path.join(project_dir, rel))
+        root = os.path.realpath(project_dir) + os.sep
+        if not target.startswith(root) or not os.path.isfile(target):
+            errors.append("%s.control_evidence.%s: path does not resolve inside project" %
+                          (surface_id, control))
+            continue
+        anchor = ref.get("anchor")
+        if anchor:
+            try:
+                with open(target, encoding="utf-8") as handle:
+                    content = handle.read()
+            except OSError:
+                content = ""
+            if str(anchor) not in content:
+                errors.append("%s.control_evidence.%s: anchor does not resolve" %
+                              (surface_id, control))
     return errors
 
 
@@ -190,4 +307,7 @@ def render_markdown(document, language="en"):
         for field in DETAIL_FIELDS:
             lines.append("| `%s` | %s |" % (field, _cell(surface.get(field))))
     lines.append("")
-    return "\n".join(lines)
+    rendered = "\n".join(lines)
+    if len(rendered.encode("utf-8")) > MAX_RENDERED_BYTES:
+        raise ValueError("rendered report exceeds %d bytes" % MAX_RENDERED_BYTES)
+    return rendered
