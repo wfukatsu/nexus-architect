@@ -7,6 +7,50 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 3 つのプラグイン（`product`・`architect`・`scalardb`）は同一の番号で一括リリースされます。
 
+## [0.27.0] - 2026-08-12
+
+初のフルパイプライン参照実行（EC 注文システムで CRUD / アプリ駆動 2PC / Saga / TCC / GraphQL を
+ScalarDB 3.19 上で一気通貫）から抽出したガードレールです。以下の各項目は、その実行で実際に発生した
+欠陥クラス — critical レビュー指摘 4 件・サービスごとのコード生成の場当たり対応・契約ギャップ 3 件 —
+を符号化したもので、次のプロジェクトではレビュー段階ではなく**設計段階で**止まります。
+
+### 追加
+- **`tools/validate-cross-references.py` — 成果物横断の機械リント**を新設し、`design-api` と
+  `design-scalardb` の完了条件に組み込みました。検査は 5 種: スキーマ文書のテーブル数宣言 vs 実際の
+  定義数 / 手書きの操作総数 vs OpenAPI 実測 / OpenAPI で使用されているのにレジストリにない
+  problem-type slug（および example の status 不整合）/ 同一ファイル内に見出しが存在しない裸の
+  §参照 / namespace 名の単複ゆれ（"order" vs "orders"）。参照プロジェクトで実証済み — 実残存 19 件を
+  検出後クリーン、バグ再注入の回帰テストも実施。
+- **`design-scalardb` に Saga / TCC 設計チェックリスト**（該当プロセスがある場合は必須）。Saga は
+  「起点トランザクションと同一 Tx での永続的起動 / 非終了 Saga の列挙インデックス / リース付き回復
+  ワーカー / ピボット定義 / EXECUTED のみ抑止するべき等ガード」の 5 点、TCC・期限つき状態は
+  「スイーパーのリース排他 / チェックポイント追いつき / クロックスキュー猶予 / Tx 内期限競合」の
+  4 点。いずれも暗黙のままにした一度目に blocker〜major 指摘になった項目です。
+- **`design-api` の Contract Verifiability チェックリストにリプレイ認可項目を追加。** クライアント
+  指定のべき等/リプレイキーを持つ全操作は、リプレイ分岐の所有権述語（他者キー → 404）と
+  プリンシパルスコープの記録テーブル（スキーマ相互参照付き）を宣言し、ScalarDB へ書き込む全サービスの
+  OpenAPI は `transaction-status-unknown` を宣言します。
+- **`design-implementation` に「Repository Exception Strategy」節を新設** — 非チェックラッパ +
+  リトライテンプレートでの一点分類というプロジェクト全体の伝播戦略を設計側で規定し、コード生成器ごとの
+  個別発明を終わらせます。
+- **`generate-scalardb-code` に必須の deprecation チェック** — 設計がコミットする全 ScalarDB API を
+  解決済みアーティファクト（javap）またはピン留めリリースノートで照合。意図的な非推奨 API 使用には
+  逸脱記録・最小スコープの `@SuppressWarnings`・移行注記を義務化。
+- **`review-synthesizer` に Step 5「改訂伝播チェック」** — 文書改訂で解消された指摘は、撤回された
+  主張を全成果物（OpenAPI YAML・`.graphqls` 含む）で grep して残骸ゼロを確認してはじめて解消扱い。
+
+### 修正
+- **`rules/scalardb-2pc-patterns.md` が 3.19 に対して陳腐化しており、実際に誤設計を一度生みました
+  （SDB-101）。**「Validate Is Conditional」を「Validate Is Version-Dependent」に書き換え: 3.19+ では
+  `serializable_strategy` キーが存在せず、SERIALIZABLE なら `validate()` が必須。省略にはバージョン
+  ピン付き OKF 引用を要求します。方式 3 の行には、3.19+ でアプリ駆動 2PC API 一式が `@Deprecated` で
+  ある事実と、意図的採用時に必要な記録も明記しました。
+- **`rules/api-error-standard.md` §3.1** が `getUnknownTransactionId()` を無条件に指示しなくなりました
+  — 3.19 では @Deprecated であり、継承された `getTransactionId()` が正。ピン留めリリースに応じて
+  選択する規則に変更。
+- **`code-patterns/{core,cluster}-crud-2pc.md`** に deprecation チェック必須の警告を追加し、core
+  テンプレートの「validate() は SERIALIZABLE + EXTRA_READ のみ」をバージョン依存の記述に修正。
+
 ## [0.26.0] - 2026-08-11
 
 ### 追加
