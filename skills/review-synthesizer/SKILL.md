@@ -59,6 +59,22 @@ Determined based on thresholds in `${CLAUDE_PLUGIN_ROOT}/skills/review-registry.
 
 Headings: Verdict -> Score Summary -> P0 Blockers -> P1 Must Fix -> P2 Should Fix -> P3 Consider
 
+## Step 5: Revision Propagation Check
+
+When a finding is resolved by revising a design document, the retracted claim tends to survive in
+*other* artifacts — most dangerously in OpenAPI operation descriptions, which downstream code
+generators read as instructions (this shipped once: a retracted "validate() may be skipped" claim
+survived in an OpenAPI description after the transaction design was corrected).
+
+For every finding marked resolved-by-revision:
+
+1. Identify the retracted claim's key phrases (in both languages if the project mixes them).
+2. Grep **all** of `reports/**` — including `api-specifications/**/*.yaml` and `.graphqls`, not
+   only Markdown — for residual occurrences.
+3. Any residue is recorded as a new finding attached to the original ID, and the resolution is
+   downgraded until the residue is gone. A resolution verified only in the document that was
+   edited is not verified.
+
 ## Variable Input Handling
 
 Operates with any combination of 2-6 perspectives.

@@ -91,6 +91,18 @@ checklist to apply before writing each specification file:
 - [ ] At least one success example and one error example per operation
 - [ ] `security` declared per operation, with the role/scope and ownership predicate recorded
 - [ ] `Idempotency-Key` parameter declared where §5 of the error standard requires it
+- [ ] **Every operation with a client-supplied idempotency/replay key** (an `Idempotency-Key`
+      header OR a client-generated resource ID whose re-send replays, e.g. a TCC reservation ID)
+      declares (a) the **replay-branch authorization**: the ownership predicate evaluated on the
+      replay path itself, and the response for a foreign key (404, existence concealment), and
+      (b) the **storage table** for the idempotency record, cross-referenced to the schema design
+      — a record scoped to the principal, committed in the same transaction as the business
+      write. A replay branch with no declared authorization is the §5 BOLA bypass and blocks
+      completion (shipped once as ASEC-101/ASEC-102)
+- [ ] **`transaction-status-unknown` declared on every service that writes through ScalarDB** —
+      each such service's OpenAPI carries the 503 (idempotency-protected) and/or 500
+      (unprotected, with the named reconciliation operation) response per
+      @rules/api-error-standard.md §3.1. A correct implementation must not exceed its contract
 
 These are not style preferences: each one is what makes a specific downstream check possible.
 `generate-api-code` generates DTO names from schema names and Bean Validation from schema
@@ -142,9 +154,13 @@ python3 "${CLAUDE_PLUGIN_ROOT}/tools/validate-api-style-decisions.py" \
   reports/03_design/api-style-decisions.json \
   --render-markdown reports/03_design/api-style-decisions.md \
   --lang ja
+python3 "${CLAUDE_PLUGIN_ROOT}/tools/validate-cross-references.py" .
 ```
 
-A validation or render error blocks the phase. Then run the required Markdown validation hooks on
+A validation or render error blocks the phase — cross-reference findings (unregistered
+problem-type slugs, hand-written operation totals disagreeing with the OpenAPI files, phantom
+section references, namespace-name variants) block it too.
+Then run the required Markdown validation hooks on
 the generated report.
 
 ## Acceptance Criteria

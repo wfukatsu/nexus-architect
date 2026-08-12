@@ -29,6 +29,36 @@ Design a data architecture leveraging ScalarDB:
 - Select storage backend based on requirements (JDBC/Cassandra/DynamoDB, etc.)
 - Do not use DB-specific features on ScalarDB-managed tables
 
+### Saga design checklist (mandatory when any process uses a saga)
+
+Every saga in `scalardb-transaction.md` MUST specify all five of the following — each was a
+blocker-or-major finding the first time it was left implicit:
+
+1. **Durable start**: the saga state row is committed **in the same transaction** as the business
+   write that triggers it (or via an outbox). An in-process async handoff after commit loses the
+   saga on a crash.
+2. **Enumeration**: an index table (or equivalent) from which non-terminal sagas
+   (RUNNING/COMPENSATING/ESCALATED) can be listed without a cross-partition scan.
+3. **Recovery ownership**: a recovery worker with a lease (owner_id/lease_until CAS takeover
+   semantics) — a dead orchestrator cannot escalate itself.
+4. **Pivot definition**: which step is the pivot, what compensates before/at it, and what rolls
+   forward after it.
+5. **Idempotency guard semantics**: the guard suppresses re-execution of EXECUTED steps only —
+   FAILED steps must remain retryable (a bare conditional-insert-per-step blocks legitimate
+   transient retries).
+
+### TCC / expiring-state checklist (mandatory when any process uses TCC or timed reservations)
+
+1. **Sweeper exclusivity**: the expiry sweeper acquires a lease (CAS on a checkpoint row) so
+   multiple instances cannot double-run.
+2. **Catch-up**: the sweeper resumes from a persisted checkpoint, not from "now" — a scheduler
+   outage must not permanently strand expired state.
+3. **Clock skew**: expiry and lease comparisons declare an explicit grace window and the NTP
+   assumption.
+4. **In-transaction expiry races**: state consumed inside another transaction (e.g. a reservation
+   consumed by a 2PC) re-checks expiry in-tx and documents how the OCC conflict with the sweeper
+   resolves.
+
 Detailed patterns: @rules/scalardb-coding-patterns.md
 Cross-service transactions: @rules/scalardb-2pc-patterns.md
 Saga / TCC: @rules/scalardb-saga-patterns.md
@@ -56,6 +86,13 @@ Edition comparison and version support: @rules/scalardb-edition-profiles.md
 | `reports/03_design/scalardb-migration.md` | Data migration plan |
 
 Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+
+Before marking the phase complete, run the cross-reference lint and fix its findings — it catches
+table-count drift and namespace-name variants at the source:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/tools/validate-cross-references.py" .
+```
 
 ## Related Skills
 
