@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
+## [0.27.1] - 2026-08-12
+
+### Fixed
+- **GraphQL design completion now covers every selected surface.** A validated design manifest is
+  the completion signal and must exactly match all canonical GraphQL/hybrid surfaces, reference a
+  unique non-empty SDL and required design artifacts for each surface, and contain no orphan schema.
+  Designing one service can no longer mark a multi-service GraphQL phase complete.
+- **ScalarDB native GraphQL exceptions now require resolvable evidence.** Human approval must resolve
+  to a timestamped approval record; product, release, and edition must match the verified project
+  decision and pinned OKF release line; and authentication, authorization, audit, query-limit, and
+  network-isolation evidence must resolve to project-contained files and optional anchors. Pipeline
+  status recomputation applies the same checks, so fabricated identifiers cannot bypass design.
+- **API-style report rendering is bounded and atomic.** Input bytes, nesting, surface count,
+  collection size, and output bytes have explicit limits. Rendering completes in a sibling temporary
+  file before atomic replacement, preserving the previous valid report on validation, rendering, or
+  write failure.
+
 ## [0.27.0] - 2026-08-12
 
 Guardrails distilled from the first full-pipeline reference run (an EC-order system exercising
