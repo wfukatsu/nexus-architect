@@ -5,7 +5,8 @@ description: |
   pages), generate TypeScript React components styled by the design tokens (CSS Modules + CSS
   variables), wire the story flow with react-router, and register every component in Storybook with a
   story per variant/state. Emits a self-contained, installable scaffold under generated/frontend/.
-  /product:generate-frontend [--design-system=<name>] [--out=<path>] [--auto] [--lang=ja|en].
+  /product:generate-frontend [--design-system=<name>] [--out=<path>]
+  [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--auto] [--lang=ja|en] to invoke.
 model: sonnet
 user_invocable: true
 ---
