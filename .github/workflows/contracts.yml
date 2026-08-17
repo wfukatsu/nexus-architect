@@ -1,0 +1,43 @@
+name: contracts
+
+# The repository's own gate doctrine (rules/ai-code-quality-gate.md) is that the CI half is the
+# enforced one — a contract that only runs when someone remembers is not enforced at all. Every
+# suite here is self-contained: no network, no services, no external tools beyond git, python3
+# and bash, so this needs neither caching nor a matrix.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        # The knowledge bundle is a submodule the suites do not read; skip it for speed.
+        with:
+          submodules: false
+
+      - name: Show versions
+        run: |
+          bash --version | head -1
+          python3 --version
+          git --version
+
+      # Discovery lives in the runner, not here: a new *.test.py / *.test.sh is picked up
+      # automatically, so a suite can never be added and silently left out of CI.
+      - name: Run every contract suite
+        run: bash tools/run-tests.sh -v
+
+      # The hooks validate files written under reports/ during a run. Their own CLI mode is what
+      # the suites above exercise indirectly; running them here on a known-good file catches a
+      # hook that has been broken outright.
+      - name: Smoke-test the output validators
+        run: |
+          bash hooks/validate-frontmatter.sh CLAUDE.md
+          bash hooks/validate-mermaid.sh CLAUDE.md
