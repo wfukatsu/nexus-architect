@@ -213,7 +213,7 @@ path by their router and are not slash commands.
 ```text
 # Orchestration & setup
 /architect:start [target_path]
-/architect:pipeline [target_path] [--resume-from=<phase>] [--rerun-from=<phase>] [--skip-<phase>] [--no-scalardb] [--lang=en|ja]
+/architect:pipeline [target_path] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]
 /architect:init-output [project_name] [--reset]
 /product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--lang=ja|en]
 /product:init-output [project_name] [--reset]

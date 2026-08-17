@@ -127,7 +127,7 @@
 | `/architect:estimate-cost` | sonnet | インフラ、ライセンス、運用コスト |
 | `/architect:estimate-token-cost` | sonnet | エージェント実行のトークン使用量と USD コスト（事前見積り、実績で校正） |
 | `/architect:report-token-cost` | haiku | 記録済み実績コストのターミナルレポート（既定は対話型2ペインダッシュボード/10秒間隔・上ペインで選択、下ペインに詳細やセッションログ、`--once` 単発、`--follow` ストリーム、`--session=ID` 単一セッション+ログ、`--since`、`--breakdown=tokens\|cost`（ダッシュボードは内訳列を既定で `$` 表示、`b` で切替）、`--ascii`（グリフ欠落で文字化けする端末向けの ASCII 描画）、`--ambiguous-width=2`（East Asian Ambiguous 文字を2桁で描画する端末向けの幅補正）、`--debug`、`--md`、`--json`） |
-| `/architect:report-status` | haiku | パイプライン進捗のターミナルダッシュボード: フェーズツリーに状態(完了後に上流が更新されたフェーズは `stale`)・宣言出力の充足度・稼働中ハートビート・未充足の依存・フェーズ別コストを表示、次コマンド生成のアクションメニュー、Claude への質問キー、`Tab` でバックログビューへ切替(`tools/nexus-status.sh` をラップ) |
+| `/architect:report-status` | haiku | パイプライン進捗のターミナルダッシュボード: フェーズツリーに状態(完了後に上流が更新されたフェーズは `stale`)・宣言出力の充足度・稼働中ハートビート・未充足の依存・フェーズ別コストを表示、次コマンド生成のアクションメニュー、Claude への質問キー、`Tab` で4つのビュー（Product / Architect / Code Generation / Backlog Delivery）を巡回(`tools/nexus-status.sh` をラップ) |
 
 ## ユーティリティ
 
@@ -213,7 +213,7 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 ```text
 # Orchestration & setup
 /architect:start [target_path]
-/architect:pipeline [target_path] [--resume-from=<phase>] [--rerun-from=<phase>] [--skip-<phase>] [--no-scalardb] [--lang=en|ja]
+/architect:pipeline [target_path] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]
 /architect:init-output [project_name] [--reset]
 /product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--lang=ja|en]
 /product:init-output [project_name] [--reset]

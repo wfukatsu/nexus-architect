@@ -1,8 +1,8 @@
 ---
 description: |
   Automated pipeline that executes all phases in dependency order.
-  /architect:pipeline [target_path].
-  Supports --skip-*, --resume-from, --rerun-from, --lang flags.
+  /architect:pipeline [target_path] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N]
+  [--analyze-only] [--no-scalardb] [--lang=en|ja] to invoke.
 model: sonnet
 user_invocable: true
 disable-model-invocation: true
