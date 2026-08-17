@@ -1,9 +1,11 @@
 name: contracts
 
 # The repository's own gate doctrine (rules/ai-code-quality-gate.md) is that the CI half is the
-# enforced one — a contract that only runs when someone remembers is not enforced at all. Every
-# suite here is self-contained: no network, no services, no external tools beyond git, python3
-# and bash, so this needs neither caching nor a matrix.
+# enforced one — a contract that only runs when someone remembers is not enforced at all. The
+# suites need no services and no tools beyond git, python3 and bash, so this needs neither caching
+# nor a matrix. They do need the OKF knowledge bundle submodule: without it the ScalarDB-native
+# GraphQL check has nothing to resolve against, and a skipped check is weaker coverage than a run
+# one — the first run of this workflow proved exactly that by failing on a bundle-less checkout.
 
 on:
   push:
@@ -19,9 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        # The knowledge bundle is a submodule the suites do not read; skip it for speed.
         with:
-          submodules: false
+          submodules: recursive
 
       - name: Show versions
         run: |

@@ -2,9 +2,13 @@
 # Run every executable contract in the repository.
 #
 # Suites are discovered, not listed: any file named *.test.py or *.test.sh under the repo is
-# picked up, so adding a suite needs no edit here and none in CI. Each suite is self-contained
-# (no network, no services, no fixtures beyond scratch directories it creates itself) and exits
-# non-zero on failure.
+# picked up, so adding a suite needs no edit here and none in CI. They need no network and no
+# services, and create their own scratch directories; each exits non-zero on failure.
+#
+# One input is not optional: tools/graphql_skills.test.py resolves a ScalarDB-native GraphQL
+# decision against the OKF knowledge bundle submodule. Without it that check is skipped (and says
+# so) rather than failing, so a bundle-less run is green but weaker — initialize it with
+# `git submodule update --init knowledge/okf-scalardb-scalardl` for full coverage.
 #
 # Not covered here: samples/scalardb-transaction-tests (a Gradle project that resolves
 # dependencies over the network and runs against a real ScalarDB engine — run it directly after a

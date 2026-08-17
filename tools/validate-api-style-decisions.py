@@ -35,6 +35,13 @@ def main(argv):
     project_dir = os.path.abspath(os.path.join(os.path.dirname(args.path), "..", ".."))
     plugin_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     okf_root = os.path.join(plugin_root, "knowledge", "okf-scalardb-scalardl", "okf")
+    if not os.path.isdir(okf_root):
+        # A skipped check is reported, never silent: the run is weaker than a full one, and the
+        # reader has to know that rather than read a clean exit as full coverage.
+        print("api-style-decisions: note: the OKF knowledge bundle is not checked out at %s, "
+              "so native-GraphQL pinned-line resolution was not verified. Run "
+              "`git submodule update --init knowledge/okf-scalardb-scalardl` or "
+              "`tools/update-okf-bundle.sh` to enable it." % okf_root, file=sys.stderr)
     errors = validate_document(document, project_dir=project_dir, okf_root=okf_root)
     for error in errors:
         print(error, file=sys.stderr)

@@ -201,7 +201,12 @@ def _validate_native_references(surface, surface_id, project_dir, okf_root):
     if surface.get("pinned_product") != "ScalarDB":
         errors.append("%s.pinned_product: must resolve to ScalarDB" % surface_id)
     release_line = pinned_line
-    if okf_root:
+    # Only assert the pinned line resolves when the bundle is actually present. The knowledge
+    # bundle is a git submodule, so a clone without --recurse-submodules has the path but not the
+    # content — and reporting "this ScalarDB release does not document GraphQL" when the truth is
+    # "the documentation is not checked out here" blames the design decision for a missing input.
+    # The caller says so out loud instead (tools/validate-api-style-decisions.py).
+    if okf_root and os.path.isdir(okf_root):
         graphql_index = os.path.join(okf_root, "products", "scalardb", release_line,
                                      "scalardb-graphql", "index.md")
         if not os.path.isfile(graphql_index):
