@@ -3,6 +3,7 @@
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -357,6 +358,28 @@ def main():
                                   capture_output=True, text=True)
         check("native approval, version, edition and controls resolve",
               resolved.returncode == 0, resolved.stderr or resolved.stdout)
+
+        # The OKF bundle is a submodule, so a clone without it — CI, a plugin install, a
+        # contributor who skipped --recurse-submodules — must not turn a missing input into a
+        # verdict on the design. It is skipped, and the skip is announced.
+        with tempfile.TemporaryDirectory() as bundleless:
+            os.makedirs(os.path.join(bundleless, "tools", "lib"))
+            shutil.copy(validator, os.path.join(bundleless, "tools"))
+            for module in os.listdir(os.path.join(ROOT, "tools", "lib")):
+                if module.endswith(".py"):
+                    shutil.copy(os.path.join(ROOT, "tools", "lib", module),
+                                os.path.join(bundleless, "tools", "lib"))
+            without_bundle = subprocess.run(
+                [sys.executable, os.path.join(bundleless, "tools",
+                                              os.path.basename(validator)), json_path],
+                cwd=external_project, capture_output=True, text=True)
+            check("a checkout without the OKF bundle skips pinned-line resolution",
+                  without_bundle.returncode == 0
+                  and "is not resolved in pinned OKF line" not in without_bundle.stderr,
+                  without_bundle.stderr or without_bundle.stdout)
+            check("the skipped check is announced rather than silent",
+                  "OKF knowledge bundle is not checked out" in without_bundle.stderr,
+                  without_bundle.stderr)
         fabricated = resolved_native.copy()
         fabricated = json.loads(json.dumps(fabricated))
         fabricated["surfaces"][0]["approval"] = "approved:DOES-NOT-EXIST"
