@@ -46,7 +46,7 @@ change the thing, run the suite that owns it.
 `bash tools/run-tests.sh` runs all of them (`-v` to stream their output, or a substring to run one).
 It **discovers** suites — any `*.test.py` / `*.test.sh` in the tree — so a new suite is picked up
 without editing the runner or CI. `.github/workflows/contracts.yml` runs the same command on every
-push and pull request: per @rules/ai-code-quality-gate.md the CI half is the enforced one, and a
+push and pull request: per `rules/ai-code-quality-gate.md` the CI half is the enforced one, and a
 contract that runs only when someone remembers is not enforced at all.
 
 | Suite | Guards |

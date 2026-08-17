@@ -7,6 +7,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
+## [0.28.0] - 2026-08-17
+
+A documentation-integrity release. A review of `CLAUDE.md` found that the v0.26.0 GraphQL work had
+never fully landed there, and fixing the drift by hand exposed the real problem: the command list
+existed in three places with nothing asserting they agreed, and none of the repository's ten
+contract suites ran anywhere except when somebody remembered. Both are now closed.
+
+### Added
+- **CI, at last — `.github/workflows/contracts.yml`.** Every contract suite runs on push and pull
+  request. `rules/ai-code-quality-gate.md` has always said the CI half is the enforced one and that
+  a gate existing only as a checklist is the weakness it was written to remove; the repository was
+  failing its own rule. The first run earned its keep immediately by failing on a real defect (see
+  Fixed).
+- **`tools/run-tests.sh` — one command for every suite.** It *discovers* suites (any `*.test.py` /
+  `*.test.sh` in the tree), so a new suite is never silently left out of CI or of a local run.
+  `-v` streams each suite's output, a substring argument runs one. Written for bash 3.2 as well as
+  5.x, since the macOS system shell has no `mapfile`.
+- **`tools/docs_consistency.test.py` — 30 checks guarding the documentation split.** Both catalogues
+  describe all 99 registered commands; the signature block matches each `SKILL.md` (no flag invented
+  by prose, dropped, or re-spelled — `--skip-{phase}` is not `--skip-<phase>`); every flag a skill
+  documents about itself is offered; for skills that wrap a shell tool, no flag that tool's parser
+  would reject; no flag is mentioned anywhere without belonging to a documented surface; the grouped
+  tables in `CLAUDE.md` and `README.md` sum to the registry group by group; the extension-tier and
+  codegen prose equal `EXTENSION_PHASES` / `CODEGEN_PHASES`; `AGENTS.md` knows every skill; the
+  catalogue pointer stays un-`@`-imported; and the Japanese catalogue keeps row order plus each
+  row's model tier, flags and tool references. Every check was seeded with the drift it targets to
+  confirm it fails, and two that did not fail were fixed rather than kept as green stamps.
+- **`docs/skill-reference.md` / `_ja` — an Invocation signatures section** covering all 99 commands,
+  harvested from each `SKILL.md` and checked against the wrapped tools' argument parsers.
+
+### Changed
+- **`CLAUDE.md` is a map, not a catalogue.** The 2,634-word Command Reference — a third copy of a
+  list `README.md` and `docs/skill-reference.md` already carried — becomes an eight-row grouped
+  table whose counts partition all 99 commands, pointing at the catalogue. The 651-word single
+  sentence describing the test suites becomes a table. The file drops from 5,324 to 3,559 words,
+  and the always-loaded context (including `@`-imports) from 15,561 to 12,276. The pointer is
+  deliberately not `@`-prefixed: an `@` path is imported into every session, which would have made
+  the change a net loss.
+- **`README.md` Commands** is the same grouped table plus a link, so the catalogue is one file with
+  one translation instead of three overlapping lists.
+
+### Fixed
+- **A missing knowledge bundle no longer reads as an invalid design decision.**
+  `tools/validate-api-style-decisions.py` guarded its OKF resolution with `if okf_root:` — true for
+  a path that exists as a string, whether or not the submodule is checked out. A clone without
+  `--recurse-submodules` reported `native.pinned_release: ScalarDB GraphQL is not resolved in pinned
+  OKF line` for a perfectly valid decision. The check now runs only when the bundle is present, and
+  the validator prints a note naming the absent path and how to fetch it — a skipped check is
+  reported, never silent.
+- **Skill frontmatter that under-declared its own flags.** `/architect:pipeline` documented
+  `--analyze-only` in its body and in no summary anywhere, and omitted `--no-scalardb`;
+  `/product:generate-frontend` omitted `--confirm-versions` / `--no-confirm-versions` /
+  `--refresh-versions` despite documenting what they do; `/architect:report-status` omitted `--view`
+  and `--exec`, and `/product:report-status` omitted `--exec`, though `tools/nexus-status.sh` accepts
+  them.
+- **`AGENTS.md` never listed `generate-api-code`, `generate-contract-tests`, `verify-implementation`,
+  `review-api-security` or `estimate-token-cost`**, so on the Codex path those five were documented
+  nowhere once `CLAUDE.md` stopped enumerating commands.
+- **`CLAUDE.md` drift from v0.26.0 and earlier**: the Code Generation view listed three of the seven
+  phases `CODEGEN_PHASES` declares; "the remaining architect skills" enumerated 19 of the 36 outside
+  the manifest, reading as though the backlog, migration and status skills were run by the pipeline;
+  the dependency graph omitted `map-domains`, a non-optional manifest phase; the rules index was
+  missing the three GraphQL rule files and the product rule set; the skill count (~90) and the
+  product model tally (`report-status` unaccounted) were stale; and the "flat `skills/` tree" claim
+  ignored the ten deliberately unregistered migration sub-skills.
+- **`README.md` headline counts** (95 skills / architect 57 → 99 / 61) and a dashboard described as
+  having two views rather than four; the same two-view description in the Japanese catalogue's
+  `report-status` row.
+
 ## [0.27.1] - 2026-08-12
 
 ### Fixed
