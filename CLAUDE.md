@@ -139,9 +139,11 @@ Within that tier the codegen skills have a fixed follow-on order — **generate 
 test it → document it → verify it**: `generate-api-code` (REST/OpenAPI) or
 `generate-graphql-code` (Spring GraphQL), and `generate-scalardb-code` (`domain/` + `infrastructure/`) emit the
 service between them, `generate-contract-tests` turns the contract into executable tests,
-`generate-infra-code` emits the IaC plus the quality-gate CI workflow (and
-`/product:generate-frontend` the frontend), then `generate-docs` documents what was
-emitted and `verify-implementation` checks it against the design. On the backlog-delivery path the same step is automatic: it runs as Step 5b
+`generate-infra-code` emits the IaC plus the CI workflow that enforces the eight-stage quality
+gate (and `/product:generate-frontend` the frontend), then `generate-docs` documents what was
+emitted and `verify-implementation` checks it against the design — with `--gate`, running that
+same gate in-session. Read `rules/ai-code-quality-gate.md` before gating generated code; like
+every rule in Rules & References it is read on demand, not `@`-imported. On the backlog-delivery path the same step is automatic: it runs as Step 5b
 of `implement-backlog`, inside the implement → review → merge chain.
 
 **Product → architect handoff.** The two pipelines run in the same project directory and share
