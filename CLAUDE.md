@@ -20,9 +20,11 @@ Use `/product:start` to design product direction, `/architect:start` for interac
 
 ## Repository Mechanics
 
-This repo is not an application — it is a **Claude Code plugin marketplace** whose product is a corpus of ~90 skill instruction files. There is no compile/build step and no application to run; "developing" here means editing skills, rules, and hooks.
+This repo is not an application — it is a **Claude Code plugin marketplace** whose product is a corpus of ~110 skill instruction files (99 registered as slash commands, plus the nested migration sub-skills below). There is no compile/build step and no application to run; "developing" here means editing skills, rules, and hooks.
 
 **Packaging.** `.claude-plugin/marketplace.json` defines three plugins (`architect`, `scalardb`, `product`), each with its own version, and lists the skill directories it ships. Skills physically live in a flat `skills/` tree (product skills are nested under `skills/product/`); a plugin "owns" a skill only by listing its path in `marketplace.json`. **Adding a skill requires two edits: create `skills/<name>/SKILL.md` AND register its path in the plugin's `skills` array in `marketplace.json`.** An unregistered SKILL.md will not surface as a slash command.
+
+The one deliberate exception is the **migration sub-skills**: `skills/migrate-{oracle,mysql,postgresql}/` each nest their own worker SKILL.md files (`analyze-<db>-schema`, `migrate-<db>-to-scalardb`, `migrate-<db>-sp-trigger-to-scalardb`, plus `migrate-oracle-aq-to-scalardb`) — ten in total, none registered in `marketplace.json`. They are not meant to be slash commands: the parent router skill reads them by `${CLAUDE_PLUGIN_ROOT}/skills/...` path (see OMNIGENT.md §Slash → Path Resolution, *Nested sub-skills*). Leaving one unregistered is intentional there and a bug anywhere else.
 
 **Skill anatomy.** Each skill is a single self-contained `skills/<name>/SKILL.md` with YAML frontmatter:
 - `description` — multi-line; first line is the summary, followed by the `/plugin:skill` invocation form and usage notes (this text is what the model matches on).
@@ -37,7 +39,32 @@ Skill bodies follow a house structure (Desired Outcome → Decision Criteria →
 
 **Multi-runtime.** The same skills are driven by three orchestrators, each with its own entry doc that must be kept in sync: `CLAUDE.md` (Claude Code, slash commands), `AGENTS.md` (Codex — maps Claude tool names to shell equivalents), `OMNIGENT.md` (generic multi-agent loader in `tools/omnigent/`). When you change how skills are invoked or structured, update all three.
 
-**Tests / release.** No unit-test framework; verification is per-artifact and runnable from the CLI — `hooks/*.sh` self-test via file-path CLI mode, `tools/omnigent/load-skill.test.sh` covers the loader, `skills/generate-docs/marker-mechanics.test.py` asserts the ownership-marker contract that skill states in prose (run with no argument for the embedded fixture, or pass a real README), `skills/implement-backlog/output-location.test.sh` asserts the Output Location interlock — the git-ignore gate, the working-branch commit, and empty-commit detection — against a scratch repository, `skills/capture-followup/followup-contract.test.py` asserts the follow-up ID/manifest contract (F-index allocation, namespace disjointness with positional IDs, `origin` node shape, default-parent resolution) against an embedded fixture manifest (or pass a real one), `tools/lib/backlog_status_data.test.py` asserts the backlog-status derivation contract (tracker-first status precedence with the `labels` array ignored, stage derivation, tree ordering, roll-ups), `tools/lib/pipeline_status_data.test.py` asserts the pipeline-status derivation contract (both shipped `skill-dependencies.yaml` files parsing through the built-in mini-YAML reader, the `id_prefix` registry those manifests carry — every graph-writing skill declaring a prefix, using it in its own SKILL.md, and not colliding with another skill in the same manifest, with `NFR-` asserted as the sole deliberate cross-manifest claim, registry-over-filesystem status precedence and the drift it raises, the four phase names both manifests define being resolved by the entry's `plugin` field and, where that is absent, trusted only when the phase's own outputs corroborate them — with `in_progress` and an explicitly-requested skip exempt — since one registry serves both pipelines, the token-usage buckets those names get namespaced into (`<plugin>:<phase>`, with the hook's fallback set asserted against the manifests, the neighbour's bucket charged to its own tab and a legacy bare bucket reported unassigned), upstream-change invalidation of `completed` phases and its propagation down the dependency chain, declared-output counting, `skip_phases`/`conditions` exclusion, dependency and next-phase selection, extension-tier grouping and its per-skill output declarations staying in step with each SKILL.md, the pipeline/codegen section split — codegen phases leaving their plugin's tree while the dependencies they cross still resolve, the codegen tree grouping by plugin and offering each phase's own slash command, and which plugins a project has evidence of having run — the backlog view's pipeline strip agreeing with the pipeline view, cost attribution), and `tools/nexus-status.test.sh` asserts the dashboard's CLI contract on scratch projects (project resolution and the 0/1/2 exit codes, `--view=auto` selection plus the four addressable views — `product`/`architect` each showing only their own pipeline and `codegen` showing neither's, every output mode incl. `--md` frontmatter and `--ascii` purity, `--group`/`--phase`/`--epic` narrowing `--json` as well as the tree, an unknown `--phase`/`--epic` failing as usage rather than rendering empty — in the live dashboard as well as the one-shot renderers, cross-view agreement, and the refresh poll noticing an overwritten depth-3 report), and `tools/lib/status_tui.test.py` asserts the curses shell's interaction contract without needing a terminal (the `c` key copying rather than launching an opener while the menu's own open entry still opens, the open-label contract between the shell and both data modules, the action-menu hint keeping its close key when `--exec` is off and `e` behaving for open/runnable entries either way, the help panel de-duplicating the legend the pipeline tabs share and scrolling instead of overflowing, an empty tree naming the filter that emptied it rather than declaring the pipeline unrun, a `failed` phase outside the counted set still reaching the header, and `q` being the only key that quits so a stray escape sequence cannot). All exit 1 on failure. Separately, `samples/scalardb-transaction-tests/` is a runnable Gradle project (`./gradlew integrationTest`, 25 tests, ~10s) that asserts the ScalarDB transaction rules against a **real engine** over in-process SQLite — no container, no external service. It is not part of the CLI suite above because it needs network for dependency resolution; run it after a ScalarDB version bump, since every rule it backs was written or corrected because one of these tests failed. Releases are manual git-flow (`release/x.y.z` branch → bump versions in `marketplace.json` → update both `CHANGELOG.md` and `CHANGELOG_ja.md` → merge to `main` → annotated tag → GitHub release); all three plugins share one version number, so bump them together.
+**Tests.** No unit-test framework; verification is per-artifact, runnable from the CLI, and every
+suite exits 1 on failure. Each guards a contract that is otherwise only stated in prose — when you
+change the thing, run the suite that owns it.
+
+| Suite | Guards |
+|-------|--------|
+| `hooks/*.sh <file>` (file-path CLI mode) | The two output validators themselves: frontmatter present, Mermaid parses |
+| `tools/omnigent/load-skill.test.sh` | The omnigent loader's skill resolution |
+| `skills/generate-docs/marker-mechanics.test.py` | The `<!-- nexus:begin:<section> -->` ownership-marker contract that skill states in prose (no argument = embedded fixture; or pass a real README) |
+| `skills/implement-backlog/output-location.test.sh` | The Output Location interlock against a scratch repo: git-ignore gate, working-branch commit, empty-commit detection |
+| `skills/capture-followup/followup-contract.test.py` | The follow-up ID/manifest contract: `F`-index allocation, disjointness from positional IDs, `origin` node shape, default-parent resolution |
+| `tools/lib/backlog_status_data.test.py` | Backlog-status derivation: tracker-first precedence (seed `labels` ignored), stage derivation, tree order, roll-ups |
+| `tools/lib/pipeline_status_data.test.py` | Pipeline-status derivation, and with it the two manifests themselves: mini-YAML parsing, the `id_prefix` registry (declared, used in its own SKILL.md, non-colliding — `NFR-` the sole deliberate cross-manifest claim), registry-over-filesystem precedence and its drift, the four shared phase names resolved by `plugin` (or corroborated by outputs), the `<plugin>:<phase>` token buckets, upstream-change invalidation propagating down the chain, extension-tier and codegen grouping staying in step with each SKILL.md |
+| `tools/graphql_skills.test.py` | The Spring for GraphQL chain (71 checks): the conditional phases downstream of `design-api`, `api-style-decisions.json` as the canonical decision that withdraws the wrong generator and fails closed when invalid, and the design-safety rules (database never selects GraphQL, field coordinate as join key, tenant-safe loading, query DoS budgets) |
+| `tools/nexus-status.test.sh` | The dashboard's CLI contract on scratch projects: project resolution, 0/1/2 exit codes, the four addressable views, every output mode, `--group`/`--phase`/`--epic` narrowing `--json` too, unknown filters failing as usage, cross-view agreement, refresh poll |
+| `tools/lib/status_tui.test.py` | The curses shell's interaction contract without a terminal: `c` copies rather than opens, the action-menu/help behaviour with and without `--exec`, an empty tree naming its filter, `q` as the only quit key |
+
+**The one suite that runs real code.** `samples/scalardb-transaction-tests/` is a runnable Gradle
+project (`./gradlew integrationTest`, 25 tests, ~10s) asserting the ScalarDB transaction rules
+against a **real engine** over in-process SQLite — no container, no external service. It is outside
+the CLI suite above because it needs network for dependency resolution. Run it after a ScalarDB
+version bump: every rule it backs was written or corrected because one of these tests failed.
+
+**Release.** Manual git-flow: `release/x.y.z` branch → bump versions in `marketplace.json` → update
+both `CHANGELOG.md` and `CHANGELOG_ja.md` → merge to `main` → annotated tag → GitHub release. All
+three plugins share one version number, so bump them together.
 
 ## Output Language
 
@@ -49,139 +76,33 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 
 ## Command Reference
 
-### Product Direction (`/product:*`)
-Validation-driven pipeline from product vision to SLA/NFR. Skills are namespaced under `skills/product/`; rules under `rules/product/`. Use `/product:start` for interactive/automated execution; hands off to `/architect:define-requirements` for system implementation design.
+**99 slash commands across three plugins.** The catalogue — every command with its model, its
+prerequisites and its full flag signature — is `docs/skill-reference.md` (`_ja` for Japanese), read
+on demand with the Read tool and deliberately **not** `@`-imported, since an always-loaded catalogue
+is the cost this section exists to avoid. Do not duplicate it here: this table is the map of *which
+group does what*, so you know where to look, and the counts below are a partition of all 99.
 
-- `/product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--lang=ja|en]` — Interactively start product-direction design; runs the validation-driven pipeline in dependency order, gating on the riskiest assumptions. After the UI mocks, offers a selectable `generate-frontend` step (React + Storybook codegen); `--frontend`/`--no-frontend` force the choice
-- `/product:init-output [project]` — Initialize the product output tree, pipeline progress file, and traceability graph
-- `/product:define-vision` — Define product core (Vision/Mission/Values) as a Product Vision via dialogue
-- `/product:name-product` — Name the product as an alphabetic acronym: a short pronounceable Latin-letter name whose every letter is the initial of an English word, so the name expands into a value phrase; grounded in vision/positioning, shortlists candidates and recommends one
-- `/product:define-success-metrics` — One North Star Metric plus 3–5 input metrics
-- `/product:research-landscape` — Market/competitor research: market sizing (TAM/SAM/SOM), trends
-- `/product:design-revenue` — Revenue/business model and a recomputable benefit-evaluation template
-- `/product:define-scope` — Normalize constraints and decide product scope (in/out)
-- `/product:validate-assumptions` — Extract riskiest assumptions, attach cheapest test, Go/No-Go gate (re-runnable)
-- `/product:generate-persona` — Jobs-to-be-Done–anchored personas (job stories + persona cards)
-- `/product:map-journey` — Customer journey as a stages × layers grid (touchpoints, actions, emotions)
-- `/product:design-positioning` — Positioning (Dunford 5-component canvas), touchpoint × device × timing matrix
-- `/product:create-domain-story` — Persona-anchored Domain Storytelling (actors=personas, activities=job stories/journey); the axis UI mocks render
-- `/product:design-system` — Build or `--import` a separately-managed design system (DTCG tokens + components + guidelines); the visual language UI mocks render at lo/mid fidelity
-- `/product:generate-ui-mock` — Navigable UI mocks for key screens, driven by domain stories and styled by the design system (each activity → a screen, wired into a clickable flow you can step through in story order; tokens injected)
-- `/product:generate-frontend` — Turn UI mocks + design system into a runnable React + TypeScript frontend: Atomic Design decomposition (tokens→atoms→molecules→organisms→templates→pages), token-styled components (CSS Modules + CSS variables), react-router wiring from the story flow, and a Storybook story per component variant/state (emits `generated/frontend/`). Dependency versions are resolved from the registries and confirmed per `--confirm-versions`/`--no-confirm-versions`
-- `/product:define-features` — Extract features from UI mocks (each screen action becomes a Command/feature)
-- `/product:define-data-model` — Derive data model from UI mocks and features (explicit → implicit, 2 passes)
-- `/product:map-domains` — Abstract features/entities into bounded contexts (DDD strategic; Core/Supporting/Generic)
-- `/product:design-api` — Logical API surface in three API-Led layers (System/Process/Experience)
-- `/product:design-sla` — Per-service SLI/SLO/SLA with error budgets from customer expectations
-- `/product:define-nfr` — Turn SLOs into measurable NFRs (availability, latency p95/p99, ...)
-- `/product:design-architecture` — Synthesize contexts/APIs/data/NFRs into a runtime architecture (container, critical-path sequence, deployment views) and assess platform-technology fitness (Kong, ScalarDB, ScalarDB Analytics, ScalarDL) with Adopt/Conditional/Reject decisions
-- `/product:review` — Review product artifacts through four lenses (consistency, traceability, ...)
-- `/product:report [--auto] [--lang=ja|en]` — Consolidate artifacts into one self-contained HTML report (validation status first)
-- `/product:report-status [--once] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--lang=ja|en]` — Show where the product pipeline stands on the terminal: the phase tree grouped by pipeline stage, each phase's status and declared-output completion (a finished phase whose upstream changed afterwards reads `stale`, not `completed`), the validation gate's verdict and open-assumption count, per-phase cost, and a next-command action menu; the Product view of the same `tools/nexus-status.sh` dashboard as `/architect:report-status`, which `Tab` cycles with Architect, Code Generation and Backlog Delivery (pass `--once` for an in-session render). `/product:generate-frontend` is tracked in the Code Generation view, not here
-- `/product:adapt-change` — Re-propagation engine: compute affected scope from a change and re-run only impacted skills
+| Group | Entry point | What it does | n |
+|-------|-------------|--------------|---|
+| **Product Direction** `/product:*` | `/product:start` | Validation-driven pipeline from product vision to SLA/NFR, gating on the riskiest assumptions; hands off to `/architect:define-requirements`. Skills are namespaced under `skills/product/`, rules under `rules/product/` | 27 |
+| **Orchestration & setup** | `/architect:start`, `/architect:pipeline` | Interactive or automated execution of the architect core pipeline, plus `init-output` | 3 |
+| **Core pipeline** `/architect:*` | run by the orchestrators | requirements → investigate → analyze → evaluate → redesign → design → review → report. The phases, their order, their declared outputs and their models are the manifest's, not prose: @skills/common/skill-dependencies.yaml | 25 |
+| **Extension tier** | invoked individually | Implementation specs, code generation (REST / GraphQL / ScalarDB / contract tests / IaC / docs), verification and the quality gate, infrastructure / security / observability / DR design, cost estimation. Enumerated under Pipeline Dependencies below | 19 |
+| **Backlog Delivery** | `/architect:deliver-backlog` | export → implement → review → merge over GitLab/GitHub work items. Unlike codegen it writes **merge-bound code into the project's real source tree**, never `generated/`, and stops at every human gate | 7 |
+| **Database Migration** | `/architect:migrate-database` | Oracle / MySQL / PostgreSQL → ScalarDB: schema extraction, analysis, SP/trigger conversion (the router delegates to nested sub-skills that are not slash commands) | 4 |
+| **ScalarDB Development** `/scalardb:*` | `/scalardb:build-app` | Schema modeling, configuration, scaffolding, CRUD/JDBC patterns, exception handling, code review, migration advice | 11 |
+| **Status & utility** | `/architect:report-status` | One dashboard (`tools/nexus-status.sh`) whose `Tab` cycles four views — Product, Architect, Code Generation, Backlog Delivery — plus `render-mermaid` and `update-knowledge`. Recorded spend is `/architect:report-token-cost` | 3 |
 
-### Orchestration
-- `/architect:start [target_path]` — Interactively start system analysis and design
-- `/architect:pipeline [target_path]` — Automated pipeline execution (--resume-from, --rerun-from, --skip-{phase}, --no-scalardb, --lang=en|ja)
-- `/architect:init-output [project]` — Initialize output directories
-
-### Requirements
-- `/architect:define-requirements [target_path] [--input=<file|dir>] [--auto] [--no-scalardb]` — Requirements definition: FR/NFR classification, data/transaction requirements, Scalar product applicability — ScalarDB / ScalarDB Saga (greenfield entry point)
-
-### Investigation & Analysis
-- `/architect:investigate [target_path]` — Tech stack, structure, debt, DDD readiness
-- `/architect:investigate-security [target_path]` — OWASP Top 10, access control
-- `/architect:analyze [target_path]` — Ubiquitous language, actors, domain mapping
-- `/architect:analyze-data-model [target_path]` — Data model, DB design, ER diagrams
-
-### Evaluation
-- `/architect:evaluate-mmi [target_path]` — MMI 4-axis qualitative evaluation
-- `/architect:evaluate-ddd [target_path]` — DDD 12-criteria 3-layer evaluation
-- `/architect:integrate-evaluations` — Merge MMI+DDD, improvement plan
-
-### Design
-- `/architect:map-domains` — Domain classification, BC mapping
-- `/architect:redesign` — Bounded context redesign
-- `/architect:create-domain-story [--domain=<name>] [--auto]` — Domain Storytelling: visualize business processes per domain (interactive 7-stage facilitation or auto-generation from analysis files)
-- `/architect:design-microservices` — Target architecture
-- `/architect:select-scalardb-edition` — ScalarDB edition selection
-- `/architect:design-scalardb` — ScalarDB schema and transaction design
-- `/architect:design-scalardb-analytics` — HTAP analytics platform design
-- `/architect:design-data-layer` — Generic DB design (non-ScalarDB)
-- `/architect:design-api` — Select REST/GraphQL/hybrid/gRPC/AsyncAPI per surface and generate common contracts
-- `/architect:design-graphql` — Spring for GraphQL SDL, resolver, authorization, batching, query-governance and transport design (conditional)
-
-### Implementation & Codegen
-- `/architect:design-implementation` — Implementation specs
-- `/architect:generate-test-specs` — BDD/unit/integration test specs
-- `/architect:generate-scalardb-code` — Spring Boot + ScalarDB code generation
-- `/architect:generate-api-code [--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]` — Generate the API layer from the OpenAPI contract: one controller method per `operationId` (1:1), request/response DTOs with Bean Validation **derived from the schema constraints**, explicit DTO↔domain mappers, and the RFC 9457 Problem Details `@RestControllerAdvice` — then emit `reports/06_implementation/api-contract-map.json`, the binding record downstream verification checks. Generates only what the specification declares; a gap in the contract stops the run rather than being filled in with a plausible guess. Owns the `api/` package, leaving `domain/`/`infrastructure/` to `generate-scalardb-code`. Independent of ScalarDB
-- `/architect:generate-graphql-code [--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]` — Generate Spring for GraphQL from the approved SDL and resolver contracts: field-coordinate-bound controllers, DTOs/mappers, tenant context, authorization, DataLoader, exception resolution, query limits, observations, and the combined contract map
-- `/architect:generate-contract-tests [--service=<name>] [--out=<path>] [--stack=default|schemathesis|pact|archunit] [--dry-run] [--auto] [--lang=en|ja]` — Turn the contract into executable tests so a contract break fails a build instead of surviving a review: in-process OpenAPI request/response validation (swagger-request-validator + `@WebMvcTest` by default; Schemathesis / Pact / ArchUnit as recorded opt-ins), Problem Details conformance, authorization and idempotency assertions, the `UnknownTransactionStatusException` contract, and an inventory assertion that fails when `api-contract-map.json` reports anything unmapped. Expected values come from the specification, never from the implementation
-- `/architect:generate-infra-code` — K8s/Terraform/Helm code generation, plus the CI workflow that runs the quality gate (@rules/ai-code-quality-gate.md) — the enforced half of the gate, since the in-session run only covers the session
-- `/architect:generate-docs [target] [--scope=changed|service|repo] [--source-root=<path>] [--readme-only] [--issue=<id>] [--dry-run] [--auto] [--lang=en|ja]` — Create/update the documentation for code that was generated or implemented: per-service READMEs and `docs/` pages (overview, build & run, configuration, layout, API, operations, traceability) derived from the code that actually exists, with design reports supplying the *why*. Updates in place via ownership markers (`<!-- nexus:begin:<section> -->`) so human-authored prose is preserved, verifies every documented command against a real build target, and reports design-vs-code drift instead of smoothing it over. Runs after the codegen skills (scaffold mode) and as Step 5b of `implement-backlog` (delivery mode — commits the doc changes to the working branch so they land in the same PR/MR)
-
-### Verification
-- `/architect:verify-implementation [target_path] [--service=<name>] [--scope=changed|service|repo] [--source-root=<path>] [--gate] [--item=<backlog-id>] [--auto] [--lang=en|ja]` — Verify that the code that exists actually implements the design, on four conformance axes: **contract** (every `operationId` bound 1:1 to a handler, DTO shapes, status codes, RFC 9457 error envelope, the `UnknownTransactionStatusException` branch), **transaction** (an operation the design placed in one transaction implemented as one; retry, catch order, saga compensations, 2PC participant completeness), **security** (delegated to `/architect:review-api-security --mode=code`), and **requirement** (`FR-` to code, acceptance criteria to tests). Reports every divergence rather than reconciling it — the design and the source tree are both left untouched — and rewrites `reports/06_implementation/api-contract-map.json` from what the code actually binds. With `--gate` it runs the eight-stage quality gate of @rules/ai-code-quality-gate.md (build / unit / contract / integration / SAST / dependency scan / API security / conformance), where every stage carries evidence or a recorded skip reason. Runs after codegen, and as Step 5c of `implement-backlog`
-
-### Infrastructure
-- `/architect:design-infrastructure` — K8s, IaC, multi-environment
-- `/architect:design-security` — Auth, secrets management
-- `/architect:design-observability` — Monitoring, tracing, alerting
-- `/architect:design-disaster-recovery` — RTO/RPO, backup, DR
-
-### Review (6 parallel reviews — scalardb and data-integrity are mutually exclusive)
-- `/architect:review-consistency` — Structural coherence (CON-)
-- `/architect:review-scalardb` — ScalarDB constraints (SDB-) — runs when scalardb_enabled
-- `/architect:review-data-integrity` — Data integrity (DIN-) — runs when scalardb_disabled
-- `/architect:review-operations` — Operational readiness (OPS-)
-- `/architect:review-risk` — Distributed system risks (RSK-)
-- `/architect:review-api-security` — OWASP API Security Top 10, tenant isolation, transaction-boundary security (ASEC-); `--mode=code` re-runs it against the implemented source as the quality gate's security stage
-- `/architect:review-business` — Business requirements (BIZ-)
-- `/architect:review-synthesizer` — Consolidation and quality gate
-
-### Reporting
-- `/architect:report` — Markdown to HTML consolidated report
-- `/architect:review-report` — Review quality of generated HTML report (completeness, score accuracy, Mermaid syntax, language, structure)
-- `/architect:render-mermaid [target_path]` — Mermaid to PNG/SVG + syntax fix
-- `/architect:estimate-cost` — Infrastructure, license, operational costs
-- `/architect:estimate-token-cost` — Token usage and USD cost of running the pipeline (a-priori from LOC, calibrated by recorded actuals)
-- `/architect:report-token-cost [--once] [--follow] [--session=ID] [--since=7d] [--breakdown=tokens|cost] [--ascii] [--ambiguous-width=2] [--md] [--json]` — Report the **recorded actual** cost from `work/token-usage.json` + `work/token-usage.jsonl` on the terminal (totals, per-phase cost, per-model cost with in/out/cache-read/cache-write columns, daily timeline, per-session cost with session names, recent events); wraps `tools/token-cost-report.sh`, which on a terminal defaults to an interactive two-pane dashboard polling every 10s — select a phase/model/session/day/event above, read its detail below, where a session shows its transcript log (`--follow` streams events instead, `--session=ID` prints one session + its log non-interactively). The live modes run in the user's own terminal, so pass `--once` for an in-session render
-- `/architect:report-status [--once] [--view=product|architect|codegen|backlog] [--group=core|extension] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]` — Show where the architect pipeline stands on the terminal: the phase tree grouped by category (the manual extension tier is its own foldable group), each phase's status (`pending/in_progress/completed/failed/skipped`, registry-first then derived from its declared outputs — plus `stale`, derived, when a dependency wrote something after the phase finished, propagated down the chain so fixing an early phase un-completes everything below it), how many of those outputs exist, whether it wrote something or burned tokens in the last 5 minutes, its unmet dependencies and its recorded cost; wraps `tools/nexus-status.sh`, which on a terminal defaults to a live dashboard polling `work/pipeline-progress.json` every 10s with a per-phase action menu (clipboard copy, or run via `claude` with `--exec`), an `a` key that asks Claude about the selected phase, and `Tab` to cycle its **four views** — Product and Architect (product and architect are separate pipelines, so one tab each), Code Generation (`generate-scalardb-code` / `generate-infra-code` / `generate-docs` / `/product:generate-frontend`, grouped by plugin, since codegen belongs to neither pipeline tree) and Backlog Delivery. The live mode runs in the user's own terminal, so pass `--once` for an in-session render
-- `/architect:update-knowledge [--latest] [--status]` — Fetch or update the OKF ScalarDB/ScalarDL/ScalarDB Saga knowledge bundle from remote (wraps `tools/update-okf-bundle.sh`; no flag = ensure present, `--latest` = pull newest, `--status` = show resolved path/commits/versions)
-
-### Backlog Delivery
-- `/architect:deliver-backlog [--epic=<id>] [--issue=<id>] [--from=implement|review|merge] [--auto] [--yes-merge] [--max-fix-rounds=N] [--export] [--dry-run] [--lang=en|ja]` — Orchestrator that drives the implementation skill group over a backlog: runs implement → review → (human approval) → merge for each Issue under an Epic, in order, resuming from `backlog-manifest.json`. Semi-autonomous — stops at the human gates (PR/MR approval, merge, blocker decisions); never auto-merges unless `--yes-merge`. Wraps `implement-backlog`, `review-issue`, `merge-issue`
-- `/architect:export-backlog [--target=gitlab|github] [--project=<path>|--repo=<owner/name>] [--group=<gitlab-group>] [--dry-run] [--update] [--lang=en|ja]` — Turn the generated reports into a work-item hierarchy on GitLab/GitHub: Epic (What/Why) → Sub-Epic (What/Key Results) → Issue (How). Synthesizes a review-first plan (`reports/backlog/backlog-plan.md` + `backlog-manifest.json`), gates on explicit approval, then creates items idempotently via `glab`/`gh`
-- `/architect:implement-backlog [item] [--epic=<id>] [--build-context] [--review-epic[=<id>]] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja]` — Implement a backlog item (Issue/Sub-Epic/Epic) created by export-backlog while keeping the whole Epic consistent. Reads the parent Epic and sibling Sub-Epics/Issues, cross-checks a shared engineering-context pack (`reports/backlog/shared-context/`), writes code into the target project's real source tree (resolved per its Output Location precedence and verified not git-ignored — never `generated/`, since this code is committed, reviewed and merged), appends progress (comments + `status::*` labels) to the Epic/Sub-Epic/Issue, and runs a lightweight + on-demand whole-Epic consistency review. Executes as a thin sonnet orchestrator delegating heavy steps to model-tiered sub-agents (haiku/sonnet/opus) to minimize token cost. With no item, picks the `status::doing` items and confirms with the user
-- `/architect:review-issue [item] [--epic=<id>] [--max-fix-rounds=N] [--base=<branch>] [--no-fix] [--dry-run] [--auto] [--lang=en|ja]` — Review an implemented Issue for whole-Epic consistency (Issue + parent Sub-Epic/Epic + related Issues), auto-fix `[B]` blockers by spawning fix subagents and re-reviewing until they clear (bounded by `--max-fix-rounds` + no-progress detection; on non-convergence it writes a "decision needed" note on the Issue, sets `status::blocked`, and asks the user), then open a PR/MR linked to the Issue and hand off for approval
-- `/architect:merge-issue [item|mr|pr] [--strategy=merge|squash|rebase] [--delete-branch] [--yes-merge] [--dry-run] [--auto] [--lang=en|ja]` — After the user approves the Issue's PR/MR, run a merge preflight (open, Mergeable verdict with no open blockers, approvals present, CI green, no conflicts), gate on explicit confirmation, execute the merge via `glab`/`gh`, then close the Issue (`status::done`) and roll up progress to the Sub-Epic/Epic (triggering the whole-Epic review when a Sub-Epic completes)
-- `/architect:report-backlog-status [--once] [--no-sync] [--exec] [--epic=<id>] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]` — The Backlog Delivery view of the same `tools/nexus-status.sh` dashboard (`tools/backlog-status.sh` is a thin alias; `Tab` cycles the Product / Architect / Code Generation views). Show backlog delivery progress as an Epic → Sub-Epic → Issue tree on the terminal: each item's delivery status (`todo/doing/review/done/blocked`, derived tracker-first then `impl.status` — never the seed `labels`) and its Implemented/Reviewed/Merged stages, plus a follow-up-queue count and a pipeline phase strip; wraps `tools/backlog-status.sh`, which on a terminal defaults to a live dashboard polling `backlog-manifest.json` every 10s with a per-item action menu that generates the next slash command (clipboard copy, or run via `claude` with `--exec`; live `glab`/`gh` state is fetched by default — GitLab project Issues plus group Epics, or GitHub Issues — refreshed in the background and on `s`, with drift flagged; `--no-sync` reads the manifest offline). The live mode runs in the user's own terminal, so pass `--once` for an in-session render
-- `/architect:capture-followup [title] [--parent=<local_id|#iid>] [--from=<file|issue-ref>] [--queue-only] [--flush] [--dry-run] [--auto] [--lang=en|ja]` — Capture follow-up work discovered during backlog delivery (deferred tasks, out-of-scope findings, doc drift, split-off scope, waived acceptance criteria) into a reviewable queue (`reports/backlog/followup-queue.md`), then — after an approval gate — register the entries as tracker Issues labeled `status::todo`, linked to the in-flight Sub-Epic/Epic, and appended to `backlog-manifest.json` under the `F`-suffixed local-ID namespace (`I1.2.F1`) with an `origin` trail. Fed by `implement-backlog` / `review-issue` / `merge-issue` via `--queue-only`; the created Issues enter the `deliver-backlog` loop as ordinary work
-
-### ScalarDB Development (`/scalardb:*`)
-- `/scalardb:model` — Interactive schema design wizard (keys, indexes, data types)
-- `/scalardb:config` — Configuration file generator (Core/Cluster, CRUD/JDBC, 1PC/2PC)
-- `/scalardb:scaffold` — Complete starter project generator (all 6 interface combos)
-- `/scalardb:error-handler` — Exception handling code generator and code reviewer
-- `/scalardb:crud-ops` — CRUD API operation patterns (Get, Scan, Insert, Upsert, Update, Delete)
-- `/scalardb:jdbc-ops` — JDBC/SQL operation patterns (SELECT, INSERT, JOIN, aggregates)
-- `/scalardb:local-env` — Local Docker Compose environment setup
-- `/scalardb:docs` — ScalarDB documentation search and lookup
-- `/scalardb:build-app` — Build complete ScalarDB application from requirements
-- `/scalardb:review-code` — Review Java code for ScalarDB correctness (16 checks)
-- `/scalardb:migrate` — Migration advisor (Core→Cluster, CRUD→JDBC, 1PC→2PC)
-
-### Database Migration (Oracle/MySQL/PostgreSQL → ScalarDB)
-- `/architect:migrate-database` — Unified migration router (detects DB type, delegates)
-- `/architect:migrate-oracle` — Oracle → ScalarDB (schema extraction, analysis, AQ integration, SP/trigger Java conversion)
-- `/architect:migrate-mysql` — MySQL → ScalarDB (schema extraction, analysis, SP/trigger Java conversion)
-- `/architect:migrate-postgresql` — PostgreSQL → ScalarDB (schema extraction, analysis, SP/trigger Java conversion)
+Two things this table deliberately does not tell you, because the machine-readable source does:
+which phases `/architect:pipeline` actually runs (the manifest) and which phases the dashboard files
+under Code Generation (`CODEGEN_PHASES` in `tools/lib/pipeline_status_data.py`).
 
 ## Pipeline Dependencies
 
 ```
+[define-requirements (optional; the greenfield entry point)]
 investigate -> analyze -> [evaluate-mmi, evaluate-ddd] -> integrate-evaluations
+            \-> [map-domains, analyze-data-model (optional)]
   -> redesign -> [create-domain-story (optional, per domain)]
   -> design-microservices -> [design-scalardb | design-data-layer, design-api -> design-graphql (conditional)]
   -> [review-consistency, review-scalardb|review-data-integrity, review-api-security, review-operations, review-risk, review-business]
@@ -190,7 +111,7 @@ investigate -> analyze -> [evaluate-mmi, evaluate-ddd] -> integrate-evaluations
 
 Dependency manifest (architect): @skills/common/skill-dependencies.yaml
 
-The manifest covers the core pipeline only. The remaining architect skills —
+The manifest covers the core pipeline only. Nineteen further architect skills —
 `investigate-security`, `select-scalardb-edition`, `design-scalardb-analytics`,
 `design-implementation`, `generate-test-specs`, `generate-scalardb-code`,
 `generate-api-code`, `generate-graphql-code`, `generate-contract-tests`, `generate-infra-code`, `generate-docs`,
@@ -199,8 +120,20 @@ The manifest covers the core pipeline only. The remaining architect skills —
 `estimate-token-cost`, `report-token-cost` — form a
 **manual extension tier**: they are not executed by `/architect:pipeline` — nor by
 `/architect:start`, which also runs only the manifest's phases — and are invoked
-individually, typically after the core pipeline. See the invocation chains in
-README §Code Generation & Delivery and docs/getting-started.md §5–6.
+individually, typically after the core pipeline. That list is not prose: it is exactly the
+`EXTENSION_PHASES` set in `tools/lib/pipeline_status_data.py`, which is what the status
+dashboard renders as its own foldable group, so the two are edited together. See the
+invocation chains in README §Code Generation & Delivery and docs/getting-started.md §5–6.
+
+The extension tier is **not** everything outside the manifest. Three further groups sit
+outside it and outside the pipeline, each documented in its own section above rather than
+here: the orchestration and setup skills (`start`, `pipeline`, `init-output`), the status
+and utility skills (`report-status`, `render-mermaid`, `update-knowledge`), and the two
+skill groups that are pipelines in their own right —
+**Backlog Delivery** (`deliver-backlog`, `export-backlog`, `implement-backlog`,
+`review-issue`, `merge-issue`, `capture-followup`, `report-backlog-status`) and **Database Migration**
+(`migrate-database`, `migrate-oracle`, `migrate-mysql`, `migrate-postgresql`). None of
+them are run by `/architect:pipeline` either.
 
 Within that tier the codegen skills have a fixed follow-on order — **generate code →
 test it → document it → verify it**: `generate-api-code` (REST/OpenAPI) or
@@ -243,7 +176,7 @@ Naming and frontmatter rules: @rules/output-conventions.md
 | **sonnet** | Standard analysis, document generation, reviews | investigate, review-consistency, evaluate-mmi |
 | **haiku** | Template generation, status checks, simple transforms | init-output, render-mermaid, report |
 
-The **product** plugin follows the same tiers (per-skill `model` in `skills/product/common/skill-dependencies.yaml`): **opus** (16 skills) for strategy/judgment (`define-vision`, `define-success-metrics`, `research-landscape`, `design-revenue`, `name-product`, `validate-assumptions`, `generate-persona`, `design-positioning`, `create-domain-story`, `design-system`, `define-data-model`, `map-domains`, `design-api`, `design-architecture`, `review`, `adapt-change`), **sonnet** (10 skills) for structured generation and orchestration (`define-scope`, `map-journey`, `generate-ui-mock`, `generate-frontend`, `define-features`, `design-sla`, `define-nfr`, `report`, plus the `start` orchestrator and `init-output`).
+The **product** plugin follows the same tiers (per-skill `model` in `skills/product/common/skill-dependencies.yaml`): **opus** (16 skills) for strategy/judgment (`define-vision`, `define-success-metrics`, `research-landscape`, `design-revenue`, `name-product`, `validate-assumptions`, `generate-persona`, `design-positioning`, `create-domain-story`, `design-system`, `define-data-model`, `map-domains`, `design-api`, `design-architecture`, `review`, `adapt-change`), **sonnet** (10 skills) for structured generation and orchestration (`define-scope`, `map-journey`, `generate-ui-mock`, `generate-frontend`, `define-features`, `design-sla`, `define-nfr`, `report`, plus the `start` orchestrator and `init-output`), and **haiku** (1 skill) for the status renderer (`report-status`). That last one is the plugin's 27th skill and the only one the manifest does not list — it is not a pipeline phase, so its `model` lives in its own SKILL.md frontmatter.
 
 ## Tool Priority
 
@@ -262,11 +195,15 @@ do not load ScalarDB rules for non-ScalarDB work.
 |----------|----------|--------------|
 | product input requirements | docs/product-input-requirements.md | Inputs the user must supply before running the product pipeline |
 | architect input requirements | docs/architect-input-requirements.md | Inputs the user must supply before running the architect pipeline (legacy or greenfield) |
+| product skill rule set | rules/product/*.md (18 files: vision-frameworks, success-metrics, scope-prioritization, revenue-models, assumption-validation, persona-jtbd, journey-mapping, positioning-kano-hook, naming-frameworks, design-system, ui-to-domain, atomic-react-storybook, ddd-strategic, api-led-connectivity, sla-nfr, architecture-and-tech-fitness, review-and-report, adaptation-engine) | Editing a `/product:*` skill. Each product SKILL.md `@`-references the one it needs, so read a file here only when working on that skill — never load the set |
 | Open Questions protocol | rules/open-questions.md | Any point where a skill would write `TBD` — how to ask the user with AskUserQuestion (free text via the appended "Other"), what never to ask, and how to record what stays open |
 | Token pricing & usage tracking | rules/token-pricing.md | Estimating run cost, or reading the `work/token-usage.json` ledger recorded during execution |
 | API contract fidelity | rules/api-contract-fidelity.md | Designing an API surface, generating API-layer code or contract tests, or verifying code against the contract — OpenAPI as the single contract, the `operationId` binding, the contract map, the drift protocol, the contract test stack |
 | API error standard | rules/api-error-standard.md | Designing error responses, generating an exception handler, or reviewing either — RFC 9457 Problem Details, the problem type registry, and the ScalarDB exception to HTTP mapping (incl. the `UnknownTransactionStatusException` branch) |
 | API security checks | rules/api-security-checks.md | Reviewing an API design or API-layer code — OWASP API Security Top 10 (2023) as concrete checks, plus tenant-isolation and transaction-boundary security |
+| API style selection | rules/api-style-selection.md | Choosing REST / GraphQL / hybrid / gRPC / AsyncAPI per API surface — the per-surface decision unit, the evidence it rests on, and `reports/03_design/api-style-decisions.json` as the canonical machine-readable contract (the `.md` is a generated view; the database product never derives the style) |
+| GraphQL contract fidelity | rules/graphql-contract-fidelity.md | Designing a GraphQL schema, generating resolvers or GraphQL contract tests, or verifying code against the SDL — the `.graphqls` files as the contract, the `<parentType>.<fieldName>` field coordinate as the implementation join key, schema evolution, the error carrier, the contract-map shape, the drift protocol |
+| GraphQL security checks | rules/graphql-security-checks.md | Reviewing a GraphQL design or GraphQL resolver code — read **after** rules/api-security-checks.md: nested-field authorization, tenant isolation, query-depth/complexity denial of service, DataLoader cache partitioning, subscriptions, introspection/tooling, error leakage |
 | AI code quality gate | rules/ai-code-quality-gate.md | Gating generated or AI-written code before human review — the eight stages, their evidence requirements, and the verdict rules |
 | Dependency version selection | rules/dependency-versions.md | Writing any file that pins a version (build.gradle/pom, package.json, image tags, Helm/Terraform/K8s) — how to look up the current stable release and whether to confirm it with the user |
 | OKF knowledge bundle (ScalarDB/ScalarDL/ScalarDB Saga official docs, version-pinned) | rules/okf-knowledge-bundle.md | Any ScalarDB/ScalarDL/ScalarDB Saga design, implementation, review, or migration decision — resolve the bundle, pin product/version/edition, ground the answer in that release's docs |

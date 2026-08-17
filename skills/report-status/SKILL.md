@@ -5,7 +5,7 @@ description: |
   changed after it finished), how many of its declared outputs exist, whether it is
   running right now, and what it has cost — on the terminal, live or as a one-shot
   render.
-  /architect:report-status [--once] [--group=core|extension] [--phase=<name>] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en] to invoke.
+  /architect:report-status [--once] [--view=product|architect|codegen|backlog] [--group=core|extension] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en] to invoke.
   Wraps ${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh, which on a terminal defaults to a
   live dashboard polling work/pipeline-progress.json every 10s, with an action menu that
   generates the next slash command per phase, an `a` key that asks Claude about the
