@@ -166,19 +166,69 @@ for cmd, sig in sorted(EN_SIGS.items()):
             cmd, sorted(declared), sorted(flag_tokens(sig))))
 check("catalogue flag set == the skill's own declared set", not mismatched, mismatched)
 
-# A skill that documents flags as a bulleted list in its body must have all of them offered by
-# the catalogue. Only a subset relation is asserted: those lists are often partial (they explain
-# the interesting flags, not every one), so equality would fail on skills that are correct.
-# This is the check that would have caught /architect:pipeline's --analyze-only being nowhere in
-# any summary. A flag documented in neither the frontmatter nor a bullet list is not covered here.
+FLAG = r"--[a-z][a-z0-9-]*(?:\{[a-z]+\}|<[a-z_-]+>)?"
+
+
+def body_flags(cmd, body):
+    """Flags a skill documents about itself, in the three shapes the corpus actually uses.
+
+    Deliberately not "every --token in the file": bodies quote other skills' flags
+    (`verify-implementation --gate`) and shell flags, which are not this command's surface.
+    """
+    found = set()
+    found |= set(re.findall(r"^- `(" + FLAG + r")`", body, re.M))          # bullet list
+    for line in body.splitlines():
+        stripped = line.strip()
+        row = re.match(r"\|\s*`(" + FLAG + r")`(?:\s*/\s*`(" + FLAG + r")`)?", stripped)
+        if row:                                                            # option table row
+            found |= {g for g in row.groups() if g}
+        if cmd in line:                                                    # its own invocation
+            found |= set(re.findall(FLAG, line[line.index(cmd):]))
+    return found
+
+
+# Every flag a skill documents about itself must be offered by the catalogue. A subset relation,
+# not equality: these lists are often partial, so equality would fail on correct skills.
+# This is what caught /architect:pipeline's --analyze-only (documented in the body, present in no
+# summary) and /product:generate-frontend's three version flags (in its usage line and option
+# table, missing from its own frontmatter signature and therefore from the catalogue).
+# Residual gap, stated rather than implied: a flag mentioned only in free prose is not checked.
 undocumented = []
 for cmd, sig in sorted(EN_SIGS.items()):
     body = read(os.path.join(skill_dir[cmd], "SKILL.md")).split("---", 2)[2]
-    bulleted = set(re.findall(r"^- `(--[a-z][a-z0-9-]*(?:\{[a-z]+\}|<[a-z_-]+>)?)", body, re.M))
-    absent = bulleted - flag_tokens(sig)
+    absent = body_flags(cmd, body) - flag_tokens(sig)
     if absent:
         undocumented.append("%s: %s" % (cmd, sorted(absent)))
-check("every flag a skill lists in its body is in the catalogue", not undocumented, undocumented)
+check("every flag a skill documents about itself is in the catalogue", not undocumented, undocumented)
+
+# Where a skill is a thin wrapper over a shell tool, the catalogue must not offer a flag that
+# tool would reject. This is the only check backed by an argument parser rather than by prose,
+# and it is the one that would have caught /architect:report-status documenting --view/--exec in
+# one place and not another: the tool is the arbiter. Tools with no long-flag parser (positional
+# subcommands, e.g. update-okf-bundle.sh) are skipped rather than guessed at.
+rejected = []
+for cmd, sig in sorted(EN_SIGS.items()):
+    skill = read(os.path.join(skill_dir[cmd], "SKILL.md"))
+    wrapped = set(re.findall(r"tools/([a-z0-9_-]+\.sh)", skill))
+    # A skill may name several tools (the status skills cross-reference each other), so the
+    # arbiter is the union of what the tools it names accept, not each one separately.
+    accepted, arbiters = set(), []
+    for tool in sorted(wrapped):
+        path = os.path.join("tools", tool)
+        if not os.path.exists(os.path.join(ROOT, path)):
+            continue
+        src = read(path)
+        flags = set(re.findall(r"(--[a-z][a-z0-9-]*)[=*]{0,2}\)", src))
+        flags |= set(re.findall(r"(--[a-z][a-z0-9-]*)\|", src))
+        if len(flags) < 5:             # not a flag-driven tool; nothing to arbitrate
+            continue
+        accepted |= flags
+        arbiters.append(tool)
+    if arbiters:
+        unknown = {f.split("=")[0] for f in flag_tokens(sig)} - accepted
+        if unknown:
+            rejected.append("%s: %s not accepted by %s" % (cmd, sorted(unknown), arbiters))
+check("no catalogue flag would be rejected by the tool the skill wraps", not rejected, rejected)
 
 # ------------------------------------------------------------ group counts
 

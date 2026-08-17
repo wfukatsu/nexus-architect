@@ -205,10 +205,17 @@ Phase order and the `mvp`/`core-only`/`ux-to-spec`/`full` profiles are defined i
 
 ## Invocation signatures
 
-The complete flag set for every command, harvested from each `SKILL.md` frontmatter (the
-authoritative source) and from the tools the status/cost commands wrap. A command listed with no
-flags takes none. Skills nested under a migration router (`skills/migrate-oracle/…`) are read by
-path by their router and are not slash commands.
+Each command's own flags, harvested from its `SKILL.md` (the authoritative source) and, for the
+commands that wrap a shell tool, checked against that tool's argument parser by
+`tools/docs_consistency.test.py`. A command listed with no flags takes none.
+
+Two things this block does **not** list. The terminal commands (`report-status`,
+`report-backlog-status`, `report-token-cost`) pass presentation flags straight through to
+`tools/nexus-status.sh` / `tools/token-cost-report.sh` — `--live`/`--watch[=SEC]`, `--plugin`,
+`--width`, `--color`/`--no-color`, `--glyphs`, `--debug`, and for the cost report `--currency`,
+`--fx`, `--top`, `--log-tail`; run the tool with `--help` for the current set, which is where they
+are defined. And skills nested under a migration router (`skills/migrate-oracle/…`) are read by
+path by their router, so they are not slash commands and have no signature here.
 
 ```text
 # Orchestration & setup
@@ -321,7 +328,7 @@ path by their router and are not slash commands.
 /product:generate-ui-mock [--fidelity=lo|mid] [--auto] [--lang=ja|en]
 /product:define-features [--auto] [--lang=ja|en]
 /product:define-data-model [--auto] [--lang=ja|en]
-/product:generate-frontend [--design-system=<name>] [--out=<path>] [--auto] [--lang=ja|en]
+/product:generate-frontend [--design-system=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--auto] [--lang=ja|en]
 /product:map-domains [--auto] [--lang=ja|en]
 /product:design-api [--auto] [--lang=ja|en]
 /product:design-sla [--auto] [--lang=ja|en]

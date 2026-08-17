@@ -205,10 +205,17 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 
 ## 呼び出しシグネチャ
 
-各コマンドの完全なフラグ一覧。出典は各 `SKILL.md` の frontmatter（正本）と、状態・コスト系コマンドが
-ラップしているツール本体です。フラグの記載がないコマンドは引数を取りません。移行ルーター配下の
-ネストされたスキル（`skills/migrate-oracle/…`）はルーターがパス参照で読むもので、スラッシュコマンド
-ではありません。
+各コマンド自身のフラグ一覧。出典は各 `SKILL.md`（正本）で、シェルツールをラップするコマンドについては
+そのツールの引数パーサと `tools/docs_consistency.test.py` が突き合わせています。記載がないコマンドは
+引数を取りません。
+
+このブロックが**列挙しないもの**が2つあります。ターミナル系コマンド（`report-status`、
+`report-backlog-status`、`report-token-cost`）は表示系フラグを `tools/nexus-status.sh` /
+`tools/token-cost-report.sh` にそのまま渡します — `--live`/`--watch[=SEC]`、`--plugin`、`--width`、
+`--color`/`--no-color`、`--glyphs`、`--debug`、コストレポートではさらに `--currency`、`--fx`、
+`--top`、`--log-tail`。定義元はツール側なので、最新の一覧は `--help` で確認してください。もう1つは
+移行ルーター配下のネストされたスキル（`skills/migrate-oracle/…`）で、ルーターがパス参照で読むため
+スラッシュコマンドではなく、ここにシグネチャはありません。
 
 ```text
 # Orchestration & setup
@@ -321,7 +328,7 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 /product:generate-ui-mock [--fidelity=lo|mid] [--auto] [--lang=ja|en]
 /product:define-features [--auto] [--lang=ja|en]
 /product:define-data-model [--auto] [--lang=ja|en]
-/product:generate-frontend [--design-system=<name>] [--out=<path>] [--auto] [--lang=ja|en]
+/product:generate-frontend [--design-system=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--auto] [--lang=ja|en]
 /product:map-domains [--auto] [--lang=ja|en]
 /product:design-api [--auto] [--lang=ja|en]
 /product:design-sla [--auto] [--lang=ja|en]
