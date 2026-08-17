@@ -43,6 +43,12 @@ Skill bodies follow a house structure (Desired Outcome → Decision Criteria →
 suite exits 1 on failure. Each guards a contract that is otherwise only stated in prose — when you
 change the thing, run the suite that owns it.
 
+`bash tools/run-tests.sh` runs all of them (`-v` to stream their output, or a substring to run one).
+It **discovers** suites — any `*.test.py` / `*.test.sh` in the tree — so a new suite is picked up
+without editing the runner or CI. `.github/workflows/contracts.yml` runs the same command on every
+push and pull request: per @rules/ai-code-quality-gate.md the CI half is the enforced one, and a
+contract that runs only when someone remembers is not enforced at all.
+
 | Suite | Guards |
 |-------|--------|
 | `hooks/*.sh <file>` (file-path CLI mode) | The two output validators themselves: frontmatter present, Mermaid parses |
@@ -54,7 +60,7 @@ change the thing, run the suite that owns it.
 | `tools/lib/pipeline_status_data.test.py` | Pipeline-status derivation, and with it the two manifests themselves: mini-YAML parsing, the `id_prefix` registry (declared, used in its own SKILL.md, non-colliding — `NFR-` the sole deliberate cross-manifest claim), registry-over-filesystem precedence and its drift, the four shared phase names resolved by `plugin` (or corroborated by outputs), the `<plugin>:<phase>` token buckets, upstream-change invalidation propagating down the chain, extension-tier and codegen grouping staying in step with each SKILL.md |
 | `tools/graphql_skills.test.py` | The Spring for GraphQL chain (71 checks): the conditional phases downstream of `design-api`, `api-style-decisions.json` as the canonical decision that withdraws the wrong generator and fails closed when invalid, and the design-safety rules (database never selects GraphQL, field coordinate as join key, tenant-safe loading, query DoS budgets) |
 | `tools/nexus-status.test.sh` | The dashboard's CLI contract on scratch projects: project resolution, 0/1/2 exit codes, the four addressable views, every output mode, `--group`/`--phase`/`--epic` narrowing `--json` too, unknown filters failing as usage, cross-view agreement, refresh poll |
-| `tools/docs_consistency.test.py` | The documentation split itself: both catalogues describing all 99 registered commands, the signature block matching each SKILL.md (no flag invented by prose, none dropped, none re-spelled, every flag a skill documents about itself offered, and — for the skills that wrap a shell tool — no flag that tool's parser would reject), the grouped tables in CLAUDE.md/README summing to the registry, the extension-tier and codegen prose equal to `EXTENSION_PHASES`/`CODEGEN_PHASES`, AGENTS.md knowing every skill, and the catalogue pointer staying un-`@`-imported |
+| `tools/docs_consistency.test.py` | The documentation split itself: both catalogues describing all 99 registered commands, the signature block matching each SKILL.md (no flag invented by prose, none dropped, none re-spelled, every flag a skill documents about itself offered, and — for the skills that wrap a shell tool — no flag that tool's parser would reject), the grouped tables in CLAUDE.md/README summing to the registry, the extension-tier and codegen prose equal to `EXTENSION_PHASES`/`CODEGEN_PHASES`, AGENTS.md knowing every skill, the catalogue pointer staying un-`@`-imported, no flag mentioned anywhere without belonging to a documented surface, and the Japanese catalogue keeping row order plus each row's model tier / flags / tool references |
 | `tools/lib/status_tui.test.py` | The curses shell's interaction contract without a terminal: `c` copies rather than opens, the action-menu/help behaviour with and without `--exec`, an empty tree naming its filter, `q` as the only quit key |
 
 **The one suite that runs real code.** `samples/scalardb-transaction-tests/` is a runnable Gradle

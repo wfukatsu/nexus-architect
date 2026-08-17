@@ -230,6 +230,127 @@ for cmd, sig in sorted(EN_SIGS.items()):
             rejected.append("%s: %s not accepted by %s" % (cmd, sorted(unknown), arbiters))
 check("no catalogue flag would be rejected by the tool the skill wraps", not rejected, rejected)
 
+# The reverse gap, and the last one: a flag mentioned in a skill's prose that belongs to no
+# documented surface at all. Attribution is per fenced code block rather than per line, because
+# a multi-line invocation puts the tool on the first line and its flags on continuation lines —
+# reading line by line leaves those orphaned and unclassifiable.
+OTHER_TOOLS = (
+    "git", "gh", "glab", "docker", "docker-compose", "npm", "npx", "gradle", "./gradlew",
+    "curl", "helm", "kubectl", "terraform", "jq", "java", "python3", "bash", "sh", "mvn",
+    "semgrep", "trivy", "gitleaks", "osv-scanner", "scalardb", "psql", "mysql", "sqlplus",
+)
+# Presentation flags the terminal skills hand to the tool they wrap; the catalogue names them as
+# a passthrough set instead of listing them per command (docs/skill-reference.md § signatures).
+PASSTHROUGH = {"--live", "--watch", "--plugin", "--width", "--color", "--no-color", "--glyphs",
+               "--debug", "--currency", "--fx", "--top", "--log-tail", "--help"}
+EVERY_DOCUMENTED_FLAG = set()
+for sig in EN_SIGS.values():
+    EVERY_DOCUMENTED_FLAG |= {f.split("=")[0] for f in flag_tokens(sig)}
+
+
+def blocks(body):
+    """The body as attribution units: each fenced code block whole, and each prose line alone."""
+    out, fence, buf = [], False, []
+    for line in body.splitlines():
+        if line.lstrip().startswith("```"):
+            if fence:
+                out.append("\n".join(buf))
+                buf = []
+            fence = not fence
+            continue
+        if fence:
+            buf.append(line)
+        else:
+            out.append(line)
+    if buf:
+        out.append("\n".join(buf))
+    return out
+
+
+# Third-party CLI flags a skill names in prose, away from the invocation that would attribute
+# them. The escape hatch is explicit and each entry names its owner, so the list stays auditable
+# rather than becoming a place to bury genuinely undeclared flags.
+EXTERNAL_TOOL_FLAGS = {
+    "--coordinator": "scalardb-schema-loader",
+    "--config": "scalardb-schema-loader / docker",
+}
+
+
+def bare(flag):
+    """--skip-{phase} and --skip- both reduce to --skip, so placeholders stop being a mismatch."""
+    stem = re.sub(r"(\{[a-z]+\}|<[a-z_-]+>)$", "", flag.split("=")[0])
+    return stem.rstrip("-")
+
+
+unattributed = []
+for cmd, sig in sorted(EN_SIGS.items()):
+    body = read(os.path.join(skill_dir[cmd], "SKILL.md")).split("---", 2)[2]
+    own = {bare(f) for f in flag_tokens(sig)}
+    for unit in blocks(body):
+        names_other_tool = any(re.search(r"(?:^|[\s`|(/])" + re.escape(t) + r"\s", unit, re.M)
+                               for t in OTHER_TOOLS)
+        for hit in re.finditer(r"(.?)(--[a-z][a-z0-9-]*)", unit):
+            prefix, token = hit.groups()
+            # `var(--token-*)` is a CSS custom property, not a flag: a flag is never a call arg.
+            if prefix == "(":
+                continue
+            if bare(token) in own or token in PASSTHROUGH or names_other_tool:
+                continue
+            if token in EXTERNAL_TOOL_FLAGS:
+                continue
+            # A flag of another registered command, quoted as a cross-reference, is fine.
+            if token in EVERY_DOCUMENTED_FLAG:
+                continue
+            unattributed.append("%s: %s" % (cmd, token))
+check("no flag is mentioned without belonging to a documented surface",
+      not unattributed, sorted(set(unattributed)))
+
+# ------------------------------------------------ translation stays in step
+
+print("The Japanese catalogue keeps structural step with the English one")
+
+
+def rows(doc):
+    """Commands in table order, per section, so a dropped or reordered row is visible."""
+    out, section = [], None
+    for line in catalogue_body(doc).splitlines():
+        if line.startswith("## "):
+            section = len(out)
+        hit = re.match(r"\|\s*`(/[a-z]+:[a-z-]+)`", line.strip())
+        if hit:
+            out.append((section, hit.group(1)))
+    return out
+
+
+EN_ROWS, JA_ROWS = rows(EN), rows(JA)
+check("both catalogues list the same commands in the same order and sections",
+      EN_ROWS == JA_ROWS,
+      [p for p in zip(EN_ROWS, JA_ROWS) if p[0] != p[1]][:5]
+      or "row counts %d vs %d" % (len(EN_ROWS), len(JA_ROWS)))
+check("section counts match",
+      len(re.findall(r"^## ", catalogue_body(EN), re.M)) ==
+      len(re.findall(r"^## ", catalogue_body(JA), re.M)))
+
+# Structure is checkable; meaning is not. A translated description can still go stale while its
+# row stays in place — that is how the Japanese report-status row kept describing two dashboard
+# views after there were four. What can be asserted is that a row's own machine-readable parts
+# (the model tier, and any `--flag` or file path it quotes) survive translation unchanged.
+drifted = []
+for (_, cmd) in EN_ROWS:
+    def row_of(doc):
+        hit = re.search(r"^\|\s*`" + re.escape(cmd) + r"`.*$", catalogue_body(doc), re.M)
+        return hit.group(0) if hit else ""
+    en_row, ja_row = row_of(EN), row_of(JA)
+    for pattern, what in ((r"\b(opus|sonnet|haiku)\b", "model"),
+                          (r"(--[a-z][a-z0-9-]*)", "flag"),
+                          (r"`(tools/[a-z0-9_.-]+)`", "tool")):
+        if set(re.findall(pattern, en_row)) != set(re.findall(pattern, ja_row)):
+            drifted.append("%s: %s — %s vs %s" % (cmd, what,
+                                                  sorted(set(re.findall(pattern, en_row))),
+                                                  sorted(set(re.findall(pattern, ja_row)))))
+check("each row's model tier, flags and tool references survive translation",
+      not drifted, drifted[:6])
+
 # ------------------------------------------------------------ group counts
 
 print("Grouped summaries partition the corpus")
