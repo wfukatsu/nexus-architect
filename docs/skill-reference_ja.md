@@ -134,6 +134,7 @@
 | コマンド | モデル | 説明 |
 |---------|-------|------|
 | `/architect:init-output` | haiku | 出力ディレクトリの初期化 |
+| `/architect:update-knowledge` | haiku | バージョン固定の OKF ScalarDB/ScalarDL/ScalarDB Saga ナレッジバンドルの取得・更新（`tools/update-okf-bundle.sh` をラップ。フラグなし=存在保証、`--latest`=最新を取得、`--status`=解決パス・コミット・収録バージョンを表示） |
 
 ## ScalarDB開発
 
@@ -201,3 +202,131 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 | `/product:report` | sonnet | R. レビュー & レポート | 成果物を 1 つの自己完結型 HTML レポートに統合（冒頭に検証ステータス） |
 | `/product:report-status` | haiku | R. レビュー & レポート | プロダクトパイプライン進捗のターミナルダッシュボード: フェーズツリーに状態(完了後に上流が更新されたフェーズは `stale`)・宣言出力の充足度・ゲート判定と未検証の前提・フェーズ別コストを表示、次コマンド生成のアクションメニュー付き(`tools/nexus-status.sh` をラップ) |
 | `/product:adapt-change` | opus | 6. 適応 | 再伝播エンジン：変化から影響範囲を算定し、影響を受けるスキルのみ再実行 |
+
+## 呼び出しシグネチャ
+
+各コマンドの完全なフラグ一覧。出典は各 `SKILL.md` の frontmatter（正本）と、状態・コスト系コマンドが
+ラップしているツール本体です。フラグの記載がないコマンドは引数を取りません。移行ルーター配下の
+ネストされたスキル（`skills/migrate-oracle/…`）はルーターがパス参照で読むもので、スラッシュコマンド
+ではありません。
+
+```text
+# Orchestration & setup
+/architect:start [target_path]
+/architect:pipeline [target_path] [--resume-from=<phase>] [--rerun-from=<phase>] [--skip-<phase>] [--no-scalardb] [--lang=en|ja]
+/architect:init-output [project_name] [--reset]
+/product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--lang=ja|en]
+/product:init-output [project_name] [--reset]
+
+# Requirements, investigation, analysis, evaluation
+/architect:define-requirements [target_path] [--input=<file|dir>] [--auto] [--no-scalardb]
+/architect:investigate [target_path]
+/architect:investigate-security [target_path]
+/architect:analyze [target_path]
+/architect:analyze-data-model [target_path]
+/architect:evaluate-mmi [target_path]
+/architect:evaluate-ddd [target_path]
+/architect:integrate-evaluations
+
+# Design
+/architect:map-domains
+/architect:redesign
+/architect:create-domain-story [--domain=<name>] [--auto]
+/architect:design-microservices
+/architect:select-scalardb-edition
+/architect:design-scalardb
+/architect:design-scalardb-analytics
+/architect:design-data-layer
+/architect:design-api
+/architect:design-graphql [--service=<name>] [--lang=en|ja]
+/architect:design-implementation
+/architect:design-infrastructure
+/architect:design-security
+/architect:design-observability
+/architect:design-disaster-recovery
+
+# Code generation & verification
+/architect:generate-test-specs
+/architect:generate-scalardb-code
+/architect:generate-api-code [--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]
+/architect:generate-graphql-code [--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]
+/architect:generate-contract-tests [--service=<name>] [--out=<path>] [--stack=default|schemathesis|pact|archunit] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]
+/architect:generate-infra-code
+/architect:generate-docs [target] [--scope=changed|service|repo] [--source-root=<path>] [--readme-only] [--issue=<id>] [--dry-run] [--auto] [--lang=en|ja]
+/architect:verify-implementation [target_path] [--service=<name>] [--scope=changed|service|repo] [--source-root=<path>] [--gate] [--item=<backlog-id>] [--auto] [--lang=en|ja]
+
+# Review
+/architect:review-consistency
+/architect:review-scalardb
+/architect:review-data-integrity
+/architect:review-operations
+/architect:review-risk
+/architect:review-business
+/architect:review-api-security [--mode=design|code] [--source-root=<path>] [--scope=changed|service|repo]
+/architect:review-synthesizer
+/architect:review-report
+
+# Backlog delivery
+/architect:export-backlog [--target=gitlab|github] [--project=<path>|--repo=<owner/name>] [--group=<gitlab-group>] [--dry-run] [--update] [--lang=en|ja]
+/architect:deliver-backlog [--epic=<id>] [--issue=<id>] [--from=implement|review|merge] [--auto] [--yes-merge] [--max-fix-rounds=N] [--export] [--dry-run] [--lang=en|ja]
+/architect:implement-backlog [item] [--epic=<id>] [--build-context] [--review-epic[=<id>]] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja]
+/architect:review-issue [item] [--epic=<id>] [--max-fix-rounds=N] [--base=<branch>] [--no-fix] [--dry-run] [--auto] [--lang=en|ja]
+/architect:merge-issue [item|mr|pr] [--strategy=merge|squash|rebase] [--delete-branch] [--yes-merge] [--dry-run] [--auto] [--lang=en|ja]
+/architect:capture-followup [title] [--parent=<local_id|#iid>] [--from=<file|issue-ref>] [--queue-only] [--flush] [--dry-run] [--auto] [--lang=en|ja]
+/architect:report-backlog-status [--once] [--no-sync] [--exec] [--epic=<id>] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]
+
+# Reporting, cost & status
+/architect:report
+/architect:render-mermaid [target_path]
+/architect:estimate-cost
+/architect:estimate-token-cost [target_path]
+/architect:report-token-cost [--once] [--follow] [--session=ID] [--since=7d] [--breakdown=tokens|cost] [--ascii] [--ambiguous-width=2] [--md] [--json] [--lang=ja|en]
+/architect:report-status [--once] [--view=product|architect|codegen|backlog] [--group=core|extension] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]
+/architect:update-knowledge [--latest] [--status]
+/product:report [--auto] [--lang=ja|en]
+/product:report-status [--once] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]
+
+# Database migration
+/architect:migrate-database
+/architect:migrate-oracle
+/architect:migrate-mysql
+/architect:migrate-postgresql
+
+# ScalarDB development
+/scalardb:model
+/scalardb:config
+/scalardb:scaffold
+/scalardb:error-handler
+/scalardb:crud-ops
+/scalardb:jdbc-ops
+/scalardb:local-env
+/scalardb:docs
+/scalardb:build-app
+/scalardb:review-code
+/scalardb:migrate
+
+# Product direction
+/product:define-vision [target] [--input=<file|dir>] [--auto] [--lang=ja|en] [--no-research]
+/product:name-product [target] [--input=<file|dir>] [--count=N] [--style=acronym|initialism|hybrid] [--seed=<letters|word>] [--auto] [--lang=ja|en]
+/product:define-success-metrics [--auto] [--lang=ja|en]
+/product:research-landscape [target] [--input=<file|dir>] [--auto] [--lang=ja|en] [--no-research]
+/product:design-revenue [--input=<file|dir>] [--auto] [--lang=ja|en]
+/product:define-scope [--constraints=<file|text>] [--input=<file|dir>] [--auto] [--lang=ja|en]
+/product:validate-assumptions [--auto] [--lang=ja|en]
+/product:generate-persona [--input=<file|dir>] [--auto] [--lang=ja|en]
+/product:map-journey [--auto] [--lang=ja|en]
+/product:design-positioning [--auto] [--lang=ja|en]
+/product:create-domain-story [--persona=<PER>] [--job=<JOB>] [--domain=<CTX>] [--auto] [--lang=ja|en]
+/product:design-system [--name=<id>] [--import=<path>] [--fidelity=lo|mid] [--auto] [--lang=ja|en]
+/product:generate-ui-mock [--fidelity=lo|mid] [--auto] [--lang=ja|en]
+/product:define-features [--auto] [--lang=ja|en]
+/product:define-data-model [--auto] [--lang=ja|en]
+/product:generate-frontend [--design-system=<name>] [--out=<path>] [--auto] [--lang=ja|en]
+/product:map-domains [--auto] [--lang=ja|en]
+/product:design-api [--auto] [--lang=ja|en]
+/product:design-sla [--auto] [--lang=ja|en]
+/product:define-nfr [--auto] [--lang=ja|en]
+/product:design-architecture [--auto] [--lang=ja|en]
+/product:review [--auto] [--lang=ja|en]
+/product:adapt-change --change="<text>" [--type=constraint|market|competitor|tech|regulation] [--auto] [--lang=ja|en]
+```
