@@ -37,3 +37,4 @@ Thumbs.db
 # Session working artifacts (findings queue, local review-agent config)
 todos/
 *.local.md
+reports.prev/

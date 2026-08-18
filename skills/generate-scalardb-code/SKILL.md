@@ -47,10 +47,12 @@ disagreement.
 After resolving the ScalarDB version, verify the deprecation status of every ScalarDB API the
 design commits to **against the resolved artifact** (e.g. `javap` on the jar from the Gradle
 cache) or the pinned release notes in the OKF bundle — not against the pattern templates, which
-are dated examples. Known case: on 3.19+ the application-driven 2PC surface
-(`TwoPhaseCommitTransactionManager`, `TwoPhaseCommitTransaction`,
-`getTwoPhaseCommitTransactionManager()`, `getUnknownTransactionId()`) is `@Deprecated`
-(@rules/scalardb-2pc-patterns.md). Using a deprecated API deliberately (recorded design
+are dated examples. Do not carry a deprecation claim over from this document either: the
+application-driven 2PC surface (`TwoPhaseCommitTransactionManager`, `TwoPhaseCommitTransaction`,
+`getTwoPhaseCommitTransactionManager()`) was previously described here as `@Deprecated` on 3.19+,
+and that is **not** what the pinned bundle says — `two-phase-commit-transactions.md` is
+`status: stable` on 3.19 (@rules/scalardb-2pc-patterns.md). The check stands; the presumed answer
+does not. Using a deprecated API deliberately (recorded design
 deviation) requires `@SuppressWarnings("deprecation")` scoped to the smallest element, an
 in-code comment naming the deviation and the non-deprecated migration path, and a line in the
 run summary. Unexplained deprecation warnings in the build output are a defect, not noise.
