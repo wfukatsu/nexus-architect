@@ -7,6 +7,46 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 3 つのプラグイン（`product`・`architect`・`scalardb`）は同一の番号で一括リリースされます。
 
+## [0.28.1] - 2026-08-18
+
+主題が 1 つの正確性リリースです。本ツールキットは「ScalarDB のアプリケーション主導 2PC API は 3.19
+で非推奨である」と全プロジェクトに伝えていましたが、これは事実ではありませんでした。この誤りは、
+`samples/ec-monolith` の設計に対してツールキット自身のレビュースキルを走らせた際に検出されたもので、
+その時点で既に設計判断を 1 つ動かしていました。
+
+### Fixed
+- **ScalarDB 3.19 の 2PC 非推奨という主張を、伝播していた 5 箇所すべてから撤回。**
+  `rules/scalardb-2pc-patterns.md` は `TwoPhaseCommitTransactionManager`・
+  `TwoPhaseCommitTransaction`・`getTwoPhaseCommitTransactionManager()` が 3.19 以降 `@Deprecated`
+  であると記載していました。ピン留めした OKF バンドルの記述は逆で、
+  `products/scalardb/3.19/two-phase-commit-transactions.md` は Community / Enterprise Standard /
+  Enterprise Premium の全エディションで `status: stable`、v3.19.0 のリリースノートに非推奨の記載は
+  なく、`scalardb-samples/microservice-transaction-sample` は現在もこの API を使用しています。
+  `rules/okf-knowledge-bundle.md` §5 の優先順位ではバージョン固定バンドルがローカル要約に優先する
+  ため、誤っていたのは要約の側です。「アプリケーション主導 2PC はもはや *推奨既定ではない*（共有
+  クラスタと Global Transaction API が先に来る）」という正しい記述は維持しています。
+- **2PC コードに対する `@SuppressWarnings("deprecation")` の要求を撤廃。**
+  `skills/generate-scalardb-code/SKILL.md` と 2 つの 2PC テンプレート
+  （`skills/common/references/code-patterns/{core,cluster}-crud-2pc.md`）は、2PC API を使う際に
+  逸脱記録と抑制アノテーションを必須としていました。この義務は偽の前提の上にのみ成立していたため、
+  生成されたプロジェクトは存在しない非推奨に対する抑制を抱え込む状態でした。**非推奨チェック自体は
+  必須のまま**残し（解決済み jar への `javap`、または実際に対象とするリリースのピン留めドキュメント
+  で検証する）、決め打ちの答えだけを削除しています。
+- **`rules/api-error-standard.md` がアクセサ選択の根拠に偽の主張を使わないよう修正。**
+  推奨は `TransactionException#getTransactionId()` のまま変更ありません（3.19 バンドルの
+  `scalardb-sql/sql-api-guide.md` が記載しているため）。撤回したのは「`getUnknownTransactionId()`
+  は 2PC 面の非推奨に伴い `@Deprecated`」という根拠部分です。このアクセサの状態はバンドルからは
+  **どちらとも判定できない**ため（javadoc はバンドルに含まれず、識別子が 3.19 の文書に一度も登場
+  しない）、本ファイルは状態について何も主張せず、リリースごとの javadoc 検証を求める形に改めました。
+  「非推奨ではない」と断定することは、符号を反転させて元の誤りを繰り返すことに等しいためです。
+
+### Notes
+- 下方の v0.27.0 エントリは当時出荷した内容の記録として残しており、書き換えていません。履歴は改変
+  しない方針です。
+- 検出元は `/architect:review-scalardb`（指摘 SDB-101）。`okf-knowledge-bundle` の優先順位規則が
+  設計どおり機能した事例で、ピン留めバンドルに接地したスキルがローカル要約と矛盾し、バンドルが
+  優先されました。
+
 ## [0.28.0] - 2026-08-17
 
 ドキュメント整合性のリリースです。`CLAUDE.md` のレビューで v0.26.0 の GraphQL 対応が反映しきれて

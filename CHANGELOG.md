@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
 
+## [0.28.1] - 2026-08-18
+
+A correctness release with one subject: the toolkit told every project that ScalarDB's
+application-driven 2PC API is deprecated on 3.19, and it is not. The claim was caught by the
+toolkit's own review skill running against the `samples/ec-monolith` design, where it had already
+changed a design decision.
+
+### Fixed
+- **The ScalarDB 3.19 2PC deprecation claim is withdrawn, in all five places it had spread to.**
+  `rules/scalardb-2pc-patterns.md` stated that `TwoPhaseCommitTransactionManager`,
+  `TwoPhaseCommitTransaction` and `getTwoPhaseCommitTransactionManager()` are `@Deprecated` on
+  3.19+. The pinned OKF bundle says otherwise: `products/scalardb/3.19/two-phase-commit-transactions.md`
+  is `status: stable` across Community / Enterprise Standard / Enterprise Premium, the v3.19.0
+  release notes carry no deprecation entry, and `scalardb-samples/microservice-transaction-sample`
+  still uses the API. Per `rules/okf-knowledge-bundle.md` §5 the version-pinned bundle outranks the
+  local digests, so the digests were wrong. The accurate statement — that application-driven 2PC is
+  no longer the *recommended default*, behind the shared-cluster and Global Transaction API options
+  — is retained.
+- **`@SuppressWarnings("deprecation")` is no longer demanded for 2PC code.**
+  `skills/generate-scalardb-code/SKILL.md` and both 2PC templates
+  (`skills/common/references/code-patterns/{core,cluster}-crud-2pc.md`) required a recorded
+  deviation and a suppression annotation whenever the 2PC API was used. That obligation rested
+  entirely on the false premise, so generated projects were carrying suppressions for a deprecation
+  that does not exist. The *mandatory deprecation check* stays — verify against the resolved jar
+  (`javap`) or the pinned docs for the release actually targeted — but the presumed answer is gone.
+- **`rules/api-error-standard.md` no longer justifies its accessor guidance with the false claim.**
+  `TransactionException#getTransactionId()` remains the recommendation, because the 3.19 bundle
+  documents it (`scalardb-sql/sql-api-guide.md`). What is withdrawn is the rationale that
+  `getUnknownTransactionId()` is `@Deprecated` as part of a 2PC-surface deprecation. The bundle
+  cannot settle that accessor's status either way — javadoc is not bundled and the identifier
+  appears nowhere in the 3.19 docs — so the file now claims nothing about it and requires a
+  per-release javadoc check instead. Asserting the negative would have repeated the original error
+  with the sign flipped.
+
+### Notes
+- The v0.27.0 entry below records the original claim as shipped history and is left untouched;
+  history is not rewritten.
+- Found by `/architect:review-scalardb` (finding SDB-101). The `okf-knowledge-bundle` precedence
+  rule worked as designed: a skill grounded in the pinned bundle contradicted a local digest, and
+  the bundle won.
+
 ## [0.28.0] - 2026-08-17
 
 A documentation-integrity release. A review of `CLAUDE.md` found that the v0.26.0 GraphQL work had
