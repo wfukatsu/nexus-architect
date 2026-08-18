@@ -7,13 +7,15 @@ For applications that need ACID transactions across multiple databases or micros
 > `rules/dependency-versions.md` — the ScalarDB line, Java, and the logging/CLI libraries all
 > move independently of this document.
 >
-> **Deprecation check is mandatory before generating from this template.** On ScalarDB 3.19+ the
-> application-driven 2PC surface used below (`TwoPhaseCommitTransactionManager`,
-> `TwoPhaseCommitTransaction`, `getTwoPhaseCommitTransactionManager()`,
-> `getUnknownTransactionId()`) is `@Deprecated` in favor of the Global Transaction API
-> (option 2 in `rules/scalardb-2pc-patterns.md`). Verify against the resolved jar (`javap`) or the
-> pinned OKF release notes; deliberate use requires a recorded deviation,
-> `@SuppressWarnings("deprecation")` with an in-code rationale, and a migration note.
+> **Deprecation check is mandatory before generating from this template** — but do not assume the
+> answer. The application-driven 2PC surface used below (`TwoPhaseCommitTransactionManager`,
+> `TwoPhaseCommitTransaction`, `getTwoPhaseCommitTransactionManager()`) is **not** deprecated on
+> 3.19: `two-phase-commit-transactions.md` is `status: stable` across all three editions. An earlier
+> revision of this note claimed otherwise and was wrong. Verify against the resolved jar (`javap`)
+> or the pinned OKF docs for the release you actually target; only if that check finds a deprecation
+> do you need `@SuppressWarnings("deprecation")` with an in-code rationale and a migration note.
+> Note that option 1 (shared cluster) and option 2 (Global Transaction API) are still preferred over
+> this template where they apply — see `rules/scalardb-2pc-patterns.md`.
 
 ## build.gradle
 

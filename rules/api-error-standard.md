@@ -109,13 +109,14 @@ idempotency-protected (§5):
 Both carry the ScalarDB transaction ID as the `transaction_id` extension member and log it
 server-side. Neither rolls the transaction back.
 
-Read the ID from the accessor that is **not deprecated on the pinned release** — on ScalarDB 3.19
-that is the inherited **`TransactionException#getTransactionId()`**: `getUnknownTransactionId()`
-is `@Deprecated` there (part of the 3.19 deprecation of the application-driven 2PC surface,
-@rules/scalardb-2pc-patterns.md) and returns the same value. On older releases the dedicated
-`getUnknownTransactionId()` is the documented accessor. Verify against the pinned release before
-generating the handler (@rules/okf-knowledge-bundle.md) — both compile and pass tests, so only the
-version check catches the wrong choice.
+Read the ID with **`TransactionException#getTransactionId()`** — the accessor the 3.19 docs use
+(`scalardb-sql/sql-api-guide.md`). The pinned 3.19 bundle does not document
+`getUnknownTransactionId()` at all, so this file makes no claim about its status; an earlier
+revision asserted it was `@Deprecated` as part of a 3.19 deprecation of the application-driven 2PC
+surface, and that rationale is **withdrawn** — the 2PC surface is not deprecated on 3.19
+(@rules/scalardb-2pc-patterns.md). If you need `getUnknownTransactionId()` on any release, verify it
+against that release's javadoc before generating the handler (@rules/okf-knowledge-bundle.md) — both
+accessors compile and pass tests, so only the version check catches the wrong choice.
 
 This is the single most consequential row in this file. A generated `@RestControllerAdvice` that
 folds `UnknownTransactionStatusException` into a generic 500 handler, or that maps it to a

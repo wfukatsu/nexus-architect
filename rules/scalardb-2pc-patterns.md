@@ -15,14 +15,15 @@ longer the default answer for microservice transactions. Decide in this order:
 |---|-----------|----------|-----------------------|
 | 1 | **Shared-cluster, one-phase commit** | Every service can talk to one ScalarDB Cluster instance. The documented recommendation "whenever possible" | Ordinary one-phase `DistributedTransactionManager`; one service calls `commit()` |
 | 2 | **Global Transaction API** (3.19+, Cluster) | Services need their own Cluster instances (isolation, per-team administration) but you do not want the application sequencing the protocol | `GlobalTransactionManager` — one-phase code; the **Transaction Coordinator** node drives 2PC underneath. The same code also runs single-Cluster; only configuration selects which |
-| 3 | **Application-driven 2PC** (this document) | Pre-3.19, no Transaction Coordinator deployed, Core (Community) without Cluster, or Spring Data JDBC (which does not support the shared-cluster pattern) | `TwoPhaseCommitTransactionManager` — the application sequences `prepare`/`validate`/`commit` and handles partial failure. **On 3.19+ this entire API surface (`TwoPhaseCommitTransactionManager`, `TwoPhaseCommitTransaction`, `getTwoPhaseCommitTransactionManager()`) is `@Deprecated` in favor of option 2.** Choosing it anyway (e.g. as a teaching reference) requires a recorded deviation in the transaction design document, `@SuppressWarnings("deprecation")` with an in-code rationale comment, and an explicit migration note pointing at options 1/2 |
+| 3 | **Application-driven 2PC** (this document) | Pre-3.19, no Transaction Coordinator deployed, Core (Community) without Cluster, or Spring Data JDBC (which does not support the shared-cluster pattern) | `TwoPhaseCommitTransactionManager` — the application sequences `prepare`/`validate`/`commit` and handles partial failure. **Supported, not deprecated**: on 3.19 `two-phase-commit-transactions.md` is `status: stable` across Community / Enterprise Standard / Enterprise Premium, and `scalardb-samples/microservice-transaction-sample` still uses it. It is no longer the *recommended default* — options 1 and 2 come first — so record why it was chosen in the transaction design document |
 | 4 | **ScalarDB Saga** | A single ACID transaction across the services is not possible or not wanted — long-running steps, external systems, eventual consistency acceptable | Saga/TCC definitions with compensations. See @rules/scalardb-saga-patterns.md |
 
 Options 1–3 give strong consistency; option 4 trades it for compensation-based rollback and
 eventual convergence. Record which option was chosen and why in the transaction design document.
 
 Grounding: `products/scalardb/<version>/scalardb-cluster/deployment-patterns-for-microservices.md`
-for options 1 and 3, and `products/scalardb/3.19/releases/release-notes.md` (v3.19.0) for option 2 —
+for options 1 and 3, `products/scalardb/<version>/two-phase-commit-transactions.md` for option 3's
+support status and API, and `products/scalardb/3.19/releases/release-notes.md` (v3.19.0) for option 2 —
 the Global Transaction API and Transaction Coordinator are described in the release notes, and the
 deployment-pattern guide has not yet been updated to cover them. Confirm against the project's
 pinned release before designing on option 2, per @rules/okf-knowledge-bundle.md.
