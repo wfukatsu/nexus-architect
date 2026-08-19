@@ -4,11 +4,12 @@ Instructions for using this repository with Codex while preserving Claude Code p
 
 ## What This Repository Is
 
-This repository is a three-plugin architecture toolkit originally packaged for Claude Code:
+This repository is a four-plugin architecture toolkit originally packaged for Claude Code:
 
 - `architect`: system architecture, refactoring, design, migration, and reporting skills
 - `scalardb`: ScalarDB application development, review, configuration, and scaffolding skills
 - `product`: product-direction skills (product vision through SLA/NFR), nested under `skills/product/`; product rules under `rules/product/`
+- `infra`: multi-cloud, four-environment infrastructure skills (design, implement, review), nested under `skills/infra/`; infra rules under `rules/infra/`
 
 Claude Code continues to use `CLAUDE.md`, `.claude-plugin/`, and slash commands such as `/architect:start` or `/product:start`.
 Codex uses this `AGENTS.md` file plus the `skills/*/SKILL.md` files directly.
@@ -18,6 +19,7 @@ Codex uses this `AGENTS.md` file plus the `skills/*/SKILL.md` files directly.
 When the user invokes a Claude-style command in Codex, map it to the matching local skill:
 
 - `/product:<name>` -> read and follow `skills/product/<name>/SKILL.md` (product skills are nested under `skills/product/`; product rules are nested under `rules/product/`)
+- `/infra:<name>` -> read and follow `skills/infra/<name>/SKILL.md` (infra skills are nested under `skills/infra/`; infra rules are nested under `rules/infra/`). `/infra:start` is the router: it resolves the bundle, checks freshness and fixes environment and cloud, then follow the mode skill it selects
 - `/architect:<name>` -> read and follow `skills/<name>/SKILL.md`
 - `/scalardb:<name>` -> read and follow `skills/<name>/SKILL.md`
 - `@rules/...`, `@templates/...`, and `@skills/...` -> resolve as repository-relative paths
@@ -129,6 +131,7 @@ session model and preserve the delegation structure (sub-agents return digests, 
 |---|---|---|---|
 | architect | define-requirements, analyze, map-domains, redesign, create-domain-story, design-microservices, design-scalardb, design-data-layer, design-api, design-graphql, design-implementation, generate-scalardb-code, generate-api-code, generate-graphql-code, verify-implementation, design-infrastructure, review-risk, review-api-security, export-backlog, review-issue, merge-issue | start, pipeline, deliver-backlog, implement-backlog, capture-followup, investigate, investigate-security, analyze-data-model, evaluate-mmi, evaluate-ddd, integrate-evaluations, select-scalardb-edition, design-scalardb-analytics, generate-test-specs, generate-contract-tests, generate-infra-code, generate-docs, design-security, design-observability, design-disaster-recovery, review-consistency, review-scalardb, review-data-integrity, review-operations, review-business, review-synthesizer, review-report, estimate-cost, estimate-token-cost, migrate-database, migrate-oracle, migrate-mysql, migrate-postgresql | init-output, report, render-mermaid, update-knowledge, report-token-cost, report-backlog-status, report-status |
 | scalardb | — | model, config, scaffold, error-handler, crud-ops, jdbc-ops, local-env, docs, build-app, review-code, migrate | — |
+| infra | infra:design, infra:review | infra:start, infra:implement | — |
 | product | product:define-vision, product:define-success-metrics, product:research-landscape, product:design-revenue, product:name-product, product:validate-assumptions, product:generate-persona, product:design-positioning, product:create-domain-story, product:design-system, product:define-data-model, product:map-domains, product:design-api, product:design-architecture, product:review, product:adapt-change | product:start, product:init-output, product:define-scope, product:map-journey, product:generate-ui-mock, product:define-features, product:generate-frontend, product:design-sla, product:define-nfr, product:report | product:report-status |
 
 ## Interaction Rules
@@ -138,6 +141,7 @@ session model and preserve the delegation structure (sub-agents return digests, 
 - When a skill hits an unknown it cannot resolve from its inputs, **ask it** rather than writing `TBD`: derive 2–4 candidate answers with their downstream consequences, present them as above, and only record `TBD` for what the user defers, cannot answer in-session, or was never asked (`--auto`) — each with its `OQ-` ID, status and owner. See `rules/open-questions.md`.
 - If a skill asks for parallel Claude subagents, execute the prerequisite steps in order and only parallelize independent shell reads or explicit user-approved agent work.
 - Keep generated outputs in the documented output directories and include YAML frontmatter for Markdown reports.
+- For any infrastructure design, implementation, or review decision (Terraform, Kubernetes, Helm, Kustomize, Argo CD, GitLab CI/CD, Cosign, Vault, External Secrets, Prometheus/Grafana, Kyverno), ground the answer in the vendored OKF bundle at `knowledge/okf-k8s-tf/` (`tools/update-okf-bundle.sh status --bundle=k8s-tf`; it has **no remote** — the origin repository was deleted). Fix the target environment (`local` / `test` / `staging` / `production`) and cloud before reading anything, keep the bundle's three tiers apart in the output (observed implementation = fact, design guidance = recommendation with a source, open question = unresolved), cite the document behind each claim, and say "outside the bundle's scope" for `local` and for anything production-specific rather than asserting. See `rules/okf-k8s-tf-bundle.md`, `rules/infra/environments.md`, `rules/infra/multi-cloud.md`.
 - For any ScalarDB / ScalarDL / ScalarDB Saga design, implementation, review, or migration decision, ground the answer in the version-pinned OKF knowledge bundle at `knowledge/okf-scalardb-scalardl/okf/` (a git submodule; run `tools/update-okf-bundle.sh` to fetch it if absent, `update` to pull the newest, `status` to inspect). Pin product/version/edition first and answer only from that release's docs, per `rules/okf-knowledge-bundle.md`.
 - Before writing any file that pins a version (Gradle/Maven, `package.json`, image tags, Helm/Terraform/Kubernetes), **look the version up** from its registry with the shell (`curl` against `repo1.maven.org` / Docker Hub / the Terraform registry, `npm view <pkg> dist-tags --json`, `gh release list -R <owner>/<repo>`, `curl -s https://endoflife.date/api/<product>.json`) — never write a version from memory or copy one out of a skill example. Choose a stable, non-EOL, mutually compatible release, record the decision table in the artifact and `work/version-decisions.json`, and confirm with the user per `--confirm-versions` / `--no-confirm-versions` / `options.confirm_versions` (unset -> interactive runs ask, `--auto` runs adopt). See `rules/dependency-versions.md`.
 - When a skill designs, generates, or reviews an HTTP API surface, the specification file under `reports/03_design/api-specifications/` is the **contract**: code may not add an endpoint, parameter, field, or status code the specification does not declare, may not contradict one it does, and a behaviour change edits the specification first. Every operation carries an `operationId` bound 1:1 to one handler, and the binding is recorded in `reports/06_implementation/api-contract-map.json`. See `rules/api-contract-fidelity.md`.

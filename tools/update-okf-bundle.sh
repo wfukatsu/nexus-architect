@@ -1,24 +1,56 @@
 #!/usr/bin/env bash
-# Fetch / update the OKF ScalarDB-ScalarDL knowledge bundle from remote.
+# Fetch / update / report on an OKF knowledge bundle.
 #
 # Usage:
-#   tools/update-okf-bundle.sh            # ensure: make the bundle available locally (no-op if present)
-#   tools/update-okf-bundle.sh update     # pull the newest bundle from the remote
-#   tools/update-okf-bundle.sh status     # show resolved path, local/remote commits, bundled versions
+#   tools/update-okf-bundle.sh [ensure|update|status] [--bundle=scalardb|k8s-tf]
 #
-# Resolution order matches rules/okf-knowledge-bundle.md:
-#   1. git submodule at knowledge/okf-scalardb-scalardl (init if empty)
-#   2. shallow clone cache at ~/.cache/nexus-architect/okf-scalardb-scalardl
+#   ensure   make the bundle available locally (no-op if present)   [default]
+#   update   pull the newest bundle from its remote
+#   status   show the resolved path and what is in it
 #
-# Prints the resolved okf/ root on success; exits 1 when the bundle cannot be obtained.
+# Two bundles ship with this repository and they are obtained differently:
+#
+#   --bundle=scalardb  (default)  ScalarDB / ScalarDL / ScalarDB Saga docs.
+#                                 git submodule knowledge/okf-scalardb-scalardl, else a shallow
+#                                 clone cache. Has a live remote; `update` fetches.
+#                                 Resolution order: rules/okf-knowledge-bundle.md
+#
+#   --bundle=k8s-tf               Kubernetes / Terraform / GitOps platform docs.
+#                                 VENDORED into knowledge/okf-k8s-tf — its origin repository was
+#                                 deleted, so there is no remote and `update` cannot fetch.
+#                                 Resolution order: rules/okf-k8s-tf-bundle.md
+#                                 See knowledge/OKF-K8S-TF-PROVENANCE.md for why.
+#
+# Prints the resolved bundle root on success; exits 1 when the bundle cannot be obtained.
 
 set -euo pipefail
 
 REPO_URL="https://github.com/wfukatsu/OKF-ScalarDB-ScalarDL.git"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$ROOT}"
 SUB_DIR="$ROOT/knowledge/okf-scalardb-scalardl"
 CACHE_DIR="${OKF_CACHE_DIR:-$HOME/.cache/nexus-architect/okf-scalardb-scalardl}"
-MODE="${1:-ensure}"
+
+# k8s-tf: vendored in-repo. NEXUS_OKF_K8S_TF overrides for a project that carries its own copy;
+# INFRA_DESIGN_OKF is honoured as the name the standalone infra-design plugin used.
+K8S_OVERRIDE="${NEXUS_OKF_K8S_TF:-${INFRA_DESIGN_OKF:-}}"
+K8S_VENDORED="$PLUGIN_ROOT/knowledge/okf-k8s-tf"
+K8S_CACHE="${OKF_K8S_CACHE_DIR:-$HOME/.cache/nexus-architect/okf-k8s-tf}"
+
+BUNDLE="scalardb"
+MODE=""
+for arg in "$@"; do
+  case "$arg" in
+    --bundle=*) BUNDLE="${arg#--bundle=}" ;;
+    ensure|update|status) MODE="$arg" ;;
+    *) echo "usage: $0 [ensure|update|status] [--bundle=scalardb|k8s-tf]" >&2; exit 1 ;;
+  esac
+done
+MODE="${MODE:-ensure}"
+case "$BUNDLE" in
+  scalardb|k8s-tf) ;;
+  *) echo "unknown bundle: $BUNDLE (expected scalardb or k8s-tf)" >&2; exit 1 ;;
+esac
 
 is_bundle() { [ -f "$1/okf/index.md" ]; }
 
@@ -98,9 +130,67 @@ status() {
   done
 }
 
-case "$MODE" in
-  ensure)  ensure ;;
-  update)  update ;;
-  status)  status ;;
-  *) echo "usage: $0 [ensure|update|status]" >&2; exit 1 ;;
-esac
+# ------------------------------------------------------------------ k8s-tf
+
+# The k8s-tf bundle root holds index.md directly (the scalardb bundle nests one okf/ level).
+is_k8s_bundle() { [ -f "$1/index.md" ] && [ -d "$1/foundation" ]; }
+
+k8s_resolve() {
+  for d in "$K8S_OVERRIDE" "$K8S_VENDORED" "$K8S_CACHE"; do
+    [ -n "$d" ] && is_k8s_bundle "$d" && { printf '%s\n' "$d"; return 0; }
+  done
+  return 1
+}
+
+k8s_ensure() {
+  local dir
+  if dir="$(k8s_resolve)"; then
+    echo "okf-bundle(k8s-tf): available at $dir"
+    return 0
+  fi
+  echo "okf-bundle(k8s-tf): NOT available." >&2
+  echo "  This bundle is vendored at knowledge/okf-k8s-tf and has no remote to fetch from" >&2
+  echo "  (see knowledge/OKF-K8S-TF-PROVENANCE.md). Restore it from this repository, or point" >&2
+  echo "  NEXUS_OKF_K8S_TF at a copy." >&2
+  return 1
+}
+
+k8s_update() {
+  local dir; dir="$(k8s_resolve)" || { k8s_ensure; return 1; }
+  echo "okf-bundle(k8s-tf): vendored — there is no remote to update from."
+  echo "  Origin repository was deleted; the copy at $dir is the source of record."
+  echo "  See knowledge/OKF-K8S-TF-PROVENANCE.md."
+  return 0
+}
+
+k8s_status() {
+  local dir
+  if ! dir="$(k8s_resolve)"; then k8s_ensure; return 1; fi
+  echo "bundle:        k8s-tf (vendored — no remote)"
+  echo "resolved:      $dir"
+  echo "okf_version:   $(grep -m1 '^okf_version:' "$dir/index.md" | sed 's/okf_version: *//; s/"//g')"
+  echo "documents:     $(find "$dir" -name '*.md' -not -path '*/.git/*' | wc -l | tr -d ' ')"
+  local earliest
+  earliest="$(grep -rh '^stale_after:' "$dir" | sed 's/stale_after: *//; s/"//g' | sort | head -1)"
+  echo "stale_after:   earliest ${earliest:-none} (a document past its date is re-verified, not quoted as current)"
+  echo "sections:"
+  local idx
+  for idx in "$dir"/*/index.md; do
+    [ -f "$idx" ] || continue
+    echo "  $(basename "$(dirname "$idx")")"
+  done
+}
+
+if [ "$BUNDLE" = "k8s-tf" ]; then
+  case "$MODE" in
+    ensure)  k8s_ensure ;;
+    update)  k8s_update ;;
+    status)  k8s_status ;;
+  esac
+else
+  case "$MODE" in
+    ensure)  ensure ;;
+    update)  update ;;
+    status)  status ;;
+  esac
+fi

@@ -5,7 +5,81 @@ All notable changes to Nexus Architect are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
-all three plugins (`product`, `architect`, `scalardb`) are released together under one number.
+all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
+
+## [0.29.0] - 2026-08-19
+
+A new plugin: **infra**, the fourth. It brings the multi-cloud infrastructure agent — and its
+knowledge bundle — into this repository from the standalone `infra-design` plugin, translated to
+the repository's conventions and wired into the contract tests. The corpus goes from 99 slash
+commands to 103.
+
+### Added
+- **`infra` plugin — four commands.** `/infra:start` (sonnet) is triage: it resolves the knowledge
+  bundle, checks document freshness, fixes the target environment and cloud, then routes to
+  `/infra:design` (opus), `/infra:implement` (sonnet) or `/infra:review` (opus) with those four
+  facts already settled, so the mode skill never re-asks them. Skills are nested under
+  `skills/infra/`, the way product skills are.
+- **The `okf-k8s-tf` knowledge bundle, vendored at `knowledge/okf-k8s-tf/`** — 23 OKF v0.2
+  documents covering Terraform, Kubernetes, Helm, Kustomize, Argo CD, GitLab CI/CD, Docker+Cosign,
+  Vault, External Secrets, Prometheus/Grafana and Kyverno. It is vendored rather than a submodule
+  because its origin repository was **deleted**: there is no remote, and the copy here is the
+  source of record. `knowledge/OKF-K8S-TF-PROVENANCE.md` records the chain of custody and the two
+  commits the bundle's "observed implementation" tier is scoped to.
+- **`rules/okf-k8s-tf-bundle.md`** — the protocol for using it: resolution order, the topic map,
+  the three tiers that must stay separate in any output (observed implementation = fact, design
+  guidance = recommendation with a source, open question = unresolved), citation form,
+  `stale_after` freshness, and source precedence. `security/kyverno.md` expires earlier than the
+  rest because Kyverno v1.20 plans to remove `kyverno.io/v1 ClusterPolicy`.
+- **`rules/infra/environments.md` and `rules/infra/multi-cloud.md`** — the two premises the skills
+  enforce rather than suggest. The environment rule carries the coverage asymmetry that makes the
+  plugin honest: `local` is absent from the bundle entirely and `production` has **no observed
+  implementation**, so both are stated as such instead of being presented with the same confidence
+  as `test` and `staging`. The multi-cloud rule carries the L1–L4 portability boundary, the cloud
+  service mapping and the asymmetries (Karpenter is AWS-only; auto-unseal KMS differs in all three
+  clouds).
+- **`templates/infra/{design-doc,env-matrix,adr,review-report}.md`** — the deliverable shapes, each
+  handing the writer the `schema_version` frontmatter block that the repository's hook requires of
+  anything written under `reports/`.
+- **`skills/infra/infra-contract.test.py`** — 35 checks over the contracts the new prose states and
+  nothing else enforced: the rule's resolution order equalling what `update-okf-bundle.sh`
+  implements, every document the topic map names existing *and* every bundle document being
+  reachable from it, `stale_after` parseable on all 23 with Kyverno still the earliest, the four
+  skills' models matching the router's Model Policy table, and each named template carrying its
+  frontmatter block.
+- **`docs/infrastructure.md`** (+ `_ja`) — the usage guide: setup, the four enforced premises, a
+  worked flow, and the boundary with the architect infrastructure skills.
+
+### Changed
+- **`tools/update-okf-bundle.sh` takes `--bundle=scalardb|k8s-tf`.** The default is `scalardb` and
+  its behaviour is unchanged. `k8s-tf` resolves the vendored bundle, and its `update` reports that
+  there is no remote rather than failing or silently doing nothing — a bundle that cannot be
+  refreshed should say so at the moment someone asks it to refresh.
+- **`/architect:update-knowledge` gains `--bundle=<name>`** to reach either bundle, and now states
+  that neither `knowledge/` directory may be edited: the vendored one especially, since editing a
+  source with no upstream turns a citable document into unverifiable local prose.
+- **`reports/08_infrastructure/` is where `/infra:*` writes** when `work/pipeline-progress.json`
+  exists, falling back to the target repository's `docs/infra/` otherwise. Landing under `reports/`
+  puts the deliverables inside the frontmatter and Mermaid validation hooks.
+  `templates/output-structure.md` now documents the directory, including the architect skills that
+  were already writing there.
+- **`tools/docs_consistency.test.py` partitions nine groups, not eight.** A whole plugin is one
+  group; without the row the partition would have silently lost four commands. Its `OTHER_TOOLS`
+  list also learned the infrastructure CLIs whose own flags appear in skill bodies.
+- **`tools/omnigent/load-skill.sh` resolves `infra:<name>`** and lists the namespace separately.
+  Note that `infra` uses names that also read as bare words (`design`, `implement`, `review`,
+  `start`), so a bare `<name>` never resolves into `skills/infra/` — the prefix is required.
+- CLAUDE.md, README.md, AGENTS.md, OMNIGENT.md and both skill catalogues describe four plugins and
+  103 commands, and carry the boundary against the three architect skills the new plugin overlaps:
+  `design-infrastructure` (logical vs. concrete), `generate-infra-code` (`generated/` vs. the real
+  infrastructure repository), and `review-operations` (design documents vs. code).
+
+### Notes
+- The infra skills are **not** a pipeline: no manifest, not run by `/architect:pipeline`, and not
+  shown in the status dashboard. They write no `work/pipeline-progress.json` phase entries.
+- Source material was Japanese throughout. SKILL.md files, rules and templates were translated to
+  English per the repository convention; the bundle itself is **not** translated — it is a vendored
+  external source, and rewriting it would make it something other than the source it cites.
 
 ## [0.28.1] - 2026-08-18
 

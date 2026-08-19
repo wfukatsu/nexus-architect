@@ -1,9 +1,10 @@
 # Nexus Architect Skill Reference
 
 Skills are invoked by plugin namespace: `/product:skill-name` (product direction),
-`/architect:skill-name` (system architecture), and `/scalardb:skill-name` (ScalarDB development).
-The architect skills are catalogued first, followed by ScalarDB Development, Database Migration,
-and Product Direction.
+`/architect:skill-name` (system architecture), `/scalardb:skill-name` (ScalarDB development), and
+`/infra:skill-name` (multi-cloud infrastructure). The architect skills are catalogued first,
+followed by ScalarDB Development, Database Migration, Multi-Cloud Infrastructure, and Product
+Direction.
 
 For the inputs you should prepare before running each pipeline, see the
 [product Input Requirements](product-input-requirements.md) and
@@ -135,7 +136,7 @@ merges).
 | Command | Model | Description |
 |---------|-------|-------------|
 | `/architect:init-output` | haiku | Initialize output directories |
-| `/architect:update-knowledge` | haiku | Fetch or update the version-pinned OKF ScalarDB/ScalarDL/ScalarDB Saga knowledge bundle (wraps `tools/update-okf-bundle.sh`; no flag = ensure present, `--latest` = pull newest, `--status` = show resolved path/commits/versions) |
+| `/architect:update-knowledge` | haiku | Fetch or update an OKF knowledge bundle (wraps `tools/update-okf-bundle.sh`; no flag = ensure present, `--latest` = pull newest, `--status` = show resolved path/commits/versions, `--bundle=scalardb\|k8s-tf` selects which — `scalardb` is the version-pinned ScalarDB/ScalarDL/ScalarDB Saga bundle, `k8s-tf` the vendored Kubernetes/Terraform platform bundle that has no remote) |
 
 ## ScalarDB Development
 
@@ -165,6 +166,25 @@ See [ScalarDB Development Guide](scalardb-development.md) for detailed usage.
 | `/architect:migrate-postgresql` | sonnet | PostgreSQL | Full pipeline: schema extraction, analysis, PL/pgSQL conversion |
 
 See [Database Migration Guide](database-migration.md) for detailed usage.
+
+## Multi-Cloud Infrastructure
+
+All skills are invoked as `/infra:skill-name`. A separate plugin from the architect pipeline:
+where `/architect:design-infrastructure` decides the logical infrastructure as one phase of the
+design pipeline, these skills decide and build the concrete AWS / Azure / GCP configuration across
+four environments (local / test / staging / production), grounding every claim in the vendored OKF
+`okf-k8s-tf` bundle (@rules/okf-k8s-tf-bundle.md) rather than model memory.
+
+| Command | Model | Description |
+|---------|-------|-------------|
+| `/infra:start` | sonnet | Triage and routing: resolves the bundle, checks `stale_after` freshness, fixes the target environment and cloud, then delegates to design / implement / review |
+| `/infra:design` | opus | Configuration design from requirements — ownership split (one resource, one owner), L1–L4 layering, environment matrix, digest-based promotion path, ADRs. Writes no code |
+| `/infra:implement` | sonnet | Terraform / Kubernetes manifests / Helm values / Kustomize overlays / GitLab CI, written into a real infrastructure repository with pinned versions and no secret exposure |
+| `/infra:review` | opus | IaC and design review — ownership overlap, image digest continuity and secret exposure first, with mandatory multi-cloud and environment-parity sections |
+
+Unlike `/architect:generate-infra-code`, which emits scaffolding into `generated/` as a pipeline
+codegen step, `/infra:implement` writes merge-bound code into the project's real infrastructure
+repository.
 
 ## Product Direction
 
@@ -289,9 +309,15 @@ path by their router, so they are not slash commands and have no signature here.
 /architect:estimate-token-cost [target_path]
 /architect:report-token-cost [--once] [--follow] [--session=ID] [--since=7d] [--breakdown=tokens|cost] [--ascii] [--ambiguous-width=2] [--md] [--json] [--lang=ja|en]
 /architect:report-status [--once] [--view=product|architect|codegen|backlog] [--group=core|extension] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]
-/architect:update-knowledge [--latest] [--status]
+/architect:update-knowledge [--latest] [--status] [--bundle=<name>]
 /product:report [--auto] [--lang=ja|en]
 /product:report-status [--once] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]
+
+# Multi-cloud infrastructure
+/infra:start [target] [--env=<env>] [--cloud=<cloud>]
+/infra:design [target] [--env=<env>] [--cloud=<cloud>] [--auto]
+/infra:implement [target] [--env=<env>] [--cloud=<cloud>] [--auto]
+/infra:review [target] [--env=<env>] [--cloud=<cloud>] [--round=<n>]
 
 # Database migration
 /architect:migrate-database

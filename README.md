@@ -1,6 +1,6 @@
 # Nexus Architect
 
-System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as three plugins with 99 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
+System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as four plugins with 103 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
 
 - **product** (27 skills) — Product direction: validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
 - **architect** (61 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
@@ -148,13 +148,13 @@ Claude Code continues to use the plugin metadata and slash commands unchanged. S
 
 ## Commands
 
-**99 slash commands across three plugins.** The full catalogue — every command with its model, its
+**103 slash commands across four plugins.** The full catalogue — every command with its model, its
 prerequisites and its complete flag signature — lives in one place:
 
 > **[docs/skill-reference.md](docs/skill-reference.md)** · [日本語](docs/skill-reference_ja.md)
 
 It is the single source of truth; this table is the map of which group does what, and the counts
-partition all 99.
+partition all 103.
 
 | Group | Start here | What it does | n |
 |-------|-----------|--------------|---|
@@ -165,6 +165,7 @@ partition all 99.
 | **Backlog Delivery** | `/architect:deliver-backlog` | export → implement → review → merge over GitLab/GitHub work items; writes merge-bound code into the project's real source tree and stops at every human gate | 7 |
 | **Database Migration** | `/architect:migrate-database` | Oracle / MySQL / PostgreSQL → ScalarDB: schema extraction, analysis, SP/trigger conversion — see [Database Migration Guide](docs/database-migration.md) | 4 |
 | **ScalarDB Development** `/scalardb:*` | `/scalardb:build-app` | Schema modeling, configuration, scaffolding, CRUD/JDBC patterns, exception handling, code review, migration advice — see [ScalarDB Development Guide](docs/scalardb-development.md) | 11 |
+| **Multi-Cloud Infrastructure** `/infra:*` | `/infra:start` | Terraform / Kubernetes / Helm / Kustomize / Argo CD / GitLab CI / Cosign / Vault / ESO / Prometheus / Kyverno across AWS-Azure-GCP × local-test-staging-production, grounded in the vendored `okf-k8s-tf` bundle — see [Multi-Cloud Infrastructure Guide](docs/infrastructure.md) | 4 |
 | **Status & utility** | `/architect:report-status` | One terminal dashboard (`tools/nexus-status.sh`) whose `Tab` cycles four views — Product, Architect, Code Generation, Backlog Delivery — plus `render-mermaid` and `update-knowledge`. Recorded spend: `/architect:report-token-cost` | 3 |
 
 ## Workflows
@@ -291,6 +292,32 @@ Migrate existing Oracle, MySQL, or PostgreSQL databases to ScalarDB with automat
 migrate-database -> schema extraction -> migration analysis -> SP/trigger conversion -> (AQ integration)
 ```
 
+## Multi-Cloud Infrastructure
+
+A separate plugin (`/infra:*`), not a phase of the architect pipeline. It designs, builds and
+reviews the platform underneath the application across **three clouds × four environments**,
+grounding every claim in the vendored `okf-k8s-tf` knowledge bundle rather than model memory.
+
+```
+/infra:start  (resolve bundle -> freshness -> fix environment + cloud -> route)
+     ├─▶ /infra:design      requirements -> ownership split -> L1..L4 -> env matrix -> promotion path -> ADRs
+     ├─▶ /infra:implement   Terraform / manifests / Helm values / Kustomize overlays / GitLab CI
+     └─▶ /infra:review      ownership overlap · digest continuity · secret exposure, then everything else
+```
+
+Four premises are enforced rather than suggested:
+
+| Premise | What it means in practice |
+|---------|---------------------------|
+| **Multi-cloud is the default** | No answer assumes one cloud. L1 stays cloud-specific with aligned output names; L2–L4 carry no cloud branch at all ([`rules/infra/multi-cloud.md`](rules/infra/multi-cloud.md)) |
+| **Four environments** | `local` / `test` / `staging` / `production`. Base, chart and image digest are identical everywhere; differences are **value differences** in an overlay or in values ([`rules/infra/environments.md`](rules/infra/environments.md)) |
+| **One resource, one owner** | A resource managed by two or more of Terraform / Argo CD / CI / manual operation is the highest-priority finding there is |
+| **The bundle is the source** | Claims carry a `[foundation/terraform.md]`-style citation; what the bundle does not cover is *said* to be outside it. `local` is absent from the bundle entirely and `production` has no observed implementation — both are stated rather than papered over |
+
+Unlike `/architect:generate-infra-code`, which emits scaffolding into `generated/` as a codegen
+step of the design pipeline, `/infra:implement` writes merge-bound code into the project's real
+infrastructure repository.
+
 ## Pipeline Dependency Graph
 
 ```
@@ -355,6 +382,31 @@ the canonical `resource` URL; never mix versions. When the submodule is absent, 
 back to a shallow clone under `~/.cache/nexus-architect/`, then skills fall back to the online
 docs (explicitly labeled as not version-pinned).
 
+## Kubernetes / Terraform Knowledge Bundle
+
+The `/infra:*` skills have their own OKF bundle, `okf-k8s-tf` — 23 documents covering Terraform,
+Kubernetes, Helm, Kustomize, Argo CD, GitLab CI/CD, Docker + Cosign, Vault, External Secrets,
+Prometheus/Grafana and Kyverno.
+
+It differs from the ScalarDB bundle in one way that matters: **it is vendored, not a submodule**,
+because its origin repository was deleted. There is no remote to update from, and the copy in
+`knowledge/okf-k8s-tf/` is the source of record
+([`knowledge/OKF-K8S-TF-PROVENANCE.md`](knowledge/OKF-K8S-TF-PROVENANCE.md)).
+
+```bash
+tools/update-okf-bundle.sh status --bundle=k8s-tf   # resolved path, OKF version, documents, earliest stale_after
+```
+
+Skills follow [`rules/okf-k8s-tf-bundle.md`](rules/okf-k8s-tf-bundle.md): fix the environment and
+cloud before reading anything; keep the bundle's three tiers apart in the output — observed
+implementation (fact), design guidance (recommendation with a source), open question (unresolved);
+cite the document behind each claim; and respect `stale_after`, which is earlier for
+`security/kyverno.md` because Kyverno v1.20 plans to remove `kyverno.io/v1 ClusterPolicy`.
+
+The bundle's "observed implementation" tier is scoped to two specific commits. Where a real
+repository is available to read, the repository is the fact and the bundle is the standard — the
+difference between them gets reported, not smoothed over.
+
 ## Output Language
 
 Output language is configurable per project. Set during `/architect:start` initialization or via flag:
@@ -400,6 +452,7 @@ work/             # Pipeline state and intermediate files
 | [architect Input Requirements](docs/architect-input-requirements.md) | Inputs you supply to run the architect pipeline |
 | [Skill Reference](docs/skill-reference.md) | Complete skill catalog |
 | [ScalarDB Development](docs/scalardb-development.md) | ScalarDB development guide |
+| [Multi-Cloud Infrastructure](docs/infrastructure.md) | Infrastructure design, implementation and review guide |
 | [Database Migration](docs/database-migration.md) | Migration guide (Oracle/MySQL/PostgreSQL) |
 | [Codex Usage](docs/codex-usage.md) | Using the same skills from Codex |
 | [Changelog](CHANGELOG.md) | Release notes and version history |
@@ -410,6 +463,7 @@ Japanese translations:
 [architect Input Requirements (日本語)](docs/architect-input-requirements_ja.md) |
 [Skill Reference (日本語)](docs/skill-reference_ja.md) |
 [ScalarDB Development (日本語)](docs/scalardb-development_ja.md) |
+[Multi-Cloud Infrastructure (日本語)](docs/infrastructure_ja.md) |
 [Database Migration (日本語)](docs/database-migration_ja.md) |
 [Codex Usage (日本語)](docs/codex-usage_ja.md) |
 [Changelog (日本語)](CHANGELOG_ja.md)
