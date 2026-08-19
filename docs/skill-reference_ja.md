@@ -1,9 +1,10 @@
 # Nexus Architect スキルリファレンス
 
 スキルはプラグインの名前空間で呼び出します：`/product:skill-name`（プロダクトの方向性）、
-`/architect:skill-name`（システムアーキテクチャ）、`/scalardb:skill-name`（ScalarDB 開発）。
+`/architect:skill-name`（システムアーキテクチャ）、`/scalardb:skill-name`（ScalarDB 開発）、
+`/infra:skill-name`（マルチクラウド インフラ）。
 本書では architect スキルを最初にまとめ、続いて ScalarDB 開発、データベース移行、
-プロダクトの方向性の順に掲載します。
+マルチクラウド インフラ、プロダクトの方向性の順に掲載します。
 
 各パイプラインの実行前に用意すべきインプットは、
 [product インプット要件ガイド](product-input-requirements_ja.md) と
@@ -134,7 +135,7 @@
 | コマンド | モデル | 説明 |
 |---------|-------|------|
 | `/architect:init-output` | haiku | 出力ディレクトリの初期化 |
-| `/architect:update-knowledge` | haiku | バージョン固定の OKF ScalarDB/ScalarDL/ScalarDB Saga ナレッジバンドルの取得・更新（`tools/update-okf-bundle.sh` をラップ。フラグなし=存在保証、`--latest`=最新を取得、`--status`=解決パス・コミット・収録バージョンを表示） |
+| `/architect:update-knowledge` | haiku | OKF ナレッジバンドルの取得・更新（`tools/update-okf-bundle.sh` をラップ。フラグなし=存在保証、`--latest`=最新を取得、`--status`=解決パス・コミット・収録バージョンを表示、`--bundle=scalardb\|k8s-tf`=対象バンドルの選択。`scalardb` はバージョン固定の ScalarDB/ScalarDL/ScalarDB Saga バンドル、`k8s-tf` はリモートを持たない同梱の Kubernetes/Terraform 基盤バンドル） |
 
 ## ScalarDB開発
 
@@ -164,6 +165,25 @@
 | `/architect:migrate-postgresql` | sonnet | PostgreSQL | フルパイプライン：スキーマ抽出、分析、PL/pgSQL変換 |
 
 詳細な使い方は [データベース移行ガイド](database-migration.md) を参照してください。
+
+## マルチクラウド インフラ
+
+すべてのスキルは `/infra:skill-name` として呼び出します。architect パイプラインとは別の
+プラグインです。`/architect:design-infrastructure` が設計パイプラインの1フェーズとして
+論理的なインフラを決めるのに対し、これらのスキルは AWS / Azure / GCP の具体構成を
+4環境（local / test / staging / production）にわたって決定・構築します。すべての主張は
+モデルの記憶ではなく同梱の OKF `okf-k8s-tf` バンドル（@rules/okf-k8s-tf-bundle.md）に
+根拠を置きます。
+
+| コマンド | モデル | 説明 |
+|---------|-------|------|
+| `/infra:start` | sonnet | トリアージとルーティング：バンドル解決、`stale_after` 鮮度チェック、対象環境とクラウドの確定、設計 / 実装 / レビューへの委譲 |
+| `/infra:design` | opus | 要件からの構成設計 — 責任分界（1リソース1オーナー）、L1〜L4 の層別設計、環境マトリクス、digest 単位の昇格経路、ADR。コードは書かない |
+| `/infra:implement` | sonnet | Terraform / Kubernetes マニフェスト / Helm values / Kustomize overlay / GitLab CI を、バージョン固定・秘密情報非露出のうえ実在のインフラリポジトリへ書き込む |
+| `/infra:review` | opus | IaC・設計書レビュー — 所有権の重複、image digest の断絶、秘密情報の露出を最優先で確認し、マルチクラウド観点と環境パリティ観点を必ず含める |
+
+`/architect:generate-infra-code` が `generate` フェーズとして `generated/` に雛形を出力するのに
+対し、`/infra:implement` はプロジェクト実体のインフラリポジトリへマージ対象のコードを書きます。
 
 ## プロダクトの方向性
 
@@ -289,9 +309,15 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 /architect:estimate-token-cost [target_path]
 /architect:report-token-cost [--once] [--follow] [--session=ID] [--since=7d] [--breakdown=tokens|cost] [--ascii] [--ambiguous-width=2] [--md] [--json] [--lang=ja|en]
 /architect:report-status [--once] [--view=product|architect|codegen|backlog] [--group=core|extension] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]
-/architect:update-knowledge [--latest] [--status]
+/architect:update-knowledge [--latest] [--status] [--bundle=<name>]
 /product:report [--auto] [--lang=ja|en]
 /product:report-status [--once] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]
+
+# Multi-cloud infrastructure
+/infra:start [target] [--env=<env>] [--cloud=<cloud>]
+/infra:design [target] [--env=<env>] [--cloud=<cloud>] [--auto]
+/infra:implement [target] [--env=<env>] [--cloud=<cloud>] [--auto]
+/infra:review [target] [--env=<env>] [--cloud=<cloud>] [--round=<n>]
 
 # Database migration
 /architect:migrate-database

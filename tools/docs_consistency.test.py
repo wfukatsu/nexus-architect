@@ -238,6 +238,7 @@ OTHER_TOOLS = (
     "git", "gh", "glab", "docker", "docker-compose", "npm", "npx", "gradle", "./gradlew",
     "curl", "helm", "kubectl", "terraform", "jq", "java", "python3", "bash", "sh", "mvn",
     "semgrep", "trivy", "gitleaks", "osv-scanner", "scalardb", "psql", "mysql", "sqlplus",
+    "kustomize", "argocd", "cosign", "vault", "tflint", "checkov", "conftest",
 )
 # Presentation flags the terminal skills hand to the tool they wrap; the catalogue names them as
 # a passthrough set instead of listing them per command (docs/skill-reference.md § signatures).
@@ -373,9 +374,12 @@ expected = {
     "Backlog Delivery": len(backlog & arch),
     "Database Migration": len(migration & arch),
     "ScalarDB Development": len(REG["scalardb"]),
+    # A whole plugin is one group: infra ships no manifest phases, so nothing above claims it and
+    # the partition would silently lose four commands without this row.
+    "Multi-Cloud Infrastructure": len(REG["infra"]),
     "Status & utility": len(utility),
 }
-check("the eight groups partition all %d commands" % len(CMDS),
+check("the %d groups partition all %d commands" % (len(expected), len(CMDS)),
       sum(expected.values()) == len(CMDS), expected)
 
 for doc_name, doc in (("CLAUDE.md", CLAUDE), ("README.md", README)):

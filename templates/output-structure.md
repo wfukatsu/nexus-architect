@@ -48,6 +48,17 @@ reports/
 │       └── asyncapi/
 ├── 04_stories/                    # create-domain-story (optional)
 │   └── domain-story-{domain}.md  # One file per domain
+├── 08_infrastructure/             # design-infrastructure, design-security,
+│   │                              # design-observability, design-disaster-recovery, /infra:*
+│   ├── infrastructure-design.md
+│   ├── security-design.md
+│   ├── observability-design.md
+│   ├── disaster-recovery-design.md
+│   ├── infra-design-{system}.md   # /infra:design
+│   ├── env-matrix-{system}.md     # /infra:design
+│   ├── adr/adr-{NNN}-{slug}.md    # /infra:design
+│   └── reviews/                   # /infra:review
+│       └── review-{target}-r{n}.md
 └── review/                        # review-* agents
     ├── individual/
     │   ├── review-consistency.json

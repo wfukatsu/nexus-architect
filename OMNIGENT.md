@@ -10,13 +10,14 @@ skills — Omnigent reads the existing `skills/*/SKILL.md` files directly.
 
 ## What This Repository Is
 
-A three-plugin system-architecture toolkit originally packaged for Claude Code:
+A four-plugin system-architecture toolkit originally packaged for Claude Code:
 
 - **architect** — system architecture, refactoring, design, database migration, reporting
 - **scalardb** — ScalarDB application development, review, configuration, scaffolding
 - **product** — product-direction skills (vision → SLA/NFR), nested under `skills/product/`
+- **infra** — multi-cloud, four-environment infrastructure skills, nested under `skills/infra/`
 
-There are ~90 `SKILL.md` files. Each is a self-contained instruction document. Under
+There are ~114 `SKILL.md` files. Each is a self-contained instruction document. Under
 Claude Code they are invoked as slash commands (e.g. `/architect:investigate`); under
 Omnigent a worker resolves the command to a file, reads it, and follows it.
 
@@ -40,17 +41,26 @@ does not exist. See [`tools/omnigent/README.md`](tools/omnigent/README.md).
 ## Slash → Path Resolution
 
 When a user invokes a Claude-style command, map it to the matching local file. There are
-**three** plugins; only `product` is nested.
+**four** plugins; `product` and `infra` are nested.
 
 | Command form        | Resolves to                          |
 |---------------------|--------------------------------------|
 | `/architect:<name>` | `skills/<name>/SKILL.md`             |
 | `/scalardb:<name>`  | `skills/<name>/SKILL.md`             |
 | `/product:<name>`   | `skills/product/<name>/SKILL.md`     |
+| `/infra:<name>`     | `skills/infra/<name>/SKILL.md`       |
 
 `architect` and `scalardb` share the flat `skills/` directory — both prefixes (and a
-bare `<name>` with no prefix) resolve flat skills identically. `product` skills are the
-only ones nested under `skills/product/`.
+bare `<name>` with no prefix) resolve flat skills identically. `product` and `infra`
+skills are nested; note that `infra` uses names (`design`, `implement`, `review`,
+`start`) that also read as bare words, so a bare `<name>` never resolves into
+`skills/infra/` — the `infra:` prefix is required.
+
+**The infra router.** `/infra:start` is triage, not analysis: it resolves the
+`okf-k8s-tf` bundle, checks `stale_after` freshness, fixes the target environment and
+cloud, then hands to `/infra:design`, `/infra:implement` or `/infra:review` with those
+four facts already settled. Under Omnigent, run it as a dispatch step and pass its
+result into the mode skill rather than re-asking.
 
 **Nested sub-skills.** The migration routers (`migrate-oracle`, `migrate-mysql`,
 `migrate-postgresql`) delegate to sub-skills that are *not* slash commands — they are
@@ -171,8 +181,9 @@ Each `SKILL.md` carries a `model:` tier (opus / sonnet / haiku). Under Omnigent 
 
 Recommended tiers (from the skill frontmatter): **opus** for judgment-heavy work
 (`analyze`, `redesign`, `design-microservices`, `design-scalardb`, `design-api`,
-`map-domains`, `review-risk`, and the product strategy skills), **sonnet** for standard
-analysis/generation/reviews, **haiku** for templating (`init-output`, `render-mermaid`).
+`map-domains`, `review-risk`, the product strategy skills, and `infra:design` /
+`infra:review`), **sonnet** for standard analysis/generation/reviews, **haiku** for
+templating (`init-output`, `render-mermaid`).
 Prefer Sonnet-or-above for anything not explicitly haiku-tier.
 
 ## Pipeline Sequencing
@@ -249,6 +260,25 @@ submodule; run `tools/update-okf-bundle.sh` to fetch it if absent, `update` to p
 `status` to inspect). Pin the project's product, version, and edition first, then answer only from that
 release's docs and cite each concept's `resource` URL. See
 [`rules/okf-knowledge-bundle.md`](rules/okf-knowledge-bundle.md).
+
+## Kubernetes / Terraform Knowledge Bundle
+
+Any infrastructure design, implementation, or review decision must be grounded in the OKF bundle
+at `knowledge/okf-k8s-tf/` (`tools/update-okf-bundle.sh status --bundle=k8s-tf`). Unlike the
+ScalarDB bundle it is **vendored, not a submodule** — its origin repository was deleted, so there
+is no remote and `update` cannot fetch.
+
+Fix the target environment (`local` / `test` / `staging` / `production`) and cloud before reading
+anything. Keep the bundle's three tiers apart in the output: observed implementation is fact,
+design guidance is a recommendation carrying its source, an open question stays open. `local` is
+absent from the bundle entirely and `production` has no observed implementation — say so rather
+than asserting. See [`rules/okf-k8s-tf-bundle.md`](rules/okf-k8s-tf-bundle.md),
+[`rules/infra/environments.md`](rules/infra/environments.md) and
+[`rules/infra/multi-cloud.md`](rules/infra/multi-cloud.md).
+
+The infra skills have **no dependency manifest** — they are a router plus three modes, not a
+pipeline — so nothing in Pipeline Sequencing applies to them and they write no
+`work/pipeline-progress.json` phase entries.
 
 ## Dependency Versions
 

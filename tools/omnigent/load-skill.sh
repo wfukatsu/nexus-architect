@@ -16,6 +16,7 @@
 #
 # Resolution rules (filesystem-only; does NOT read .claude-plugin/marketplace.json):
 #   product:<name>    -> skills/product/<name>/SKILL.md   (product skills are nested)
+#   infra:<name>      -> skills/infra/<name>/SKILL.md     (infra skills are nested)
 #   architect:<name>  -> skills/<name>/SKILL.md           (flat namespace)
 #   scalardb:<name>   -> skills/<name>/SKILL.md           (flat namespace, shares the dir)
 #
@@ -85,6 +86,20 @@ EOF
   fi
 
   echo
+  echo "## infra namespace — invoke as infra:<name>"
+  echo "## (nested under skills/infra/<name>/SKILL.md)"
+  if [ -d "$SKILLS_DIR/infra" ]; then
+    while IFS= read -r f; do
+      [ -n "$f" ] || continue
+      name="$(basename "$(dirname "$f")")"
+      echo "  $name"
+      count=$((count + 1))
+    done <<EOF
+$(find "$SKILLS_DIR/infra" -mindepth 2 -maxdepth 2 -name SKILL.md 2>/dev/null | sort)
+EOF
+  fi
+
+  echo
   echo "## Nested sub-skills — read by PATH, not as a slash command"
   echo "## (migration routers delegate to these; load via architect:<parent>/<child>)"
   # Depth-3 SKILL.md under skills/ => skills/<parent>/<child>/SKILL.md. These are
@@ -95,6 +110,7 @@ EOF
     # Exclude product skills with a fixed-string (glob) match — $SKILLS_DIR may
     # contain regex metacharacters, so avoid a regex filter like grep -v.
     [[ "$f" == "$SKILLS_DIR/product/"* ]] && continue
+    [[ "$f" == "$SKILLS_DIR/infra/"* ]] && continue
     rel="${f#"$SKILLS_DIR"/}"          # e.g. migrate-oracle/migrate-oracle-to-scalardb/SKILL.md
     echo "  ${rel%/SKILL.md}"
     count=$((count + 1))
@@ -219,11 +235,14 @@ case "$plugin" in
   product)
     skill_path="$SKILLS_DIR/product/$name/SKILL.md"
     ;;
+  infra)
+    skill_path="$SKILLS_DIR/infra/$name/SKILL.md"
+    ;;
   architect|scalardb)
     skill_path="$SKILLS_DIR/$name/SKILL.md"
     ;;
   *)
-    err "unknown plugin '$plugin' (expected: architect, scalardb, or product)"
+    err "unknown plugin '$plugin' (expected: architect, scalardb, product, or infra)"
     exit 2
     ;;
 esac

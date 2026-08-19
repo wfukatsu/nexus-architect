@@ -5,7 +5,79 @@ Nexus Architect の主な変更点を記録します。
 書式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/) に基づき、
 バージョニングは [セマンティック バージョニング](https://semver.org/lang/ja/) に従います。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
-3 つのプラグイン（`product`・`architect`・`scalardb`）は同一の番号で一括リリースされます。
+4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
+
+## [0.29.0] - 2026-08-19
+
+4つ目のプラグイン **infra** を追加しました。独立していた `infra-design` プラグインから
+マルチクラウド インフラエージェントとその知識バンドルを本リポジトリへ取り込み、
+本リポジトリの規約に合わせて英語化し、契約テストに接続しています。
+コーパスは 99 スラッシュコマンドから 103 になりました。
+
+### 追加
+- **`infra` プラグイン（4コマンド）。** `/infra:start`（sonnet）はトリアージです。知識バンドルを
+  解決し、文書の鮮度を確認し、対象環境と対象クラウドを確定したうえで、`/infra:design`（opus）、
+  `/infra:implement`（sonnet）、`/infra:review`（opus）へ委譲します。委譲時にこの4点は確定済み
+  なので、モード側が同じことを再確認することはありません。スキルは product と同様に
+  `skills/infra/` 配下へ入れ子で配置しています。
+- **`okf-k8s-tf` 知識バンドルを `knowledge/okf-k8s-tf/` に同梱。** Terraform / Kubernetes / Helm /
+  Kustomize / Argo CD / GitLab CI/CD / Docker+Cosign / Vault / External Secrets /
+  Prometheus・Grafana / Kyverno を扱う OKF v0.2 文書23本です。submodule ではなく実体を同梱して
+  いるのは、取得元リポジトリが**削除された**ためです。リモートは存在せず、ここにあるコピーが
+  正本です。取り込み経路と、バンドルの「対象実装」区分が対象としている2コミットは
+  `knowledge/OKF-K8S-TF-PROVENANCE.md` に記録しています。
+- **`rules/okf-k8s-tf-bundle.md`** — 利用手順です。解決順、話題→文書の対応表、出力で混ぜては
+  ならない3区分（対象実装=事実、設計指針=出典付きの推奨、確認事項=未解決）、引用記法、
+  `stale_after` による鮮度、情報源の優先順位。`security/kyverno.md` の期限が他より短いのは、
+  Kyverno v1.20 が `kyverno.io/v1 ClusterPolicy` の削除を計画しているためです。
+- **`rules/infra/environments.md` と `rules/infra/multi-cloud.md`** — スキルが助言ではなく
+  強制する2つの前提です。環境ルールが持つ被覆の非対称性がこのプラグインの誠実さの核心で、
+  `local` はバンドルに一切記載がなく、`production` には**実装事実がありません**。この2つを
+  `test` / `staging` と同じ確信度で語らず、そう明記します。マルチクラウドルールは L1〜L4 の
+  移植性境界、クラウド対応表、非対称性（Karpenter は AWS 専用、auto-unseal KMS は3クラウドで
+  権限モデルが異なる）を持ちます。
+- **`templates/infra/{design-doc,env-matrix,adr,review-report}.md`** — 成果物の型です。
+  `reports/` 配下に書かれるものにフックが要求する `schema_version` フロントマターの
+  ブロックを、それぞれが提供します。
+- **`skills/infra/infra-contract.test.py`** — 新しい散文が述べるだけで他に担保のなかった契約を
+  35 チェックで検証します。ルールの解決順が `update-okf-bundle.sh` の実装と一致すること、
+  対応表が挙げる文書がすべて実在し**かつ**バンドルの全文書が対応表から到達可能であること、
+  23本すべてで `stale_after` がパースでき Kyverno が最短のままであること、4スキルのモデルが
+  ルーターのモデル方針表と一致すること、名前を挙げたテンプレートがフロントマターを持つこと。
+- **`docs/infrastructure.md`**（+ `_ja`）— 使い方ガイド。セットアップ、強制される4つの前提、
+  実行の流れ、architect のインフラスキルとの境界。
+
+### 変更
+- **`tools/update-okf-bundle.sh` が `--bundle=scalardb|k8s-tf` を受け取ります。** 既定は
+  `scalardb` で挙動は変わりません。`k8s-tf` は同梱バンドルを解決し、`update` は失敗でも
+  無言の no-op でもなく「リモートがない」ことを報告します。更新できないバンドルは、
+  更新を求められたその場でそう言うべきです。
+- **`/architect:update-knowledge` に `--bundle=<name>`** を追加し、どちらのバンドルにも
+  到達できるようにしました。あわせて、`knowledge/` 配下はいずれも編集禁止であることを
+  明記しています。特に同梱側は、上流のない情報源を編集すると、引用可能な文書が
+  検証不能なローカルの散文に変わってしまいます。
+- **`/infra:*` の出力先は `reports/08_infrastructure/`**（`work/pipeline-progress.json` が
+  ある場合。ない場合は対象リポジトリの `docs/infra/`）。`reports/` 配下に置くことで、
+  フロントマターと Mermaid の検証フックの対象に入ります。`templates/output-structure.md` に
+  このディレクトリを追記しました（既に書き込んでいた architect スキルの分を含みます）。
+- **`tools/docs_consistency.test.py` の分割は8グループから9グループへ。** プラグイン1つが
+  1グループです。行を足さなければ、分割は4コマンドを黙って取りこぼしていました。
+  `OTHER_TOOLS` にもスキル本文に登場するインフラ CLI を追加しています。
+- **`tools/omnigent/load-skill.sh` が `infra:<name>` を解決**し、名前空間を独立して一覧します。
+  `infra` は `design` / `implement` / `review` / `start` という一般語と同形の名前を使うため、
+  プレフィックスなしの `<name>` が `skills/infra/` に解決されることはありません。
+- CLAUDE.md、README.md、AGENTS.md、OMNIGENT.md、両言語のスキルカタログを4プラグイン・
+  103コマンドに更新し、新プラグインが重複する architect 側3スキルとの境界を明記しました。
+  `design-infrastructure`（論理と具体）、`generate-infra-code`（`generated/` と実在の
+  インフラリポジトリ）、`review-operations`（設計書とコード）。
+
+### 備考
+- infra スキルはパイプライン**ではありません**。マニフェストを持たず、`/architect:pipeline` から
+  実行されず、ステータスダッシュボードにも現れません。`work/pipeline-progress.json` に
+  フェーズエントリを書きません。
+- 取り込み元はすべて日本語でした。SKILL.md・ルール・テンプレートはリポジトリの規約に従い
+  英語へ翻訳しています。バンドル自体は**翻訳していません**。外部から取り込んだ情報源であり、
+  書き換えれば、それが引用している当の情報源ではなくなるためです。
 
 ## [0.28.1] - 2026-08-18
 
