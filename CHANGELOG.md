@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.30.1] - 2026-08-27
+
+Four findings from reviewing 0.30.0 the day it shipped. One would have failed at runtime; the
+other three were contradictions between what the prose said and what the validator enforced.
+
+### Fixed
+- **The state-machine validator is resolved from the plugin root.** `design-state-machine` and
+  `review-consistency` invoked it as `python3 tools/lib/state_machine_manifest.py` — a path that
+  exists in this repository and nowhere a user actually runs the skill. Both now use
+  `${CLAUDE_PLUGIN_ROOT}/tools/lib/…`, like every other tool-wrapping skill. The contract tests run
+  repository-relative and so could not have caught it.
+- **Rule 5 no longer claims a guard's else branch "is a matrix cell".** It cannot be: the matrix
+  has one cell per `(state, event)` and that cell is `allow`, because the event *is* legal there —
+  the guard chooses between outcomes, not between legal and illegal. The else branch lives on the
+  transition (`else`), which is what the validator already enforced.
+- **A transition's `idempotency` is now `ignore` | `reject`, and means one thing.** `allow` was
+  accepted and meant nothing: a committed transition firing again is the `(to, event)` matrix cell's
+  decision, never the transition's. The field is the verdict for a **redelivery of the same request**
+  (same key, retried message) — return the original outcome, or report the key reuse.
+  `rules/state-modeling.md` §4 states the distinction; the validator refuses `allow`.
+- **`/architect:pipeline` no longer calls `analyze-data-model` dialogue-driven.** It has no dialogue
+  mode and no `--auto`. Optional means skippable without failing the run; only `create-domain-story`
+  and `design-state-machine` take `--auto`.
+
+### Changed
+- The manifest field contract documents `states[].kind` and `matrix[].response`, which the validator
+  and the Markdown template already used.
+
 ## [0.30.0] - 2026-08-27
 
 One skill, and the wiring that makes it worth having: state transition modeling, added where the
