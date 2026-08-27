@@ -77,6 +77,25 @@ After `/architect:redesign` completes, ask the user:
 
 If yes, ask which domains to cover (present the bounded context list from `bounded-contexts-redesign.md`), then run `/architect:create-domain-story --domain=<name>` for each selected domain before proceeding to `design-microservices`.
 
+## State Transition Model Option
+
+After `/architect:redesign` completes — and in the same breath as the Domain Story question, so the
+user answers both at once — ask:
+
+> "Should I build state transition models for the aggregates with a lifecycle? The model fixes which
+> changes are legal in each state, who may make them, and what happens to the attempts that are not —
+> which is what the schema, the API errors and the test specs are derived from."
+
+If yes, run `/architect:design-state-machine` (it selects the aggregates interactively from the
+evidence, or pass `--aggregate=<name>` to model one). Run it **before** `design-scalardb` /
+`design-data-layer` and `design-api`, which consume it: the state column and its OCC scope, the
+per-transition consistency class, the rejected transitions that become registered problem types, and
+the idempotent no-ops that become the idempotency contract.
+
+Skip it without asking when no aggregate shows evidence of a lifecycle (no status column, no
+condition-shaped term in the ubiquitous language, no rejected path in any domain story) — and say so
+rather than leaving the omission silent.
+
 ## Execution Flow
 
 1. Evaluate project context (read provided materials, inspect codebase, **run Product Handoff Detection**)
@@ -91,7 +110,9 @@ If yes, ask which domains to cover (present the bounded context list from `bound
    to it; `plugin` is what keeps that attribution off the product pipeline's phase of the
    same name. On the handoff path this file already holds product's phases — add to it,
    never re-register it
-5. After `redesign`: offer Domain Story generation (see Domain Story Option above)
+5. After `redesign`: offer Domain Story generation and state transition modeling (see the two
+   Option sections above), then run what the user selected before `design-microservices` and the
+   data/API design phases
 6. Accumulate findings in `work/context.md` between phases
 7. Determine which phases to skip if not applicable
 

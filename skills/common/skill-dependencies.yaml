@@ -105,6 +105,18 @@ phases:
       - reports/04_stories/domain-story-{domain}.md
     model: opus
 
+  design-state-machine:
+    category: design
+    # STM- is architect-originated: a lifecycle is a physical design decision, so these nodes
+    # carry no product upstream unless a CTX-/ENT-/FEAT- node happens to exist (docs/design.md §1.5).
+    id_prefix: [STM-]
+    depends_on: [redesign]
+    optional: true
+    outputs:
+      - reports/03_design/state-machines/
+      - reports/03_design/state-machines/state-machine-manifest.json
+    model: opus
+
   design-microservices:
     category: design
     depends_on: [redesign]

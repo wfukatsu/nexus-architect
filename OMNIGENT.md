@@ -17,7 +17,7 @@ A four-plugin system-architecture toolkit originally packaged for Claude Code:
 - **product** — product-direction skills (vision → SLA/NFR), nested under `skills/product/`
 - **infra** — multi-cloud, four-environment infrastructure skills, nested under `skills/infra/`
 
-There are ~114 `SKILL.md` files. Each is a self-contained instruction document. Under
+There are ~115 `SKILL.md` files. Each is a self-contained instruction document. Under
 Claude Code they are invoked as slash commands (e.g. `/architect:investigate`); under
 Omnigent a worker resolves the command to a file, reads it, and follows it.
 

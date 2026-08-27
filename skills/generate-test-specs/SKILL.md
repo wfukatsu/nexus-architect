@@ -51,6 +51,24 @@ Record the **selected stack** per @rules/api-contract-fidelity.md §7 — the Sp
 (Schemathesis, Pact, ArchUnit) with the reason each was selected or skipped. `generate-contract-tests`
 emits exactly what is recorded here, so an unrecorded stack is one that never gets written.
 
+## State Transition Coverage
+
+When `reports/03_design/state-machines/state-machine-manifest.json` exists, the model is a test
+oracle, not background reading: it already enumerates every case, so coverage is measurable rather
+than judged. Specify per machine (@rules/state-modeling.md §8):
+
+| Coverage | What must be specified |
+|----------|------------------------|
+| Transition | Every `allow` cell fires: from its source state, the event moves the aggregate to the declared target and performs the declared effect |
+| Guard | Every guarded transition is exercised on both branches — the guard true path, and the `else` branch reaching its declared outcome |
+| Rejection | Every `reject` cell is attempted and returns the contracted error, not a 500 and not a silent success (@rules/api-error-standard.md) |
+| Idempotency | Every `ignore` cell replays cleanly: the event is delivered twice and the second delivery leaves the state and the side effects unchanged |
+| Concurrency | Every transition two actors can fire from one state: exactly one commits, the loser re-reads and re-evaluates its guard rather than retrying blindly (an integration test, not a contract test) |
+| Terminal | No transition leaves a declared terminal state, attempted from each one |
+
+Unreachable states and undecided cells are not test cases — they are model defects, and belong in
+the gap list rather than in a specification that pretends to cover them.
+
 ## Acceptance Criteria
 
 - Every aggregate's CRUD operations are covered by at least one BDD scenario
@@ -61,6 +79,8 @@ emits exactly what is recorded here, so an unrecorded stack is one that never ge
   the approved transport design
 - Includes test cases for boundary values, error cases, and concurrent processing
 - When using ScalarDB, includes OCC conflict scenario tests
+- When a state transition model exists, every `allow`, `reject` and `ignore` cell of every matrix is
+  covered by at least one specified test
 - Every acceptance criterion in the requirements is reachable from at least one specified test — an
   untested acceptance criterion is recorded as a gap, not omitted silently
 
@@ -71,6 +91,7 @@ emits exactly what is recorded here, so an unrecorded stack is one that never ge
 | reports/06_implementation/ | Required | /architect:design-implementation |
 | reports/06_implementation/api-layer-spec.md | Required when an API surface exists | /architect:design-implementation |
 | reports/03_design/api-specifications/ | Required when an API surface exists | /architect:design-api |
+| reports/03_design/state-machines/state-machine-manifest.json | Optional | /architect:design-state-machine — the matrix is the coverage target above |
 
 ## Output
 
@@ -90,5 +111,6 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 |-------|-------------|
 | /architect:design-implementation | Input source |
 | /architect:design-api | Input source — the contract the contract tests assert against |
+| /architect:design-state-machine | Input source — the state x event matrix the transition tests cover |
 | /architect:generate-contract-tests | Output consumer — emits the executable tests from these specs |
 | /architect:generate-scalardb-code | Related (test code generation) |

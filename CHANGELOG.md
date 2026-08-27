@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+### Added
+- **`/architect:design-state-machine` (opus) — state transition modeling.** An optional design
+  phase that builds, through facilitated dialogue, the model a prose design never states precisely:
+  for each aggregate with a lifecycle, its states and their invariants, the events and guarded
+  transitions between them, and the **full state × event matrix** — every remaining combination
+  decided as `reject`, `ignore` or `defer` rather than left blank for the runtime to decide. Every
+  transition carries an actor, a consistency class (`local` / `distributed` / `saga`) and an
+  idempotency verdict, because a transition is a transaction and a guard evaluated outside it is a
+  race with a comment. `--auto` derives the models from existing reports for automated runs,
+  marking each cell it had to assume. Registered in the manifest as an optional phase after
+  `redesign`, minting `STM-` traceability nodes.
+- **`rules/state-modeling.md`** — the method the skill facilitates: what earns a state machine (and
+  what does not), the five element types, the seven well-formedness rules, the four matrix
+  verdicts, the concurrency contract under optimistic concurrency control, compensations as real
+  states rather than a rewind, timeouts as sweeper-fired transitions, the state column and the
+  transition history, and what each downstream skill takes from the model.
+- **`tools/lib/state_machine_manifest.py` + its test suite (29 checks).**
+  `reports/03_design/state-machines/state-machine-manifest.json` is the canonical model and the
+  Markdown its projection, so the seven rules are machine-checked rather than trusted to prose: one
+  initial state, every state reachable, no undeclared dead end, no two transitions sharing
+  `(state, event)` without stated and distinct guards, every guard declaring its else branch, an
+  actor and a consistency class on every transition, and a matrix with no undecided cell and none
+  contradicting a transition. Each test case is a model that reads perfectly well and is wrong.
+
+### Changed
+- **The model feeds the phases that were already deciding these things implicitly.**
+  `design-scalardb` and `design-data-layer` take the state column, its OCC scope, the history store
+  and the per-transition consistency class; `design-api` turns transitions into operations,
+  `reject` cells into registered problem types and `ignore` cells into the idempotency contract;
+  `generate-test-specs` gains a State Transition Coverage section that makes coverage measurable
+  (every `allow` fires, every guard is exercised on both branches, every `reject` returns the
+  contracted error, every `ignore` replays cleanly); `review-consistency` runs the validator and
+  reviews whether the design documents still agree with the model, and checks state and event names
+  against the ubiquitous language.
+- **`/architect:start` offers state transition modeling** after `redesign`, alongside the Domain
+  Story question, and skips it explicitly — saying so — when no aggregate shows evidence of a
+  lifecycle. `/architect:pipeline` now states how it treats `optional: true` phases at all: run
+  them non-interactively, or record them `skipped` with the reason rather than emitting a document
+  derived from nothing.
+
 ## [0.29.0] - 2026-08-19
 
 A new plugin: **infra**, the fourth. It brings the multi-cloud infrastructure agent — and its
