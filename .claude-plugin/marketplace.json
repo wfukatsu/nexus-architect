@@ -51,6 +51,7 @@
         "./skills/map-domains",
         "./skills/redesign",
         "./skills/create-domain-story",
+        "./skills/design-state-machine",
         "./skills/design-microservices",
         "./skills/select-scalardb-edition",
         "./skills/design-scalardb",

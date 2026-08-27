@@ -43,6 +43,13 @@ Glob for all available design and analysis documents:
 
 Record the full list of found file paths — these will be passed to sub-agents.
 
+When `reports/03_design/state-machines/state-machine-manifest.json` exists, run
+`python3 tools/lib/state_machine_manifest.py <project_dir>` first and pass its output to Task B.
+It mechanically checks the seven well-formedness rules of @rules/state-modeling.md §3, so the
+reviewers spend their judgment on whether the *design documents* still agree with the model rather
+than on re-deriving reachability by hand. Each violation it reports is a CON-2xx finding unless the
+model's Open Items already records it with an owner.
+
 ### Step 2: Spawn Three Parallel Dimension Reviewers
 
 In a **single message**, issue all three Task() calls simultaneously so they run in parallel:
@@ -105,6 +112,7 @@ Evaluate ONLY the Traceability dimension:
 - Presence of forward and backward references
 - Whether gaps are documented
 - Cross-plugin continuity (when `work/traceability.json` exists from a product handoff, per docs/design.md §1.5): every `FR-` is reachable from a `FEAT-` or explicitly flagged as elicited-fresh; no product `NFR-` was silently re-numbered; no `upstream` ID dangles across the product→architect boundary
+- State transition models (when `reports/03_design/state-machines/` exists, per rules/state-modeling.md §8): every state the schema's state column permits is a state in the model and vice versa; every `reject` matrix cell has a corresponding error response in the API design; every `ignore` cell has an idempotency contract; every transition classified `saga` appears in the transaction design's saga steps with a compensating transition. A model that no downstream document reflects is a traceability break, not a stylistic one
 
 Score 1-5: 5=Exemplary, 4=Good, 3=Acceptable, 2=Concerning, 1=Critical
 
@@ -145,6 +153,7 @@ Evaluate ONLY the Terminology Consistency dimension:
 - Consistent use of ubiquitous language
 - Detection of different names for the same concept
 - Abbreviations defined at first occurrence and used consistently
+- State and event names in any state transition model appear in `ubiquitous-language.md` with the same spelling, and no state is renamed between the model, the schema and the API design
 
 Score 1-5: 5=Exemplary, 4=Good, 3=Acceptable, 2=Concerning, 1=Critical
 

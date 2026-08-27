@@ -70,6 +70,7 @@ Edition comparison and version support: @rules/scalardb-edition-profiles.md
 |------|---------------------|--------|
 | reports/03_design/target-architecture.md | Required | /architect:design-microservices |
 | reports/01_analysis/data-model-analysis.md | Recommended | /architect:analyze-data-model |
+| reports/03_design/state-machines/state-machine-manifest.json | Optional | /architect:design-state-machine — the state column and its OCC scope, the transition history store, and the per-transition consistency class that fixes which transitions sit in one transaction (@rules/state-modeling.md §5–6) |
 
 ## Available Resources
 

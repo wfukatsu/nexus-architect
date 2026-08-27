@@ -38,7 +38,13 @@ part of the automated run.
    `reports/03_design/api-style-decisions.json`. Before that artifact exists, a legacy
    `options.api_style_graphql` is only a compatibility fallback. Invalid canonical JSON is a
    blocking error and must never be interpreted as REST-only.
-7. Record progress in `work/pipeline-progress.json` **twice per phase**: set
+7. Phases the manifest marks `optional: true` are the dialogue-driven ones
+   (`create-domain-story`, `design-state-machine`, `analyze-data-model`). An automated run has
+   nobody to facilitate with, so invoke each in its non-interactive mode (`--auto` where the skill
+   offers one) and record what that mode had to assume. When the inputs show no evidence for the
+   phase — no domain to narrate, no aggregate with a lifecycle — record it `skipped` with the reason
+   in `summary` rather than emitting a document derived from nothing.
+8. Record progress in `work/pipeline-progress.json` **twice per phase**: set
    `status: "in_progress"` with `plugin: "architect"` and `started_at` *before* invoking
    the skill (all of them at once for a parallel group), then `completed` / `failed` /
    `skipped` with `completed_at`, `outputs` and `summary` once it returns. The pre-write
@@ -48,7 +54,7 @@ part of the automated run.
    both manifests define. The product pipeline writes this same file, so never re-register
    or reset an entry that is not this manifest's — including under `--rerun-from`
    (@skills/common/progress-registry.md § One Registry, Two Pipelines)
-8. Accumulate findings in `work/context.md` between phases
+9. Accumulate findings in `work/context.md` between phases
 
 ## Command-Line Options
 

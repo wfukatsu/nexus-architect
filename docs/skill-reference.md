@@ -52,6 +52,7 @@ For the inputs you should prepare before running each pipeline, see the
 | `/architect:map-domains` | opus | - | Domain classification, BC mapping |
 | `/architect:redesign` | opus | - | Bounded context redesign |
 | `/architect:create-domain-story` | opus | Optional | Domain Storytelling: visualize business processes per domain |
+| `/architect:design-state-machine` | opus | Optional | State transition models per aggregate — states, guarded transitions, the full state x event matrix with no undecided cell, and the consistency class of every transition |
 | `/architect:design-microservices` | opus | - | Target architecture |
 | `/architect:select-scalardb-edition` | sonnet | ScalarDB | Edition selection |
 | `/architect:design-scalardb` | opus | ScalarDB | Schema and transaction design |
@@ -259,6 +260,7 @@ path by their router, so they are not slash commands and have no signature here.
 /architect:map-domains
 /architect:redesign
 /architect:create-domain-story [--domain=<name>] [--auto]
+/architect:design-state-machine [--aggregate=<name>] [--auto] [--lang=en|ja]
 /architect:design-microservices
 /architect:select-scalardb-edition
 /architect:design-scalardb

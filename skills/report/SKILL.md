@@ -38,6 +38,8 @@ Render each section heading in the language configured in `work/pipeline-progres
 
 `reports/04_stories/` is optional — include the section only when one or more `domain-story-*.md` files exist there.
 
+`reports/03_design/state-machines/` is a subdirectory of the Design section and is compiled with it — include each `state-machine-*.md` as a Design subsection carrying its `stateDiagram-v2` and its state × event matrix. `state-machine-manifest.json` is the machine-readable model, not report content: it is not rendered.
+
 ## Output
 
 Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
