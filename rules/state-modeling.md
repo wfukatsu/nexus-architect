@@ -56,8 +56,10 @@ asserted by `tools/lib/state_machine_manifest.py` against the manifest the skill
 3. **No undeclared dead end** — every non-terminal state has at least one outgoing transition.
 4. **Determinism** — no two transitions share `(from state, event)` unless their guards are stated
    and mutually exclusive. Two unguarded transitions on the same pair are a defect, not a choice.
-5. **Every guard has an else branch** — the guarded transition's failure behaviour is a row in the
-   matrix (§4), not an unwritten assumption.
+5. **Every guard has an else branch** — what happens when the event arrives in this state and the
+   guard is false is recorded on the transition itself (`else`), not left as an unwritten
+   assumption. The matrix (§4) cannot hold it: that cell is `allow`, because the event *is* legal
+   here — the guard decides between outcomes, not between legal and illegal.
 6. **Every transition names an actor and a consistency class** (§5). A transition nobody is
    authorized to fire, or whose transactional scope is unknown, is not designed yet.
 7. **Every state and event name exists in the ubiquitous language** (`reports/01_analysis/
@@ -79,6 +81,14 @@ cells** — every cell carries one of four verdicts:
 
 The `ignore` cells are the idempotency design. Deciding them by default — "a duplicate event is an
 error" — is what turns an at-least-once delivery into a support ticket.
+
+Two things are easy to conflate here. A **fresh** occurrence of an event after the transition has
+committed — the customer clicks *submit* again — reaches the aggregate in its new state, and the
+`(to state, event)` cell above decides it. A **redelivery of the same request** — the same
+idempotency key, a retried message, a duplicate webhook — is the transition's own `idempotency`
+verdict: `ignore` returns the original outcome without re-executing the effect, `reject` reports the
+key reuse. There is no third value: "fire again" for a committed transition is by definition the
+matrix cell, never the transition.
 
 ## 5. Concurrency and consistency
 

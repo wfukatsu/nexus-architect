@@ -185,6 +185,11 @@ def main():
     rejects("transition with an unknown idempotency verdict",
             lambda m: m["machines"][0]["transitions"][0].update(idempotency="maybe") or m,
             expect="idempotency must be one of")
+    # "allow" was a value once: firing a committed transition again is the (to, event) matrix
+    # cell's decision, so a transition-level "allow" had no meaning and is rejected.
+    rejects("transition claiming idempotency=allow",
+            lambda m: m["machines"][0]["transitions"][0].update(idempotency="allow") or m,
+            expect="idempotency must be one of")
 
     print("the matrix has no blank cell and does not disagree with the transitions")
     def drop_cell(m):
