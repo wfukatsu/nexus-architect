@@ -23,7 +23,7 @@ Per aggregate:
 - **States** — named conditions with the invariant that holds in each
 - **Events** — commands, integration events and timers that trigger change
 - **Transitions** — `(from, event) [guard] → to`, each with an actor, an effect, a consistency class
-  and an idempotency verdict
+  and an idempotency verdict for a redelivery of the same request
 - **The state × event matrix** — every remaining combination decided as `reject`, `ignore` or
   `defer`, never left blank
 - **A Mermaid `stateDiagram-v2`** and a machine-readable manifest downstream skills consume
@@ -155,12 +155,12 @@ The seven rules of @rules/state-modeling.md §3, in the order it is cheapest to 
 2. Every state reachable from the initial state
 3. Every non-terminal state has an outgoing transition; every dead end is a declared terminal state
 4. No two transitions share `(from, event)` unless their guards are stated and mutually exclusive
-5. Every guarded transition has an else branch, and that branch is a matrix cell
+5. Every guarded transition declares its `else` branch on the transition itself — the matrix cell is `allow` there, so it cannot carry it
 6. Every transition names an actor and a consistency class
 7. Every state and event name exists in the ubiquitous language, or its addition is proposed
    explicitly
 
-These are also machine-checked: `python3 tools/lib/state_machine_manifest.py <project_dir>` validates
+These are also machine-checked: `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/state_machine_manifest.py" <project_dir>` validates
 the emitted manifest and exits non-zero with one line per violation. Run it after writing, and treat
 a failure as a defect in the model rather than in the checker.
 
@@ -193,8 +193,8 @@ stay English.
       "initial_state": "Draft",
       "terminal_states": ["Delivered", "Cancelled"],
       "states": [
-        { "name": "Draft", "invariant": "no payment held, no stock reserved" },
-        { "name": "Submitted", "invariant": "lines frozen, awaiting approval" }
+        { "name": "Draft", "kind": "initial", "invariant": "no payment held, no stock reserved" },
+        { "name": "Submitted", "kind": "normal", "invariant": "lines frozen, awaiting approval" }
       ],
       "events": [
         { "name": "submit", "source": "command" },
@@ -223,11 +223,17 @@ stay English.
 
 Field contracts the validator enforces: `id` matches `STM-###` and is unique; `document` resolves to
 a non-empty file inside the project; `initial_state` and every `terminal_states` entry is a declared
-state; every transition's `from`/`to` is a declared state and its `event` a declared event;
-`consistency` ∈ `local` | `distributed` | `saga`; `idempotency` ∈ `allow` | `ignore` | `reject`;
-a transition with a `guard` carries an `else`; `matrix` covers **every** state × event pair exactly
-once with a `verdict` ∈ `allow` | `reject` | `ignore` | `defer`, and every `allow` cell has a
-matching transition.
+state, and at most one state carries `kind: initial` (it must be `initial_state`; `kind` is otherwise
+`normal` | `terminal` and informational); every transition's `from`/`to` is a declared state and its
+`event` a declared event, and no transition leaves a terminal state; `consistency` ∈ `local` |
+`distributed` | `saga`; `idempotency` ∈ `ignore` | `reject` — the verdict for a **redelivery of the
+same request** (same key / retried message), not for a fresh occurrence of the event, which the
+`(to, event)` matrix cell decides (@rules/state-modeling.md §4); a transition with a `guard` carries
+an `else` stating the guard-false outcome; `matrix` covers **every** state × event pair exactly once
+with a `verdict` ∈ `allow` | `reject` | `ignore` | `defer`, every `allow` cell backed by a
+transition and no other verdict on a pair that has one. `response` on a cell is free text naming
+the outcome — the problem type for `reject`, the reason for `ignore`, the queue for `defer` — and
+is what `design-api` reads.
 
 ## Output Document Structure
 
@@ -268,7 +274,7 @@ considered and deliberately not modeled.]
 
 | # | From | Event | Guard | To | Actor | Effect | Consistency | Idempotency |
 |---|------|-------|-------|----|-------|--------|-------------|-------------|
-| 1 | ...  | ...   | ...   | ...| ...   | ...    | local / distributed / saga | allow / ignore / reject |
+| 1 | ...  | ...   | ...   | ...| ...   | ...    | local / distributed / saga | ignore / reject (on redelivery) |
 
 ## State x Event Matrix
 
@@ -327,7 +333,7 @@ over the whole graph, per prefix. A machine with no product-side origin carries 
 ## Completion Criteria
 
 1. One document per modeled aggregate under `reports/03_design/state-machines/`, plus the manifest
-2. `python3 tools/lib/state_machine_manifest.py <project_dir>` exits 0, or every violation it
+2. `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/state_machine_manifest.py" <project_dir>` exits 0, or every violation it
    reports is listed under Open Items with an owner
 3. The matrix has no blank cell in any document
 4. Every state and event name matches `ubiquitous-language.md`, or its addition is proposed

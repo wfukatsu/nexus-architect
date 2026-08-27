@@ -44,7 +44,7 @@ Glob for all available design and analysis documents:
 Record the full list of found file paths — these will be passed to sub-agents.
 
 When `reports/03_design/state-machines/state-machine-manifest.json` exists, run
-`python3 tools/lib/state_machine_manifest.py <project_dir>` first and pass its output to Task B.
+`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/state_machine_manifest.py" <project_dir>` first and pass its output to Task B.
 It mechanically checks the seven well-formedness rules of @rules/state-modeling.md §3, so the
 reviewers spend their judgment on whether the *design documents* still agree with the model rather
 than on re-deriving reachability by hand. Each violation it reports is a CON-2xx finding unless the

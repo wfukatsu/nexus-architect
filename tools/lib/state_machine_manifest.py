@@ -22,7 +22,9 @@ MAX_DOCUMENT_BYTES = 4 * 1024 * 1024
 ID_RE = re.compile(r"^STM-\d{3,}$")
 EVENT_SOURCES = ("command", "event", "timeout", "schedule")
 CONSISTENCY = ("local", "distributed", "saga")
-IDEMPOTENCY = ("allow", "ignore", "reject")
+# The verdict for a redelivery of the same request. A fresh occurrence of the event after
+# commit is the (to, event) matrix cell, so "fire again" is never a transition-level value.
+IDEMPOTENCY = ("ignore", "reject")
 VERDICTS = ("allow", "reject", "ignore", "defer")
 
 
