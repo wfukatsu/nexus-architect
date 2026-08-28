@@ -139,6 +139,7 @@ Evaluate ONLY the Schema Design Quality dimension:
 - Is the normalization level appropriate (avoid over-normalization causing excessive joins; avoid under-normalization causing update anomalies)?
 - Is index design sound (covering indexes for common queries, no redundant indexes, index selectivity)?
 - Is migration safety addressed (backward-compatible migrations, no blocking ALTER TABLE on large tables)?
+- Read the design's "Read Model, CQRS and Event Sourcing Decisions" table: an aggregate with a contended write path or a reporting consumer and `none` / `no` there is a finding, and an aggregate absent from the table is *undecided* — a finding too, not "not needed"
 
 Score 1-5: 5=Exemplary, 4=Good, 3=Acceptable, 2=Concerning, 1=Critical
 

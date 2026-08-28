@@ -7,6 +7,24 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+0.32.0 のレビューで見つかった 6 件 — いずれも契約の片側にだけ書かれた約束でした。
+
+### 修正
+- `review-data-integrity` が Read Model / CQRS / Event Sourcing 表を読み、表にない集約を「未決」
+  として指摘するように（`design-data-layer` が既にそう主張していた）。
+- `map-domains` が `Core` の全 `CTX-` の `upstream` に Domain Vision Statement の `VIS-` を書き、
+  `adapt-change` と `/product:review` が頼る辺がグラフに実在するように。`/product:review` は
+  `VIS-` upstream のない `Core` を指摘。
+- `/product:review` が Bounded Context Canvas を検査（9 部すべて、再実行で描き直した `CTX-` は
+  記録された決定であること）— Canvas 節が主張していたとおりに。
+- `design-scalardb` / `design-data-layer` が `reports/04_quality/nfr.md` を任意の前提として列挙し、
+  純 architect 経路のフォールバックを明記（本文だけで名指ししていた）。
+- DDD カバレッジの成果物チェックは SKILL.md・manifest・出力ツリーのみを宣言と数える — rule が
+  パスに言及しているだけでは「宣言済み」にならない。
+- `generate-test-specs` の Related Skills から `generate-scalardb-code` の重複行を削除。
+
 ## [0.32.0] - 2026-08-28
 
 ### 追加

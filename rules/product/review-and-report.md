@@ -6,11 +6,13 @@ consolidates everything into one HTML deliverable that leads with the validation
 ## review — four lenses (apply in order)
 
 1. **Consistency** — missing/broken ID references, contradictions between documents, terminology
-   drift (the same concept named differently). Cross-check `VIS-`/`NSM-`/`SCP-`/`FEAT-`/`ENT-`/
+   drift (the same concept named differently); a Bounded Context Canvas with a missing part, or a
+   `CTX-` redrawn on a rerun without a recorded decision. Cross-check `VIS-`/`NSM-`/`SCP-`/`FEAT-`/`ENT-`/
    `CTX-`/`API-`/`NFR-` usage across files.
 2. **Traceability** — does `work/traceability.json` agree with the documents? Every node should
    have a valid Upstream chain to a `VIS-`/`NSM-` root; flag orphans (no upstream) and dangling
-   references (upstream id that doesn't exist). Example maps, when present: a Must/Should `FEAT-`
+   references (upstream id that doesn't exist). A `Core` `CTX-` with no `VIS-` upstream, or one
+   the Domain Vision Statement does not name. Example maps, when present: a Must/Should `FEAT-`
    with no map, a `RULE-` without both example kinds, an `EX-` naming no or several rules
    (@rules/product/example-mapping.md).
 3. **Extensibility** — will the domain boundaries and API layering absorb likely future

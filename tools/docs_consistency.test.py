@@ -433,10 +433,12 @@ check("every command the coverage table names is registered", not unknown_cmds, 
 
 # Every artifact path the table cites must be one some skill or manifest declares. Placeholders
 # ({domain}, {feat}, {service}) are kept as written, since the skills spell them the same way.
+# The corpus is what *declares* an artifact: the skills' own bodies, the two manifests and the
+# output tree. Deliberately not the rules — a rule discusses artifacts it does not produce, and
+# counting its prose as a declaration would let the table cite a file no skill writes.
 CORPUS = "\n".join(read(os.path.join(d, "SKILL.md")) for dirs in REG.values() for d in dirs)
 CORPUS += read("skills/common/skill-dependencies.yaml") + read("skills/product/common/skill-dependencies.yaml")
-CORPUS += read("templates/output-structure.md") + "\n".join(
-    read(os.path.join("rules", f)) for f in os.listdir(os.path.join(ROOT, "rules")) if f.endswith(".md"))
+CORPUS += read("templates/output-structure.md")
 undeclared = sorted({p for p in re.findall(r"`((?:reports|generated)/[^`]+)`", COVERAGE) if p not in CORPUS})
 check("every artifact path the coverage table cites is declared by a skill", not undeclared, undeclared)
 check("the Japanese coverage table lists the same commands",

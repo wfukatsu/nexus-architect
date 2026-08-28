@@ -78,7 +78,9 @@ Produce three deliverables:
    seed for architect, not a binding transaction decision.
 6. **Define language** — the ubiquitous language per context.
 7. **Append traceability** — add `CTX-` nodes to `work/traceability.json` with Upstream
-   `ENT-`/`FEAT-` references.
+   `ENT-`/`FEAT-` references, **plus the Domain Vision Statement's `VIS-` on every `CTX-`
+   classified `Core`** — that edge is what lets `adapt-change` reach the Core classification from
+   a vision change, and what `/product:review` checks.
 8. **Record** — write the three files; append decisions to `work/context.md`;
    ask remaining unknowns and log only what stays open (@rules/open-questions.md).
 

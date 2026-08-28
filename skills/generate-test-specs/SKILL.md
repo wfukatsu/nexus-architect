@@ -148,4 +148,3 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 | /architect:generate-scalardb-code | Output consumer — emits the domain unit and property tests from these specs |
 | /product:example-map | Input source — the agreed rules and examples the Gherkin is generated from |
 | /architect:generate-contract-tests | Output consumer — emits the executable tests from these specs |
-| /architect:generate-scalardb-code | Related (test code generation) |
