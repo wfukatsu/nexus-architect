@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
-## [Unreleased]
+## [0.31.0] - 2026-08-28
 
 Three additions closing the gap a DDD-technique coverage review found on the *front* of the
 pipeline: the tactical model between bounded contexts and the schema, the concrete examples
