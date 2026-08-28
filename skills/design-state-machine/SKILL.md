@@ -101,6 +101,10 @@ Push back on states that are really two states wearing one name (`Processing` th
 "awaiting payment" and "awaiting stock") and on flags masquerading as states.
 
 **Stage 3 — Events and transitions**
+Start with the creation command (@rules/state-modeling.md §2): it is an event with a guard and an
+actor but no `from` state — a failed guard means no aggregate, not a cancelled one — and its column
+in the matrix is decided by its idempotency contract (look it up in the API design before asking;
+an `Idempotency-Key` on the operation answers the whole column as `ignore`).
 For each state, ask what can happen next and who makes it happen. Per transition capture: event and
 its source (`command` / `event` / `timeout` / `schedule`), guard, effect, actor or role, and target
 state. Where the guard can be false, ask what the false branch does — that answer is a matrix cell,
@@ -113,8 +117,12 @@ type in the API, `ignore` becomes the idempotency contract, `defer` becomes a qu
 "cannot happen" — an event that reaches the aggregate has already happened.
 
 **Stage 5 — Concurrency and consistency**
-Per transition: `local`, `distributed` or `saga`. For every transition that two actors can fire from
-one state, ask what the loser does — retry with the guard re-evaluated, or surface a conflict. For
+Per transition: `local`, `distributed` or `saga`. Then build the **contention table** — one row per
+pair of transitions different actors can fire against one aggregate (orchestrator vs. recovery
+worker, request path vs. sweeper, two clients on one key), with who wins and what the loser does.
+Resolve each row from the transaction design first (a lease, an OCC rule, an idempotency key already
+decided there is not a question); ask only about the pairs it does not cover — retry with the guard
+re-evaluated, or surface a conflict. For
 saga transitions, name the compensating transition and its target state; a compensation that
 "returns to the previous state" is challenged, not recorded. Confirm how an indeterminate commit
 (`UnknownTransactionStatusException`) is resolved before a retry.
@@ -274,6 +282,7 @@ considered and deliberately not modeled.]
 
 | # | From | Event | Guard | To | Actor | Effect | Consistency | Idempotency |
 |---|------|-------|-------|----|-------|--------|-------------|-------------|
+| — | `[*]` | creation command | ... **else: creation rejected** (no aggregate) | initial state | ... | ... | local / distributed / saga | ignore (same key replays the original outcome) |
 | 1 | ...  | ...   | ...   | ...| ...   | ...    | local / distributed / saga | ignore / reject (on redelivery) |
 
 ## State x Event Matrix
@@ -297,8 +306,13 @@ stateDiagram-v2
 
 ## Concurrency and Consistency
 
-[Per contended transition: who can race, who wins, what the loser does. Saga transitions with
-their compensating transition and target state. Indeterminate-commit handling.]
+| Contention | Who vs. who | Winner | What the loser does |
+|------------|-------------|--------|---------------------|
+| ... | ... | first commit / lease holder / first arrival | re-read and re-evaluate the guard / retreat until the next sweep / 409 |
+
+[Then: the transaction classification of each transition and the mechanism it rests on; saga
+transitions with their compensating transition and its real target state; how an indeterminate
+commit is resolved before a retry.]
 
 ## Time-Driven Transitions
 
