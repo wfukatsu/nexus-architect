@@ -1,6 +1,6 @@
 ---
 description: |
-  Generate BDD scenarios, contract test, unit test, integration test, and performance test specifications.
+  Generate BDD scenarios, contract test, unit test, property-based test, integration test, and performance test specifications.
   Invoked via /architect:generate-test-specs. Requires output from design-implementation as a prerequisite.
 model: sonnet
 user_invocable: true
@@ -17,6 +17,8 @@ Generate comprehensive test specifications based on implementation specs:
 - **Contract test specs**: What must be asserted to prove the code obeys the API contract, and the
   stack that will assert it
 - **Unit test specs**: Test cases for services, repositories, and value objects
+- **Property-based test specs**: One property per aggregate invariant over generated instances,
+  seeded by the invariant's concrete examples (below)
 - **Integration test specs**: Integration tests for inter-service communication and DB operations
 - **Performance test specs**: Load conditions and SLO verification
 
@@ -71,6 +73,27 @@ than judged. Specify per machine (@rules/state-modeling.md §8):
 Unreachable states and undecided cells are not test cases — they are model defects, and belong in
 the gap list rather than in a specification that pretends to cover them.
 
+## Invariant Coverage (property-based)
+
+When `reports/03_design/aggregates/aggregate-manifest.json` exists, every invariant it declares is a
+test oracle twice over: its concrete examples are the seed cases, and its statement is a property
+that must hold for **every** instance the value objects' validation rules admit — not only the two
+the designer wrote down (@rules/aggregate-design.md §5). Specify per invariant:
+
+| Coverage | What must be specified |
+|----------|------------------------|
+| Example (positive) | Each `kind: positive` example as an example-based unit test: the `given` instance, the `when` command, the `then` state and emitted event |
+| Example (negative) | Each `kind: negative` example as a unit test asserting the rejection — the named outcome, no state change, no event |
+| Property | One property-based test whose generator produces arbitrary **valid** instances of the aggregate (every value object within its validation rule, every interior collection within its bound), applies each command in `violated_by` with arbitrary arguments, and asserts the invariant holds afterwards **or** the command was rejected — never a third outcome. Name the generator per value object (`Money` → `amount >= 0`, ISO 4217) so it is reusable across invariants |
+| Boundary | The generator's edges — empty interior collection, the collection bound, zero and maximum amounts, the earliest and latest dates the domain admits — listed explicitly, so the shrinker's smallest counter-example is one a reader can recognise |
+| Enforcement point | The test drives the **root** (`Order.addLine(...)`), never a service or a controller — a property that passes through a service proves the service enforces the invariant, which is the wrong place (@rules/aggregate-design.md §7) |
+
+Record the stack: **jqwik** on JUnit 5 for the Java services this toolkit generates (`@Property`,
+`@ForAll`, `Arbitraries`, shrinking on failure); its version is looked up per
+@rules/dependency-versions.md when the code generator pins it, never written here. An invariant
+whose property cannot be stated — because the manifest's statement is not a predicate — is a
+model defect, recorded in the gap list for `design-aggregate`, not a test that asserts nothing.
+
 ## Acceptance Criteria
 
 - Every aggregate's CRUD operations are covered by at least one BDD scenario
@@ -84,6 +107,9 @@ the gap list rather than in a specification that pretends to cover them.
 - When using ScalarDB, includes OCC conflict scenario tests
 - When a state transition model exists, every `allow`, `reject` and `ignore` cell of every matrix is
   covered by at least one specified test
+- When an aggregate manifest exists, every invariant is covered by its positive and negative
+  example tests **and** by one property-based test that drives the root — an invariant with no
+  property is recorded as a gap, never silently covered by examples alone
 - Every acceptance criterion in the requirements is reachable from at least one specified test — an
   untested acceptance criterion is recorded as a gap, not omitted silently
 
@@ -95,7 +121,7 @@ the gap list rather than in a specification that pretends to cover them.
 | reports/06_implementation/api-layer-spec.md | Required when an API surface exists | /architect:design-implementation |
 | reports/03_design/api-specifications/ | Required when an API surface exists | /architect:design-api |
 | reports/03_design/state-machines/state-machine-manifest.json | Optional | /architect:design-state-machine — the matrix is the coverage target above |
-| reports/03_design/aggregates/aggregate-manifest.json | Optional | /architect:design-aggregate — one unit test per invariant on both branches, seeded by its concrete examples |
+| reports/03_design/aggregates/aggregate-manifest.json | Optional | /architect:design-aggregate — the invariants are the property-test oracle above; their examples seed the unit tests |
 | reports/02_spec/examples/ | Optional | /product:example-map — `RULE-` → `Rule:` blocks, `EX-` → `Scenario:` lines in the BDD feature files |
 
 ## Output
@@ -106,7 +132,8 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 |------|---------|
 | `reports/07_test-specs/bdd-scenarios/` | Gherkin .feature files |
 | `reports/07_test-specs/contract-test-specs.md` | Contract test cases per `operationId`, plus the selected stack |
-| `reports/07_test-specs/unit-test-specs.md` | Unit test cases |
+| `reports/07_test-specs/unit-test-specs.md` | Unit test cases, including the example-seeded invariant tests |
+| `reports/07_test-specs/property-test-specs.md` | One property per aggregate invariant — generator per value object, boundaries, the commands driven, the stack |
 | `reports/07_test-specs/integration-test-specs.md` | Integration test cases |
 | `reports/07_test-specs/performance-test-specs.md` | Performance test conditions |
 
@@ -117,7 +144,8 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 | /architect:design-implementation | Input source |
 | /architect:design-api | Input source — the contract the contract tests assert against |
 | /architect:design-state-machine | Input source — the state x event matrix the transition tests cover |
-| /architect:design-aggregate | Input source — the invariants and their examples the unit tests cover |
+| /architect:design-aggregate | Input source — the invariants are the property-test oracle, their examples the unit-test seeds |
+| /architect:generate-scalardb-code | Output consumer — emits the domain unit and property tests from these specs |
 | /product:example-map | Input source — the agreed rules and examples the Gherkin is generated from |
 | /architect:generate-contract-tests | Output consumer — emits the executable tests from these specs |
 | /architect:generate-scalardb-code | Related (test code generation) |

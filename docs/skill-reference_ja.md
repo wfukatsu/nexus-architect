@@ -70,8 +70,8 @@
 | コマンド | モデル | 前提 | 説明 |
 |---------|-------|------|------|
 | `/architect:design-implementation` | opus | `reports/03_design/` | 実装仕様 — API レイヤー（Controller/DTO/バリデーション/マッパー、トランザクション境界、認可の実施点）＋サービス、リポジトリ、VO |
-| `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/契約/ユニット/統合/性能テスト仕様 |
-| `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB コード生成 — `domain/` と `infrastructure/` を担当 |
+| `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/契約/ユニット/プロパティ/統合/性能テスト仕様 — `aggregate-manifest.json` があれば不変条件ごとに 1 プロパティ |
+| `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB コード生成 — `domain/` と `infrastructure/` に加え、不変条件ごとの具体例テストと jqwik プロパティテストを担当 |
 | `/architect:generate-api-code` | opus | `api-specifications/` + `api-layer-spec.md` | OpenAPI 契約から API レイヤーを生成 — `operationId` と 1:1 の Controller、スキーマ制約から導出した Bean Validation 付き DTO、マッパー、RFC 9457 ハンドラ、`api-contract-map.json` |
 | `/architect:generate-graphql-code` | opus | GraphQL 仕様 + `api-layer-spec.md` | Spring GraphQL API レイヤー — resolver binding、DTO/mapper、security/context、DataLoader、error、query limit、統合 contract map |
 | `/architect:generate-contract-tests` | sonnet | `api-contract-map.json` + `contract-test-specs.md` | 実行可能な契約テスト（既定は swagger-request-validator + `@WebMvcTest`、Schemathesis / Pact / ArchUnit はオプトイン） |

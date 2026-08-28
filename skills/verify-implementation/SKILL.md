@@ -177,6 +177,9 @@ delegated `ASEC-` findings as stage 7. Execute stages 1–6 as real commands and
 Write `reports/09_verification/quality-gate.{json,md}`.
 
 Never report a stage as passed without its evidence, and never omit a stage without its reason.
+For stage 2, when `reports/03_design/aggregates/aggregate-manifest.json` exists, join each invariant
+to the property test `property-test-specs.md` names for it and record covered / declared; an
+invariant with no test class fails the stage even when every test that exists passed.
 
 ### Step 8 — Write the report
 
