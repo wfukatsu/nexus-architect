@@ -46,6 +46,15 @@ Five element types, and every one of them is named in the ubiquitous language:
 **Terminal states are declared, not inferred.** A state with no outgoing transition is either a
 declared terminal state or a defect; the model says which.
 
+**Creation is an event, not a transition.** The command that brings the aggregate into being
+(`place`, `open`, `register`) is listed among the events with its guard and its actor, but it has no
+`from` state and appears in no transition: its target is the initial state and its guard failing
+means *no aggregate* — a rejected creation, never a `Cancelled` row. It still earns a column in the
+matrix (§4), because it can reach an **existing** aggregate in exactly one way: a redelivery of the
+same request (same idempotency key). Every cell in that column is therefore decided by the creation
+command's idempotency contract — `ignore` (return the original outcome) where the API replays, and
+never `allow`, since a fresh request creates a fresh aggregate and reaches no existing one.
+
 ## 3. Well-formedness rules
 
 A state machine is not written out until all seven hold. Each is mechanically checkable and each is
@@ -98,6 +107,11 @@ exists to prevent.
 - **Read-check-write is one transaction.** The guard is evaluated on the state read *inside* the
   transaction that writes the new state. A guard checked before the transaction begins is not a
   guard; it is a race with a comment.
+- **Write the contention table.** One row per pair of transitions that can be fired against the
+  same aggregate by different actors — orchestrator vs. recovery worker, request path vs. sweeper,
+  two clients on one key — naming **who wins** (the first commit, the lease holder, the first
+  arrival) and **what the loser does** (re-read and re-evaluate, retreat until the next sweep,
+  return `409`). A pair with no row is a race nobody designed.
 - **Concurrent transitions conflict, by design.** Under ScalarDB's optimistic concurrency control,
   two actors firing transitions from one state means one commits and one fails — that is correct.
   What must be designed is what the loser does: retry (re-reading the state and re-evaluating the
