@@ -1,7 +1,7 @@
 ---
 description: |
   Create domain stories using Domain Storytelling technique to visualize business processes.
-  /architect:create-domain-story [--domain=<name>] [--auto] to invoke.
+  /architect:create-domain-story [--domain=<name>] [--mode=story|event-storming] [--auto] to invoke.
   Recommended prerequisite: redesign output. Supports interactive facilitation or auto-generation mode.
 model: opus
 user_invocable: true
@@ -22,10 +22,11 @@ Generate one domain story per domain, with a Mermaid sequence diagram and narrat
 ## Invocation
 
 ```
-/architect:create-domain-story [--domain=<DomainName>] [--auto]
+/architect:create-domain-story [--domain=<DomainName>] [--mode=story|event-storming] [--auto]
 ```
 
 - `--domain` — Target domain name (e.g., `Order`, `Inventory`, `Payment`). Prompted interactively if omitted.
+- `--mode` — `story` (default): the seven-stage Domain Storytelling facilitation below. `event-storming`: Stage 4 runs as a Process Modeling EventStorming session — per step the event, the command and its actor, what was read, and the policy that reacts (@rules/product/event-storming.md §3) — and the document gains a Process Model section. Refused under `--auto`: the skill falls back to `story` and says so.
 - `--auto` — Skip facilitation and generate automatically from existing analysis files.
 
 ## Execution Modes
@@ -52,7 +53,9 @@ Identify work items (data, documents, domain objects) relevant to the domain:
 - Ask: "What information or objects does each actor handle?"
 
 **Stage 4 — Main Flow**
-Walk through the main (happy path) flow step by step:
+With `--mode=event-storming`, run the Process Modeling walk of @rules/product/event-storming.md §3
+instead — the activities are its commands in event order, the table is the Process Model section
+(§4). Otherwise walk through the main (happy path) flow step by step:
 - Ask: "What does [Actor] do first?"
 - For each step: who does what with which work item, and to whom?
 - Assign sequential numbers to activities
@@ -159,6 +162,11 @@ sequenceDiagram
 
 ### [Exception Name]
 [Brief description of the exception path]
+
+## Process Model
+
+[`--mode=event-storming` only — one row per activity: event, command, actor, read model, policy
+(@rules/product/event-storming.md §4). Policies are guard candidates for `design-state-machine`.]
 
 ## Technical Notes
 

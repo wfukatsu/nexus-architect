@@ -1140,8 +1140,14 @@ def derive_all(project_dir, plugin=None, progress=None, section="pipeline"):
 
     done = ("completed", "skipped")
     for state in phases.values():
+        # An optional dependency that never ran does not block: the user may decline it
+        # (`/architect:start` asks, `/architect:pipeline` may skip it) without stamping
+        # `skipped`, and a phase that waits on a phase nobody will run waits forever. It
+        # blocks while actually running or after failing — then its outputs are in flux.
         state["blocked_by"] = [d for d in state["depends_on"]
-                               if d in phases and phases[d]["status"] not in done]
+                               if d in phases and phases[d]["status"] not in done
+                               and not (phases[d]["optional"]
+                                        and phases[d]["status"] == "pending")]
         # A stale phase is work to redo, so it is runnable again — but it is not
         # *blocking* its dependents, which already hold outputs and are stale themselves.
         state["runnable"] = ((state["status"] in ("pending", "failed") or state["stale"])

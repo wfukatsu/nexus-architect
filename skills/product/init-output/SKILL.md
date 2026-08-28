@@ -28,6 +28,7 @@ it and merge into what is there; only `--reset` replaces, and only after a backu
    - `reports/01_ux/`
    - `reports/01_ux/domain-stories/`
    - `reports/02_spec/ui-mocks/`
+   - `reports/02_spec/examples/`
    - `reports/03_domain/`
    - `reports/04_quality/`
    - `reports/05_adaptation/`

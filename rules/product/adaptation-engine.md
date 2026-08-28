@@ -64,7 +64,11 @@ me) is the reverse of `upstream` and is what propagation follows.
 
 `--type=constraint | market | competitor | tech | regulation` hints where the change enters the
 graph (e.g. `constraint` → `CON-`/`SCP-`; `market`/`competitor` → market-landscape/positioning;
-`regulation` → constraints/NFR). The hint seeds step 2's "directly touched" set.
+`regulation` → constraints/NFR). The hint seeds step 2's "directly touched" set. `RULE-` nodes sit
+downstream of the `FEAT-` / `CON-` / `SCP-` / `ENT-` they derive from and `EX-` downstream of their
+`RULE-`, so a constraint or feature change reaches the example map through the closure and
+`example-map` is re-run for the affected features; an `EX-` that changes without its rule is a
+finding, not a re-run.
 
 ## Sources
 

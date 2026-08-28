@@ -1,9 +1,9 @@
 # product plugin — Skill Dependency Graph (single source of truth)
 # /product:start reads this to determine phase order.
 # parallel_with = "no ordering constraint" (a single session runs skills sequentially).
-# implemented: true  -> SKILL.md exists. ALL phases are implemented (26 skills): Phases 1-6 +
+# implemented: true  -> SKILL.md exists. ALL phases are implemented (27 skills): Phases 1-6 +
 # the validation gate + the acronym product-naming step + the architecture/tech-fitness synthesis +
-# the persona-anchored domain-story step + the separately-managed design-system step + the
+# the persona-anchored domain-story step + the example-mapping step + the separately-managed design-system step + the
 # React/Storybook frontend codegen step + Phase R (review/report) + adapt-change. Nothing remains
 # design-only.
 
@@ -138,6 +138,17 @@ phases:
     implemented: true
     outputs: [reports/02_spec/feature-list.md]
     model: sonnet
+  example-map:
+    category: spec
+    id_prefix: [RULE-, EX-]
+    depends_on: [define-features]
+    soft_depends_on: [generate-ui-mock, define-scope, create-domain-story, define-data-model]  # rule/example candidates are harvested from these when present
+    optional: true
+    rerunnable: true                        # re-run per feature as the data model and stories firm up
+    implemented: true
+    outputs: [reports/02_spec/examples/]
+    model: opus
+
   define-data-model:
     category: spec
     id_prefix: [ENT-]
@@ -163,6 +174,9 @@ phases:
     id_prefix: [CTX-]
     depends_on: [define-data-model, define-features]
     implemented: true
+    # --mode=event-storming also writes reports/03_domain/event-timeline.md, a session record
+    # deliberately not declared here: it exists only in that mode, and bounded-contexts.md (which
+    # cites it) is what downstream reads and what staleness is measured from.
     outputs: [reports/03_domain/domain-map.md, reports/03_domain/bounded-contexts.md, reports/03_domain/ubiquitous-language.md]
     model: opus
   design-api:
@@ -230,8 +244,8 @@ profiles:
   core-only:  [define-vision, define-success-metrics, research-landscape, design-revenue, define-scope, validate-assumptions]  # all implemented
   # generate-frontend runs at the END of the spec phase (after define-features/define-data-model):
   # it soft-depends on define-features (screen actions) so the feature list exists when it runs.
-  ux-to-spec: [generate-persona, map-journey, design-positioning, create-domain-story, design-system, generate-ui-mock, define-features, define-data-model, generate-frontend]
+  ux-to-spec: [generate-persona, map-journey, design-positioning, create-domain-story, design-system, generate-ui-mock, define-features, example-map, define-data-model, generate-frontend]
   full:       [define-vision, name-product, define-success-metrics, research-landscape, design-revenue, define-scope,
                validate-assumptions, generate-persona, map-journey, design-positioning, create-domain-story,
-               design-system, generate-ui-mock, define-features, define-data-model, generate-frontend,
+               design-system, generate-ui-mock, define-features, example-map, define-data-model, generate-frontend,
                map-domains, design-api, design-sla, define-nfr, design-architecture, review, report]

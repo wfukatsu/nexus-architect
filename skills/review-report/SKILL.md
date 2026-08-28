@@ -26,6 +26,7 @@ Verify all pipeline phases executed in `work/pipeline-progress.json` are represe
 - Phase outputs listed in `pipeline-progress.json` must be discoverable in the HTML content
 - Key metrics (MMI score, DDD score, review scores, overall verdict) must be present
 - If `reports/04_stories/domain-story-*.md` files exist, a Domain Stories section must be present in the HTML; each domain covered must appear as a subsection with its sequence diagram
+- If `reports/03_design/aggregates/aggregate-*.md` files exist, each modeled aggregate must appear as a Design subsection with its class diagram and its invariant table — an aggregate rendered as a diagram alone loses the invariants that justified the boundary
 - If `reports/03_design/state-machines/state-machine-*.md` files exist, each modeled aggregate must appear as a Design subsection with its state diagram and its state × event matrix — a lifecycle rendered as a diagram alone loses the half of the model that says what happens to the illegal attempts
 
 ### 2. Score Accuracy (weight: 0.35)

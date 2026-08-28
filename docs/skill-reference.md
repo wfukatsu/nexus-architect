@@ -51,7 +51,8 @@ For the inputs you should prepare before running each pipeline, see the
 |---------|-------|-----------|-------------|
 | `/architect:map-domains` | opus | - | Domain classification, BC mapping |
 | `/architect:redesign` | opus | - | Bounded context redesign |
-| `/architect:create-domain-story` | opus | Optional | Domain Storytelling: visualize business processes per domain |
+| `/architect:create-domain-story` | opus | Optional | Domain Storytelling: visualize business processes per domain; `--mode=event-storming` runs the flow as a Process Modeling EventStorming session |
+| `/architect:design-aggregate` | opus | Optional | Tactical model per bounded context — aggregate root, interior entities, value objects, invariants with concrete examples, commands / events / factory / specifications, one repository per root, as the unit a transaction writes |
 | `/architect:design-state-machine` | opus | Optional | State transition models per aggregate — states, guarded transitions, the full state x event matrix with no undecided cell, and the consistency class of every transition |
 | `/architect:design-microservices` | opus | - | Target architecture |
 | `/architect:select-scalardb-edition` | sonnet | ScalarDB | Edition selection |
@@ -208,13 +209,14 @@ Phase order and the `mvp`/`core-only`/`ux-to-spec`/`full` profiles are defined i
 | `/product:generate-persona` | opus | 2. UX Foundation | Jobs-to-be-Done–anchored personas (job stories + persona cards) |
 | `/product:map-journey` | sonnet | 2. UX Foundation | Customer journey as a stages × layers grid (touchpoints, actions, emotions) |
 | `/product:design-positioning` | opus | 2. UX Foundation | Positioning (Dunford 5-component canvas), touchpoint × device × timing matrix |
-| `/product:create-domain-story` | opus | 2. UX Foundation | Persona-anchored Domain Storytelling (actors=personas, activities=job stories ordered by journey); the axis the UI mocks render (optional) |
+| `/product:create-domain-story` | opus | 2. UX Foundation | Persona-anchored Domain Storytelling (actors=personas, activities=job stories ordered by journey); the axis the UI mocks render (optional); `--mode=event-storming` runs it as Process Modeling EventStorming |
 | `/product:design-system` | opus | 2. UX Foundation | Build or `--import` a separately-managed design system (DTCG tokens + components + guidelines); styles the UI mocks (optional, standalone) |
 | `/product:generate-ui-mock` | sonnet | 3. UX → Spec | Navigable UI mocks for key screens, driven by domain stories and styled by the design system (each activity → a screen, wired into a clickable story flow) |
 | `/product:define-features` | sonnet | 3. UX → Spec | Extract features from UI mocks (each screen action → Command/feature) |
+| `/product:example-map` | opus | 3. UX → Spec | Example Mapping per feature — business rules (`RULE-`), one concrete example per rule on each side of its boundary (`EX-`), unsettled questions as `OQ-`; feeds the Gherkin, the aggregate invariants and the backlog acceptance criteria (optional) |
 | `/product:define-data-model` | opus | 3. UX → Spec | Derive the data model in two passes (explicit → implicit) |
 | `/product:generate-frontend` | sonnet | 3. UX → Spec | Turn UI mocks + design system into a runnable React + Storybook frontend (Atomic Design, token-styled, react-router) — selectable, end of spec phase |
-| `/product:map-domains` | opus | 4. Domain & API | Abstract features/entities into bounded contexts (DDD strategic) |
+| `/product:map-domains` | opus | 4. Domain & API | Abstract features/entities into bounded contexts (DDD strategic); `--mode=event-storming` finds the boundaries in a Big Picture EventStorming walk instead and records it in `reports/03_domain/event-timeline.md` |
 | `/product:design-api` | opus | 4. Domain & API | Logical API surface in three API-Led layers (System/Process/Experience) |
 | `/product:design-sla` | sonnet | 5. Quality & NFR | Per-service SLI/SLO/SLA with error budgets |
 | `/product:define-nfr` | sonnet | 5. Quality & NFR | Turn SLOs into measurable NFRs (availability, latency p95/p99, ...) |
@@ -259,7 +261,8 @@ path by their router, so they are not slash commands and have no signature here.
 # Design
 /architect:map-domains
 /architect:redesign
-/architect:create-domain-story [--domain=<name>] [--auto]
+/architect:create-domain-story [--domain=<name>] [--mode=story|event-storming] [--auto]
+/architect:design-aggregate [--aggregate=<name>] [--context=<name>] [--auto] [--lang=en|ja]
 /architect:design-state-machine [--aggregate=<name>] [--auto] [--lang=en|ja]
 /architect:design-microservices
 /architect:select-scalardb-edition
@@ -351,13 +354,14 @@ path by their router, so they are not slash commands and have no signature here.
 /product:generate-persona [--input=<file|dir>] [--auto] [--lang=ja|en]
 /product:map-journey [--auto] [--lang=ja|en]
 /product:design-positioning [--auto] [--lang=ja|en]
-/product:create-domain-story [--persona=<PER>] [--job=<JOB>] [--domain=<CTX>] [--auto] [--lang=ja|en]
+/product:create-domain-story [--persona=<PER>] [--job=<JOB>] [--domain=<CTX>] [--mode=story|event-storming] [--auto] [--lang=ja|en]
 /product:design-system [--name=<id>] [--import=<path>] [--fidelity=lo|mid] [--auto] [--lang=ja|en]
 /product:generate-ui-mock [--fidelity=lo|mid] [--auto] [--lang=ja|en]
 /product:define-features [--auto] [--lang=ja|en]
+/product:example-map [--feature=<FEAT>] [--auto] [--lang=ja|en]
 /product:define-data-model [--auto] [--lang=ja|en]
 /product:generate-frontend [--design-system=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--auto] [--lang=ja|en]
-/product:map-domains [--auto] [--lang=ja|en]
+/product:map-domains [--mode=derive|event-storming] [--auto] [--lang=ja|en]
 /product:design-api [--auto] [--lang=ja|en]
 /product:design-sla [--auto] [--lang=ja|en]
 /product:define-nfr [--auto] [--lang=ja|en]

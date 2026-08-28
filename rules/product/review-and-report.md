@@ -10,7 +10,9 @@ consolidates everything into one HTML deliverable that leads with the validation
    `CTX-`/`API-`/`NFR-` usage across files.
 2. **Traceability** — does `work/traceability.json` agree with the documents? Every node should
    have a valid Upstream chain to a `VIS-`/`NSM-` root; flag orphans (no upstream) and dangling
-   references (upstream id that doesn't exist).
+   references (upstream id that doesn't exist). Example maps, when present: a Must/Should `FEAT-`
+   with no map, a `RULE-` without both example kinds, an `EX-` naming no or several rules
+   (@rules/product/example-mapping.md).
 3. **Extensibility** — will the domain boundaries and API layering absorb likely future
    features? Flag boundaries drawn around current screens, System APIs exposed to UI, low reuse
    (1 Process → 1 Experience), and over-engineered Generic subdomains.
@@ -24,6 +26,9 @@ concrete fix**. The output is an actionable list, not prose praise.
 ## report — consolidated HTML
 
 Merge all `reports/**/*.md` into `report/full-report.html` (render Mermaid diagrams inline).
+`reports/02_spec/examples/` renders under the spec section as one subsection per feature — the
+rule table and the example table, with `index.md` first — so a reader sees which features are
+understood and which are still open questions.
 
 **Mandatory: lead with "Key Assumptions & Validation Status"** at the very top — before any design
 content. It aggregates:

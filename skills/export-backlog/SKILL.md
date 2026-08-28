@@ -89,7 +89,9 @@ backlog stays linked to the design.
 - **How**: the implementation approach — components/classes/endpoints/schema to build or change.
 - **Acceptance Criteria**: a markdown checkbox per criterion (`- [ ] …`), each verifiable. A
   Given/When/Then scenario goes *inside* one box, so every criterion stays individually tickable
-  downstream (see Checklist Contract).
+  downstream (see Checklist Contract). When `reports/02_spec/examples/example-map-{feat}.md`
+  exists for the feature, each `RULE-` is one criterion and its `EX-` scenarios go inside that
+  box, cited by ID — the Issue's acceptance criteria are the agreed rules, not a paraphrase.
 - **Body sections**: `## How`, `## Acceptance Criteria`, `## Delivery Status` (status line +
   `Implemented`/`Reviewed`/`Merged` stages, unticked), `## References` (source report path +
   traceability IDs), and suggested `size` (S/M/L).

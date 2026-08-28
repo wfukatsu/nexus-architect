@@ -389,6 +389,61 @@ def check_staleness(root):
 _HOOK = []
 
 
+def check_optional_dependency(root):
+    """design-state-machine depends on design-aggregate, which is optional: it must order
+    after it, take its rerun as invalidation, and never wait on it when nobody ran it."""
+    print("optional dependencies order and invalidate, but do not block")
+    proj = os.path.join(root, "optdep")
+    base = time.time() - 3600
+    docs = os.path.join(proj, "reports", "03_design")
+    write(os.path.join(docs, "bounded-contexts-redesign.md"))
+    write(os.path.join(docs, "context-map.md"))
+    for path in ("bounded-contexts-redesign.md", "context-map.md"):
+        os.utime(os.path.join(docs, path), (base, base))
+    write(os.path.join(proj, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "optdep", "options": {"scalardb_enabled": False},
+        "phases": {"redesign": {"status": "completed"}}}))
+    state = P.derive_all(proj)
+    phases = state["phases"]
+    order = list(phases)
+    check("design-state-machine is ordered after design-aggregate",
+          order.index("design-aggregate") < order.index("design-state-machine"))
+    check("a pending optional dependency does not block",
+          "design-aggregate" not in phases["design-state-machine"]["blocked_by"]
+          and phases["design-state-machine"]["runnable"],
+          phases["design-state-machine"])
+    check("the required dependency still does",
+          "redesign" not in phases["design-state-machine"]["blocked_by"]
+          and "design-microservices" in phases["design-scalardb"]["blocked_by"]
+          or "design-microservices" in phases["design-data-layer"]["blocked_by"],
+          phases["design-data-layer"]["blocked_by"])
+
+    # Now the aggregate phase runs and the machine phase is written after it — then the
+    # aggregate manifest is rewritten: the machine goes stale, as any consumer would.
+    agg = os.path.join(docs, "aggregates", "aggregate-manifest.json")
+    stm = os.path.join(docs, "state-machines", "state-machine-manifest.json")
+    write(agg, "{}"); write(stm, "{}")
+    os.utime(agg, (base + 60, base + 60)); os.utime(stm, (base + 120, base + 120))
+    write(os.path.join(proj, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "optdep", "options": {"scalardb_enabled": False},
+        "phases": {"redesign": {"status": "completed"},
+                   "design-aggregate": {"status": "in_progress"}}}))
+    phases = P.derive_all(proj)["phases"]
+    check("a running optional dependency blocks",
+          "design-aggregate" in phases["design-state-machine"]["blocked_by"])
+    write(os.path.join(proj, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "optdep", "options": {"scalardb_enabled": False},
+        "phases": {"redesign": {"status": "completed"},
+                   "design-aggregate": {"status": "completed"},
+                   "design-state-machine": {"status": "completed"}}}))
+    os.utime(agg, None)
+    phases = P.derive_all(proj)["phases"]
+    check("a rewritten optional dependency invalidates its consumer",
+          phases["design-state-machine"]["stale"]
+          and "design-aggregate" in phases["design-state-machine"]["stale_by"],
+          phases["design-state-machine"])
+
+
 def check_id_prefix_registry():
     """`id_prefix` in the manifests is the ID namespace's single source of truth.
 
@@ -1119,6 +1174,7 @@ def main():
         check_sections(root)
         check_backlog_strip(root)
         check_staleness(root)
+        check_optional_dependency(root)
         check_id_prefix_registry()
         check_conditional_outputs_and_gate(root)
         check_graphql_condition(root)

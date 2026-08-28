@@ -43,6 +43,13 @@ Glob for all available design and analysis documents:
 
 Record the full list of found file paths — these will be passed to sub-agents.
 
+When `reports/03_design/aggregates/aggregate-manifest.json` exists, run
+`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/aggregate_manifest.py" <project_dir>` first and pass its output to Task B.
+It mechanically checks the seven well-formedness rules of @rules/aggregate-design.md §3; each
+violation is a CON-2xx finding unless the model's Open Items already records it with an owner, and
+the reviewers check that the schema's tables and the transaction design's TX- entries still follow
+the aggregate boundaries (one aggregate per `local` transaction, cross-aggregate writes classified).
+
 When `reports/03_design/state-machines/state-machine-manifest.json` exists, run
 `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/state_machine_manifest.py" <project_dir>` first and pass its output to Task B.
 It mechanically checks the seven well-formedness rules of @rules/state-modeling.md §3, so the
@@ -112,6 +119,7 @@ Evaluate ONLY the Traceability dimension:
 - Presence of forward and backward references
 - Whether gaps are documented
 - Cross-plugin continuity (when `work/traceability.json` exists from a product handoff, per docs/design.md §1.5): every `FR-` is reachable from a `FEAT-` or explicitly flagged as elicited-fresh; no product `NFR-` was silently re-numbered; no `upstream` ID dangles across the product→architect boundary
+- Aggregate models (when `reports/03_design/aggregates/` exists, per rules/aggregate-design.md §7): every table the schema design (`scalardb-schema.md` / `data-layer-design.md`) declares belongs to exactly one aggregate, and one aggregate's tables share a partition key where OCC scope requires it; every `local` command writes one aggregate and every transaction design TX- entry that writes two aggregates is a `distributed` or `saga` command on the manifest, never `local`; every repository the implementation spec names is for a root; every invariant maps to a registered problem type in the API design where a command can violate it. An aggregate boundary the schema or the transaction design crosses silently is a traceability break
 - State transition models (when `reports/03_design/state-machines/` exists, per rules/state-modeling.md §8): every state the schema's state column permits is a state in the model and vice versa; every `reject` matrix cell has a corresponding error response in the API design; every `ignore` cell has an idempotency contract; every transition classified `saga` appears in the transaction design's saga steps with a compensating transition. A model that no downstream document reflects is a traceability break, not a stylistic one
 
 Score 1-5: 5=Exemplary, 4=Good, 3=Acceptable, 2=Concerning, 1=Critical

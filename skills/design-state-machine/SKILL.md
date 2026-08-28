@@ -66,6 +66,7 @@ The modeling method, the seven well-formedness rules and the concurrency contrac
 | File | Required/Recommended | Source |
 |------|---------------------|--------|
 | reports/03_design/bounded-contexts-redesign.md | Recommended | /architect:redesign — the aggregates and their boundaries |
+| reports/03_design/aggregates/aggregate-manifest.json | Recommended | /architect:design-aggregate — the aggregate list is Stage 1's candidate list, a command with a guard on the root's condition is a transition, and each machine links back through `state_machine` |
 | reports/01_analysis/ubiquitous-language.md | Recommended | /architect:analyze — state and event names must come from here |
 | reports/01_analysis/data-model-analysis.md | Optional | /architect:analyze-data-model — existing status columns are the strongest evidence of an implicit machine |
 | reports/04_stories/domain-story-{domain}.md | Optional | /architect:create-domain-story — the activity sequence is a transition sequence |
@@ -83,7 +84,8 @@ Seven stages. Batch questions (1–4 per `AskUserQuestion` call), always offer c
 the inputs rather than blank prompts, and keep the whole interview inside two rounds per stage.
 
 **Stage 1 — Select the aggregates**
-Build a candidate list with its evidence: status/state columns in the data model, terms in the
+When `aggregate-manifest.json` exists, its aggregates are the candidate list — one whose root has
+a command guarded on its own condition is the evidence. Otherwise build a candidate list with its evidence: status/state columns in the data model, terms in the
 ubiquitous language that read as conditions, aggregates whose domain story has a rejected path,
 features whose names are transitions ("approve", "cancel", "ship"). Present it with
 `multiSelect: true`, each option carrying its evidence, and let the user add one through the
@@ -135,6 +137,10 @@ scope, and whether the transition history is recorded (@rules/state-modeling.md 
 **Stage 7 — Validate, review, write**
 Run the well-formedness checks below **before** presenting anything. Show the user the diagram, the
 matrix and any check that failed, correct together, then write the documents and the manifest.
+When `reports/03_design/aggregates/aggregate-manifest.json` exists, **write each machine's `STM-`
+back** into its aggregate's `state_machine` field (and the aggregate document's Lifecycle
+section): the aggregate skill runs first and cannot know the id, and the aggregate validator
+checks the link against this manifest.
 
 ### Auto Mode (`--auto`)
 
@@ -151,6 +157,7 @@ Derive the models without facilitation:
    asked (@rules/open-questions.md §5).
 5. Run the same well-formedness checks. A model that fails them is written with the failures listed
    under Open Items — never silently repaired by inventing a transition.
+6. Write each `STM-` back into `aggregate-manifest.json` as in Stage 7.
 
 Auto mode never invents a state that appears in no input. An aggregate with no evidence of a
 lifecycle is reported as not modeled.
@@ -351,7 +358,9 @@ over the whole graph, per prefix. A machine with no product-side origin carries 
    reports is listed under Open Items with an owner
 3. The matrix has no blank cell in any document
 4. Every state and event name matches `ubiquitous-language.md`, or its addition is proposed
-5. `STM-` nodes appended to `work/traceability.json`
+5. `STM-` nodes appended to `work/traceability.json`, and — when `aggregate-manifest.json` exists —
+   each machine's `STM-` written into its aggregate's `state_machine` field so that
+   `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/aggregate_manifest.py" <project_dir>` still exits 0
 6. `work/pipeline-progress.json` stamped — `in_progress` with `plugin: "architect"` before the work,
    `completed` with `outputs` and `summary` after (@skills/common/progress-registry.md)
 
@@ -360,6 +369,7 @@ over the whole graph, per prefix. A machine with no product-side origin carries 
 | Skill | Relationship |
 |-------|-------------|
 | /architect:redesign | Upstream — aggregates and bounded context boundaries |
+| /architect:design-aggregate | Upstream — the aggregate roots and their guarded commands. This skill writes each machine's `STM-` back into the aggregate's `state_machine` field (Stage 7 / auto step 6) |
 | /architect:analyze-data-model | Upstream — status columns are the evidence of an implicit machine |
 | /architect:create-domain-story | Upstream — the activity sequence is a transition sequence |
 | /architect:design-scalardb | Downstream — state column, OCC scope, history table, per-transition consistency class |

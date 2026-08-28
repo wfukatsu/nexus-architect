@@ -66,4 +66,4 @@ entity). Produce a **Mermaid ER diagram** of the final model (explicit + implici
 ## Sources
 
 - Stefan Hofer / Henning Schwentner — Domain Storytelling
-- Event Storming (Brandolini) — Command → Aggregate → Event derivation
+- Event Storming (Brandolini) — Command → Aggregate → Event derivation; the facilitated walk itself is `@rules/product/event-storming.md` (`--mode=event-storming` on map-domains / create-domain-story)
