@@ -7,6 +7,39 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+DDD 手法カバレッジのレビューで見つかった、パイプライン*前半*の 3 つの穴を埋めました。境界づけられた
+コンテキストとスキーマの間にある戦術モデル、フィーチャーとテストの間にある具体例、そして成果物が
+信頼できないときに境界を見つける協調的な探索です。
+
+### 追加
+- **`/architect:design-aggregate`**（#24）。`redesign` と `design-state-machine` の間の新しい任意
+  設計フェーズ。集約ごとに、ルート・内部エンティティ・値オブジェクト・両分岐の具体例を伴う不変条件・
+  アクター/整合性クラス/発行イベントを持つコマンド・ファクトリ・仕様・ルートごとのリポジトリを、
+  `reports/03_design/aggregates/aggregate-manifest.json`（`AGG-` ID）として出力します。
+  `rules/aggregate-design.md` が「何が集約に値するか」「7 つの整形規則」「1 コマンド = 1 集約 = 1
+  トランザクション」を定め、`tools/lib/aggregate_manifest.py` が規則を機械検証し、
+  `aggregate_manifest.test.py`（32 checks）が検証器を守ります。`design-state-machine` は Stage 1 の
+  候補をこの集約一覧から取り、`design-scalardb` / `design-data-layer`・`design-api`・
+  `design-implementation`・`generate-test-specs`・`review-consistency`・`report` がマニフェストを
+  読みます。
+- **`/product:example-map`**（#25）。`define-features` と Gherkin の間で行うフィーチャーごとの
+  Example Mapping。業務ルール（`RULE-`）、境界の両側を示す具体例（`EX-`）、セッションで決められ
+  なかった問いを共有ストアの `OQ-` として記録します。`rules/product/example-mapping.md` が 4 種の
+  カード・収集元・セッションの規律を定めます。`generate-test-specs` は `RULE-`/`EX-` を
+  `Rule:`/`Scenario:` に、`export-backlog` は受入基準に、`design-aggregate` は不変条件の候補に、
+  `define-requirements` は FR の受入基準に変換します。`ux-to-spec` と `full` プロファイルに含まれます。
+- **`--mode=event-storming`**（#26）を `/product:map-domains`（Big Picture: イベント時系列、
+  境界候補としての pivotal event、`OQ-` としての hotspot、`event-timeline.md` へのセッション記録）と
+  両 `create-domain-story`（Process Modeling: ステップごとの event / command / actor / read model /
+  policy を Process Model 節として記述）に追加。モードが変えるのはモデルの見つけ方であって書かれる
+  ものではありません — 同じ成果物、同じ `CTX-`/`STORY-` ID、二重の台帳なし。
+  `rules/product/event-storming.md`。`--auto` では拒否されます。
+
+### 変更
+- 登録コマンド 106（従来 104）。architect コアパイプライン 27 フェーズ、product 28 スキル。
+
 ## [0.30.2] - 2026-08-28
 
 `/architect:design-state-machine` を初めて実案件相当（`ec-monolith` サンプルの `Order` 集約、

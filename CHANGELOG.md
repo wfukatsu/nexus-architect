@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+Three additions closing the gap a DDD-technique coverage review found on the *front* of the
+pipeline: the tactical model between bounded contexts and the schema, the concrete examples
+between a feature and its tests, and the collaborative walk that finds boundaries when the
+artifacts cannot.
+
+### Added
+- **`/architect:design-aggregate`** (#24). A new optional design phase between `redesign` and
+  `design-state-machine`: per aggregate, the root, interior entities, value objects, invariants each
+  with a concrete example on both branches, commands with actor / consistency class / emitted
+  event, factory, specifications and one repository per root — emitted as
+  `reports/03_design/aggregates/aggregate-manifest.json` (`AGG-` IDs). `rules/aggregate-design.md`
+  states what earns an aggregate, the seven well-formedness rules and the one-command /
+  one-aggregate / one-transaction contract; `tools/lib/aggregate_manifest.py` asserts the rules and
+  `aggregate_manifest.test.py` guards the validator (32 checks). `design-state-machine` takes the
+  aggregate list as its Stage 1 candidates; `design-scalardb` / `design-data-layer`, `design-api`,
+  `design-implementation`, `generate-test-specs`, `review-consistency` and `report` consume the
+  manifest.
+- **`/product:example-map`** (#25). Example Mapping per feature, between `define-features` and the
+  Gherkin: the business rules (`RULE-`), one concrete example per rule on each side of its boundary
+  (`EX-`), and the questions the session could not settle as `OQ-` entries in the shared store.
+  `rules/product/example-mapping.md` carries the four cards, the harvesting sources and the session
+  discipline. `generate-test-specs` turns `RULE-`/`EX-` into `Rule:`/`Scenario:` blocks,
+  `export-backlog` into acceptance criteria, `design-aggregate` into invariant candidates,
+  `define-requirements` into the FR's acceptance criteria. In the `ux-to-spec` and `full` profiles.
+- **`--mode=event-storming`** (#26) on `/product:map-domains` (Big Picture: the event timeline,
+  pivotal events as boundary candidates, hotspots as `OQ-`, the session recorded in
+  `event-timeline.md`) and on both `create-domain-story` skills (Process Modeling: event / command /
+  actor / read model / policy per step, written as a Process Model section). The mode changes how
+  the model is found, not what is written — same artifacts, same `CTX-`/`STORY-` IDs, no second
+  registry. `rules/product/event-storming.md`; refused under `--auto`.
+
+### Changed
+- 106 registered commands (was 104); architect core pipeline 27 phases, product 28 skills.
+
 ## [0.30.2] - 2026-08-28
 
 Two gaps the first real run of `/architect:design-state-machine` (the `ec-monolith` sample, `Order`
