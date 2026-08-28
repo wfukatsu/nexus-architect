@@ -18,6 +18,11 @@ Produce the product core as two deliverables:
    - A Product Vision Board (Vision, Target Group, Needs, Product, Business Goals)
    - Mission (how the vision is pursued) and Values (decision principles)
    - Each element carries a `VIS-` ID
+   - A **Domain Vision Statement** (Evans): one paragraph naming the core domain — the part of
+     the problem space where the product's differentiation lives — and why it is worth the
+     investment, with the candidate core subdomain(s) and the differentiating capability. It
+     carries its own `VIS-` ID and is what `/product:map-domains` cites when it classifies a
+     subdomain as Core
 2. **PR-FAQ** — `reports/00_core/pr-faq.md`
    - Press release (heading → subheading[target+benefit] → summary → problem[customer's words]
      → solution[product+differentiation] → quotes & CTA)
@@ -70,7 +75,9 @@ The Go/No-Go criteria here are not decoration: they become the real gate enforce
    `reports/00_core/market-landscape.md`, and reflect them in the artifacts.
 4. **Generate** — fill the Vision Board, then write the PR-FAQ. Apply `@rules/product/vision-frameworks.md`.
    Assign `VIS-` IDs.
-5. **Validate** — target is segmented; differentiation is explicit; Go/No-Go criteria present.
+5. **Validate** — target is segmented; differentiation is explicit; Go/No-Go criteria present;
+   the Domain Vision Statement names a core domain narrower than the product (a statement that
+   says "everything is core" is sent back).
 6. **Append traceability** — for each `VIS-` ID add a node to `work/traceability.json`
    (`{id, type:"vision", title, skill:"define-vision", source_file, upstream:[]}`).
 7. **Record** — write both files; append key decisions to `work/context.md`;
@@ -78,7 +85,7 @@ The Go/No-Go criteria here are not decoration: they become the real gate enforce
 
 ## Output
 
-`reports/00_core/vision-mission-value.md` (includes a `VIS-` ID table with an Upstream column)
+`reports/00_core/vision-mission-value.md` (Vision Board, Mission, Values, `## Domain Vision Statement`, and a `VIS-` ID table with an Upstream column)
 and `reports/00_core/pr-faq.md`.
 
 ## Reference Materials
@@ -93,5 +100,6 @@ and `reports/00_core/pr-faq.md`.
 |-------|-------------|
 | `/product:define-success-metrics` | Downstream — turns the vision into a North Star |
 | `/product:define-scope` | Downstream — bounds the product |
+| `/product:map-domains` | Downstream — cites the Domain Vision Statement's `VIS-` when classifying a subdomain as Core |
 | `/product:validate-assumptions` | Enforces the PR-FAQ Go/No-Go criteria |
 | `/product:adapt-change` | Re-runs this skill when upstream context changes |

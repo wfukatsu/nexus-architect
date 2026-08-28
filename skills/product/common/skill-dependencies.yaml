@@ -173,6 +173,7 @@ phases:
     category: domain
     id_prefix: [CTX-]
     depends_on: [define-data-model, define-features]
+    soft_depends_on: [define-vision]        # the Domain Vision Statement is the prior for Core
     implemented: true
     # --mode=event-storming also writes reports/03_domain/event-timeline.md, a session record
     # deliberately not declared here: it exists only in that mode, and bounded-contexts.md (which

@@ -25,9 +25,33 @@ Design a data architecture leveraging ScalarDB:
   3. Application-driven 2PC — pre-3.19, no Coordinator node, Core-only, or Spring Data JDBC. Limit to a maximum of 2-3 services
   4. ScalarDB Saga (@rules/scalardb-saga-patterns.md) — when a single ACID transaction is not possible or not wanted and compensation is business-acceptable
   Record which option was chosen and why in `scalardb-transaction.md`
+- **Decide read models, CQRS and event sourcing per aggregate, in the design — not in review.**
+  The default is *neither*: one write model, read from the same tables. Adopt a separate read
+  model only for a named reason (read/write ratio, a query shape the partition key cannot serve, a
+  reporting consumer that would otherwise contend with writers), and event sourcing only when the
+  business asks "why is it in this state?" for money or goods, an auditor will, or the aggregate
+  is rebuilt from history by design — each with the rebuild cost and the projection lag stated.
+  `review-scalardb` / `review-data-integrity` check the section that records this; a design that is
+  silent on it is reviewed as *undecided*, not as *not needed*
 - Design keys targeting an OCC conflict rate below 5%
 - Select storage backend based on requirements (JDBC/Cassandra/DynamoDB, etc.)
 - Do not use DB-specific features on ScalarDB-managed tables
+
+### Read Model, CQRS and Event Sourcing Decisions (one row per aggregate, in `scalardb-schema.md`)
+
+| Aggregate | Read model | CQRS | Event sourcing | Reason | Cost stated |
+|-----------|-----------|------|----------------|--------|-------------|
+| `AGG-`/name | none / separate table(s) / ScalarDB Analytics | no / yes | no / yes (event store, snapshot every N, rebuild path) | the named reason, or "default" | projection lag, rebuild time, storage |
+
+Inputs: `aggregate-manifest.json` (the aggregates and their invariants — the write model),
+`state-machine-manifest.json` (transition volume and whether history is recorded,
+@rules/state-modeling.md §6), `reports/04_quality/nfr.md` (read latency and reporting targets) and
+the OCC contention analysis (a hot partition read by many is the classic CQRS trigger). When event
+sourcing is adopted, the event store follows the Event Store pattern in
+@rules/scalardb-schema-design.md: the per-aggregate event table, the snapshot table, the rebuild
+procedure, and the projection tables as ordinary ScalarDB tables written by a consumer with an
+idempotent offset. `design-scalardb-analytics` is the read model of choice when the reporting
+consumer is analytical rather than transactional.
 
 ### Saga design checklist (mandatory when any process uses a saga)
 
@@ -83,7 +107,7 @@ Edition comparison and version support: @rules/scalardb-edition-profiles.md
 
 | File | Content |
 |------|---------|
-| `reports/03_design/scalardb-schema.md` | Table design, key strategy |
+| `reports/03_design/scalardb-schema.md` | Table design, key strategy, the Read Model / CQRS / Event Sourcing decision per aggregate |
 | `reports/03_design/scalardb-transaction.md` | Transaction boundaries, pattern selection |
 | `reports/03_design/scalardb-migration.md` | Data migration plan |
 

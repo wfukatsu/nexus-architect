@@ -33,6 +33,11 @@ by id, not by direct object containment.
 - **Context mapping** — relationships between contexts (Partnership, Customer/Supplier,
   Conformist, **Anticorruption Layer**, **Open Host Service / Published Language**, Shared Kernel).
   Aim for loose coupling between contexts; protect Core with an ACL.
+- **Bounded Context Canvas** — every context is written in the nine-part Canvas (name, purpose,
+  strategic classification, domain roles, inbound, outbound, ubiquitous language, business
+  decisions, assumptions/open questions). It is the context's contract, the same shape in product's
+  `bounded-contexts.md` and architect's `bounded-contexts-redesign.md`, so a context can be compared
+  across the handoff part by part.
 - **Boundary sizing for extensibility** — draw boundaries that absorb likely future features; align
   contexts to business capabilities, not current screens, so they survive change.
 - **Consistency hint per context** — tag each `CTX-` with a coarse `Strong` / `Eventual` / `TBD`

@@ -10,6 +10,20 @@ Nexus Architect の主な変更点を記録します。
 ## [Unreleased]
 
 ### 追加
+- **集約ごとの Read Model / CQRS / Event Sourcing 採否**（#27）。`design-scalardb` と
+  `design-data-layer` が集約ごとに 1 行 — リードモデル、CQRS、イベントソーシング、理由、コスト — を
+  記録し、既定は「どちらも採用しない」。`review-scalardb` は行が無い集約を「未決」と読みます。
+  `rules/scalardb-schema-design.md` に Event Store パターン（集約 id + sequence を OCC スコープとする
+  イベント表、N 件ごとのスナップショット、冪等なプロジェクション）を追加。
+- **Bounded Context Canvas**（#28）。product の `bounded-contexts.md` と architect の
+  `bounded-contexts-redesign.md` の全コンテキストを同じ 9 部構成の Canvas で記述し、`CTX-` を
+  handoff をまたいで部位ごとに比較可能に。`review-consistency` が完全性と id の継続を検査。
+- **Domain Vision Statement**（#30）。`define-vision` がコアドメインを名指しする 1 段落を独自の
+  `VIS-` 付きで書き、`map-domains` は全 `Core` 分類の upstream としてそれを引用、名指しされていない
+  Core は指摘として挙げます。
+- **`docs/ddd-coverage.md`**（+ `_ja`）（#31）。DDD 手法カバレッジ表をリポジトリで保守。
+  `tools/docs_consistency.test.py` が、登録済みコマンドと宣言済み成果物パスのみを挙げていること、
+  両言語のコマンド集合と行数が一致することを検証。
 - **集約の不変条件からのプロパティベーステスト**（#29）。`generate-test-specs` は
   `aggregate-manifest.json` の不変条件ごとに、positive / negative の具体例テストと 1 つのプロパティ
   テスト — 値オブジェクトごとに検証規則を守る arbitrary、それらから合成した集約ジェネレータ、

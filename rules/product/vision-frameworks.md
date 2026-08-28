@@ -39,6 +39,16 @@ Write as if the product already shipped. Truth-seeking, not selling.
 > `/product:validate-assumptions`. Make them concrete and falsifiable (e.g. "Go only if X% of
 > interviewed target users rank this problem in their top 3").
 
+## Domain Vision Statement (Evans)
+
+One paragraph, written after the Vision Board, that names the **core domain**: the part of the
+problem space where the product's differentiation lives, why it is worth building rather than
+buying, and what capability makes it different. It is narrower than the vision — the vision says
+what changes in the world, the statement says which model the team must get right to make it
+change. Name the candidate core subdomain(s) explicitly; "everything is core" means the statement
+is not written yet. It gets its own `VIS-` id and is the upstream of every `Core` classification
+`/product:map-domains` makes.
+
 ## ID convention
 
 Each board element and each major PR-FAQ claim gets a `VIS-xxx` ID with an Upstream column

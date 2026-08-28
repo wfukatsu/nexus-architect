@@ -102,6 +102,24 @@ Optional:
 - `clustering-key` (array with optional ASC/DESC)
 - `secondary-index` (array of column names)
 
+## Event Store Pattern (only when event sourcing is adopted)
+
+Adopted per aggregate in the design's Read Model / CQRS / Event Sourcing decision, never by
+default. Three tables and one procedure:
+
+| Table | Partition key | Clustering key | Notes |
+|-------|---------------|----------------|-------|
+| `{aggregate}_events` | aggregate id | `sequence` (ascending) | Append-only: `event_type`, `payload` (JSON, IDs and values), `occurred_at`, `actor`, `correlation_id`. The aggregate's OCC scope is the *next* sequence: the writer reads the last row and inserts `sequence + 1` in the same transaction, so two concurrent commands conflict instead of interleaving |
+| `{aggregate}_snapshots` | aggregate id | `sequence` (descending) | One row per snapshot, written every N events (record N) so a rebuild reads one snapshot plus at most N events — never the whole history on the request path |
+| `{aggregate}_view` and projections | as the query needs | — | Ordinary ScalarDB tables written by a projector that stores its `last_sequence` per aggregate and is idempotent under redelivery; projection lag is a stated SLO, not a surprise |
+
+- **Rebuild** is a documented procedure — snapshot + events → aggregate — and its time for the
+  largest aggregate is measured, not estimated.
+- **The state column of a state machine** (@rules/state-modeling.md §6) lives on the snapshot /
+  view, and the transition history *is* the event table; do not keep a second history.
+- **Never query the event table by anything but aggregate id** — secondary indexes on an
+  append-only table are a contention source; that is what projections are for.
+
 ## Coordinator Tables
 
 Coordinator tables are required for transactional operations. Create them with:
