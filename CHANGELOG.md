@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.30.2] - 2026-08-28
+
+Two gaps the first real run of `/architect:design-state-machine` (the `ec-monolith` sample, `Order`
+aggregate, seven stages end to end) surfaced in the skill itself.
+
+### Added
+- **Creation events are modeled.** The command that brings the aggregate into being (`place`,
+  `open`, `register`) is an event with a guard and an actor but no `from` state: a failed guard
+  means *no aggregate*, not a cancelled one, and the only way it reaches an existing aggregate is a
+  redelivery of the same request — so its whole matrix column is decided by the API's idempotency
+  contract (`ignore` where the operation replays, never `allow`). `rules/state-modeling.md` §2
+  states it, Stage 3 looks the contract up before asking, and the document template carries the
+  `[*]` row.
+- **The contention table.** Stage 5 now builds one row per pair of transitions different actors can
+  fire against one aggregate — orchestrator vs. recovery worker, request path vs. sweeper, two
+  clients on one key — naming who wins and what the loser does, resolved from the transaction design
+  first and asked only where it is silent. The template prints it; the rule (§5) says a pair with no
+  row is a race nobody designed.
+
 ## [0.30.1] - 2026-08-27
 
 Four findings from reviewing 0.30.0 the day it shipped. One would have failed at runtime; the
