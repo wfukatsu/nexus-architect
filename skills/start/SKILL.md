@@ -77,6 +77,24 @@ After `/architect:redesign` completes, ask the user:
 
 If yes, ask which domains to cover (present the bounded context list from `bounded-contexts-redesign.md`), then run `/architect:create-domain-story --domain=<name>` for each selected domain before proceeding to `design-microservices`.
 
+## Aggregate Design Option
+
+After `/architect:redesign` completes — in the same breath as the Domain Story and State Transition
+Model questions, so the user answers all three at once — ask:
+
+> "Should I design the aggregates inside each bounded context? The aggregate is the unit one
+> transaction writes: its root, what lives inside it, the invariants that must hold after every
+> change, and the commands that may change it — which is what the schema's OCC scope, the
+> repository interfaces and the invariant tests are derived from."
+
+If yes, run `/architect:design-aggregate` (it selects the aggregates interactively from the
+evidence, or pass `--aggregate=<name>` / `--context=<name>` to narrow). Run it **before**
+`design-state-machine`, whose Stage 1 takes the aggregate list from it, and before
+`design-scalardb` / `design-data-layer`, `design-api` and `design-implementation`, which consume it.
+
+Skip it without asking when the redesign names no invariant that spans more than one attribute —
+then every entity is a table, and there is no aggregate to design.
+
 ## State Transition Model Option
 
 After `/architect:redesign` completes — and in the same breath as the Domain Story question, so the

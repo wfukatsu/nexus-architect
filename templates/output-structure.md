@@ -41,6 +41,9 @@ reports/
 │   ├── scalardb-migration.md      # Only when ScalarDB is enabled
 │   ├── data-layer-design.md       # Only when ScalarDB is disabled
 │   ├── api-gateway-design.md
+│   ├── aggregates/                # design-aggregate (optional)
+│   │   ├── aggregate-{aggregate}.md       # One file per modeled aggregate
+│   │   └── aggregate-manifest.json        # Canonical machine-readable model
 │   ├── state-machines/            # design-state-machine (optional)
 │   │   ├── state-machine-{aggregate}.md   # One file per modeled aggregate
 │   │   └── state-machine-manifest.json    # Canonical machine-readable model
@@ -104,6 +107,8 @@ investigate → analyze → analyze-data-model
                                                     ↓
               map-domains → redesign → design-microservices
                                 ↓                   ↓
+              [design-aggregate (optional)] ────────┤
+                                ↓                   │
               [design-state-machine (optional)] ────┤
                                                     ↓
                             [design-scalardb | design-data-layer, design-api]

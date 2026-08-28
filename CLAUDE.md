@@ -22,7 +22,7 @@ Use `/product:start` to design product direction, `/architect:start` for interac
 
 ## Repository Mechanics
 
-This repo is not an application — it is a **Claude Code plugin marketplace** whose product is a corpus of ~115 skill instruction files (104 registered as slash commands, plus the nested migration sub-skills below). There is no compile/build step and no application to run; "developing" here means editing skills, rules, and hooks.
+This repo is not an application — it is a **Claude Code plugin marketplace** whose product is a corpus of ~116 skill instruction files (105 registered as slash commands, plus the nested migration sub-skills below). There is no compile/build step and no application to run; "developing" here means editing skills, rules, and hooks.
 
 **Packaging.** `.claude-plugin/marketplace.json` defines four plugins (`architect`, `scalardb`, `product`, `infra`), each with its own version, and lists the skill directories it ships. Skills physically live in a flat `skills/` tree (product and infra skills are nested under `skills/product/` and `skills/infra/`); a plugin "owns" a skill only by listing its path in `marketplace.json`. **Adding a skill requires two edits: create `skills/<name>/SKILL.md` AND register its path in the plugin's `skills` array in `marketplace.json`.** An unregistered SKILL.md will not surface as a slash command.
 
@@ -62,9 +62,10 @@ contract that runs only when someone remembers is not enforced at all.
 | `tools/lib/backlog_status_data.test.py` | Backlog-status derivation: tracker-first precedence (seed `labels` ignored), stage derivation, tree order, roll-ups |
 | `tools/lib/pipeline_status_data.test.py` | Pipeline-status derivation, and with it the two manifests themselves: mini-YAML parsing, the `id_prefix` registry (declared, used in its own SKILL.md, non-colliding — `NFR-` the sole deliberate cross-manifest claim), registry-over-filesystem precedence and its drift, the four shared phase names resolved by `plugin` (or corroborated by outputs), the `<plugin>:<phase>` token buckets, upstream-change invalidation propagating down the chain, extension-tier and codegen grouping staying in step with each SKILL.md |
 | `tools/graphql_skills.test.py` | The Spring for GraphQL chain (71 checks): the conditional phases downstream of `design-api`, `api-style-decisions.json` as the canonical decision that withdraws the wrong generator and fails closed when invalid, and the design-safety rules (database never selects GraphQL, field coordinate as join key, tenant-safe loading, query DoS budgets) |
+| `tools/lib/aggregate_manifest.test.py` | The aggregate design contract: the seven well-formedness rules of `rules/aggregate-design.md` §3 (one root, at least one stated invariant, every invariant violable by a declared command, actor / consistency class / emitted event per command, interior reachable only through the root, other aggregates referenced by identity) plus a concrete example per invariant |
 | `tools/lib/state_machine_manifest.test.py` | The state transition model contract: the seven well-formedness rules of `rules/state-modeling.md` §3 (one initial state, reachability, no undeclared dead end, determinism, guarded transitions declaring their else branch, actor and consistency class per transition) plus a state x event matrix with no undecided cell and no cell contradicting a transition |
 | `tools/nexus-status.test.sh` | The dashboard's CLI contract on scratch projects: project resolution, 0/1/2 exit codes, the four addressable views, every output mode, `--group`/`--phase`/`--epic` narrowing `--json` too, unknown filters failing as usage, cross-view agreement, refresh poll |
-| `tools/docs_consistency.test.py` | The documentation split itself: both catalogues describing all 104 registered commands, the signature block matching each SKILL.md (no flag invented by prose, none dropped, none re-spelled, every flag a skill documents about itself offered, and — for the skills that wrap a shell tool — no flag that tool's parser would reject), the grouped tables in CLAUDE.md/README summing to the registry, the extension-tier and codegen prose equal to `EXTENSION_PHASES`/`CODEGEN_PHASES`, AGENTS.md knowing every skill, the catalogue pointer staying un-`@`-imported, no flag mentioned anywhere without belonging to a documented surface, and the Japanese catalogue keeping row order plus each row's model tier / flags / tool references |
+| `tools/docs_consistency.test.py` | The documentation split itself: both catalogues describing all 105 registered commands, the signature block matching each SKILL.md (no flag invented by prose, none dropped, none re-spelled, every flag a skill documents about itself offered, and — for the skills that wrap a shell tool — no flag that tool's parser would reject), the grouped tables in CLAUDE.md/README summing to the registry, the extension-tier and codegen prose equal to `EXTENSION_PHASES`/`CODEGEN_PHASES`, AGENTS.md knowing every skill, the catalogue pointer staying un-`@`-imported, no flag mentioned anywhere without belonging to a documented surface, and the Japanese catalogue keeping row order plus each row's model tier / flags / tool references |
 | `tools/lib/status_tui.test.py` | The curses shell's interaction contract without a terminal: `c` copies rather than opens, the action-menu/help behaviour with and without `--exec`, an empty tree naming its filter, `q` as the only quit key |
 
 **The one suite that runs real code.** `samples/scalardb-transaction-tests/` is a runnable Gradle
@@ -87,17 +88,17 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 
 ## Command Reference
 
-**104 slash commands across four plugins.** The catalogue — every command with its model, its
+**105 slash commands across four plugins.** The catalogue — every command with its model, its
 prerequisites and its full flag signature — is `docs/skill-reference.md` (`_ja` for Japanese), read
 on demand with the Read tool and deliberately **not** `@`-imported, since an always-loaded catalogue
 is the cost this section exists to avoid. Do not duplicate it here: this table is the map of *which
-group does what*, so you know where to look, and the counts below are a partition of all 104.
+group does what*, so you know where to look, and the counts below are a partition of all 105.
 
 | Group | Entry point | What it does | n |
 |-------|-------------|--------------|---|
 | **Product Direction** `/product:*` | `/product:start` | Validation-driven pipeline from product vision to SLA/NFR, gating on the riskiest assumptions; hands off to `/architect:define-requirements`. Skills are namespaced under `skills/product/`, rules under `rules/product/` | 27 |
 | **Orchestration & setup** | `/architect:start`, `/architect:pipeline` | Interactive or automated execution of the architect core pipeline, plus `init-output` | 3 |
-| **Core pipeline** `/architect:*` | run by the orchestrators | requirements → investigate → analyze → evaluate → redesign → design → review → report. The phases, their order, their declared outputs and their models are the manifest's, not prose: @skills/common/skill-dependencies.yaml | 26 |
+| **Core pipeline** `/architect:*` | run by the orchestrators | requirements → investigate → analyze → evaluate → redesign → design → review → report. The phases, their order, their declared outputs and their models are the manifest's, not prose: @skills/common/skill-dependencies.yaml | 27 |
 | **Extension tier** | invoked individually | Implementation specs, code generation (REST / GraphQL / ScalarDB / contract tests / IaC / docs), verification and the quality gate, infrastructure / security / observability / DR design, cost estimation. Enumerated under Pipeline Dependencies below | 19 |
 | **Backlog Delivery** | `/architect:deliver-backlog` | export → implement → review → merge over GitLab/GitHub work items. Unlike codegen it writes **merge-bound code into the project's real source tree**, never `generated/`, and stops at every human gate | 7 |
 | **Database Migration** | `/architect:migrate-database` | Oracle / MySQL / PostgreSQL → ScalarDB: schema extraction, analysis, SP/trigger conversion (the router delegates to nested sub-skills that are not slash commands) | 4 |
@@ -116,6 +117,7 @@ under Code Generation (`CODEGEN_PHASES` in `tools/lib/pipeline_status_data.py`).
 investigate -> analyze -> [evaluate-mmi, evaluate-ddd] -> integrate-evaluations
             \-> [map-domains, analyze-data-model (optional)]
   -> redesign -> [create-domain-story (optional, per domain),
+                  design-aggregate (optional, per bounded context),
                   design-state-machine (optional, per aggregate)]
   -> design-microservices -> [design-scalardb | design-data-layer, design-api -> design-graphql (conditional)]
   -> [review-consistency, review-scalardb|review-data-integrity, review-api-security, review-operations, review-risk, review-business]
@@ -255,6 +257,7 @@ do not load ScalarDB rules for non-ScalarDB work.
 | ScalarDB coding patterns | rules/scalardb-coding-patterns.md | Code generation, design-scalardb, generate-scalardb-code |
 | ScalarDB edition profiles | rules/scalardb-edition-profiles.md | Edition selection |
 | Evaluation frameworks | rules/evaluation-frameworks.md | MMI/DDD scoring |
+| Aggregate design | rules/aggregate-design.md | Modeling, reviewing or generating code for the tactical model inside a bounded context — what earns an aggregate, value objects before entities, the seven well-formedness rules, one command / one aggregate / one transaction, and the concrete example every invariant carries |
 | State transition modeling | rules/state-modeling.md | Modeling, reviewing or generating code for an object with a lifecycle — what earns a state machine, the seven well-formedness rules, the state x event matrix, and why a transition is a transaction |
 | Mermaid best practices | rules/mermaid-best-practices.md | Creating diagrams |
 | Spring Boot integration | rules/spring-boot-integration.md | Java code generation |

@@ -23,6 +23,7 @@ Generic data layer design for projects not using ScalarDB:
 | File | Required/Recommended | Source |
 |------|---------------------|--------|
 | reports/03_design/target-architecture.md | Required | /architect:design-microservices |
+| reports/03_design/aggregates/aggregate-manifest.json | Optional | /architect:design-aggregate — the aggregate as the concurrency scope and the unit one transaction writes, one repository per root |
 | reports/03_design/state-machines/state-machine-manifest.json | Optional | /architect:design-state-machine — the state column, its concurrency scope, and whether transition history is recorded (@rules/state-modeling.md §6) |
 
 ## Output

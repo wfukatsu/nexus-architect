@@ -99,6 +99,7 @@ service has applied its own retries, so the specification says where retry lives
 | reports/03_design/api-specifications/operation-contracts.md | Required | /architect:design-api — per-operation authorization, idempotency, timeout, transaction placement |
 | reports/03_design/api-specifications/problem-types.md | Required | /architect:design-api — the problem type registry the exception mapping resolves against |
 | reports/03_design/api-specifications/graphql/resolver-contracts.md | Required when GraphQL is selected | /architect:design-graphql |
+| reports/03_design/aggregates/aggregate-manifest.json | Optional | /architect:design-aggregate — the domain layer skeleton: root, interior entities, value objects, factory, specifications, one repository interface per aggregate |
 | reports/02_evaluation/ | Recommended | integrate-evaluations |
 
 ## Output

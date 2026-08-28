@@ -92,6 +92,7 @@ the gap list rather than in a specification that pretends to cover them.
 | reports/06_implementation/api-layer-spec.md | Required when an API surface exists | /architect:design-implementation |
 | reports/03_design/api-specifications/ | Required when an API surface exists | /architect:design-api |
 | reports/03_design/state-machines/state-machine-manifest.json | Optional | /architect:design-state-machine — the matrix is the coverage target above |
+| reports/03_design/aggregates/aggregate-manifest.json | Optional | /architect:design-aggregate — one unit test per invariant on both branches, seeded by its concrete examples |
 
 ## Output
 
@@ -112,5 +113,6 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 | /architect:design-implementation | Input source |
 | /architect:design-api | Input source — the contract the contract tests assert against |
 | /architect:design-state-machine | Input source — the state x event matrix the transition tests cover |
+| /architect:design-aggregate | Input source — the invariants and their examples the unit tests cover |
 | /architect:generate-contract-tests | Output consumer — emits the executable tests from these specs |
 | /architect:generate-scalardb-code | Related (test code generation) |

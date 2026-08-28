@@ -38,8 +38,8 @@ part of the automated run.
    `reports/03_design/api-style-decisions.json`. Before that artifact exists, a legacy
    `options.api_style_graphql` is only a compatibility fallback. Invalid canonical JSON is a
    blocking error and must never be interpreted as REST-only.
-7. Phases the manifest marks `optional: true` may be skipped without failing the run. Two of them
-   are dialogue-driven (`create-domain-story`, `design-state-machine`) and an automated run has
+7. Phases the manifest marks `optional: true` may be skipped without failing the run. Three of them
+   are dialogue-driven (`create-domain-story`, `design-aggregate`, `design-state-machine`) and an automated run has
    nobody to facilitate with: invoke those with `--auto` and record what that mode had to assume.
    When the inputs show no evidence for an optional phase — no domain to narrate, no aggregate
    with a lifecycle, no data model to analyze — record it `skipped` with the reason in `summary`

@@ -105,12 +105,25 @@ phases:
       - reports/04_stories/domain-story-{domain}.md
     model: opus
 
+  design-aggregate:
+    category: design
+    # AGG- is architect-originated: the aggregate boundary is the unit a transaction writes, a
+    # physical design decision; upstream CTX-/ENT-/FEAT-/RULE- nodes are cited when they exist.
+    id_prefix: [AGG-]
+    depends_on: [redesign]
+    optional: true
+    outputs:
+      - reports/03_design/aggregates/
+      - reports/03_design/aggregates/aggregate-manifest.json
+    model: opus
+
   design-state-machine:
     category: design
     # STM- is architect-originated: a lifecycle is a physical design decision, so these nodes
     # carry no product upstream unless a CTX-/ENT-/FEAT- node happens to exist (docs/design.md §1.5).
     id_prefix: [STM-]
     depends_on: [redesign]
+    soft_depends_on: [design-aggregate]   # the aggregate list is Stage 1's candidate list when present
     optional: true
     outputs:
       - reports/03_design/state-machines/
