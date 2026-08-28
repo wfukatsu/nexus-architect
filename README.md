@@ -453,6 +453,7 @@ work/             # Pipeline state and intermediate files
 | [product Input Requirements](docs/product-input-requirements.md) | Inputs you supply to run the product pipeline |
 | [architect Input Requirements](docs/architect-input-requirements.md) | Inputs you supply to run the architect pipeline |
 | [Skill Reference](docs/skill-reference.md) | Complete skill catalog |
+| [DDD Technique Coverage](docs/ddd-coverage.md) | Which DDD techniques are implemented, where, and how far |
 | [ScalarDB Development](docs/scalardb-development.md) | ScalarDB development guide |
 | [Multi-Cloud Infrastructure](docs/infrastructure.md) | Infrastructure design, implementation and review guide |
 | [Database Migration](docs/database-migration.md) | Migration guide (Oracle/MySQL/PostgreSQL) |

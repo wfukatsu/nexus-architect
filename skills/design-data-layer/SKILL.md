@@ -17,6 +17,9 @@ Generic data layer design for projects not using ScalarDB:
 - Migration strategy
 - Transaction management patterns
 - ORM/data access patterns
+- The read model / CQRS / event sourcing decision per aggregate — default *neither*; adopt for a
+  named reason with the projection lag and rebuild cost stated (the same table
+  `/architect:design-scalardb` records; `review-data-integrity` reads it as *undecided* when absent)
 
 ## Prerequisites
 
@@ -30,7 +33,7 @@ Generic data layer design for projects not using ScalarDB:
 
 | File | Content |
 |------|---------|
-| `reports/03_design/data-layer-design.md` | DB design, transaction management, migration |
+| `reports/03_design/data-layer-design.md` | DB design, transaction management, migration, the Read Model / CQRS / Event Sourcing decision per aggregate |
 
 Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 

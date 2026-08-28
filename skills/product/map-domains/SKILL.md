@@ -55,6 +55,7 @@ Produce three deliverables:
 |-------|---------------------|--------|------------------|
 | `reports/02_spec/data-model.md` | Required | `/product:define-data-model` | block with a message — contexts group entities |
 | `reports/02_spec/feature-list.md` | Required | `/product:define-features` | block with a message — capabilities define boundaries |
+| `reports/00_core/vision-mission-value.md` | Recommended | `/product:define-vision` | the Domain Vision Statement is the prior for the Core classification; without it, Core is chosen from features alone and said so |
 
 ## Process
 
@@ -63,9 +64,13 @@ Produce three deliverables:
    @rules/product/event-storming.md §3 lays it out, write `reports/03_domain/event-timeline.md`
    as its record (§4), and take the context candidates from the runs between pivotal events into
    step 2 — `bounded-contexts.md` cites the pivotal events each boundary rests on.
-2. **Classify subdomains** — Core / Supporting / Generic; record investment guidance. Apply
+2. **Classify subdomains** — Core / Supporting / Generic; record investment guidance. Start from the
+   Domain Vision Statement's named core and cite its `VIS-` as the upstream of every `Core`
+   classification (a Core the statement did not name is a finding to raise, not a silent addition). Apply
    `@rules/product/ddd-strategic.md`.
-3. **Draw contexts** — group entities/features into `CTX-` bounded contexts sized for the future.
+3. **Draw contexts** — group entities/features into `CTX-` bounded contexts sized for the future,
+   and write each as a Bounded Context Canvas (below); a part that cannot be filled is asked, and
+   what stays open is an `OQ-` in the Canvas's last row.
 4. **Map relationships** — type each context-to-context relationship (ACL, Published Language, …).
 5. **Tag consistency hint** — for each `CTX-`, mark a coarse `Strong` / `Eventual` / `TBD` hint
    from the nature of its operations (money/inventory/booking invariants → `Strong`; read models,
@@ -76,6 +81,25 @@ Produce three deliverables:
    `ENT-`/`FEAT-` references.
 8. **Record** — write the three files; append decisions to `work/context.md`;
    ask remaining unknowns and log only what stays open (@rules/open-questions.md).
+
+### Bounded Context Canvas (one per context, in `bounded-contexts.md`)
+
+Each context is written in the same nine-part shape (after Nick Tune's Bounded Context Canvas),
+so product's `bounded-contexts.md` and architect's `bounded-contexts-redesign.md` can be laid side
+by side and `/product:review` and `/architect:review-consistency` can check that a context did not change meaning across the
+handoff:
+
+| Part | Content |
+|------|---------|
+| **Name** | `CTX-` id and the name in the ubiquitous language |
+| **Purpose** | One paragraph: what this context is responsible for, and what it is not |
+| **Strategic classification** | Core / Supporting / Generic; business model role (revenue, engagement, compliance, cost reduction); evolution stage (genesis / custom / product / commodity) |
+| **Domain roles** | The archetypes it plays: specification, execution, analysis, gateway, draft, … |
+| **Inbound communication** | Who calls it, with which messages (commands / queries), over which relationship type (Customer/Supplier, Conformist, ACL, OHS/PL, …) |
+| **Outbound communication** | Whom it calls or notifies, with which events / requests, and the relationship type |
+| **Ubiquitous language** | The five to ten terms that mean something specific here — the ones that would be misread from outside |
+| **Business decisions** | The rules and policies this context decides — the `RULE-` entries and invariants it owns |
+| **Assumptions and open questions** | What the boundary rests on, and the `OQ-` entries still open about it |
 
 ## Handoff
 

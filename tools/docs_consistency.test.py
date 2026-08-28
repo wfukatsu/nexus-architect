@@ -422,6 +422,29 @@ for plugin, dirs in REG.items():
     missing = [os.path.basename(d) for d in dirs if not mentions(AGENTS, os.path.basename(d))]
     check("AGENTS.md model table covers %s" % plugin, not missing, missing)
 
+# ------------------------------------------------------- DDD coverage table
+
+print("The DDD coverage table names only real commands and declared artifacts")
+
+COVERAGE = read("docs/ddd-coverage.md")
+COVERAGE_JA = read("docs/ddd-coverage_ja.md")
+unknown_cmds = sorted({c for c in re.findall(r"`(/[a-z]+:[a-z-]+)", COVERAGE) if c not in CMDS})
+check("every command the coverage table names is registered", not unknown_cmds, unknown_cmds)
+
+# Every artifact path the table cites must be one some skill or manifest declares. Placeholders
+# ({domain}, {feat}, {service}) are kept as written, since the skills spell them the same way.
+CORPUS = "\n".join(read(os.path.join(d, "SKILL.md")) for dirs in REG.values() for d in dirs)
+CORPUS += read("skills/common/skill-dependencies.yaml") + read("skills/product/common/skill-dependencies.yaml")
+CORPUS += read("templates/output-structure.md") + "\n".join(
+    read(os.path.join("rules", f)) for f in os.listdir(os.path.join(ROOT, "rules")) if f.endswith(".md"))
+undeclared = sorted({p for p in re.findall(r"`((?:reports|generated)/[^`]+)`", COVERAGE) if p not in CORPUS})
+check("every artifact path the coverage table cites is declared by a skill", not undeclared, undeclared)
+check("the Japanese coverage table lists the same commands",
+      set(re.findall(r"`(/[a-z]+:[a-z-]+)", COVERAGE)) == set(re.findall(r"`(/[a-z]+:[a-z-]+)", COVERAGE_JA)),
+      sorted(set(re.findall(r"`(/[a-z]+:[a-z-]+)", COVERAGE)) ^ set(re.findall(r"`(/[a-z]+:[a-z-]+)", COVERAGE_JA))))
+check("the Japanese coverage table has the same number of rows",
+      len(re.findall(r"^\| [^|-]", COVERAGE, re.M)) == len(re.findall(r"^\| [^|-]", COVERAGE_JA, re.M)))
+
 # ------------------------------------------------------------- rules index
 
 print("Rules index is complete")

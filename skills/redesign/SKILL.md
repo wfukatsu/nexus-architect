@@ -21,18 +21,41 @@ Based on evaluation results, formulate a new bounded context design:
 - Reflect subdomain classification that invests most in the core domain
 - Consider incremental migration paths from the existing system
 
+### Bounded Context Canvas (one per context, in `bounded-contexts-redesign.md`)
+
+Each context is written in the same nine-part shape (after Nick Tune's Bounded Context Canvas),
+so product's `bounded-contexts.md` and architect's `bounded-contexts-redesign.md` can be laid side
+by side and `review-consistency` can check that a context did not change meaning across the
+handoff:
+
+| Part | Content |
+|------|---------|
+| **Name** | `CTX-` id and the name in the ubiquitous language |
+| **Purpose** | One paragraph: what this context is responsible for, and what it is not |
+| **Strategic classification** | Core / Supporting / Generic; business model role (revenue, engagement, compliance, cost reduction); evolution stage (genesis / custom / product / commodity) |
+| **Domain roles** | The archetypes it plays: specification, execution, analysis, gateway, draft, … |
+| **Inbound communication** | Who calls it, with which messages (commands / queries), over which relationship type (Customer/Supplier, Conformist, ACL, OHS/PL, …) |
+| **Outbound communication** | Whom it calls or notifies, with which events / requests, and the relationship type |
+| **Ubiquitous language** | The five to ten terms that mean something specific here — the ones that would be misread from outside |
+| **Business decisions** | The rules and policies this context decides — the `RULE-` entries and invariants it owns |
+| **Assumptions and open questions** | What the boundary rests on, and the `OQ-` entries still open about it |
+
+The aggregate list stays a separate section — the Canvas is the context's contract, the aggregate
+list is its interior.
+
 ## Prerequisites
 
 | File | Required/Recommended | Source |
 |------|---------------------|--------|
 | reports/02_evaluation/unified-improvement-plan.md | Required | /architect:integrate-evaluations |
 | reports/01_analysis/ubiquitous-language.md | Recommended | /architect:analyze |
+| reports/03_domain/bounded-contexts.md | Optional | /product:map-domains — the product-side Canvas per `CTX-`; keep the `CTX-` id and say what changed when a boundary moves |
 
 ## Output
 
 | File | Content |
 |------|---------|
-| `reports/03_design/bounded-contexts-redesign.md` | BC definitions, aggregate list, responsibilities |
+| `reports/03_design/bounded-contexts-redesign.md` | One Bounded Context Canvas per BC (above), plus the aggregate list |
 | `reports/03_design/context-map.md` | Context map (Mermaid diagram) |
 
 Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).

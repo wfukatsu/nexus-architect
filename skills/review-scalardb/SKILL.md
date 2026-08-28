@@ -130,7 +130,7 @@ ScalarDB uses Optimistic Concurrency Control (OCC). Conflict rates above 5% degr
 Evaluate ONLY the OCC Contention Analysis dimension:
 - Which tables/partitions are write hotspots (multiple concurrent writes to the same partition key)?
 - Can the design achieve an OCC conflict rate below 5% under expected load?
-- Are contention mitigation strategies applied (partitioning, CQRS, event sourcing, etc.)?
+- Are contention mitigation strategies applied (partitioning, CQRS, event sourcing, etc.)? Read the design's "Read Model, CQRS and Event Sourcing Decisions" table: an aggregate with a hot partition and `none` / `no` there is a finding, and an aggregate absent from the table is *undecided* — a finding too, not "not needed"
 
 Score 1-5: 5=Exemplary (minimal hotspots, clear mitigation), 4=Good, 3=Acceptable, 2=Concerning, 1=Critical (high contention)
 

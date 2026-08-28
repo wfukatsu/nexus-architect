@@ -10,6 +10,20 @@ all four plugins (`product`, `architect`, `scalardb`, `infra`) are released toge
 ## [Unreleased]
 
 ### Added
+- **Read Model, CQRS and Event Sourcing decision per aggregate** (#27). `design-scalardb` and
+  `design-data-layer` record one row per aggregate — read model, CQRS, event sourcing, the named
+  reason, the stated cost — with *neither* as the default; `review-scalardb` reads an absent row as
+  undecided. `rules/scalardb-schema-design.md` gains the Event Store pattern (event table keyed by
+  aggregate id and sequence as the OCC scope, snapshots every N, idempotent projections).
+- **Bounded Context Canvas** (#28). Every context in product's `bounded-contexts.md` and architect's
+  `bounded-contexts-redesign.md` is written in the same nine-part Canvas, so a `CTX-` can be compared
+  part by part across the handoff; `review-consistency` checks completeness and id continuity.
+- **Domain Vision Statement** (#30). `define-vision` writes one paragraph naming the core domain
+  with its own `VIS-`; `map-domains` cites it as the upstream of every `Core` classification and
+  raises a Core the statement did not name as a finding.
+- **`docs/ddd-coverage.md`** (+ `_ja`) (#31). The DDD technique coverage table, kept in the repo;
+  `tools/docs_consistency.test.py` asserts it names only registered commands and declared
+  artifact paths, and that both languages list the same commands and rows.
 - **Property-based tests from aggregate invariants** (#29). `generate-test-specs` specifies, per
   invariant in `aggregate-manifest.json`, the positive and negative example tests and one
   property-based test — an arbitrary per value object honouring its validation rule, the aggregate
