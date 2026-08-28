@@ -177,6 +177,7 @@
         "./skills/product/generate-ui-mock",
         "./skills/product/generate-frontend",
         "./skills/product/define-features",
+        "./skills/product/example-map",
         "./skills/product/define-data-model",
         "./skills/product/map-domains",
         "./skills/product/design-api",

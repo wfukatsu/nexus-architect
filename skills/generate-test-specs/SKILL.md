@@ -11,7 +11,9 @@ user_invocable: true
 ## Desired Outcome
 
 Generate comprehensive test specifications based on implementation specs:
-- **BDD scenarios**: Feature files in Gherkin format
+- **BDD scenarios**: Feature files in Gherkin format — when `reports/02_spec/examples/` exists,
+  each feature's `RULE-` entries are its `Rule:` blocks and each `EX-` its `Scenario:`, tagged with
+  their IDs, so the scenarios are the agreed cases rather than cases invented from the feature's name
 - **Contract test specs**: What must be asserted to prove the code obeys the API contract, and the
   stack that will assert it
 - **Unit test specs**: Test cases for services, repositories, and value objects
@@ -72,6 +74,7 @@ the gap list rather than in a specification that pretends to cover them.
 ## Acceptance Criteria
 
 - Every aggregate's CRUD operations are covered by at least one BDD scenario
+- When an example map exists, every `RULE-` appears as a `Rule:` block and every `EX-` as a scenario under it, both carrying their IDs — a rule with no scenario is a gap, not an omission
 - Every `operationId` has a contract test specification covering all seven assertion rows above that
   apply to it, and the selected stack is recorded
 - Every GraphQL field coordinate covers schema shape/nullability, validation, authorization, tenant
@@ -93,6 +96,7 @@ the gap list rather than in a specification that pretends to cover them.
 | reports/03_design/api-specifications/ | Required when an API surface exists | /architect:design-api |
 | reports/03_design/state-machines/state-machine-manifest.json | Optional | /architect:design-state-machine — the matrix is the coverage target above |
 | reports/03_design/aggregates/aggregate-manifest.json | Optional | /architect:design-aggregate — one unit test per invariant on both branches, seeded by its concrete examples |
+| reports/02_spec/examples/ | Optional | /product:example-map — `RULE-` → `Rule:` blocks, `EX-` → `Scenario:` lines in the BDD feature files |
 
 ## Output
 
@@ -114,5 +118,6 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 | /architect:design-api | Input source — the contract the contract tests assert against |
 | /architect:design-state-machine | Input source — the state x event matrix the transition tests cover |
 | /architect:design-aggregate | Input source — the invariants and their examples the unit tests cover |
+| /product:example-map | Input source — the agreed rules and examples the Gherkin is generated from |
 | /architect:generate-contract-tests | Output consumer — emits the executable tests from these specs |
 | /architect:generate-scalardb-code | Related (test code generation) |

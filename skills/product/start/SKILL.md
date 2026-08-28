@@ -36,6 +36,11 @@ before pinning them (see @rules/dependency-versions.md), and record it as
 - **UX-phase visual track** (`full` profile): after `design-positioning`, run the two optional
   artifacts that feed the mocks — `create-domain-story` (the *what*: per-persona screen flow) and
   `design-system` (the *how it looks*: shared visual language) — before `generate-ui-mock`.
+- **Example Mapping step** (optional; `ux-to-spec` / `full` profiles): after `define-features`, run
+  `/product:example-map` for the Must/Should features — the rules and concrete examples the
+  Gherkin, the aggregate invariants and the backlog acceptance criteria derive from. It is
+  dialogue-driven; under `--auto` it harvests from the artifacts and records what it could not
+  settle as `unasked` questions.
 - **Frontend codegen step** (optional; `ux-to-spec` / `full` profiles): at the end of the spec phase
   (after the mocks and `define-features`), `generate-frontend` can turn the mocks + design system into
   a runnable React + Storybook frontend.

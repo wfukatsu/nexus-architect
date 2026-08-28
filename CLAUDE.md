@@ -22,7 +22,7 @@ Use `/product:start` to design product direction, `/architect:start` for interac
 
 ## Repository Mechanics
 
-This repo is not an application — it is a **Claude Code plugin marketplace** whose product is a corpus of ~116 skill instruction files (105 registered as slash commands, plus the nested migration sub-skills below). There is no compile/build step and no application to run; "developing" here means editing skills, rules, and hooks.
+This repo is not an application — it is a **Claude Code plugin marketplace** whose product is a corpus of ~117 skill instruction files (106 registered as slash commands, plus the nested migration sub-skills below). There is no compile/build step and no application to run; "developing" here means editing skills, rules, and hooks.
 
 **Packaging.** `.claude-plugin/marketplace.json` defines four plugins (`architect`, `scalardb`, `product`, `infra`), each with its own version, and lists the skill directories it ships. Skills physically live in a flat `skills/` tree (product and infra skills are nested under `skills/product/` and `skills/infra/`); a plugin "owns" a skill only by listing its path in `marketplace.json`. **Adding a skill requires two edits: create `skills/<name>/SKILL.md` AND register its path in the plugin's `skills` array in `marketplace.json`.** An unregistered SKILL.md will not surface as a slash command.
 
@@ -65,7 +65,7 @@ contract that runs only when someone remembers is not enforced at all.
 | `tools/lib/aggregate_manifest.test.py` | The aggregate design contract: the seven well-formedness rules of `rules/aggregate-design.md` §3 (one root, at least one stated invariant, every invariant violable by a declared command, actor / consistency class / emitted event per command, interior reachable only through the root, other aggregates referenced by identity) plus a concrete example per invariant |
 | `tools/lib/state_machine_manifest.test.py` | The state transition model contract: the seven well-formedness rules of `rules/state-modeling.md` §3 (one initial state, reachability, no undeclared dead end, determinism, guarded transitions declaring their else branch, actor and consistency class per transition) plus a state x event matrix with no undecided cell and no cell contradicting a transition |
 | `tools/nexus-status.test.sh` | The dashboard's CLI contract on scratch projects: project resolution, 0/1/2 exit codes, the four addressable views, every output mode, `--group`/`--phase`/`--epic` narrowing `--json` too, unknown filters failing as usage, cross-view agreement, refresh poll |
-| `tools/docs_consistency.test.py` | The documentation split itself: both catalogues describing all 105 registered commands, the signature block matching each SKILL.md (no flag invented by prose, none dropped, none re-spelled, every flag a skill documents about itself offered, and — for the skills that wrap a shell tool — no flag that tool's parser would reject), the grouped tables in CLAUDE.md/README summing to the registry, the extension-tier and codegen prose equal to `EXTENSION_PHASES`/`CODEGEN_PHASES`, AGENTS.md knowing every skill, the catalogue pointer staying un-`@`-imported, no flag mentioned anywhere without belonging to a documented surface, and the Japanese catalogue keeping row order plus each row's model tier / flags / tool references |
+| `tools/docs_consistency.test.py` | The documentation split itself: both catalogues describing all 106 registered commands, the signature block matching each SKILL.md (no flag invented by prose, none dropped, none re-spelled, every flag a skill documents about itself offered, and — for the skills that wrap a shell tool — no flag that tool's parser would reject), the grouped tables in CLAUDE.md/README summing to the registry, the extension-tier and codegen prose equal to `EXTENSION_PHASES`/`CODEGEN_PHASES`, AGENTS.md knowing every skill, the catalogue pointer staying un-`@`-imported, no flag mentioned anywhere without belonging to a documented surface, and the Japanese catalogue keeping row order plus each row's model tier / flags / tool references |
 | `tools/lib/status_tui.test.py` | The curses shell's interaction contract without a terminal: `c` copies rather than opens, the action-menu/help behaviour with and without `--exec`, an empty tree naming its filter, `q` as the only quit key |
 
 **The one suite that runs real code.** `samples/scalardb-transaction-tests/` is a runnable Gradle
@@ -88,15 +88,15 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 
 ## Command Reference
 
-**105 slash commands across four plugins.** The catalogue — every command with its model, its
+**106 slash commands across four plugins.** The catalogue — every command with its model, its
 prerequisites and its full flag signature — is `docs/skill-reference.md` (`_ja` for Japanese), read
 on demand with the Read tool and deliberately **not** `@`-imported, since an always-loaded catalogue
 is the cost this section exists to avoid. Do not duplicate it here: this table is the map of *which
-group does what*, so you know where to look, and the counts below are a partition of all 105.
+group does what*, so you know where to look, and the counts below are a partition of all 106.
 
 | Group | Entry point | What it does | n |
 |-------|-------------|--------------|---|
-| **Product Direction** `/product:*` | `/product:start` | Validation-driven pipeline from product vision to SLA/NFR, gating on the riskiest assumptions; hands off to `/architect:define-requirements`. Skills are namespaced under `skills/product/`, rules under `rules/product/` | 27 |
+| **Product Direction** `/product:*` | `/product:start` | Validation-driven pipeline from product vision to SLA/NFR, gating on the riskiest assumptions; hands off to `/architect:define-requirements`. Skills are namespaced under `skills/product/`, rules under `rules/product/` | 28 |
 | **Orchestration & setup** | `/architect:start`, `/architect:pipeline` | Interactive or automated execution of the architect core pipeline, plus `init-output` | 3 |
 | **Core pipeline** `/architect:*` | run by the orchestrators | requirements → investigate → analyze → evaluate → redesign → design → review → report. The phases, their order, their declared outputs and their models are the manifest's, not prose: @skills/common/skill-dependencies.yaml | 27 |
 | **Extension tier** | invoked individually | Implementation specs, code generation (REST / GraphQL / ScalarDB / contract tests / IaC / docs), verification and the quality gate, infrastructure / security / observability / DR design, cost estimation. Enumerated under Pipeline Dependencies below | 19 |
@@ -182,7 +182,7 @@ write to them is additive** — see @skills/common/progress-registry.md § One R
 and @docs/design.md §1 for the contract, §7.5 for why `adapt-change` reports at the boundary rather
 than crossing it.
 
-The **product** plugin has its own pipeline and manifest: `skills/product/common/skill-dependencies.yaml` (vision -> success-metrics/revenue -> scope -> validate-assumptions [gate] -> persona/journey/positioning -> create-domain-story/design-system -> ui-mock/features/data-model/frontend -> map-domains/api -> sla/nfr -> design-architecture -> review -> report; `adapt-change` on demand). It ends by handing off to `/architect:define-requirements`.
+The **product** plugin has its own pipeline and manifest: `skills/product/common/skill-dependencies.yaml` (vision -> success-metrics/revenue -> scope -> validate-assumptions [gate] -> persona/journey/positioning -> create-domain-story/design-system -> ui-mock/features/example-map/data-model/frontend -> map-domains/api -> sla/nfr -> design-architecture -> review -> report; `adapt-change` on demand). It ends by handing off to `/architect:define-requirements`.
 
 ## Output Conventions
 
@@ -204,7 +204,7 @@ Naming and frontmatter rules: @rules/output-conventions.md
 | **sonnet** | Standard analysis, document generation, reviews | investigate, review-consistency, evaluate-mmi |
 | **haiku** | Template generation, status checks, simple transforms | init-output, render-mermaid, report |
 
-The **product** plugin follows the same tiers (per-skill `model` in `skills/product/common/skill-dependencies.yaml`): **opus** (16 skills) for strategy/judgment (`define-vision`, `define-success-metrics`, `research-landscape`, `design-revenue`, `name-product`, `validate-assumptions`, `generate-persona`, `design-positioning`, `create-domain-story`, `design-system`, `define-data-model`, `map-domains`, `design-api`, `design-architecture`, `review`, `adapt-change`), **sonnet** (10 skills) for structured generation and orchestration (`define-scope`, `map-journey`, `generate-ui-mock`, `generate-frontend`, `define-features`, `design-sla`, `define-nfr`, `report`, plus the `start` orchestrator and `init-output`), and **haiku** (1 skill) for the status renderer (`report-status`). That last one is the plugin's 27th skill and the only one the manifest does not list — it is not a pipeline phase, so its `model` lives in its own SKILL.md frontmatter.
+The **product** plugin follows the same tiers (per-skill `model` in `skills/product/common/skill-dependencies.yaml`): **opus** (17 skills) for strategy/judgment (`define-vision`, `define-success-metrics`, `research-landscape`, `design-revenue`, `name-product`, `validate-assumptions`, `generate-persona`, `design-positioning`, `create-domain-story`, `design-system`, `example-map`, `define-data-model`, `map-domains`, `design-api`, `design-architecture`, `review`, `adapt-change`), **sonnet** (10 skills) for structured generation and orchestration (`define-scope`, `map-journey`, `generate-ui-mock`, `generate-frontend`, `define-features`, `design-sla`, `define-nfr`, `report`, plus the `start` orchestrator and `init-output`), and **haiku** (1 skill) for the status renderer (`report-status`). That last one is the plugin's 28th skill and the only one the manifest does not list — it is not a pipeline phase, so its `model` lives in its own SKILL.md frontmatter.
 
 The **infra** plugin has no manifest at all — its four skills are a router plus three modes, not a
 pipeline — so every `model` lives in its own SKILL.md frontmatter: **opus** for `design` and
@@ -232,7 +232,7 @@ do not load ScalarDB rules for non-ScalarDB work.
 | product input requirements | docs/product-input-requirements.md | Inputs the user must supply before running the product pipeline |
 | architect input requirements | docs/architect-input-requirements.md | Inputs the user must supply before running the architect pipeline (legacy or greenfield) |
 | multi-cloud infrastructure guide | docs/infrastructure.md | Using the `/infra:*` plugin — setup, the four enforced premises, the worked flow, and the boundary with the architect infrastructure skills |
-| product skill rule set | rules/product/*.md (18 files: vision-frameworks, success-metrics, scope-prioritization, revenue-models, assumption-validation, persona-jtbd, journey-mapping, positioning-kano-hook, naming-frameworks, design-system, ui-to-domain, atomic-react-storybook, ddd-strategic, api-led-connectivity, sla-nfr, architecture-and-tech-fitness, review-and-report, adaptation-engine) | Editing a `/product:*` skill. Each product SKILL.md `@`-references the one it needs, so read a file here only when working on that skill — never load the set |
+| product skill rule set | rules/product/*.md (19 files: vision-frameworks, success-metrics, scope-prioritization, revenue-models, assumption-validation, persona-jtbd, journey-mapping, positioning-kano-hook, naming-frameworks, design-system, ui-to-domain, example-mapping, atomic-react-storybook, ddd-strategic, api-led-connectivity, sla-nfr, architecture-and-tech-fitness, review-and-report, adaptation-engine) | Editing a `/product:*` skill. Each product SKILL.md `@`-references the one it needs, so read a file here only when working on that skill — never load the set |
 | Open Questions protocol | rules/open-questions.md | Any point where a skill would write `TBD` — how to ask the user with AskUserQuestion (free text via the appended "Other"), what never to ask, and how to record what stays open |
 | Token pricing & usage tracking | rules/token-pricing.md | Estimating run cost, or reading the `work/token-usage.json` ledger recorded during execution |
 | API contract fidelity | rules/api-contract-fidelity.md | Designing an API surface, generating API-layer code or contract tests, or verifying code against the contract — OpenAPI as the single contract, the `operationId` binding, the contract map, the drift protocol, the contract test stack |

@@ -213,6 +213,7 @@ Phase order and the `mvp`/`core-only`/`ux-to-spec`/`full` profiles are defined i
 | `/product:design-system` | opus | 2. UX Foundation | Build or `--import` a separately-managed design system (DTCG tokens + components + guidelines); styles the UI mocks (optional, standalone) |
 | `/product:generate-ui-mock` | sonnet | 3. UX → Spec | Navigable UI mocks for key screens, driven by domain stories and styled by the design system (each activity → a screen, wired into a clickable story flow) |
 | `/product:define-features` | sonnet | 3. UX → Spec | Extract features from UI mocks (each screen action → Command/feature) |
+| `/product:example-map` | opus | 3. UX → Spec | Example Mapping per feature — business rules (`RULE-`), one concrete example per rule on each side of its boundary (`EX-`), unsettled questions as `OQ-`; feeds the Gherkin, the aggregate invariants and the backlog acceptance criteria (optional) |
 | `/product:define-data-model` | opus | 3. UX → Spec | Derive the data model in two passes (explicit → implicit) |
 | `/product:generate-frontend` | sonnet | 3. UX → Spec | Turn UI mocks + design system into a runnable React + Storybook frontend (Atomic Design, token-styled, react-router) — selectable, end of spec phase |
 | `/product:map-domains` | opus | 4. Domain & API | Abstract features/entities into bounded contexts (DDD strategic) |
@@ -357,6 +358,7 @@ path by their router, so they are not slash commands and have no signature here.
 /product:design-system [--name=<id>] [--import=<path>] [--fidelity=lo|mid] [--auto] [--lang=ja|en]
 /product:generate-ui-mock [--fidelity=lo|mid] [--auto] [--lang=ja|en]
 /product:define-features [--auto] [--lang=ja|en]
+/product:example-map [--feature=<FEAT>] [--auto] [--lang=ja|en]
 /product:define-data-model [--auto] [--lang=ja|en]
 /product:generate-frontend [--design-system=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--auto] [--lang=ja|en]
 /product:map-domains [--auto] [--lang=ja|en]

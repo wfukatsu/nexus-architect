@@ -83,6 +83,7 @@ that other files cite by name.
 | `00_core/assumptions.md`, `validation-plan.md` (`ASM-`) | validate-assumptions | open-questions.md → unresolved items / open risks | ✓ |
 | `01_ux/personas.md` (`PER-`, `JOB-`) | generate-persona | requirements-definition.md → Actor list (**seed only**; personas are JTBD user segments, not a role/permission matrix — architect derives roles/permissions in `:analyze`) | △ |
 | `02_spec/feature-list.md` (`FEAT-`) | define-features | requirements-definition.md → Functional Requirements (`FEAT-`→`FR-`, record the link) | ✓ |
+| `02_spec/examples/example-map-*.md` (`RULE-`, `EX-`) | example-map | requirements-definition.md → acceptance criteria per `FR-` (the `RULE-` entries of its `FEAT-`); `EX-` bridges to `/architect:design-aggregate` (invariant examples) and `/architect:generate-test-specs` (Gherkin scenarios) | ✓ |
 | `02_spec/data-model.md` (`ENT-`) | define-data-model | data-transaction-requirements.md → data requirements (**logical ER**, not a physical DB inventory with versions/volumes) | △ |
 | `03_domain/bounded-contexts.md`, `domain-map.md`, `ubiquitous-language.md` (`CTX-`) | map-domains | **Bounded-context inputs** — requirements-definition.md scoping + feeds `/architect:analyze` ubiquitous language; the per-`CTX-` consistency hint (`Strong`/`Eventual`/`TBD`) **seeds** the transaction matrix (see §1.4) | ✓ |
 | `03_domain/api-design.md` (`API-`) | design-api | reference for downstream `/architect:design-api`; informs FR scope | ✓ |
