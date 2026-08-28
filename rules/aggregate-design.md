@@ -47,7 +47,7 @@ emits:
 | **Value object** | An object defined by its attributes, immutable, compared by value | Its attributes and the validation that makes an instance legal (`amount >= 0`, ISO currency) |
 | **Invariant** | A predicate that holds at the end of every transaction on this aggregate | Statement, which commands can violate it, how the root enforces it |
 | **Command** | A request to change the aggregate, handled by the root | Actor, guard, the invariants it must preserve, the event it emits, its consistency class |
-| **Domain event** | A fact the aggregate publishes after a command succeeds | Its payload (IDs and values, never the whole aggregate), whether it is emitted after commit |
+| **Domain event** | A fact the aggregate publishes after a command succeeds | Its payload (IDs and values, never the whole aggregate), whether it is emitted after commit. **One event, one publishing aggregate** — when a transaction writes two aggregates, the owner publishes and the other's command `emits: none` |
 | **Factory** | The creation rule when constructing a valid aggregate takes more than a constructor | Which invariants must already hold at birth and where the inputs come from |
 | **Specification** | A named, reusable business rule that answers yes/no about an aggregate | Its predicate, the commands and queries that apply it |
 | **Repository** | The collection abstraction for the root — one per aggregate, never per entity | Lookup keys, whether it loads the whole aggregate, the consistency it reads with |
@@ -99,13 +99,20 @@ each is asserted by `tools/lib/aggregate_manifest.py` against the manifest the s
   optimistic concurrency control the aggregate is the natural OCC scope: keys designed so that one
   aggregate's records share a partition, and so that two aggregates never do beyond what the
   business requires (@rules/scalardb-schema-design.md).
-- **A transaction that must write two aggregates is a decision, not an accident.** Either the
-  invariant truly spans both — then say which one is the transaction's owner and classify the
-  command `distributed` (one ACID transaction across services — shared cluster / Global Transaction
-  API / 2PC, @rules/scalardb-2pc-patterns.md) — or it does not, and the second write happens in a
-  reaction to the first's event, classified `saga` with a compensation
-  (@rules/scalardb-saga-patterns.md). Record the choice on the command. Never leave a two-aggregate
-  write classified `local`.
+- **A transaction that must write two aggregates is a decision, not an accident.** Three
+  outcomes, and the command records which:
+  1. The invariant truly spans both and both live in **one service on one datastore** — a counter
+     and the detail rows it summarises, a root and the index row it maintains. That is one local
+     ACID transaction: the command stays `local`, names the second aggregate in `also_writes`, and
+     the owner is the aggregate whose guard decides (the one holding the invariant's check). It is
+     an exception to one-command-one-aggregate and is written as one — with the reason, and with a
+     reconciliation for the day the two disagree.
+  2. The invariant spans both and they live in **different services** — classify `distributed`
+     (one ACID transaction across services — shared cluster / Global Transaction API / 2PC,
+     @rules/scalardb-2pc-patterns.md) and say which service owns it.
+  3. It does not span both — the second write is a reaction to the first's event, classified
+     `saga` with a compensation (@rules/scalardb-saga-patterns.md).
+  A two-aggregate write that names no `also_writes`, no owner and no case above is the defect.
 - **Eventual consistency between aggregates is the default, not a compromise.** Invariants inside
   an aggregate are transactional; rules between aggregates are enforced by events and reactions.
   A rule that "must" be transactional across two aggregates is either a mis-drawn boundary or a

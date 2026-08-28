@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+Three gaps the first end-to-end run of `/architect:design-aggregate --auto` (the `ec-monolith`
+sample — `Order`, `StockItem`, `Reservation`, `Payment`, fifteen invariants) surfaced in the
+skill itself.
+
+### Fixed
+- **A two-aggregate write inside one service is `local`, and says so.** `rules/aggregate-design.md`
+  §4 classified every two-aggregate write `distributed` or `saga`; a counter and the detail rows it
+  summarises (`StockItem` + `Reservation`) are one ACID transaction on one datastore. §4 now names
+  three cases; the command declares the second aggregate in `also_writes`, the validator checks it
+  names another aggregate of the manifest (never itself), and the document template carries the
+  owner and the reconciliation.
+- **One event, one publishing aggregate.** Two aggregates declaring the same event name is now a
+  violation — the non-owner's command emits `none`. The sample had `InventoryReserved` on both
+  Inventory aggregates.
+- **The `STM-` link is recorded by whichever skill runs second.** When a machine for the root
+  already exists, `design-aggregate --auto` fills `state_machine` itself instead of leaving it for
+  a write-back that only runs when `design-state-machine` follows.
+
 ## [0.32.1] - 2026-08-28
 
 Six findings from reviewing 0.32.0 — all of them a promise written on one side of a contract and

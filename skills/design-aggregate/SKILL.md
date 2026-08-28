@@ -55,9 +55,10 @@ The modeling method, the seven well-formedness rules and the transaction-boundar
 - **Value objects before entities.** Every attribute group with its own validation rule is a value
   object until identity is proven; `define-data-model`'s `ENT-` list is where to look for the
   values it promoted by mistake.
-- **One command, one aggregate, one transaction.** A command that must write two aggregates is
-  classified `distributed` or `saga` and says which aggregate owns the transaction; it is never
-  left `local` (@rules/aggregate-design.md §4).
+- **One command, one aggregate, one transaction.** A command that must write two aggregates says
+  which case of @rules/aggregate-design.md §4 it is: `local` with `also_writes` when both live in
+  one service on one datastore (a counter and its detail rows), `distributed` across services, or
+  `saga` as a reaction — and which aggregate owns it. An undeclared second write is the defect.
 - **Other aggregates by ID only.** A member typed as another aggregate's root is a boundary defect
   to resolve in Stage 3, not a modeling convenience to record.
 - **Every invariant has an example.** An instance with real values, a command, and the outcome —
@@ -124,7 +125,8 @@ role, guard, the invariants it must preserve, the event it emits (payload: IDs a
 aggregate), and its consistency class — `local` when it writes this aggregate only, `distributed` or
 `saga` when it must write another, taking the class from `scalardb-transaction.md` when it exists
 and feeding it when it does not. A guard that more than one caller evaluates is a specification;
-name it.
+name it. A command that writes a second aggregate in the same transaction declares it in
+`also_writes`; only the owner emits the event — the other aggregate's command emits `none`.
 
 **Stage 5 — References and repository**
 Walk every member typed as another aggregate's root and resolve it: an ID reference, a value
@@ -151,7 +153,9 @@ Derive the models without facilitation:
 3. Derive commands from the operations the feature list and the domain stories name, using their
    verbs verbatim; derive invariants from the constraints the data model states and from `RULE-`
    entries where an example map exists.
-4. Default every command's consistency class to `local` and every unresolved cross-aggregate
+4. When `state-machine-manifest.json` already holds a machine for the root, record its `STM-` in
+   `state_machine` (the write-back otherwise belongs to `design-state-machine`, which normally runs
+   later). Default every command's consistency class to `local` and every unresolved cross-aggregate
    member to an ID reference, and **mark each default** in the document as assumed, with an `OQ-`
    entry per aggregate recording that the ownership of two-aggregate writes was never asked
    (@rules/open-questions.md §5).
@@ -236,7 +240,8 @@ command, event, invariant) stay English.
           "guard": "status is Draft",
           "preserves": ["INV-1"],
           "emits": "OrderLineAdded",
-          "consistency": "local"
+          "consistency": "local",
+          "also_writes": []
         }
       ],
       "events": [
@@ -274,7 +279,10 @@ case in its contract test):
 - **Events** — every entry an object with a unique `name`.
 - **Commands** — names unique; each has an `actor`, a `consistency` ∈ `local` | `distributed` |
   `saga`, an `emits` naming a declared event or the literal `none`, and a `preserves` list of
-  declared invariant IDs; at most one carries `creation: true`.
+  declared invariant IDs; at most one carries `creation: true`; `also_writes`, when present, lists
+  other aggregates in this manifest the command writes in the same transaction (never itself).
+- **Events** — an event name is published by one aggregate: two aggregates declaring the same
+  event name is a violation, the non-owner's command emits `none`.
 - **Invariants** — `id` unique within the aggregate; `statement` present; `violated_by` non-empty
   and naming declared commands; `examples` non-empty, every example with `given` / `when` /
   `then` and a `kind` ∈ `positive` | `negative`, and **both kinds present** — an invariant with
@@ -336,6 +344,9 @@ deliberately not made aggregates — with what they are instead.]
 |---------|----------|-------|-------|-----------|-------|-------------|
 | place | yes (factory: cart, pricing, customer) | Customer | cart has a line | INV-1 | OrderPlaced | local |
 | addLine | | Customer | status is Draft | INV-1 | OrderLineAdded | local |
+
+[A command that writes a second aggregate in the same transaction: its `also_writes`, the owner,
+which §4 case it is, and the reconciliation for when the two disagree.]
 
 [Then: every `distributed` / `saga` command with the aggregate that owns the transaction and the
 compensation, and the events' payloads.]

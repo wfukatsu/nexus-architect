@@ -215,6 +215,23 @@ def main():
         return m
     rejects("two creation commands", two_creations, expect="at most one creates")
 
+    print("two-aggregate writes and one publisher per event")
+
+    def also_writes_ok(m):
+        agg(m)["commands"][1]["also_writes"] = ["Customer"]
+        return m
+    check("a command may declare another aggregate it writes in the same transaction",
+          validate_aggregate_manifest(also_writes_ok(copy.deepcopy(WELL_FORMED))) == [])
+    rejects("also_writes naming an undeclared aggregate",
+            lambda m: agg(m)["commands"][1].update(also_writes=["Shipment"]) or m,
+            expect="undeclared aggregate")
+    rejects("also_writes naming itself",
+            lambda m: agg(m)["commands"][1].update(also_writes=["Order"]) or m,
+            expect="names its own aggregate")
+    rejects("the same event declared by two aggregates",
+            lambda m: agg(m, 1)["events"].append({"name": "OrderPlaced", "payload": []}) or m,
+            expect="one event has one publishing aggregate")
+
     print("rule 5 — interior reachable only through the root")
     rejects("a value object carrying an identity",
             lambda m: agg(m)["members"][2].update(identity="MoneyId") or m,

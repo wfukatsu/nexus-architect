@@ -7,6 +7,23 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+`/architect:design-aggregate --auto` を初めて通しで走らせて（`ec-monolith` サンプル — `Order` /
+`StockItem` / `Reservation` / `Payment`、不変条件 15 件）見つかった、スキル側の 3 つの穴。
+
+### 修正
+- **同一サービス内の 2 集約書き込みは `local` であり、そう宣言する。** `rules/aggregate-design.md`
+  §4 は 2 集約を書くコマンドをすべて `distributed` か `saga` に分類していましたが、カウンタとそれが
+  集計する明細行（`StockItem` + `Reservation`）は同一ストア上の 1 ACID トランザクションです。§4 は
+  3 つのケースを定め、コマンドは `also_writes` に 2 つ目の集約を宣言し、validator はそれが manifest
+  内の別集約であること（自分自身ではない）を検査、文書テンプレートは所有者と再照合を持ちます。
+- **1 イベント 1 発行集約。** 2 つの集約が同名イベントを宣言すると違反 — 非所有者のコマンドは
+  `none` を発行します。サンプルでは `InventoryReserved` が Inventory の両集約にありました。
+- **`STM-` リンクは後に走ったスキルが記録する。** ルートの状態機械が既に存在するとき、
+  `design-aggregate --auto` は `state_machine` を自分で埋め、`design-state-machine` が後続する
+  場合にしか走らない書き戻しに任せません。
+
 ## [0.32.1] - 2026-08-28
 
 0.32.0 のレビューで見つかった 6 件 — いずれも契約の片側にだけ書かれた約束でした。
