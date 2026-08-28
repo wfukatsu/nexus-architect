@@ -40,7 +40,8 @@ def _names(items, key="name"):
     return [i.get(key) for i in items if isinstance(i, dict)]
 
 
-def validate_aggregate(aggregate, project_dir, index, all_roots, known_machines=None):
+def validate_aggregate(aggregate, project_dir, index, all_roots, known_machines=None,
+                       all_names=()):
     label = aggregate.get("id") if _text(aggregate.get("id")) else "aggregate[%d]" % index
     errors = []
 
@@ -156,6 +157,18 @@ def validate_aggregate(aggregate, project_dir, index, all_roots, known_machines=
                     errors.append("%s: preserves undeclared invariant %r" % (where, inv))
         if command.get("creation") is True:
             creations += 1
+        # A second aggregate written in the same transaction is declared, and it is another
+        # aggregate of this manifest — never the command's own.
+        also = command.get("also_writes")
+        if also is not None:
+            if not isinstance(also, list):
+                errors.append("%s: also_writes must be an array of aggregate names" % where)
+            else:
+                for other in also:
+                    if other == aggregate.get("name"):
+                        errors.append("%s: also_writes names its own aggregate" % where)
+                    elif other not in all_names:
+                        errors.append("%s: also_writes names undeclared aggregate %r" % (where, other))
     if creations > 1:
         errors.append("%s: %d commands carry creation=true; at most one creates the aggregate"
                       % (label, creations))
@@ -232,12 +245,24 @@ def validate_aggregate_manifest(manifest, project_dir=None, known_machines=None)
         if duplicates([a.get(key) for a in objects]):
             errors.append("%s: duplicate %s" % (LABEL, key))
     all_roots = [a.get("root") for a in objects]
+    all_names = [a.get("name") for a in objects]
+    # One event, one publisher: the same event name declared by two aggregates is two
+    # publishers of one fact, and downstream cannot tell which transaction emitted it.
+    publishers = {}
+    for a in objects:
+        for event in a.get("events") if isinstance(a.get("events"), list) else []:
+            if isinstance(event, dict) and _text(event.get("name")):
+                publishers.setdefault(event["name"], []).append(a.get("name"))
+    for name, owners in sorted(publishers.items()):
+        if len(owners) > 1:
+            errors.append("%s: event %r is declared by %s — one event has one publishing aggregate"
+                          % (LABEL, name, " and ".join(str(o) for o in owners)))
     for index, aggregate in enumerate(aggregates):
         if not isinstance(aggregate, dict):
             errors.append("%s: aggregates[%d] must be an object" % (LABEL, index))
             continue
         errors.extend(validate_aggregate(aggregate, project_dir, index, all_roots,
-                                         known_machines))
+                                         known_machines, all_names))
     return errors
 
 
