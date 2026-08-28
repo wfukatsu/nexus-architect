@@ -96,6 +96,7 @@ Edition comparison and version support: @rules/scalardb-edition-profiles.md
 | reports/01_analysis/data-model-analysis.md | Recommended | /architect:analyze-data-model |
 | reports/03_design/aggregates/aggregate-manifest.json | Optional | /architect:design-aggregate — the aggregate as OCC scope and partition-key unit, interior entities and value objects as one aggregate's tables/columns, one repository per root |
 | reports/03_design/state-machines/state-machine-manifest.json | Optional | /architect:design-state-machine — the state column and its OCC scope, the transition history store, and the per-transition consistency class that fixes which transitions sit in one transaction (@rules/state-modeling.md §5–6) |
+| reports/04_quality/nfr.md | Optional | /product:define-nfr — read-latency and reporting targets for the Read Model / CQRS / Event Sourcing decision; absent (pure-architect path), take them from `requirements-definition.md`'s NFR table, and ask what neither states (@rules/open-questions.md) — never assume a target |
 
 ## Available Resources
 

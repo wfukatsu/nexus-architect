@@ -53,10 +53,14 @@ Produce one deliverable:
 ## Process
 
 1. **Read** all existing artifacts and `work/traceability.json`.
-2. **Consistency lens** — cross-check ID usage and terminology, and join every `TBD` to its `OQ-`
+2. **Consistency lens** — every context in `bounded-contexts.md` carries all nine Bounded Context
+   Canvas parts, and on a rerun a `CTX-` whose purpose, classification or inbound/outbound set
+   changed is recorded as a decision in `work/context.md`, not silently redrawn. Cross-check ID usage and terminology, and join every `TBD` to its `OQ-`
    entry in `work/context.md` (orphan `TBD`s and orphan entries are both findings). Apply
    `@rules/product/review-and-report.md`.
-3. **Traceability lens** — validate the graph; flag orphans and dangling references. When
+3. **Traceability lens** — validate the graph; flag orphans and dangling references. A `CTX-`
+   classified `Core` whose `upstream` carries no `VIS-` is a finding (the Domain Vision Statement
+   edge is missing), as is a `Core` the statement does not name. When
    `reports/02_spec/examples/` exists: every Must/Should `FEAT-` has a map, every `RULE-` has a
    `positive` and a `negative` `EX-`, every `EX-` names exactly one `RULE-`, and every question a
    map cites is an `OQ-` in the store.

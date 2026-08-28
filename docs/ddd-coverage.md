@@ -6,7 +6,8 @@ each time — the first such review (August 2026) mis-scored two rows because it
 artifacts, which is the failure this table exists to prevent.
 
 `tools/docs_consistency.test.py` asserts that every skill this table names is a registered command
-and that every artifact path it cites is declared by a skill. The **status** column is judgment
+and that every artifact path it cites is declared by a skill — in a SKILL.md, a manifest or the
+output tree; a rule file merely discussing a path does not count. The **status** column is judgment
 and is reviewed by hand when a row's skill changes.
 
 Status legend: ◎ dedicated skill or artifact with a defined procedure · ○ built into another

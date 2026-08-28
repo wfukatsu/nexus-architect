@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+Six findings from reviewing 0.32.0 — all of them a promise written on one side of a contract and
+not on the other.
+
+### Fixed
+- `review-data-integrity` now reads the Read Model / CQRS / Event Sourcing table and reports an
+  absent aggregate as undecided, as `design-data-layer` already claimed it did.
+- `map-domains` writes the Domain Vision Statement's `VIS-` into the `upstream` of every `Core`
+  `CTX-`, so the edge `adapt-change` and `/product:review` rely on actually exists in the graph;
+  `/product:review` flags a `Core` with no `VIS-` upstream.
+- `/product:review` checks the Bounded Context Canvas (all nine parts; a `CTX-` redrawn on a rerun
+  is a recorded decision), as the Canvas section said it did.
+- `design-scalardb` / `design-data-layer` list `reports/04_quality/nfr.md` as an optional
+  prerequisite with the pure-architect fallback stated, instead of naming it only in the body.
+- The DDD-coverage artifact check counts only SKILL.md, manifests and the output tree as
+  declarations — a rule discussing a path no longer makes it "declared".
+- `generate-test-specs` no longer lists `generate-scalardb-code` twice in Related Skills.
+
 ## [0.32.0] - 2026-08-28
 
 ### Added
