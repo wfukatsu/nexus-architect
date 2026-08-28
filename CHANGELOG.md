@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+### Added
+- **Property-based tests from aggregate invariants** (#29). `generate-test-specs` specifies, per
+  invariant in `aggregate-manifest.json`, the positive and negative example tests and one
+  property-based test — an arbitrary per value object honouring its validation rule, the aggregate
+  generator composed from them, every `violated_by` command applied, and *invariant holds or
+  command rejected* as the only two outcomes — in `reports/07_test-specs/property-test-specs.md`.
+  `generate-scalardb-code` emits them as jqwik properties under `src/test/java/**/domain/`, driving
+  the root, with jqwik pinned through the version lookup like every other dependency. Quality-gate
+  stage 2 now requires every declared invariant to have a property test and records
+  covered / declared plus the case count per property; `verify-implementation --gate` joins the
+  two and fails the stage on an uncovered invariant.
+
 ## [0.31.0] - 2026-08-28
 
 Three additions closing the gap a DDD-technique coverage review found on the *front* of the

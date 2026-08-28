@@ -27,7 +27,7 @@ Run in this order; the cheap deterministic stages fail fast before the expensive
 | # | Stage | Passes when | Evidence |
 |---|-------|-------------|----------|
 | 1 | **Compile / build** | The project's real build target succeeds | Command + exit code |
-| 2 | **Unit tests** | All pass; no test disabled or deleted in this change without a recorded reason | Command + counts (run/passed/skipped) |
+| 2 | **Unit tests** | All pass; no test disabled or deleted in this change without a recorded reason; when `reports/03_design/aggregates/aggregate-manifest.json` exists, every invariant it declares is covered by at least one property-based test that drives the aggregate root (`reports/07_test-specs/property-test-specs.md` names the test per invariant) | Command + counts (run/passed/skipped) + invariant → test-class map, invariants covered / declared |
 | 3 | **Contract tests** | Every REST `operationId` and GraphQL resolver field coordinate the change touches is exercised and validates against the specification (@rules/api-contract-fidelity.md §7) | Command + per-operation/field-coordinate results |
 | 4 | **Integration tests** | All pass, including the transaction scenarios the design requires — OCC conflict, 2PC failure, saga compensation | Command + counts |
 
@@ -81,6 +81,7 @@ Every scanning stage therefore records **what it covered**, and the coverage is 
 | Stage | Coverage evidence required |
 |-------|---------------------------|
 | Unit / contract / integration | Number of tests **run** — a suite that ran 0 tests is `not-configured`, never `passed` |
+| Property (invariants) | Invariants covered / declared, and the number of generated cases per property — a property that ran 0 tries, or an invariant with no test class, is a stage-2 failure, not a pass |
 | SAST | Files or rules scanned |
 | Dependency scan | Number of dependencies or manifests examined |
 | Secrets scan | Bytes or files scanned |
@@ -139,6 +140,11 @@ Written to `reports/09_verification/quality-gate.json`, and summarized in
   "stages": [
     {"stage": "build", "status": "passed",
      "command": "./gradlew build -x test", "exit_code": 0},
+    {"stage": "unit", "status": "failed",
+     "command": "./gradlew test", "exit_code": 0, "tests": {"run": 212, "passed": 212, "skipped": 0},
+     "invariants": {"declared": 6, "covered": 5,
+                    "uncovered": ["AGG-001/INV-3"], "tries_per_property": 1000},
+     "detail": "every test passed, but INV-3 (order total equals the sum of line totals) has no property test — an exit-zero suite over an unchecked invariant is not a pass"},
     {"stage": "contract", "status": "failed",
      "command": "./gradlew test --tests '*ContractTest'", "exit_code": 1,
      "detail": "confirmOrder returned 500 for the transaction-status-unknown case; contract declares 503"},
@@ -150,6 +156,10 @@ Written to `reports/09_verification/quality-gate.json`, and summarized in
   "blocking": ["VER-004", "ASEC-011"]
 }
 ```
+
+`invariants` appears on the unit stage only when an aggregate manifest exists; `uncovered` is the
+work list for `generate-scalardb-code`, and `tries_per_property` is what makes "the property ran"
+a checkable claim.
 
 `blocking` lists the finding IDs that produced the verdict, so the fix loop has an explicit work list
 rather than a report to re-read.

@@ -86,6 +86,31 @@ service docs, so do not hand-write a competing table inside its marked sections.
 | reports/06_implementation/ | Required | /architect:design-implementation |
 | reports/03_design/scalardb-schema.md | Required | /architect:design-scalardb |
 | reports/07_test-specs/ | Recommended | /architect:generate-test-specs |
+| reports/07_test-specs/property-test-specs.md | Recommended when an aggregate manifest exists | /architect:generate-test-specs — the property per invariant this skill turns into a jqwik test |
+| reports/03_design/aggregates/aggregate-manifest.json | Optional | /architect:design-aggregate — invariants enforced in the root, and the examples the unit tests replay |
+
+## Domain Tests
+
+Emit the domain layer's tests alongside it, under `generated/{service}/src/test/java/**/domain/`:
+
+- **Example tests** — one JUnit 5 test method per `positive` / `negative` example in the aggregate
+  manifest, replaying `given` / `when` / `then` against the root, named after the invariant and
+  the example so a failure reads as the design row it contradicts.
+- **Property tests** — one jqwik `@Property` per invariant, exactly as
+  `property-test-specs.md` specifies it: an `Arbitrary` per value object honouring its validation
+  rule (one class per value object under `**/domain/arbitraries/`, shared across invariants), the
+  aggregate generator composed from them, each `violated_by` command applied with `@ForAll`
+  arguments, and the assertion *invariant holds or command rejected*. Drive the root; never a
+  service.
+- **Build** — add `jqwik` (JUnit 5 platform engine) to `build.gradle` `testImplementation`, with
+  its version **looked up** and recorded in the version decision table like every other pin
+  (@rules/dependency-versions.md); register the engine with JUnit 5 so `./gradlew test` runs the
+  properties, and set `tries` per property from the spec (default 1000) so stage 2's evidence
+  records a non-zero case count.
+
+Without an aggregate manifest, emit no property tests and say so in the run summary — a domain
+with no declared invariant has nothing to generate against, and an invented property is a test
+that proves the generator's assumptions, not the design's.
 
 ## Output
 
@@ -94,7 +119,8 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 | File | Content |
 |------|---------|
 | `generated/{service}/src/main/java/` | Java source code |
-| `generated/{service}/build.gradle` | Build configuration |
+| `generated/{service}/src/test/java/**/domain/` | Example and property tests per invariant, plus the value-object arbitraries |
+| `generated/{service}/build.gradle` | Build configuration (incl. jqwik when property tests are emitted) |
 | `generated/{service}/Dockerfile` | Container definition |
 | `generated/{service}/scalardb.properties` | ScalarDB configuration |
 

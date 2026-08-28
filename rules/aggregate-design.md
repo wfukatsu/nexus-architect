@@ -176,7 +176,7 @@ classDiagram
 | `design-api` | Commands become operations on the root's resource; interior entities are sub-resources, never top-level; invariant violations become registered problem types |
 | `design-implementation` | The domain layer skeleton: root, entities, value objects, factory, specifications, one repository interface per aggregate |
 | `generate-scalardb-code` / `generate-api-code` | Invariants enforced in the root — never in a controller, never only in the UI — and value objects validated on construction |
-| `generate-test-specs` | One unit test per invariant on both branches, one property test per invariant over generated instances, the concrete examples as the seed cases |
+| `generate-test-specs` / `generate-scalardb-code` | One example test per `positive` / `negative` example, and one jqwik property per invariant over generated valid instances driving the root — *invariant holds or command rejected* — with the value objects' validation rules as the generators |
 | `review-consistency` / `review-scalardb` / `review-data-integrity` | The seven rules of §3, and whether the schema and the transaction design still agree with the boundaries |
 
 **Enforcement lives in the root.** An invariant documented here and enforced in a service or a

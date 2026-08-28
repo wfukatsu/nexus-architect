@@ -70,8 +70,8 @@ phases, in the listed order. Output lands under `generated/` (git-ignored, overw
 | Command | Model | Requires | Description |
 |---------|-------|----------|-------------|
 | `/architect:design-implementation` | opus | `reports/03_design/` | Implementation specifications — API layer (controller/DTO/validation/mapper, transaction boundary, authorization point) plus services, repositories, VOs |
-| `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/contract/unit/integration/performance test specifications |
-| `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB code generation — owns `domain/` and `infrastructure/` |
+| `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/contract/unit/property/integration/performance test specifications — one property per aggregate invariant when `aggregate-manifest.json` exists |
+| `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB code generation — owns `domain/` and `infrastructure/`, plus the domain's example and jqwik property tests per invariant |
 | `/architect:generate-api-code` | opus | `api-specifications/` + `api-layer-spec.md` | API layer from the OpenAPI contract — controllers 1:1 with `operationId`, DTOs + derived Bean Validation, mappers, RFC 9457 handler, and `api-contract-map.json` |
 | `/architect:generate-graphql-code` | opus | GraphQL specifications + `api-layer-spec.md` | Spring GraphQL API layer — resolver bindings, DTOs/mappers, security/context, DataLoader, errors, query limits and combined contract map |
 | `/architect:generate-contract-tests` | sonnet | `api-contract-map.json` + `contract-test-specs.md` | Executable contract tests (swagger-request-validator + `@WebMvcTest` by default; Schemathesis / Pact / ArchUnit opt-in) |

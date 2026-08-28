@@ -7,6 +7,19 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+### 追加
+- **集約の不変条件からのプロパティベーステスト**（#29）。`generate-test-specs` は
+  `aggregate-manifest.json` の不変条件ごとに、positive / negative の具体例テストと 1 つのプロパティ
+  テスト — 値オブジェクトごとに検証規則を守る arbitrary、それらから合成した集約ジェネレータ、
+  `violated_by` の各コマンドの適用、「不変条件が成り立つか、コマンドが拒否されるか」の 2 択のみ —
+  を `reports/07_test-specs/property-test-specs.md` に仕様化します。`generate-scalardb-code` はこれを
+  jqwik のプロパティとして `src/test/java/**/domain/` にルート駆動で出力し、jqwik は他の依存と同じく
+  lookup で pin します。品質ゲートの stage 2 は宣言された全不変条件にプロパティテストがあることを
+  要求し、covered / declared とプロパティごとの試行数を記録。`verify-implementation --gate` は両者を
+  突合し、未カバーの不変条件で stage を失敗させます。
+
 ## [0.31.0] - 2026-08-28
 
 DDD 手法カバレッジのレビューで見つかった、パイプライン*前半*の 3 つの穴を埋めました。境界づけられた
