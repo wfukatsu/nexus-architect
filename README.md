@@ -2,8 +2,8 @@
 
 System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as four plugins with 106 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
 
-- **product** (27 skills) — Product direction: validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
-- **architect** (61 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
+- **product** (28 skills) — Product direction: validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
+- **architect** (63 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
 - **scalardb** (11 skills) — ScalarDB application development toolkit
 
 ## Installation

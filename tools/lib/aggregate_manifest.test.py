@@ -2,9 +2,9 @@
 """Executable check of the aggregate design contract.
 
 `/architect:design-aggregate` states seven well-formedness rules (@rules/aggregate-design.md §3)
-and a concrete example per invariant. Prose cannot enforce either, so this asserts the validator
-does: each case below is a model that reads perfectly well and is wrong, and the suite fails if
-the validator would let it through.
+and a concrete example on both sides of every invariant. Prose cannot enforce either, so this
+asserts the validator does: each case below is a model that reads perfectly well and is wrong,
+and the suite fails if the validator would let it through.
 
     python3 tools/lib/aggregate_manifest.test.py
 
@@ -20,6 +20,7 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from aggregate_manifest import (MANIFEST_PATH,  # noqa: E402
+                                STATE_MACHINE_MANIFEST_PATH,
                                 load_and_validate,
                                 validate_aggregate_manifest)
 
@@ -39,13 +40,21 @@ def check(label, condition, detail=""):
 def rejects(label, mutate, *, expect):
     """Mutate the well-formed fixture and require the validator to name the defect."""
     manifest = mutate(copy.deepcopy(WELL_FORMED))
-    errors = validate_aggregate_manifest(manifest)
+    try:
+        errors = validate_aggregate_manifest(manifest)
+    except Exception as exc:  # a crash is the one answer a validator may never give
+        check(label, False, "validator raised %r" % exc)
+        return
     check(label, any(expect in error for error in errors),
           errors or "no violation reported")
 
 
 def agg(m, i=0):
     return m["aggregates"][i]
+
+
+def example(kind, given, when, then):
+    return {"kind": kind, "given": given, "when": when, "then": then}
 
 
 # Two aggregates so that the cross-aggregate reference rule has something to point at:
@@ -70,8 +79,12 @@ WELL_FORMED = {
             "invariants": [
                 {"id": "INV-1", "statement": "total equals the sum of line totals",
                  "violated_by": ["addLine"],
-                 "examples": [{"given": "two lines of 10", "when": "addLine(5)",
-                               "then": "total 25, OrderLineAdded"}]},
+                 "examples": [
+                     example("positive", "two lines of 10", "addLine(5)",
+                             "total 25, OrderLineAdded"),
+                     example("negative", "submitted order", "addLine(5)",
+                             "rejected: order-not-editable"),
+                 ]},
             ],
             "commands": [
                 {"name": "place", "creation": True, "actor": "Customer",
@@ -103,10 +116,14 @@ WELL_FORMED = {
                 {"name": "Email", "kind": "value", "validation": "RFC 5322"},
             ],
             "invariants": [
-                {"id": "INV-1", "statement": "email is unique per customer",
+                {"id": "INV-1", "statement": "email is well-formed",
                  "violated_by": ["changeEmail"],
-                 "examples": [{"given": "a customer", "when": "changeEmail(new)",
-                               "then": "EmailChanged"}]},
+                 "examples": [
+                     example("positive", "a customer", "changeEmail(a@b.example)",
+                             "EmailChanged"),
+                     example("negative", "a customer", "changeEmail(not-an-email)",
+                             "rejected: email-invalid"),
+                 ]},
             ],
             "commands": [
                 {"name": "changeEmail", "actor": "Customer", "preserves": ["INV-1"],
@@ -138,6 +155,13 @@ def main():
     rejects("root field disagreeing with the kind=root member",
             lambda m: agg(m).update(root="OrderLine") or m, expect="declares kind=root")
 
+    def shared_root(m):
+        agg(m, 1)["root"] = "Order"
+        agg(m, 1)["members"][0]["name"] = "Order"
+        agg(m, 1)["repository"]["root"] = "Order"
+        return m
+    rejects("two aggregates claiming the same root", shared_root, expect="duplicate root")
+
     print("rule 2 — at least one invariant, stated")
     rejects("an aggregate with no invariant",
             lambda m: agg(m).update(invariants=[]) or m, expect="non-empty array")
@@ -162,6 +186,20 @@ def main():
     rejects("a command emitting an undeclared event",
             lambda m: agg(m)["commands"][1].update(emits="OrderShipped") or m,
             expect="emits must name a declared event")
+    def no_emits(m):
+        del agg(m)["commands"][1]["emits"]
+        return m
+    rejects("a command with emits omitted", no_emits, expect="emits must name a declared event")
+
+    def nameless_event(m):
+        agg(m)["events"].append({"payload": ["x"]})
+        agg(m)["commands"][1].pop("emits")
+        return m
+    rejects("a nameless event does not make an omitted emits pass", nameless_event,
+            expect="emits must name a declared event")
+    rejects("an event without a name",
+            lambda m: agg(m)["events"].append({"payload": ["x"]}) or m,
+            expect="every event is an object with a name")
     rejects("a command preserving an undeclared invariant",
             lambda m: agg(m)["commands"][1].update(preserves=["INV-9"]) or m,
             expect="undeclared invariant")
@@ -199,13 +237,27 @@ def main():
             lambda m: agg(m)["members"][1].update(kind="service") or m,
             expect="kind must be one of")
 
-    print("concrete examples")
+    print("concrete examples on both sides of the boundary")
     rejects("an invariant with no example",
             lambda m: agg(m)["invariants"][0].update(examples=[]) or m,
-            expect="concrete example is required")
+            expect="concrete example per side")
     rejects("an example missing its outcome",
             lambda m: agg(m)["invariants"][0]["examples"][0].update(then="") or m,
             expect="given/when/then")
+    def drop(path_fn):
+        def mutate(m):
+            path_fn(m)
+            return m
+        return mutate
+    rejects("an example with no kind",
+            drop(lambda m: agg(m)["invariants"][0]["examples"][0].pop("kind")),
+            expect="kind positive or negative")
+    rejects("an invariant with only positive examples",
+            drop(lambda m: agg(m)["invariants"][0]["examples"].pop(1)),
+            expect="needs a negative example")
+    rejects("an invariant with only negative examples",
+            drop(lambda m: agg(m)["invariants"][0]["examples"].pop(0)),
+            expect="needs a positive example")
 
     print("structural contracts")
     rejects("an id that is not AGG-###",
@@ -229,7 +281,19 @@ def main():
     rejects("a manifest with no aggregates",
             lambda m: m.update(aggregates=[]) or m, expect="non-empty array")
 
-    print("the document contract, against a scratch project")
+    print("hostile shapes report, never crash")
+    rejects("an id that is a list", lambda m: agg(m).update(id=["AGG-001"]) or m,
+            expect="id must match")
+    rejects("a name that is an object", lambda m: agg(m).update(name={"en": "Order"}) or m,
+            expect="name is required")
+    rejects("a document that is a list",
+            lambda m: agg(m).update(document=["a.md"]) or m, expect="path is required")
+    rejects("a member name that is a number",
+            lambda m: agg(m)["members"][1].update(name=7) or m, expect="name is required")
+    rejects("an aggregate entry that is a string",
+            lambda m: m["aggregates"].append("Order") or m, expect="must be an object")
+
+    print("the document and cross-manifest contracts, against a scratch project")
     root = tempfile.mkdtemp(prefix="aggregate-manifest-")
     try:
         docs = os.path.join(root, "reports", "03_design", "aggregates")
@@ -237,24 +301,39 @@ def main():
         for name in ("order", "customer"):
             with open(os.path.join(docs, "aggregate-%s.md" % name), "w") as fh:
                 fh.write("---\ntitle: %s\n---\n# %s\n" % (name, name))
-        with open(os.path.join(root, MANIFEST_PATH), "w") as fh:
-            json.dump(WELL_FORMED, fh)
+
+        def write_manifest(m):
+            with open(os.path.join(root, MANIFEST_PATH), "w") as fh:
+                json.dump(m, fh)
+
+        write_manifest(WELL_FORMED)
         manifest, errors = load_and_validate(root)
         check("a manifest whose documents exist validates clean", manifest and not errors, errors)
+        check("without a state-machine manifest, the STM- link is checked by shape only",
+              not errors)
+
+        os.makedirs(os.path.dirname(os.path.join(root, STATE_MACHINE_MANIFEST_PATH)))
+        with open(os.path.join(root, STATE_MACHINE_MANIFEST_PATH), "w") as fh:
+            json.dump({"schema_version": 1, "machines": [{"id": "STM-002"}]}, fh)
+        _, errors = load_and_validate(root)
+        check("with one, an STM- the machine manifest does not declare is a violation",
+              any("is not a machine in" in e for e in errors), errors)
+        with open(os.path.join(root, STATE_MACHINE_MANIFEST_PATH), "w") as fh:
+            json.dump({"schema_version": 1, "machines": [{"id": "STM-001"}]}, fh)
+        _, errors = load_and_validate(root)
+        check("and a declared one passes", not errors, errors)
 
         empty = copy.deepcopy(WELL_FORMED)
         agg(empty)["document"] = "reports/03_design/aggregates/empty.md"
         open(os.path.join(docs, "empty.md"), "w").close()
-        with open(os.path.join(root, MANIFEST_PATH), "w") as fh:
-            json.dump(empty, fh)
+        write_manifest(empty)
         _, errors = load_and_validate(root)
         check("an empty document is a violation",
               any("non-empty file" in e for e in errors), errors)
 
         outside = copy.deepcopy(WELL_FORMED)
         agg(outside)["document"] = "../outside.md"
-        with open(os.path.join(root, MANIFEST_PATH), "w") as fh:
-            json.dump(outside, fh)
+        write_manifest(outside)
         _, errors = load_and_validate(root)
         check("a document outside the project is a violation",
               any("inside the project" in e for e in errors), errors)

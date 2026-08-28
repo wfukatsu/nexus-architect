@@ -78,7 +78,10 @@ Read it before the first session; this skill facilitates it, it does not restate
 2. **Select stories** — honor `--feature`; otherwise present the Must/Should features with
    `multiSelect: true` in priority order and let the user pick (all of them under `--auto`).
 3. **Harvest candidates** per story — rules and examples the artifacts already imply, each with
-   its `source` (@rules/product/example-mapping.md § Where rules come from).
+   its `source` (@rules/product/example-mapping.md § Where rules come from): the feature's own
+   description and screen, the mocks' validation and disabled states, `scope-definition.md` /
+   `constraints.md`, the domain stories' exception scenarios, the data model's cardinalities, and
+   the journey's pains at its Moments of Truth.
 4. **Run the session** per story (@rules/product/example-mapping.md § Running the session):
    confirm / correct / add rules; for every rule ask for the example that breaks it and the one
    that satisfies it; for every volunteered example name its rule; record what stays open as an

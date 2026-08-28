@@ -231,6 +231,10 @@ graph, seeding step 2's "directly touched" set:
 | `tech` | `TECH-` / `ARCH-` (tech-fitness, architecture) |
 | `regulation` | constraints / `NFR-` |
 
+`RULE-` (upstream: `FEAT-` / `CON-` / `SCP-` / `ENT-`) and `EX-` (upstream: `RULE-`) are reached
+through the closure from any of these entries; the re-run is `/product:example-map --feature=…` for
+the features whose rules moved.
+
 ### 7.5 The Architect Boundary
 
 §1.5 puts architect's nodes in the same graph, so after a handoff the step-2 closure reaches

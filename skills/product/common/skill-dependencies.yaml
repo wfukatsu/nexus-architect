@@ -174,6 +174,9 @@ phases:
     id_prefix: [CTX-]
     depends_on: [define-data-model, define-features]
     implemented: true
+    # --mode=event-storming also writes reports/03_domain/event-timeline.md, a session record
+    # deliberately not declared here: it exists only in that mode, and bounded-contexts.md (which
+    # cites it) is what downstream reads and what staleness is measured from.
     outputs: [reports/03_domain/domain-map.md, reports/03_domain/bounded-contexts.md, reports/03_domain/ubiquitous-language.md]
     model: opus
   design-api:

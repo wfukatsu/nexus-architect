@@ -122,8 +122,9 @@ phases:
     # STM- is architect-originated: a lifecycle is a physical design decision, so these nodes
     # carry no product upstream unless a CTX-/ENT-/FEAT- node happens to exist (docs/design.md §1.5).
     id_prefix: [STM-]
-    depends_on: [redesign]
-    soft_depends_on: [design-aggregate]   # the aggregate list is Stage 1's candidate list when present
+    # design-aggregate is optional; an optional dependency that never ran does not block
+    # (tools/lib/pipeline_status_data.py, skills/pipeline/SKILL.md step 7) — it only orders.
+    depends_on: [redesign, design-aggregate]
     optional: true
     outputs:
       - reports/03_design/state-machines/

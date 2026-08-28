@@ -56,7 +56,10 @@ Produce one deliverable:
 2. **Consistency lens** — cross-check ID usage and terminology, and join every `TBD` to its `OQ-`
    entry in `work/context.md` (orphan `TBD`s and orphan entries are both findings). Apply
    `@rules/product/review-and-report.md`.
-3. **Traceability lens** — validate the graph; flag orphans and dangling references.
+3. **Traceability lens** — validate the graph; flag orphans and dangling references. When
+   `reports/02_spec/examples/` exists: every Must/Should `FEAT-` has a map, every `RULE-` has a
+   `positive` and a `negative` `EX-`, every `EX-` names exactly one `RULE-`, and every question a
+   map cites is an `OQ-` in the store.
 4. **Extensibility lens** — test domain boundaries and API reuse against future features.
 5. **Strategy lens** — Vision↔scope, economics, differentiation durability.
 6. **Rank & record** — order findings by severity; write the file; append a summary to

@@ -11,33 +11,25 @@ decides it instead.
 Usage:  python3 tools/lib/state_machine_manifest.py <project_dir>   (exit 1 on violations)
 """
 
-import json
 import os
 import re
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from manifest_common import (CONSISTENCY, MAX_DOCUMENT_BYTES,  # noqa: E402,F401
+                             duplicates, inside_file, load_manifest, report)
+
 MANIFEST_PATH = os.path.join("reports", "03_design", "state-machines",
                              "state-machine-manifest.json")
-MAX_DOCUMENT_BYTES = 4 * 1024 * 1024
+LABEL = "state machine manifest"
 ID_RE = re.compile(r"^STM-\d{3,}$")
 EVENT_SOURCES = ("command", "event", "timeout", "schedule")
-CONSISTENCY = ("local", "distributed", "saga")
 # The verdict for a redelivery of the same request. A fresh occurrence of the event after
 # commit is the (to, event) matrix cell, so "fire again" is never a transition-level value.
 IDEMPOTENCY = ("ignore", "reject")
 VERDICTS = ("allow", "reject", "ignore", "defer")
 
 
-def _inside_file(project_dir, relative):
-    """A declared document must be a non-empty file that stays inside the project."""
-    if not isinstance(relative, str) or not relative.strip():
-        return False
-    root = os.path.realpath(project_dir) + os.sep
-    path = os.path.realpath(os.path.join(project_dir, relative))
-    if not path.startswith(root) or not os.path.isfile(path):
-        return False
-    size = os.path.getsize(path)
-    return 0 < size <= MAX_DOCUMENT_BYTES
 
 
 def _reachable(initial, transitions):
@@ -59,7 +51,7 @@ def validate_machine(machine, project_dir, index):
         errors.append("%s: id must match STM-### " % label)
     if not str(machine.get("aggregate", "")).strip():
         errors.append("%s: aggregate is required" % label)
-    if project_dir is not None and not _inside_file(project_dir, machine.get("document")):
+    if project_dir is not None and not inside_file(project_dir, machine.get("document")):
         errors.append("%s.document: non-empty file must resolve inside the project" % label)
 
     states = machine.get("states")
@@ -206,7 +198,7 @@ def validate_state_machine_manifest(manifest, project_dir=None):
     aggregates = [m.get("aggregate") for m in machines if isinstance(m, dict)]
     documents = [m.get("document") for m in machines if isinstance(m, dict)]
     for values, what in ((ids, "id"), (aggregates, "aggregate"), (documents, "document")):
-        if len(set(values)) != len(values):
+        if duplicates(values):
             errors.append("state machine manifest: duplicate %s" % what)
     for index, machine in enumerate(machines):
         if not isinstance(machine, dict):
@@ -217,33 +209,14 @@ def validate_state_machine_manifest(manifest, project_dir=None):
 
 
 def load_and_validate(project_dir):
-    """(manifest, errors) for a project directory. A missing manifest is not an error here —
-    the phase is optional, and a project that never modeled a lifecycle has nothing to check."""
-    path = os.path.join(project_dir, MANIFEST_PATH)
-    if not os.path.isfile(path):
-        return None, []
-    try:
-        with open(path, encoding="utf-8") as handle:
-            manifest = json.load(handle)
-    except (OSError, ValueError) as exc:
-        return None, ["state machine manifest: unreadable — %s" % exc]
-    return manifest, validate_state_machine_manifest(manifest, project_dir)
+    """(manifest, errors) for a project directory; a missing manifest is (None, [])."""
+    return load_manifest(project_dir, MANIFEST_PATH, LABEL, validate_state_machine_manifest)
 
 
 def main(argv):
     project_dir = argv[1] if len(argv) > 1 else "."
     manifest, errors = load_and_validate(project_dir)
-    if manifest is None and not errors:
-        print("no state machine manifest in %s — nothing to validate" % project_dir)
-        return 0
-    for error in errors:
-        print(error)
-    if errors:
-        print("%d violation(s)" % len(errors))
-        return 1
-    print("state machine manifest is well-formed (%d machine(s))"
-          % len(manifest.get("machines", [])))
-    return 0
+    return report(manifest, errors, project_dir, LABEL, "machines")
 
 
 if __name__ == "__main__":

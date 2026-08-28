@@ -95,7 +95,8 @@ the inputs rather than blank prompts, and keep the whole interview inside two ro
 **Stage 1 — Select the aggregates**
 Build a candidate list with its evidence: entities that other entities point at, entities with a
 status column, work items a domain story creates or changes, features whose names are commands on
-one object ("approve order", "cancel reservation"). Group the candidates by bounded context.
+one object ("approve order", "cancel reservation"). Group the candidates by bounded context;
+with `--context`, keep only that context's candidates, and with `--aggregate` skip the selection.
 Present it with `multiSelect: true`, each option carrying its evidence, and let the user add one
 through the appended free-text option. Record the entities deliberately **not** made an aggregate
 and what they are instead (interior entity of which root, value object, reference data) — that
@@ -214,8 +215,8 @@ command, event, invariant) stay English.
           "statement": "total equals the sum of line totals",
           "violated_by": ["addLine", "removeLine"],
           "examples": [
-            { "given": "two lines of 10 EUR", "when": "addLine(5 EUR)", "then": "total 25 EUR, OrderLineAdded" },
-            { "given": "submitted order", "when": "addLine(5 EUR)", "then": "rejected: order-not-editable" }
+            { "kind": "positive", "given": "two lines of 10 EUR", "when": "addLine(5 EUR)", "then": "total 25 EUR, OrderLineAdded" },
+            { "kind": "negative", "given": "submitted order", "when": "addLine(5 EUR)", "then": "rejected: order-not-editable" }
           ]
         }
       ],
@@ -257,16 +258,32 @@ command, event, invariant) stay English.
 }
 ```
 
-Field contracts the validator enforces: `id` matches `AGG-###` and is unique; `document` resolves
-to a non-empty file inside the project; exactly one member has `kind: root` and its `name` equals
-`root`; every member `kind` ∈ `root` | `entity` | `value` | `reference`, and a `reference` member
-names the aggregate it `references` — a member whose name is another aggregate's root without
-`kind: reference` is the rule-6 defect; `invariants` is non-empty, each with an `id` unique within
-the aggregate, a `statement`, a non-empty `violated_by` naming declared commands, and at least one
-example; every command has an `actor`, a `consistency` ∈ `local` | `distributed` | `saga`, an
-`emits` naming a declared event or the literal `none`, and a `preserves` list of declared invariant
-IDs; at most one command carries `creation: true`; `repository.root` equals `root`; `state_machine`,
-when present, matches `STM-###`.
+Field contracts the validator enforces (`tools/lib/aggregate_manifest.py`; every one is also a
+case in its contract test):
+
+- **Manifest** — `schema_version: 1`; `aggregates` non-empty; `id`, `name`, `document` and `root`
+  each unique across aggregates (two aggregates claiming one root is one aggregate drawn twice).
+- **Aggregate** — `id` matches `AGG-###`; `name` and `root` present; `document` a non-empty file
+  inside the project; `members`, `invariants`, `commands` non-empty arrays; `events` an array;
+  `state_machine`, when present, matches `STM-###` **and** names a machine the state-machine
+  manifest declares when that manifest exists (it is written by `design-state-machine`, see below).
+- **Members** — names present and unique; exactly one `kind: root` whose `name` equals `root`;
+  `kind` ∈ `root` | `entity` | `value` | `reference`; a `reference` names the aggregate it
+  `references`; a member named after another aggregate's root without `kind: reference` is the
+  rule-6 defect; a `value` carries no `identity` (a value object with identity is an entity).
+- **Events** — every entry an object with a unique `name`.
+- **Commands** — names unique; each has an `actor`, a `consistency` ∈ `local` | `distributed` |
+  `saga`, an `emits` naming a declared event or the literal `none`, and a `preserves` list of
+  declared invariant IDs; at most one carries `creation: true`.
+- **Invariants** — `id` unique within the aggregate; `statement` present; `violated_by` non-empty
+  and naming declared commands; `examples` non-empty, every example with `given` / `when` /
+  `then` and a `kind` ∈ `positive` | `negative`, and **both kinds present** — an invariant with
+  one side untried has not located its boundary.
+- **Repository** — an object whose `root` equals the aggregate `root` (no repository for an
+  interior entity). **Specifications**, when present, each state a `predicate`.
+
+A malformed manifest (a list where a string belongs, a string where an object belongs) is reported
+as a violation, never as a traceback.
 
 ## Output Document Structure
 
@@ -308,10 +325,10 @@ deliberately not made aggregates — with what they are instead.]
 
 ### Examples
 
-| Invariant | Given | When | Then |
-|-----------|-------|------|------|
-| INV-1 | two lines of 10 EUR | addLine(5 EUR) | total 25 EUR; OrderLineAdded |
-| INV-1 | submitted order | addLine(5 EUR) | rejected: order-not-editable |
+| Invariant | Kind | Given | When | Then |
+|-----------|------|-------|------|------|
+| INV-1 | positive | two lines of 10 EUR | addLine(5 EUR) | total 25 EUR; OrderLineAdded |
+| INV-1 | negative | submitted order | addLine(5 EUR) | rejected: order-not-editable |
 
 ## Commands and Events
 
@@ -360,8 +377,9 @@ classDiagram
 
 ## Lifecycle
 
-[The `STM-` this aggregate's root carries, or the statement that it has no lifecycle worth a
-machine and why (@rules/state-modeling.md §1).]
+[Whether the root has a lifecycle worth a machine and why (@rules/state-modeling.md §1). The
+`STM-` itself is written back here and into the manifest's `state_machine` by
+`design-state-machine`, which runs after this skill.]
 
 ## Open Items
 
@@ -391,7 +409,7 @@ the graph should say so.
 1. One document per modeled aggregate under `reports/03_design/aggregates/`, plus the manifest
 2. `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/aggregate_manifest.py" <project_dir>` exits 0, or every violation it
    reports is listed under Open Items with an owner
-3. Every invariant has at least one concrete example on each branch
+3. Every invariant has a `positive` and a `negative` example (the validator enforces both)
 4. Every name matches `ubiquitous-language.md`, or its addition is proposed
 5. `AGG-` nodes appended to `work/traceability.json`
 6. `work/pipeline-progress.json` stamped — `in_progress` with `plugin: "architect"` before the work,

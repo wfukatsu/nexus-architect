@@ -53,11 +53,9 @@ Identify work items (data, documents, domain objects) relevant to the domain:
 - Ask: "What information or objects does each actor handle?"
 
 **Stage 4 — Main Flow**
-With `--mode=event-storming`, walk the flow as events instead: ask which event happened, which
-command and actor caused it, what the actor read to decide, and whether a policy reacts; chase
-every policy to its command, record hotspots as `OQ-` entries, and take the activities as the
-commands in event order (the table becomes the Process Model section). Otherwise walk through the
-main (happy path) flow step by step:
+With `--mode=event-storming`, run the Process Modeling walk of @rules/product/event-storming.md §3
+instead — the activities are its commands in event order, the table is the Process Model section
+(§4). Otherwise walk through the main (happy path) flow step by step:
 - Ask: "What does [Actor] do first?"
 - For each step: who does what with which work item, and to whom?
 - Assign sequential numbers to activities

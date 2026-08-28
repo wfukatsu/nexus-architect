@@ -59,13 +59,10 @@ Produce three deliverables:
 ## Process
 
 1. **Read context** — data model, features, `work/traceability.json`.
-   **`--mode=event-storming` only** — before step 2, run the Big Picture walk
-   (@rules/product/event-storming.md §3): seed the timeline from the artifacts, walk it forwards
-   and backwards with the user, ask where the language / actors / pace change to mark the pivotal
-   events, add actors and external systems as swimlanes, record hotspots as `OQ-`. Write
-   `reports/03_domain/event-timeline.md` as the session record, then read the context candidates
-   off the runs between pivots and continue with step 2 — the boundaries `bounded-contexts.md`
-   draws cite the pivotal events they rest on.
+   **`--mode=event-storming` only** — before step 2, run the Big Picture walk exactly as
+   @rules/product/event-storming.md §3 lays it out, write `reports/03_domain/event-timeline.md`
+   as its record (§4), and take the context candidates from the runs between pivotal events into
+   step 2 — `bounded-contexts.md` cites the pivotal events each boundary rests on.
 2. **Classify subdomains** — Core / Supporting / Generic; record investment guidance. Apply
    `@rules/product/ddd-strategic.md`.
 3. **Draw contexts** — group entities/features into `CTX-` bounded contexts sized for the future.

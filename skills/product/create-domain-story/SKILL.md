@@ -92,11 +92,9 @@ If personas are absent, do not silently degrade to a generic flow — tell the u
    systems they interact with along the journey (and other `CTX-` contexts when known).
 4. **Map work items** — the objects/information handled, named from the journey/job vocabulary;
    link to `ENT-` entities when a data model exists.
-5. **Order activities** — **`--mode=event-storming`**: walk the flow as events (@rules/product/event-storming.md §3 Process
-   Modeling) — per step ask which event happened, which command and actor caused it, what was read,
-   and whether a policy reacts; chase every policy to its command; hotspots become `OQ-`; the
-   activities are the commands in event order, and the table becomes the Process Model section.
-   Otherwise turn the `JOB-` story ("When … I want to … so I can …") and the matching
+5. **Order activities** — **`--mode=event-storming`**: run the Process Modeling walk of
+   @rules/product/event-storming.md §3; the activities are its commands in event order and the
+   table is the Process Model section (§4). Otherwise turn the `JOB-` story ("When … I want to … so I can …") and the matching
    journey actions/stages into a numbered happy-path sequence at user-task granularity: who does
    what, with which work item, to whom. Uncovered steps are asked (@rules/open-questions.md); only
    what stays unanswered → `TBD` + Open Question.

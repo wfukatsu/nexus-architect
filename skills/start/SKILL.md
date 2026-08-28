@@ -97,8 +97,8 @@ then every entity is a table, and there is no aggregate to design.
 
 ## State Transition Model Option
 
-After `/architect:redesign` completes — and in the same breath as the Domain Story question, so the
-user answers both at once — ask:
+After `/architect:redesign` completes — in the same breath as the Domain Story and Aggregate Design
+questions, so the user answers all three at once — ask:
 
 > "Should I build state transition models for the aggregates with a lifecycle? The model fixes which
 > changes are legal in each state, who may make them, and what happens to the attempts that are not —
@@ -128,9 +128,10 @@ rather than leaving the omission silent.
    to it; `plugin` is what keeps that attribution off the product pipeline's phase of the
    same name. On the handoff path this file already holds product's phases — add to it,
    never re-register it
-5. After `redesign`: offer Domain Story generation and state transition modeling (see the two
-   Option sections above), then run what the user selected before `design-microservices` and the
-   data/API design phases
+5. After `redesign`: offer Domain Story generation, aggregate design and state transition
+   modeling in one question (see the three Option sections above), then run what the user
+   selected — `create-domain-story`, then `design-aggregate`, then `design-state-machine` —
+   before `design-microservices` and the data/API design phases
 6. Accumulate findings in `work/context.md` between phases
 7. Determine which phases to skip if not applicable
 

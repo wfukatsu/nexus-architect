@@ -137,6 +137,10 @@ scope, and whether the transition history is recorded (@rules/state-modeling.md 
 **Stage 7 — Validate, review, write**
 Run the well-formedness checks below **before** presenting anything. Show the user the diagram, the
 matrix and any check that failed, correct together, then write the documents and the manifest.
+When `reports/03_design/aggregates/aggregate-manifest.json` exists, **write each machine's `STM-`
+back** into its aggregate's `state_machine` field (and the aggregate document's Lifecycle
+section): the aggregate skill runs first and cannot know the id, and the aggregate validator
+checks the link against this manifest.
 
 ### Auto Mode (`--auto`)
 
@@ -153,6 +157,7 @@ Derive the models without facilitation:
    asked (@rules/open-questions.md §5).
 5. Run the same well-formedness checks. A model that fails them is written with the failures listed
    under Open Items — never silently repaired by inventing a transition.
+6. Write each `STM-` back into `aggregate-manifest.json` as in Stage 7.
 
 Auto mode never invents a state that appears in no input. An aggregate with no evidence of a
 lifecycle is reported as not modeled.
@@ -353,7 +358,9 @@ over the whole graph, per prefix. A machine with no product-side origin carries 
    reports is listed under Open Items with an owner
 3. The matrix has no blank cell in any document
 4. Every state and event name matches `ubiquitous-language.md`, or its addition is proposed
-5. `STM-` nodes appended to `work/traceability.json`
+5. `STM-` nodes appended to `work/traceability.json`, and — when `aggregate-manifest.json` exists —
+   each machine's `STM-` written into its aggregate's `state_machine` field so that
+   `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/aggregate_manifest.py" <project_dir>` still exits 0
 6. `work/pipeline-progress.json` stamped — `in_progress` with `plugin: "architect"` before the work,
    `completed` with `outputs` and `summary` after (@skills/common/progress-registry.md)
 
@@ -362,7 +369,7 @@ over the whole graph, per prefix. A machine with no product-side origin carries 
 | Skill | Relationship |
 |-------|-------------|
 | /architect:redesign | Upstream — aggregates and bounded context boundaries |
-| /architect:design-aggregate | Upstream — the aggregate roots and their guarded commands; write the machine's `STM-` back into its `state_machine` field |
+| /architect:design-aggregate | Upstream — the aggregate roots and their guarded commands. This skill writes each machine's `STM-` back into the aggregate's `state_machine` field (Stage 7 / auto step 6) |
 | /architect:analyze-data-model | Upstream — status columns are the evidence of an implicit machine |
 | /architect:create-domain-story | Upstream — the activity sequence is a transition sequence |
 | /architect:design-scalardb | Downstream — state column, OCC scope, history table, per-transition consistency class |

@@ -42,6 +42,13 @@ artifacts cannot.
 
 ### Changed
 - 106 registered commands (was 104); architect core pipeline 27 phases, product 28 skills.
+- **An optional dependency that never ran does not block.** `design-state-machine` now depends on
+  `design-aggregate` (ordering and invalidation), and `tools/lib/pipeline_status_data.py` no longer
+  reports a phase as waiting on an optional upstream that is still `pending` — it blocks while
+  running or after failing, and a rerun still marks the consumer stale. `/architect:pipeline`
+  states the same rule.
+- The two design-manifest validators share `tools/lib/manifest_common.py` (document check, size
+  cap, consistency vocabulary, load/report envelope) instead of carrying copies.
 
 ## [0.30.2] - 2026-08-28
 

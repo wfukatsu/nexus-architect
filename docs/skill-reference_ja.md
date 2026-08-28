@@ -216,7 +216,7 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 | `/product:example-map` | opus | 3. UX → 仕様 | フィーチャーごとの Example Mapping — 業務ルール（`RULE-`）、境界の両側を示す具体例（`EX-`）、未決の問いを `OQ-` として記録し、Gherkin・集約の不変条件・バックログの受入基準へ流す（オプション） |
 | `/product:define-data-model` | opus | 3. UX → 仕様 | UI モックとフィーチャーからデータモデルを 2 パスで導出（明示 → 暗黙） |
 | `/product:generate-frontend` | sonnet | 3. UX → 仕様 | UI モック + デザインシステムから実行可能な React + Storybook フロントエンドを生成（Atomic Design、トークンスタイリング、react-router）— 選択式、spec フェーズ末尾 |
-| `/product:map-domains` | opus | 4. ドメイン & API | フィーチャー/エンティティを境界づけられたコンテキストへ抽象化（DDD 戦略的設計）。`--mode=event-storming` で境界を Big Picture EventStorming の対話から発見 |
+| `/product:map-domains` | opus | 4. ドメイン & API | フィーチャー/エンティティを境界づけられたコンテキストへ抽象化（DDD 戦略的設計）。`--mode=event-storming` で境界を Big Picture EventStorming の対話から発見し `reports/03_domain/event-timeline.md` に記録 |
 | `/product:design-api` | opus | 4. ドメイン & API | 論理 API を 3 つの API-Led レイヤーで設計（System/Process/Experience） |
 | `/product:design-sla` | sonnet | 5. 品質 & 非機能 | サービスごとの SLI/SLO/SLA とエラーバジェット |
 | `/product:define-nfr` | sonnet | 5. 品質 & 非機能 | SLO を測定可能な非機能要件へ変換（可用性、レイテンシ p95/p99 など） |

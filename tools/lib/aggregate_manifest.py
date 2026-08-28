@@ -6,54 +6,59 @@ checked here rather than trusted to prose. Every rule below is one a hand-writte
 wrong in a way no reader notices: two roots, an aggregate with no invariant (a table with a class
 name), an invariant no command can violate, a command with no actor or no consistency class, a
 member that is really another aggregate's root, a repository for an interior entity, an invariant
-nobody tried an example against.
+nobody tried on both sides of its boundary.
 
 Usage:  python3 tools/lib/aggregate_manifest.py <project_dir>   (exit 1 on violations)
 """
 
-import json
 import os
 import re
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from manifest_common import (CONSISTENCY, MAX_DOCUMENT_BYTES,  # noqa: E402,F401
+                             duplicates, inside_file, load_manifest, report)
+
 MANIFEST_PATH = os.path.join("reports", "03_design", "aggregates", "aggregate-manifest.json")
-MAX_DOCUMENT_BYTES = 4 * 1024 * 1024
+STATE_MACHINE_MANIFEST_PATH = os.path.join("reports", "03_design", "state-machines",
+                                           "state-machine-manifest.json")
+LABEL = "aggregate manifest"
 ID_RE = re.compile(r"^AGG-\d{3,}$")
 STM_RE = re.compile(r"^STM-\d{3,}$")
 MEMBER_KINDS = ("root", "entity", "value", "reference")
-CONSISTENCY = ("local", "distributed", "saga")
+# Every invariant is tried on both sides of its boundary: a case it lets through and a case
+# it rejects. One side alone has not located the boundary (@rules/aggregate-design.md §5).
+EXAMPLE_KINDS = ("positive", "negative")
 NO_EVENT = "none"
 
 
-def _inside_file(project_dir, relative):
-    """A declared document must be a non-empty file that stays inside the project."""
-    if not isinstance(relative, str) or not relative.strip():
-        return False
-    root = os.path.realpath(project_dir) + os.sep
-    path = os.path.realpath(os.path.join(project_dir, relative))
-    if not path.startswith(root) or not os.path.isfile(path):
-        return False
-    size = os.path.getsize(path)
-    return 0 < size <= MAX_DOCUMENT_BYTES
+def _text(value):
+    return isinstance(value, str) and bool(value.strip())
 
 
 def _names(items, key="name"):
     return [i.get(key) for i in items if isinstance(i, dict)]
 
 
-def validate_aggregate(aggregate, project_dir, index, all_roots):
-    label = aggregate.get("id") or aggregate.get("name") or "aggregate[%d]" % index
+def validate_aggregate(aggregate, project_dir, index, all_roots, known_machines=None):
+    label = aggregate.get("id") if _text(aggregate.get("id")) else "aggregate[%d]" % index
     errors = []
 
     if not ID_RE.match(str(aggregate.get("id", ""))):
         errors.append("%s: id must match AGG-###" % label)
-    if not str(aggregate.get("name", "")).strip():
+    if not _text(aggregate.get("name")):
         errors.append("%s: name is required" % label)
-    if project_dir is not None and not _inside_file(project_dir, aggregate.get("document")):
+    if not _text(aggregate.get("document")):
+        errors.append("%s.document: path is required" % label)
+    elif project_dir is not None and not inside_file(project_dir, aggregate.get("document")):
         errors.append("%s.document: non-empty file must resolve inside the project" % label)
     stm = aggregate.get("state_machine")
-    if stm is not None and not STM_RE.match(str(stm)):
-        errors.append("%s.state_machine: must match STM-### when present" % label)
+    if stm is not None:
+        if not STM_RE.match(str(stm)):
+            errors.append("%s.state_machine: must match STM-### when present" % label)
+        elif known_machines is not None and stm not in known_machines:
+            errors.append("%s.state_machine: %s is not a machine in %s"
+                          % (label, stm, STATE_MACHINE_MANIFEST_PATH))
 
     members = aggregate.get("members")
     invariants = aggregate.get("invariants")
@@ -71,11 +76,13 @@ def validate_aggregate(aggregate, project_dir, index, all_roots):
         return errors
 
     member_names = _names(members)
-    if len(set(member_names)) != len(member_names):
+    if duplicates(member_names):
         errors.append("%s: duplicate member name" % label)
 
     # Rule 1 — exactly one root, and it is the declared `root`.
     root = aggregate.get("root")
+    if not _text(root):
+        errors.append("%s: root is required" % label)
     roots = [m.get("name") for m in members if isinstance(m, dict) and m.get("kind") == "root"]
     if len(roots) != 1:
         errors.append("%s: %d members declare kind=root; exactly one root is required"
@@ -83,18 +90,20 @@ def validate_aggregate(aggregate, project_dir, index, all_roots):
     elif roots[0] != root:
         errors.append("%s: root is %r but %r declares kind=root" % (label, root, roots[0]))
 
-    other_roots = {r for r in all_roots if r and r != root}
+    other_roots = {r for r in all_roots if _text(r) and r != root}
     for member in members:
         if not isinstance(member, dict):
             errors.append("%s.members: entry must be an object" % label)
             continue
         where = "%s.member %s" % (label, member.get("name"))
+        if not _text(member.get("name")):
+            errors.append("%s: name is required" % where)
         if member.get("kind") not in MEMBER_KINDS:
             errors.append("%s: kind must be one of %s" % (where, "/".join(MEMBER_KINDS)))
         # Rule 6 — another aggregate's root inside this boundary is held by ID, or it is a
         # boundary defect. A `reference` member says which aggregate it points at.
         if member.get("kind") == "reference":
-            if not str(member.get("references", "")).strip():
+            if not _text(member.get("references")):
                 errors.append("%s: reference member must name the aggregate it references"
                               % where)
         elif member.get("name") in other_roots:
@@ -102,18 +111,24 @@ def validate_aggregate(aggregate, project_dir, index, all_roots):
                           "(kind=reference)" % where)
         # Rule 5 — a value object with an identity is an entity in disguise; an interior
         # entity's identity is local to the root.
-        if member.get("kind") == "value" and str(member.get("identity", "")).strip():
+        if member.get("kind") == "value" and _text(member.get("identity")):
             errors.append("%s: a value object has no identity" % where)
 
-    # Commands and events, before invariants can point at them.
-    command_names = _names(commands)
-    event_names = _names(events)
-    if len(set(command_names)) != len(command_names):
-        errors.append("%s: duplicate command name" % label)
-    if len(set(event_names)) != len(event_names):
+    # Events — named, unique — before commands can emit them and invariants can name them.
+    event_names = []
+    for event in events:
+        if not isinstance(event, dict) or not _text(event.get("name")):
+            errors.append("%s.events: every event is an object with a name" % label)
+            continue
+        event_names.append(event["name"])
+    if duplicates(event_names):
         errors.append("%s: duplicate event name" % label)
-    invariant_ids = _names(invariants, "id")
-    if len(set(invariant_ids)) != len(invariant_ids):
+
+    command_names = [c.get("name") for c in commands if isinstance(c, dict) and _text(c.get("name"))]
+    if duplicates(command_names):
+        errors.append("%s: duplicate command name" % label)
+    invariant_ids = [i.get("id") for i in invariants if isinstance(i, dict) and _text(i.get("id"))]
+    if duplicates(invariant_ids):
         errors.append("%s: duplicate invariant id" % label)
 
     creations = 0
@@ -122,15 +137,15 @@ def validate_aggregate(aggregate, project_dir, index, all_roots):
             errors.append("%s.commands: entry must be an object" % label)
             continue
         where = "%s.command %s" % (label, command.get("name"))
-        if not str(command.get("name", "")).strip():
+        if not _text(command.get("name")):
             errors.append("%s: name is required" % where)
         # Rule 4 — actor, consistency class, emitted event (or none).
-        if not str(command.get("actor", "")).strip():
+        if not _text(command.get("actor")):
             errors.append("%s: actor is required" % where)
         if command.get("consistency") not in CONSISTENCY:
             errors.append("%s: consistency must be one of %s" % (where, "/".join(CONSISTENCY)))
         emits = command.get("emits")
-        if emits != NO_EVENT and emits not in event_names:
+        if not _text(emits) or (emits != NO_EVENT and emits not in event_names):
             errors.append("%s: emits must name a declared event or be %r" % (where, NO_EVENT))
         preserves = command.get("preserves")
         if not isinstance(preserves, list):
@@ -146,15 +161,15 @@ def validate_aggregate(aggregate, project_dir, index, all_roots):
                       % (label, creations))
 
     # Rules 2 and 3 — at least one invariant, each stated, violable by a declared command,
-    # and tried against at least one example.
+    # and tried on both sides of its boundary.
     for invariant in invariants:
         if not isinstance(invariant, dict):
             errors.append("%s.invariants: entry must be an object" % label)
             continue
         where = "%s.invariant %s" % (label, invariant.get("id"))
-        if not str(invariant.get("id", "")).strip():
+        if not _text(invariant.get("id")):
             errors.append("%s: id is required" % where)
-        if not str(invariant.get("statement", "")).strip():
+        if not _text(invariant.get("statement")):
             errors.append("%s: statement is required" % where)
         violated_by = invariant.get("violated_by")
         if not isinstance(violated_by, list) or not violated_by:
@@ -165,13 +180,23 @@ def validate_aggregate(aggregate, project_dir, index, all_roots):
                     errors.append("%s: violated_by names undeclared command %r" % (where, name))
         examples = invariant.get("examples")
         if not isinstance(examples, list) or not examples:
-            errors.append("%s: at least one concrete example is required" % where)
+            errors.append("%s: at least one concrete example per side is required" % where)
+            continue
+        kinds = set()
+        for example in examples:
+            if not isinstance(example, dict) or not all(
+                    _text(example.get(k)) for k in ("given", "when", "then")):
+                errors.append("%s: every example needs given/when/then" % where)
+                break
+            if example.get("kind") not in EXAMPLE_KINDS:
+                errors.append("%s: every example is kind positive or negative" % where)
+                break
+            kinds.add(example["kind"])
         else:
-            for example in examples:
-                if not isinstance(example, dict) or not all(
-                        str(example.get(k, "")).strip() for k in ("given", "when", "then")):
-                    errors.append("%s: every example needs given/when/then" % where)
-                    break
+            missing = [k for k in EXAMPLE_KINDS if k not in kinds]
+            if missing:
+                errors.append("%s: needs a %s example — the boundary has one side untried"
+                              % (where, " and a ".join(missing)))
 
     # The repository — one per root, and for the root only (rule 5).
     repository = aggregate.get("repository")
@@ -182,66 +207,69 @@ def validate_aggregate(aggregate, project_dir, index, all_roots):
                       % (label, root, repository.get("root")))
 
     for spec in aggregate.get("specifications") or []:
-        if not isinstance(spec, dict) or not str(spec.get("predicate", "")).strip():
+        if not isinstance(spec, dict) or not _text(spec.get("predicate")):
             errors.append("%s.specifications: every specification states its predicate" % label)
             break
     return errors
 
 
-def validate_aggregate_manifest(manifest, project_dir=None):
-    """Every violation, as a list of one-line strings. Empty means the model is well-formed."""
+def validate_aggregate_manifest(manifest, project_dir=None, known_machines=None):
+    """Every violation, as a list of one-line strings. Empty means the model is well-formed.
+
+    `known_machines` is the set of `STM-` ids the state-machine manifest declares, when that
+    manifest exists; None skips the cross-check (the link is validated by shape only)."""
     if not isinstance(manifest, dict):
-        return ["aggregate manifest: must be an object"]
+        return ["%s: must be an object" % LABEL]
     if manifest.get("schema_version") != 1:
-        return ["aggregate manifest: schema_version must be 1"]
+        return ["%s: schema_version must be 1" % LABEL]
     aggregates = manifest.get("aggregates")
     if not isinstance(aggregates, list) or not aggregates:
-        return ["aggregate manifest: aggregates must be a non-empty array"]
+        return ["%s: aggregates must be a non-empty array" % LABEL]
 
     errors = []
-    ids = [a.get("id") for a in aggregates if isinstance(a, dict)]
-    names = [a.get("name") for a in aggregates if isinstance(a, dict)]
-    documents = [a.get("document") for a in aggregates if isinstance(a, dict)]
-    for values, what in ((ids, "id"), (names, "name"), (documents, "document")):
-        if len(set(values)) != len(values):
-            errors.append("aggregate manifest: duplicate %s" % what)
-    all_roots = [a.get("root") for a in aggregates if isinstance(a, dict)]
+    objects = [a for a in aggregates if isinstance(a, dict)]
+    for key in ("id", "name", "document", "root"):
+        if duplicates([a.get(key) for a in objects]):
+            errors.append("%s: duplicate %s" % (LABEL, key))
+    all_roots = [a.get("root") for a in objects]
     for index, aggregate in enumerate(aggregates):
         if not isinstance(aggregate, dict):
-            errors.append("aggregate manifest: aggregates[%d] must be an object" % index)
+            errors.append("%s: aggregates[%d] must be an object" % (LABEL, index))
             continue
-        errors.extend(validate_aggregate(aggregate, project_dir, index, all_roots))
+        errors.extend(validate_aggregate(aggregate, project_dir, index, all_roots,
+                                         known_machines))
     return errors
 
 
-def load_and_validate(project_dir):
-    """(manifest, errors) for a project directory. A missing manifest is not an error here —
-    the phase is optional, and a project that never modeled an aggregate has nothing to check."""
-    path = os.path.join(project_dir, MANIFEST_PATH)
+def _known_machines(project_dir):
+    """The STM- ids the project's state-machine manifest declares, or None when it has none —
+    the aggregate skill runs first, so an absent machine manifest is the normal case."""
+    path = os.path.join(project_dir, STATE_MACHINE_MANIFEST_PATH)
     if not os.path.isfile(path):
-        return None, []
+        return None
     try:
+        import json
         with open(path, encoding="utf-8") as handle:
-            manifest = json.load(handle)
-    except (OSError, ValueError) as exc:
-        return None, ["aggregate manifest: unreadable — %s" % exc]
-    return manifest, validate_aggregate_manifest(manifest, project_dir)
+            data = json.load(handle)
+    except (OSError, ValueError):
+        return None
+    machines = data.get("machines") if isinstance(data, dict) else None
+    if not isinstance(machines, list):
+        return None
+    return {m.get("id") for m in machines if isinstance(m, dict) and _text(m.get("id"))}
+
+
+def load_and_validate(project_dir):
+    """(manifest, errors) for a project directory; a missing manifest is (None, [])."""
+    known = _known_machines(project_dir)
+    return load_manifest(project_dir, MANIFEST_PATH, LABEL,
+                         lambda manifest, root: validate_aggregate_manifest(manifest, root, known))
 
 
 def main(argv):
     project_dir = argv[1] if len(argv) > 1 else "."
     manifest, errors = load_and_validate(project_dir)
-    if manifest is None and not errors:
-        print("no aggregate manifest in %s — nothing to validate" % project_dir)
-        return 0
-    for error in errors:
-        print(error)
-    if errors:
-        print("%d violation(s)" % len(errors))
-        return 1
-    print("aggregate manifest is well-formed (%d aggregate(s))"
-          % len(manifest.get("aggregates", [])))
-    return 0
+    return report(manifest, errors, project_dir, LABEL, "aggregates")
 
 
 if __name__ == "__main__":

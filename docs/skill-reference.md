@@ -216,7 +216,7 @@ Phase order and the `mvp`/`core-only`/`ux-to-spec`/`full` profiles are defined i
 | `/product:example-map` | opus | 3. UX → Spec | Example Mapping per feature — business rules (`RULE-`), one concrete example per rule on each side of its boundary (`EX-`), unsettled questions as `OQ-`; feeds the Gherkin, the aggregate invariants and the backlog acceptance criteria (optional) |
 | `/product:define-data-model` | opus | 3. UX → Spec | Derive the data model in two passes (explicit → implicit) |
 | `/product:generate-frontend` | sonnet | 3. UX → Spec | Turn UI mocks + design system into a runnable React + Storybook frontend (Atomic Design, token-styled, react-router) — selectable, end of spec phase |
-| `/product:map-domains` | opus | 4. Domain & API | Abstract features/entities into bounded contexts (DDD strategic); `--mode=event-storming` finds the boundaries in a Big Picture EventStorming walk instead |
+| `/product:map-domains` | opus | 4. Domain & API | Abstract features/entities into bounded contexts (DDD strategic); `--mode=event-storming` finds the boundaries in a Big Picture EventStorming walk instead and records it in `reports/03_domain/event-timeline.md` |
 | `/product:design-api` | opus | 4. Domain & API | Logical API surface in three API-Led layers (System/Process/Experience) |
 | `/product:design-sla` | sonnet | 5. Quality & NFR | Per-service SLI/SLO/SLA with error budgets |
 | `/product:define-nfr` | sonnet | 5. Quality & NFR | Turn SLOs into measurable NFRs (availability, latency p95/p99, ...) |

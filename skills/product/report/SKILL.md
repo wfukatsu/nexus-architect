@@ -60,6 +60,8 @@ Produce one deliverable:
    to its question so the reader sees what is being assumed and who owes the answer. Apply
    `@rules/product/review-and-report.md` and `@rules/open-questions.md`.
 3. **Assemble body** — one section per phase in pipeline order, linking source files; render Mermaid.
+   Example maps (`reports/02_spec/examples/`) sit under the spec phase, `index.md` first, one
+   subsection per feature with its rule and example tables.
 4. **Self-contain** — inline CSS; verify no broken references.
 5. **Record** — write `full-report.html`; append a note to `work/context.md`.
 
