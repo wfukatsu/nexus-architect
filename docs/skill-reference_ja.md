@@ -51,7 +51,7 @@
 |---------|-------|------|------|
 | `/architect:map-domains` | opus | - | ドメイン分類、BC マッピング |
 | `/architect:redesign` | opus | - | 境界づけられたコンテキストの再設計 |
-| `/architect:create-domain-story` | opus | オプション | ドメインストーリーテリング: ドメインごとの業務プロセスを可視化 |
+| `/architect:create-domain-story` | opus | オプション | ドメインストーリーテリング: ドメインごとの業務プロセスを可視化。`--mode=event-storming` でフローを Process Modeling EventStorming として進行 |
 | `/architect:design-aggregate` | opus | オプション | 境界づけられたコンテキストごとの戦術モデル: 集約ルート・内部エンティティ・値オブジェクト・具体例付き不変条件・コマンド/イベント/ファクトリ/仕様・ルートごとのリポジトリを、トランザクションが書き込む単位として設計 |
 | `/architect:design-state-machine` | opus | オプション | アグリゲートごとの状態遷移モデル: 状態・ガード付き遷移・空欄のない状態×イベント行列・各遷移の整合性クラスを対話的に構築 |
 | `/architect:design-microservices` | opus | - | ターゲットアーキテクチャ |
@@ -209,14 +209,14 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 | `/product:generate-persona` | opus | 2. UX 基盤 | Jobs-to-be-Done に紐づくペルソナ（ジョブストーリー + ペルソナカード） |
 | `/product:map-journey` | sonnet | 2. UX 基盤 | カスタマージャーニーをステージ × レイヤーのグリッドで作成（接点、行動、感情） |
 | `/product:design-positioning` | opus | 2. UX 基盤 | ポジショニング（Dunford 5 要素キャンバス）、接点 × デバイス × タイミングのマトリクス |
-| `/product:create-domain-story` | opus | 2. UX 基盤 | ペルソナ起点のドメインストーリーテリング（アクター=ペルソナ、活動=ジャーニー順のジョブストーリー）。UI モックが描画する軸（オプション） |
+| `/product:create-domain-story` | opus | 2. UX 基盤 | ペルソナ起点のドメインストーリーテリング（アクター=ペルソナ、活動=ジャーニー順のジョブストーリー）。UI モックが描画する軸（オプション）。`--mode=event-storming` で Process Modeling EventStorming として進行 |
 | `/product:design-system` | opus | 2. UX 基盤 | 独立管理のデザインシステムを構築または `--import`（DTCG トークン + コンポーネント + ガイドライン）。UI モックのスタイルを規定（オプション、単独実行可） |
 | `/product:generate-ui-mock` | sonnet | 3. UX → 仕様 | ドメインストーリーに駆動され、デザインシステムでスタイルされた主要画面のナビゲート可能な UI モック（各活動 → 1 画面、ストーリー順のクリック可能なフローとして連結） |
 | `/product:define-features` | sonnet | 3. UX → 仕様 | UI モックからフィーチャーを抽出（各画面アクション → Command/フィーチャー） |
 | `/product:example-map` | opus | 3. UX → 仕様 | フィーチャーごとの Example Mapping — 業務ルール（`RULE-`）、境界の両側を示す具体例（`EX-`）、未決の問いを `OQ-` として記録し、Gherkin・集約の不変条件・バックログの受入基準へ流す（オプション） |
 | `/product:define-data-model` | opus | 3. UX → 仕様 | UI モックとフィーチャーからデータモデルを 2 パスで導出（明示 → 暗黙） |
 | `/product:generate-frontend` | sonnet | 3. UX → 仕様 | UI モック + デザインシステムから実行可能な React + Storybook フロントエンドを生成（Atomic Design、トークンスタイリング、react-router）— 選択式、spec フェーズ末尾 |
-| `/product:map-domains` | opus | 4. ドメイン & API | フィーチャー/エンティティを境界づけられたコンテキストへ抽象化（DDD 戦略的設計） |
+| `/product:map-domains` | opus | 4. ドメイン & API | フィーチャー/エンティティを境界づけられたコンテキストへ抽象化（DDD 戦略的設計）。`--mode=event-storming` で境界を Big Picture EventStorming の対話から発見 |
 | `/product:design-api` | opus | 4. ドメイン & API | 論理 API を 3 つの API-Led レイヤーで設計（System/Process/Experience） |
 | `/product:design-sla` | sonnet | 5. 品質 & 非機能 | サービスごとの SLI/SLO/SLA とエラーバジェット |
 | `/product:define-nfr` | sonnet | 5. 品質 & 非機能 | SLO を測定可能な非機能要件へ変換（可用性、レイテンシ p95/p99 など） |
@@ -261,7 +261,7 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 # Design
 /architect:map-domains
 /architect:redesign
-/architect:create-domain-story [--domain=<name>] [--auto]
+/architect:create-domain-story [--domain=<name>] [--mode=story|event-storming] [--auto]
 /architect:design-aggregate [--aggregate=<name>] [--context=<name>] [--auto] [--lang=en|ja]
 /architect:design-state-machine [--aggregate=<name>] [--auto] [--lang=en|ja]
 /architect:design-microservices
@@ -354,14 +354,14 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 /product:generate-persona [--input=<file|dir>] [--auto] [--lang=ja|en]
 /product:map-journey [--auto] [--lang=ja|en]
 /product:design-positioning [--auto] [--lang=ja|en]
-/product:create-domain-story [--persona=<PER>] [--job=<JOB>] [--domain=<CTX>] [--auto] [--lang=ja|en]
+/product:create-domain-story [--persona=<PER>] [--job=<JOB>] [--domain=<CTX>] [--mode=story|event-storming] [--auto] [--lang=ja|en]
 /product:design-system [--name=<id>] [--import=<path>] [--fidelity=lo|mid] [--auto] [--lang=ja|en]
 /product:generate-ui-mock [--fidelity=lo|mid] [--auto] [--lang=ja|en]
 /product:define-features [--auto] [--lang=ja|en]
 /product:example-map [--feature=<FEAT>] [--auto] [--lang=ja|en]
 /product:define-data-model [--auto] [--lang=ja|en]
 /product:generate-frontend [--design-system=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--auto] [--lang=ja|en]
-/product:map-domains [--auto] [--lang=ja|en]
+/product:map-domains [--mode=derive|event-storming] [--auto] [--lang=ja|en]
 /product:design-api [--auto] [--lang=ja|en]
 /product:design-sla [--auto] [--lang=ja|en]
 /product:define-nfr [--auto] [--lang=ja|en]

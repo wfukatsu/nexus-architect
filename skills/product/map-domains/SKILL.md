@@ -2,7 +2,9 @@
 description: |
   Abstract features and entities into bounded contexts (DDD strategic design) — a Core/Supporting/
   Generic domain map, a context map with relationships, and a ubiquitous language — sized to absorb
-  future features. Bridges to nexus-architect. /product:map-domains [--auto] [--lang=ja|en].
+  future features. Bridges to nexus-architect. Boundaries are derived from features and entities
+  by default, or found with the user in a Big Picture EventStorming walk (--mode=event-storming).
+  /product:map-domains [--mode=derive|event-storming] [--auto] [--lang=ja|en].
 model: opus
 user_invocable: true
 ---
@@ -27,11 +29,12 @@ Produce three deliverables:
 ## Invocation
 
 ```
-/product:map-domains [--auto] [--lang=ja|en]
+/product:map-domains [--mode=derive|event-storming] [--auto] [--lang=ja|en]
 ```
 
 | Argument/Flag | Required | Description |
 |---------------|----------|-------------|
+| `--mode=derive\|event-storming` | Optional | `derive` (default): read the contexts off features and entities. `event-storming`: find them in a Big Picture EventStorming walk with the user — events in the business's words, pivotal events as boundary candidates, hotspots as `OQ-` — then run the same steps 2–8 (@rules/product/event-storming.md). Refused under `--auto`: a walk with nobody to walk with is derivation, and the skill says so and derives |
 | `--auto` | Optional | Derive without elicitation; ambiguous boundaries → `TBD` |
 | `--lang` | Optional | Override output language |
 
@@ -56,6 +59,13 @@ Produce three deliverables:
 ## Process
 
 1. **Read context** — data model, features, `work/traceability.json`.
+   **`--mode=event-storming` only** — before step 2, run the Big Picture walk
+   (@rules/product/event-storming.md §3): seed the timeline from the artifacts, walk it forwards
+   and backwards with the user, ask where the language / actors / pace change to mark the pivotal
+   events, add actors and external systems as swimlanes, record hotspots as `OQ-`. Write
+   `reports/03_domain/event-timeline.md` as the session record, then read the context candidates
+   off the runs between pivots and continue with step 2 — the boundaries `bounded-contexts.md`
+   draws cite the pivotal events they rest on.
 2. **Classify subdomains** — Core / Supporting / Generic; record investment guidance. Apply
    `@rules/product/ddd-strategic.md`.
 3. **Draw contexts** — group entities/features into `CTX-` bounded contexts sized for the future.
@@ -82,12 +92,16 @@ architect confirms or overrides it and makes the binding ACID/Saga/Local-Tx deci
 
 `reports/03_domain/domain-map.md`, `reports/03_domain/bounded-contexts.md` (with `CTX-` table +
 Context Map + per-context consistency hint), and `reports/03_domain/ubiquitous-language.md`.
+With `--mode=event-storming`, also `reports/03_domain/event-timeline.md` — the Big Picture record
+(ordered events, pivotal events, swimlanes, hotspots with their `OQ-` IDs). It is a session record:
+`CTX-` IDs live in `bounded-contexts.md` alone, never in the timeline.
 
 ## Reference Materials
 
 | Resource | Purpose |
 |----------|---------|
 | `@rules/product/ddd-strategic.md` | Subdomain classification, bounded contexts, context mapping |
+| `@rules/product/event-storming.md` | The Big Picture walk behind `--mode=event-storming`: notation, pivotal events as boundary candidates, hotspots, what is written |
 
 ## Related Skills
 

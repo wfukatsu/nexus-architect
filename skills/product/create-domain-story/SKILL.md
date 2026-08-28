@@ -4,7 +4,7 @@ description: |
   activities from job stories (JOB-) ordered by the journey (JNY-), work items from the things they
   handle. Each story is the chosen happy-path flow for a persona pursuing a key job, and becomes the
   axis the UI mocks render. Runs after journey, before UI mocks.
-  /product:create-domain-story [--persona=<PER>] [--job=<JOB>] [--domain=<CTX>] [--auto] [--lang=ja|en].
+  /product:create-domain-story [--persona=<PER>] [--job=<JOB>] [--domain=<CTX>] [--mode=story|event-storming] [--auto] [--lang=ja|en].
 model: opus
 user_invocable: true
 ---
@@ -37,7 +37,7 @@ workflow; use the architect one on the legacy-refactoring path.
 ## Invocation
 
 ```
-/product:create-domain-story [--persona=<PER>] [--job=<JOB>] [--domain=<CTX>] [--auto] [--lang=ja|en]
+/product:create-domain-story [--persona=<PER>] [--job=<JOB>] [--domain=<CTX>] [--mode=story|event-storming] [--auto] [--lang=ja|en]
 ```
 
 | Argument/Flag | Required | Description |
@@ -45,6 +45,7 @@ workflow; use the architect one on the legacy-refactoring path.
 | `--persona=<PER>` | Optional | Anchor to one persona (`PER-` id). Defaults to the primary persona; loops over personas if omitted in `--auto`. |
 | `--job=<JOB>` | Optional | Anchor to one job story (`JOB-` id). Defaults to the persona's highest-priority jobs. |
 | `--domain=<CTX>` | Optional | Scope the story to a bounded context (`CTX-`) instead of a persona×job. Only valid after `/product:map-domains` (a later-pipeline / rerun use). |
+| `--mode=story\|event-storming` | Optional | `story` (default): elicit actors, work items and activities as Domain Storytelling. `event-storming`: run the flow as a Process Modeling EventStorming session — per step, the event, the command and its actor, what was read, and the policy that reacts — and write the story plus a Process Model section (@rules/product/event-storming.md). Refused under `--auto` (falls back to `story` and says so) |
 | `--auto` | Optional | Skip facilitation; derive stories from existing artifacts. Suitable for bulk generation across personas/jobs. |
 | `--lang` | Optional | Override output language. |
 
@@ -91,7 +92,11 @@ If personas are absent, do not silently degrade to a generic flow — tell the u
    systems they interact with along the journey (and other `CTX-` contexts when known).
 4. **Map work items** — the objects/information handled, named from the journey/job vocabulary;
    link to `ENT-` entities when a data model exists.
-5. **Order activities** — turn the `JOB-` story ("When … I want to … so I can …") and the matching
+5. **Order activities** — **`--mode=event-storming`**: walk the flow as events (@rules/product/event-storming.md §3 Process
+   Modeling) — per step ask which event happened, which command and actor caused it, what was read,
+   and whether a policy reacts; chase every policy to its command; hotspots become `OQ-`; the
+   activities are the commands in event order, and the table becomes the Process Model section.
+   Otherwise turn the `JOB-` story ("When … I want to … so I can …") and the matching
    journey actions/stages into a numbered happy-path sequence at user-task granularity: who does
    what, with which work item, to whom. Uncovered steps are asked (@rules/open-questions.md); only
    what stays unanswered → `TBD` + Open Question.
@@ -166,6 +171,13 @@ sequenceDiagram
 ### [Exception Name]
 [Brief description; link the journey pain / Moment of Truth it comes from]
 
+## Process Model
+
+[`--mode=event-storming` only — one row per activity: event, command, actor, read model, policy
+(@rules/product/event-storming.md §4). Policies are guard and saga-step candidates for
+`/architect:design-state-machine`; a policy that reacts with nothing is reported as a missing
+feature or context.]
+
 ## Screen Hints (for UI mocks)
 
 [Optional: which activities cluster into which screen, to seed generate-ui-mock]
@@ -205,3 +217,4 @@ sequenceDiagram
 | `/product:map-domains` | Downstream/enrichment — stories inform contexts; `--domain` rescopes per `CTX-` |
 | `/architect:create-domain-story` | Counterpart — legacy-path, analysis-anchored variant |
 | `/product:adapt-change` | Re-runs this skill when persona or journey changes |
+| `@rules/product/event-storming.md` | The Process Modeling session behind `--mode=event-storming`: event / command / actor / read model / policy per step |
