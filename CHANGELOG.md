@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+Gaps the first end-to-end runs of `/architect:design-state-machine --auto` (STM-002 / STM-003 and
+the `STM-` write-back) and `/architect:design-scalardb` (ADRs, CQRS / ES section) surfaced.
+
+### Fixed
+- **State modeling.** Business-keyed aggregates decide their creation column explicitly (`ignore`
+  or `reject`); a create-then-confirm factory is two events; a guard that reads another aggregate
+  names it; protocol-misuse cells are 500 + alert, not a 409 problem type; the transaction design
+  wins over the aggregate manifest's `consistency` and the disagreement is a review finding; the
+  auto-mode `OQ-` is minted only for aggregates with defaulted cells; machines carry their own
+  `mode`; `STM-` nodes cite their `AGG-` node; the write-back scope in the aggregate document is
+  stated.
+- **ScalarDB design.** The backend *product* is this skill's ADR, version / HA are
+  `design-infrastructure`'s; under `--auto` on the legacy path the CQRS row is decided from access
+  paths, marked assumed, and carries an `unasked` `OQ-`; the cross-reference lint is fixed in this
+  run's files only; the CQRS section is appended without renumbering; an outbox declared as a
+  history store is retained, not deleted.
+- **Open Questions under parallel skills.** IDs are allocated at the moment of writing after a
+  re-read, and re-checked after the run's last write — the later writer renumbers. A band answer
+  leaves the number open as a new entry that cites the answered one.
+- **`proposed` ADRs** are defined: a decision that must be recorded while its `OQ-` is open,
+  naming what promotes it.
+
 ## [0.33.3] - 2026-08-29
 
 ### Fixed

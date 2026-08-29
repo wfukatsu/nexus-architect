@@ -71,7 +71,7 @@ The modeling method, the seven well-formedness rules and the concurrency contrac
 | reports/01_analysis/data-model-analysis.md | Optional | /architect:analyze-data-model — existing status columns are the strongest evidence of an implicit machine |
 | reports/04_stories/domain-story-{domain}.md | Optional | /architect:create-domain-story — the activity sequence is a transition sequence |
 | reports/02_spec/feature-list.md | Optional | /product:define-features — `FEAT-` commands map to events |
-| reports/03_design/scalardb-transaction.md | Optional | /architect:design-scalardb — when it already exists, its TX- entries fix the consistency class |
+| reports/03_design/scalardb-transaction.md | Optional | /architect:design-scalardb — when it already exists, its TX- entries fix the consistency class. The aggregate manifest's `consistency` is the **same** concept seen per command; when the two disagree (a `local` command that the transaction design places inside a distributed transaction), the transaction design wins for the transition, and the disagreement is written under Open Items for `review-consistency` — never silently reconciled in either direction |
 
 With none of these present, ask the user to name the aggregates and describe their lifecycle
 directly; do not invent one from the aggregate's name.
@@ -153,8 +153,10 @@ Derive the models without facilitation:
 3. Derive events from the operations the domain story and feature list name, using their verbs
    verbatim.
 4. Default every undecided matrix cell to `reject` and **mark each defaulted cell** in the document
-   as assumed, with an `OQ-` entry per aggregate recording that the idempotency verdicts were never
-   asked (@rules/open-questions.md §5).
+   as assumed, with an `OQ-` entry per aggregate **that has at least one defaulted cell** recording
+   that the idempotency verdicts were never asked (@rules/open-questions.md §5). An aggregate whose
+   every cell an input document decided (an OpenAPI replay contract, the aggregate's examples) gets
+   no `OQ-` — that would re-ask what the inputs answer (@rules/open-questions.md §1).
 5. Run the same well-formedness checks. A model that fails them is written with the failures listed
    under Open Items — never silently repaired by inventing a transition.
 6. Write each `STM-` back into `aggregate-manifest.json` as in Stage 7.
@@ -196,7 +198,9 @@ stay English.
 {
   "schema_version": 1,
   "generated_at": "ISO8601",
-  "mode": "interactive",
+  "mode": "interactive",   // the mode of the last run that wrote the manifest; each machine
+                           // also carries its own `mode`, since STM-001 may be interactive
+                           // and STM-002 added later by --auto
   "machines": [
     {
       "id": "STM-001",
@@ -346,10 +350,13 @@ Append one node per state machine to `work/traceability.json` (create it as
   "upstream": ["CTX-002", "ENT-004"] }
 ```
 
-`upstream` points at the bounded context and the entity the machine belongs to when those nodes
-exist, and to the `FEAT-` entries whose commands became events. Allocate each `STM-` as `max + 1`
-over the whole graph, per prefix. A machine with no product-side origin carries an empty `upstream`
-— it is architect-originated, and the graph should say so.
+`upstream` points at the **`AGG-` node of the aggregate the machine belongs to** (always, once
+`design-aggregate` has run — the STM → AGG edge belongs in the graph, not only in the manifest's
+`state_machine` field), at the bounded context and the entity when those nodes exist, and at the
+`FEAT-` entries whose commands became events. Allocate each `STM-` as `max + 1` over the whole
+graph, per prefix; on a re-run, update an existing machine's node in place. A machine with no
+`AGG-` and no product-side origin carries an empty `upstream` — it is architect-originated, and
+the graph should say so.
 
 ## Completion Criteria
 
@@ -369,7 +376,7 @@ over the whole graph, per prefix. A machine with no product-side origin carries 
 | Skill | Relationship |
 |-------|-------------|
 | /architect:redesign | Upstream — aggregates and bounded context boundaries |
-| /architect:design-aggregate | Upstream — the aggregate roots and their guarded commands. This skill writes each machine's `STM-` back into the aggregate's `state_machine` field (Stage 7 / auto step 6) |
+| /architect:design-aggregate | Upstream — the aggregate roots and their guarded commands. This skill writes each machine's `STM-` back into the aggregate's `state_machine` field (Stage 7 / auto step 6), refreshes the aggregate document's Lifecycle section, and removes an Open Item there that said the machine was not yet allocated — nothing else in the aggregate document is touched |
 | /architect:analyze-data-model | Upstream — status columns are the evidence of an implicit machine |
 | /architect:create-domain-story | Upstream — the activity sequence is a transition sequence |
 | /architect:design-scalardb | Downstream — state column, OCC scope, history table, per-transition consistency class |
