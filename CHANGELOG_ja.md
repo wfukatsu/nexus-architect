@@ -7,6 +7,25 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.34.0] - 2026-08-29
+
+### 追加
+- **レポートのドキュメントサイト。** `tools/docs-site.sh` が、プロジェクトの `reports/` ツリーを
+  [Blume](https://useblume.dev)（Astro、Node 22.12 以上）によるローカルの検索可能なドキュメントサイトとして
+  配信します。レポート 1 件 = 1 ページで Mermaid を描画、OpenAPI / AsyncAPI 仕様は Blume の API リファレンス
+  （`/api/<service>`、`/events/<name>`）としてマウント、統合 `full-report.html` はそのまま配信、
+  `work/pipeline-progress.json` からランディングページ（オプション、全フェーズのステータスと出力へのリンク）を
+  生成します。コマンドは `sync`・`dev`（`reports/` の変更を再同期）・`build`・`preview`・`validate`
+  （内部リンク検証）・`clean`。`reports/` は変更せず、サイトは実行のたびに作り直されるステージで、
+  `tools/docs-site/` 配下の生成物はすべて git-ignore 済みです。
+- `tools/docs-site/sync_reports.py` — 変換本体。レポートは MDX になり（Blume が Mermaid を描画するのは
+  `.mdx` のみ）、コード外の `{…}` と裸の `<` をエスケープ、ルートから数字のフェーズ接頭辞を除去
+  （`01_analysis/x.md` → `/analysis/x`）してレポート間リンクを書き換え、サイトが配信できないプロジェクト内
+  ファイル（`samples/…`、`work/context.md`）へのリンクはプレーンテキストに、各レポート自身のフロントマターは
+  宣言済みの `nexus` キーの下に保持（Blume は未知のキーを拒否し、組み込みの `id` / `status` は ADR の形と
+  衝突する）、トップレベルディレクトリはパイプライン順のサイドバーグループ、ページはマニフェストの出力宣言順。
+- `docs/docs-site.md`（＋ `_ja`）。README・`docs/getting-started`・CLAUDE.md からポインタ。
+
 ## [0.33.4] - 2026-08-29
 
 `/architect:design-state-machine --auto`（STM-002 / STM-003 と `STM-` 書き戻し）と `/architect:design-scalardb`
