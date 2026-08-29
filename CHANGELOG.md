@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.34.0] - 2026-08-29
+
+### Added
+- **Report documentation site.** `tools/docs-site.sh` serves a project's `reports/` tree as a
+  local, searchable documentation site on [Blume](https://useblume.dev) (Astro; Node ≥ 22.12):
+  one page per report with Mermaid rendered, the OpenAPI / AsyncAPI specs mounted as Blume's API
+  reference (`/api/<service>`, `/events/<name>`), the consolidated `full-report.html` served
+  as-is, and a landing page built from `work/pipeline-progress.json` (options, every phase with
+  its status and links to its outputs). `sync`, `dev` (re-syncs as `reports/` changes), `build`,
+  `preview`, `validate` (internal links), `clean`. Nothing in `reports/` is modified: the site is
+  a stage rebuilt on every run, and every generated directory under `tools/docs-site/` is
+  git-ignored.
+- `tools/docs-site/sync_reports.py` — the conversion: reports become MDX (Blume renders Mermaid
+  only in `.mdx`); `{…}` and a bare `<` outside code are escaped; numeric phase prefixes are
+  dropped from routes (`01_analysis/x.md` → `/analysis/x`) so cross-report links can be
+  rewritten; links to project files the site cannot serve (`samples/…`, `work/context.md`)
+  become plain text; each report's own frontmatter is kept under a declared `nexus` key (Blume
+  rejects unknown keys and its built-in `id` / `status` collide with the ADR shape); top-level
+  directories are sidebar groups in pipeline order, pages inside follow the manifest's
+  declared-output order.
+- `docs/docs-site.md` (+ `_ja`), with pointers from README, `docs/getting-started` and CLAUDE.md.
+
 ## [0.33.4] - 2026-08-29
 
 Gaps the first end-to-end runs of `/architect:design-state-machine --auto` (STM-002 / STM-003 and
