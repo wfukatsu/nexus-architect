@@ -7,6 +7,39 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.37.1] - 2026-08-29
+
+v0.37.0 のテストスキルを `ec-monolith` サンプルで初めて実走して分かったこと。実走自体は成立した —
+`order-service` を生成してユニット 99/99、インプロセス ScalarDB 上の `integrationTest` 21/21、PIT 96 %、
+レガシー order モジュールのエントリポイント 6/6 を固定する特性フィクスチャ 32 件、Gherkin シナリオ 30/30 を
+束縛 — し、ゲートは正しい理由で FAIL を返した: 1 つの拒否スラグについて 3 つの設計成果物が食い違うため
+受入シナリオ 2 件が赤、加えて推移依存の CRITICAL CVE。以下の修正はサンプルではなくスキルに対するもの。
+
+### 修正
+- **`generate-characterization-tests`。** テスト専用の環境置換（`docker-compose` の DB がない場合の H2
+  プロファイル）はシステムの改変ではない — 許可し、境界を報告する。記録の仕組みを規定（`-Precord` モード、
+  2 回実行、マスク導出スクリプト）。文字列内の非決定性は名前付きルールで観測時に正規化。壊れた外側シームは
+  内側のシームと併せて固定。`DEBT-` 番号のない欠陥は `@ObservedDefect("CHAR-…")` と follow-up。standalone
+  出力根を定義。
+- **`generate-scalardb-code`。** blind write シナリオは `Put` / `Insert` — 3.19 では未読レコードへの
+  `Update` は暗黙読取を行いコミットする。複数サービスにまたがる `TX-` はこのサービスの担当分を Fake 参加者で
+  束縛を検証してテストする。Cluster のトランザクション伝播は SQLite バックエンドでは未証明と明記。
+  run summary の出力先を規定。outbound ポートと Fake はこのスキル、HTTP クライアントアダプタは
+  `generate-api-code`（同スキルに Outbound Clients 節を新設）。
+- **`generate-acceptance-tests`。** エンジンが警告する classpath-resource セレクタではなく `@SelectPackages`。
+  `@wip` は pinned コピーのみ。赤の 3 分類を区別 — 未実装（`@wip`）、選択ドライバで観測不能
+  （`@wip` + `PendingException`）、コードと矛盾（finding、決して `@wip` にしない）。`RULE-` / `EX-` 基準は
+  example map がある場合のみ。ドライバ既定は contract map に従う。fixture は固定ビルダー＋arbitrary による
+  既定値。カバレッジレポートはサービス別。他サービス所有の feature は out of scope として報告。
+- **品質ゲート / `verify-implementation`。** ゲートコマンドはすべてクリーンなビルド状態から実行 —
+  UP-TO-DATE の Gradle タスクは 0 件実行で exit 0 だった。fat jar への `trivy fs` は 0 パッケージしか
+  見ないため、OSV-Scanner がない場合は展開した lib に対する Trivy `rootfs`。等価ミュータントは証拠がある
+  場合のみそう記録。設計の自己矛盾に起因するステージ 4 の赤は FAIL のまま設計判断へ。ステージ 5–6 は
+  ツール識別子（CVE id）を `blocking` に。API 層未生成時は contract map の unmapped を critical ではなく
+  `info`。プロジェクトのパッケージ単位カバレッジ規則が判定し、ファイル別は報告。作業アイテムがなければ
+  test-first record は `not-applicable`。
+- `.gitignore` に `graphify-out/`。
+
 ## [0.37.0] - 2026-08-29
 
 テスト駆動開発を前提にツールキットを再検証し、v0.36.0 のルールが宣言したまま接続されていなかった
