@@ -7,6 +7,15 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+### Fixed
+- **新バリデータ込みで初めて実行した後の `review-consistency`。** ファイル一覧に機械可読成果物（`.json`、`asyncapi/*.yaml`）と
+  `work/traceability.json` を含める。3 つの Task プロンプトに `<VALIDATOR_OUTPUT>` ブロック、結果に `validators` オブジェクトを
+  追加。ADR チェックを分割 — 記録の形は Task A、グラフ側（`upstream` id の解決、ノードの `sources`、散文の決定に記録があるか）は
+  Task B。「Open Items で追跡済み」は一律 minor に格下げ。`orphan_events` の項目は AsyncAPI チェックで掲載済み扱い。Canvas の
+  9 要素を明記。指摘文は `output_language` に従う。レジストリ記録を明記し、再実行時は前回の `completed_at` を消す。
+
 ## [0.33.2] - 2026-08-29
 
 `/architect:design-api`（カタログからの AsyncAPI）と `/architect:redesign`（ADR ログをゼロから開く）の初回 end-to-end
