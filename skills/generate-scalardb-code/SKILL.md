@@ -29,6 +29,8 @@ DTOs, mappers, Bean Validation, and the RFC 9457 exception handler — is genera
 | `…/domain/`, `…/infrastructure/` | **this skill** |
 | `…/api/` | `/architect:generate-api-code` |
 | `…/application/` | this skill writes the implementation; the interface and the controller's call to it come from `generate-api-code` |
+| `…/domain/port/` (outbound ports to other services) + their Fakes | this skill |
+| `…/infrastructure/client/` (HTTP / gRPC adapters implementing those outbound ports) | `/architect:generate-api-code` — it owns the HTTP surface in both directions, binding each client to the *other* service's contract; until it runs the application service is wired to the Fakes behind a `@ConditionalOnMissingBean` |
 
 Run both for a complete service. Emitting a controller here would produce a second, unbound API
 surface — the exact drift @rules/api-contract-fidelity.md exists to prevent.
@@ -142,10 +144,12 @@ stand in for, and it is only as real as the suite behind it — so this skill em
 |----------|----------------------|
 | **Happy path** per `TX-` | The operation commits, and every table the design says it writes is written in that one transaction |
 | **OCC conflict** | Two concurrent writers on one record: exactly one commits, the loser fails with the contracted outcome (not a silent success), and the service's own retry absorbs a conflict that clears |
-| **Blind write** | A `Put`/`Update` on a record the transaction never read fails at `commit()` — the defect no contract test and no static review caught on this pipeline's own reference implementation (@rules/scalardb-crud-patterns.md) |
+| **Blind write** | A `Put` (or `Insert`) on a record the transaction never read fails at `commit()` with a conflict — the defect no contract test and no static review caught on this pipeline's own reference implementation (@rules/scalardb-crud-patterns.md). `Update` is *not* the same case on 3.19: it performs an implicit read and commits; the test pins both behaviours so a later release changing either is noticed |
 | **2PC failure** (when the design uses it) | One manager per participant; a participant whose `prepare()` conflicts rolls every participant back, leaving no half-applied state (@rules/scalardb-2pc-patterns.md) |
 | **Saga compensation** (when the design uses it) | A later step's failure compensates the earlier ones in reverse, and a compensation redelivered twice is idempotent (@rules/scalardb-saga-patterns.md) |
 | **Indeterminate commit** | `UnknownTransactionStatusException` is neither rolled back nor retried; the recorded outcome matches the §3.1 contract (@rules/api-error-standard.md) |
+
+**One service, its part of each `TX-`.** A `TX-` that spans several services (Tx-1 order + inventory, a saga) is tested here for the part this service owns, with the other participants as Fakes that assert the transaction binding they were called under (same transaction id, prepare-before-commit order); the cross-service half is `verify-implementation`'s stage-4 concern once the other services exist, and the run summary says so per `TX-`.
 
 Run them over a **real ScalarDB engine in-process** — `scalar.db.storage=jdbc` with
 `jdbc:sqlite:<tmp>/it.db`, `sqlite-jdbc` as `testRuntimeOnly`, schema created by
@@ -157,7 +161,7 @@ shape (`ScalarDbTestBackend`, `OccConflictIT`, `TwoPhaseCommitIT`, `SagaCompensa
 task filtering `*IT` with `failOnNoMatchingTests = true`, so a filter matching nothing is a red
 build rather than a green one. The SQLite backend proves transaction semantics, not the production
 backend's performance or its storage-specific limits — say so in the run summary, and keep the
-production backend's own suite (when the project has one) as the CI integration job.
+production backend's own suite (when the project has one) as the CI integration job. Nor does it prove ScalarDB **Cluster** transaction propagation between services (the Global Transaction API / coordinator path of @rules/scalardb-2pc-patterns.md) — that needs a Cluster, and the summary names it as unproven rather than covered.
 
 ## Output
 
@@ -172,6 +176,7 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 | `generated/{service}/build.gradle` | Build configuration (incl. jqwik when property tests are emitted) |
 | `generated/{service}/Dockerfile` | Container definition |
 | `generated/{service}/scalardb.properties` | ScalarDB configuration |
+| `reports/06_implementation/scalardb-code-generation-summary.md` | Run summary: the version decision table, the `TX-` → `*IT` map with what each proves and what stays unproven (cross-service, Cluster), spec contradictions resolved and the Open Questions raised, deprecations, simplifications |
 
 ## Related Skills
 

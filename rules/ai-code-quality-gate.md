@@ -31,6 +31,15 @@ Run in this order; the cheap deterministic stages fail fast before the expensive
 | 3 | **Contract tests** | Every REST `operationId` and GraphQL resolver field coordinate the change touches is exercised and validates against the specification (@rules/api-contract-fidelity.md §7) | Command + per-operation/field-coordinate results |
 | 4 | **Integration tests** | All pass, including the transaction scenarios the design requires — OCC conflict, 2PC failure, saga compensation; **on the legacy path**, the `characterizationTest` task the transformation-plan step names passes on the modules the change touched (recorded before the change as the baseline and after it as the stage result — a fixture edit in between is a decision on the Issue, never a silent update) | Command + counts; characterization: task, modules, fixtures changed |
 
+**A stage-4 failure caused by the design disagreeing with itself is still a FAIL.** When an
+acceptance scenario is red because two design artefacts contradict each other (a state-machine
+cell says *ignore*, the exception mapping says *409*), the code cannot satisfy both and the suite
+is right to be red. The gate does not adjudicate: it records the contradiction as a `VER-1xx`
+finding naming both artefacts, the verdict stays FAIL, and the resolution is a design decision —
+`review-consistency` (or the owning design skill) decides which artefact is wrong, updates it, and
+the tests are regenerated. A gate that turned such a scenario green by picking a side would be
+deciding the design from inside the test runner.
+
 **Stage 4 is not substitutable by stages 3 and 8.** Contract tests prove the shape of what the API
 returns; conformance review proves the code says what the design said. Neither runs a transaction
 against a real engine, and some defects exist only there. Running this pipeline's own reference
@@ -43,7 +52,7 @@ which is legal Java, reviews cleanly, and cannot commit
 | 5 | **SAST** | No new high/critical finding | Tool + version + finding counts by severity, new vs pre-existing |
 | 6 | **Dependency scan** | No new high/critical CVE, and no dependency added that the version rules reject (@rules/dependency-versions.md) | Tool + advisory IDs |
 | 7 | **API security** | `review-api-security --mode=code` returns no critical and no unresolved major, including GraphQL-specific checks when applicable (@rules/api-security-checks.md, @rules/graphql-security-checks.md) | `ASEC-` findings with severities |
-| 8 | **Architecture / conformance** | `verify-implementation` reports no contract, transaction, or security conformance break; ArchUnit layering rules pass | `VER-` findings + `api-contract-map.json` with both `unmapped` arrays empty |
+| 8 | **Architecture / conformance** | `verify-implementation` reports no contract, transaction, or security conformance break; ArchUnit layering rules pass | `VER-` findings + `api-contract-map.json` with both `unmapped` arrays empty **when the API layer exists**; when it has not been generated yet (scope is domain/application only), `unmapped_operations` is legitimately non-empty, recorded with reason `api-layer-absent` as `info`, not as criticals |
 
 Stages 1–6 are commands. Stages 7–8 are skills that emit machine-readable findings. All eight write
 into one gate result (§4).
@@ -88,6 +97,14 @@ Every scanning stage therefore records **what it covered**, and the coverage is 
 | Image scan | The image reference actually pulled |
 
 A stage whose coverage is zero is recorded as `not-configured` with the reason, never as `passed`.
+
+**Build caching is the same trap from the other side.** A Gradle task whose outputs are UP-TO-DATE
+exits 0 having run nothing — `./gradlew test` after the generation run's own build reports success
+with 0 tests executed. Every gate command runs against a clean state: `./gradlew clean` first, or
+`--rerun-tasks` on each test task (`npm test` equivalents: no `--changed` / cache-only mode), and
+the recorded count is the number of tests the *gate's own* run executed. The same applies to a
+scanner over a fat jar: `trivy fs <app>.jar` examines 0 packages and exits 0; scan the extracted
+`BOOT-INF/lib` (or the built image) and record the package count.
 The same applies to a filtered test task that matched nothing: `--tests '*ContractTest'` with no
 matching class is a green task and an ungated build.
 
@@ -104,13 +121,16 @@ cannot hide behind a well-tested repository:
 | **Line + branch coverage** | Every production file the change touched | `domain/` and `application/`: **90 % line, 80 % branch**. Other packages: **70 % line**. Files the tdd-workflow rule exempts (§5 — configuration, DTO records, mappers with no logic) are excluded by package pattern, and the exclusion list is in the gate result | JaCoCo (`jacocoTestCoverageVerification` with per-package rules) |
 | **Mutation score** | `domain/` packages the change touched | **80 % killed**, no surviving mutant on a line that enforces a declared invariant or a state-machine guard (those are listed by name; one survivor there fails the stage regardless of the aggregate score) | PIT (`pitest` Gradle plugin with `targetClasses` set to the touched domain packages, `mutators = DEFAULTS`, `junit5` plugin; jqwik properties included via the JUnit platform) |
 | **Suite budget and quarantine** | Every test task the gate ran | Wall-clock per task against the layer budget of @rules/tdd-workflow.md §6 (over budget = `major`, slowest ten named); quarantined (`@Tag("flaky")`) tests counted, listed with their age, older than 14 days = `major`; no retry setting on any gate task | Task output, test inventory |
-| **Test-first record** | Every behavioural unit of the item | Reported, not thresholded: units by `test-first` / `test-after` / `refactor-only` / `exempt`, the failing tests each Red commit named, and the acceptance-level test that carried the outer loop | `git log` on the working branch, per @rules/tdd-workflow.md §6 |
+| **Test-first record** | Every behavioural unit of the item | Reported, not thresholded: units by `test-first` / `test-after` / `refactor-only` / `exempt`, the failing tests each Red commit named, and the acceptance-level test that carried the outer loop. `not-applicable` when there is no work item and no working branch — a `--gate` run over `generated/` scaffolding has no history to read | `git log` on the working branch, per @rules/tdd-workflow.md §7 |
 
 Rules:
 
 - **Thresholds are project settings, defaults above.** A project's `build.gradle` rule or
   `pipeline-progress.json` `options.quality_gate` overrides them, and the value in force is recorded
-  in the gate result. Lowering a threshold to pass an item is a recorded decision on the Issue, not
+  in the gate result. The **rule in force decides pass/fail** — a per-package rule in the build file
+  is not overridden by the per-file default above — but the per-file figures for the changed files
+  are still reported, so a file the package average hides is visible without failing a stage the
+  project configured differently. Lowering a threshold to pass an item is a recorded decision on the Issue, not
   a build edit.
 - **Mutation testing is scoped to keep it cheap.** Running PIT over a whole service on every item is
   minutes to hours; over the touched `domain/` packages it is seconds to a minute, and the domain is
@@ -120,6 +140,12 @@ Rules:
   file:line and mutator, so the fix is a test to write, not a score to argue with. A survivor on an
   invariant-enforcing line means the property test for that invariant does not actually pin it —
   which is the defect §Exit code zero describes, seen from the other side.
+- **An equivalent mutant is the one exception, and it is proven, not asserted.** A mutant no test
+  can kill because the mutated program is behaviourally identical (a check duplicated one line
+  deeper whose own mutant *was* killed; a branch unreachable while the domain admits one currency)
+  is recorded as `equivalent` with the evidence — the sibling mutant that died, or the value-object
+  rule that closes the branch — and does not fail the stage. Without that evidence it is a
+  survivor. The list of equivalents is part of the gate result and is reviewed like a finding.
 - **Coverage over zero tests is not coverage.** JaCoCo reports 0 % for a task that ran no tests;
   the run-count rule above catches that first, and the coverage figure is recorded only when the
   count is non-zero.
@@ -134,7 +160,7 @@ stage 5. That is legitimate — **and it is reported**, per stage, with the reas
 | Reason | Meaning |
 |--------|---------|
 | `not-applicable` | The change has no surface this stage examines |
-| `not-configured` | The stage applies but the project has no tool for it. Raise it as a gap once, so the answer is a decision rather than a habit |
+| `not-configured` | The stage applies but the project has no tool for it. Raise it as a gap once, so the answer is a decision rather than a habit — and for stage 5 specifically, the CI workflow `generate-infra-code` emits installs Semgrep in its job, so the in-session gap does not become the CI's |
 | `skipped-by-user` | Explicitly waived for this run, with who waived it |
 
 A gate result that silently omits a stage reads as "eight stages passed" when six ran. That is worse
@@ -155,7 +181,7 @@ the versions are looked up per @rules/dependency-versions.md rather than recalle
 | Acceptance (part of stage 4 when the project has a BDD runner) | `./gradlew acceptanceTest` (Cucumber-JVM over `bdd-scenarios/`) | `npm run test:acceptance` |
 | Characterization (legacy path, part of stage 4) | `./gradlew characterizationTest` | `npm run test:characterization` |
 | SAST | Semgrep (`--config auto`), or SpotBugs + `find-sec-bugs` | Semgrep |
-| Dependency | OSV-Scanner, or OWASP Dependency-Check | `npm audit --audit-level=high` / OSV-Scanner |
+| Dependency | OSV-Scanner, or OWASP Dependency-Check; when neither is installed, Trivy in `rootfs` mode over the extracted dependency jars (`BOOT-INF/lib`), recording the package count — never `trivy fs` on the fat jar (zero coverage) | `npm audit --audit-level=high` / OSV-Scanner |
 | Secrets | Gitleaks (`gitleaks dir <path>` when the tree is not a git repository — `detect` silently scans nothing there) | Gitleaks |
 | Container image (when one is built) | Trivy | Trivy |
 
@@ -211,7 +237,9 @@ line (§Test quality); `test_first` is the record @rules/tdd-workflow.md §6 ask
 never thresholded.
 
 `blocking` lists the finding IDs that produced the verdict, so the fix loop has an explicit work list
-rather than a report to re-read.
+rather than a report to re-read. Stages 5–6 have no `VER-` / `ASEC-` scheme of their own: their
+blocking entries are the tool's identifiers — the CVE / GHSA id for a dependency finding, the
+rule id plus `file:line` for a SAST finding — never a prose description.
 
 ## Where the gate runs
 

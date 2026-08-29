@@ -38,3 +38,6 @@ Thumbs.db
 todos/
 *.local.md
 reports.prev/
+
+# Knowledge graph (graphify, regenerated per session)
+graphify-out/

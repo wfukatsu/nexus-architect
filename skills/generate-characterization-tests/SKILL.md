@@ -44,7 +44,10 @@ Generate, per module in scope:
   a characterization suite that was not recorded from the system is not one.
 - **Pin at the widest stable seam.** Prefer the seam furthest from the code that will change (HTTP
   over a public function, a public function over a private one): the test survives the refactor it
-  guards only if it does not reach into what is being refactored.
+  guards only if it does not reach into what is being refactored. **When the widest seam is itself
+  defective** — the HTTP layer serializes recursively, authentication is misconfigured — pin it
+  anyway (its brokenness is current behaviour) *and* pin the next seam in, so the transformation
+  that repairs the transport has a net underneath it; say which seam each fixture observed.
 - **Record the bug, flag the bug.** When a recorded output contradicts the requirements, the
   ubiquitous language or an `issues-and-debt.md` finding, the fixture keeps the observed value and
   the test carries a `@KnownDefect(DEBT-xx)` marker naming it, so the suite still guards the
@@ -61,7 +64,7 @@ Generate, per module in scope:
 
 | File | Required/Recommended | Source |
 |------|---------------------|--------|
-| target_path (argument) | Required | The legacy codebase; it must be runnable in-session (build + a way to drive the seam) |
+| target_path (argument) | Required | The legacy codebase; it must be buildable in-session. A database or daemon it needs is supplied by the user's environment or substituted test-only per Step 3 — a `docker-compose` dependency is the common case and is not by itself a blocker |
 | reports/before/{project}/codebase-structure.md | Required | /architect:investigate — modules and entry points |
 | reports/before/{project}/issues-and-debt.md | Required | /architect:investigate — the `DEBT-` / `SEC-` items whose behaviour the suite must pin or flag |
 | reports/before/{project}/technology-stack.md | Recommended | /architect:investigate — the test stack already in the project |
@@ -78,27 +81,52 @@ Generate, per module in scope:
 2. **Build the seam inventory** — per module: the entry points from `codebase-structure.md`, the
    candidate seams for each, the one selected and why. `--seam` forces one kind. Present the
    inventory and confirm, unless `--auto`.
-3. **Confirm the system runs** — build it and drive one seam end to end. If this fails, report the
-   blocker (missing dependency, no test database, a seam that needs credentials) and stop; do not
-   proceed to write fixtures the system did not produce.
+3. **Confirm the system runs** — build it and drive one seam end to end. **A test-only substitution
+   of the environment is not a modification of the system**: a test profile that swaps the
+   datasource for an in-process engine (H2 in the dialect's compatibility mode for a JPA/MySQL
+   project, SQLite for ScalarDB), a stub for a credential the seam needs, a disabled scheduler —
+   added as `testRuntimeOnly` dependencies and test-scope configuration, never as a change under
+   `src/main/`. Use it when the documented environment (a `docker-compose` database, a daemon)
+   is not available in-session, and **state the boundary in the report**: which behaviours the
+   substitute engine cannot reproduce faithfully (dialect-specific SQL, isolation, collation) are
+   listed, and fixtures that depend on them are marked. If no substitution makes the seam
+   drivable, report the blocker (missing dependency, credentials, a transport that is itself
+   broken) and stop; do not proceed to write fixtures the system did not produce.
 4. **Record the golden masters** — per selected seam, a representative input set: the examples in
    `issues-and-debt.md` and `domain-code-mapping.md`, the boundary values the entry point's
-   signature admits, and the error paths the code visibly handles. Run each input, capture the
-   output, identify non-deterministic fields by running each input **twice** and diffing, write the
-   fixture with the masks. Delegate the recording per module to sonnet sub-agents in parallel when
-   modules do not share state.
+   signature admits, and the error paths the code visibly handles. The mechanism is **the test
+   class itself in recording mode**: the generated tests take a `-Precord=<dir>` (or equivalent)
+   property under which they write what they observed instead of asserting; run the suite twice
+   into two directories, diff the two recordings with a small script emitted next to the tests
+   (`tools/derive_masks.py` or the language's equivalent) that turns every differing leaf into a
+   `masks` entry, and write the fixtures (`{seam, input, observed, masks}`) from run 1 plus the
+   derived masks. Non-determinism **inside a string** (a proxy class name with a random suffix in
+   an exception message, a truncated response body whose cut point moves) cannot be masked at the
+   leaf: normalize it at observation time with a named rule (`observed` keeps the normalized
+   form, the rule is listed in the fixture's `masks`), and list every such rule in the report.
+   Delegate the recording per module to sonnet sub-agents in parallel when modules do not share
+   state.
 5. **Generate the tests** — one test per fixture (or a parameterized test over a fixture set),
-   using the project's test stack (JUnit 5 + a snapshot/approval library for JVM projects; the
-   language's equivalent otherwise). Each test names its seam, its fixture, and any `@KnownDefect`.
+   using the project's test stack: the assertion library the project already has (JSONAssert,
+   AssertJ, …) is binding — add a snapshot/approval library only when the project has no way to
+   compare structured output. Each test names its seam, its fixture, and any `@KnownDefect`.
+   A recorded behaviour that is a defect **with no `DEBT-` / `SEC-` / `ISSUE-` id yet** is still
+   pinned: mark it `@ObservedDefect("CHAR-<module>-<n>")`, list every `CHAR-` in the report's
+   own table with what was observed and what the requirements say, and queue each as a follow-up
+   via `/architect:capture-followup --queue-only` so it reaches `investigate`'s debt list. A
+   defect is never left unmarked because it has no number.
 6. **Wire the build** — a named task the quality gate and the transformation plan can invoke
    (`characterizationTest`), run it, and verify it matched tests and passed against the unchanged
    system — a suite that fails on the code it was recorded from is a recording error, fix it before
    reporting.
 7. **Report** — `reports/07_test-specs/characterization-test-coverage.md`: per module, entry points
-   pinned / total, seams, fixtures recorded, masked fields, `@KnownDefect` list, and the entry points
-   left unpinned with the reason. Append the task name to `transformation-plan.md`'s step gate when
-   the plan exists (the plan's owner is `design-microservices`; this skill only fills in the task
-   reference the plan left as `TBD`).
+   pinned / total, seams, fixtures recorded, masked fields and normalization rules, the
+   environment substitution and its boundary, `@KnownDefect` and `CHAR-` lists, and the entry
+   points left unpinned with the reason. Then record the task in `transformation-plan.md`: the
+   plan's owner is `design-microservices`, which writes a `characterization gate: TBD (OQ-…)`
+   placeholder per step — replace the placeholder for the steps whose modules are now pinned;
+   when a plan written before that contract has no placeholder, append one line to the step's
+   row naming the task and say in the report that the plan was amended.
 
 `--dry-run` builds the seam inventory and reports what would be recorded, running nothing.
 
@@ -106,8 +134,13 @@ Generate, per module in scope:
 
 | File | Content |
 |------|---------|
-| `<test root>/**/characterization/` | The tests, per module and seam |
-| `<test root>/resources/characterization/<module>/` | Recorded fixtures (input, masked output, mask list) |
+| `<test root>/**/characterization/` | The tests, per module and seam (recording mode via `-Precord`), plus the mask-derivation script |
+| `<test root>/resources/characterization/<module>/` | Recorded fixtures (`seam`, `input`, `observed`, `masks`) |
+
+`<test root>` is the project's own `src/test/` when it has a test tree; otherwise
+`generated/characterization/<module>/` is a **standalone Gradle project** whose main source set
+points read-only at the legacy `src/main/` with the legacy dependency set, and `<test root>` is its
+`src/test/` — the legacy tree is never written to.
 | `reports/07_test-specs/characterization-test-coverage.md` | Seam inventory, entry points pinned / total per module, `@KnownDefect` list, unpinned entry points with reasons |
 
 Write the report in the language configured in `work/pipeline-progress.json`
@@ -117,7 +150,9 @@ Write the report in the language configured in `work/pipeline-progress.json`
 
 - Every fixture value was produced by running the legacy system in this run — none authored from
   reading the code; the run command is recorded in the report
-- Every module in scope has a seam inventory with one selected seam and the reason
+- Every module in scope has a seam inventory with one selected seam and the reason (two when the widest seam is defective)
+- Any environment substitution is test-scope only, `src/main/` of the legacy tree is untouched, and the substitution's boundary is stated in the report
+- Every defect without an id is marked `@ObservedDefect("CHAR-…")`, tabled, and queued as a follow-up
 - Non-deterministic fields were found by a second run and are masked in the fixture, listed in the
   report — no test depends on a value that differed between the two runs
 - Every `DEBT-` / `SEC-` item naming a module in scope is either pinned by a test carrying

@@ -116,6 +116,16 @@ choose stable mutually compatible releases, and never copy the illustrative numb
 rather than re-resolving and drifting. Confirm per `--confirm-versions` / `--no-confirm-versions` /
 `options.confirm_versions`.
 
+## Outbound Clients (the other half of the HTTP surface)
+
+`generate-scalardb-code` emits the outbound ports a service needs (`domain/port/InventoryPort`,
+`PaymentPort`, …) and their Fakes; this skill emits their **adapters** under
+`infrastructure/client/`, each bound to the *called* service's OpenAPI contract by `operationId`
+exactly as the inbound controllers are (@rules/api-contract-fidelity.md), with the Problem Details
+of the callee mapped to the port's declared outcomes, timeouts from `operation-contracts.md`, and
+the idempotency key forwarded where the callee requires one. The Fake stays the test double; the
+adapter replaces it at runtime through Spring wiring, never by editing the application service.
+
 ## Prerequisites
 
 | File | Required/Recommended | Source |

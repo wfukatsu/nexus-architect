@@ -173,7 +173,9 @@ A requirement with no implementation and an implementation with no requirement a
 ### Step 7 — Quality gate (`--gate` only)
 
 Run the eight stages of @rules/ai-code-quality-gate.md, using axes 1–4 above as stage 8 and the
-delegated `ASEC-` findings as stage 7. Execute stages 1–6 as real commands and record exit codes.
+delegated `ASEC-` findings as stage 7. Execute stages 1–6 as real commands **from a clean build
+state** (`./gradlew clean` first or `--rerun-tasks` per task — an UP-TO-DATE task exits 0 having run
+nothing) and record exit codes and the counts the gate's own run produced.
 Write `reports/09_verification/quality-gate.{json,md}`.
 
 Never report a stage as passed without its evidence, and never omit a stage without its reason.
@@ -185,11 +187,18 @@ also runs the coverage verification and the mutation run scoped to the touched `
 otherwise), records coverage per changed file and surviving mutants by file:line, and — under
 `--item` — reads the working branch's log for the item to record the test-first sequence per unit
 (@rules/tdd-workflow.md §6): `test:` before `feat:`, the failing tests named in the Red commit body,
-and which acceptance-level test carried the outer loop. The record is reported, never a verdict.
+and which acceptance-level test carried the outer loop. The record is reported, never a verdict; without `--item` and a working branch it is
+`not-applicable`. A surviving mutant on an invariant line is a stage-2 failure unless it is recorded
+as `equivalent` with evidence (§Test quality). When the API layer has not been generated, stage 3
+and stage 7 are `not-applicable`, the contract map's unmapped operations are `info` with reason
+`api-layer-absent`, and Step 3's "operation with no handler = critical" does not apply — it is
+the whole layer that is absent, not a handler.
 Stage 4 runs the `integrationTest` task and, when the project has them, the `acceptanceTest` and
 `characterizationTest` tasks; on a transformation-step item the characterization result is compared
 with the baseline `implement-backlog` recorded before the change, and any fixture edited between
-the two is listed as a decision to confirm, not absorbed.
+the two is listed as a decision to confirm, not absorbed. An acceptance scenario red because two
+design artefacts contradict each other is a `VER-1xx` finding naming both, and the verdict stays
+FAIL until the design decides (§A stage-4 failure caused by the design).
 
 ### Step 8 — Write the report
 
