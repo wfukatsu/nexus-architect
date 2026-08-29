@@ -7,6 +7,38 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.36.0] - 2026-08-29
+
+DDD × TDD の観点でツールキットを評価して見つかったギャップを埋める。生成されるテストは網羅的だったが、
+テストがコードを「駆動する」仕組みも、コードが誤っていればテストが落ちることを測る仕組みも、
+移行ステップがレガシーモジュールに触れる前にその挙動を固定する仕組みもなかった。
+
+### 追加
+- **`rules/tdd-workflow.md`。** マージ対象のコードはユニットごとに Red → Green → Refactor の
+  コミット列（失敗したテスト名を記した `test:`、`feat:`、テストを編集しない `refactor:`）として
+  テストファーストで書き、ブランチ履歴から検証できる。ATDD の外側ループ（Gherkin シナリオ、なければ
+  契約テスト、なければ不変条件の具体例）と walking skeleton、テストファーストを可能にする構造 —
+  リポジトリポートごとの in-memory Fake、注入される `Clock` / ID 生成器、アプリケーションサービスが
+  開くトランザクション — と免除規定、ゲートが記録する内容。`implement-backlog` の Step 4/5/7 と
+  受入基準がこれに従い、`design-implementation` がテスト容易性の制約を仕様化し、
+  `generate-scalardb-code` が `**/fakes/` に Fake を生成し、`generate-contract-tests` が
+  ArchUnit ルール（ドメイン内で `now()` / `randomUUID()` を禁止）を追加する。
+- **品質ゲートのテスト品質。** `rules/ai-code-quality-gate.md` のステージ 2 が、変更ファイルの
+  行/分岐カバレッジ（JaCoCo、`domain/` + `application/` は 90/80、他は 70）、触れたドメイン
+  パッケージのミューテーションスコア（PIT、80 % — 不変条件やガードの行で生存したミュータントは
+  1 件で名指しの fail）、ユニットごとのテストファースト記録（報告のみ、閾値なし）を計測する。
+  ゲート JSON に `coverage` / `mutation` / `test_first` を追加、`options.quality_gate` で
+  プロジェクト閾値を上書き、`verify-implementation`・`generate-infra-code` の CI ワークフロー・
+  `generate-scalardb-code` のビルドファイルを新タスクに接続。
+- **`/architect:generate-characterization-tests`。** *稼働中の* レガシーシステムから記録する
+  ゴールデンマスターテスト — モジュールごとのシーム目録、すべての値をコードが生成したフィクスチャ
+  （2 回目の実行で非決定性を検出してマスク）、バグを是認せず固定する `@KnownDefect(DEBT-xx)`
+  マーカー、エントリポイント単位の `reports/07_test-specs/characterization-test-coverage.md`。
+  `design-microservices` は移行計画の各ステップに characterization gate の明記を要求する。
+  拡張ティア 20 番目のスキルとして登録（107 コマンド）。
+- **`docs/ddd-coverage.md` § テスト駆動開発。** TDD プラクティスとその状況、残るギャップを行として
+  可視化: スイート実行時間予算、フレーキーテストのポリシー、ユビキタス言語に基づくテスト命名。
+
 ## [0.35.1] - 2026-08-29
 
 ### 修正

@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.36.0] - 2026-08-29
+
+Closes the gap a DDD × TDD review of the toolkit found: the tests it generated were exhaustive
+but nothing made them *drive* the code, nothing measured whether they would fail if the code were
+wrong, and nothing pinned a legacy module before a transformation step touched it.
+
+### Added
+- **`rules/tdd-workflow.md`.** Merge-bound code is written test-first as a Red → Green → Refactor
+  commit series per unit (`test:` naming the tests that failed, `feat:`, `refactor:` editing no
+  test), verifiable from the branch log; the ATDD outer loop (Gherkin scenario, else contract test,
+  else invariant example) and the walking skeleton; the structure that makes test-first possible —
+  one in-memory Fake per repository port, injected `Clock` / id generator, transactions opened by
+  the application service; the exemptions; and what the gate records. `implement-backlog` Steps
+  4/5/7 and its acceptance criteria follow it, `design-implementation` specifies the testability
+  constraints, `generate-scalardb-code` emits the Fakes under `**/fakes/`, and
+  `generate-contract-tests` adds the ArchUnit rules (no `now()` / `randomUUID()` in the domain).
+- **Test quality in the quality gate.** Stage 2 of `rules/ai-code-quality-gate.md` now measures
+  line/branch coverage of the changed files (JaCoCo, 90/80 on `domain/` + `application/`, 70
+  elsewhere), the mutation score of the touched domain packages (PIT, 80 % — and one surviving
+  mutant on an invariant-enforcing or guard line fails the stage by name), and the test-first
+  record per unit (reported, never thresholded). The gate JSON carries `coverage`, `mutation` and
+  `test_first`; `options.quality_gate` overrides the thresholds per project;
+  `verify-implementation`, the CI workflow `generate-infra-code` emits and the build files
+  `generate-scalardb-code` writes are wired to the new tasks.
+- **`/architect:generate-characterization-tests`.** Golden-master tests recorded from the
+  *running* legacy system — a seam inventory per module, fixtures whose every value the code
+  produced (a second run finds and masks non-determinism), `@KnownDefect(DEBT-xx)` markers that
+  pin a bug without blessing it, and `reports/07_test-specs/characterization-test-coverage.md` by
+  entry point. `design-microservices` now requires every transformation-plan step to name its
+  characterization gate. Registered as the twentieth extension-tier skill (107 commands).
+- **`docs/ddd-coverage.md` § Test-driven development.** The TDD practices with their status, and
+  the gaps that remain visible as rows: suite runtime budget, flaky-test policy, test naming from
+  the ubiquitous language.
+
 ## [0.35.1] - 2026-08-29
 
 ### Fixed
