@@ -10,9 +10,6 @@ input_files:
   - reports/03_design/aggregates/aggregate-manifest.json
   - reports/03_design/bounded-contexts-redesign.md
 ---
-
-# Aggregate: Reservation
-
 ## Scope
 
 Inventory コンテキスト（CTX-002）の集約で、「この注文のこの商品に対する引当」を 1 行として表す。存在理由は **冪等性** である。`OrderPlaced` は at-least-once で配信されるため、同じ注文の引当要求は二度届きうる。現行の `inventoryService.reserve(productId, quantity)` は数量しか受け取らず、再配信で二重に引き当てる（技術負債）。引当を「注文 × 商品」で識別できる行にすれば、二度目の要求は既存行に当たって止まる（ADR-002）。

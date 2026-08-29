@@ -9,9 +9,6 @@ input_files:
   - reports/03_design/aggregates/aggregate-manifest.json
   - reports/03_design/context-map.md
 ---
-
-# Domain Event Catalog
-
 本書は `reports/03_design/domain-event-catalog.json` から再生成される **ビュー** であり、ソースとして編集しない。イベント名・ペイロード・購読者・配信契約の正は `.json` にあり、`tools/lib/domain_event_catalog.py` がその整形式（一イベント・一発行集約、published は購読者 1 件以上、at-least-once には冪等キー必須、マニフェストの全イベントに項目あり）を検証する。
 
 集約が発行するイベントは、コンテキストマップの **公開言語（Published Language）** である。各集約のマニフェストは「誰が発行するか」を、`context-map.md` は「コンテキスト間の関係」を述べるが、「どのコンテキストが、どのイベントを、どの配信保証で消費するか」は本カタログだけが述べる。消費側は `design-microservices` がサービス分割の確定後に補完し、`design-api` は `published` の項目から `api-specifications/asyncapi/` を生成する。

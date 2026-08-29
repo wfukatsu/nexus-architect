@@ -10,9 +10,6 @@ input_files:
   - reports/03_design/aggregates/aggregate-manifest.json
   - reports/03_design/bounded-contexts-redesign.md
 ---
-
-# Aggregate: Payment
-
 ## Scope
 
 Payment コンテキスト（CTX-003）の集約で、1 注文に対する決済の試行と結果を守る。本集約の特殊性は **状態の一部が外部 PSP（決済代行）にある** ことにある。オーソリ・キャプチャ・返金は PSP への呼び出しで確定し、その応答は秒単位で遅れ、失敗すると再試行される。したがって Payment の不変条件は「PSP を二度呼ばない」「PSP が確定した金額と食い違わない」という形をとる。

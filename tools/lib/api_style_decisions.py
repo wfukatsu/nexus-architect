@@ -289,7 +289,7 @@ def render_markdown(document, language="en"):
         "skill: design-api", "input_files:",
         "  - reports/03_design/api-style-decisions.json",
         "canonical_source: reports/03_design/api-style-decisions.json",
-        "source_sha256: %s" % digest, "---", "", "# %s" % title, "", note, "",
+        "source_sha256: %s" % digest, "---", "", note, "",
         "| " + " | ".join(headers) + " |",
         "|" + "|".join(["---"] * len(headers)) + "|",
     ]

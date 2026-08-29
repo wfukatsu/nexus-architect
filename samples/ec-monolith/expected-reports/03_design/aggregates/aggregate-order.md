@@ -10,9 +10,6 @@ input_files:
   - reports/03_design/aggregates/aggregate-manifest.json
   - reports/03_design/bounded-contexts-redesign.md
 ---
-
-# Aggregate: Order
-
 ## Scope
 
 Ordering コンテキスト（CTX-001）の中核集約。「顧客が何をいくらで買ったか」を一つの単位として守り、注文明細の合計と注文ステータスの遷移をトランザクション境界にする。

@@ -270,8 +270,6 @@ input_files:
   - reports/01_analysis/ubiquitous-language.md
 ---
 
-# State Transition Model: {Aggregate}
-
 ## Scope
 
 [Which aggregate, which bounded context, and what this lifecycle governs. Note the aggregates

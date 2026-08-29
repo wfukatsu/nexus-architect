@@ -10,9 +10,6 @@ input_files:
   - reports/03_design/aggregates/aggregate-manifest.json
   - reports/03_design/bounded-contexts-redesign.md
 ---
-
-# Aggregate: StockItem
-
 ## Scope
 
 Inventory コンテキスト（CTX-002）の集約で、商品 1 点の在庫カウンタ `onHand` / `reserved` を守る。NFR-002（在庫の過剰引当ゼロ）を保証する唯一の場所であり、注文フロー（`OrderPlaced` への反応）でも倉庫の手動調整（`adjust`）でも同じ不変条件が同じルートで検査される（ADR-001）。

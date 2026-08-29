@@ -106,6 +106,23 @@ try:
             if r.returncode != 0:
                 bad.append("%s: %s" % (rel, (r.stderr or r.stdout).strip().splitlines()[:2]))
         check("%s accepts all %d documents" % (hook, len(md)), not bad, bad)
+
+    # rules/output-conventions.md § Document Structure: `#` is the frontmatter title's level, the
+    # body starts at `##`. The aggregate / state-machine / catalog templates once repeated the
+    # title as a body H1 (review-consistency CON-110); this keeps that from coming back.
+    print("No document repeats its title as a body H1")
+    h1 = []
+    for rel in md:
+        text = open(os.path.join(staged, rel), encoding="utf-8").read()
+        body = text.split("---", 2)[2] if text.startswith("---") else text
+        in_fence = False
+        for line in body.splitlines():
+            if line.startswith("```") or line.startswith("~~~"):
+                in_fence = not in_fence
+            elif not in_fence and line.startswith("# "):
+                h1.append("%s: %s" % (rel, line[:60]))
+                break
+    check("body headings start at ## in all %d documents" % len(md), not h1, h1)
 finally:
     shutil.rmtree(tmp, ignore_errors=True)
 

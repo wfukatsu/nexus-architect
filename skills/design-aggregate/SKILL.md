@@ -423,6 +423,9 @@ input_files:
 `skill` stays `design-aggregate` whichever skill regenerated the projection last; the skill that
 completed the consumer side names itself in `completed_by`.
 
+The body starts at `##` — the frontmatter `title` is the document's H1 (@rules/output-conventions.md
+§ Document Structure); neither this projection nor the per-aggregate documents repeat it as a `#` line.
+
 ## Output Document Structure
 
 ```markdown
@@ -438,8 +441,6 @@ input_files:
   - reports/03_design/bounded-contexts-redesign.md
   - reports/01_analysis/ubiquitous-language.md
 ---
-
-# Aggregate: {Aggregate}
 
 ## Scope
 
