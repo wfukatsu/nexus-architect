@@ -19,7 +19,7 @@
 | EventStorming — Big Picture | ◎ | `/product:map-domains --mode=event-storming` | `reports/03_domain/event-timeline.md`（セッション記録。`CTX-` は `bounded-contexts.md` のみ） |
 | EventStorming — Process Modeling | ◎ | `/product:create-domain-story --mode=event-storming`, `/architect:create-domain-story --mode=event-storming` | ストーリーの Process Model 節 |
 | EventStorming — Software Design | ○ | `/architect:design-aggregate` | 集約ごとのコマンドとイベント |
-| Event Modeling | △ | 状態遷移と集約がイベント・コマンド・リードモデルを持つが、時系列起点の成果物はない | — |
+| Event Modeling | × | 意図的に実装しない — 下記参照 | — |
 | Knowledge crunching | ○ | 探索系スキルの対話ステージ、ユビキタス言語 | — |
 | CRC カード | × | — | — |
 
@@ -76,8 +76,8 @@
 | 契約テスト | ◎ | `/architect:generate-contract-tests` | `generated/{service}/src/test/java/**/contract/` |
 | プロパティベーステスト | ◎ | `/architect:generate-test-specs`, `/architect:generate-scalardb-code` | `reports/07_test-specs/property-test-specs.md`。不変条件ごとの jqwik プロパティ |
 | Three Amigos | × | 人間の会議体。Example Mapping セッションがその成果物側 | — |
-| ユーザーストーリーマッピング | △ | ジャーニー・ジョブ・フィーチャーが内容を持つが、backbone / walking skeleton の成果物はない | — |
-| インパクトマッピング | △ | 成功指標 → フィーチャーの traceability が連鎖を担う。専用マップはない | — |
+| ユーザーストーリーマッピング | ○ | `/product:define-features` | `reports/02_spec/feature-list.md` のユーザーストーリーマップ節 — ジャーニー段階をバックボーン、`FEAT-` をストーリー、MoSCoW 帯をリリーススライス、Must を walking skeleton とする |
+| インパクトマッピング | × | 意図的に実装しない — 下記参照 | — |
 
 ## 意図的に実装しないもの
 
@@ -86,6 +86,7 @@
 | CRC カード | 責務と協調者を検証器付きで記録する集約マニフェストで代替 |
 | Three Amigos | 会議形式であり成果物ではない。`/product:example-map` が会議の産物を生成する |
 | インパクトマッピング | `NSM-` → `FEAT-` の traceability グラフが「どの成果物がどの目標に効くか」に答える |
+| Event Modeling | 3 つのレーンはすでに成果物になっている: コマンドとイベントは集約 manifest、状態遷移と状態×イベント行列は状態遷移 manifest、コンテキスト横断の流れはドメインイベントカタログ、リードモデルは CQRS 節。時系列起点の描画は同じ manifest の 4 つ目のビューにすぎず固有のバリデータを持たない。カタログの発行者 → 消費者図がスイムレーン相当のビュー |
 
 ## この表の更新
 

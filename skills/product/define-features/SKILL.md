@@ -57,6 +57,13 @@ Produce one deliverable:
    `@rules/product/ui-to-domain.md`.
 3. **Reconcile scope** — drop Out-of-Scope; defer Should/Could.
 4. **Consolidate** — merge duplicates across screens; assign MoSCoW.
+4a. **Story map** — lay the consolidated features out as a User Story Map: the **backbone** is
+   the primary persona's journey stages (`JNY-`, in order) with the jobs (`JOB-`) under each; the
+   **stories** are the `FEAT-` entries hanging under the stage whose action they serve; the
+   **release slices** are the MoSCoW bands, so the first slice (Must) reads as the walking
+   skeleton — one feature per stage, end to end. A stage with no Must feature is either out of the
+   MVP journey or a gap; say which. Nothing new is decided here: the map is a second view of
+   steps 3–4, and a feature that fits no stage is a scope finding, not a new stage.
 5. **Trace** — link each `FEAT-` to `JOB-`/`JNY-`/`NSM-`.
 6. **Append traceability** — add `FEAT-` nodes to `work/traceability.json` with Upstream
    `SCR-` (the screen whose action this feature is), `JOB-`/`JNY-` and `NSM-` references. The
@@ -68,7 +75,11 @@ Produce one deliverable:
 
 ## Output
 
-`reports/02_spec/feature-list.md`, with a `FEAT-` ID table (screen, rationale, MoSCoW, Upstream).
+`reports/02_spec/feature-list.md`, with a `FEAT-` ID table (screen, rationale, MoSCoW, Upstream)
+and a **User Story Map** section: one table per journey stage (backbone) whose rows are the
+features under it in MoSCoW order, plus a `flowchart LR` with the stages as columns and the Must
+row highlighted as the walking skeleton. Features that fit no stage are listed after the map as
+scope findings.
 
 ## Reference Materials
 

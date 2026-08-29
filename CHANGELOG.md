@@ -32,6 +32,16 @@ covers every DDD technique" and "a reader can see the complete document set".
   suite): one publisher per event that really declares it, every declared event catalogued,
   consumers that are declared contexts other than the publisher's, a delivery contract on every
   published event. `review-consistency` runs it.
+- **User Story Map in `define-features`** (#34). `feature-list.md` now carries the map — journey
+  stages as backbone, `FEAT-` as stories, MoSCoW bands as release slices, Must as the walking
+  skeleton — as a second view of the consolidated features, deciding nothing new.
+
+### Changed
+- **`docs/ddd-coverage.md` takes a position on its three △ rows** (#34). User Story Mapping is ○
+  (above). Event Modeling and Impact Mapping move to *Deliberately not implemented* with the
+  reason: their content is already the manifests, the catalog and the traceability graph, and a
+  timeline or impact rendering would be another view with no validator of its own. The △ status
+  no longer appears in the table.
 
 ## [0.32.2] - 2026-08-28
 

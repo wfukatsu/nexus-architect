@@ -212,7 +212,7 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 | `/product:create-domain-story` | opus | 2. UX 基盤 | ペルソナ起点のドメインストーリーテリング（アクター=ペルソナ、活動=ジャーニー順のジョブストーリー）。UI モックが描画する軸（オプション）。`--mode=event-storming` で Process Modeling EventStorming として進行 |
 | `/product:design-system` | opus | 2. UX 基盤 | 独立管理のデザインシステムを構築または `--import`（DTCG トークン + コンポーネント + ガイドライン）。UI モックのスタイルを規定（オプション、単独実行可） |
 | `/product:generate-ui-mock` | sonnet | 3. UX → 仕様 | ドメインストーリーに駆動され、デザインシステムでスタイルされた主要画面のナビゲート可能な UI モック（各活動 → 1 画面、ストーリー順のクリック可能なフローとして連結） |
-| `/product:define-features` | sonnet | 3. UX → 仕様 | UI モックからフィーチャーを抽出（各画面アクション → Command/フィーチャー） |
+| `/product:define-features` | sonnet | 3. UX → 仕様 | UI モックからフィーチャーを抽出（各画面アクション → Command/フィーチャー）。ジャーニー段階をバックボーン、MoSCoW 帯をリリーススライスとするユーザーストーリーマップとして配置 |
 | `/product:example-map` | opus | 3. UX → 仕様 | フィーチャーごとの Example Mapping — 業務ルール（`RULE-`）、境界の両側を示す具体例（`EX-`）、未決の問いを `OQ-` として記録し、Gherkin・集約の不変条件・バックログの受入基準へ流す（オプション） |
 | `/product:define-data-model` | opus | 3. UX → 仕様 | UI モックとフィーチャーからデータモデルを 2 パスで導出（明示 → 暗黙） |
 | `/product:generate-frontend` | sonnet | 3. UX → 仕様 | UI モック + デザインシステムから実行可能な React + Storybook フロントエンドを生成（Atomic Design、トークンスタイリング、react-router）— 選択式、spec フェーズ末尾 |

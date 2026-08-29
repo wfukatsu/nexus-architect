@@ -21,7 +21,7 @@ skill · △ referenced, evaluated or partially produced, not a standalone metho
 | EventStorming — Big Picture | ◎ | `/product:map-domains --mode=event-storming` | `reports/03_domain/event-timeline.md` (session record; `CTX-` stay in `bounded-contexts.md`) |
 | EventStorming — Process Modeling | ◎ | `/product:create-domain-story --mode=event-storming`, `/architect:create-domain-story --mode=event-storming` | the story's Process Model section |
 | EventStorming — Software Design | ○ | `/architect:design-aggregate` | commands and events per aggregate |
-| Event Modeling | △ | state machines and aggregates carry events, commands and read models; no timeline-first artifact | — |
+| Event Modeling | × | deliberately not implemented — see below | — |
 | Knowledge crunching | ○ | the facilitated stages of the discovery skills, the ubiquitous language | — |
 | CRC cards | × | — | — |
 
@@ -78,8 +78,8 @@ skill · △ referenced, evaluated or partially produced, not a standalone metho
 | Contract testing | ◎ | `/architect:generate-contract-tests` | `generated/{service}/src/test/java/**/contract/` |
 | Property-based testing | ◎ | `/architect:generate-test-specs`, `/architect:generate-scalardb-code` | `reports/07_test-specs/property-test-specs.md`; jqwik properties per invariant |
 | Three Amigos session | × | a human meeting; the Example Mapping session is its artifact-producing part | — |
-| User Story Mapping | △ | journeys, jobs and features carry the content; no backbone / walking-skeleton artifact | — |
-| Impact Mapping | △ | success metrics → features traceability covers the chain; no dedicated map | — |
+| User Story Mapping | ○ | `/product:define-features` | the User Story Map section of `reports/02_spec/feature-list.md` — journey stages as backbone, `FEAT-` as stories, MoSCoW bands as release slices, Must as the walking skeleton |
+| Impact Mapping | × | deliberately not implemented — see below | — |
 
 ## Deliberately not implemented
 
@@ -88,6 +88,7 @@ skill · △ referenced, evaluated or partially produced, not a standalone metho
 | CRC cards | Superseded by the aggregate manifest, which records responsibilities and collaborators with a validator behind them |
 | Three Amigos | A meeting format, not an artifact; `/product:example-map` produces what the meeting would |
 | Impact Mapping | The `NSM-` → `FEAT-` traceability graph already answers "which deliverable serves which goal" |
+| Event Modeling | Its three lanes are already the artifacts: commands and events in the aggregate manifest, state transitions and the state × event matrix in the state-machine manifest, cross-context flow in the Domain Event Catalog, read models in the CQRS section. A timeline-first rendering would be a fourth view of the same manifests with no validator of its own; the catalog's publisher → consumer diagram is the swimlane view |
 
 ## Updating this table
 

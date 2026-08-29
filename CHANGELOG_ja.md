@@ -28,6 +28,15 @@ Nexus Architect の主な変更点を記録します。
   `design-api` の `asyncapi/` は再導出ではなくこのカタログから生成する。`tools/lib/domain_event_catalog.py` が
   検証する（35 チェックのスイート）: イベントごとに宣言している発行者が 1 つ、宣言済みイベントは全て掲載、
   消費者は発行者以外の宣言済みコンテキスト、published イベントには配信契約。`review-consistency` が実行する。
+- **`define-features` のユーザーストーリーマップ**（#34）。`feature-list.md` にマップを持つ — ジャーニー段階を
+  バックボーン、`FEAT-` をストーリー、MoSCoW 帯をリリーススライス、Must を walking skeleton とする、統合済み
+  フィーチャーの第 2 のビューであり、新たな決定はしない。
+
+### Changed
+- **`docs/ddd-coverage.md` が △ の 3 行に態度を決めた**（#34）。ユーザーストーリーマッピングは ○（上記）。
+  Event Modeling とインパクトマッピングは理由付きで「意図的に実装しないもの」へ移動: 内容はすでに manifest・
+  カタログ・traceability グラフにあり、時系列や影響の描画は固有のバリデータを持たない別ビューにすぎない。
+  表から △ は消えた。
 
 ## [0.32.2] - 2026-08-28
 
