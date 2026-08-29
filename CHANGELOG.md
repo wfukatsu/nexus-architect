@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.34.1] - 2026-08-29
+
+Two `blume validate` findings from the first run of `tools/docs-site.sh` over a full report set.
+
+### Fixed
+- **Docs site.** A section-number anchor in a report link (`scalardb-schema.md#9.5` — the shape
+  `rules/architecture-decision-records.md` allows in `upstream`) is not a Blume heading slug and
+  produced a broken link on every ADR provenance line; a purely numeric anchor now resolves to the
+  page. Nested report directories (`adr/`, `aggregates/`, `state-machines/`, …) get distinct
+  sidebar orders instead of all falling back to alphabetical, and a directory that has its own
+  index page is labelled by that page's title so the sidebar and the page agree.
+
 ## [0.34.0] - 2026-08-29
 
 ### Added
