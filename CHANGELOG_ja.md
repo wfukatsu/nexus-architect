@@ -7,6 +7,13 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.35.1] - 2026-08-29
+
+### 修正
+- **CI。** contracts ワークフローがスイート実行前に `requirements.txt` をインストールする。
+  `tools/build_report.test.py` は `markdown` と `pyyaml` を必要とし、ローカルでは通るがランナーでは
+  落ちていたため、v0.35.0 は CI が赤のままタグ付けされていた。
+
 ## [0.35.0] - 2026-08-29
 
 v0.34 以降にサンプルプロジェクトを通しで実行して（`design-implementation`・`generate-test-specs`・
