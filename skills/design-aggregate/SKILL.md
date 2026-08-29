@@ -131,6 +131,9 @@ aggregate), and its consistency class — `local` when it writes this aggregate 
 and feeding it when it does not. A guard that more than one caller evaluates is a specification;
 name it. A command that writes a second aggregate in the same transaction declares it in
 `also_writes`; only the owner emits the event — the other aggregate's command emits `none`.
+`also_writes` is for the `local` case only: a `distributed` or `saga` command does **not** list the
+aggregates other services write in reaction — those writes belong to their own commands, and the
+catalog's consumers say who reacts.
 
 **Stage 5 — References and repository**
 Walk every member typed as another aggregate's root and resolve it: an ID reference, a value
@@ -159,7 +162,9 @@ Derive the models without facilitation:
    entries where an example map exists.
 4. When `state-machine-manifest.json` already holds a machine for the root, record its `STM-` in
    `state_machine` (the write-back otherwise belongs to `design-state-machine`, which normally runs
-   later). Default every command's consistency class to `local` and every unresolved cross-aggregate
+   later). Take each command's consistency class from `scalardb-transaction.md` (its `TX-` entries)
+   when that report exists — an upstream report that fixes the class wins over any default. Only
+   when no report fixes it, default the class to `local` and every unresolved cross-aggregate
    member to an ID reference, and **mark each default** in the document as assumed, with an `OQ-`
    entry per aggregate recording that the ownership of two-aggregate writes was never asked
    (@rules/open-questions.md §5).
@@ -343,6 +348,10 @@ entries to emit `api-specifications/asyncapi/`.
       "consumers": [],
       "payload": ["orderId", "lineNo", "productId", "quantity"]
     }
+  ],
+  "orphan_events": [
+    { "name": "PointsEarned", "named_in": "reports/03_design/bounded-contexts-redesign.md",
+      "reason": "LoyaltyAccount was not modeled — CTX-006 is a candidate context (OQ-008)" }
   ]
 }
 ```
@@ -359,17 +368,57 @@ in its contract test):
 - **Consumers** — each names a declared `bounded_context` other than the publisher's (a reaction
   inside one context is not published), a `relationship` from the context map's vocabulary
   (`partnership` | `shared-kernel` | `customer-supplier` | `conformist` | `anticorruption-layer` |
-  `open-host-service` | `separate-ways`) and its `purpose`; no context twice. A `published`
-  event has at least one; an `internal` event has none — the scope is what the consumers say.
+  `open-host-service` | `published-language` | `separate-ways`) and its `purpose`; no context
+  twice. A `published` event has at least one; an `internal` event has none — the scope is what
+  the consumers say. A consumer is an **asynchronous subscriber**: a context that receives the
+  event as the reply to a command it issued (the calling service reading `PaymentDeclined` as
+  the response to `charge`) is not a consumer, and that event stays `internal` — when
+  `api-style-decisions.json` / `asyncapi/` already classify the exchange, they win over prose in
+  the design documents. A consumer that is still a **candidate** context (its `CTX-` carries an
+  open `OQ-`) is listed, added to `contexts`, and flagged `"candidate": true`; the event's
+  scope is what it would be if the candidate is confirmed.
+- **Orphans** — an event the design documents name that no aggregate in the manifest declares
+  (an entity that was never modeled) is not silently dropped: list it under the catalog's
+  `orphan_events` with the document that names it, and in the `.md` Open Items. An event named
+  only in another spelling (a state-machine transition `reservation_expired`) is listed in
+  PascalCase with the source spelling in `named_in`. The validator accepts the list; a re-run
+  that models the aggregate moves the event into `events`.
 - **Delivery contract** (`published` only) — `delivery` ∈ `at-least-once` | `at-most-once` |
   `exactly-once`, an `idempotency_key` whenever delivery is at-least-once, an integer
-  `version` ≥ 1 and an `evolution` rule ∈ `additive-only` | `versioned` | `frozen`.
+  `version` ≥ 1 and an `evolution` rule ∈ `additive-only` | `versioned` | `frozen`. The key
+  must be unique **per event type**: two events of one aggregate sharing `orderId` as their key
+  (`OrderCancelled` and `PaymentDeclined` for the same order) collide in a consumer's inbox —
+  scope it (`orderId` + event type, or a dedicated `eventId`), and check `review-risk` /
+  `review-consistency` findings before copying a key from the context map. When a published
+  contract (`asyncapi/`) already fixes a colliding key, keep the contract's key — a contract is
+  never changed silently from here — and record the collision as an Open Item naming
+  `design-api` as the owner.
 - **Completeness** — every event an aggregate declares has a catalog entry. An event the
   manifest emits and the catalog omits is a contract nobody wrote down.
 
 The `.md` projection carries, per publishing context, a table of its events with consumers and
-delivery, and one Mermaid `flowchart` whose edges are publisher context → consumer context
-labelled by event name. It is regenerated from the `.json`, never edited as a source.
+delivery, a separate table of the `internal` events (the flowchart cannot show them — an
+internal event has no edge), the `orphan_events` under Open Items, and one Mermaid `flowchart`
+whose edges are publisher context → consumer context labelled by event name. It is regenerated
+from the `.json`, never edited as a source. Its frontmatter:
+
+```yaml
+---
+title: "Domain Event Catalog"
+schema_version: 1
+phase: "Phase 3: Design"
+skill: design-aggregate
+completed_by: design-microservices   # only when that skill completed the consumer side
+generated_at: "ISO8601"
+mode: "interactive|auto"
+input_files:
+  - reports/03_design/aggregates/aggregate-manifest.json
+  - reports/03_design/context-map.md
+---
+```
+
+`skill` stays `design-aggregate` whichever skill regenerated the projection last; the skill that
+completed the consumer side names itself in `completed_by`.
 
 ## Output Document Structure
 
@@ -489,7 +538,9 @@ Append one node per aggregate to `work/traceability.json` (create it as
 
 `upstream` points at the bounded context and the entities the aggregate is built from when those
 nodes exist, at the `FEAT-` entries whose commands became its commands, and at the `RULE-` entries
-that became its invariants. Allocate each `AGG-` as `max + 1` over the whole graph, per prefix. An
+that became its invariants. Allocate each `AGG-` as `max + 1` over the whole graph, per prefix —
+on a re-run, an aggregate whose node already exists (same `name`, `skill: design-aggregate`) keeps
+its id and has the node **updated in place**, never appended twice. An
 aggregate with no product-side origin carries an empty `upstream` — it is architect-originated, and
 the graph should say so.
 
@@ -500,10 +551,10 @@ the graph should say so.
    reports is listed under Open Items with an owner
 3. Every invariant has a `positive` and a `negative` example (the validator enforces both)
 4. Every name matches `ubiquitous-language.md`, or its addition is proposed
-5. `AGG-` nodes appended to `work/traceability.json`
-5a. `reports/03_design/domain-event-catalog.json` written with every manifest event, and
+5. `AGG-` nodes appended to (or updated in) `work/traceability.json`
+6. `reports/03_design/domain-event-catalog.json` written with every manifest event, and
    `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/domain_event_catalog.py" <project_dir>` exits 0
-6. `work/pipeline-progress.json` stamped — `in_progress` with `plugin: "architect"` before the work,
+7. `work/pipeline-progress.json` stamped — `in_progress` with `plugin: "architect"` before the work,
    `completed` with `outputs` and `summary` after (@skills/common/progress-registry.md)
 
 ## Related Skills

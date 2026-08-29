@@ -28,7 +28,8 @@ LABEL = "domain event catalog"
 SCOPES = ("internal", "published")
 DELIVERY = ("at-least-once", "at-most-once", "exactly-once")
 RELATIONSHIPS = ("partnership", "shared-kernel", "customer-supplier", "conformist",
-                 "anticorruption-layer", "open-host-service", "separate-ways")
+                 "anticorruption-layer", "open-host-service", "published-language",
+                 "separate-ways")
 EVOLUTION = ("additive-only", "versioned", "frozen")
 NAME_RE = re.compile(r"^[A-Z][A-Za-z0-9]*$")
 
@@ -150,6 +151,8 @@ def validate_catalog(catalog, aggregate_manifest=None):
                               % (where, ctx, "/".join(RELATIONSHIPS)))
             if not _text(consumer.get("purpose")):
                 errors.append("%s: consumer %r states its purpose" % (where, ctx))
+            if "candidate" in consumer and not isinstance(consumer["candidate"], bool):
+                errors.append("%s: consumer %r candidate must be true or false" % (where, ctx))
         if scope == "published":
             if event.get("delivery") not in DELIVERY:
                 errors.append("%s: delivery must be one of %s" % (where, "/".join(DELIVERY)))
@@ -172,6 +175,24 @@ def validate_catalog(catalog, aggregate_manifest=None):
                     and consumer["bounded_context"] not in known_contexts:
                 errors.append("event %s: consumer %r is not a declared bounded context"
                               % (event.get("name"), consumer["bounded_context"]))
+
+    # Orphans: events the design names but no aggregate declares — listed, not dropped.
+    orphans = catalog.get("orphan_events")
+    if orphans is not None:
+        if not isinstance(orphans, list):
+            errors.append("%s: orphan_events must be an array" % LABEL)
+        else:
+            for orphan in orphans:
+                if not isinstance(orphan, dict) or not _text(orphan.get("name")) \
+                        or not _text(orphan.get("named_in")):
+                    errors.append("%s: every orphan event names itself and the document that "
+                                  "names it (named_in)" % LABEL)
+                    break
+                if declared is not None and orphan["name"] in declared:
+                    errors.append("%s: orphan event %s is declared by aggregate %s — it belongs in "
+                                  "events" % (LABEL, orphan["name"], declared[orphan["name"]][0]))
+                if orphan["name"] in names:
+                    errors.append("%s: orphan event %s is also a catalog event" % (LABEL, orphan["name"]))
 
     # Completeness: every event an aggregate declares has a catalog entry.
     if declared is not None:

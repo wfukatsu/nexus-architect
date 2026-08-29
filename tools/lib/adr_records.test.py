@@ -71,6 +71,9 @@ for label, name, text, needle in [
 legacy = {"adr-001-x.md": record(upstream="[reports/02_evaluation/unified-improvement-plan.md#finding-3]")}
 check("a reports/ path is an acceptable driver on the legacy path", errors_of(legacy, index("ADR-001")) == [],
       errors_of(legacy, index("ADR-001")))
+ja = {"adr-001-x.md": record(upstream="[reports/review/individual/review-scalardb.json, reports/03_design/target-architecture.md#5.2-トランザクション機構]")}
+check("a review .json and a Japanese #anchor are acceptable too", errors_of(ja, index("ADR-001")) == [],
+      errors_of(ja, index("ADR-001")))
 block = {"adr-001-x.md": record().replace("upstream: [CTX-001, NFR-002]", "upstream:\n  - CTX-001\n  - NFR-002")}
 check("a block-style YAML list is parsed like a flow-style one", errors_of(block, index("ADR-001")) == [],
       errors_of(block, index("ADR-001")))

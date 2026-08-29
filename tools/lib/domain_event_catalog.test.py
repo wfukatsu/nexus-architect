@@ -136,6 +136,18 @@ check("relationship is a context-map pattern", any("relationship" in e_ for e_ i
 e = errs(catalog(*FULL["events"][1:], published(consumers=[{"bounded_context": "Inventory", "relationship": "conformist"}])))
 check("a consumer states its purpose", any("purpose" in e_ for e_ in e), e)
 check("scope is internal or published", any("scope" in e for e in errs(catalog(*FULL["events"][1:], published(scope="global")))))
+pl = catalog(*FULL["events"][1:], published(consumers=[{"bounded_context": "Inventory", "relationship": "published-language", "purpose": "x", "candidate": True}]))
+check("published-language is a relationship and candidate is a flag", errs(pl) == [], errs(pl))
+bad = catalog(*FULL["events"][1:], published(consumers=[{"bounded_context": "Inventory", "relationship": "conformist", "purpose": "x", "candidate": "yes"}]))
+check("candidate must be boolean", any("candidate" in e for e in errs(bad)), errs(bad))
+
+print("Orphan events are listed, not dropped")
+orphan = catalog(*FULL["events"], orphan_events=[{"name": "PointsEarned", "named_in": "reports/03_design/bounded-contexts-redesign.md"}])
+check("an orphan with name and named_in passes", errs(orphan) == [], errs(orphan))
+check("an orphan without named_in is rejected", any("named_in" in e for e in errs(catalog(*FULL["events"], orphan_events=[{"name": "X"}]))))
+check("an orphan an aggregate declares belongs in events",
+      any("belongs in events" in e for e in errs(catalog(*FULL["events"], orphan_events=[{"name": "OrderPlaced", "named_in": "x.md"}]))))
+check("orphan_events must be an array", any("orphan_events" in e for e in errs(catalog(*FULL["events"], orphan_events="no"))))
 
 print("Delivery contract of a published event")
 check("delivery is one of the three", any("delivery" in e for e in errs(catalog(*FULL["events"][1:], published(delivery="whenever")))))

@@ -7,6 +7,31 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+ドメインイベントカタログ付きの `/architect:design-aggregate --auto` を `ec-monolith` サンプルで初めて end-to-end
+実行して見つかった、スキル自身のギャップ。
+
+### Fixed
+- **カタログが自分の関係パターンを名乗れるようになった。** 消費者の `relationship` 語彙に `published-language` を追加 —
+  カタログは「コンテキストマップの Published Language」と定義されているのに、マップの「OHS/PL」辺を `open-host-service`
+  としてしか記録できなかった。
+- **同期応答は消費者ではない。** スコープ規則で消費者を非同期の購読者と定義。自分のコマンドの応答としてイベントを読む
+  コンテキストは消費者ではなくイベントは `internal` のまま。設計文書の散文と `api-style-decisions.json` / `asyncapi/` が
+  食い違えば後者が勝つ。候補コンテキスト（`CTX-` に未解決 `OQ-`）は `candidate: true` を付けて消費者になれる。
+- **孤児イベントは捨てずに列挙する。** モデル化された集約が宣言しないイベントは `orphan_events`（名前 + 言及元文書）に
+  入れる。集約が宣言しているものを孤児にするとバリデータが拒否する。
+- **auto モードは `scalardb-transaction.md` があればそこから一貫性クラスを取る。** 全コマンドを `local` に倒して集約ごとに
+  `OQ-` を開く指示と矛盾していた。
+- **`design-microservices` 初回実行で見つかった ADR のギャップ。** レガシー経路で根拠がすべてレポートの記録は、グラフ
+  ノードに `sources` として持つ（`upstream` は空。物理専用ノードと同じ形）。`upstream` のパスはレビュー `.json` でもよく、
+  日本語見出しへの `#anchor` も可。「典型的な記録」表は例示であり、先に決めたスキルが記録を書く。他スキルの設計文書との
+  矛盾は Consequences と `review-consistency` の指摘であって編集ではない。`asyncapi/` が既に固定した衝突する冪等キーは
+  維持して Open Item に記録。カタログ `.md` は完成させたスキルを `completed_by` に持つ。`design-microservices` に ADR の
+  出力行と完了基準を追加。
+- `also_writes` は `local` ケース専用と明記。再実行時は既存 `AGG-` ノードを更新。冪等キーはイベント種別ごとに一意
+  （`review-risk` の指摘をスキルがそのまま写していた）。カタログ `.md` のフロントマター雛形を追加。完了基準の採番を修正。
+
 ## [0.33.0] - 2026-08-29
 
 2026-08-29 の DDD ドキュメント一式チェック（Issue #32〜#35）で見つかった、「全 DDD 手法をカバーしている」と
