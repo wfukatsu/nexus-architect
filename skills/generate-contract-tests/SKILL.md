@@ -85,7 +85,8 @@ validator and record which one.
 1. **Resolve the stack and the output root** — the recorded selection, overridden by `--stack`;
    `--out`, else the service's `src/test/` under the contract map's `source_root`.
 2. **Pin the contract into the test tree** — copy the specification to
-   `src/test/resources/contract/openapi/<service>.yaml` and load it from the classpath. The design
+   `src/test/resources/contract/openapi/<service>.yaml` — and `api-contract-map.json` beside it,
+   which the inventory assertion needs for `out_of_scope_handlers` — and load both from the classpath. The design
    copy lives under `reports/`, which is git-ignored: a committed test that reads it there passes for
    its author and fails the CI contract stage on a fresh checkout
    (@rules/api-contract-fidelity.md §7).
@@ -98,9 +99,9 @@ validator and record which one.
    inspect the executable schema, and derive resolver inventory independently. Test success shape,
    nullability, validation, registered `errors[].extensions.type`, authorization, tenant isolation,
    N+1 query count, query limits, and subscription controls per @rules/graphql-security-checks.md.
-3. **Generate per-operation tests** from `contract-test-specs.md`: request validation, response
+4. **Generate per-operation tests** from `contract-test-specs.md`: request validation, response
    conformance, error conformance, authorization, idempotency, indeterminate commit.
-4. **Generate the inventory assertion — derived from the code, not read from the map.** Walk the
+5. **Generate the inventory assertion — derived from the code, not read from the map.** Walk the
    source tree for mapped routes and assert every one is declared by the specification or listed in
    the map's `out_of_scope_handlers`. An assertion that only re-reads `api-contract-map.json` passes
    whenever the map is wrong, which is exactly when it needs to fail: the first real run of this
@@ -119,18 +120,30 @@ validator and record which one.
    An independent reviewer of that same first run counted ten undeclared operations where the
    generated assertion reported six — the whole gap was these two mistakes. State the counting rule
    in the generated test so a reader can check it, and report the count alongside the list.
-5. **Generate ArchUnit rules** when selected — layer direction as `api-layer-spec.md` states it for
+6. **Generate ArchUnit rules** when selected — layer direction as `api-layer-spec.md` states it for
    its `layering_style` (`ddd`: controller -> application service -> domain -> repository; `clean`:
    controllers depend on `usecase/` boundaries only and never on an `*Interactor`, `usecase/` never
-   depends on `api/` or `infrastructure/`, presenters reach the interactor only through the output
-   boundary and import no domain type), no persistence or ScalarDB type in a controller signature,
-   no domain type in a response DTO, and the testability rules of @rules/tdd-workflow.md §4: no
-   `Instant.now()` / `LocalDate.now()` / `UUID.randomUUID()` call in `domain/` or the application
-   package (`application/`, or `usecase/` under `clean`), no transaction type held by a domain
-   class, and domain tests importing nothing from `infrastructure/`.
-6. **Wire the build** — a test task the quality gate can invoke by name
+   depends on `api/` or `infrastructure/`, `api.presenter` and the input/output data records import
+   no domain type, exactly one input boundary and one interactor per `operationId`, and each output
+   boundary implemented exactly once, in `api.presenter`), the transaction-opening rule stated **by
+   package** (only `application..` / `usecase..` calls the runner — never by class-name suffix,
+   which the first shared collaborator breaks), no persistence or ScalarDB type in a controller
+   signature, no domain type in a response DTO, and the testability rules of @rules/tdd-workflow.md
+   §4: no `Instant.now()` / `LocalDate.now()` / `UUID.randomUUID()` call in `domain/` or the
+   application package (`application/`, or `usecase/` under `clean`), no transaction type
+   (resolve its FQN from the code — `application.tx` or `usecase.tx`) held by a domain class, and
+   domain tests importing nothing from `infrastructure/`. When an `ArchitectureTest` already exists,
+   merge into it; two rule classes drift.
+7. **Wire the build** — a test task the quality gate can invoke by name
+   (a separate `contractTest` source set is the right shape when the contract stack's JUnit
+   platform version cannot share the `test` classpath — jqwik pinning JUnit 5 against Spring 7's
+   JUnit 6 is the known case — with `contractTest` depending on the ArchUnit task so one name
+   still covers both)
    (@rules/ai-code-quality-gate.md stage 3), pinning versions per @rules/dependency-versions.md.
-7. **Report** — operations covered, operations with no example, assertions skipped and why.
+8. **Report** — operations covered, operations with no example, assertions skipped and why, and
+   the run's counts and exit code as they were. A red suite is not a failed run of this skill:
+   the skill completes, the failures are listed with their cause (code defect fixed, contract
+   contradiction, spec drift → Open Question), and nothing was weakened to get to green.
 
 `--dry-run` reports the plan and coverage without writing tests.
 

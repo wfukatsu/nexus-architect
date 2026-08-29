@@ -28,7 +28,7 @@ DTOs, mappers, Bean Validation, and the RFC 9457 exception handler — is genera
 |---------|-------|
 | `…/domain/`, `…/infrastructure/` | **this skill** |
 | `…/api/` | `/architect:generate-api-code` |
-| `…/application/` (`…/usecase/` when `api-layer-spec.md` declares `layering_style: clean`) | this skill writes the implementation — the application service body, or under `clean` the `<Operation>Interactor` implementing the input boundary and calling the output boundary; the interface and the controller's call to it come from `generate-api-code` |
+| `…/application/` (`…/usecase/` when `api-layer-spec.md` declares `layering_style: clean`) | this skill writes the implementation — the application service body, or under `clean` the `<Operation>Interactor` implementing the input boundary and calling the output boundary (recovery, saga and worker use cases have no output boundary and return `void` or a domain-free result record); plus, under either style, the transaction runner (`…/tx/`), the read models (`…/view/`), the workers and relays (`…/worker/`), and the shared collaborators that a split into interactors leaves behind (assemblers, settlement steps, resolvers) — non-interactor classes in the same package, called only from it. The interface and the controller's call to it come from `generate-api-code`. **On a style switch** this skill performs the migration: move `application/` to `usecase/`, split the services into the interactors the specification names (never re-derive the logic), delete the replaced services, move their tests, and repair every artifact that still names `..application..` — the JaCoCo includes, the ArchUnit rules, the component scan, the `api/` handler's imports — reporting each edit to a file another skill owns |
 | `…/domain/port/` (outbound ports to other services) + their Fakes | this skill |
 | `…/infrastructure/client/` (HTTP / gRPC adapters implementing those outbound ports) | `/architect:generate-api-code` — it owns the HTTP surface in both directions, binding each client to the *other* service's contract; until it runs the application service is wired to the Fakes behind a `@ConditionalOnMissingBean` |
 
@@ -76,6 +76,7 @@ service docs, so do not hand-write a competing table inside its marked sections.
 - Fully compliant with patterns in @rules/scalardb-coding-patterns.md
 - API usage, config keys, and exception retryability verified against the pinned release's docs in the OKF bundle (@rules/okf-knowledge-bundle.md)
 - Applies configuration patterns from @rules/spring-boot-integration.md
+- Under `layering_style: clean`: every input boundary has exactly one interactor, `usecase/` imports nothing from `api/` or `infrastructure/`, no `application/` package remains after a migration, and every artifact that named it (JaCoCo, ArchUnit, component scan) was repaired
 - Proper handling of transaction exceptions (retry, rollback)
 - Entities follow immutable design; value objects are immutable
 - Domain tests import nothing from `infrastructure/`, ScalarDB or Spring; every repository port has an
@@ -116,7 +117,8 @@ Emit the domain layer's tests alongside it, under `generated/{service}/src/test/
   (@rules/dependency-versions.md); register the engine with JUnit 5 so `./gradlew test` runs the
   properties, and set `tries` per property from the spec (default 1000) so stage 2's evidence
   records a non-zero case count. Apply the `jacoco` plugin with a `jacocoTestCoverageVerification`
-  rule per package (90 % line / 80 % branch on `domain/` and `application/`, 70 % line elsewhere,
+  rule per package (90 % line / 80 % branch on `domain/` and `application/` — `usecase/` under
+  `clean` — 70 % line elsewhere,
   exemptions by package pattern) and the `pitest` plugin (`junit5` plugin engine, `targetClasses`
   = the domain packages, threshold 80), so the quality gate's stage 2 has named tasks to run
   (@rules/ai-code-quality-gate.md §Test quality) — both plugin versions looked up, never recalled.
@@ -124,7 +126,7 @@ Emit the domain layer's tests alongside it, under `generated/{service}/src/test/
 - **Fakes** — one in-memory implementation per repository interface
   `repository-interfaces-spec.md` declares, under `**/fakes/` (`InMemoryOrderRepository`): a `Map`
   keyed by the aggregate id, honouring the port's contract — not-found semantics, and the
-  version/OCC check where the port declares one. Application-service tests use these; the ScalarDB
+  version/OCC check where the port declares one. Application-service (interactor) tests use these; the ScalarDB
   adapters are tested against the real engine in the integration suite. `Clock` and the id
   generator are constructor dependencies, never called statically (@rules/tdd-workflow.md §4), so
   the Fakes and a fixed clock are all a domain or application test needs.

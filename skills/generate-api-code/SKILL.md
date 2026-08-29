@@ -41,7 +41,7 @@ other's packages:
 | `…/api/` — controllers, DTOs, mappers, error handling, API configuration | **this skill** |
 | `…/domain/`, `…/infrastructure/` — entities, repositories, domain services, transaction management | `/architect:generate-scalardb-code` (or the data-layer generator) |
 | `…/application/` — application services (the transaction boundary) | this skill generates the interface and the call from the controller; the implementation body belongs to the domain generator, which is why the two are run together |
-| `…/usecase/` + `…/api/presenter/` — when `api-layer-spec.md` declares `layering_style: clean` | this skill generates the input boundary, input/output data records and output boundary per operation, and the presenter under `api/presenter/`; the interactor body belongs to the domain generator. `…/application/` is not created |
+| `…/usecase/` + `…/api/presenter/` — when `api-layer-spec.md` declares `layering_style: clean` | this skill generates, per operation, the input boundary (`execute(<Op>InputData)`), the domain-free input/output data records (plus shared ones such as `MoneyData`, `PrincipalData`), the output boundary (`void present(<Op>OutputData)`), the request-scoped presenter under `api/presenter/`, and the exception types the contract's problem types make the handler branch on (they must live in `usecase/`, which never imports `api/`); the interactor body, `usecase/tx/`, `view/`, `worker/` and shared collaborators belong to the domain generator. `…/application/` is not created; on a style switch it is still present until `generate-scalardb-code` migrates it, and the handler imports the transaction exceptions from wherever they currently are |
 
 A generated controller never imports a persistence or ScalarDB type. That is a rule this skill obeys
 and `generate-contract-tests` enforces with ArchUnit.
@@ -151,15 +151,23 @@ adapter replaces it at runtime through Spring wiring, never by editing the appli
 5. **Generate controllers** — one method per `operationId`, delegating to the application service the
    API layer specification names, with the authorization check at the point the security design named.
    Under `layering_style: clean` the controller builds the `<Operation>InputData`, calls the
-   `<Operation>UseCase` boundary — never the interactor class — and returns what the
-   `<Operation>Presenter` produced; the presenter, boundaries and data records are generated here.
+   `<Operation>UseCase` boundary — never the interactor class — and returns the view model the
+   request-scoped `<Operation>Presenter` stored; the presenter, boundaries and data records are
+   generated here. Make sure the Spring application scans `api/` (or imports its configuration):
+   a `scanBasePackages` inherited from the domain generation that names only
+   `infrastructure.config` compiles and starts with no controller, no advice and no security
+   configuration in it.
 6. **Generate the exception handler and the problem type constants** from the registry.
 7. **Enumerate every route that already exists in the target tree** — not only the ones generated —
-   and classify each as a mapped operation or an `out_of_scope_handlers` entry
+   and classify each as a mapped operation or a `scope.out_of_scope_handlers` entry
    (@rules/api-contract-fidelity.md §4). A brownfield tree contains controllers that predate the
    contract; reporting an empty `handlers_without_spec_operation` because only the generated package
    was scanned is a map that passes its own check while hiding real endpoints.
-8. **Compile.** Run the project's build target and report the exit code.
+8. **Compile, then start.** Run the project's build target and report the exit code; then load the
+   application context once (`@SpringBootTest` context load or `bootRun` to readiness) and report
+   that too. Configuration property keys come from the resolved Spring Boot major's reference, not
+   from memory — Boot 4 moved Jackson to the `tools.jackson` namespace and renamed the
+   `spring.jackson.*` keys, and a Boot 2/3 key makes a compiling application fail to start.
 9. **Write the contract map** — `reports/06_implementation/api-contract-map.{md,json}` per
    @rules/api-contract-fidelity.md §4, with the declared scope and both `unmapped` arrays populated
    from what actually happened, never emptied for appearance.
@@ -186,7 +194,9 @@ Code identifiers, schema names and `operationId`s stay in English.
 
 - Every `operationId` in the contract has exactly one generated handler; no handler exists that has none
 - No endpoint, parameter, field, header, or status code was generated that the specification does not declare
-- Every DTO validation annotation traces to a schema constraint — none invented, none dropped
+- Every DTO validation annotation traces to a schema constraint — none invented, none dropped; `required` scalars are boxed so `@NotNull` can fire
+- The application context starts with the generated layer in it — the controllers, advice and security configuration are scanned, and the property keys match the resolved Boot major
+- Under `layering_style: clean`: one input boundary, one output boundary and one presenter per wire-facing operation; controllers reference boundaries only; the data records and presenters import no domain type
 - Request and response DTOs are distinct from domain objects and entities, with explicit mappers
 - No controller imports a persistence or ScalarDB type
 - Every problem type in the registry is reachable from the exception handler, and

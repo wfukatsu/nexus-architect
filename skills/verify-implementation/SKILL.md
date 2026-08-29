@@ -94,7 +94,9 @@ out-of-scope entry is still reported; the field records that the omission was na
 acceptable.
 
 Produce, per @rules/api-contract-fidelity.md §4, the full operation list plus both `unmapped` arrays.
-Rewrite the map file with what was actually found.
+Rewrite the map file with what was actually found — and record in its `findings[]` where the map
+you were handed disagreed with the code (a stale `interactor_present`, a resolved finding still
+open). A rewrite alone lets a wrong map correct itself silently.
 
 For GraphQL derive `@QueryMapping`, `@MutationMapping`, `@SubscriptionMapping`, `@SchemaMapping`,
 `@BatchMapping`, and programmatically registered DataFetchers. Compare every resolver-bound field
@@ -122,9 +124,13 @@ Per operation, against the specification:
 
 When `api-layer-spec.md` declares `layering_style: clean`, the handler-binding check is read through
 the use case: one input boundary and one interactor per operation, the controller bound to the
-boundary rather than the interactor, and the presenter the specification names present. A service
-whose packages mix `application/` services and `usecase/` interactors is a conformance finding —
-the specification chose one vocabulary.
+boundary rather than the interactor, and the presenter the specification names present. Two more
+rows apply, because a project that runs this skill without contract tests otherwise never checks
+them: the dependency rule (`usecase/` imports nothing from `api/` or `infrastructure/`; presenters
+and data records import no domain type) and the component scan (the running application actually
+scans `api/` — a green `@WebMvcTest` slice imports its beans by hand and proves nothing about it).
+A service whose packages mix `application/` services and `usecase/` interactors is a conformance
+finding — the specification chose one vocabulary.
 
 GraphQL adds SDL/resolver 1:1 coverage, nullability/input validation, registered
 `errors[].extensions.type`, nested-field and tenant authorization, DataLoader cache partitioning,
@@ -227,7 +233,8 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 - Every finding names a file and line, the design artifact and statement it contradicts, and a
   concrete failure scenario — a finding that cannot state one is reported as `info`, not inflated
 - Both `unmapped` arrays in the contract map are present and populated from the code
-- No design artifact and no source file was edited by this skill
+- No design artifact and no source file was edited by this skill — the one exception is the contract map, which Step 2 rewrites from the code and lists in Output
+- Inputs a delegate reported missing (`security-design.md` for the security review) are named in the report, never silently absorbed
 - Every axis reports a result, including "not applicable" with its reason — an axis that did not run
   is never absent from the report
 - Under `--gate`, every stage carries either evidence or a recorded skip reason

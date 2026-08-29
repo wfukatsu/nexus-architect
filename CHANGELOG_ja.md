@@ -7,6 +7,28 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+### Fixed
+- **`--layering=clean` の `ec-monolith`（order-service）での初回実走行を反映。** 仕様・API 層・
+  Interactor・契約テスト・適合性検査まで一通り生成でき（unit 140 / integration 28 / acceptance 30 /
+  contract 42、赤は実走行が炙り出した設計上の矛盾のみ）、スキルが生成側の判断に委ねていた 27 箇所を
+  明文化: 境界メソッド `execute(<Op>InputData)`、`void present(<Op>OutputData)` と request スコープの
+  Presenter、ドメイン型を持たないデータレコードとドメイン → `OutputData` の変換の Interactor 側への
+  移動（mapper は 2 つの半分・2 つの所有者）、`operationId` を持たないユースケース（saga / リカバリ /
+  ワーカー）は出力境界なし、`usecase/` 内の共有コラボレータの許容とトランザクション開始ルールの
+  クラス接尾辞ではなくパッケージによる定義、参加者側は開始せず join、ハンドラが分岐する例外型は
+  `usecase/` に、コンポーネントスキャンが `api/` を含むこと、ビジネス判断を持たない Presenter に
+  よる挙動の変化、そして最大の穴 — 生成済みサービスのスタイル切替をマイグレーションとして記述し
+  `generate-scalardb-code` が JaCoCo・ArchUnit・スキャンを修復する。`generate-api-code` はコンパイル
+  後にコンテキスト起動を確認（Boot 4 / Jackson 3 のプロパティキーでコンパイルは通るが起動しない
+  事故）、`required` スカラをボックス型に、衝突時もスキーマキー名を維持。`generate-contract-tests`
+  は境界 1:Interactor 1 と Presenter 単一実装の ArchUnit ルール追加、`api-contract-map.json` の
+  テストツリーへの固定、JUnit プラットフォーム衝突時の別 `contractTest` ソースセット許容、重複
+  ステップ番号の修正、赤いスイートを原因付きの完了として報告。`verify-implementation` はクリーン
+  依存ルールとコンポーネントスキャンを自ら検査し、引き継いだ契約マップとコードの不一致を記録し、
+  委譲先の欠落入力を明記。
+
 ## [0.38.0] - 2026-08-29
 
 ### Added

@@ -35,9 +35,9 @@ Specify, per REST `operationId` or GraphQL `<parentType>.<fieldName>` in
 | Element | Content |
 |---------|---------|
 | Handler | The controller class and method that serves this operation, 1:1. REST names from `operationId`; GraphQL binds by field coordinate |
-| Request DTO | Class name from the `components/schemas` key. **Never the domain object and never the persistence entity** — binding a request body straight onto an entity is the mass-assignment defect |
-| Validation | The Bean Validation constraints derived from the schema: `minLength` -> `@Size`, `pattern` -> `@Pattern`, `enum` -> an enum type, `required` -> `@NotNull`. Derived, not hand-chosen; the request DTO is `@Valid` at the handler boundary |
-| Mapper | The explicit DTO <-> domain mapping, listing exactly the fields the schema declares |
+| Request DTO | Class name from the `components/schemas` key, even when it collides with a domain simple name — the collision is resolved by package and import, never by re-styling the DTO (`MoneyDto`), which breaks the contract binding @rules/api-contract-fidelity.md relies on. **Never the domain object and never the persistence entity** — binding a request body straight onto an entity is the mass-assignment defect |
+| Validation | The Bean Validation constraints derived from the schema: `minLength` -> `@Size`, `pattern` -> `@Pattern`, `enum` -> an enum type, `required` -> `@NotNull`. Derived, not hand-chosen; the request DTO is `@Valid` at the handler boundary. A `required` scalar is a **boxed** type (`Integer`, `Long`) — `@NotNull` on a primitive can never fire, and the constraint is silently dropped |
+| Mapper | The explicit DTO <-> domain mapping, listing exactly the fields the schema declares. Under `clean` the row names two halves with two owners: `Request` -> `InputData` in `api/` (`generate-api-code`), domain -> `OutputData` in the interactor or a `usecase/` assembler (`generate-scalardb-code`) |
 | Response DTO | Class name from the schema key, carrying exactly the schema's properties — this is what stops an internal field leaking when the domain model later grows |
 | Application service | The method the handler delegates to, and **the transaction boundary**: which operations open a transaction, which join one, which are read-only. This must match the transaction placement recorded in `operation-contracts.md` |
 | Authorization | Where the operation's declared authorization rule is enforced — the role/scope check and the object-level ownership predicate. An operation with an ownership predicate needs the check named here, not assumed |
@@ -58,7 +58,16 @@ once, as `layering_style: ddd|clean` in the frontmatter of `reports/06_implement
 and mirrored to `options.layering_style` so a later run defaults to it. Every downstream generator
 (`generate-api-code`, `generate-graphql-code`, `generate-scalardb-code`, `generate-contract-tests`,
 `generate-acceptance-tests`) and `verify-implementation` read it from that frontmatter — none takes a
-flag of its own, so one service cannot be generated half in each vocabulary.
+flag of its own, so every generator in a run agrees on the vocabulary.
+
+**Switching the style of an already-generated service is a migration, not a regeneration**, and the
+tree is legitimately transitional between the two generator runs: `generate-api-code` runs first and
+adds `usecase/` boundaries beside the existing `application/`; `generate-scalardb-code` then moves
+`application/` (`tx/`, `view/`, `worker/`, shared collaborators) to `usecase/`, writes the
+interactors by splitting the existing services, deletes the replaced services, and repairs what
+still names the old package — the JaCoCo includes, the ArchUnit rules, the component scan. A tree
+that still holds both packages after that second run is the `verify-implementation` finding, and
+the first run's summary names the transitional state rather than reporting a finished service.
 
 | Element | `ddd` (default) | `clean` (Clean Architecture vocabulary) |
 |---------|-----------------|-----------------------------------------|
@@ -76,8 +85,58 @@ Under `clean`, the per-operation table above names the use case (boundary + inte
 data, the output boundary and the presenter in place of the single "Application service" row; every
 other row is unchanged. The naming is Robert C. Martin's (*Clean Architecture*, ch. 22); the layering
 it describes is the one `evaluate-ddd` already scores as criteria 10–12, so choosing `clean` changes
-vocabulary and granularity, not the architecture — and a project that already writes application
-services is not asked to rename them.
+vocabulary and granularity, not the architecture. Existing hand-written source that already has
+application services is not asked to rename them; the specification this skill writes, however, is
+entirely in the chosen vocabulary — one document never mixes the two.
+
+One behaviour-visible consequence follows from the presenter holding no business judgment: an outcome
+the `ddd` mapper could decide from a returned read model (a declined payment returned as a
+`CANCELLED` order and mapped to 402) must under `clean` be decided in the interactor — it throws the
+exception the problem type registry maps — so the status the caller sees can change with the style.
+Name such cases in the specification instead of discovering them in the contract tests.
+
+### `clean` — the details the table leaves open
+
+- **Boundary method.** The input boundary declares one method, `execute(<Op>InputData)`. Wire-facing
+  use cases return `void`; the result travels through the output boundary.
+- **Output boundary.** `void present(<Op>OutputData)`. The boundary lives in `usecase/` and therefore
+  cannot name a response DTO, so the presenter is **request-scoped and stateful**: it stores the view
+  model it built, and the controller reads it back after `execute` returns.
+- **Domain-free data records.** `InputData`, `OutputData` and every nested record (`MoneyData`,
+  `PrincipalData` for the caller's identity and scopes) carry primitives, strings, and their own
+  enums only — never a domain type — because the presenter imports no domain type. The interactor
+  (or an assembler in `usecase/` when several interactors share one shape) copies domain → output
+  data; the `api/` mapper keeps the request side only (`Request` → `InputData`). This moves half of
+  the `ddd` mapper out of `generate-api-code`'s package into `generate-scalardb-code`'s — record the
+  transfer in the Mapper row.
+- **Entries without an `operationId`** — saga confirm / compensate, recovery and expiry workers,
+  outbox relays: still one use case each (input boundary + interactor, `execute`) with **no output
+  boundary and no presenter**; there is nothing to present to. When a caller inside `usecase/` (a
+  worker) needs the outcome, `execute` returns a domain-free result record; a `ddd` `boolean` that
+  would otherwise vanish is specified this way, or the caller reads the outcome from state.
+- **Shared collaborators are allowed in `usecase/`.** Splitting one application service into N
+  interactors leaves shared logic (a settlement step, an unknown-status resolver, an assembler, the
+  workers and relays) that is not an interactor and has no boundary. It lives in `usecase/`, is
+  called only from `usecase/`, and may open a transaction. The "who opens a transaction" rule is
+  therefore stated **by package** (`usecase..` only), never by class-name suffix — a suffix rule is
+  the one that goes red on the first shared collaborator.
+- **Transactions.** The interactor of the orchestrating operation opens the transaction and passes
+  it down; a participant operation (`reserveStock`, `recordPayment`, …) joins the transaction it is
+  handed and never calls `begin()`. Carry the participant carve-out from the `ddd` specification
+  over verbatim.
+- **Exception types the handler branches on** (a contract's 402 / 409 / 422 problem types) live in
+  `usecase/`, since `usecase/` never imports `api/`; the transaction exceptions live in
+  `usecase/tx/`. The `api/` exception handler imports them from there.
+- **Component scan.** `clean` introduces the `api/` package; state that the Spring application
+  scans it (or lists its configuration) — a `ddd`-era `scanBasePackages` that names only
+  `infrastructure.config` starts an application with no controller in it.
+- **Rule ids.** Give the clean dependency rules numbers that continue the sequence the `ddd`
+  specification already declared (the test specifications cite rule ids), and state each rule so
+  ArchUnit can express it: "controller never references an `*Interactor`", "`usecase` never
+  imports `api` or `infrastructure`", "`api.presenter` and the data records import no domain type",
+  "exactly one input boundary and one interactor per `operationId`, each output boundary implemented
+  exactly once, in `api.presenter`". "The presenter reaches the interactor only through the output
+  boundary" is a description, not a rule — the presenter never reaches the interactor at all.
 
 ## Testability Constraints (specify them — the generators and ArchUnit enforce them)
 
@@ -90,7 +149,8 @@ State, in `repository-interfaces-spec.md` and `domain-services-spec.md`:
 - `Clock` and the id generator are **constructor dependencies** of every factory, application
   service and saga step that reads time or mints an id — no `now()` / `randomUUID()` inside domain or
   application code;
-- the transaction is opened by the application service and passed down; no domain type holds one.
+- the transaction is opened by the application service (the interactor, under `clean`) and passed
+  down; no domain type holds one.
 
 These become ArchUnit rules in `generate-contract-tests` and are checked at stage 8 of the gate.
 

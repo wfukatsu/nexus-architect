@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+### Fixed
+- **`--layering=clean` after its first real run on `ec-monolith` (order-service).** The
+  specification, the API layer, the interactors, the contract tests and the conformance check all
+  came out (unit 140 / integration 28 / acceptance 30 / contract 42 green apart from the design
+  contradictions the run surfaced), and 27 places where the skills left the clean style to the
+  generator's judgment are now stated: `execute(<Op>InputData)` as the boundary method,
+  `void present(<Op>OutputData)` with a request-scoped presenter, domain-free data records with
+  the domain → `OutputData` copy moved to the interactor (two mapper halves, two owners), use cases
+  without an `operationId` (saga / recovery / workers) having no output boundary, shared
+  collaborators allowed in `usecase/` and the transaction-opening rule stated by package rather than
+  class suffix, participant operations joining rather than opening, exception types the handler
+  branches on living in `usecase/`, the component scan covering `api/`, the behaviour-visible
+  consequence of a presenter with no business judgment, and — the biggest gap — a style switch on an
+  already-generated service described as the migration it is, with `generate-scalardb-code`
+  repairing JaCoCo, ArchUnit and the scan. `generate-api-code` now starts the context after
+  compiling (a Boot 4 / Jackson 3 property key had left a compiling application unable to start),
+  boxes `required` scalars so `@NotNull` can fire, and keeps schema key names on collision;
+  `generate-contract-tests` adds the one-boundary-one-interactor and single-presenter ArchUnit
+  rules, pins `api-contract-map.json` into the test tree, allows a separate `contractTest` source
+  set when JUnit platforms collide, fixes its duplicated step number, and reports a red suite as a
+  completed run with causes; `verify-implementation` checks the clean dependency rule and the
+  component scan itself, records where the inherited contract map disagreed with the code, and names
+  a delegate's missing inputs.
+
 ## [0.38.0] - 2026-08-29
 
 ### Added
