@@ -7,6 +7,7 @@ docs/ folder of its own and renders Mermaid only inside .mdx pages. This script 
     reports/**/*.md            -> docs/**/*.mdx   (frontmatter adapted, MDX-unsafe text escaped,
                                                    links rewritten to site routes)
     reports/**/*.json          -> docs/**/*.mdx   (rendered as a code page)
+    reports/**/*.feature       -> docs/**/*.mdx   (Gherkin, rendered as a code page)
     reports/**/openapi/*.yaml  -> specs/openapi/  (Blume's OpenAPI reference, /api)
     reports/**/asyncapi/*.yaml -> specs/asyncapi/ (Blume's AsyncAPI reference, /events)
     reports/00_summary/*.html  -> public/         (served as-is)
@@ -363,7 +364,7 @@ def landing_page(project: Path, known: dict[str, str], html_reports: list[str],
                   key=lambda t: ([g for g, _ in GROUPS].index(t) if t in labels else len(GROUPS), t))
     for top in tops:
         pages = sorted((r, k) for k, r in known.items()
-                       if k.startswith(top + "/") and Path(k).suffix in (".md", ".json"))
+                       if k.startswith(top + "/") and Path(k).suffix in (".md", ".json", ".feature"))
         if not pages:
             continue
         lines.append(f"- **{labels.get(top, top)}** — {len(pages)} pages, "
@@ -397,7 +398,7 @@ def sync(project: Path) -> int:
         key = rel.as_posix()
         suffix = rel.suffix.lower()
         parts = rel.parts
-        if suffix in (".md", ".json"):
+        if suffix in (".md", ".json", ".feature"):
             known[key] = route_for(rel)
         elif suffix in (".yaml", ".yml") and "openapi" in parts:
             known[key] = f"/api/{rel.stem}"
@@ -430,6 +431,8 @@ def sync(project: Path) -> int:
                 convert_markdown(reports, rel, known, order_of.get(key))
             elif suffix == ".json":
                 convert_code(reports, rel, "json")
+            elif suffix == ".feature":
+                convert_code(reports, rel, "gherkin")
             elif suffix in (".yaml", ".yml") and ("openapi" in rel.parts or "asyncapi" in rel.parts):
                 kind = "openapi" if "openapi" in rel.parts else "asyncapi"
                 dest = SPECS / kind / rel.name
