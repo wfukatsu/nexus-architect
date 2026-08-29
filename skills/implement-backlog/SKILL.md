@@ -209,7 +209,9 @@ Then set the item's status to `status::doing` — also rewriting the `Status:` l
 if the item predates it; per @skills/common/backlog-checklists.md) — and append a progress comment
 ("Implementation started") containing a mini-plan: the files to add/change under the resolved source root, the
 interface/contract (aligned to siblings + ubiquitous language + `coding-standards.md`), and the
-tests. **Delegate the drafting
+tests — listed **per unit and before the code that will satisfy them**, since Step 5 commits them
+first (@rules/tdd-workflow.md §2), together with which acceptance-level test carries the outer loop
+(§3) and which units the rule exempts (§5). **Delegate the drafting
 of the mini-plan to an opus sub-agent**, giving it the Step 3 digest, the item's acceptance
 criteria, and `review-knowledge.md` — planning against Epic-wide contracts is the judgment step
 this skill reserves opus for. The sub-agent must check the plan against `review-knowledge.md` so a
@@ -248,11 +250,34 @@ deferrable work (not a blocker for this Issue), the orchestrator queues it via
 `/architect:capture-followup <title> --queue-only` so it becomes a tracked follow-up Issue
 instead of a dead-end note.
 Escalate a unit to opus only when it involves judgment-heavy design (2PC boundaries, cross-service
-data ownership, ambiguous contracts). Generate tests following the
-`/architect:generate-test-specs` conventions when the item warrants them. Apply the relevant
+data ownership, ambiguous contracts). Apply the relevant
 `@rules/*` (e.g. ScalarDB patterns) when the project uses them. Reuse existing code in the source
-tree rather than duplicating it. **Commit the changes to the working branch** in coherent units,
-each commit message referencing the Issue (e.g. `feat: … (#<iid>)`) — uncommitted work cannot be
+tree rather than duplicating it.
+
+**Each unit is written test-first, as the Red → Green → Refactor commit series of
+@rules/tdd-workflow.md §2** — this is the order, not a style preference:
+
+1. **Red** — the sub-agent derives the unit's tests from the specification (the item's acceptance
+   criteria, `reports/07_test-specs/` where it exists, the aggregate manifest's examples, the
+   state × event matrix), commits them as `test: … (#<iid>)` with only what they need to compile,
+   and **runs them to see them fail**. The failing test names and the command go in the commit body.
+   A test that passes before any behaviour exists is asserting nothing — rewrite it, do not proceed.
+2. **Green** — the smallest change that makes them pass, committed as `feat: … (#<iid>)`.
+3. **Refactor** — structure only (duplication, ubiquitous-language names, layer placement),
+   committed as `refactor: … (#<iid>)` with no test edited. A design defect surfaced here (an
+   invariant the manifest lacks, a missing state) is recorded on the Issue and queued via
+   `/architect:capture-followup --queue-only` for the owning design skill — code never becomes the
+   only place a rule lives.
+
+The outer loop is the item's acceptance-level test (§3 of the rule): its Gherkin scenarios when a
+BDD runner is configured, otherwise its contract test or invariant example — red before the first
+unit, green after the last, and named in the Step 7 comment. A port the item introduces gets its
+in-memory Fake under `src/test/java/**/fakes/` in the same Red commit (§4); a unit that the rule
+exempts (§5 — wiring, DTOs, adapters, refactor-only) says so in its commit body. The first item of a
+new service is the walking skeleton and is implemented before any other.
+
+**Commit the changes to the working branch** in these units,
+each commit message referencing the Issue — uncommitted work cannot be
 reviewed or merged downstream. Verify each commit actually staged the intended files
 (`git show --stat`); an empty or short commit means the output path is ignored or misresolved —
 stop and re-check Output Location rather than proceeding to review.
@@ -317,7 +342,9 @@ the comments and the `impl-log/` mirror to a haiku sub-agent** (mechanical summa
 collected results); the orchestrator executes the actual `glab`/`gh` writes. On `--dry-run`, stop
 before any remote write and report the intended changes.
 - **Issue** — comment with what was implemented (files, key decisions, deviations), the
-  acceptance-criteria checklist status, any follow-ups queued during this item (their
+  test-first record (per unit: `test-first` / `test-after` / `refactor-only` / `exempt` with the
+  reason, and the acceptance-level test that carried the outer loop — @rules/tdd-workflow.md §6),
+  the acceptance-criteria checklist status, any follow-ups queued during this item (their
   `followup-queue.md` entries, so the deferral is visible on the tracker), and the review result;
   transition status to
   **`status::review` at most**. **Tick the acceptance-criteria checkboxes** this item's committed
@@ -368,6 +395,10 @@ Then offer the next `doing` / `todo` item under the same Epic (confirm before st
   referenced report. **Version numbers included**: every dependency this item introduced was looked
   up, is stable and compatible with the project's existing pins, and is recorded in
   `decisions.md` + `work/version-decisions.json`.
+- Every behavioural unit was committed test-first — a `test:` commit whose body names the tests
+  that failed, before the `feat:` commit that made them pass — or its exemption is named in the
+  commit body and the Step 7 comment; no unit's tests were written after its code without saying so
+  (@rules/tdd-workflow.md). Every repository port the item introduced has an in-memory Fake.
 - Documentation for the changed surface was updated in the same commit range (Step 5b) — or the
   skip was justified and recorded — so the PR/MR carries code and docs together.
 - Code was written under a source root that passed the `git check-ignore` and in-worktree checks,

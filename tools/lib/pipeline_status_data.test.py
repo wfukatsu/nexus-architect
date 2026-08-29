@@ -203,7 +203,8 @@ def check_real_manifests():
 # cover the tier, so a skill added there must be added here too — that is what this pins.
 DOC_EXTENSION_TIER = [
     "investigate-security", "select-scalardb-edition", "design-scalardb-analytics",
-    "design-implementation", "generate-test-specs", "generate-scalardb-code",
+    "design-implementation", "generate-test-specs", "generate-characterization-tests",
+    "generate-scalardb-code",
     "generate-api-code", "generate-graphql-code", "generate-contract-tests",
     "generate-infra-code", "generate-docs", "verify-implementation",
     "design-infrastructure", "design-security",

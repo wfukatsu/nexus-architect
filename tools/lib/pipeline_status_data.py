@@ -448,6 +448,9 @@ EXTENSION_PHASES = {
                                          "reports/07_test-specs/integration-test-specs.md",
                                          "reports/07_test-specs/performance-test-specs.md",
                                          "reports/07_test-specs/bdd-scenarios/"]),
+    # Legacy-path safety net: pins current behaviour before a transformation step touches a module.
+    "generate-characterization-tests": dict(category="extension", model="sonnet", depends_on=["investigate"],
+                                            outputs=["reports/07_test-specs/characterization-test-coverage.md"]),
     "generate-scalardb-code": dict(category="extension", model="sonnet", depends_on=["design-implementation"],
                                    outputs=["generated/*/src/main/java/",
                                             "generated/*/build.gradle",

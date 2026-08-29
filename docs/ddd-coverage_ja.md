@@ -83,6 +83,24 @@
 | ユーザーストーリーマッピング | ○ | `/product:define-features` | `reports/02_spec/feature-list.md` のユーザーストーリーマップ節 — ジャーニー段階をバックボーン、`FEAT-` をストーリー、MoSCoW 帯をリリーススライス、Must を walking skeleton とする |
 | インパクトマッピング | × | 意図的に実装しない — 下記参照 | — |
 
+## テスト駆動開発
+
+DDD モデルを実行可能にするプラクティスについて、ツールキットがどこまで対応しているか。上の手法群は
+オラクル（不変条件、行列、具体例）を生み出す側であり、ここではコードがそれらに駆動されているかを扱う。
+
+| 手法 | 状況 | 場所 | 成果物 |
+|------|------|------|--------|
+| Red → Green → Refactor（テストファースト、履歴から検証可能） | ◎ | `/architect:implement-backlog` Step 5、`rules/tdd-workflow.md` §2 | 作業ブランチ上のユニットごとの `test:` → `feat:` → `refactor:` コミット列。順序は `reports/09_verification/quality-gate.json`（`test_first`）に記録 |
+| 二重ループ（外側 ATDD、内側 TDD） | ◎ | `/architect:implement-backlog` Step 5、`rules/tdd-workflow.md` §3 | 外側ループを担った受入レベルのテストを Issue の進捗コメントに明記 |
+| Walking skeleton | ○ | `/product:define-features`（印を付ける）、`/architect:implement-backlog`（最初に実装する） | ユーザーストーリーマップの Must 行。新サービスの最初のアイテム |
+| テストダブル — リポジトリポートごとの Fake、注入される Clock / ID 生成器 | ◎ | `/architect:design-implementation`（仕様化）、`/architect:generate-scalardb-code`（生成）、`/architect:generate-contract-tests`（ArchUnit で強制） | `generated/{service}/src/test/java/**/fakes/`、`reports/06_implementation/repository-interfaces-spec.md` |
+| 変更範囲に対するカバレッジ閾値 | ◎ | `/architect:verify-implementation --gate` ステージ 2、`rules/ai-code-quality-gate.md` §Test quality | `reports/09_verification/quality-gate.json`（`coverage`）、`generated/{service}/build.gradle` の JaCoCo 検証 |
+| ドメイン層のミューテーションテスト | ◎ | `/architect:verify-implementation --gate` ステージ 2 | `reports/09_verification/quality-gate.json`（`mutation`、生存ミュータントを行単位、不変条件行の生存を名前で） |
+| レガシーコードの特性テスト / ゴールデンマスター | ◎ | `/architect:generate-characterization-tests` | `reports/07_test-specs/characterization-test-coverage.md`。移行計画の各ステップをゲートする `characterizationTest` タスク |
+| テストピラミッド / スイート実行時間予算 | △ | `rules/ai-code-quality-gate.md` のステージ分割（unit / contract / integration）が層を固定する。実行時間予算や比率は未定義 | — |
+| フレーキーテストのポリシー | △ | `rules/tdd-workflow.md` §4 がプロパティテストのシードと特性テストフィクスチャの非決定性マスクを定める。スイート全体の隔離・再試行ポリシーは未定義 | — |
+| ユビキタス言語に基づくテスト命名 | × | — | — |
+
 ## 意図的に実装しないもの
 
 | 手法 | 理由 |

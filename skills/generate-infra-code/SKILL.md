@@ -32,7 +32,7 @@ never assume), running the eight stages as jobs:
 | Job | Runs |
 |-----|------|
 | build | The project's real build target |
-| unit | The unit test task |
+| unit | The unit test task with coverage verification (`jacocoTestCoverageVerification`), and the mutation run (`pitest`) scoped to `domain/` — thresholds per @rules/ai-code-quality-gate.md §Test quality, read from the build files, never re-typed in the workflow |
 | contract | The named contract-test task `generate-contract-tests` wired into the build |
 | integration | The integration test task, including the transaction scenarios (OCC conflict, 2PC failure, saga compensation) |
 | sast | Semgrep, or the project's configured scanner |

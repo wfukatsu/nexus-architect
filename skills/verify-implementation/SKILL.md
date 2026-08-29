@@ -179,7 +179,13 @@ Write `reports/09_verification/quality-gate.{json,md}`.
 Never report a stage as passed without its evidence, and never omit a stage without its reason.
 For stage 2, when `reports/03_design/aggregates/aggregate-manifest.json` exists, join each invariant
 to the property test `property-test-specs.md` names for it and record covered / declared; an
-invariant with no test class fails the stage even when every test that exists passed.
+invariant with no test class fails the stage even when every test that exists passed. Stage 2
+also runs the coverage verification and the mutation run scoped to the touched `domain/` packages
+(@rules/ai-code-quality-gate.md §Test quality — resolve the project's thresholds first, defaults
+otherwise), records coverage per changed file and surviving mutants by file:line, and — under
+`--item` — reads the working branch's log for the item to record the test-first sequence per unit
+(@rules/tdd-workflow.md §6): `test:` before `feat:`, the failing tests named in the Red commit body,
+and which acceptance-level test carried the outer loop. The record is reported, never a verdict.
 
 ### Step 8 — Write the report
 
@@ -195,7 +201,7 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 | `reports/09_verification/design-code-conformance.md` | Findings by axis, each with file:line, the design statement it contradicts, the failure scenario, and the fix |
 | `reports/09_verification/design-code-conformance.json` | The same findings, machine-readable, for the gate and the fix loop |
 | `reports/06_implementation/api-contract-map.json` | Rewritten with what the code actually binds (Step 2) |
-| `reports/09_verification/quality-gate.{json,md}` | `--gate` only — the eight-stage gate result |
+| `reports/09_verification/quality-gate.json`, `reports/09_verification/quality-gate.md` | `--gate` only — the eight-stage gate result (@rules/ai-code-quality-gate.md §Gate result artifact) |
 
 ## Acceptance Criteria
 

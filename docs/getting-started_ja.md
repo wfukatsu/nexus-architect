@@ -134,6 +134,7 @@ product スキルの全カタログは [スキルリファレンス](skill-refer
 
 # 2. テスト仕様                                （要: reports/06_implementation/）
 /architect:generate-test-specs
+/architect:generate-characterization-tests            # レガシーパスのみ: 移行ステップの前に現在の挙動を固定
 
 # 3. アプリケーションコード                    （要: reports/06_implementation/ + scalardb-schema.md）
 /architect:generate-scalardb-code             # -> generated/{service}/  domain/ + infrastructure/

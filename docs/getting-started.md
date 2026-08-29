@@ -136,6 +136,7 @@ phases. Run them yourself afterwards, in this order:
 
 # 2. Test specifications                            (requires reports/06_implementation/)
 /architect:generate-test-specs
+/architect:generate-characterization-tests            # legacy path only: pin current behaviour before a transformation step
 
 # 3. Application code                               (requires reports/06_implementation/ + scalardb-schema.md)
 /architect:generate-scalardb-code                   # -> generated/{service}/  domain/ + infrastructure/

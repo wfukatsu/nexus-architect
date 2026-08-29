@@ -71,6 +71,7 @@ phases, in the listed order. Output lands under `generated/` (git-ignored, overw
 |---------|-------|----------|-------------|
 | `/architect:design-implementation` | opus | `reports/03_design/` | Implementation specifications — API layer (controller/DTO/validation/mapper, transaction boundary, authorization point) plus services, repositories, VOs |
 | `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/contract/unit/property/integration/performance test specifications — one property per aggregate invariant when `aggregate-manifest.json` exists |
+| `/architect:generate-characterization-tests` | sonnet | `reports/before/{project}/` (legacy path) | Golden-master tests recorded from the running legacy system, per module and seam, with non-determinism masked and `@KnownDefect` markers — the net each transformation-plan step is gated on |
 | `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB code generation — owns `domain/` and `infrastructure/`, plus the domain's example and jqwik property tests per invariant |
 | `/architect:generate-api-code` | opus | `api-specifications/` + `api-layer-spec.md` | API layer from the OpenAPI contract — controllers 1:1 with `operationId`, DTOs + derived Bean Validation, mappers, RFC 9457 handler, and `api-contract-map.json` |
 | `/architect:generate-graphql-code` | opus | GraphQL specifications + `api-layer-spec.md` | Spring GraphQL API layer — resolver bindings, DTOs/mappers, security/context, DataLoader, errors, query limits and combined contract map |
@@ -279,6 +280,7 @@ path by their router, so they are not slash commands and have no signature here.
 
 # Code generation & verification
 /architect:generate-test-specs
+/architect:generate-characterization-tests [target_path] [--scope=module|service|repo] [--module=<name>] [--out=<path>] [--seam=http|cli|function|db] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]
 /architect:generate-scalardb-code
 /architect:generate-api-code [--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]
 /architect:generate-graphql-code [--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]

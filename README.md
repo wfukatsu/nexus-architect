@@ -1,6 +1,6 @@
 # Nexus Architect
 
-System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as four plugins with 106 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
+System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as four plugins with 107 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
 
 - **product** (28 skills) — Product direction: validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
 - **architect** (63 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
@@ -148,20 +148,20 @@ Claude Code continues to use the plugin metadata and slash commands unchanged. S
 
 ## Commands
 
-**106 slash commands across four plugins.** The full catalogue — every command with its model, its
+**107 slash commands across four plugins.** The full catalogue — every command with its model, its
 prerequisites and its complete flag signature — lives in one place:
 
 > **[docs/skill-reference.md](docs/skill-reference.md)** · [日本語](docs/skill-reference_ja.md)
 
 It is the single source of truth; this table is the map of which group does what, and the counts
-partition all 106.
+partition all 107.
 
 | Group | Start here | What it does | n |
 |-------|-----------|--------------|---|
 | **Product Direction** `/product:*` | `/product:start` | Validation-driven pipeline from product vision to SLA/NFR, gating on the riskiest assumptions before deep design; hands off to `/architect:define-requirements` | 28 |
 | **Orchestration & setup** | `/architect:start`, `/architect:pipeline` | Interactive or automated execution of the architect core pipeline, plus `init-output` | 3 |
 | **Core pipeline** `/architect:*` | run by the orchestrators | requirements → investigate → analyze → evaluate → redesign → design → review → report — see [Pipeline Dependency Graph](#pipeline-dependency-graph) | 27 |
-| **Extension tier** | invoked individually | Implementation specs, code generation (REST / GraphQL / ScalarDB / contract tests / IaC / docs), verification and the eight-stage quality gate, infrastructure / security / observability / DR design, cost estimation — see [Code Generation & Delivery](#code-generation--delivery) | 19 |
+| **Extension tier** | invoked individually | Implementation specs, code generation (REST / GraphQL / ScalarDB / contract tests / characterization tests / IaC / docs), verification and the eight-stage quality gate, infrastructure / security / observability / DR design, cost estimation — see [Code Generation & Delivery](#code-generation--delivery) | 20 |
 | **Backlog Delivery** | `/architect:deliver-backlog` | export → implement → review → merge over GitLab/GitHub work items; writes merge-bound code into the project's real source tree and stops at every human gate | 7 |
 | **Database Migration** | `/architect:migrate-database` | Oracle / MySQL / PostgreSQL → ScalarDB: schema extraction, analysis, SP/trigger conversion — see [Database Migration Guide](docs/database-migration.md) | 4 |
 | **ScalarDB Development** `/scalardb:*` | `/scalardb:build-app` | Schema modeling, configuration, scaffolding, CRUD/JDBC patterns, exception handling, code review, migration advice — see [ScalarDB Development Guide](docs/scalardb-development.md) | 11 |
@@ -210,6 +210,10 @@ Analyze existing systems, evaluate architecture maturity, and design microservic
 ```
 investigate -> analyze -> evaluate -> redesign -> implement -> review -> report
 ```
+
+Before a transformation-plan step touches a module, `/architect:generate-characterization-tests`
+pins its current behaviour in golden-master tests recorded from the running system; the step is
+gated on that suite before and after (`rules/tdd-workflow.md` §5).
 
 ### Greenfield Design
 

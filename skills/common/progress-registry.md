@@ -42,6 +42,7 @@
 | `output_language` | `en` \| `ja` | Language of generated report content |
 | `confirm_versions` | `true` \| `false` | Project default for confirming resolved dependency versions with the user before pinning them (see @rules/dependency-versions.md). Absent → interactive runs ask, `--auto` runs adopt. Overridden per run by `--confirm-versions` / `--no-confirm-versions`. |
 | `skip_phases` | list of phase names | Phases the user excluded |
+| `quality_gate` | object, optional | Project overrides for the stage-2 test-quality thresholds of @rules/ai-code-quality-gate.md §Test quality — e.g. `{ "coverage": { "domain": { "line": 90, "branch": 80 }, "other": { "line": 70 } }, "mutation": { "threshold": 80 } }`. Absent → the rule's defaults; a build-file rule wins over both |
 
 ## Phase Fields
 

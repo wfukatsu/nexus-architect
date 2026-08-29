@@ -70,14 +70,16 @@ target architecture — whichever runs second completes the catalog.
 | File | Content |
 |------|---------|
 | `reports/03_design/target-architecture.md` | Service catalog, architecture diagrams |
-| `reports/03_design/transformation-plan.md` | Incremental migration roadmap |
+| `reports/03_design/transformation-plan.md` | Incremental migration roadmap — every step names the modules it touches and its **characterization gate**: the `characterizationTest` task (from `/architect:generate-characterization-tests`, `TBD (OQ-…)` until it has run) that must pass on those modules before the step starts and after it lands |
 | `reports/03_design/domain-event-catalog.json` / `.md` | Updated in place — consumer side of every published event (only when the catalog exists) |
 | `reports/03_design/adr/adr-NNN-<slug>.md`, `adr/index.md` | This skill's Architecture Decision Records, appended to the log `redesign` opened (or opening it when this is the first skill to write one) |
 
 ## Completion Criteria
 
 1. `target-architecture.md` and `transformation-plan.md` written, every cross-service transaction
-   naming its mechanism
+   naming its mechanism, and every transformation step naming the modules it touches and its
+   characterization gate (the suite that pins their current behaviour before and after — a step
+   with no gate says why, e.g. a new module with no legacy behaviour to pin)
 2. This skill's ADRs written and `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/adr_records.py" <project_dir>` exits 0
 3. When the catalog exists, its consumer side completed and
    `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/domain_event_catalog.py" <project_dir>` exits 0

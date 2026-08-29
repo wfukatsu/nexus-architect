@@ -76,6 +76,8 @@ service docs, so do not hand-write a competing table inside its marked sections.
 - Applies configuration patterns from @rules/spring-boot-integration.md
 - Proper handling of transaction exceptions (retry, rollback)
 - Entities follow immutable design; value objects are immutable
+- Domain tests import nothing from `infrastructure/`, ScalarDB or Spring; every repository port has an
+  in-memory Fake; `Clock` and id generation are injected (@rules/tdd-workflow.md §4)
 - Every pinned version was looked up (not recalled), is a stable release, and is recorded in the
   version decision table — with the user's confirmation when that is the configured mode
 
@@ -106,7 +108,19 @@ Emit the domain layer's tests alongside it, under `generated/{service}/src/test/
   its version **looked up** and recorded in the version decision table like every other pin
   (@rules/dependency-versions.md); register the engine with JUnit 5 so `./gradlew test` runs the
   properties, and set `tries` per property from the spec (default 1000) so stage 2's evidence
-  records a non-zero case count.
+  records a non-zero case count. Apply the `jacoco` plugin with a `jacocoTestCoverageVerification`
+  rule per package (90 % line / 80 % branch on `domain/` and `application/`, 70 % line elsewhere,
+  exemptions by package pattern) and the `pitest` plugin (`junit5` plugin engine, `targetClasses`
+  = the domain packages, threshold 80), so the quality gate's stage 2 has named tasks to run
+  (@rules/ai-code-quality-gate.md §Test quality) — both plugin versions looked up, never recalled.
+
+- **Fakes** — one in-memory implementation per repository interface
+  `repository-interfaces-spec.md` declares, under `**/fakes/` (`InMemoryOrderRepository`): a `Map`
+  keyed by the aggregate id, honouring the port's contract — not-found semantics, and the
+  version/OCC check where the port declares one. Application-service tests use these; the ScalarDB
+  adapters are tested against the real engine in the integration suite. `Clock` and the id
+  generator are constructor dependencies, never called statically (@rules/tdd-workflow.md §4), so
+  the Fakes and a fixed clock are all a domain or application test needs.
 
 Without an aggregate manifest, emit no property tests and say so in the run summary — a domain
 with no declared invariant has nothing to generate against, and an invented property is a test
@@ -120,6 +134,7 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 |------|---------|
 | `generated/{service}/src/main/java/` | Java source code |
 | `generated/{service}/src/test/java/**/domain/` | Example and property tests per invariant, plus the value-object arbitraries |
+| `generated/{service}/src/test/java/**/fakes/` | One in-memory Fake per repository port (@rules/tdd-workflow.md §4) |
 | `generated/{service}/build.gradle` | Build configuration (incl. jqwik when property tests are emitted) |
 | `generated/{service}/Dockerfile` | Container definition |
 | `generated/{service}/scalardb.properties` | ScalarDB configuration |

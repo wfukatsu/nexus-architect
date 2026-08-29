@@ -27,7 +27,7 @@ Run in this order; the cheap deterministic stages fail fast before the expensive
 | # | Stage | Passes when | Evidence |
 |---|-------|-------------|----------|
 | 1 | **Compile / build** | The project's real build target succeeds | Command + exit code |
-| 2 | **Unit tests** | All pass; no test disabled or deleted in this change without a recorded reason; when `reports/03_design/aggregates/aggregate-manifest.json` exists, every invariant it declares is covered by at least one property-based test that drives the aggregate root (`reports/07_test-specs/property-test-specs.md` names the test per invariant) | Command + counts (run/passed/skipped) + invariant → test-class map, invariants covered / declared |
+| 2 | **Unit tests** | All pass; no test disabled or deleted in this change without a recorded reason; when `reports/03_design/aggregates/aggregate-manifest.json` exists, every invariant it declares is covered by at least one property-based test that drives the aggregate root (`reports/07_test-specs/property-test-specs.md` names the test per invariant); **line coverage of the changed files meets the threshold** and **the domain layer's mutation score meets its threshold** (§Test quality below) | Command + counts (run/passed/skipped) + invariant → test-class map, invariants covered / declared + coverage per changed file + mutation score (killed / total mutants) for `domain/` + the test-first record per unit (@rules/tdd-workflow.md §6) |
 | 3 | **Contract tests** | Every REST `operationId` and GraphQL resolver field coordinate the change touches is exercised and validates against the specification (@rules/api-contract-fidelity.md §7) | Command + per-operation/field-coordinate results |
 | 4 | **Integration tests** | All pass, including the transaction scenarios the design requires — OCC conflict, 2PC failure, saga compensation | Command + counts |
 
@@ -91,6 +91,40 @@ A stage whose coverage is zero is recorded as `not-configured` with the reason, 
 The same applies to a filtered test task that matched nothing: `--tests '*ContractTest'` with no
 matching class is a green task and an ungated build.
 
+## Test quality: coverage and mutation score
+
+A passing suite proves the tests do not fail. It does not prove they would fail if the code were
+wrong — and when the same model wrote both the code and the tests in one sitting, that is the
+question that matters. Stage 2 therefore measures two more things, both **on the change**, not on
+the whole repository, so an old low-coverage module cannot fail a new item and a new untested class
+cannot hide behind a well-tested repository:
+
+| Measure | Scope | Threshold | Tool (JVM default) |
+|---------|-------|-----------|---------------------|
+| **Line + branch coverage** | Every production file the change touched | `domain/` and `application/`: **90 % line, 80 % branch**. Other packages: **70 % line**. Files the tdd-workflow rule exempts (§5 — configuration, DTO records, mappers with no logic) are excluded by package pattern, and the exclusion list is in the gate result | JaCoCo (`jacocoTestCoverageVerification` with per-package rules) |
+| **Mutation score** | `domain/` packages the change touched | **80 % killed**, no surviving mutant on a line that enforces a declared invariant or a state-machine guard (those are listed by name; one survivor there fails the stage regardless of the aggregate score) | PIT (`pitest` Gradle plugin with `targetClasses` set to the touched domain packages, `mutators = DEFAULTS`, `junit5` plugin; jqwik properties included via the JUnit platform) |
+| **Test-first record** | Every behavioural unit of the item | Reported, not thresholded: units by `test-first` / `test-after` / `refactor-only` / `exempt`, the failing tests each Red commit named, and the acceptance-level test that carried the outer loop | `git log` on the working branch, per @rules/tdd-workflow.md §6 |
+
+Rules:
+
+- **Thresholds are project settings, defaults above.** A project's `build.gradle` rule or
+  `pipeline-progress.json` `options.quality_gate` overrides them, and the value in force is recorded
+  in the gate result. Lowering a threshold to pass an item is a recorded decision on the Issue, not
+  a build edit.
+- **Mutation testing is scoped to keep it cheap.** Running PIT over a whole service on every item is
+  minutes to hours; over the touched `domain/` packages it is seconds to a minute, and the domain is
+  where the invariants live. Widening the scope is a project choice; narrowing it below the touched
+  domain packages is `skipped-by-user` with the reason.
+- **A survivor is a finding, not a number.** The gate result lists surviving mutants by
+  file:line and mutator, so the fix is a test to write, not a score to argue with. A survivor on an
+  invariant-enforcing line means the property test for that invariant does not actually pin it —
+  which is the defect §Exit code zero describes, seen from the other side.
+- **Coverage over zero tests is not coverage.** JaCoCo reports 0 % for a task that ran no tests;
+  the run-count rule above catches that first, and the coverage figure is recorded only when the
+  count is non-zero.
+- **The Node default** is Istanbul/`c8` thresholds via `nyc`/`vitest --coverage` for coverage and
+  Stryker for mutation, with the same scopes and thresholds.
+
 ## Stage-skipping is recorded, never silent
 
 A project without an API surface has no stage 3 or 7. A project with no SAST tool configured has no
@@ -113,7 +147,8 @@ the versions are looked up per @rules/dependency-versions.md rather than recalle
 | Stage | JVM / Gradle default | Node default |
 |-------|----------------------|--------------|
 | Build | `./gradlew build -x test` | `npm run build` |
-| Unit | `./gradlew test` | `npm test` |
+| Unit | `./gradlew test jacocoTestCoverageVerification` | `npm test -- --coverage` (thresholds in the coverage config) |
+| Mutation (domain, part of stage 2) | `./gradlew pitest` scoped to the touched `domain/` packages | `npx stryker run` scoped the same way |
 | Contract | `./gradlew test --tests '*ContractTest'` (OpenAPI validator and/or GraphQlTester) | project's contract suite |
 | Integration | `./gradlew integrationTest` | `npm run test:integration` |
 | SAST | Semgrep (`--config auto`), or SpotBugs + `find-sec-bugs` | Semgrep |
@@ -144,7 +179,16 @@ Written to `reports/09_verification/quality-gate.json`, and summarized in
      "command": "./gradlew test", "exit_code": 0, "tests": {"run": 212, "passed": 212, "skipped": 0},
      "invariants": {"declared": 6, "covered": 5,
                     "uncovered": ["AGG-001/INV-3"], "tries_per_property": 1000},
-     "detail": "every test passed, but INV-3 (order total equals the sum of line totals) has no property test — an exit-zero suite over an unchecked invariant is not a pass"},
+     "coverage": {"tool": "jacoco", "scope": "changed", "thresholds": {"domain": {"line": 90, "branch": 80}, "other": {"line": 70}},
+                  "files": [{"path": "domain/order/Order.java", "line": 96, "branch": 88}],
+                  "excluded": ["**/config/**", "**/dto/**"], "passed": true},
+     "mutation": {"tool": "pitest", "scope": ["com.example.order.domain"], "threshold": 80,
+                  "mutants": {"total": 142, "killed": 121, "survived": 21}, "score": 85,
+                  "invariant_survivors": [{"file": "domain/order/Order.java", "line": 88, "mutator": "NEGATE_CONDITIONALS", "invariant": "AGG-001/INV-3"}],
+                  "passed": false},
+     "test_first": {"units": {"test-first": 4, "test-after": 1, "refactor-only": 0, "exempt": 2},
+                    "outer_loop": "bdd:@EX-014", "outer_loop_went_red": true},
+     "detail": "every test passed, but INV-3 (order total equals the sum of line totals) has no property test, and a NEGATE_CONDITIONALS mutant on the line that enforces it survived — an exit-zero suite over an unchecked invariant is not a pass"},
     {"stage": "contract", "status": "failed",
      "command": "./gradlew test --tests '*ContractTest'", "exit_code": 1,
      "detail": "confirmOrder returned 500 for the transaction-status-unknown case; contract declares 503"},
@@ -159,7 +203,9 @@ Written to `reports/09_verification/quality-gate.json`, and summarized in
 
 `invariants` appears on the unit stage only when an aggregate manifest exists; `uncovered` is the
 work list for `generate-scalardb-code`, and `tries_per_property` is what makes "the property ran"
-a checkable claim.
+a checkable claim. `coverage` and `mutation` carry the thresholds in force and the survivors by
+line (§Test quality); `test_first` is the record @rules/tdd-workflow.md §6 asks for, reported and
+never thresholded.
 
 `blocking` lists the finding IDs that produced the verdict, so the fix loop has an explicit work list
 rather than a report to re-read.

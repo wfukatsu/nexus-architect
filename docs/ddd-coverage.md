@@ -85,6 +85,25 @@ skill · △ referenced, evaluated or partially produced, not a standalone metho
 | User Story Mapping | ○ | `/product:define-features` | the User Story Map section of `reports/02_spec/feature-list.md` — journey stages as backbone, `FEAT-` as stories, MoSCoW bands as release slices, Must as the walking skeleton |
 | Impact Mapping | × | deliberately not implemented — see below | — |
 
+## Test-driven development
+
+Where the toolkit stands on the practices that make a DDD model executable. The techniques above
+produce the oracles (invariants, matrices, examples); these rows are about whether the code is
+driven by them.
+
+| Technique | Status | Where | Artifact |
+|-----------|--------|-------|----------|
+| Red → Green → Refactor (test-first, verifiable from history) | ◎ | `/architect:implement-backlog` Step 5, `rules/tdd-workflow.md` §2 | `test:` → `feat:` → `refactor:` commit series per unit on the working branch; the sequence recorded in `reports/09_verification/quality-gate.json` (`test_first`) |
+| Double loop (ATDD outside, TDD inside) | ◎ | `/architect:implement-backlog` Step 5, `rules/tdd-workflow.md` §3 | The acceptance-level test that carried the outer loop, named in the Issue's progress comment |
+| Walking skeleton | ○ | `/product:define-features` (marks it), `/architect:implement-backlog` (implements it first) | the User Story Map's Must row; the first item of a new service |
+| Test doubles — Fake per repository port, injected Clock / id generator | ◎ | `/architect:design-implementation` (specifies), `/architect:generate-scalardb-code` (emits), `/architect:generate-contract-tests` (ArchUnit enforces) | `generated/{service}/src/test/java/**/fakes/`; `reports/06_implementation/repository-interfaces-spec.md` |
+| Coverage threshold on the change | ◎ | `/architect:verify-implementation --gate` stage 2, `rules/ai-code-quality-gate.md` §Test quality | `reports/09_verification/quality-gate.json` (`coverage`), JaCoCo verification in `generated/{service}/build.gradle` |
+| Mutation testing on the domain layer | ◎ | `/architect:verify-implementation --gate` stage 2 | `reports/09_verification/quality-gate.json` (`mutation`, survivors by line, invariant survivors by name) |
+| Characterization / golden-master tests for legacy code | ◎ | `/architect:generate-characterization-tests` | `reports/07_test-specs/characterization-test-coverage.md`; the `characterizationTest` task each transformation-plan step is gated on |
+| Test pyramid / suite runtime budget | △ | the stage split of `rules/ai-code-quality-gate.md` (unit / contract / integration) fixes the layers; no runtime budget or ratio is stated | — |
+| Flaky-test policy | △ | `rules/tdd-workflow.md` §4 seeds property tests and masks non-determinism in characterization fixtures; no quarantine or retry policy for the wider suite | — |
+| Test naming from the ubiquitous language | × | — | — |
+
 ## Deliberately not implemented
 
 | Technique | Reason |

@@ -62,6 +62,7 @@
         "./skills/design-graphql",
         "./skills/design-implementation",
         "./skills/generate-test-specs",
+        "./skills/generate-characterization-tests",
         "./skills/generate-scalardb-code",
         "./skills/generate-api-code",
         "./skills/generate-graphql-code",

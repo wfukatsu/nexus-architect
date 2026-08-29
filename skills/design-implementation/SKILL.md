@@ -45,6 +45,21 @@ The layering is directional and the direction is part of the specification: cont
 service -> domain -> repository. No reverse dependency, and no persistence or ScalarDB type appearing
 in a controller signature. `generate-contract-tests` turns this into executable ArchUnit rules.
 
+## Testability Constraints (specify them — the generators and ArchUnit enforce them)
+
+The specifications decide whether the code can be written test-first (@rules/tdd-workflow.md §4).
+State, in `repository-interfaces-spec.md` and `domain-services-spec.md`:
+
+- every repository interface is a **port** the domain owns, with an in-memory Fake named next to it
+  (`InMemory<Root>Repository`), and its not-found / version-check contract stated so the Fake and the
+  ScalarDB adapter can be held to the same behaviour;
+- `Clock` and the id generator are **constructor dependencies** of every factory, application
+  service and saga step that reads time or mints an id — no `now()` / `randomUUID()` inside domain or
+  application code;
+- the transaction is opened by the application service and passed down; no domain type holds one.
+
+These become ArchUnit rules in `generate-contract-tests` and are checked at stage 8 of the gate.
+
 ## Repository Exception Strategy (specify it — do not leave it to codegen)
 
 `repository-interfaces-spec.md` MUST state one exception-propagation strategy for the whole

@@ -71,6 +71,7 @@
 |---------|-------|------|------|
 | `/architect:design-implementation` | opus | `reports/03_design/` | 実装仕様 — API レイヤー（Controller/DTO/バリデーション/マッパー、トランザクション境界、認可の実施点）＋サービス、リポジトリ、VO |
 | `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/契約/ユニット/プロパティ/統合/性能テスト仕様 — `aggregate-manifest.json` があれば不変条件ごとに 1 プロパティ |
+| `/architect:generate-characterization-tests` | sonnet | `reports/before/{project}/`（レガシーパス） | 稼働中のレガシーシステムから記録したゴールデンマスターテスト — モジュール・シームごと、非決定的フィールドはマスク、`@KnownDefect` マーカー付き。移行計画の各ステップをゲートする安全網 |
 | `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB コード生成 — `domain/` と `infrastructure/` に加え、不変条件ごとの具体例テストと jqwik プロパティテストを担当 |
 | `/architect:generate-api-code` | opus | `api-specifications/` + `api-layer-spec.md` | OpenAPI 契約から API レイヤーを生成 — `operationId` と 1:1 の Controller、スキーマ制約から導出した Bean Validation 付き DTO、マッパー、RFC 9457 ハンドラ、`api-contract-map.json` |
 | `/architect:generate-graphql-code` | opus | GraphQL 仕様 + `api-layer-spec.md` | Spring GraphQL API レイヤー — resolver binding、DTO/mapper、security/context、DataLoader、error、query limit、統合 contract map |
@@ -279,6 +280,7 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 
 # Code generation & verification
 /architect:generate-test-specs
+/architect:generate-characterization-tests [target_path] [--scope=module|service|repo] [--module=<name>] [--out=<path>] [--seam=http|cli|function|db] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]
 /architect:generate-scalardb-code
 /architect:generate-api-code [--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]
 /architect:generate-graphql-code [--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]
