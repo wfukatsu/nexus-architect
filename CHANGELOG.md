@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.35.0] - 2026-08-29
+
+What the first full pass over the sample project after v0.34 surfaced — `design-implementation`,
+`generate-test-specs`, a `review-consistency` re-run, `review-synthesizer`, `report` and
+`review-report` — and what it changed in the toolkit.
+
+### Added
+- **`tools/build-report.py`.** `/architect:report` no longer re-authors `full-report.html` by hand
+  on every run: the consolidated HTML report is built by a tool — one article per source document
+  with stable ids, phase sections for `before/`, `01`–`04`, `06_implementation`, `07_test-specs`
+  (Gherkin `.feature` files as code) and `review/`, an executive summary from
+  `review-synthesis.json` and the Open Questions store (or a clean "review not yet run" state),
+  Mermaid inlined from the docs-site `node_modules` (cache, then CDN fallback), bilingual chrome
+  from `options.output_language`, a single page `h1` with documents at `h3` and their bodies
+  from `h4`. `tools/build_report.test.py` guards the rendering contract (35 checks); the report
+  skill's Input Sources table gained the two new directories.
+
+### Fixed
+- **Body H1 in generated documents.** The `design-aggregate` and `design-state-machine` templates
+  and the `api-style-decisions.md` projection repeated the frontmatter title as a body `#`,
+  against `rules/output-conventions.md` (nine documents per project — review-consistency
+  CON-110). The templates and `tools/lib/api_style_decisions.py` drop it, the committed reference
+  set is regenerated, and `reference-set.test.py` asserts that bodies start at `##`.
+- **Docs site.** Gherkin `.feature` files under `reports/07_test-specs/bdd-scenarios/` render as
+  code pages instead of being copied to `public/` as static files.
+
 ## [0.34.1] - 2026-08-29
 
 Two `blume validate` findings from the first run of `tools/docs-site.sh` over a full report set.
