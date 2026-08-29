@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
-## [Unreleased]
+## [0.33.2] - 2026-08-29
 
 Gaps the first end-to-end runs of `/architect:design-api` (AsyncAPI from the catalog) and
 `/architect:redesign` (opening the ADR log from scratch) surfaced.
