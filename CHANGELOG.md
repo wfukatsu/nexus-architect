@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+Gaps the first end-to-end runs of `/architect:design-api` (AsyncAPI from the catalog) and
+`/architect:redesign` (opening the ADR log from scratch) surfaced.
+
+### Fixed
+- **`design-api` and the catalog.** An orphan event that already has a channel is kept and
+  reported, never dropped (a §8 breaking change); constraints are the contract's own, the catalog
+  gives names; a field the catalog lacks stays `deprecated` and is removed per contract-fidelity
+  §8; idempotency-key ownership is one-directional — the value is the catalog's, the dedup rule is
+  the contract's; cross-reference findings in another skill's files are reported, not blocking;
+  `grpc/` is emitted only when adopted; the canonical validator is named.
+- **The ADR rule, again.** `decided_at` is when the decision was taken; an answered `OQ-` is a
+  valid driver; anchors are free text and unresolved; the index carries standard frontmatter with
+  the last regenerator as `skill`; a record's frontmatter is the rule's shape, stated as the one
+  exception in `rules/output-conventions.md`; numbers are never re-minted; the four appending
+  skills defer the `upstream` instruction to the rule instead of restating it wrongly.
+- **`redesign`.** The Canvas `Name` falls back to `BC-n` on the legacy path; aggregate boundaries
+  are `design-aggregate`'s decision and get no ADR from `redesign`.
+
 ## [0.33.1] - 2026-08-29
 
 Gaps the first end-to-end run of `/architect:design-aggregate --auto` with the Domain Event

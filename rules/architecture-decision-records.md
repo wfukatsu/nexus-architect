@@ -80,8 +80,8 @@ Field contracts:
 | `title` | Present |
 | `status` | `proposed` \| `accepted` \| `superseded` \| `deprecated` |
 | `skill` | The architect skill that wrote it |
-| `decided_at` | ISO 8601 date |
-| `upstream` | **Non-empty.** What drove the decision: traceability nodes — a `CTX-`, `FR-`, `NFR-`, `TECH-`, `ARCH-` or another `ADR-` — **that exist in the graph when the record is written** (a `redesign` record cannot cite an `AGG-`, which `design-aggregate` mints later; name the context and the requirement instead). On the legacy path, where `investigate` / `analyze` / `evaluate-*` mint no nodes, cite the report that states the finding as a `reports/...` path (`.md`, or the `.json` of a review finding), optionally with a `#anchor` in any script — Japanese headings included. Do not pad with a node that did not drive the decision just to have an id. A decision that cites nothing is a preference, not a record |
+| `decided_at` | ISO 8601 date the decision was **taken** — for a record written retroactively (the deciding skill ran before ADRs existed), the date of the document that took it, with the Context section saying the record was written later |
+| `upstream` | **Non-empty.** What drove the decision: traceability nodes — a `CTX-`, `FR-`, `NFR-`, `TECH-`, `ARCH-` or another `ADR-` — **that exist in the graph when the record is written** (a `redesign` record cannot cite an `AGG-`, which `design-aggregate` mints later; name the context and the requirement instead). On the legacy path, where `investigate` / `analyze` / `evaluate-*` mint no nodes, cite the report that states the finding as a `reports/...` path (`.md`, or the `.json` of a review finding), optionally with a `#anchor` in any script — Japanese headings included (no whitespace or comma; the anchor is **not** resolved against the document's headings, so name the section in the Context section too). An answered `OQ-` from `work/context.md` is also a valid driver — it is checked against the store, not the graph. Do not pad with a node that did not drive the decision just to have an id. A decision that cites nothing is a preference, not a record |
 | `supersedes` | `ADR-` ids this record replaces; every one must exist and carry `status: superseded` |
 
 Body headings are fixed — `Context`, `Decision`, `Alternatives considered`, `Consequences` — so
@@ -97,7 +97,13 @@ is added or changed — never edited as a source. One row per record, in ID orde
 |----|-------|--------|-------|---------|----------|
 
 The validator checks every record appears in the index and the index names no record that does not
-exist.
+exist. The index is a `reports/` Markdown file, so it carries the standard frontmatter
+(`title`, `schema_version: 1`, `skill`, `generated_at`) with `skill` naming the skill that
+regenerated it last — several skills write records, and the index belongs to none of them.
+
+An ADR record's frontmatter is the shape in §2, **not** the standard output frontmatter of
+@rules/output-conventions.md (no `phase` / `generated_at` / `input_files`): a record is a decision
+log entry, and `decided_at` + `upstream` are its provenance. The hooks accept both shapes.
 
 ## 4. Allocation and traceability — the additive contract
 
@@ -106,7 +112,8 @@ Open Questions store already follow:
 
 - **Allocate `ADR-` as `max + 1` over the graph.** Read every `ADR-` node in
   `work/traceability.json` (and every file in the directory), take the highest number, continue.
-  Never number from your own report.
+  Never number from your own report, and never re-mint a number: a record that was deleted or
+  moved leaves its `ADR-` node in the graph, which is what keeps the next allocation above it.
 - **Append one node per record** to `work/traceability.json`:
   ```json
   { "id": "ADR-003", "type": "decision", "title": "…", "skill": "redesign",

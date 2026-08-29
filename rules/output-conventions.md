@@ -10,7 +10,9 @@ The output language is configured per project in `work/pipeline-progress.json`:
 
 ## YAML Frontmatter (Required)
 
-All output files must include the following frontmatter:
+All output files must include the following frontmatter (the one exception is an Architecture
+Decision Record under `reports/03_design/adr/`, whose frontmatter is the shape
+@rules/architecture-decision-records.md §2 defines):
 
 ```yaml
 ---

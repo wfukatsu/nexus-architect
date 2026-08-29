@@ -7,6 +7,23 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+`/architect:design-api`（カタログからの AsyncAPI）と `/architect:redesign`（ADR ログをゼロから開く）の初回 end-to-end
+実行で見つかったギャップ。
+
+### Fixed
+- **`design-api` とカタログ。** 既にチャネルを持つ孤児イベントは削除せず維持して報告（削除は §8 の破壊的変更）。制約は
+  契約自身のもので、カタログはフィールド名を与える。カタログに無いフィールドは `deprecated` のまま残し contract-fidelity §8
+  に従って削除する。冪等キーの所有は一方向 — 値はカタログ、重複排除ルールは契約。他スキルのファイルにある相互参照の指摘は
+  報告のみでブロックしない。`grpc/` は採用時のみ生成。正規のバリデータを明記。
+- **ADR ルール、再び。** `decided_at` は決定した日。回答済み `OQ-` は根拠として有効。アンカーは自由文で解決されない。
+  index は標準フロントマターを持ち `skill` は最後に再生成したスキル。記録のフロントマターはルールの形であり、
+  `rules/output-conventions.md` に唯一の例外として明記。番号は再採番しない。追記する 4 スキルは `upstream` の指示を
+  誤って言い換えず、ルールに委ねる。
+- **`redesign`。** Canvas の `Name` はレガシー経路で `BC-n` にフォールバック。集約境界は `design-aggregate` の決定であり
+  `redesign` は ADR を書かない。
+
 ## [0.33.1] - 2026-08-29
 
 ドメインイベントカタログ付きの `/architect:design-aggregate --auto` を `ec-monolith` サンプルで初めて end-to-end
