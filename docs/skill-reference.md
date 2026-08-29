@@ -125,7 +125,7 @@ merges).
 
 | Command | Model | Description |
 |---------|-------|-------------|
-| `/architect:report` | haiku | Markdown to HTML consolidated report |
+| `/architect:report` | haiku | Markdown to HTML consolidated report, built by `tools/build-report.py` rather than authored |
 | `/architect:review-report` | sonnet | Review the quality of the generated HTML report (completeness, score accuracy, Mermaid syntax) |
 | `/architect:render-mermaid` | haiku | Mermaid to PNG/SVG + syntax fix |
 | `/architect:estimate-cost` | sonnet | Infrastructure, license, and operational costs |

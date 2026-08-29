@@ -124,7 +124,7 @@
 
 | コマンド | モデル | 説明 |
 |---------|-------|------|
-| `/architect:report` | haiku | Markdown から HTML への統合レポート |
+| `/architect:report` | haiku | Markdown から HTML への統合レポート(モデルが書き起こすのではなく `tools/build-report.py` が生成) |
 | `/architect:review-report` | sonnet | 生成された HTML レポートの品質レビュー（完全性、スコア精度、Mermaid 構文） |
 | `/architect:render-mermaid` | haiku | Mermaid から PNG/SVG + 構文修正 |
 | `/architect:estimate-cost` | sonnet | インフラ、ライセンス、運用コスト |
