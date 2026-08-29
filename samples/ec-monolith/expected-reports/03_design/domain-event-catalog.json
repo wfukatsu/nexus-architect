@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-29T02:20:00Z",
+  "contexts": ["Ordering", "Inventory", "Payment", "Catalog", "Identity", "Notification"],
+  "events": [
+    { "name": "OrderPlaced", "scope": "published",
+      "publisher": { "aggregate": "Order", "bounded_context": "Ordering" },
+      "consumers": [
+        { "bounded_context": "Inventory", "relationship": "customer-supplier", "purpose": "reserve stock for every line" },
+        { "bounded_context": "Payment", "relationship": "customer-supplier", "purpose": "authorize the order total" }
+      ],
+      "payload": ["orderId", "customerId", "lines[].productId", "lines[].quantity", "totalAmount"],
+      "delivery": "at-least-once", "idempotency_key": "orderId", "version": 1, "evolution": "additive-only" },
+    { "name": "OrderLineAdded", "scope": "internal", "publisher": { "aggregate": "Order", "bounded_context": "Ordering" }, "consumers": [], "payload": ["orderId", "lineNo", "productId", "quantity"] },
+    { "name": "OrderLineRemoved", "scope": "internal", "publisher": { "aggregate": "Order", "bounded_context": "Ordering" }, "consumers": [], "payload": ["orderId", "lineNo"] },
+    { "name": "OrderConfirmed", "scope": "published",
+      "publisher": { "aggregate": "Order", "bounded_context": "Ordering" },
+      "consumers": [
+        { "bounded_context": "Inventory", "relationship": "customer-supplier", "purpose": "confirm the order's reservations" },
+        { "bounded_context": "Notification", "relationship": "conformist", "purpose": "send the order confirmation email" }
+      ],
+      "payload": ["orderId", "paymentId"], "delivery": "at-least-once", "idempotency_key": "orderId", "version": 1, "evolution": "additive-only" },
+    { "name": "OrderCancelled", "scope": "published",
+      "publisher": { "aggregate": "Order", "bounded_context": "Ordering" },
+      "consumers": [
+        { "bounded_context": "Inventory", "relationship": "customer-supplier", "purpose": "release the order's reservations" },
+        { "bounded_context": "Payment", "relationship": "customer-supplier", "purpose": "refund a captured payment" },
+        { "bounded_context": "Notification", "relationship": "conformist", "purpose": "send the cancellation email" }
+      ],
+      "payload": ["orderId", "reason"], "delivery": "at-least-once", "idempotency_key": "orderId", "version": 1, "evolution": "additive-only" },
+    { "name": "OrderShipped", "scope": "published",
+      "publisher": { "aggregate": "Order", "bounded_context": "Ordering" },
+      "consumers": [
+        { "bounded_context": "Inventory", "relationship": "customer-supplier", "purpose": "commit the reservations — stock leaves the warehouse" },
+        { "bounded_context": "Notification", "relationship": "conformist", "purpose": "send the shipping notice" }
+      ],
+      "payload": ["orderId", "shippedAt"], "delivery": "at-least-once", "idempotency_key": "orderId", "version": 1, "evolution": "additive-only" },
+    { "name": "OrderDelivered", "scope": "published",
+      "publisher": { "aggregate": "Order", "bounded_context": "Ordering" },
+      "consumers": [
+        { "bounded_context": "Identity", "relationship": "conformist", "purpose": "grant loyalty points (1 per 100 JPY)" }
+      ],
+      "payload": ["orderId", "deliveredAt", "totalAmount"], "delivery": "at-least-once", "idempotency_key": "orderId", "version": 1, "evolution": "additive-only" },
+    { "name": "StockItemRegistered", "scope": "internal", "publisher": { "aggregate": "StockItem", "bounded_context": "Inventory" }, "consumers": [], "payload": ["productId", "onHand"] },
+    { "name": "StockReserved", "scope": "published",
+      "publisher": { "aggregate": "StockItem", "bounded_context": "Inventory" },
+      "consumers": [ { "bounded_context": "Ordering", "relationship": "customer-supplier", "purpose": "mark the line reserved; CanBeShipped input" } ],
+      "payload": ["productId", "orderId", "reservationId", "quantity"], "delivery": "at-least-once", "idempotency_key": "reservationId", "version": 1, "evolution": "additive-only" },
+    { "name": "StockReleased", "scope": "internal", "publisher": { "aggregate": "StockItem", "bounded_context": "Inventory" }, "consumers": [], "payload": ["productId", "orderId", "reservationId", "quantity"] },
+    { "name": "StockCommitted", "scope": "internal", "publisher": { "aggregate": "StockItem", "bounded_context": "Inventory" }, "consumers": [], "payload": ["productId", "orderId", "reservationId", "quantity"] },
+    { "name": "StockAdjusted", "scope": "published",
+      "publisher": { "aggregate": "StockItem", "bounded_context": "Inventory" },
+      "consumers": [ { "bounded_context": "Catalog", "relationship": "open-host-service", "purpose": "refresh the product page's availability read model" } ],
+      "payload": ["productId", "onHand", "reason"], "delivery": "at-least-once", "idempotency_key": "productId", "version": 1, "evolution": "additive-only" },
+    { "name": "PaymentAuthorized", "scope": "internal", "publisher": { "aggregate": "Payment", "bounded_context": "Payment" }, "consumers": [], "payload": ["paymentId", "orderId", "amount"] },
+    { "name": "PaymentDeclined", "scope": "published",
+      "publisher": { "aggregate": "Payment", "bounded_context": "Payment" },
+      "consumers": [ { "bounded_context": "Ordering", "relationship": "customer-supplier", "purpose": "cancel the order (payment_declined transition)" } ],
+      "payload": ["paymentId", "orderId", "reason"], "delivery": "at-least-once", "idempotency_key": "paymentId", "version": 1, "evolution": "additive-only" },
+    { "name": "PaymentCaptured", "scope": "published",
+      "publisher": { "aggregate": "Payment", "bounded_context": "Payment" },
+      "consumers": [ { "bounded_context": "Ordering", "relationship": "customer-supplier", "purpose": "confirm the order (payment_captured transition)" } ],
+      "payload": ["paymentId", "orderId", "amount"], "delivery": "at-least-once", "idempotency_key": "paymentId", "version": 1, "evolution": "additive-only" },
+    { "name": "PaymentRefunded", "scope": "published",
+      "publisher": { "aggregate": "Payment", "bounded_context": "Payment" },
+      "consumers": [ { "bounded_context": "Notification", "relationship": "conformist", "purpose": "send the refund notice" } ],
+      "payload": ["paymentId", "orderId", "amount"], "delivery": "at-least-once", "idempotency_key": "paymentId", "version": 1, "evolution": "additive-only" }
+  ]
+}

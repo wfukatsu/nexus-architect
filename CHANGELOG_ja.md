@@ -32,6 +32,13 @@ Nexus Architect の主な変更点を記録します。
   バックボーン、`FEAT-` をストーリー、MoSCoW 帯をリリーススライス、Must を walking skeleton とする、統合済み
   フィーチャーの第 2 のビューであり、新たな決定はしない。
 
+- **コミット済みの参照 DDD ドキュメント一式**（#35）。`samples/ec-monolith/expected-reports/` に、DDD 関連スキルが
+  サンプルに対して生成する成果物 — ユビキタス言語、Bounded Context Canvas、コンテキストマップ、ADR 4 件、
+  manifest 付きの集約 4 件、ドメインイベントカタログ、全行列付きの Order 状態遷移、ScalarDB トランザクション設計、
+  ドメインストーリー、Example Map — を git-ignore 対象の `reports/` の外に置き、ドキュメント一式を推測ではなく
+  目で確認できるようにした。`samples/ec-monolith/reference-set.test.py` がプロジェクトとしてステージし、
+  4 つの manifest バリデータと 2 つの出力フックを実行し、`docs/ddd-coverage.md` との双方向の整合を保つ。
+
 ### Changed
 - **`docs/ddd-coverage.md` が △ の 3 行に態度を決めた**（#34）。ユーザーストーリーマッピングは ○（上記）。
   Event Modeling とインパクトマッピングは理由付きで「意図的に実装しないもの」へ移動: 内容はすでに manifest・

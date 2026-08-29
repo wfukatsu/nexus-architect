@@ -36,6 +36,15 @@ covers every DDD technique" and "a reader can see the complete document set".
   stages as backbone, `FEAT-` as stories, MoSCoW bands as release slices, Must as the walking
   skeleton — as a second view of the consolidated features, deciding nothing new.
 
+- **A committed reference DDD document set** (#35). `samples/ec-monolith/expected-reports/` holds
+  what the DDD-relevant skills produce on the sample — ubiquitous language, Bounded Context
+  Canvases, context map, four ADRs, four aggregates with their manifest, the domain event
+  catalog, the Order state machine with its full matrix, the ScalarDB transaction design, a
+  domain story and an example map — outside the git-ignored `reports/` tree, so the document set
+  can be seen rather than inferred. `samples/ec-monolith/reference-set.test.py` stages it as a
+  project, runs the four manifest validators and both output hooks, and keeps it in step with
+  `docs/ddd-coverage.md` in both directions.
+
 ### Changed
 - **`docs/ddd-coverage.md` takes a position on its three △ rows** (#34). User Story Mapping is ○
   (above). Event Modeling and Impact Mapping move to *Deliberately not implemented* with the

@@ -10,6 +10,10 @@ and that every artifact path it cites is declared by a skill — in a SKILL.md, 
 output tree; a rule file merely discussing a path does not count. The **status** column is judgment
 and is reviewed by hand when a row's skill changes.
 
+A complete document set produced by these skills on the `ec-monolith` sample is committed under
+`samples/ec-monolith/expected-reports/` (the real `reports/` tree is git-ignored);
+`samples/ec-monolith/reference-set.test.py` keeps it valid and in step with this table.
+
 Status legend: ◎ dedicated skill or artifact with a defined procedure · ○ built into another
 skill · △ referenced, evaluated or partially produced, not a standalone method · × nothing.
 
