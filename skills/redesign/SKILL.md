@@ -33,7 +33,7 @@ handoff:
 
 | Part | Content |
 |------|---------|
-| **Name** | `CTX-` id and the name in the ubiquitous language |
+| **Name** | `CTX-` id and the name in the ubiquitous language — on the legacy path, where no product run minted `CTX-`, the `BC-n` id from `domain-analysis.md` (say which scheme is in use once, at the top) |
 | **Purpose** | One paragraph: what this context is responsible for, and what it is not |
 | **Strategic classification** | Core / Supporting / Generic; business model role (revenue, engagement, compliance, cost reduction); evolution stage (genesis / custom / product / commodity) |
 | **Domain roles** | The archetypes it plays: specification, execution, analysis, gateway, draft, … |
@@ -74,7 +74,10 @@ additive contract are @rules/architecture-decision-records.md — read it before
 What earns a record here: every bounded-context boundary that differs from the current code
 (a context split, merged, or renamed with a changed meaning), and every context relationship
 pattern chosen on the map (ACL, OHS/PL, Customer/Supplier, Conformist, Shared Kernel) where another
-pattern was viable. A boundary that merely restates the code is not a decision.
+pattern was viable. A boundary that merely restates the code is not a decision. The **interior**
+of a context — which aggregates it holds and where their boundaries fall — is listed here but
+decided by `design-aggregate`, whose manifest is that decision's record: do not write an ADR for
+an aggregate boundary from this skill.
 
 - Allocate each `ADR-` as `max + 1` over `work/traceability.json` and the directory, never from
   this report.

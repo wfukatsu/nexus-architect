@@ -389,10 +389,13 @@ in its contract test):
   must be unique **per event type**: two events of one aggregate sharing `orderId` as their key
   (`OrderCancelled` and `PaymentDeclined` for the same order) collide in a consumer's inbox —
   scope it (`orderId` + event type, or a dedicated `eventId`), and check `review-risk` /
-  `review-consistency` findings before copying a key from the context map. When a published
-  contract (`asyncapi/`) already fixes a colliding key, keep the contract's key — a contract is
-  never changed silently from here — and record the collision as an Open Item naming
-  `design-api` as the owner.
+  `review-consistency` findings before copying a key from the context map. Ownership is split
+  and one-directional: the key's **value** is this catalog's (`design-api` copies it, never
+  re-derives it); the **dedup rule** a consumer applies — `(eventType, key)` or the bare key — is
+  the contract's, decided by `design-api` and recorded as its ADR. A colliding value is therefore
+  fixed here (catalog first, then the contract follows on its next run) and, until then, recorded
+  as an Open Item owned by `design-aggregate`; `design-api` may close the gap on its side by
+  making the dedup pair explicit, never by changing the value.
 - **Completeness** — every event an aggregate declares has a catalog entry. An event the
   manifest emits and the catalog omits is a contract nobody wrote down.
 

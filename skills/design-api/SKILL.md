@@ -140,8 +140,8 @@ defects that surface much later and much more expensively.
 | `reports/03_design/api-style-decisions.md` | Generated human-readable projection of every canonical field, including rationale, rejected alternatives, security/control evidence and requirement traces; never authored separately |
 | `reports/03_design/api-specifications/openapi/` | REST API specifications — one per service |
 | `reports/03_design/api-specifications/graphql/` | GraphQL operation inventory here; detailed SDL and resolver/security/loading contracts from `/architect:design-graphql` |
-| `reports/03_design/api-specifications/grpc/` | Protobuf definitions |
-| `reports/03_design/api-specifications/asyncapi/` | Event specifications — one channel per `published` event of `reports/03_design/domain-event-catalog.json` (the Domain Event Catalog is the source; name, payload, publisher and delivery are taken from it, never re-derived). When no catalog exists — `design-aggregate` is optional — derive the channels from the events in `aggregate-manifest.json` / `state-machine-manifest.json` or the design documents, and say in the spec's `info.description` that it was derived without a catalog |
+| `reports/03_design/api-specifications/grpc/` | Protobuf definitions — only when `api-style-decisions.json` adopts gRPC for a surface |
+| `reports/03_design/api-specifications/asyncapi/` | Event specifications — one channel per `published` event of `reports/03_design/domain-event-catalog.json` (the Domain Event Catalog is the source; name, payload, publisher and delivery are taken from it, never re-derived). When no catalog exists — `design-aggregate` is optional — derive the channels from the events in `aggregate-manifest.json` / `state-machine-manifest.json` or the design documents, and say in the spec's `info.description` that it was derived without a catalog. Three things the catalog does not decide: (1) a channel already published for an event the catalog lists under `orphan_events` is **kept**, marked "not catalog-backed" in its description, and reported as a finding for `design-aggregate` — dropping it is a §8 breaking change; (2) the catalog carries field **names** — constraints (`format`, `pattern`, `enum`) are the contract's own, sourced from the aggregate and state-machine documents and the REST contracts; (3) when the catalog's payload lacks a field the contract already publishes, the field stays in the contract marked `deprecated` and the removal follows @rules/api-contract-fidelity.md §8 (new version, migration path) — the catalog's `version` is the event schema's, the contract's `info.version` is the contract's, and both are bumped as their own rules say |
 | `reports/03_design/api-specifications/problem-types.md` | Problem type registry (@rules/api-error-standard.md §2) — every error kind, its `type` URI, status, and whether retry is safe |
 | `reports/03_design/api-specifications/operation-contracts.md` | Per-operation table: `operationId`, authorization rule, idempotency obligation, timeout/retry budget, transaction placement, traced requirement IDs |
 | `reports/03_design/api-gateway-design.md` | Gateway design — routing, authentication, rate limiting |
@@ -165,7 +165,12 @@ python3 "${CLAUDE_PLUGIN_ROOT}/tools/validate-cross-references.py" .
 
 A validation or render error blocks the phase — cross-reference findings (unregistered
 problem-type slugs, hand-written operation totals disagreeing with the OpenAPI files, phantom
-section references, namespace-name variants) block it too.
+section references, namespace-name variants) block it too **when they sit in a file this run
+wrote**. `validate-cross-references.py` scans the whole project; findings in another skill's
+files are reported in this skill's Open Items with the owning skill named, not treated as this
+phase's failure. `tools/validate-api-style-decisions.py` is the canonical validator here (it
+also renders the `.md`); `tools/lib/api_style_decisions.py` is the same check as a library, used
+by the tests.
 Then run the required Markdown validation hooks on
 the generated report.
 
@@ -195,7 +200,7 @@ the generated report.
 The decisions this skill makes that a later phase depends on — the API style per surface (one record linking `api-style-decisions.json`, the canonical per-surface table it does not restate) and the error standard — are each recorded as
 `reports/03_design/adr/adr-NNN-<slug>.md` under @rules/architecture-decision-records.md: allocate
 `ADR-` as `max + 1` over `work/traceability.json` and the directory (`redesign` registers the
-prefix; this skill appends), cite the `API-` / `CTX-` / `NFR-` nodes that drove the decision in `upstream` (never
+prefix; this skill appends), cite what drove the decision in `upstream` — typically `API-` / `CTX-` / `NFR-` nodes, or `reports/` paths on the legacy path, per the rule's §2 (never
 empty), list the alternatives rejected, append one `{ "type": "decision" }` node per record to
 the graph, regenerate `index.md`, and run
 `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/adr_records.py" <project_dir>` before completing. A

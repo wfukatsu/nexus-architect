@@ -92,7 +92,7 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 The decisions this skill makes that a later phase depends on — the service split and its granularity, the cross-service transaction mechanism named above, and synchronous versus event-driven integration per edge — are each recorded as
 `reports/03_design/adr/adr-NNN-<slug>.md` under @rules/architecture-decision-records.md: allocate
 `ADR-` as `max + 1` over `work/traceability.json` and the directory (`redesign` registers the
-prefix; this skill appends), cite the `CTX-` / `ARCH-` / `NFR-` nodes that drove the decision in `upstream` (never
+prefix; this skill appends), cite what drove the decision in `upstream` — typically `CTX-` / `ARCH-` / `NFR-` nodes, or `reports/` paths on the legacy path, per the rule's §2 (never
 empty), list the alternatives rejected, append one `{ "type": "decision" }` node per record to
 the graph, regenerate `index.md`, and run
 `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/adr_records.py" <project_dir>` before completing. A
