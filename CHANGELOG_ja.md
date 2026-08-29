@@ -7,6 +7,46 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.37.0] - 2026-08-29
+
+テスト駆動開発を前提にツールキットを再検証し、v0.36.0 のルールが宣言したまま接続されていなかった
+箇所と、ルールが届いていなかった領域を埋める。
+
+### 追加
+- **トランザクションシナリオの統合スイート。** `generate-scalardb-code` が `TX-` ごとに `*IT` を
+  生成する — happy path、OCC 競合、blind write、設計が使う場合の 2PC 失敗と Saga 補償、不確定
+  コミット — SQLite バックエンドのインプロセス ScalarDB 上で、`integrationTest` タスク
+  （`failOnNoMatchingTests`）付き。品質ゲートのステージ 4 が恒久的な `not-configured` ではなく
+  実体のあるスイートを持つ。`samples/scalardb-transaction-tests/` が参照形。
+- **`/architect:generate-acceptance-tests`。** `reports/07_test-specs/bdd-scenarios/` の Gherkin
+  シナリオに対する Cucumber-JVM ステップ定義（`RULE-` / `EX-` タグで束縛）、固定 `Clock` と Fake 上の
+  `api` / `application` ドライバ、未着地アイテムのシナリオは `@wip`（合否から除外し計数）、
+  `acceptanceTest` タスク、`reports/07_test-specs/acceptance-test-coverage.md` —
+  `rules/tdd-workflow.md` §3 の ATDD 外側ループを実行可能にする。拡張ティア 21 番目のスキル
+  （108 コマンド）。
+- **スイートのポリシー。** `rules/tdd-workflow.md` §6: 層別の実行時間予算（unit ≤ 60 秒、契約 ≤ 3 分、
+  統合 / 受入 / 特性 ≤ 10 分 — 超過は最遅 10 件を名指しで `major`）、層別テスト数の報告、
+  フレーキーテストの隔離（`@Tag("flaky")`、計数と経過日数、14 日で `major`、ゲートタスクでの
+  自動再試行は禁止）、ユビキタス言語によるテスト命名。ゲートがすべて記録し、`review-consistency` の
+  用語ディメンションがテスト名・シナリオ名を用語集と照合する。
+- **`/scalardb:*` と `/product:generate-frontend` のテスト。** `scaffold` が `src/test/`
+  （リポジトリポート + `InMemory*Repository` Fake、ユニットテスト、`ScalarDbTestBackend`、`*IT`）と
+  `integrationTest` タスクを配置。`build-app` は各操作のテストをサービスコードより先に書く。
+  `review-code` にテスト項目（実エンジン、OCC / blind write、DB なしでテスト可能か、弱められたテスト）。
+  `generate-frontend` は composed stories 上の Vitest + Testing Library テスト、ページのルーティング
+  テスト、Playwright のストーリーフロー smoke、`vitest.config.ts` の閾値を生成する。
+
+### 変更
+- **`review-issue` は修正の前に再現する。** 振る舞いのあるブロッカーはすべて `fix:` の前に失敗を
+  示した `test: reproduce <blocker>` コミットを持つ。振る舞いのないブロッカーは理由を記す。
+- **`export-backlog` が walking skeleton を出す。** 新サービスごとに `walking-skeleton` Issue を 1 件、
+  Sub-Epic の先頭に置き、兄弟がすべて前提として引用する。
+- **特性テストのゲート接続。** `implement-backlog` は移行ステップのアイテム着手前に
+  `characterizationTest` のベースラインを記録する（赤なら停止して安全網を生成）。ゲートのステージ 4 と
+  `verify-implementation` が事後に実行し、間に編集されたフィクスチャは Issue 上の決定になる。
+- **`docs/ddd-coverage(.ja).md`。** 残っていた △/× の TDD 3 行を ◎ に。統合スイート、再現テスト先行の
+  修正、フロントエンドテストの行を追加。
+
 ## [0.36.0] - 2026-08-29
 
 DDD × TDD の観点でツールキットを評価して見つかったギャップを埋める。生成されるテストは網羅的だったが、

@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.37.0] - 2026-08-29
+
+A second pass over the toolkit with test-driven development as the premise, closing what the
+v0.36.0 rules declared but did not connect, and the areas they did not reach.
+
+### Added
+- **Transaction-scenario integration suite.** `generate-scalardb-code` now emits one `*IT` per
+  `TX-` entry — happy path, OCC conflict, blind write, 2PC failure and saga compensation where the
+  design uses them, indeterminate commit — over an in-process SQLite-backed ScalarDB, with an
+  `integrationTest` task (`failOnNoMatchingTests`), so stage 4 of the quality gate has a suite
+  behind it instead of a permanent `not-configured`. `samples/scalardb-transaction-tests/` is
+  the reference shape.
+- **`/architect:generate-acceptance-tests`.** Cucumber-JVM step definitions for the Gherkin
+  scenarios in `reports/07_test-specs/bdd-scenarios/` (`RULE-` / `EX-` tag bound), an `api` or
+  `application` driver over the Fakes with a fixed `Clock`, `@wip` on scenarios whose item has not
+  landed (excluded from pass/fail, counted), an `acceptanceTest` task and
+  `reports/07_test-specs/acceptance-test-coverage.md` — the ATDD outer loop of
+  `rules/tdd-workflow.md` §3 made executable. Twenty-first extension-tier skill (108 commands).
+- **Suite policies.** `rules/tdd-workflow.md` §6: a runtime budget per layer (unit ≤ 60 s,
+  contract ≤ 3 min, integration / acceptance / characterization ≤ 10 min — over budget is a
+  `major` with the slowest ten named), tests per layer reported, a flaky-test quarantine
+  (`@Tag("flaky")`, counted and aged, `major` after 14 days, automatic retry never enabled on a
+  gate task) and ubiquitous-language test naming; the gate records all of it, and
+  `review-consistency`'s terminology dimension checks test and scenario names against the glossary.
+- **Tests in `/scalardb:*` and `/product:generate-frontend`.** `scaffold` lays out `src/test/`
+  (repository port + `InMemory*Repository` Fake, unit test, `ScalarDbTestBackend`, `*IT`) and the
+  `integrationTest` task; `build-app` writes each operation's tests before its service code;
+  `review-code` gains a Tests item (real engine, OCC / blind write, testable without a database,
+  weakened tests). `generate-frontend` emits Vitest + Testing Library tests over composed stories,
+  page routing tests, a Playwright story-flow smoke and `vitest.config.ts` thresholds.
+
+### Changed
+- **`review-issue` reproduces before fixing.** Every behavioural blocker gets a
+  `test: reproduce <blocker>` commit shown failing before its `fix:` commit; non-behavioural
+  blockers say why they skipped it.
+- **`export-backlog` emits the walking skeleton.** One `walking-skeleton` Issue per new service,
+  first in its Sub-Epic, cited by every sibling as its prerequisite.
+- **Characterization gate connected.** `implement-backlog` records the `characterizationTest`
+  baseline before a transformation-step item starts (red baseline → stop and generate the net);
+  stage 4 of the gate and `verify-implementation` run it after, and a fixture edited in between is
+  a decision on the Issue.
+- **`docs/ddd-coverage(.ja).md`.** The three remaining △/× TDD rows are ◎; rows added for the
+  integration suite, reproduce-first fixes and frontend tests.
+
 ## [0.36.0] - 2026-08-29
 
 Closes the gap a DDD × TDD review of the toolkit found: the tests it generated were exhaustive
