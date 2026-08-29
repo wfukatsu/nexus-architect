@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.35.1] - 2026-08-29
+
+### Fixed
+- **CI.** The contracts workflow installs `requirements.txt` before running the suites;
+  `tools/build_report.test.py` needs `markdown` and `pyyaml` and failed on the runner while
+  passing locally, so v0.35.0 was tagged against a red run.
+
 ## [0.35.0] - 2026-08-29
 
 What the first full pass over the sample project after v0.34 surfaced — `design-implementation`,
