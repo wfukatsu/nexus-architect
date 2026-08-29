@@ -7,6 +7,29 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.35.0] - 2026-08-29
+
+v0.34 以降にサンプルプロジェクトを通しで実行して（`design-implementation`・`generate-test-specs`・
+`review-consistency` 再実行・`review-synthesizer`・`report`・`review-report`）見つかったことと、それに伴う
+ツールキット側の変更。
+
+### 追加
+- **`tools/build-report.py`。** `/architect:report` は実行のたびに `full-report.html` を手書きし直さなくなった。
+  統合 HTML レポートはツールが生成する — 元文書 1 件 = 1 article（安定した id）、`before/`・`01`〜`04`・
+  `06_implementation`・`07_test-specs`（Gherkin `.feature` はコードとして）・`review/` のフェーズ節、
+  `review-synthesis.json` と Open Questions ストアからのエグゼクティブサマリー（レビュー未実行なら
+  その旨を表示）、docs-site の `node_modules` から同梱する Mermaid（キャッシュ → CDN の順にフォールバック）、
+  `options.output_language` による二言語の UI 文言、ページ h1 は 1 つ・文書は h3・本文は h4 から。
+  `tools/build_report.test.py` が描画契約を守る（35 検査）。report スキルの入力表に新設 2 ディレクトリを追加。
+
+### 修正
+- **生成文書の本文 H1。** `design-aggregate`・`design-state-machine` のテンプレートと `api-style-decisions.md`
+  の投影が、フロントマターの title を本文の `#` として繰り返していた（`rules/output-conventions.md` 違反。
+  プロジェクトあたり 9 文書 — review-consistency CON-110）。テンプレートと `tools/lib/api_style_decisions.py`
+  から除去し、コミット済みの参照セットを再生成、`reference-set.test.py` が「本文は `##` から」を検査する。
+- **ドキュメントサイト。** `reports/07_test-specs/bdd-scenarios/` の Gherkin `.feature` を、`public/` への
+  静的コピーではなくコードページとして表示する。
+
 ## [0.34.1] - 2026-08-29
 
 レポート一式に対する `tools/docs-site.sh` の初回実行で `blume validate` が出した 2 件の指摘。
