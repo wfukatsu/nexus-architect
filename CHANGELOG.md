@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
-## [Unreleased]
+## [0.33.4] - 2026-08-29
 
 Gaps the first end-to-end runs of `/architect:design-state-machine --auto` (STM-002 / STM-003 and
 the `STM-` write-back) and `/architect:design-scalardb` (ADRs, CQRS / ES section) surfaced.
