@@ -81,7 +81,7 @@ def build_fixture(root):
     #           the product pipeline's, so it is not read as this phase being done.
     # redesign: registry never left pending, both outputs present -> the other drift,
     #           and the files win over the unstamped entry
-    for name in ("bounded-contexts-redesign.md", "context-map.md"):
+    for name in ("bounded-contexts-redesign.md", "context-map.md", "adr/index.md"):
         write(os.path.join(root, "reports", "03_design", name))
 
     progress = {
@@ -396,10 +396,10 @@ def check_optional_dependency(root):
     proj = os.path.join(root, "optdep")
     base = time.time() - 3600
     docs = os.path.join(proj, "reports", "03_design")
-    write(os.path.join(docs, "bounded-contexts-redesign.md"))
-    write(os.path.join(docs, "context-map.md"))
-    for path in ("bounded-contexts-redesign.md", "context-map.md"):
+    for path in ("bounded-contexts-redesign.md", "context-map.md", "adr/index.md"):
+        write(os.path.join(docs, path))
         os.utime(os.path.join(docs, path), (base, base))
+    os.utime(os.path.join(docs, "adr"), (base, base))
     write(os.path.join(proj, "work", "pipeline-progress.json"), json.dumps({
         "project_name": "optdep", "options": {"scalardb_enabled": False},
         "phases": {"redesign": {"status": "completed"}}}))

@@ -10,6 +10,10 @@ and that every artifact path it cites is declared by a skill — in a SKILL.md, 
 output tree; a rule file merely discussing a path does not count. The **status** column is judgment
 and is reviewed by hand when a row's skill changes.
 
+A complete document set produced by these skills on the `ec-monolith` sample is committed under
+`samples/ec-monolith/expected-reports/` (the real `reports/` tree is git-ignored);
+`samples/ec-monolith/reference-set.test.py` keeps it valid and in step with this table.
+
 Status legend: ◎ dedicated skill or artifact with a defined procedure · ○ built into another
 skill · △ referenced, evaluated or partially produced, not a standalone method · × nothing.
 
@@ -21,7 +25,7 @@ skill · △ referenced, evaluated or partially produced, not a standalone metho
 | EventStorming — Big Picture | ◎ | `/product:map-domains --mode=event-storming` | `reports/03_domain/event-timeline.md` (session record; `CTX-` stay in `bounded-contexts.md`) |
 | EventStorming — Process Modeling | ◎ | `/product:create-domain-story --mode=event-storming`, `/architect:create-domain-story --mode=event-storming` | the story's Process Model section |
 | EventStorming — Software Design | ○ | `/architect:design-aggregate` | commands and events per aggregate |
-| Event Modeling | △ | state machines and aggregates carry events, commands and read models; no timeline-first artifact | — |
+| Event Modeling | × | deliberately not implemented — see below | — |
 | Knowledge crunching | ○ | the facilitated stages of the discovery skills, the ubiquitous language | — |
 | CRC cards | × | — | — |
 
@@ -34,8 +38,10 @@ skill · △ referenced, evaluated or partially produced, not a standalone metho
 | Bounded Context | ◎ | `/product:map-domains`, `/architect:redesign` | `reports/03_domain/bounded-contexts.md`, `reports/03_design/bounded-contexts-redesign.md` |
 | Bounded Context Canvas | ◎ | `/architect:redesign`, `/product:map-domains` | the per-context Canvas section of both artifacts |
 | Context Mapping | ◎ | `/architect:redesign`, `/product:map-domains` | `reports/03_design/context-map.md`, the Context Map in `bounded-contexts.md` |
+| Architecture Decision Records | ◎ | `/architect:redesign` opens the log; `/architect:design-microservices`, `/architect:design-scalardb`, `/architect:design-data-layer`, `/architect:design-api` append | `reports/03_design/adr/adr-NNN-<slug>.md` (`ADR-`), `reports/03_design/adr/index.md`, validated by `tools/lib/adr_records.py` |
 | Domain Vision Statement | ◎ | `/product:define-vision` | the Domain Vision Statement section of `reports/00_core/vision-mission-value.md` |
 | Core Domain investment guidance | ◎ | `/product:map-domains` | `reports/03_domain/domain-map.md` |
+| Published Language / event contracts between contexts | ◎ | `/architect:design-aggregate` writes, `/architect:design-microservices` completes the consumer side, `/architect:design-api` emits AsyncAPI from it | `reports/03_design/domain-event-catalog.json` + `.md` (publisher, consumers per context-map relationship, delivery contract), validated by `tools/lib/domain_event_catalog.py`; `reports/03_design/api-specifications/asyncapi/` |
 | Team topology / Conway alignment | ○ | `/architect:design-microservices` | `reports/03_design/target-architecture.md` |
 
 ## Tactical design
@@ -46,7 +52,7 @@ skill · △ referenced, evaluated or partially produced, not a standalone metho
 | Entity | ◎ | `/product:define-data-model`, `/architect:design-aggregate` | `reports/02_spec/data-model.md` (`ENT-`), aggregate members |
 | Value Object | ◎ | `/architect:design-aggregate` | aggregate members with `kind: value` and their validation rule |
 | Invariant | ◎ | `/architect:design-aggregate` | invariants with positive and negative examples, validated by `tools/lib/aggregate_manifest.py` |
-| Domain Event | ◎ | `/architect:design-aggregate`, `/architect:design-state-machine` | aggregate events, state-machine events |
+| Domain Event | ◎ | `/architect:design-aggregate`, `/architect:design-state-machine` | aggregate events, state-machine events, collected in `reports/03_design/domain-event-catalog.json` |
 | Factory | ○ | `/architect:design-aggregate` | the creation command and what must hold at birth |
 | Specification | ○ | `/architect:design-aggregate` | `specifications` per aggregate |
 | Repository | ◎ | `/architect:design-aggregate`, `/architect:design-implementation` | one repository per root; `reports/06_implementation/repository-interfaces-spec.md` |
@@ -76,8 +82,8 @@ skill · △ referenced, evaluated or partially produced, not a standalone metho
 | Contract testing | ◎ | `/architect:generate-contract-tests` | `generated/{service}/src/test/java/**/contract/` |
 | Property-based testing | ◎ | `/architect:generate-test-specs`, `/architect:generate-scalardb-code` | `reports/07_test-specs/property-test-specs.md`; jqwik properties per invariant |
 | Three Amigos session | × | a human meeting; the Example Mapping session is its artifact-producing part | — |
-| User Story Mapping | △ | journeys, jobs and features carry the content; no backbone / walking-skeleton artifact | — |
-| Impact Mapping | △ | success metrics → features traceability covers the chain; no dedicated map | — |
+| User Story Mapping | ○ | `/product:define-features` | the User Story Map section of `reports/02_spec/feature-list.md` — journey stages as backbone, `FEAT-` as stories, MoSCoW bands as release slices, Must as the walking skeleton |
+| Impact Mapping | × | deliberately not implemented — see below | — |
 
 ## Deliberately not implemented
 
@@ -86,6 +92,7 @@ skill · △ referenced, evaluated or partially produced, not a standalone metho
 | CRC cards | Superseded by the aggregate manifest, which records responsibilities and collaborators with a validator behind them |
 | Three Amigos | A meeting format, not an artifact; `/product:example-map` produces what the meeting would |
 | Impact Mapping | The `NSM-` → `FEAT-` traceability graph already answers "which deliverable serves which goal" |
+| Event Modeling | Its three lanes are already the artifacts: commands and events in the aggregate manifest, state transitions and the state × event matrix in the state-machine manifest, cross-context flow in the Domain Event Catalog, read models in the CQRS section. A timeline-first rendering would be a fourth view of the same manifests with no validator of its own; the catalog's publisher → consumer diagram is the swimlane view |
 
 ## Updating this table
 

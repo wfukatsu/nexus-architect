@@ -1,0 +1,127 @@
+# Architecture Decision Records
+
+Applies to every architect design skill that **decides** something a later phase, a backlog item or
+shipped code will depend on: `redesign`, `design-microservices`, `design-scalardb`,
+`design-data-layer`, `design-api`. Each of them already makes such decisions — a context boundary,
+a relationship pattern, a service split, a cross-service transaction mechanism, CQRS / Event
+Sourcing adoption, an API style — and each already records them somewhere: a prose section of its
+own report, `work/context.md` § Decisions, `api-style-decisions.json`. What was missing is the one
+place a reader (or `review-consistency`) can see **all** of them, with the alternatives that were
+rejected and why. That place is `reports/03_design/adr/`.
+
+## 1. What earns an ADR
+
+A decision earns a record when **all three** hold:
+
+1. It chooses between at least two viable alternatives — a fact ("the legacy DB is MySQL 8") is
+   not a decision, and a decision with one option is a constraint (record it in `constraints.md`).
+2. Reversing it later would rewrite an artifact downstream of the skill that made it.
+3. It is not already a machine-readable decision record of its own. `api-style-decisions.json`
+   (@rules/api-style-selection.md) is one; its ADR **links** to it and states the rationale at the
+   surface level, it does not restate the per-surface table.
+
+Typical records per skill:
+
+| Skill | Decisions it records |
+|-------|----------------------|
+| `redesign` | each bounded-context boundary that differs from the current code; each context relationship pattern (ACL, OHS/PL, Customer/Supplier, Conformist, Shared Kernel) |
+| `design-microservices` | the service split and its granularity; the cross-service transaction mechanism (shared cluster / Global Transaction API / application 2PC / Saga); synchronous vs. event-driven integration per edge |
+| `design-scalardb` / `design-data-layer` | ScalarDB edition, storage backend, partition-key strategy; CQRS adoption; Event Sourcing adoption |
+| `design-api` | the API style per surface (linking `api-style-decisions.json`); the error standard |
+
+## 2. Record shape
+
+One file per decision, `reports/03_design/adr/adr-NNN-<slug>.md` (`NNN` = the `ADR-` number,
+zero-padded to three digits; `<slug>` kebab-case), MADR-style. The frontmatter is the
+machine-readable part and is what `tools/lib/adr_records.py` validates:
+
+```markdown
+---
+id: ADR-003
+title: "Inventory reservation is a separate aggregate from stock"
+status: accepted
+skill: redesign
+decided_at: "2026-08-28"
+upstream: [CTX-002, AGG-002, NFR-004]
+supersedes: []
+schema_version: 1
+---
+
+## Context
+
+What forces are in play — the requirement, the constraint, the evaluation finding.
+
+## Decision
+
+One paragraph, in the active voice: "We will …".
+
+## Alternatives considered
+
+| Alternative | Why rejected |
+|-------------|--------------|
+| Reserve by decrementing the stock counter directly | No idempotency key; a retried request over-reserves |
+
+## Consequences
+
+What becomes easier, what becomes harder, what a later phase must now do (name the skill).
+```
+
+Field contracts:
+
+| Field | Rule |
+|-------|------|
+| `id` | `ADR-###`, unique across the directory, and equal to the `NNN` in the file name |
+| `title` | Present |
+| `status` | `proposed` \| `accepted` \| `superseded` \| `deprecated` |
+| `skill` | The architect skill that wrote it |
+| `decided_at` | ISO 8601 date |
+| `upstream` | **Non-empty.** The traceability nodes that drove the decision — a `CTX-`, `AGG-`, `STM-`, `FR-`, `NFR-`, `TECH-`, `ARCH-` or another `ADR-`. A decision that cites nothing is a preference, not a record; if nothing in the graph drove it, add the driver first (usually an `OQ-` answer or an `NFR-`) |
+| `supersedes` | `ADR-` ids this record replaces; every one must exist and carry `status: superseded` |
+
+Body headings are fixed — `Context`, `Decision`, `Alternatives considered`, `Consequences` — so
+the index can be regenerated and reviewers know where to look. Write the body in the project's
+`output_language`; keep the frontmatter keys and every ID in English.
+
+## 3. The index
+
+`reports/03_design/adr/index.md` is a **view** regenerated from the frontmatter whenever a record
+is added or changed — never edited as a source. One row per record, in ID order:
+
+| ID | Title | Status | Skill | Decided | Upstream |
+|----|-------|--------|-------|---------|----------|
+
+The validator checks every record appears in the index and the index names no record that does not
+exist.
+
+## 4. Allocation and traceability — the additive contract
+
+Five skills write into one directory, so the rules are the ones `work/traceability.json` and the
+Open Questions store already follow:
+
+- **Allocate `ADR-` as `max + 1` over the graph.** Read every `ADR-` node in
+  `work/traceability.json` (and every file in the directory), take the highest number, continue.
+  Never number from your own report.
+- **Append one node per record** to `work/traceability.json`:
+  ```json
+  { "id": "ADR-003", "type": "decision", "title": "…", "skill": "redesign",
+    "source_file": "reports/03_design/adr/adr-003-reservation-aggregate.md",
+    "upstream": ["CTX-002", "AGG-002", "NFR-004"] }
+  ```
+  `upstream` here equals the frontmatter `upstream`.
+- **Never rewrite another skill's record.** A later skill that disagrees writes a new record with
+  `supersedes: [ADR-old]` and sets the old one's `status: superseded` — the only field another
+  skill may touch.
+- **The prefix is registered once.** `redesign` declares `id_prefix: [ADR-]` in
+  `skills/common/skill-dependencies.yaml` because it is the first skill in the pipeline that
+  writes one; the other four append under that registration. This is the same shape as `NFR-`
+  across the product/architect boundary (@docs/design.md §1.5), inside one manifest.
+
+## 5. Verification
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/adr_records.py" <project_dir>   # exit 1 on violations
+```
+
+`review-consistency` runs it and treats every violation as a finding. `adapt-change` reaches `ADR-`
+nodes through the graph like any other architect-owned node and reports them rather than
+rewriting them (@docs/design.md §7.5).

@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+The DDD document-set check of 2026-08-29 (issues #32–#35): the four gaps between "the toolkit
+covers every DDD technique" and "a reader can see the complete document set".
+
+### Added
+- **Architecture Decision Records** (#32). `reports/03_design/adr/adr-NNN-<slug>.md` + `index.md`,
+  MADR-shaped with a machine-readable frontmatter. `redesign` opens the log and registers the
+  `ADR-` prefix; `design-microservices`, `design-scalardb` / `design-data-layer` and `design-api`
+  append under the same additive contract as `NFR-` — allocate `max + 1` over the graph, never
+  rewrite another skill's record, supersede instead. Every record cites a non-empty `upstream`
+  (a decision that cites nothing is a preference). `rules/architecture-decision-records.md` is the
+  contract, `tools/lib/adr_records.py` the validator (24-check suite), `review-consistency` runs
+  it. `ADR-` nodes are `type: decision` in `work/traceability.json`.
+- **Domain Event Catalog — the context map's Published Language** (#33).
+  `reports/03_design/domain-event-catalog.json` + `.md`: every event the aggregates declare, its
+  publisher, the contexts that consume it across which context-map relationship, and the delivery
+  contract (guarantee, idempotency key, version, evolution) a consumer may rely on. Derived from
+  the aggregate manifest and `context-map.md` — no new dialogue. `design-aggregate` writes it,
+  `design-microservices` completes the consumer side once the service split is known (whichever
+  runs second finishes it, as with the `STM-` link), and `design-api`'s `asyncapi/` is now emitted
+  from it rather than re-derived. `tools/lib/domain_event_catalog.py` validates it (35-check
+  suite): one publisher per event that really declares it, every declared event catalogued,
+  consumers that are declared contexts other than the publisher's, a delivery contract on every
+  published event. `review-consistency` runs it.
+- **User Story Map in `define-features`** (#34). `feature-list.md` now carries the map — journey
+  stages as backbone, `FEAT-` as stories, MoSCoW bands as release slices, Must as the walking
+  skeleton — as a second view of the consolidated features, deciding nothing new.
+
+- **A committed reference DDD document set** (#35). `samples/ec-monolith/expected-reports/` holds
+  what the DDD-relevant skills produce on the sample — ubiquitous language, Bounded Context
+  Canvases, context map, four ADRs, four aggregates with their manifest, the domain event
+  catalog, the Order state machine with its full matrix, the ScalarDB transaction design, a
+  domain story and an example map — outside the git-ignored `reports/` tree, so the document set
+  can be seen rather than inferred. `samples/ec-monolith/reference-set.test.py` stages it as a
+  project, runs the four manifest validators and both output hooks, and keeps it in step with
+  `docs/ddd-coverage.md` in both directions.
+
+### Changed
+- **`docs/ddd-coverage.md` takes a position on its three △ rows** (#34). User Story Mapping is ○
+  (above). Event Modeling and Impact Mapping move to *Deliberately not implemented* with the
+  reason: their content is already the manifests, the catalog and the traceability graph, and a
+  timeline or impact rendering would be another view with no validator of its own. The △ status
+  no longer appears in the table.
+
 ## [0.32.2] - 2026-08-28
 
 Three gaps the first end-to-end run of `/architect:design-aggregate --auto` (the `ec-monolith`

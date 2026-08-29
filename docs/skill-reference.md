@@ -50,9 +50,9 @@ For the inputs you should prepare before running each pipeline, see the
 | Command | Model | Condition | Description |
 |---------|-------|-----------|-------------|
 | `/architect:map-domains` | opus | - | Domain classification, BC mapping |
-| `/architect:redesign` | opus | - | Bounded context redesign |
+| `/architect:redesign` | opus | - | Bounded context redesign, context map, and the ADR log (`reports/03_design/adr/`) later design skills append to |
 | `/architect:create-domain-story` | opus | Optional | Domain Storytelling: visualize business processes per domain; `--mode=event-storming` runs the flow as a Process Modeling EventStorming session |
-| `/architect:design-aggregate` | opus | Optional | Tactical model per bounded context — aggregate root, interior entities, value objects, invariants with concrete examples, commands / events / factory / specifications, one repository per root, as the unit a transaction writes |
+| `/architect:design-aggregate` | opus | Optional | Tactical model per bounded context — aggregate root, interior entities, value objects, invariants with concrete examples, commands / events / factory / specifications, one repository per root, as the unit a transaction writes; plus the Domain Event Catalog (`reports/03_design/domain-event-catalog.json`) derived from their events |
 | `/architect:design-state-machine` | opus | Optional | State transition models per aggregate — states, guarded transitions, the full state x event matrix with no undecided cell, and the consistency class of every transition |
 | `/architect:design-microservices` | opus | - | Target architecture |
 | `/architect:select-scalardb-edition` | sonnet | ScalarDB | Edition selection |
@@ -212,7 +212,7 @@ Phase order and the `mvp`/`core-only`/`ux-to-spec`/`full` profiles are defined i
 | `/product:create-domain-story` | opus | 2. UX Foundation | Persona-anchored Domain Storytelling (actors=personas, activities=job stories ordered by journey); the axis the UI mocks render (optional); `--mode=event-storming` runs it as Process Modeling EventStorming |
 | `/product:design-system` | opus | 2. UX Foundation | Build or `--import` a separately-managed design system (DTCG tokens + components + guidelines); styles the UI mocks (optional, standalone) |
 | `/product:generate-ui-mock` | sonnet | 3. UX → Spec | Navigable UI mocks for key screens, driven by domain stories and styled by the design system (each activity → a screen, wired into a clickable story flow) |
-| `/product:define-features` | sonnet | 3. UX → Spec | Extract features from UI mocks (each screen action → Command/feature) |
+| `/product:define-features` | sonnet | 3. UX → Spec | Extract features from UI mocks (each screen action → Command/feature), laid out as a User Story Map (journey stages as backbone, MoSCoW bands as release slices) |
 | `/product:example-map` | opus | 3. UX → Spec | Example Mapping per feature — business rules (`RULE-`), one concrete example per rule on each side of its boundary (`EX-`), unsettled questions as `OQ-`; feeds the Gherkin, the aggregate invariants and the backlog acceptance criteria (optional) |
 | `/product:define-data-model` | opus | 3. UX → Spec | Derive the data model in two passes (explicit → implicit) |
 | `/product:generate-frontend` | sonnet | 3. UX → Spec | Turn UI mocks + design system into a runnable React + Storybook frontend (Atomic Design, token-styled, react-router) — selectable, end of spec phase |

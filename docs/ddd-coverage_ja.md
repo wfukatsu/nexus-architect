@@ -8,6 +8,10 @@
 引用する成果物パスがいずれかのスキル（SKILL.md・manifest・出力ツリー）で宣言されていることを検証します — rule ファイルがパスに言及しているだけでは宣言と見なしません。**状況**列は判断であり、
 行のスキルが変わったときに手で見直します。
 
+これらのスキルが `ec-monolith` サンプルに対して生成したドキュメント一式を
+`samples/ec-monolith/expected-reports/` にコミットしています（本来の `reports/` ツリーは git-ignore 対象）。
+`samples/ec-monolith/reference-set.test.py` がその妥当性とこの表との整合を保ちます。
+
 凡例: ◎ 専用スキルまたは手順の定義された成果物あり · ○ 他スキルに組み込み · △ 参照・評価・
 一部生成のみで独立した手法ではない · × なし。
 
@@ -19,7 +23,7 @@
 | EventStorming — Big Picture | ◎ | `/product:map-domains --mode=event-storming` | `reports/03_domain/event-timeline.md`（セッション記録。`CTX-` は `bounded-contexts.md` のみ） |
 | EventStorming — Process Modeling | ◎ | `/product:create-domain-story --mode=event-storming`, `/architect:create-domain-story --mode=event-storming` | ストーリーの Process Model 節 |
 | EventStorming — Software Design | ○ | `/architect:design-aggregate` | 集約ごとのコマンドとイベント |
-| Event Modeling | △ | 状態遷移と集約がイベント・コマンド・リードモデルを持つが、時系列起点の成果物はない | — |
+| Event Modeling | × | 意図的に実装しない — 下記参照 | — |
 | Knowledge crunching | ○ | 探索系スキルの対話ステージ、ユビキタス言語 | — |
 | CRC カード | × | — | — |
 
@@ -32,8 +36,10 @@
 | 境界づけられたコンテキスト | ◎ | `/product:map-domains`, `/architect:redesign` | `reports/03_domain/bounded-contexts.md`, `reports/03_design/bounded-contexts-redesign.md` |
 | Bounded Context Canvas | ◎ | `/architect:redesign`, `/product:map-domains` | 両成果物のコンテキストごとの Canvas 節 |
 | コンテキストマッピング | ◎ | `/architect:redesign`, `/product:map-domains` | `reports/03_design/context-map.md`、`bounded-contexts.md` の Context Map |
+| アーキテクチャ決定記録（ADR） | ◎ | `/architect:redesign` がログを開始し、`/architect:design-microservices`, `/architect:design-scalardb`, `/architect:design-data-layer`, `/architect:design-api` が追記 | `reports/03_design/adr/adr-NNN-<slug>.md`（`ADR-`）、`reports/03_design/adr/index.md`、`tools/lib/adr_records.py` で検証 |
 | Domain Vision Statement | ◎ | `/product:define-vision` | `reports/00_core/vision-mission-value.md` の Domain Vision Statement 節 |
 | Core Domain への投資方針 | ◎ | `/product:map-domains` | `reports/03_domain/domain-map.md` |
+| 公開ホスト言語（Published Language）/ コンテキスト間イベント契約 | ◎ | `/architect:design-aggregate` が書き、`/architect:design-microservices` が消費側を完成させ、`/architect:design-api` がそこから AsyncAPI を生成 | `reports/03_design/domain-event-catalog.json` + `.md`（発行者・コンテキストマップ関係ごとの消費者・配信契約）、`tools/lib/domain_event_catalog.py` で検証。`reports/03_design/api-specifications/asyncapi/` |
 | チームトポロジー / Conway 整合 | ○ | `/architect:design-microservices` | `reports/03_design/target-architecture.md` |
 
 ## 戦術設計
@@ -44,7 +50,7 @@
 | エンティティ | ◎ | `/product:define-data-model`, `/architect:design-aggregate` | `reports/02_spec/data-model.md`（`ENT-`）、集約メンバー |
 | 値オブジェクト | ◎ | `/architect:design-aggregate` | `kind: value` のメンバーと検証規則 |
 | 不変条件 | ◎ | `/architect:design-aggregate` | positive / negative の例付き不変条件。`tools/lib/aggregate_manifest.py` が検証 |
-| ドメインイベント | ◎ | `/architect:design-aggregate`, `/architect:design-state-machine` | 集約イベント、状態遷移イベント |
+| ドメインイベント | ◎ | `/architect:design-aggregate`, `/architect:design-state-machine` | 集約イベント、状態遷移イベント。`reports/03_design/domain-event-catalog.json` に集約 |
 | ファクトリ | ○ | `/architect:design-aggregate` | 生成コマンドと生成時に成り立つべき条件 |
 | 仕様（Specification） | ○ | `/architect:design-aggregate` | 集約ごとの `specifications` |
 | リポジトリ | ◎ | `/architect:design-aggregate`, `/architect:design-implementation` | ルートごとに 1 つ。`reports/06_implementation/repository-interfaces-spec.md` |
@@ -74,8 +80,8 @@
 | 契約テスト | ◎ | `/architect:generate-contract-tests` | `generated/{service}/src/test/java/**/contract/` |
 | プロパティベーステスト | ◎ | `/architect:generate-test-specs`, `/architect:generate-scalardb-code` | `reports/07_test-specs/property-test-specs.md`。不変条件ごとの jqwik プロパティ |
 | Three Amigos | × | 人間の会議体。Example Mapping セッションがその成果物側 | — |
-| ユーザーストーリーマッピング | △ | ジャーニー・ジョブ・フィーチャーが内容を持つが、backbone / walking skeleton の成果物はない | — |
-| インパクトマッピング | △ | 成功指標 → フィーチャーの traceability が連鎖を担う。専用マップはない | — |
+| ユーザーストーリーマッピング | ○ | `/product:define-features` | `reports/02_spec/feature-list.md` のユーザーストーリーマップ節 — ジャーニー段階をバックボーン、`FEAT-` をストーリー、MoSCoW 帯をリリーススライス、Must を walking skeleton とする |
+| インパクトマッピング | × | 意図的に実装しない — 下記参照 | — |
 
 ## 意図的に実装しないもの
 
@@ -84,6 +90,7 @@
 | CRC カード | 責務と協調者を検証器付きで記録する集約マニフェストで代替 |
 | Three Amigos | 会議形式であり成果物ではない。`/product:example-map` が会議の産物を生成する |
 | インパクトマッピング | `NSM-` → `FEAT-` の traceability グラフが「どの成果物がどの目標に効くか」に答える |
+| Event Modeling | 3 つのレーンはすでに成果物になっている: コマンドとイベントは集約 manifest、状態遷移と状態×イベント行列は状態遷移 manifest、コンテキスト横断の流れはドメインイベントカタログ、リードモデルは CQRS 節。時系列起点の描画は同じ manifest の 4 つ目のビューにすぎず固有のバリデータを持たない。カタログの発行者 → 消費者図がスイムレーン相当のビュー |
 
 ## この表の更新
 

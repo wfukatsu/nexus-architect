@@ -141,7 +141,7 @@ defects that surface much later and much more expensively.
 | `reports/03_design/api-specifications/openapi/` | REST API specifications — one per service |
 | `reports/03_design/api-specifications/graphql/` | GraphQL operation inventory here; detailed SDL and resolver/security/loading contracts from `/architect:design-graphql` |
 | `reports/03_design/api-specifications/grpc/` | Protobuf definitions |
-| `reports/03_design/api-specifications/asyncapi/` | Event specifications |
+| `reports/03_design/api-specifications/asyncapi/` | Event specifications — one channel per `published` event of `reports/03_design/domain-event-catalog.json` (the Domain Event Catalog is the source; name, payload, publisher and delivery are taken from it, never re-derived) |
 | `reports/03_design/api-specifications/problem-types.md` | Problem type registry (@rules/api-error-standard.md §2) — every error kind, its `type` URI, status, and whether retry is safe |
 | `reports/03_design/api-specifications/operation-contracts.md` | Per-operation table: `operationId`, authorization rule, idempotency obligation, timeout/retry budget, transaction placement, traced requirement IDs |
 | `reports/03_design/api-gateway-design.md` | Gateway design — routing, authentication, rate limiting |
@@ -189,6 +189,17 @@ the generated report.
 - Every ScalarDB exception kind reachable from an operation has a mapped problem type
   (@rules/api-error-standard.md §3), including the `transaction-status-unknown` branch (§3.1)
 - No second error envelope exists anywhere in the specifications
+
+## Architecture Decision Records
+
+The decisions this skill makes that a later phase depends on — the API style per surface (one record linking `api-style-decisions.json`, the canonical per-surface table it does not restate) and the error standard — are each recorded as
+`reports/03_design/adr/adr-NNN-<slug>.md` under @rules/architecture-decision-records.md: allocate
+`ADR-` as `max + 1` over `work/traceability.json` and the directory (`redesign` registers the
+prefix; this skill appends), cite the `API-` / `CTX-` / `NFR-` nodes that drove the decision in `upstream` (never
+empty), list the alternatives rejected, append one `{ "type": "decision" }` node per record to
+the graph, regenerate `index.md`, and run
+`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/adr_records.py" <project_dir>` before completing. A
+record you disagree with is superseded by a new one, never edited.
 
 ## Related Skills
 

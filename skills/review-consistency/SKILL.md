@@ -50,12 +50,27 @@ violation is a CON-2xx finding unless the model's Open Items already records it 
 the reviewers check that the schema's tables and the transaction design's TX- entries still follow
 the aggregate boundaries (one aggregate per `local` transaction, cross-aggregate writes classified).
 
+When `reports/03_design/domain-event-catalog.json` exists, run
+`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/domain_event_catalog.py" <project_dir>` first and pass its output to Task B.
+It checks the Published Language against the aggregate manifest — one publisher per event that
+really declares it, every declared event catalogued, consumers that are declared contexts other
+than the publisher's, a delivery contract on every published event. Each violation is a CON-2xx
+finding; the reviewers additionally check that every publisher → consumer edge in the catalog
+matches a relationship `context-map.md` draws, and that `asyncapi/` names no event the catalog lacks.
+
 When `reports/03_design/state-machines/state-machine-manifest.json` exists, run
 `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/state_machine_manifest.py" <project_dir>` first and pass its output to Task B.
 It mechanically checks the seven well-formedness rules of @rules/state-modeling.md §3, so the
 reviewers spend their judgment on whether the *design documents* still agree with the model rather
 than on re-deriving reachability by hand. Each violation it reports is a CON-2xx finding unless the
 model's Open Items already records it with an owner.
+
+When `reports/03_design/adr/` exists, run
+`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/adr_records.py" <project_dir>` first and pass its output to Task A.
+It checks the record contract of @rules/architecture-decision-records.md — every record cites a
+non-empty `upstream`, supersession chains close, the index equals the directory. Each violation is a
+CON-1xx finding; the reviewers additionally check that no `ADR-` cites an `upstream` id absent from
+`work/traceability.json` and that a decision a design document states in prose has its record.
 
 ### Step 2: Spawn Three Parallel Dimension Reviewers
 

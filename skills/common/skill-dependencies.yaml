@@ -84,10 +84,16 @@ phases:
   # Phase: Design
   redesign:
     category: design
+    # ADR- is registered here because redesign is the first design skill that writes a record;
+    # design-microservices, design-scalardb / design-data-layer and design-api append to the same
+    # directory under this registration (rules/architecture-decision-records.md §4).
+    id_prefix: [ADR-]
     depends_on: [integrate-evaluations]
     outputs:
       - reports/03_design/bounded-contexts-redesign.md
       - reports/03_design/context-map.md
+      - reports/03_design/adr/
+      - reports/03_design/adr/index.md
     model: opus
 
   map-domains:
@@ -115,6 +121,8 @@ phases:
     outputs:
       - reports/03_design/aggregates/
       - reports/03_design/aggregates/aggregate-manifest.json
+      - reports/03_design/domain-event-catalog.md
+      - reports/03_design/domain-event-catalog.json
     model: opus
 
   design-state-machine:

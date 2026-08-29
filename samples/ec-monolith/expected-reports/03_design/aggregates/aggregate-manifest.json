@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-29T02:00:00Z",
+  "mode": "auto",
+  "aggregates": [
+    {
+      "id": "AGG-001",
+      "name": "Order",
+      "bounded_context": "Ordering",
+      "document": "reports/03_design/aggregates/aggregate-order.md",
+      "root": "Order",
+      "members": [
+        { "name": "Order", "kind": "root", "identity": "OrderId" },
+        { "name": "OrderLine", "kind": "entity", "identity": "LineNo (local to Order)" },
+        { "name": "Money", "kind": "value", "validation": "amount >= 0, scale 0, currency JPY" },
+        { "name": "ProductSnapshot", "kind": "value", "validation": "productId, name and unitPrice copied at placement" },
+        { "name": "customerId", "kind": "reference", "references": "Customer" },
+        { "name": "paymentId", "kind": "reference", "references": "Payment" }
+      ],
+      "invariants": [
+        {
+          "id": "INV-1",
+          "statement": "totalAmount equals the sum of every line's unitPrice x quantity",
+          "violated_by": ["place", "addLine", "removeLine"],
+          "examples": [
+            { "kind": "positive", "given": "a Draft order with one line of 1,200 JPY x 2", "when": "addLine(product 7, 800 JPY x 1)", "then": "totalAmount 3,200 JPY, OrderLineAdded" },
+            { "kind": "negative", "given": "a Draft order with one line of 1,200 JPY x 2", "when": "addLine with quantity 0", "then": "rejected: invalid-quantity, total unchanged" }
+          ]
+        },
+        {
+          "id": "INV-2",
+          "statement": "an order has at least one line once it leaves Draft",
+          "violated_by": ["place", "removeLine"],
+          "examples": [
+            { "kind": "positive", "given": "a Draft order with two lines", "when": "removeLine(2)", "then": "one line remains, OrderLineRemoved" },
+            { "kind": "negative", "given": "a Draft order with one line", "when": "place", "then": "allowed — but removeLine(1) first is rejected: order-would-be-empty" }
+          ]
+        },
+        {
+          "id": "INV-3",
+          "statement": "lines are frozen once the order is Placed — no line may be added, removed or requantified",
+          "violated_by": ["addLine", "removeLine"],
+          "examples": [
+            { "kind": "positive", "given": "a Draft order", "when": "addLine(product 3, qty 1)", "then": "line added" },
+            { "kind": "negative", "given": "a Placed order", "when": "addLine(product 3, qty 1)", "then": "rejected: order-not-editable" }
+          ]
+        },
+        {
+          "id": "INV-4",
+          "statement": "a Confirmed order references exactly one successful Payment",
+          "violated_by": ["confirm"],
+          "examples": [
+            { "kind": "positive", "given": "a Placed order and PaymentCaptured for it", "when": "confirm(paymentId)", "then": "status Confirmed, paymentId set, OrderConfirmed" },
+            { "kind": "negative", "given": "a Placed order with no captured payment", "when": "confirm(null)", "then": "rejected: payment-required" }
+          ]
+        }
+      ],
+      "commands": [
+        { "name": "place", "creation": true, "actor": "Customer", "guard": "cart has at least one line and every line quantity >= 1", "preserves": ["INV-1", "INV-2"], "emits": "OrderPlaced", "consistency": "local" },
+        { "name": "addLine", "actor": "Customer", "guard": "status is Draft", "preserves": ["INV-1", "INV-3"], "emits": "OrderLineAdded", "consistency": "local" },
+        { "name": "removeLine", "actor": "Customer", "guard": "status is Draft and more than one line remains", "preserves": ["INV-1", "INV-2", "INV-3"], "emits": "OrderLineRemoved", "consistency": "local" },
+        { "name": "confirm", "actor": "Payment context (reaction to PaymentCaptured)", "guard": "status is Placed and a captured payment exists", "preserves": ["INV-4"], "emits": "OrderConfirmed", "consistency": "saga" },
+        { "name": "cancel", "actor": "Customer or Payment context (reaction to PaymentDeclined)", "guard": "status is Placed or Confirmed and not yet Shipped", "preserves": [], "emits": "OrderCancelled", "consistency": "saga" },
+        { "name": "ship", "actor": "Warehouse operator", "guard": "status is Confirmed and every line is reserved", "preserves": [], "emits": "OrderShipped", "consistency": "local" },
+        { "name": "deliver", "actor": "Carrier webhook", "guard": "status is Shipped", "preserves": [], "emits": "OrderDelivered", "consistency": "local" }
+      ],
+      "events": [
+        { "name": "OrderPlaced", "payload": ["orderId", "customerId", "lines[].productId", "lines[].quantity", "totalAmount"] },
+        { "name": "OrderLineAdded", "payload": ["orderId", "lineNo", "productId", "quantity"] },
+        { "name": "OrderLineRemoved", "payload": ["orderId", "lineNo"] },
+        { "name": "OrderConfirmed", "payload": ["orderId", "paymentId"] },
+        { "name": "OrderCancelled", "payload": ["orderId", "reason"] },
+        { "name": "OrderShipped", "payload": ["orderId", "shippedAt"] },
+        { "name": "OrderDelivered", "payload": ["orderId", "deliveredAt", "totalAmount"] }
+      ],
+      "specifications": [
+        { "name": "CanBeShipped", "predicate": "status is Confirmed and every line has a Confirmed reservation", "used_by": ["ship", "shippable-orders query"] }
+      ],
+      "repository": { "root": "Order", "lookups": ["byId", "byCustomerAndStatus"], "loads_whole_aggregate": true },
+      "state_machine": "STM-001"
+    },
+    {
+      "id": "AGG-002",
+      "name": "StockItem",
+      "bounded_context": "Inventory",
+      "document": "reports/03_design/aggregates/aggregate-stock-item.md",
+      "root": "StockItem",
+      "members": [
+        { "name": "StockItem", "kind": "root", "identity": "ProductId" },
+        { "name": "Quantity", "kind": "value", "validation": "integer >= 0" },
+        { "name": "productId", "kind": "reference", "references": "Product" }
+      ],
+      "invariants": [
+        {
+          "id": "INV-1",
+          "statement": "reserved never exceeds onHand",
+          "violated_by": ["reserve", "adjust"],
+          "examples": [
+            { "kind": "positive", "given": "onHand 50, reserved 48", "when": "reserve(2)", "then": "reserved 50, StockReserved" },
+            { "kind": "negative", "given": "onHand 50, reserved 49", "when": "reserve(2)", "then": "rejected: insufficient-stock, reserved 49" }
+          ]
+        },
+        {
+          "id": "INV-2",
+          "statement": "reserved equals the sum of quantities of this product's Pending and Confirmed reservations",
+          "violated_by": ["reserve", "release", "commit"],
+          "examples": [
+            { "kind": "positive", "given": "reserved 5 with reservations of 3 and 2", "when": "release(reservation of 2)", "then": "reserved 3, one reservation Released" },
+            { "kind": "negative", "given": "reserved 5 with reservations of 3 and 2", "when": "release(an already Released reservation)", "then": "ignored — reserved stays 5, no second decrement" }
+          ]
+        }
+      ],
+      "commands": [
+        { "name": "register", "creation": true, "actor": "Catalog context (reaction to ProductRegistered)", "guard": "no StockItem for productId", "preserves": ["INV-1"], "emits": "StockItemRegistered", "consistency": "saga" },
+        { "name": "reserve", "actor": "Ordering context (reaction to OrderPlaced)", "guard": "onHand - reserved >= quantity", "preserves": ["INV-1", "INV-2"], "emits": "StockReserved", "consistency": "local", "also_writes": ["Reservation"] },
+        { "name": "release", "actor": "Ordering context (reaction to OrderCancelled)", "guard": "reservation is Pending or Confirmed", "preserves": ["INV-2"], "emits": "StockReleased", "consistency": "local", "also_writes": ["Reservation"] },
+        { "name": "commit", "actor": "Ordering context (reaction to OrderShipped)", "guard": "reservation is Confirmed", "preserves": ["INV-1", "INV-2"], "emits": "StockCommitted", "consistency": "local", "also_writes": ["Reservation"] },
+        { "name": "adjust", "actor": "Warehouse operator", "guard": "new onHand >= reserved", "preserves": ["INV-1"], "emits": "StockAdjusted", "consistency": "local" }
+      ],
+      "events": [
+        { "name": "StockItemRegistered", "payload": ["productId", "onHand"] },
+        { "name": "StockReserved", "payload": ["productId", "orderId", "reservationId", "quantity"] },
+        { "name": "StockReleased", "payload": ["productId", "orderId", "reservationId", "quantity"] },
+        { "name": "StockCommitted", "payload": ["productId", "orderId", "reservationId", "quantity"] },
+        { "name": "StockAdjusted", "payload": ["productId", "onHand", "reason"] }
+      ],
+      "specifications": [
+        { "name": "HasAvailable", "predicate": "onHand - reserved >= requested quantity", "used_by": ["reserve", "product availability query"] }
+      ],
+      "repository": { "root": "StockItem", "lookups": ["byProductId"], "loads_whole_aggregate": true }
+    },
+    {
+      "id": "AGG-003",
+      "name": "Reservation",
+      "bounded_context": "Inventory",
+      "document": "reports/03_design/aggregates/aggregate-reservation.md",
+      "root": "Reservation",
+      "members": [
+        { "name": "Reservation", "kind": "root", "identity": "ReservationId (= orderId + productId)" },
+        { "name": "Quantity", "kind": "value", "validation": "integer >= 1" },
+        { "name": "orderId", "kind": "reference", "references": "Order" },
+        { "name": "productId", "kind": "reference", "references": "StockItem" }
+      ],
+      "invariants": [
+        {
+          "id": "INV-1",
+          "statement": "at most one reservation exists per (orderId, productId) — a retried OrderPlaced never creates a second one",
+          "violated_by": ["open"],
+          "examples": [
+            { "kind": "positive", "given": "no reservation for (order 9, product 3)", "when": "open(order 9, product 3, qty 2)", "then": "reservation Pending" },
+            { "kind": "negative", "given": "a Pending reservation for (order 9, product 3)", "when": "open(order 9, product 3, qty 2) redelivered", "then": "ignored — the existing reservation is returned, no second row" }
+          ]
+        },
+        {
+          "id": "INV-2",
+          "statement": "quantity is fixed at opening; release and commit carry no quantity argument",
+          "violated_by": ["open"],
+          "examples": [
+            { "kind": "positive", "given": "a Pending reservation of 2", "when": "commitReservation", "then": "Committed with quantity 2" },
+            { "kind": "negative", "given": "an open request with quantity 0", "when": "open", "then": "rejected: invalid-quantity" }
+          ]
+        }
+      ],
+      "commands": [
+        { "name": "open", "creation": true, "actor": "StockItem.reserve (same transaction)", "guard": "no reservation for (orderId, productId)", "preserves": ["INV-1", "INV-2"], "emits": "none", "consistency": "local" },
+        { "name": "releaseReservation", "actor": "StockItem.release (same transaction)", "guard": "status is Pending or Confirmed", "preserves": [], "emits": "none", "consistency": "local" },
+        { "name": "commitReservation", "actor": "StockItem.commit (same transaction)", "guard": "status is Confirmed", "preserves": ["INV-2"], "emits": "none", "consistency": "local" },
+        { "name": "confirmReservation", "actor": "Ordering context (reaction to OrderConfirmed)", "guard": "status is Pending", "preserves": [], "emits": "none", "consistency": "local" }
+      ],
+      "events": [],
+      "specifications": [],
+      "repository": { "root": "Reservation", "lookups": ["byOrderAndProduct", "byOrder"], "loads_whole_aggregate": true }
+    },
+    {
+      "id": "AGG-004",
+      "name": "Payment",
+      "bounded_context": "Payment",
+      "document": "reports/03_design/aggregates/aggregate-payment.md",
+      "root": "Payment",
+      "members": [
+        { "name": "Payment", "kind": "root", "identity": "PaymentId" },
+        { "name": "Money", "kind": "value", "validation": "amount >= 0, scale 0, currency JPY" },
+        { "name": "CardReference", "kind": "value", "validation": "last four digits and PSP token only — never the PAN" },
+        { "name": "IdempotencyKey", "kind": "value", "validation": "orderId + attempt, unique per PSP call" },
+        { "name": "orderId", "kind": "reference", "references": "Order" }
+      ],
+      "invariants": [
+        {
+          "id": "INV-1",
+          "statement": "at most one Captured payment exists per orderId",
+          "violated_by": ["authorize", "capture"],
+          "examples": [
+            { "kind": "positive", "given": "no payment for order 9", "when": "authorize(order 9, 3,200 JPY)", "then": "Authorized, PaymentAuthorized" },
+            { "kind": "negative", "given": "a Captured payment for order 9", "when": "authorize(order 9, 3,200 JPY) redelivered", "then": "ignored — existing payment returned, PSP not called" }
+          ]
+        },
+        {
+          "id": "INV-2",
+          "statement": "the captured amount equals the authorized amount",
+          "violated_by": ["capture"],
+          "examples": [
+            { "kind": "positive", "given": "Authorized for 3,200 JPY", "when": "capture", "then": "Captured 3,200 JPY, PaymentCaptured" },
+            { "kind": "negative", "given": "Authorized for 3,200 JPY", "when": "capture with amount 3,000 JPY", "then": "rejected: amount-mismatch" }
+          ]
+        },
+        {
+          "id": "INV-3",
+          "statement": "a refund never exceeds the captured amount and is issued at most once",
+          "violated_by": ["refund"],
+          "examples": [
+            { "kind": "positive", "given": "Captured 3,200 JPY", "when": "refund", "then": "Refunded 3,200 JPY, PaymentRefunded" },
+            { "kind": "negative", "given": "Refunded", "when": "refund redelivered", "then": "ignored — no second PSP call" }
+          ]
+        }
+      ],
+      "commands": [
+        { "name": "authorize", "creation": true, "actor": "Ordering context (reaction to OrderPlaced)", "guard": "no Captured payment for orderId; PSP accepts the idempotency key", "preserves": ["INV-1"], "emits": "PaymentAuthorized", "consistency": "saga" },
+        { "name": "decline", "actor": "PSP response", "guard": "status is Requested", "preserves": [], "emits": "PaymentDeclined", "consistency": "saga" },
+        { "name": "capture", "actor": "PSP response", "guard": "status is Authorized and amount equals authorized amount", "preserves": ["INV-1", "INV-2"], "emits": "PaymentCaptured", "consistency": "saga" },
+        { "name": "refund", "actor": "Ordering context (reaction to OrderCancelled after capture)", "guard": "status is Captured", "preserves": ["INV-3"], "emits": "PaymentRefunded", "consistency": "saga" }
+      ],
+      "events": [
+        { "name": "PaymentAuthorized", "payload": ["paymentId", "orderId", "amount"] },
+        { "name": "PaymentDeclined", "payload": ["paymentId", "orderId", "reason"] },
+        { "name": "PaymentCaptured", "payload": ["paymentId", "orderId", "amount"] },
+        { "name": "PaymentRefunded", "payload": ["paymentId", "orderId", "amount"] }
+      ],
+      "specifications": [],
+      "repository": { "root": "Payment", "lookups": ["byId", "byOrderId", "byIdempotencyKey"], "loads_whole_aggregate": true }
+    }
+  ]
+}

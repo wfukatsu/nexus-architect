@@ -121,6 +121,17 @@ table-count drift and namespace-name variants at the source:
 python3 "${CLAUDE_PLUGIN_ROOT}/tools/validate-cross-references.py" .
 ```
 
+## Architecture Decision Records
+
+The decisions this skill makes that a later phase depends on — the ScalarDB edition and storage backend, the partition-key strategy, and the CQRS / Event Sourcing adoption verdicts — are each recorded as
+`reports/03_design/adr/adr-NNN-<slug>.md` under @rules/architecture-decision-records.md: allocate
+`ADR-` as `max + 1` over `work/traceability.json` and the directory (`redesign` registers the
+prefix; this skill appends), cite the `AGG-` / `STM-` / `NFR-` / `TECH-` nodes that drove the decision in `upstream` (never
+empty), list the alternatives rejected, append one `{ "type": "decision" }` node per record to
+the graph, regenerate `index.md`, and run
+`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/adr_records.py" <project_dir>` before completing. A
+record you disagree with is superseded by a new one, never edited.
+
 ## Related Skills
 
 | Skill | Relationship |

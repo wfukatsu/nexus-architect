@@ -7,6 +7,44 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+2026-08-29 の DDD ドキュメント一式チェック（Issue #32〜#35）で見つかった、「全 DDD 手法をカバーしている」と
+「読者が完全なドキュメント一式を見られる」の間の 4 つのギャップ。
+
+### Added
+- **アーキテクチャ決定記録（ADR）**（#32）。`reports/03_design/adr/adr-NNN-<slug>.md` + `index.md`、
+  機械可読なフロントマター付きの MADR 形式。`redesign` がログを開き `ADR-` プレフィックスを登録し、
+  `design-microservices`・`design-scalardb` / `design-data-layer`・`design-api` が `NFR-` と同じ追記型契約で
+  追記する — グラフ全体の `max + 1` で採番、他スキルの記録は書き換えず supersede する。すべての記録は
+  空でない `upstream` を引用する（何も引用しない決定は好みであって記録ではない）。契約は
+  `rules/architecture-decision-records.md`、バリデータは `tools/lib/adr_records.py`（24 チェックのスイート）、
+  `review-consistency` が実行する。`ADR-` ノードは `work/traceability.json` に `type: decision` で追加される。
+- **ドメインイベントカタログ — コンテキストマップの Published Language**（#33）。
+  `reports/03_design/domain-event-catalog.json` + `.md`: 集約が宣言する全イベント、その発行者、どのコンテキストマップ関係で
+  どのコンテキストが消費するか、消費側が依拠できる配信契約（保証・冪等キー・バージョン・進化ルール）。
+  集約 manifest と `context-map.md` から導出し、新たな対話は不要。`design-aggregate` が書き、サービス分割が
+  決まった時点で `design-microservices` が消費側を完成させる（`STM-` リンクと同じく後に走った方が完成させる）。
+  `design-api` の `asyncapi/` は再導出ではなくこのカタログから生成する。`tools/lib/domain_event_catalog.py` が
+  検証する（35 チェックのスイート）: イベントごとに宣言している発行者が 1 つ、宣言済みイベントは全て掲載、
+  消費者は発行者以外の宣言済みコンテキスト、published イベントには配信契約。`review-consistency` が実行する。
+- **`define-features` のユーザーストーリーマップ**（#34）。`feature-list.md` にマップを持つ — ジャーニー段階を
+  バックボーン、`FEAT-` をストーリー、MoSCoW 帯をリリーススライス、Must を walking skeleton とする、統合済み
+  フィーチャーの第 2 のビューであり、新たな決定はしない。
+
+- **コミット済みの参照 DDD ドキュメント一式**（#35）。`samples/ec-monolith/expected-reports/` に、DDD 関連スキルが
+  サンプルに対して生成する成果物 — ユビキタス言語、Bounded Context Canvas、コンテキストマップ、ADR 4 件、
+  manifest 付きの集約 4 件、ドメインイベントカタログ、全行列付きの Order 状態遷移、ScalarDB トランザクション設計、
+  ドメインストーリー、Example Map — を git-ignore 対象の `reports/` の外に置き、ドキュメント一式を推測ではなく
+  目で確認できるようにした。`samples/ec-monolith/reference-set.test.py` がプロジェクトとしてステージし、
+  4 つの manifest バリデータと 2 つの出力フックを実行し、`docs/ddd-coverage.md` との双方向の整合を保つ。
+
+### Changed
+- **`docs/ddd-coverage.md` が △ の 3 行に態度を決めた**（#34）。ユーザーストーリーマッピングは ○（上記）。
+  Event Modeling とインパクトマッピングは理由付きで「意図的に実装しないもの」へ移動: 内容はすでに manifest・
+  カタログ・traceability グラフにあり、時系列や影響の描画は固有のバリデータを持たない別ビューにすぎない。
+  表から △ は消えた。
+
 ## [0.32.2] - 2026-08-28
 
 `/architect:design-aggregate --auto` を初めて通しで走らせて（`ec-monolith` サンプル — `Order` /

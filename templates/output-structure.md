@@ -41,12 +41,18 @@ reports/
 │   ├── scalardb-migration.md      # Only when ScalarDB is enabled
 │   ├── data-layer-design.md       # Only when ScalarDB is disabled
 │   ├── api-gateway-design.md
+│   ├── domain-event-catalog.json  # design-aggregate writes; design-microservices completes consumers
+│   ├── domain-event-catalog.md    # Projection of the .json — the context map's Published Language
 │   ├── aggregates/                # design-aggregate (optional)
 │   │   ├── aggregate-{aggregate}.md       # One file per modeled aggregate
 │   │   └── aggregate-manifest.json        # Canonical machine-readable model
 │   ├── state-machines/            # design-state-machine (optional)
 │   │   ├── state-machine-{aggregate}.md   # One file per modeled aggregate
 │   │   └── state-machine-manifest.json    # Canonical machine-readable model
+│   ├── adr/                       # redesign opens; design-microservices, design-scalardb /
+│   │   │                          # design-data-layer, design-api append
+│   │   ├── adr-NNN-{slug}.md              # One Architecture Decision Record per decision (ADR-)
+│   │   └── index.md                       # View regenerated from the records' frontmatter
 │   └── api-specifications/
 │       ├── openapi/
 │       ├── graphql/
