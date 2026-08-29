@@ -207,7 +207,9 @@ class LinkRewriter:
             route = route_for(resolved)  # a report that does not exist (yet): keep it a route
         if route is None:
             return m.group(0)
-        if anchor:
+        # Reports cite sections by number (`scalardb-schema.md#9.5`); Blume anchors are heading
+        # slugs, so a numeric anchor would be a broken link — point at the page instead.
+        if anchor and not re.fullmatch(r"\d+(\.\d+)*", anchor):
             route += "#" + anchor
         return f"{head}{route}{tail}"
 
