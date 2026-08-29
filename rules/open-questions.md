@@ -109,6 +109,15 @@ Consequences that are easy to get wrong:
   whole store. Both pipelines write it, so an ID chosen by scanning only your own reports collides:
   product minting `OQ-004` and architect minting `OQ-004` for different questions produces two
   questions with one ID and no way to tell them apart afterwards.
+- **Allocate at the moment of writing, and re-read first.** Skills run in parallel (the review
+  phase, two design skills side by side), and two of them reading `max + 1` in the same window mint
+  the same ID. Read the store immediately before appending, append at once, and re-read after your
+  last write of the run: an ID that another skill took meanwhile is **yours to renumber** (the
+  entry you wrote later), with every view you rendered re-rendered. No skill holds a reservation.
+- **A band answer leaves a number open.** When the recorded answer is a band or a condition ("a
+  grace period, length TBD"), the question is `answered` and the concrete value is a **new** entry
+  that cites it (`OQ-023: the grace period in minutes — follows OQ-011`); a later skill writes
+  `TBD (OQ-023)`, never `TBD (OQ-011)` for an answered question.
 - **Answer in the store, then re-render the views.** Updating a view alone loses the answer the
   moment anything reads the store — which is what the next skill does at its read-context step (§7).
 - **A view never holds a row the store does not.** If a skill has a question worth writing into its

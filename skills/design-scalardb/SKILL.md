@@ -34,10 +34,10 @@ Design a data architecture leveraging ScalarDB:
   `review-scalardb` / `review-data-integrity` check the section that records this; a design that is
   silent on it is reviewed as *undecided*, not as *not needed*
 - Design keys targeting an OCC conflict rate below 5%
-- Select storage backend based on requirements (JDBC/Cassandra/DynamoDB, etc.)
+- Select storage backend based on requirements (JDBC/Cassandra/DynamoDB, etc.) — the **product** is this skill's decision (recorded as an ADR); its version, HA topology and managed-service choice are `design-infrastructure`'s
 - Do not use DB-specific features on ScalarDB-managed tables
 
-### Read Model, CQRS and Event Sourcing Decisions (one row per aggregate, in `scalardb-schema.md`)
+### Read Model, CQRS and Event Sourcing Decisions (one row per aggregate, in `scalardb-schema.md` — appended as its own section; on a re-run never renumber the sections other documents cite by number)
 
 | Aggregate | Read model | CQRS | Event sourcing | Reason | Cost stated |
 |-----------|-----------|------|----------------|--------|-------------|
@@ -96,7 +96,7 @@ Edition comparison and version support: @rules/scalardb-edition-profiles.md
 | reports/01_analysis/data-model-analysis.md | Recommended | /architect:analyze-data-model |
 | reports/03_design/aggregates/aggregate-manifest.json | Optional | /architect:design-aggregate — the aggregate as OCC scope and partition-key unit, interior entities and value objects as one aggregate's tables/columns, one repository per root |
 | reports/03_design/state-machines/state-machine-manifest.json | Optional | /architect:design-state-machine — the state column and its OCC scope, the transition history store, and the per-transition consistency class that fixes which transitions sit in one transaction (@rules/state-modeling.md §5–6) |
-| reports/04_quality/nfr.md | Optional | /product:define-nfr — read-latency and reporting targets for the Read Model / CQRS / Event Sourcing decision; absent (pure-architect path), take them from `requirements-definition.md`'s NFR table, and ask what neither states (@rules/open-questions.md) — never assume a target |
+| reports/04_quality/nfr.md | Optional | /product:define-nfr — read-latency and reporting targets for the Read Model / CQRS / Event Sourcing decision; absent (pure-architect path), take them from `requirements-definition.md`'s NFR table, and ask what neither states (@rules/open-questions.md) — never assume a target. Under `--auto` on the legacy path, where neither file exists and nothing can be asked, decide the row from the access paths and contention evidence the reports carry, mark the row `assumed`, and record one `unasked` `OQ-` carrying the target that would have been asked — the decision is revisited when it is answered |
 
 ## Available Resources
 
@@ -120,6 +120,11 @@ table-count drift and namespace-name variants at the source:
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/tools/validate-cross-references.py" .
 ```
+
+The lint is project-wide; fix every finding **in a file this run wrote**, and report the ones in
+other skills' files under Open Items with the owning skill named — they are not this phase's
+failure and not yours to edit (@rules/architecture-decision-records.md §4 applies to documents
+too).
 
 ## Architecture Decision Records
 

@@ -55,6 +55,26 @@ same request (same idempotency key). Every cell in that column is therefore deci
 command's idempotency contract — `ignore` (return the original outcome) where the API replays, and
 never `allow`, since a fresh request creates a fresh aggregate and reaches no existing one.
 
+Two shapes the paragraph above does not cover, both decided explicitly rather than by default:
+
+- **Business-keyed aggregates.** When the identity is a business key (`Reservation` =
+  `orderId + productId`, `Payment` = `orderId`), a *fresh* request can reach an existing aggregate
+  — a second `charge` for the same order. The creation column then carries one verdict for the
+  whole column, chosen from the aggregate's own uniqueness invariant: `ignore` (return the existing
+  one — the idempotent-create reading) or `reject` (a registered problem type such as
+  `already-exists`). Say which and why in the document.
+- **Create-then-confirm factories.** A command that creates the aggregate in a provisional state
+  and later settles it on an external answer (`charge` → `PENDING`, PSP reply → `SUCCESS`) is
+  **two** events: the creation (no `from`, per above) and the settling event, named from the API
+  or the ubiquitous language (`record_payment`) — and proposed as a UL addition when neither names
+  it. One verb doing both violates rule 1 (creation appears in a transition).
+
+A guard that reads **another aggregate's** state (`pivot_passed` on the order process while
+expiring a reservation) is a specification that aggregate exposes, evaluated on a read in the same
+transaction when both live on one datastore and on a snapshot otherwise; name the aggregate and the
+read in the transition's `guard`, and expect `review-consistency` to check the direction agrees
+with the context map.
+
 ## 3. Well-formedness rules
 
 A state machine is not written out until all seven hold. Each is mechanically checkable and each is
@@ -84,7 +104,7 @@ cells** — every cell carries one of four verdicts:
 | Verdict | Meaning | Typical response |
 |---------|---------|------------------|
 | `allow` | A defined transition fires | The target state |
-| `reject` | Illegal in this state; the attempt is an error | 409/422 with a registered problem type (@rules/api-error-standard.md) |
+| `reject` | Illegal in this state; the attempt is an error | 409/422 with a registered problem type (@rules/api-error-standard.md) for a **business** rejection; a cell that only an orchestration bug can reach (a settlement for a payment that was never requested) is protocol misuse — 500 `internal-error` plus an alert, not a 409 the client is invited to handle |
 | `ignore` | Legal but a no-op — the event has already been applied | Success, unchanged state (this is what makes retries safe) |
 | `defer` | Legal but not yet — the event is queued or re-delivered later | Accepted, applied on a later transition |
 

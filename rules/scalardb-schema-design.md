@@ -116,7 +116,7 @@ default. Three tables and one procedure:
 - **Rebuild** is a documented procedure — snapshot + events → aggregate — and its time for the
   largest aggregate is measured, not estimated.
 - **The state column of a state machine** (@rules/state-modeling.md §6) lives on the snapshot /
-  view, and the transition history *is* the event table; do not keep a second history.
+  view, and the transition history *is* the event table; do not keep a second history. The same holds for an **outbox** a state machine declares as its `history.store`: rows are then retained with a `published_at` marker (and a retention rule), never deleted after publish — a deleted outbox row is a lost history entry.
 - **Never query the event table by anything but aggregate id** — secondary indexes on an
   append-only table are a contention source; that is what projections are for.
 

@@ -7,6 +7,24 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+`/architect:design-state-machine --auto`（STM-002 / STM-003 と `STM-` 書き戻し）と `/architect:design-scalardb`
+（ADR、CQRS / ES 節）の初回 end-to-end 実行で見つかったギャップ。
+
+### Fixed
+- **状態遷移モデリング。** ビジネスキーを識別子とする集約は生成列の判定を明示する（`ignore` か `reject`）。生成して後で
+  確定するファクトリは 2 イベント。他集約の状態を読むガードはその集約を名指しする。プロトコル誤用のセルは 409 の
+  problem type ではなく 500 + アラート。集約 manifest の `consistency` とトランザクション設計が食い違えば後者が勝ち、
+  食い違いはレビュー指摘。auto モードの `OQ-` は既定セルのある集約にのみ発行。機械ごとに `mode` を持つ。`STM-` ノードは
+  `AGG-` ノードを引用。集約文書への書き戻し範囲を明記。
+- **ScalarDB 設計。** バックエンド「製品」はこのスキルの ADR、バージョン / HA は `design-infrastructure`。レガシー経路の
+  `--auto` では CQRS 行をアクセスパスから決めて assumed とし `unasked` の `OQ-` を持つ。相互参照 lint はこの実行が書いた
+  ファイルのみ修正。CQRS 節は採番を変えずに追記。履歴ストアとして宣言された outbox は削除せず保持。
+- **並列スキル下の Open Questions。** ID は書く直前に再読して採番し、実行の最後の書き込み後に再確認 — 後に書いた側が
+  採番し直す。帯域の回答は数値を未決のまま残し、回答済み項目を引用する新規項目にする。
+- **`proposed` の ADR** を定義: `OQ-` が未決のまま記録すべき決定で、何が昇格させるかを名指しする。
+
 ## [0.33.3] - 2026-08-29
 
 ### Fixed
