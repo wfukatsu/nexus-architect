@@ -40,6 +40,7 @@ query limit, DTO field, or exception mapping.
 |---------|-------|
 | `…/api/graphql/` | This skill: controllers, GraphQL DTOs/mappers, interceptors, errors, configuration |
 | `…/application/` | This skill emits interfaces and calls; domain/data generator owns implementations |
+| `…/usecase/` + `…/api/graphql/presenter/` | When `api-layer-spec.md` declares `layering_style: clean`: one input boundary, data records, output boundary and presenter per resolver-bound field coordinate; the interactor body stays with the domain/data generator |
 | `…/domain/`, `…/infrastructure/` | ScalarDB or ordinary data-layer generator |
 
 Never import a repository, persistence entity, or ScalarDB type from a GraphQL controller. In a

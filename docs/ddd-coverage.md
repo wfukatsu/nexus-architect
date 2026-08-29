@@ -58,6 +58,7 @@ skill · △ referenced, evaluated or partially produced, not a standalone metho
 | Repository | ◎ | `/architect:design-aggregate`, `/architect:design-implementation` | one repository per root; `reports/06_implementation/repository-interfaces-spec.md` |
 | Domain Service / Application Service | ○ | `/architect:design-implementation` | `reports/06_implementation/domain-services-spec.md`, `api-layer-spec.md` |
 | Layered / Hexagonal architecture | ◎ | `/architect:evaluate-ddd` (evaluation), `/architect:design-implementation`, `/architect:generate-contract-tests` (ArchUnit) | `reports/02_evaluation/ddd-tactical-architecture-evaluation.md` |
+| Clean Architecture naming (Use Case / Interactor / Presenter) | ◎ | `/architect:design-implementation --layering=clean`; read by `generate-api-code`, `generate-graphql-code`, `generate-scalardb-code`, `generate-contract-tests`, `generate-acceptance-tests`, `verify-implementation` | `layering_style` in `reports/06_implementation/api-layer-spec.md` frontmatter |
 | DDD maturity evaluation of an existing system | ◎ | `/architect:evaluate-ddd` | `reports/02_evaluation/ddd-strategic-evaluation.md`, `ddd-tactical-architecture-evaluation.md` |
 
 ## Behaviour, consistency and transactions

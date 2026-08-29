@@ -120,6 +120,12 @@ Per operation, against the specification:
 | GraphQL unknown transaction status | An execution error does not use HTTP 200 and the registered `errors[].extensions.type`; protected and unprotected mutations mix retry/reconcile fields; or a raw ScalarDB transaction ID is exposed — **blocker severity** (@rules/api-error-standard.md §3.2) |
 | Idempotency | An operation with a declared `Idempotency-Key` obligation whose key is not read, or whose idempotency record is written outside the business transaction |
 
+When `api-layer-spec.md` declares `layering_style: clean`, the handler-binding check is read through
+the use case: one input boundary and one interactor per operation, the controller bound to the
+boundary rather than the interactor, and the presenter the specification names present. A service
+whose packages mix `application/` services and `usecase/` interactors is a conformance finding —
+the specification chose one vocabulary.
+
 GraphQL adds SDL/resolver 1:1 coverage, nullability/input validation, registered
 `errors[].extensions.type`, nested-field and tenant authorization, DataLoader cache partitioning,
 N+1/batch behavior, query-governance enforcement, production tooling policy, safe observations and

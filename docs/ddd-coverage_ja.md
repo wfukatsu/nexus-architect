@@ -56,6 +56,7 @@
 | リポジトリ | ◎ | `/architect:design-aggregate`, `/architect:design-implementation` | ルートごとに 1 つ。`reports/06_implementation/repository-interfaces-spec.md` |
 | ドメインサービス / アプリケーションサービス | ○ | `/architect:design-implementation` | `reports/06_implementation/domain-services-spec.md`, `api-layer-spec.md` |
 | レイヤード / ヘキサゴナル | ◎ | `/architect:evaluate-ddd`（評価）, `/architect:design-implementation`, `/architect:generate-contract-tests`（ArchUnit） | `reports/02_evaluation/ddd-tactical-architecture-evaluation.md` |
+| クリーンアーキテクチャ命名（Use Case / Interactor / Presenter） | ◎ | `/architect:design-implementation --layering=clean`; `generate-api-code`, `generate-graphql-code`, `generate-scalardb-code`, `generate-contract-tests`, `generate-acceptance-tests`, `verify-implementation` が読む | `reports/06_implementation/api-layer-spec.md` frontmatter の `layering_style` |
 | 既存システムの DDD 成熟度評価 | ◎ | `/architect:evaluate-ddd` | `reports/02_evaluation/ddd-strategic-evaluation.md`, `ddd-tactical-architecture-evaluation.md` |
 
 ## 振る舞い・整合性・トランザクション

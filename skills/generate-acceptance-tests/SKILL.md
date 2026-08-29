@@ -30,8 +30,8 @@ Generate, per service:
   report saying why.
 - **A driver** — how the steps reach the system: `api` (HTTP through `@SpringBootTest` +
   `MockMvc` / `WebTestClient`, the contract validator of `generate-contract-tests` attached so an
-  acceptance run also validates the contract) or `application` (the application services over the
-  in-memory Fakes with a fixed `Clock`, no HTTP). Default `api` when **generated API code exists**
+  acceptance run also validates the contract) or `application` (the application services — the interactors, when `api-layer-spec.md` declares
+  `layering_style: clean` — over the in-memory Fakes with a fixed `Clock`, no HTTP). Default `api` when **generated API code exists**
   (`reports/06_implementation/api-contract-map.json` is present and names this service), else
   `application` — a designed-but-not-generated API surface is not drivable; `--driver` overrides.
 - **A world / fixture layer** — the test data the `Given` steps set up: fixed builders that take

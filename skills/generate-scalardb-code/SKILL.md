@@ -28,7 +28,7 @@ DTOs, mappers, Bean Validation, and the RFC 9457 exception handler — is genera
 |---------|-------|
 | `…/domain/`, `…/infrastructure/` | **this skill** |
 | `…/api/` | `/architect:generate-api-code` |
-| `…/application/` | this skill writes the implementation; the interface and the controller's call to it come from `generate-api-code` |
+| `…/application/` (`…/usecase/` when `api-layer-spec.md` declares `layering_style: clean`) | this skill writes the implementation — the application service body, or under `clean` the `<Operation>Interactor` implementing the input boundary and calling the output boundary; the interface and the controller's call to it come from `generate-api-code` |
 | `…/domain/port/` (outbound ports to other services) + their Fakes | this skill |
 | `…/infrastructure/client/` (HTTP / gRPC adapters implementing those outbound ports) | `/architect:generate-api-code` — it owns the HTTP surface in both directions, binding each client to the *other* service's contract; until it runs the application service is wired to the Fakes behind a `@ConditionalOnMissingBean` |
 

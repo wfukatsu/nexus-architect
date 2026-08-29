@@ -119,11 +119,15 @@ validator and record which one.
    An independent reviewer of that same first run counted ten undeclared operations where the
    generated assertion reported six — the whole gap was these two mistakes. State the counting rule
    in the generated test so a reader can check it, and report the count alongside the list.
-5. **Generate ArchUnit rules** when selected — layer direction, no persistence or ScalarDB type in a
-   controller signature, no domain type in a response DTO, and the testability rules of
-   @rules/tdd-workflow.md §4: no `Instant.now()` / `LocalDate.now()` / `UUID.randomUUID()` call in
-   `domain/` or `application/`, no transaction type held by a domain class, and domain tests
-   importing nothing from `infrastructure/`.
+5. **Generate ArchUnit rules** when selected — layer direction as `api-layer-spec.md` states it for
+   its `layering_style` (`ddd`: controller -> application service -> domain -> repository; `clean`:
+   controllers depend on `usecase/` boundaries only and never on an `*Interactor`, `usecase/` never
+   depends on `api/` or `infrastructure/`, presenters reach the interactor only through the output
+   boundary and import no domain type), no persistence or ScalarDB type in a controller signature,
+   no domain type in a response DTO, and the testability rules of @rules/tdd-workflow.md §4: no
+   `Instant.now()` / `LocalDate.now()` / `UUID.randomUUID()` call in `domain/` or the application
+   package (`application/`, or `usecase/` under `clean`), no transaction type held by a domain
+   class, and domain tests importing nothing from `infrastructure/`.
 6. **Wire the build** — a test task the quality gate can invoke by name
    (@rules/ai-code-quality-gate.md stage 3), pinning versions per @rules/dependency-versions.md.
 7. **Report** — operations covered, operations with no example, assertions skipped and why.

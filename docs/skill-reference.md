@@ -69,7 +69,7 @@ phases, in the listed order. Output lands under `generated/` (git-ignored, overw
 
 | Command | Model | Requires | Description |
 |---------|-------|----------|-------------|
-| `/architect:design-implementation` | opus | `reports/03_design/` | Implementation specifications — API layer (controller/DTO/validation/mapper, transaction boundary, authorization point) plus services, repositories, VOs |
+| `/architect:design-implementation` | opus | `reports/03_design/` | Implementation specifications — API layer (controller/DTO/validation/mapper, transaction boundary, authorization point) plus services, repositories, VOs; `--layering=clean` records Clean Architecture naming (Use Case / Interactor / Presenter, `usecase/` package) that every code generator then follows |
 | `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/contract/unit/property/integration/performance test specifications — one property per aggregate invariant when `aggregate-manifest.json` exists |
 | `/architect:generate-characterization-tests` | sonnet | `reports/before/{project}/` (legacy path) | Golden-master tests recorded from the running legacy system, per module and seam, with non-determinism masked and `@KnownDefect` markers — the net each transformation-plan step is gated on |
 | `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB code generation — owns `domain/` and `infrastructure/`, plus the domain's example and jqwik property tests per invariant |
@@ -273,7 +273,7 @@ path by their router, so they are not slash commands and have no signature here.
 /architect:design-data-layer
 /architect:design-api
 /architect:design-graphql [--service=<name>] [--lang=en|ja]
-/architect:design-implementation
+/architect:design-implementation [--layering=ddd|clean]
 /architect:design-infrastructure
 /architect:design-security
 /architect:design-observability

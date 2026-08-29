@@ -41,6 +41,7 @@ other's packages:
 | `…/api/` — controllers, DTOs, mappers, error handling, API configuration | **this skill** |
 | `…/domain/`, `…/infrastructure/` — entities, repositories, domain services, transaction management | `/architect:generate-scalardb-code` (or the data-layer generator) |
 | `…/application/` — application services (the transaction boundary) | this skill generates the interface and the call from the controller; the implementation body belongs to the domain generator, which is why the two are run together |
+| `…/usecase/` + `…/api/presenter/` — when `api-layer-spec.md` declares `layering_style: clean` | this skill generates the input boundary, input/output data records and output boundary per operation, and the presenter under `api/presenter/`; the interactor body belongs to the domain generator. `…/application/` is not created |
 
 A generated controller never imports a persistence or ScalarDB type. That is a rule this skill obeys
 and `generate-contract-tests` enforces with ArchUnit.
@@ -133,7 +134,7 @@ adapter replaces it at runtime through Spring wiring, never by editing the appli
 | reports/03_design/api-specifications/ | Required | /architect:design-api — the contract |
 | reports/03_design/api-specifications/problem-types.md | Required | /architect:design-api |
 | reports/03_design/api-specifications/operation-contracts.md | Required | /architect:design-api |
-| reports/06_implementation/api-layer-spec.md | Required | /architect:design-implementation |
+| reports/06_implementation/api-layer-spec.md | Required | /architect:design-implementation — its frontmatter `layering_style` (`ddd` default, `clean`) decides the application-layer vocabulary; there is no flag for it here |
 | reports/06_implementation/exception-mapping-spec.md | Required | /architect:design-implementation |
 | reports/08_infrastructure/security-design.md | Recommended | /architect:design-security — where each authorization check is enforced |
 | reports/07_test-specs/contract-test-specs.md | Recommended | /architect:generate-test-specs |
@@ -149,6 +150,9 @@ adapter replaces it at runtime through Spring wiring, never by editing the appli
 4. **Generate mappers** — explicit, field by field, declared fields only.
 5. **Generate controllers** — one method per `operationId`, delegating to the application service the
    API layer specification names, with the authorization check at the point the security design named.
+   Under `layering_style: clean` the controller builds the `<Operation>InputData`, calls the
+   `<Operation>UseCase` boundary — never the interactor class — and returns what the
+   `<Operation>Presenter` produced; the presenter, boundaries and data records are generated here.
 6. **Generate the exception handler and the problem type constants** from the registry.
 7. **Enumerate every route that already exists in the target tree** — not only the ones generated —
    and classify each as a mapped operation or an `out_of_scope_handlers` entry

@@ -69,7 +69,7 @@
 
 | コマンド | モデル | 前提 | 説明 |
 |---------|-------|------|------|
-| `/architect:design-implementation` | opus | `reports/03_design/` | 実装仕様 — API レイヤー（Controller/DTO/バリデーション/マッパー、トランザクション境界、認可の実施点）＋サービス、リポジトリ、VO |
+| `/architect:design-implementation` | opus | `reports/03_design/` | 実装仕様 — API レイヤー（Controller/DTO/バリデーション/マッパー、トランザクション境界、認可の実施点）＋サービス、リポジトリ、VO。`--layering=clean` でクリーンアーキテクチャ命名（Use Case / Interactor / Presenter、`usecase/` パッケージ）を記録し、以降のコード生成がそれに従う |
 | `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/契約/ユニット/プロパティ/統合/性能テスト仕様 — `aggregate-manifest.json` があれば不変条件ごとに 1 プロパティ |
 | `/architect:generate-characterization-tests` | sonnet | `reports/before/{project}/`（レガシーパス） | 稼働中のレガシーシステムから記録したゴールデンマスターテスト — モジュール・シームごと、非決定的フィールドはマスク、`@KnownDefect` マーカー付き。移行計画の各ステップをゲートする安全網 |
 | `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB コード生成 — `domain/` と `infrastructure/` に加え、不変条件ごとの具体例テストと jqwik プロパティテストを担当 |
@@ -273,7 +273,7 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 /architect:design-data-layer
 /architect:design-api
 /architect:design-graphql [--service=<name>] [--lang=en|ja]
-/architect:design-implementation
+/architect:design-implementation [--layering=ddd|clean]
 /architect:design-infrastructure
 /architect:design-security
 /architect:design-observability
