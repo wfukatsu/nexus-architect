@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
-## [Unreleased]
+## [0.33.0] - 2026-08-29
 
 The DDD document-set check of 2026-08-29 (issues #32–#35): the four gaps between "the toolkit
 covers every DDD technique" and "a reader can see the complete document set".
