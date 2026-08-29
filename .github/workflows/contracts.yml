@@ -2,8 +2,9 @@ name: contracts
 
 # The repository's own gate doctrine (rules/ai-code-quality-gate.md) is that the CI half is the
 # enforced one — a contract that only runs when someone remembers is not enforced at all. The
-# suites need no services and no tools beyond git, python3 and bash, so this needs neither caching
-# nor a matrix. They do need the OKF knowledge bundle submodule: without it the ScalarDB-native
+# suites need no services and no tools beyond git, python3, bash and the two Python packages in
+# requirements.txt (markdown, pyyaml — tools/build-report.py renders with them), so this needs
+# neither caching nor a matrix. They do need the OKF knowledge bundle submodule: without it the ScalarDB-native
 # GraphQL check has nothing to resolve against, and a skipped check is weaker coverage than a run
 # one — the first run of this workflow proved exactly that by failing on a bundle-less checkout.
 
@@ -29,6 +30,11 @@ jobs:
           bash --version | head -1
           python3 --version
           git --version
+
+      # tools/build-report.py imports `markdown` and `yaml`; its suite exits 1 without them, so the
+      # gate would fail for a missing package rather than a broken contract.
+      - name: Install the Python dependencies
+        run: python3 -m pip install --quiet -r requirements.txt
 
       # Discovery lives in the runner, not here: a new *.test.py / *.test.sh is picked up
       # automatically, so a suite can never be added and silently left out of CI.
