@@ -34,6 +34,7 @@ skill · △ referenced, evaluated or partially produced, not a standalone metho
 | Bounded Context | ◎ | `/product:map-domains`, `/architect:redesign` | `reports/03_domain/bounded-contexts.md`, `reports/03_design/bounded-contexts-redesign.md` |
 | Bounded Context Canvas | ◎ | `/architect:redesign`, `/product:map-domains` | the per-context Canvas section of both artifacts |
 | Context Mapping | ◎ | `/architect:redesign`, `/product:map-domains` | `reports/03_design/context-map.md`, the Context Map in `bounded-contexts.md` |
+| Architecture Decision Records | ◎ | `/architect:redesign` opens the log; `/architect:design-microservices`, `/architect:design-scalardb`, `/architect:design-data-layer`, `/architect:design-api` append | `reports/03_design/adr/adr-NNN-<slug>.md` (`ADR-`), `reports/03_design/adr/index.md`, validated by `tools/lib/adr_records.py` |
 | Domain Vision Statement | ◎ | `/product:define-vision` | the Domain Vision Statement section of `reports/00_core/vision-mission-value.md` |
 | Core Domain investment guidance | ◎ | `/product:map-domains` | `reports/03_domain/domain-map.md` |
 | Team topology / Conway alignment | ○ | `/architect:design-microservices` | `reports/03_design/target-architecture.md` |

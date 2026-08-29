@@ -32,6 +32,7 @@
 | 境界づけられたコンテキスト | ◎ | `/product:map-domains`, `/architect:redesign` | `reports/03_domain/bounded-contexts.md`, `reports/03_design/bounded-contexts-redesign.md` |
 | Bounded Context Canvas | ◎ | `/architect:redesign`, `/product:map-domains` | 両成果物のコンテキストごとの Canvas 節 |
 | コンテキストマッピング | ◎ | `/architect:redesign`, `/product:map-domains` | `reports/03_design/context-map.md`、`bounded-contexts.md` の Context Map |
+| アーキテクチャ決定記録（ADR） | ◎ | `/architect:redesign` がログを開始し、`/architect:design-microservices`, `/architect:design-scalardb`, `/architect:design-data-layer`, `/architect:design-api` が追記 | `reports/03_design/adr/adr-NNN-<slug>.md`（`ADR-`）、`reports/03_design/adr/index.md`、`tools/lib/adr_records.py` で検証 |
 | Domain Vision Statement | ◎ | `/product:define-vision` | `reports/00_core/vision-mission-value.md` の Domain Vision Statement 節 |
 | Core Domain への投資方針 | ◎ | `/product:map-domains` | `reports/03_domain/domain-map.md` |
 | チームトポロジー / Conway 整合 | ○ | `/architect:design-microservices` | `reports/03_design/target-architecture.md` |

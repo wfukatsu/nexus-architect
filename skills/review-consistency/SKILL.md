@@ -57,6 +57,13 @@ reviewers spend their judgment on whether the *design documents* still agree wit
 than on re-deriving reachability by hand. Each violation it reports is a CON-2xx finding unless the
 model's Open Items already records it with an owner.
 
+When `reports/03_design/adr/` exists, run
+`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/adr_records.py" <project_dir>` first and pass its output to Task A.
+It checks the record contract of @rules/architecture-decision-records.md — every record cites a
+non-empty `upstream`, supersession chains close, the index equals the directory. Each violation is a
+CON-1xx finding; the reviewers additionally check that no `ADR-` cites an `upstream` id absent from
+`work/traceability.json` and that a decision a design document states in prose has its record.
+
 ### Step 2: Spawn Three Parallel Dimension Reviewers
 
 In a **single message**, issue all three Task() calls simultaneously so they run in parallel:

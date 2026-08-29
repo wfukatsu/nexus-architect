@@ -50,7 +50,7 @@
 | コマンド | モデル | 条件 | 説明 |
 |---------|-------|------|------|
 | `/architect:map-domains` | opus | - | ドメイン分類、BC マッピング |
-| `/architect:redesign` | opus | - | 境界づけられたコンテキストの再設計 |
+| `/architect:redesign` | opus | - | 境界づけられたコンテキストの再設計・コンテキストマップ・後続の設計スキルが追記する ADR ログ（`reports/03_design/adr/`） |
 | `/architect:create-domain-story` | opus | オプション | ドメインストーリーテリング: ドメインごとの業務プロセスを可視化。`--mode=event-storming` でフローを Process Modeling EventStorming として進行 |
 | `/architect:design-aggregate` | opus | オプション | 境界づけられたコンテキストごとの戦術モデル: 集約ルート・内部エンティティ・値オブジェクト・具体例付き不変条件・コマンド/イベント/ファクトリ/仕様・ルートごとのリポジトリを、トランザクションが書き込む単位として設計 |
 | `/architect:design-state-machine` | opus | オプション | アグリゲートごとの状態遷移モデル: 状態・ガード付き遷移・空欄のない状態×イベント行列・各遷移の整合性クラスを対話的に構築 |

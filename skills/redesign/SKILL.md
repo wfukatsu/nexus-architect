@@ -1,6 +1,7 @@
 ---
 description: |
-  Redesign bounded contexts, define aggregates, and generate context maps.
+  Redesign bounded contexts, define aggregates, generate context maps, and open the
+  Architecture Decision Record log every later design skill appends to.
   /architect:redesign to invoke. Requires integrate-evaluations output as a prerequisite.
 model: opus
 user_invocable: true
@@ -13,6 +14,8 @@ user_invocable: true
 Based on evaluation results, formulate a new bounded context design:
 1. **Bounded Context Redesign** -- Responsibilities of each BC, contained aggregates, public interfaces
 2. **Context Map** -- Relationship patterns between BCs (ACL, OHS, Conformist, etc.) as Mermaid diagrams
+3. **Architecture Decision Records** -- One record per boundary or relationship decision that
+   differs from what the code does today, with the alternatives rejected and why
 
 ## Decision Criteria
 
@@ -57,8 +60,30 @@ list is its interior.
 |------|---------|
 | `reports/03_design/bounded-contexts-redesign.md` | One Bounded Context Canvas per BC (above), plus the aggregate list |
 | `reports/03_design/context-map.md` | Context map (Mermaid diagram) |
+| `reports/03_design/adr/adr-NNN-<slug>.md` | One Architecture Decision Record per decision this skill makes (@rules/architecture-decision-records.md §1) |
+| `reports/03_design/adr/index.md` | The ADR index — a view regenerated from the records' frontmatter |
 
 Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+
+## Architecture Decision Records
+
+This skill **opens** the ADR log; `design-microservices`, `design-scalardb` / `design-data-layer`
+and `design-api` append to it. The record shape, the fixed body headings, the index and the
+additive contract are @rules/architecture-decision-records.md — read it before writing one.
+
+What earns a record here: every bounded-context boundary that differs from the current code
+(a context split, merged, or renamed with a changed meaning), and every context relationship
+pattern chosen on the map (ACL, OHS/PL, Customer/Supplier, Conformist, Shared Kernel) where another
+pattern was viable. A boundary that merely restates the code is not a decision.
+
+- Allocate each `ADR-` as `max + 1` over `work/traceability.json` and the directory, never from
+  this report.
+- `upstream` names what drove the decision — the `CTX-` it concerns, the `FR-` / `NFR-` or the
+  evaluation finding behind it. It is never empty: a boundary nobody asked for is a preference.
+- Append one `{ "type": "decision" }` node per record to `work/traceability.json` and regenerate
+  `index.md` after the last record.
+- Run `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/adr_records.py" <project_dir>` before
+  completing; a violation is fixed, not deferred.
 
 ## Related Skills
 

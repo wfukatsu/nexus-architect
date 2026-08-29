@@ -47,6 +47,10 @@ reports/
 │   ├── state-machines/            # design-state-machine (optional)
 │   │   ├── state-machine-{aggregate}.md   # One file per modeled aggregate
 │   │   └── state-machine-manifest.json    # Canonical machine-readable model
+│   ├── adr/                       # redesign opens; design-microservices, design-scalardb /
+│   │   │                          # design-data-layer, design-api append
+│   │   ├── adr-NNN-{slug}.md              # One Architecture Decision Record per decision (ADR-)
+│   │   └── index.md                       # View regenerated from the records' frontmatter
 │   └── api-specifications/
 │       ├── openapi/
 │       ├── graphql/

@@ -7,6 +7,20 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+2026-08-29 の DDD ドキュメント一式チェック（Issue #32〜#35）で見つかった、「全 DDD 手法をカバーしている」と
+「読者が完全なドキュメント一式を見られる」の間の 4 つのギャップ。
+
+### Added
+- **アーキテクチャ決定記録（ADR）**（#32）。`reports/03_design/adr/adr-NNN-<slug>.md` + `index.md`、
+  機械可読なフロントマター付きの MADR 形式。`redesign` がログを開き `ADR-` プレフィックスを登録し、
+  `design-microservices`・`design-scalardb` / `design-data-layer`・`design-api` が `NFR-` と同じ追記型契約で
+  追記する — グラフ全体の `max + 1` で採番、他スキルの記録は書き換えず supersede する。すべての記録は
+  空でない `upstream` を引用する（何も引用しない決定は好みであって記録ではない）。契約は
+  `rules/architecture-decision-records.md`、バリデータは `tools/lib/adr_records.py`（24 チェックのスイート）、
+  `review-consistency` が実行する。`ADR-` ノードは `work/traceability.json` に `type: decision` で追加される。
+
 ## [0.32.2] - 2026-08-28
 
 `/architect:design-aggregate --auto` を初めて通しで走らせて（`ec-monolith` サンプル — `Order` /

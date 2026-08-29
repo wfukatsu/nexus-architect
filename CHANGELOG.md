@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+The DDD document-set check of 2026-08-29 (issues #32–#35): the four gaps between "the toolkit
+covers every DDD technique" and "a reader can see the complete document set".
+
+### Added
+- **Architecture Decision Records** (#32). `reports/03_design/adr/adr-NNN-<slug>.md` + `index.md`,
+  MADR-shaped with a machine-readable frontmatter. `redesign` opens the log and registers the
+  `ADR-` prefix; `design-microservices`, `design-scalardb` / `design-data-layer` and `design-api`
+  append under the same additive contract as `NFR-` — allocate `max + 1` over the graph, never
+  rewrite another skill's record, supersede instead. Every record cites a non-empty `upstream`
+  (a decision that cites nothing is a preference). `rules/architecture-decision-records.md` is the
+  contract, `tools/lib/adr_records.py` the validator (24-check suite), `review-consistency` runs
+  it. `ADR-` nodes are `type: decision` in `work/traceability.json`.
+
 ## [0.32.2] - 2026-08-28
 
 Three gaps the first end-to-end run of `/architect:design-aggregate --auto` (the `ec-monolith`
