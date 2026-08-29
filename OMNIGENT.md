@@ -315,7 +315,14 @@ otherwise. See [`rules/api-error-standard.md`](rules/api-error-standard.md).
 Generated or AI-written code passes an eight-stage gate before a human is asked to review it: build,
 unit tests, contract tests, integration tests, SAST, dependency scan, API security, and design↕code
 conformance. Under Omnigent the first six are `sys_os_shell` invocations and the last two are the
-`review-api-security` / `verify-implementation` skills.
+`review-api-security` / `verify-implementation` skills. Stage 2 also runs the coverage verification
+and the mutation run over the touched `domain/` packages; stage 4 runs `integrationTest` (the `TX-`
+scenarios over an in-process ScalarDB), `acceptanceTest` (the Gherkin scenarios) and, on the legacy
+path, `characterizationTest`. Every command runs from a clean build state — a cached task that exits
+0 having run nothing is recorded as zero coverage, never as a pass. Merge-bound code reaching the
+gate was written test-first as a `test:` → `feat:` → `refactor:` commit series per unit
+([`rules/tdd-workflow.md`](rules/tdd-workflow.md)); the gate reads the branch log and reports the
+sequence per unit.
 
 **Every stage produces evidence.** A stage passes when a command ran and exited zero, or when a skill
 returned findings — a worker's assessment that the code looks correct is not a stage result. A stage

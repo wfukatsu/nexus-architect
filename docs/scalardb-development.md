@@ -92,6 +92,10 @@ Generates all files needed to start development:
 - `src/main/java/sample/Sample.java` — Service class with CRUD operations
 - `docker-compose.yml` — Local database setup
 - `README.md` — Setup and run instructions
+- `src/test/java/sample/` — the test tree, not optional (`rules/tdd-workflow.md` §4): a unit test over
+  an `InMemorySampleRepository` Fake with a fixed `Clock`, and `SampleIT` running every operation plus
+  one OCC conflict and one blind write against an in-process SQLite-backed ScalarDB
+  (`./gradlew test integrationTest`, no running database needed)
 
 **Usage:**
 ```bash
@@ -103,6 +107,8 @@ Generates all files needed to start development:
 - Builder pattern for all operations
 - Explicit namespace and table on every operation
 - Correct exception catch order
+- `Clock` and id generation injected — no `now()` / `randomUUID()` inside the service
+- `/scalardb:build-app` writes each operation's tests before its service code; `/scalardb:review-code` checks that a real engine was exercised
 - Retry logic with exponential backoff
 - Commit even read-only transactions
 

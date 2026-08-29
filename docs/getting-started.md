@@ -97,6 +97,15 @@ rerun too. If you are writing your own tooling against these files, read
 /architect:integrate-evaluations
 ```
 
+Before a transformation-plan step touches a module, pin what it does today — the step is gated on
+this suite before and after (`rules/tdd-workflow.md` §5):
+
+```bash
+/architect:generate-characterization-tests ./path/to/legacy-project --module=order
+# -> golden-master tests recorded from the running system (a test-only H2/SQLite profile is fine
+#    when the docker-compose database is not at hand), reports/07_test-specs/characterization-test-coverage.md
+```
+
 No legacy system at hand? Use the bundled sample monolith at `samples/ec-monolith`
 as the target path to try the analysis workflow end to end.
 
@@ -156,6 +165,14 @@ phases. Run them yourself afterwards, in this order:
 /architect:verify-implementation --gate
 ```
 
+What the gate's stage 2 and stage 4 now hold the scaffold to (`rules/ai-code-quality-gate.md`
+§Test quality): every aggregate invariant has a jqwik property that ran; line/branch coverage of
+the changed files meets the thresholds; the touched `domain/` packages' PIT mutation score is
+≥ 80 % with no survivor on an invariant line; `integrationTest` ran the `TX-` scenarios (OCC
+conflict, blind write, saga compensation) against a real in-process ScalarDB; `acceptanceTest`
+ran the Gherkin scenarios. Every command runs from a clean build state — an UP-TO-DATE Gradle
+task that exits 0 having run nothing is the gate's favourite false pass.
+
 Each step needs only the reports produced by the step before it, so you can enter the chain partway
 if those reports already exist. Everything here lands under `generated/`, which is git-ignored and
 **overwritten on re-run** — treat it as a disposable scaffold, not a codebase you hand-edit.
@@ -189,6 +206,15 @@ tracker as `status::*` labels, progress comments, and ticked checkboxes — acce
 are implemented and verified, and a parent's task-list box when its child merges.
 
 Prerequisites: `gh` or `glab` authenticated for the target project.
+
+**This path is test-driven** (`rules/tdd-workflow.md`). `export-backlog` emits one
+`walking-skeleton` Issue per new service and orders it first; `implement-backlog` writes every
+behavioural unit as a `test:` commit that is seen failing, then the `feat:` commit that makes it
+pass, then a `refactor:` commit that edits no test — with the item's Gherkin scenarios (or its
+contract / invariant test) as the outer loop, in-memory Fakes behind every repository port and an
+injected `Clock` so the domain tests need no database; `review-issue` fixes a blocker by
+committing its reproduction test first. The gate reads the branch log and reports the sequence
+per unit, so "tests exist and pass" is never mistaken for "the tests drove the code".
 
 ### 7. Choosing Dependency Versions
 

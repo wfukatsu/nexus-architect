@@ -89,10 +89,10 @@ Requires `gh` / `glab` authenticated.
 
 | Command | Model | Description |
 |---------|-------|-------------|
-| `/architect:export-backlog` | opus | Reports → Epic (What/Why) / Sub-Epic (What/Key Results) / Issue (How) on GitLab or GitHub; review-first plan + approval gate, idempotent creation |
+| `/architect:export-backlog` | opus | Reports → Epic (What/Why) / Sub-Epic (What/Key Results) / Issue (How) on GitLab or GitHub; review-first plan + approval gate, idempotent creation; one `walking-skeleton` Issue per new service, first in order |
 | `/architect:deliver-backlog` | sonnet | Orchestrates implement → review → approval → merge per Issue under an Epic; resumes from `backlog-manifest.json`, stops at every human gate |
-| `/architect:implement-backlog` | sonnet | Implements one item Epic-consistently on a working branch; Step 5b runs `generate-docs` so docs ship in the same PR/MR |
-| `/architect:review-issue` | opus | Whole-Epic consistency review, bounded blocker auto-fix loop, opens the PR/MR and hands off for approval |
+| `/architect:implement-backlog` | sonnet | Implements one item Epic-consistently on a working branch, test-first — `test:` (seen failing) → `feat:` → `refactor:` per unit with the item's scenarios as the outer loop (`rules/tdd-workflow.md`); Step 5b runs `generate-docs` so docs ship in the same PR/MR, Step 5c runs the quality gate |
+| `/architect:review-issue` | opus | Whole-Epic consistency review, bounded blocker auto-fix loop (each fix committed after its reproduction test), opens the PR/MR and hands off for approval |
 | `/architect:merge-issue` | opus | Merge preflight + explicit confirmation, merge, close the Issue, roll up to Sub-Epic/Epic |
 | `/architect:capture-followup` | sonnet | Queue follow-up work discovered mid-delivery, then register it as Issues linked to the in-flight Sub-Epic/Epic (`F`-namespace manifest nodes) |
 | `/architect:report-backlog-status` | haiku | Terminal dashboard for backlog delivery: Epic/Sub-Epic/Issue tree with delivery status + I/R/M stages, tracker sync, and a next-command action menu (wraps `tools/backlog-status.sh`) |

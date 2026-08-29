@@ -260,6 +260,10 @@ overwrites what it owns — treat this tree as disposable.
 
 `implement-backlog` resolves the source root (never `generated/`, verified not git-ignored), commits
 to a working branch, and runs `generate-docs` as Step 5b so code and docs land in the same PR/MR.
+The path is test-driven end to end (`rules/tdd-workflow.md`): a `walking-skeleton` Issue first,
+every unit as a `test:` → `feat:` → `refactor:` commit series with its Gherkin scenarios as the
+outer loop, Fakes behind every port, blockers fixed from a reproduction test, and the gate
+reporting the sequence per unit from the branch log.
 `deliver-backlog` stops at the human gates; it never merges without approval (or `--yes-merge`).
 
 Single steps are available too: `/architect:implement-backlog <issue>`, `/architect:review-issue

@@ -89,10 +89,10 @@
 
 | コマンド | モデル | 説明 |
 |---------|-------|------|
-| `/architect:export-backlog` | opus | レポート → GitLab / GitHub 上の Epic（What/Why）/ Sub-Epic（What/Key Results）/ Issue（How）。レビュー優先の計画 + 承認ゲートを経て冪等に作成 |
+| `/architect:export-backlog` | opus | レポート → GitLab / GitHub 上の Epic（What/Why）/ Sub-Epic（What/Key Results）/ Issue（How）。レビュー優先の計画 + 承認ゲートを経て冪等に作成。新サービスごとに `walking-skeleton` Issue を 1 件、順序の先頭に |
 | `/architect:deliver-backlog` | sonnet | Epic 配下の Issue ごとに 実装 → レビュー → 承認 → マージ を統括。`backlog-manifest.json` から再開し、人間のゲートで必ず停止 |
-| `/architect:implement-backlog` | sonnet | 1アイテムを Epic 整合的に作業ブランチ上で実装。Step 5b で `generate-docs` を実行し、ドキュメントを同じ PR/MR に載せる |
-| `/architect:review-issue` | opus | Epic 全体の整合レビュー、ブロッカー自動修正ループ（回数上限あり）、PR/MR 作成と承認への引き継ぎ |
+| `/architect:implement-backlog` | sonnet | 1アイテムを Epic 整合的に作業ブランチ上でテストファーストで実装 — 単位ごとに `test:`（失敗を確認）→ `feat:` → `refactor:`、外側ループはアイテムのシナリオ（`rules/tdd-workflow.md`）。Step 5b で `generate-docs` を実行してドキュメントを同じ PR/MR に載せ、Step 5c で品質ゲートを実行 |
+| `/architect:review-issue` | opus | Epic 全体の整合レビュー、ブロッカー自動修正ループ（回数上限あり。各修正は再現テストの後にコミット）、PR/MR 作成と承認への引き継ぎ |
 | `/architect:merge-issue` | opus | マージ前プリフライトと明示的な確認、マージ、Issue クローズ、Sub-Epic/Epic へのロールアップ |
 | `/architect:capture-followup` | sonnet | デリバリー中に発見した後続タスクをキューに捕捉し、承認後に対応中の Sub-Epic/Epic へ紐付く Issue として起票(`F` 番台のマニフェストノード) |
 | `/architect:report-backlog-status` | haiku | バックログデリバリーのターミナルダッシュボード: Epic/Sub-Epic/Issue ツリーにデリバリー状態と I/R/M ステージを表示、トラッカー同期と次コマンド生成のアクションメニュー付き(`tools/backlog-status.sh` をラップ) |

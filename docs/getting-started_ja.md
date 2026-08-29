@@ -95,6 +95,15 @@ product スキルの全カタログは [スキルリファレンス](skill-refer
 /architect:integrate-evaluations
 ```
 
+移行計画のステップがモジュールに触れる前に、そのモジュールの現在の挙動を固定します — ステップはこの
+スイートで前後をゲートされます（`rules/tdd-workflow.md` §5）:
+
+```bash
+/architect:generate-characterization-tests ./path/to/legacy-project --module=order
+# -> 稼働中のシステムから記録したゴールデンマスターテスト（docker-compose の DB が手元になければ
+#    テスト専用の H2/SQLite プロファイルで可）、reports/07_test-specs/characterization-test-coverage.md
+```
+
 手元にレガシーシステムがない場合は、同梱のサンプルモノリス `samples/ec-monolith` を
 ターゲットパスに指定すると、分析ワークフローを一通り試せます。
 
@@ -154,6 +163,14 @@ product スキルの全カタログは [スキルリファレンス](skill-refer
 /architect:verify-implementation --gate
 ```
 
+ゲートのステージ 2 と 4 が足場に要求するもの（`rules/ai-code-quality-gate.md` §Test quality）:
+すべての集約不変条件に実行済みの jqwik プロパティがある。変更ファイルの行/分岐カバレッジが閾値を
+満たす。触れた `domain/` パッケージの PIT ミューテーションスコアが 80 % 以上で、不変条件の行に
+生存ミュータントがない。`integrationTest` が `TX-` シナリオ（OCC 競合、blind write、Saga 補償）を
+実 ScalarDB（インプロセス）に対して実行した。`acceptanceTest` が Gherkin シナリオを実行した。
+コマンドはすべてクリーンなビルド状態から実行します — 何も実行せず exit 0 を返す UP-TO-DATE の
+Gradle タスクは、ゲートが最も好む偽の合格です。
+
 各ステップが必要とするのは直前のステップのレポートだけなので、それらが既にあれば途中から入れます。
 ここでの出力はすべて `generated/` 配下（git-ignore）で、**再実行で上書き**されます — 手で編集して
 育てるコードベースではなく、使い捨ての足場として扱ってください。
@@ -187,6 +204,14 @@ Storybook スキャフォールドまで）。
 時点で、親のタスクリストのボックスは子が実際にマージされた時点でチェックされます。
 
 前提: 対象プロジェクトに対して `gh` または `glab` が認証済みであること。
+
+**このパスはテスト駆動です**（`rules/tdd-workflow.md`）。`export-backlog` は新サービスごとに
+`walking-skeleton` Issue を 1 件出して先頭に並べ、`implement-backlog` は振る舞いの単位ごとに
+「失敗を確認した `test:` コミット → 通す `feat:` コミット → テストを編集しない `refactor:` コミット」
+の順で書きます。外側ループはそのアイテムの Gherkin シナリオ（なければ契約テスト / 不変条件テスト）、
+リポジトリポートの裏には in-memory Fake、`Clock` は注入され、ドメインテストは DB を必要としません。
+`review-issue` はブロッカーを再現テストのコミットから直します。ゲートはブランチ履歴を読んで
+単位ごとの順序を報告するので、「テストがあって通る」が「テストがコードを駆動した」と混同されません。
 
 ### 7. 依存バージョンの選択
 

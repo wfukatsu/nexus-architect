@@ -27,6 +27,7 @@ For the product plugin, see [product-input-requirements.md](product-input-requir
 | Input | Necessity | Content |
 |-------|-----------|---------|
 | `target_path` (path to the codebase to investigate) | **Required** | The repository/directory to analyze. Cannot start without it |
+| A way to **run** the legacy system (for `/architect:generate-characterization-tests`) | Required before the first transformation step | The build must succeed in-session and one seam (HTTP, CLI, public function) must be drivable. The database it needs is either available (its `docker-compose`, a daemon) or substituted **test-only** — an H2/SQLite profile added as a test dependency, never a change under `src/main/` — with the substitution's limits reported. Golden masters are recorded from the running code, so a system that cannot be run yields no characterization suite |
 
 > With just the codebase specified, the investigation of technology stack, structure, technical debt, and DDD readiness runs automatically. No additional materials are required, but if you have existing design docs, they can be passed to the downstream `define-requirements` via `--input`.
 

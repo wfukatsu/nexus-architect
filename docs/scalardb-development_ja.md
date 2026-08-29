@@ -92,6 +92,7 @@ Coordinator ノード（ScalarDB 3.19+）を使えば、サービス跨ぎのト
 - `src/main/java/sample/Sample.java` — CRUD 操作を含むサービスクラス
 - `docker-compose.yml` — ローカルデータベースのセットアップ
 - `README.md` — セットアップと実行手順
+- `src/test/java/sample/` — テストツリー。省略不可（`rules/tdd-workflow.md` §4）: `InMemorySampleRepository` Fake と固定 `Clock` 上のユニットテスト、および全操作 + OCC 競合 1 件 + blind write 1 件をインプロセスの SQLite バックエンド ScalarDB に対して実行する `SampleIT`（`./gradlew test integrationTest`、DB の起動は不要）
 
 **使い方:**
 ```bash
