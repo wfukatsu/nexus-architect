@@ -37,6 +37,7 @@ skill · △ referenced, evaluated or partially produced, not a standalone metho
 | Architecture Decision Records | ◎ | `/architect:redesign` opens the log; `/architect:design-microservices`, `/architect:design-scalardb`, `/architect:design-data-layer`, `/architect:design-api` append | `reports/03_design/adr/adr-NNN-<slug>.md` (`ADR-`), `reports/03_design/adr/index.md`, validated by `tools/lib/adr_records.py` |
 | Domain Vision Statement | ◎ | `/product:define-vision` | the Domain Vision Statement section of `reports/00_core/vision-mission-value.md` |
 | Core Domain investment guidance | ◎ | `/product:map-domains` | `reports/03_domain/domain-map.md` |
+| Published Language / event contracts between contexts | ◎ | `/architect:design-aggregate` writes, `/architect:design-microservices` completes the consumer side, `/architect:design-api` emits AsyncAPI from it | `reports/03_design/domain-event-catalog.json` + `.md` (publisher, consumers per context-map relationship, delivery contract), validated by `tools/lib/domain_event_catalog.py`; `reports/03_design/api-specifications/asyncapi/` |
 | Team topology / Conway alignment | ○ | `/architect:design-microservices` | `reports/03_design/target-architecture.md` |
 
 ## Tactical design
@@ -47,7 +48,7 @@ skill · △ referenced, evaluated or partially produced, not a standalone metho
 | Entity | ◎ | `/product:define-data-model`, `/architect:design-aggregate` | `reports/02_spec/data-model.md` (`ENT-`), aggregate members |
 | Value Object | ◎ | `/architect:design-aggregate` | aggregate members with `kind: value` and their validation rule |
 | Invariant | ◎ | `/architect:design-aggregate` | invariants with positive and negative examples, validated by `tools/lib/aggregate_manifest.py` |
-| Domain Event | ◎ | `/architect:design-aggregate`, `/architect:design-state-machine` | aggregate events, state-machine events |
+| Domain Event | ◎ | `/architect:design-aggregate`, `/architect:design-state-machine` | aggregate events, state-machine events, collected in `reports/03_design/domain-event-catalog.json` |
 | Factory | ○ | `/architect:design-aggregate` | the creation command and what must hold at birth |
 | Specification | ○ | `/architect:design-aggregate` | `specifications` per aggregate |
 | Repository | ◎ | `/architect:design-aggregate`, `/architect:design-implementation` | one repository per root; `reports/06_implementation/repository-interfaces-spec.md` |

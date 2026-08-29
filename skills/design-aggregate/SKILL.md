@@ -2,7 +2,8 @@
 description: |
   Design the tactical model of each bounded context — aggregates with their root, interior
   entities, value objects, invariants, commands, domain events, factory, specifications and
-  repository interface — as the unit a transaction writes, through facilitated dialogue.
+  repository interface — as the unit a transaction writes, through facilitated dialogue, and
+  the Domain Event Catalog (the context map's Published Language) derived from their events.
   /architect:design-aggregate [--aggregate=<name>] [--context=<name>] [--auto] [--lang=en|ja] to invoke.
   Recommended prerequisite: redesign output. Feeds design-state-machine, design-scalardb /
   design-data-layer, design-api, design-implementation, generate-test-specs and the reviews.
@@ -29,6 +30,9 @@ Per aggregate:
 - **Factory, specifications, repository interface** — the creation rule, the reusable predicates,
   the one collection abstraction per root
 - **A Mermaid `classDiagram`** and a machine-readable manifest downstream skills consume
+- **The Domain Event Catalog** — every event the aggregates declare, with its publisher, the
+  contexts that consume it across which context-map relationship, and the delivery contract a
+  consumer may rely on (see § Domain Event Catalog)
 
 The modeling method, the seven well-formedness rules and the transaction-boundary contract are
 @rules/aggregate-design.md. Read it before Stage 1; this skill facilitates it, it does not restate it.
@@ -188,6 +192,8 @@ a failure as a defect in the model rather than in the checker.
 |------|---------|
 | `reports/03_design/aggregates/aggregate-{aggregate}.md` | One document per aggregate — root, interior, value objects, invariants with examples, commands, events, factory, specifications, repository, diagram |
 | `reports/03_design/aggregates/aggregate-manifest.json` | **Canonical machine-readable model.** Downstream skills and the validator read this; the Markdown is its human-readable projection and is never authored separately |
+| `reports/03_design/domain-event-catalog.json` | **Canonical Domain Event Catalog** — derived from the manifests' events and the context map, no new dialogue (§ Domain Event Catalog) |
+| `reports/03_design/domain-event-catalog.md` | Its human-readable projection: one table per publishing context, plus a Mermaid diagram of publisher → consumer edges |
 
 `{aggregate}` is the kebab-case aggregate name (`order`, `payment-request`). Write document content
 in the configured output language; YAML frontmatter keys and every identifier (aggregate, member,
@@ -292,6 +298,78 @@ case in its contract test):
 
 A malformed manifest (a list where a string belongs, a string where an object belongs) is reported
 as a violation, never as a traceback.
+
+## Domain Event Catalog
+
+The aggregates' events are the context map's **Published Language**: what one context lets
+another know. Each aggregate declares its events (one publisher per event, enforced above), and
+`context-map.md` names the relationship between contexts, but neither says which context consumes
+which event under which delivery guarantee. The catalog does, and it is **derived** — from the
+manifest's `events`, the aggregate's `bounded_context`, and the relationship the context map
+draws between publisher and consumer — so it costs no dialogue.
+
+Ownership follows the "whichever runs second" rule the `STM-` link uses: this skill writes every
+event with its publisher, payload and scope, and fills `consumers` for the contexts it can see in
+`context-map.md`; `/architect:design-microservices` completes the consumer side when the service
+split settles which context reacts to what, and `/architect:design-api` reads the `published`
+entries to emit `api-specifications/asyncapi/`.
+
+```json
+{
+  "schema_version": 1,
+  "generated_at": "ISO8601",
+  "contexts": ["Ordering", "Inventory", "Payment"],
+  "events": [
+    {
+      "name": "OrderPlaced",
+      "scope": "published",
+      "publisher": { "aggregate": "Order", "bounded_context": "Ordering" },
+      "consumers": [
+        { "bounded_context": "Inventory", "relationship": "customer-supplier",
+          "purpose": "reserve stock for every line" },
+        { "bounded_context": "Payment", "relationship": "customer-supplier",
+          "purpose": "authorize the order total" }
+      ],
+      "payload": ["orderId", "customerId", "lines[].productId", "lines[].quantity", "total"],
+      "delivery": "at-least-once",
+      "idempotency_key": "orderId",
+      "version": 1,
+      "evolution": "additive-only"
+    },
+    {
+      "name": "OrderLineAdded",
+      "scope": "internal",
+      "publisher": { "aggregate": "Order", "bounded_context": "Ordering" },
+      "consumers": [],
+      "payload": ["orderId", "lineNo", "productId", "quantity"]
+    }
+  ]
+}
+```
+
+Field contracts the validator enforces (`tools/lib/domain_event_catalog.py`; every one is a case
+in its contract test):
+
+- **Catalog** — `schema_version: 1`; `events` non-empty; names unique (one event, one entry);
+  `contexts`, when present, lists the bounded contexts the design knows.
+- **Event** — `name` PascalCase; `publisher` names an aggregate and its `bounded_context`, and
+  when the aggregate manifest exists the aggregate **declares** that event and lives in that
+  context; `scope` ∈ `internal` | `published`; `payload` a non-empty list of field names —
+  identities and values, never another aggregate's interior.
+- **Consumers** — each names a declared `bounded_context` other than the publisher's (a reaction
+  inside one context is not published), a `relationship` from the context map's vocabulary
+  (`partnership` | `shared-kernel` | `customer-supplier` | `conformist` | `anticorruption-layer` |
+  `open-host-service` | `separate-ways`) and its `purpose`; no context twice. A `published`
+  event has at least one; an `internal` event has none — the scope is what the consumers say.
+- **Delivery contract** (`published` only) — `delivery` ∈ `at-least-once` | `at-most-once` |
+  `exactly-once`, an `idempotency_key` whenever delivery is at-least-once, an integer
+  `version` ≥ 1 and an `evolution` rule ∈ `additive-only` | `versioned` | `frozen`.
+- **Completeness** — every event an aggregate declares has a catalog entry. An event the
+  manifest emits and the catalog omits is a contract nobody wrote down.
+
+The `.md` projection carries, per publishing context, a table of its events with consumers and
+delivery, and one Mermaid `flowchart` whose edges are publisher context → consumer context
+labelled by event name. It is regenerated from the `.json`, never edited as a source.
 
 ## Output Document Structure
 
@@ -423,6 +501,8 @@ the graph should say so.
 3. Every invariant has a `positive` and a `negative` example (the validator enforces both)
 4. Every name matches `ubiquitous-language.md`, or its addition is proposed
 5. `AGG-` nodes appended to `work/traceability.json`
+5a. `reports/03_design/domain-event-catalog.json` written with every manifest event, and
+   `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/domain_event_catalog.py" <project_dir>` exits 0
 6. `work/pipeline-progress.json` stamped — `in_progress` with `plugin: "architect"` before the work,
    `completed` with `outputs` and `summary` after (@skills/common/progress-registry.md)
 
@@ -436,6 +516,7 @@ the graph should say so.
 | /product:example-map | Upstream — `RULE-` entries are invariant candidates, `EX-` entries their examples |
 | /architect:create-domain-story | Upstream — work items are candidates, activities are commands |
 | /architect:design-state-machine | Downstream — the root's commands with a guard on its condition are its transitions; this skill's aggregate list is its Stage 1 candidate list |
+| /architect:design-microservices | Downstream — completes the Domain Event Catalog's consumer side once the service split settles which context reacts to what |
 | /architect:design-scalardb | Downstream — the aggregate as OCC scope and partition-key unit; one repository per root |
 | /architect:design-data-layer | Downstream — the same, for non-ScalarDB projects |
 | /architect:design-api | Downstream — commands become operations on the root's resource; invariant violations become problem types |

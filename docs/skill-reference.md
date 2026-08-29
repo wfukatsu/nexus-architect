@@ -52,7 +52,7 @@ For the inputs you should prepare before running each pipeline, see the
 | `/architect:map-domains` | opus | - | Domain classification, BC mapping |
 | `/architect:redesign` | opus | - | Bounded context redesign, context map, and the ADR log (`reports/03_design/adr/`) later design skills append to |
 | `/architect:create-domain-story` | opus | Optional | Domain Storytelling: visualize business processes per domain; `--mode=event-storming` runs the flow as a Process Modeling EventStorming session |
-| `/architect:design-aggregate` | opus | Optional | Tactical model per bounded context — aggregate root, interior entities, value objects, invariants with concrete examples, commands / events / factory / specifications, one repository per root, as the unit a transaction writes |
+| `/architect:design-aggregate` | opus | Optional | Tactical model per bounded context — aggregate root, interior entities, value objects, invariants with concrete examples, commands / events / factory / specifications, one repository per root, as the unit a transaction writes; plus the Domain Event Catalog (`reports/03_design/domain-event-catalog.json`) derived from their events |
 | `/architect:design-state-machine` | opus | Optional | State transition models per aggregate — states, guarded transitions, the full state x event matrix with no undecided cell, and the consistency class of every transition |
 | `/architect:design-microservices` | opus | - | Target architecture |
 | `/architect:select-scalardb-edition` | sonnet | ScalarDB | Edition selection |

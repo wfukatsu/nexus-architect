@@ -20,6 +20,14 @@ Nexus Architect の主な変更点を記録します。
   空でない `upstream` を引用する（何も引用しない決定は好みであって記録ではない）。契約は
   `rules/architecture-decision-records.md`、バリデータは `tools/lib/adr_records.py`（24 チェックのスイート）、
   `review-consistency` が実行する。`ADR-` ノードは `work/traceability.json` に `type: decision` で追加される。
+- **ドメインイベントカタログ — コンテキストマップの Published Language**（#33）。
+  `reports/03_design/domain-event-catalog.json` + `.md`: 集約が宣言する全イベント、その発行者、どのコンテキストマップ関係で
+  どのコンテキストが消費するか、消費側が依拠できる配信契約（保証・冪等キー・バージョン・進化ルール）。
+  集約 manifest と `context-map.md` から導出し、新たな対話は不要。`design-aggregate` が書き、サービス分割が
+  決まった時点で `design-microservices` が消費側を完成させる（`STM-` リンクと同じく後に走った方が完成させる）。
+  `design-api` の `asyncapi/` は再導出ではなくこのカタログから生成する。`tools/lib/domain_event_catalog.py` が
+  検証する（35 チェックのスイート）: イベントごとに宣言している発行者が 1 つ、宣言済みイベントは全て掲載、
+  消費者は発行者以外の宣言済みコンテキスト、published イベントには配信契約。`review-consistency` が実行する。
 
 ## [0.32.2] - 2026-08-28
 

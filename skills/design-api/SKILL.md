@@ -141,7 +141,7 @@ defects that surface much later and much more expensively.
 | `reports/03_design/api-specifications/openapi/` | REST API specifications — one per service |
 | `reports/03_design/api-specifications/graphql/` | GraphQL operation inventory here; detailed SDL and resolver/security/loading contracts from `/architect:design-graphql` |
 | `reports/03_design/api-specifications/grpc/` | Protobuf definitions |
-| `reports/03_design/api-specifications/asyncapi/` | Event specifications |
+| `reports/03_design/api-specifications/asyncapi/` | Event specifications — one channel per `published` event of `reports/03_design/domain-event-catalog.json` (the Domain Event Catalog is the source; name, payload, publisher and delivery are taken from it, never re-derived) |
 | `reports/03_design/api-specifications/problem-types.md` | Problem type registry (@rules/api-error-standard.md §2) — every error kind, its `type` URI, status, and whether retry is safe |
 | `reports/03_design/api-specifications/operation-contracts.md` | Per-operation table: `operationId`, authorization rule, idempotency obligation, timeout/retry budget, transaction placement, traced requirement IDs |
 | `reports/03_design/api-gateway-design.md` | Gateway design — routing, authentication, rate limiting |

@@ -41,6 +41,8 @@ reports/
 │   ├── scalardb-migration.md      # Only when ScalarDB is enabled
 │   ├── data-layer-design.md       # Only when ScalarDB is disabled
 │   ├── api-gateway-design.md
+│   ├── domain-event-catalog.json  # design-aggregate writes; design-microservices completes consumers
+│   ├── domain-event-catalog.md    # Projection of the .json — the context map's Published Language
 │   ├── aggregates/                # design-aggregate (optional)
 │   │   ├── aggregate-{aggregate}.md       # One file per modeled aggregate
 │   │   └── aggregate-manifest.json        # Canonical machine-readable model

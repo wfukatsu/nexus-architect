@@ -21,6 +21,17 @@ covers every DDD technique" and "a reader can see the complete document set".
   (a decision that cites nothing is a preference). `rules/architecture-decision-records.md` is the
   contract, `tools/lib/adr_records.py` the validator (24-check suite), `review-consistency` runs
   it. `ADR-` nodes are `type: decision` in `work/traceability.json`.
+- **Domain Event Catalog — the context map's Published Language** (#33).
+  `reports/03_design/domain-event-catalog.json` + `.md`: every event the aggregates declare, its
+  publisher, the contexts that consume it across which context-map relationship, and the delivery
+  contract (guarantee, idempotency key, version, evolution) a consumer may rely on. Derived from
+  the aggregate manifest and `context-map.md` — no new dialogue. `design-aggregate` writes it,
+  `design-microservices` completes the consumer side once the service split is known (whichever
+  runs second finishes it, as with the `STM-` link), and `design-api`'s `asyncapi/` is now emitted
+  from it rather than re-derived. `tools/lib/domain_event_catalog.py` validates it (35-check
+  suite): one publisher per event that really declares it, every declared event catalogued,
+  consumers that are declared contexts other than the publisher's, a delivery contract on every
+  published event. `review-consistency` runs it.
 
 ## [0.32.2] - 2026-08-28
 

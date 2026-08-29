@@ -35,6 +35,7 @@
 | アーキテクチャ決定記録（ADR） | ◎ | `/architect:redesign` がログを開始し、`/architect:design-microservices`, `/architect:design-scalardb`, `/architect:design-data-layer`, `/architect:design-api` が追記 | `reports/03_design/adr/adr-NNN-<slug>.md`（`ADR-`）、`reports/03_design/adr/index.md`、`tools/lib/adr_records.py` で検証 |
 | Domain Vision Statement | ◎ | `/product:define-vision` | `reports/00_core/vision-mission-value.md` の Domain Vision Statement 節 |
 | Core Domain への投資方針 | ◎ | `/product:map-domains` | `reports/03_domain/domain-map.md` |
+| 公開ホスト言語（Published Language）/ コンテキスト間イベント契約 | ◎ | `/architect:design-aggregate` が書き、`/architect:design-microservices` が消費側を完成させ、`/architect:design-api` がそこから AsyncAPI を生成 | `reports/03_design/domain-event-catalog.json` + `.md`（発行者・コンテキストマップ関係ごとの消費者・配信契約）、`tools/lib/domain_event_catalog.py` で検証。`reports/03_design/api-specifications/asyncapi/` |
 | チームトポロジー / Conway 整合 | ○ | `/architect:design-microservices` | `reports/03_design/target-architecture.md` |
 
 ## 戦術設計
@@ -45,7 +46,7 @@
 | エンティティ | ◎ | `/product:define-data-model`, `/architect:design-aggregate` | `reports/02_spec/data-model.md`（`ENT-`）、集約メンバー |
 | 値オブジェクト | ◎ | `/architect:design-aggregate` | `kind: value` のメンバーと検証規則 |
 | 不変条件 | ◎ | `/architect:design-aggregate` | positive / negative の例付き不変条件。`tools/lib/aggregate_manifest.py` が検証 |
-| ドメインイベント | ◎ | `/architect:design-aggregate`, `/architect:design-state-machine` | 集約イベント、状態遷移イベント |
+| ドメインイベント | ◎ | `/architect:design-aggregate`, `/architect:design-state-machine` | 集約イベント、状態遷移イベント。`reports/03_design/domain-event-catalog.json` に集約 |
 | ファクトリ | ○ | `/architect:design-aggregate` | 生成コマンドと生成時に成り立つべき条件 |
 | 仕様（Specification） | ○ | `/architect:design-aggregate` | 集約ごとの `specifications` |
 | リポジトリ | ◎ | `/architect:design-aggregate`, `/architect:design-implementation` | ルートごとに 1 つ。`reports/06_implementation/repository-interfaces-spec.md` |
