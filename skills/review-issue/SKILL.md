@@ -151,8 +151,12 @@ If the verdict has `[B]` blockers and `--no-fix` is not set (and the verdict is 
 1. For each blocker, **spawn a fix subagent** (Agent tool, `general-purpose`) with: the blocker
    description and location, the affected files, `coding-standards.md`, the relevant sibling
    contracts, and the project knowledge base (`review-knowledge.md`) so the fix does not re-introduce
-   a known anti-pattern. Instruct it to make the minimal correct fix **on the working branch and
-   commit it**, without touching unrelated code.
+   a known anti-pattern. Instruct it to **reproduce before fixing** (@rules/tdd-workflow.md §2 —
+   a defect is a test that was missing): first a `test: reproduce <blocker-id> (#<iid>)` commit
+   whose body names the test and shows it failing, then the minimal correct `fix: … (#<iid>)`
+   commit that turns it green, **on the working branch**, without touching unrelated code. A
+   blocker with no behaviour to reproduce (a naming, documentation or configuration finding, a
+   gate stage that was `not-configured`) skips the reproduction and says so in the fix commit body.
 2. Re-run Step 3 (round + 1) against the new commits.
 3. **Loop guard** — end the loop when:
    - blockers reach 0 → proceed to Step 5;
@@ -196,6 +200,9 @@ If the verdict has `[B]` blockers and `--no-fix` is not set (and the verdict is 
   `/architect:merge-issue` performs the merge after approval.
 
 ## Acceptance Criteria
+
+- Every behavioural blocker the fix loop resolved has a reproduction test committed before its fix,
+  named in the Step 4 comment; blockers fixed without one carry the reason (@rules/tdd-workflow.md).
 
 - The review covers the Issue **and** its Sub-Epic, Epic, and related Issues; cross-item conflicts
   are reported (and fixed when they are blockers).

@@ -29,7 +29,7 @@ Run in this order; the cheap deterministic stages fail fast before the expensive
 | 1 | **Compile / build** | The project's real build target succeeds | Command + exit code |
 | 2 | **Unit tests** | All pass; no test disabled or deleted in this change without a recorded reason; when `reports/03_design/aggregates/aggregate-manifest.json` exists, every invariant it declares is covered by at least one property-based test that drives the aggregate root (`reports/07_test-specs/property-test-specs.md` names the test per invariant); **line coverage of the changed files meets the threshold** and **the domain layer's mutation score meets its threshold** (§Test quality below) | Command + counts (run/passed/skipped) + invariant → test-class map, invariants covered / declared + coverage per changed file + mutation score (killed / total mutants) for `domain/` + the test-first record per unit (@rules/tdd-workflow.md §6) |
 | 3 | **Contract tests** | Every REST `operationId` and GraphQL resolver field coordinate the change touches is exercised and validates against the specification (@rules/api-contract-fidelity.md §7) | Command + per-operation/field-coordinate results |
-| 4 | **Integration tests** | All pass, including the transaction scenarios the design requires — OCC conflict, 2PC failure, saga compensation | Command + counts |
+| 4 | **Integration tests** | All pass, including the transaction scenarios the design requires — OCC conflict, 2PC failure, saga compensation; **on the legacy path**, the `characterizationTest` task the transformation-plan step names passes on the modules the change touched (recorded before the change as the baseline and after it as the stage result — a fixture edit in between is a decision on the Issue, never a silent update) | Command + counts; characterization: task, modules, fixtures changed |
 
 **Stage 4 is not substitutable by stages 3 and 8.** Contract tests prove the shape of what the API
 returns; conformance review proves the code says what the design said. Neither runs a transaction
@@ -80,7 +80,7 @@ Every scanning stage therefore records **what it covered**, and the coverage is 
 
 | Stage | Coverage evidence required |
 |-------|---------------------------|
-| Unit / contract / integration | Number of tests **run** — a suite that ran 0 tests is `not-configured`, never `passed` |
+| Unit / contract / integration / acceptance / characterization | Number of tests **run** — a suite that ran 0 tests is `not-configured`, never `passed` |
 | Property (invariants) | Invariants covered / declared, and the number of generated cases per property — a property that ran 0 tries, or an invariant with no test class, is a stage-2 failure, not a pass |
 | SAST | Files or rules scanned |
 | Dependency scan | Number of dependencies or manifests examined |
@@ -103,6 +103,7 @@ cannot hide behind a well-tested repository:
 |---------|-------|-----------|---------------------|
 | **Line + branch coverage** | Every production file the change touched | `domain/` and `application/`: **90 % line, 80 % branch**. Other packages: **70 % line**. Files the tdd-workflow rule exempts (§5 — configuration, DTO records, mappers with no logic) are excluded by package pattern, and the exclusion list is in the gate result | JaCoCo (`jacocoTestCoverageVerification` with per-package rules) |
 | **Mutation score** | `domain/` packages the change touched | **80 % killed**, no surviving mutant on a line that enforces a declared invariant or a state-machine guard (those are listed by name; one survivor there fails the stage regardless of the aggregate score) | PIT (`pitest` Gradle plugin with `targetClasses` set to the touched domain packages, `mutators = DEFAULTS`, `junit5` plugin; jqwik properties included via the JUnit platform) |
+| **Suite budget and quarantine** | Every test task the gate ran | Wall-clock per task against the layer budget of @rules/tdd-workflow.md §6 (over budget = `major`, slowest ten named); quarantined (`@Tag("flaky")`) tests counted, listed with their age, older than 14 days = `major`; no retry setting on any gate task | Task output, test inventory |
 | **Test-first record** | Every behavioural unit of the item | Reported, not thresholded: units by `test-first` / `test-after` / `refactor-only` / `exempt`, the failing tests each Red commit named, and the acceptance-level test that carried the outer loop | `git log` on the working branch, per @rules/tdd-workflow.md §6 |
 
 Rules:
@@ -150,7 +151,9 @@ the versions are looked up per @rules/dependency-versions.md rather than recalle
 | Unit | `./gradlew test jacocoTestCoverageVerification` | `npm test -- --coverage` (thresholds in the coverage config) |
 | Mutation (domain, part of stage 2) | `./gradlew pitest` scoped to the touched `domain/` packages | `npx stryker run` scoped the same way |
 | Contract | `./gradlew test --tests '*ContractTest'` (OpenAPI validator and/or GraphQlTester) | project's contract suite |
-| Integration | `./gradlew integrationTest` | `npm run test:integration` |
+| Integration | `./gradlew integrationTest` (SQLite-backed in-process engine, `*IT`) | `npm run test:integration` |
+| Acceptance (part of stage 4 when the project has a BDD runner) | `./gradlew acceptanceTest` (Cucumber-JVM over `bdd-scenarios/`) | `npm run test:acceptance` |
+| Characterization (legacy path, part of stage 4) | `./gradlew characterizationTest` | `npm run test:characterization` |
 | SAST | Semgrep (`--config auto`), or SpotBugs + `find-sec-bugs` | Semgrep |
 | Dependency | OSV-Scanner, or OWASP Dependency-Check | `npm audit --audit-level=high` / OSV-Scanner |
 | Secrets | Gitleaks (`gitleaks dir <path>` when the tree is not a git repository — `detect` silently scans nothing there) | Gitleaks |

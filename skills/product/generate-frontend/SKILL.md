@@ -72,11 +72,19 @@ skill turns both into reusable, story-backed React components organized by **Ato
 - **Every component is story-backed.** Each component has a `*.stories.tsx` with one story per
   variant/state from `components.md`; props/controls are typed. A component without a story is
   incomplete.
+- **Every component is test-backed through its stories.** Each `*.stories.tsx` is also the fixture
+  for a Vitest + Testing Library test that renders every story (`composeStories`) and asserts the
+  role/label the design system's `components.md` states for that variant; each page has a routing
+  test (`next`/`prev` lead where the story order says); and one Playwright smoke walks the mock's
+  click path end to end. Tests are written next to the component **before** its implementation is
+  filled in (@rules/tdd-workflow.md §2 — the story is the Red), and `vitest` coverage thresholds
+  follow the Node defaults of @rules/ai-code-quality-gate.md §Test quality. A component without a
+  test is as incomplete as one without a story.
 - **The scaffold must actually run.** Dependency versions are mutually compatible and pinned; the
-  generated `package.json` scripts (`dev`, `build`, `storybook`, `build-storybook`, `typecheck`)
+  generated `package.json` scripts (`dev`, `build`, `storybook`, `build-storybook`, `typecheck`, `test`, `test:coverage`, `test:e2e`)
   exist and are correct. Prefer a small, coherent toolchain over feature breadth.
 - **Pinned versions are looked up, never recalled** (@rules/dependency-versions.md). Resolve React,
-  TypeScript, Vite, Storybook, react-router and the Node engine range from their registries
+  TypeScript, Vite, Storybook, Vitest, Testing Library, Playwright, react-router and the Node engine range from their registries
   (`npm view <pkg> dist-tags --json`, `endoflife.date` for Node's LTS window), take the `latest`
   dist-tag rather than `next`/`canary`, and verify the set is mutually compatible — the newest of each
   is frequently not a working combination, and Storybook in particular gates on the Vite/React major.
@@ -126,10 +134,15 @@ skill turns both into reusable, story-backed React components organized by **Ato
    mock file names; render missing steps as disabled/`TBD` routes; add `next`/`prev` navigation.
 7. **Write Storybook** — `.storybook/main.ts` + `.storybook/preview.ts` (import `tokens.css`, apply a
    theme decorator); one `*.stories.tsx` per component (a story per variant/state) and per page.
-8. **Emit the scaffold** — `package.json` (pinned React 18 + Vite + Storybook 8 + TS, with `dev`,
-   `build`, `storybook`, `build-storybook`, `typecheck` scripts), `vite.config.ts`, `tsconfig.json`,
+7b. **Write the tests** — `Component.test.tsx` per component rendering its composed stories with
+   Testing Library and asserting the stated roles/labels; `Page.test.tsx` per page for its routes;
+   `e2e/story-flow.spec.ts` (Playwright) walking the mock's click path; `vitest.config.ts` with the
+   coverage thresholds. Written before step 4's implementations are completed, so the first run is
+   red.
+8. **Emit the scaffold** — `package.json` (pinned React 18 + Vite + Storybook 8 + TS + Vitest + Testing Library + Playwright, with `dev`,
+   `build`, `storybook`, `build-storybook`, `typecheck`, `test`, `test:coverage`, `test:e2e` scripts), `vite.config.ts`, `tsconfig.json`,
    `index.html`, `src/main.tsx`, `src/App.tsx`.
-9. **Verify** — logically check that every `CMP-`/screen produced a component/page + story, imports
+9. **Verify** — run `npm run typecheck && npm test`; then logically check that every `CMP-`/screen produced a component/page + story + test, imports
    resolve, props/stories are consistent, and no `*.module.css` uses a raw value. List any `TBD`.
 10. **Append traceability** — add one `PG-` node per page to `work/traceability.json` (Upstream the
     `SCR-` it renders and the `STORY-` that ordered it, with `next`/`prev` route edges). Generated
@@ -143,8 +156,8 @@ skill turns both into reusable, story-backed React components organized by **Ato
 
 `generated/frontend/` — a runnable React + TypeScript + Vite + Storybook scaffold:
 `src/components/{atoms,molecules,organisms,templates}/`, `src/pages/`, `src/app/router.tsx`,
-`src/styles/tokens.css`, `.storybook/`, `package.json`, `vite.config.ts`, `tsconfig.json`. Each
-component/page carries a `*.stories.tsx`; styling references design tokens only; routing mirrors the
+`src/styles/tokens.css`, `.storybook/`, `e2e/`, `package.json`, `vite.config.ts`, `vitest.config.ts`, `tsconfig.json`. Each
+component/page carries a `*.stories.tsx` and a `*.test.tsx`; styling references design tokens only; routing mirrors the
 mock's story flow. Code identifiers stay English; UI copy/comments use `options.output_language`.
 
 This tree is **regenerable pipeline output** and is git-ignored alongside `reports/` and `work/`

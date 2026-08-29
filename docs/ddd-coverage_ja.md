@@ -75,7 +75,7 @@
 | 手法 | 状況 | 場所 | 成果物 |
 |------|------|------|--------|
 | Example Mapping | ◎ | `/product:example-map` | `reports/02_spec/examples/example-map-{feat}.md`（`RULE-`, `EX-`） |
-| Specification by Example / BDD | ◎ | `/architect:generate-test-specs` | `reports/07_test-specs/bdd-scenarios/` — `RULE-` / `EX-` からの `Rule:` / `Scenario:` |
+| Specification by Example / BDD | ◎ | `/architect:generate-test-specs`（シナリオ）、`/architect:generate-acceptance-tests`（実行可能化） | `reports/07_test-specs/bdd-scenarios/` — `RULE-` / `EX-` からの `Rule:` / `Scenario:`。Cucumber ステップ定義と `reports/07_test-specs/acceptance-test-coverage.md` |
 | 受入基準 | ◎ | `/architect:export-backlog`, `/architect:define-requirements` | `RULE-` からの Issue 受入基準・FR 受入基準 |
 | 契約テスト | ◎ | `/architect:generate-contract-tests` | `generated/{service}/src/test/java/**/contract/` |
 | プロパティベーステスト | ◎ | `/architect:generate-test-specs`, `/architect:generate-scalardb-code` | `reports/07_test-specs/property-test-specs.md`。不変条件ごとの jqwik プロパティ |
@@ -91,15 +91,18 @@ DDD モデルを実行可能にするプラクティスについて、ツール�
 | 手法 | 状況 | 場所 | 成果物 |
 |------|------|------|--------|
 | Red → Green → Refactor（テストファースト、履歴から検証可能） | ◎ | `/architect:implement-backlog` Step 5、`rules/tdd-workflow.md` §2 | 作業ブランチ上のユニットごとの `test:` → `feat:` → `refactor:` コミット列。順序は `reports/09_verification/quality-gate.json`（`test_first`）に記録 |
-| 二重ループ（外側 ATDD、内側 TDD） | ◎ | `/architect:implement-backlog` Step 5、`rules/tdd-workflow.md` §3 | 外側ループを担った受入レベルのテストを Issue の進捗コメントに明記 |
-| Walking skeleton | ○ | `/product:define-features`（印を付ける）、`/architect:implement-backlog`（最初に実装する） | ユーザーストーリーマップの Must 行。新サービスの最初のアイテム |
+| 二重ループ（外側 ATDD、内側 TDD） | ◎ | `/architect:generate-acceptance-tests`（外側ループのテスト）、`/architect:implement-backlog` Step 5、`rules/tdd-workflow.md` §3 | 外側ループを担った受入レベルのテストを Issue の進捗コメントに明記。`@wip` シナリオは通したアイテムが外す |
+| Walking skeleton | ◎ | `/product:define-features`（Must 行）、`/architect:export-backlog`（新サービスごとに `walking-skeleton` Issue を 1 件、順序の先頭に）、`/architect:implement-backlog`（最初に実装する） | ユーザーストーリーマップの Must 行。`walking-skeleton` Issue |
 | テストダブル — リポジトリポートごとの Fake、注入される Clock / ID 生成器 | ◎ | `/architect:design-implementation`（仕様化）、`/architect:generate-scalardb-code`（生成）、`/architect:generate-contract-tests`（ArchUnit で強制） | `generated/{service}/src/test/java/**/fakes/`、`reports/06_implementation/repository-interfaces-spec.md` |
 | 変更範囲に対するカバレッジ閾値 | ◎ | `/architect:verify-implementation --gate` ステージ 2、`rules/ai-code-quality-gate.md` §Test quality | `reports/09_verification/quality-gate.json`（`coverage`）、`generated/{service}/build.gradle` の JaCoCo 検証 |
 | ドメイン層のミューテーションテスト | ◎ | `/architect:verify-implementation --gate` ステージ 2 | `reports/09_verification/quality-gate.json`（`mutation`、生存ミュータントを行単位、不変条件行の生存を名前で） |
-| レガシーコードの特性テスト / ゴールデンマスター | ◎ | `/architect:generate-characterization-tests` | `reports/07_test-specs/characterization-test-coverage.md`。移行計画の各ステップをゲートする `characterizationTest` タスク |
-| テストピラミッド / スイート実行時間予算 | △ | `rules/ai-code-quality-gate.md` のステージ分割（unit / contract / integration）が層を固定する。実行時間予算や比率は未定義 | — |
-| フレーキーテストのポリシー | △ | `rules/tdd-workflow.md` §4 がプロパティテストのシードと特性テストフィクスチャの非決定性マスクを定める。スイート全体の隔離・再試行ポリシーは未定義 | — |
-| ユビキタス言語に基づくテスト命名 | × | — | — |
+| レガシーコードの特性テスト / ゴールデンマスター | ◎ | `/architect:generate-characterization-tests`。ベースラインは `/architect:implement-backlog` Step 5、ゲートのステージ 4 | `reports/07_test-specs/characterization-test-coverage.md`。移行計画の各ステップをゲートする `characterizationTest` タスク |
+| 実エンジン上のトランザクションシナリオ統合テスト | ◎ | `/architect:generate-scalardb-code`（`TX-` ごとの `*IT`、SQLite バックエンドのインプロセス ScalarDB）、`/scalardb:scaffold` / `/scalardb:build-app` | `generated/{service}/src/test/java/**/integration/`。ゲートのステージ 4 |
+| バグ修正は再現テストから | ◎ | `/architect:review-issue` Step 4 | 作業ブランチ上で `fix:` の前に `test: reproduce <blocker>` コミット |
+| フロントエンドのコンポーネント / ルーティング / e2e テスト | ◎ | `/product:generate-frontend` | composed stories 上のコンポーネント・ページごとの `*.test.tsx`、`e2e/` の Playwright ストーリーフロー、`vitest.config.ts` の閾値 |
+| スイート実行時間予算 / 構成 | ◎ | `rules/tdd-workflow.md` §6、`rules/ai-code-quality-gate.md` §Test quality | `reports/09_verification/quality-gate.json` にタスクごとの実時間（層別予算に対して）と層別テスト数 |
+| フレーキーテストのポリシー | ◎ | `rules/tdd-workflow.md` §6 — タグで隔離し、計数・経過日数を記録、再試行はしない。シード付きプロパティ、マスク済み特性フィクスチャ | `reports/09_verification/quality-gate.json` に隔離テストと経過日数。`/architect:capture-followup` で follow-up Issue |
+| ユビキタス言語に基づくテスト命名 | ◎ | `rules/tdd-workflow.md` §6、`/architect:review-consistency` の用語一貫性ディメンション | 用語集の語で `should_<outcome>_when_<condition>`。テスト名・シナリオ名に対する CON-3xx 指摘 |
 
 ## 意図的に実装しないもの
 

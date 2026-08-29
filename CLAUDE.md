@@ -22,7 +22,7 @@ Use `/product:start` to design product direction, `/architect:start` for interac
 
 ## Repository Mechanics
 
-This repo is not an application — it is a **Claude Code plugin marketplace** whose product is a corpus of ~118 skill instruction files (107 registered as slash commands, plus the nested migration sub-skills below). There is no compile/build step and no application to run; "developing" here means editing skills, rules, and hooks.
+This repo is not an application — it is a **Claude Code plugin marketplace** whose product is a corpus of ~119 skill instruction files (108 registered as slash commands, plus the nested migration sub-skills below). There is no compile/build step and no application to run; "developing" here means editing skills, rules, and hooks.
 
 **Packaging.** `.claude-plugin/marketplace.json` defines four plugins (`architect`, `scalardb`, `product`, `infra`), each with its own version, and lists the skill directories it ships. Skills physically live in a flat `skills/` tree (product and infra skills are nested under `skills/product/` and `skills/infra/`); a plugin "owns" a skill only by listing its path in `marketplace.json`. **Adding a skill requires two edits: create `skills/<name>/SKILL.md` AND register its path in the plugin's `skills` array in `marketplace.json`.** An unregistered SKILL.md will not surface as a slash command.
 
@@ -68,7 +68,7 @@ contract that runs only when someone remembers is not enforced at all.
 | `tools/lib/adr_records.test.py` | The Architecture Decision Record contract of `rules/architecture-decision-records.md`: `ADR-###` id equal to the file-name number and unique, the four statuses, a non-empty `upstream` of traceability ids, supersession chains that close on records marked `superseded`, the four fixed body headings, and `index.md` equal to the set of records |
 | `samples/ec-monolith/reference-set.test.py` | The committed reference DDD document set (`samples/ec-monolith/expected-reports/`): staged as a project it passes all four manifest validators and both output hooks, every artifact path `docs/ddd-coverage.md` cites for these techniques is realised, and no file sits at a path the table does not cite |
 | `tools/nexus-status.test.sh` | The dashboard's CLI contract on scratch projects: project resolution, 0/1/2 exit codes, the four addressable views, every output mode, `--group`/`--phase`/`--epic` narrowing `--json` too, unknown filters failing as usage, cross-view agreement, refresh poll |
-| `tools/docs_consistency.test.py` | The documentation split itself: both catalogues describing all 107 registered commands, the signature block matching each SKILL.md (no flag invented by prose, none dropped, none re-spelled, every flag a skill documents about itself offered, and — for the skills that wrap a shell tool — no flag that tool's parser would reject), the grouped tables in CLAUDE.md/README summing to the registry, the extension-tier and codegen prose equal to `EXTENSION_PHASES`/`CODEGEN_PHASES`, AGENTS.md knowing every skill, the catalogue pointer staying un-`@`-imported, no flag mentioned anywhere without belonging to a documented surface, the Japanese catalogue keeping row order plus each row's model tier / flags / tool references, and `docs/ddd-coverage.md` naming only registered commands and declared artifact paths |
+| `tools/docs_consistency.test.py` | The documentation split itself: both catalogues describing all 108 registered commands, the signature block matching each SKILL.md (no flag invented by prose, none dropped, none re-spelled, every flag a skill documents about itself offered, and — for the skills that wrap a shell tool — no flag that tool's parser would reject), the grouped tables in CLAUDE.md/README summing to the registry, the extension-tier and codegen prose equal to `EXTENSION_PHASES`/`CODEGEN_PHASES`, AGENTS.md knowing every skill, the catalogue pointer staying un-`@`-imported, no flag mentioned anywhere without belonging to a documented surface, the Japanese catalogue keeping row order plus each row's model tier / flags / tool references, and `docs/ddd-coverage.md` naming only registered commands and declared artifact paths |
 | `tools/lib/status_tui.test.py` | The curses shell's interaction contract without a terminal: `c` copies rather than opens, the action-menu/help behaviour with and without `--exec`, an empty tree naming its filter, `q` as the only quit key |
 | `tools/build_report.test.py` | The consolidated HTML report's rendering contract on a scratch project: one article per source document with unique ids, a Mermaid fence escaped exactly once and round-tripping unchanged, inter-report links rewritten to in-page anchors, `.feature` files as Gherkin, manifest JSON never rendered, the canonical section ids identical in both languages while every UI string switches, a project whose review has not run still rendering, and a non-project refused with exit 1 |
 
@@ -92,18 +92,18 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 
 ## Command Reference
 
-**107 slash commands across four plugins.** The catalogue — every command with its model, its
+**108 slash commands across four plugins.** The catalogue — every command with its model, its
 prerequisites and its full flag signature — is `docs/skill-reference.md` (`_ja` for Japanese), read
 on demand with the Read tool and deliberately **not** `@`-imported, since an always-loaded catalogue
 is the cost this section exists to avoid. Do not duplicate it here: this table is the map of *which
-group does what*, so you know where to look, and the counts below are a partition of all 107.
+group does what*, so you know where to look, and the counts below are a partition of all 108.
 
 | Group | Entry point | What it does | n |
 |-------|-------------|--------------|---|
 | **Product Direction** `/product:*` | `/product:start` | Validation-driven pipeline from product vision to SLA/NFR, gating on the riskiest assumptions; hands off to `/architect:define-requirements`. Skills are namespaced under `skills/product/`, rules under `rules/product/` | 28 |
 | **Orchestration & setup** | `/architect:start`, `/architect:pipeline` | Interactive or automated execution of the architect core pipeline, plus `init-output` | 3 |
 | **Core pipeline** `/architect:*` | run by the orchestrators | requirements → investigate → analyze → evaluate → redesign → design → review → report. The phases, their order, their declared outputs and their models are the manifest's, not prose: @skills/common/skill-dependencies.yaml | 27 |
-| **Extension tier** | invoked individually | Implementation specs, code generation (REST / GraphQL / ScalarDB / contract tests / characterization tests / IaC / docs), verification and the quality gate, infrastructure / security / observability / DR design, cost estimation. Enumerated under Pipeline Dependencies below | 20 |
+| **Extension tier** | invoked individually | Implementation specs, code generation (REST / GraphQL / ScalarDB / contract tests / acceptance tests / characterization tests / IaC / docs), verification and the quality gate, infrastructure / security / observability / DR design, cost estimation. Enumerated under Pipeline Dependencies below | 21 |
 | **Backlog Delivery** | `/architect:deliver-backlog` | export → implement → review → merge over GitLab/GitHub work items. Unlike codegen it writes **merge-bound code into the project's real source tree**, never `generated/`, and stops at every human gate | 7 |
 | **Database Migration** | `/architect:migrate-database` | Oracle / MySQL / PostgreSQL → ScalarDB: schema extraction, analysis, SP/trigger conversion (the router delegates to nested sub-skills that are not slash commands) | 4 |
 | **ScalarDB Development** `/scalardb:*` | `/scalardb:build-app` | Schema modeling, configuration, scaffolding, CRUD/JDBC patterns, exception handling, code review, migration advice | 11 |
@@ -130,10 +130,10 @@ investigate -> analyze -> [evaluate-mmi, evaluate-ddd] -> integrate-evaluations
 
 Dependency manifest (architect): @skills/common/skill-dependencies.yaml
 
-The manifest covers the core pipeline only. Twenty further architect skills —
+The manifest covers the core pipeline only. Twenty-one further architect skills —
 `investigate-security`, `select-scalardb-edition`, `design-scalardb-analytics`,
 `design-implementation`, `generate-test-specs`, `generate-characterization-tests`, `generate-scalardb-code`,
-`generate-api-code`, `generate-graphql-code`, `generate-contract-tests`, `generate-infra-code`, `generate-docs`,
+`generate-api-code`, `generate-graphql-code`, `generate-contract-tests`, `generate-acceptance-tests`, `generate-infra-code`, `generate-docs`,
 `verify-implementation`, `design-infrastructure`,
 `design-security`, `design-observability`, `design-disaster-recovery`, `estimate-cost`,
 `estimate-token-cost`, `report-token-cost` — form a
@@ -157,7 +157,7 @@ them are run by `/architect:pipeline` either.
 Within that tier the codegen skills have a fixed follow-on order — **generate code →
 test it → document it → verify it**: `generate-api-code` (REST/OpenAPI) or
 `generate-graphql-code` (Spring GraphQL), and `generate-scalardb-code` (`domain/` + `infrastructure/`) emit the
-service between them, `generate-contract-tests` turns the contract into executable tests,
+service between them, `generate-contract-tests` turns the contract into executable tests and `generate-acceptance-tests` the Gherkin scenarios into the ATDD outer loop,
 `generate-infra-code` emits the IaC plus the CI workflow that enforces the eight-stage quality
 gate (and `/product:generate-frontend` the frontend), then `generate-docs` documents what was
 emitted and `verify-implementation` checks it against the design — with `--gate`, running that

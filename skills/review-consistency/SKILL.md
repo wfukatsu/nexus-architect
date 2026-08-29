@@ -226,6 +226,7 @@ Evaluate ONLY the Terminology Consistency dimension:
 - Detection of different names for the same concept
 - Abbreviations defined at first occurrence and used consistently
 - State and event names in any state transition model appear in `ubiquitous-language.md` with the same spelling, and no state is renamed between the model, the schema and the API design
+- When `reports/07_test-specs/` (Gherkin scenarios, test specifications) or generated test sources are in the file list: test and scenario names use the glossary's terms for the concept they exercise — a test named for an implementation detail or a synonym the glossary does not record (`testConfirm2`, `checkCart` for an Order) is a finding, per @rules/tdd-workflow.md §6
 
 Score 1-5: 5=Exemplary, 4=Good, 3=Acceptable, 2=Concerning, 1=Critical
 

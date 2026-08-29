@@ -143,6 +143,7 @@ phases. Run them yourself afterwards, in this order:
 /architect:generate-api-code                        # -> generated/{service}/  api/, bound to the OpenAPI contract
 /architect:generate-graphql-code                    # -> generated/{service}/  api/graphql/, when GraphQL/hybrid
 /architect:generate-contract-tests                  # -> generated/{service}/src/test/
+/architect:generate-acceptance-tests                # -> generated/{service}/src/test/  (Gherkin executable, @wip until implemented)
 
 # 4. Infrastructure code                            (requires reports/08_infrastructure/)
 /architect:design-infrastructure                    # run this first if you have no infra reports yet

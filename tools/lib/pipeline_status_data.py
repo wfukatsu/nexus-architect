@@ -468,6 +468,9 @@ EXTENSION_PHASES = {
                                   depends_on=["design-implementation", "design-graphql"],
                                   conditions=["api_style_graphql"],
                                   outputs=["reports/06_implementation/graphql-code-generation.md"]),
+    "generate-acceptance-tests": dict(category="extension", model="sonnet",
+                                      depends_on=["generate-test-specs"],
+                                      outputs=["reports/07_test-specs/acceptance-test-coverage.md"]),
     "generate-contract-tests": dict(category="extension", model="sonnet",
                                     depends_on=["design-implementation"],
                                     outputs=["generated/*/src/test/java/",
@@ -511,7 +514,7 @@ EXTENSION_PHASES = {
 # specifications under reports/, not code.
 CODEGEN_PHASES = {
     "architect": ("generate-scalardb-code", "generate-api-code", "generate-graphql-code",
-                  "generate-contract-tests",
+                  "generate-contract-tests", "generate-acceptance-tests",
                   "generate-infra-code", "generate-docs"),
     "product": ("generate-frontend",),
 }

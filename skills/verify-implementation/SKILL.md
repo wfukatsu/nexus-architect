@@ -186,6 +186,10 @@ otherwise), records coverage per changed file and surviving mutants by file:line
 `--item` — reads the working branch's log for the item to record the test-first sequence per unit
 (@rules/tdd-workflow.md §6): `test:` before `feat:`, the failing tests named in the Red commit body,
 and which acceptance-level test carried the outer loop. The record is reported, never a verdict.
+Stage 4 runs the `integrationTest` task and, when the project has them, the `acceptanceTest` and
+`characterizationTest` tasks; on a transformation-step item the characterization result is compared
+with the baseline `implement-backlog` recorded before the change, and any fixture edited between
+the two is listed as a decision to confirm, not absorbed.
 
 ### Step 8 — Write the report
 

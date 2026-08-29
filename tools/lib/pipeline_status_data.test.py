@@ -206,6 +206,7 @@ DOC_EXTENSION_TIER = [
     "design-implementation", "generate-test-specs", "generate-characterization-tests",
     "generate-scalardb-code",
     "generate-api-code", "generate-graphql-code", "generate-contract-tests",
+    "generate-acceptance-tests",
     "generate-infra-code", "generate-docs", "verify-implementation",
     "design-infrastructure", "design-security",
     "design-observability", "design-disaster-recovery", "estimate-cost",

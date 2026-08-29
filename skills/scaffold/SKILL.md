@@ -82,13 +82,28 @@ project-name/
 ├── docker-compose.yml
 ├── README.md
 └── src/
-    └── main/
+    ├── main/
+    │   └── java/
+    │       └── sample/
+    │           ├── Sample.java          (service class)
+    │           ├── SampleRepository.java (port the service depends on)
+    │           └── command/
+    │               └── SampleCommand.java (CLI entry point, optional)
+    └── test/
         └── java/
             └── sample/
-                ├── Sample.java          (service class)
-                └── command/
-                    └── SampleCommand.java (CLI entry point, optional)
+                ├── SampleTest.java            (unit: service over InMemorySampleRepository, fixed Clock)
+                ├── fakes/InMemorySampleRepository.java
+                ├── ScalarDbTestBackend.java   (in-process ScalarDB over SQLite, schema from schema.json)
+                └── SampleIT.java              (integration: every operation + OCC conflict + blind write, real engine)
 ```
+
+The test tree is not optional: a scaffold with no tests is a project that cannot be developed
+test-first from its first commit (@rules/tdd-workflow.md §4). `build.gradle` registers `test` and
+an `integrationTest` task (filter `*IT`, `failOnNoMatchingTests = true`, `sqlite-jdbc` as
+`testRuntimeOnly`) — the shape of `samples/scalardb-transaction-tests/` in this repository. For the
+SQL / JDBC combinations the integration test drives the same operations through `ScalarDbSql`
+against the same in-process backend.
 
 ## Generated Code Requirements
 
@@ -99,6 +114,8 @@ project-name/
 5. Use Insert/Upsert/Update instead of deprecated Put
 6. try-with-resources for manager lifecycle
 7. SLF4J logging
+8. `Clock` and id generation injected through the constructor — no `now()` / `randomUUID()` inside the service
+9. Tests as above: the unit test runs with no database; the `*IT` runs against the in-process engine and covers every operation, one OCC conflict and one blind write
 
 ## Output Format
 
@@ -107,4 +124,5 @@ Generate each file in a clearly labeled code block with the file path. Provide a
 At the end, provide the commands to:
 1. Start the database: `docker-compose up -d`
 2. Load the schema: `java -jar scalardb-schema-loader-*.jar --config database.properties -f schema.json --coordinator`
-3. Build and run: `./gradlew run`
+3. Test: `./gradlew test integrationTest` (the `*IT` needs no running database — SQLite in-process)
+4. Build and run: `./gradlew run`

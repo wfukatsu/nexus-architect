@@ -102,6 +102,15 @@ backlog stays linked to the design.
   `api-design.md` / `api-specifications/`; a schema or migration unit from `data-model.md` /
   `scalardb-*.md`; a service/repository/value-object spec from `reports/06_implementation/`; a
   transformation step; each **High/Critical** review finding from `review-synthesis.md`.
+- **The walking skeleton is an Issue, and the first one.** For every new service (or every Epic
+  that starts one), one Issue whose `## How` is the thinnest end-to-end slice — one operation from
+  the API through the application service and aggregate to the repository and real storage, with
+  the test harness, the Fakes, the `integrationTest` / contract / acceptance tasks and the CI gate
+  wired — labelled `walking-skeleton`, numbered first in its Sub-Epic, and cited by every sibling
+  as its prerequisite. On the product path its content is the User Story Map's Must row
+  (`/product:define-features`); on the architect path it is the first operation of the first
+  service in `transformation-plan.md`. `/architect:implement-backlog` implements it before anything
+  else (@rules/tdd-workflow.md §3).
 
 ## Checklist Contract (shared with the backlog family)
 
@@ -216,6 +225,9 @@ item with its level, title, URL, and source traceability, plus any nodes skipped
 Print the Epic URL(s) to the user.
 
 ## Acceptance Criteria
+
+- Every new service has exactly one `walking-skeleton` Issue, first in its Sub-Epic's order, and no
+  sibling Issue that depends on the wiring it establishes is ordered before it.
 
 - A `backlog-plan.md` + `backlog-manifest.json` are written and approved **before** any remote
   create call.

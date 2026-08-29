@@ -77,7 +77,7 @@ skill · △ referenced, evaluated or partially produced, not a standalone metho
 | Technique | Status | Where | Artifact |
 |-----------|--------|-------|----------|
 | Example Mapping | ◎ | `/product:example-map` | `reports/02_spec/examples/example-map-{feat}.md` (`RULE-`, `EX-`) |
-| Specification by Example / BDD | ◎ | `/architect:generate-test-specs` | `reports/07_test-specs/bdd-scenarios/` — `Rule:` / `Scenario:` from `RULE-` / `EX-` |
+| Specification by Example / BDD | ◎ | `/architect:generate-test-specs` (scenarios), `/architect:generate-acceptance-tests` (executable) | `reports/07_test-specs/bdd-scenarios/` — `Rule:` / `Scenario:` from `RULE-` / `EX-`; Cucumber step definitions and `reports/07_test-specs/acceptance-test-coverage.md` |
 | Acceptance criteria | ◎ | `/architect:export-backlog`, `/architect:define-requirements` | Issue acceptance criteria and FR acceptance criteria from `RULE-` |
 | Contract testing | ◎ | `/architect:generate-contract-tests` | `generated/{service}/src/test/java/**/contract/` |
 | Property-based testing | ◎ | `/architect:generate-test-specs`, `/architect:generate-scalardb-code` | `reports/07_test-specs/property-test-specs.md`; jqwik properties per invariant |
@@ -94,15 +94,18 @@ driven by them.
 | Technique | Status | Where | Artifact |
 |-----------|--------|-------|----------|
 | Red → Green → Refactor (test-first, verifiable from history) | ◎ | `/architect:implement-backlog` Step 5, `rules/tdd-workflow.md` §2 | `test:` → `feat:` → `refactor:` commit series per unit on the working branch; the sequence recorded in `reports/09_verification/quality-gate.json` (`test_first`) |
-| Double loop (ATDD outside, TDD inside) | ◎ | `/architect:implement-backlog` Step 5, `rules/tdd-workflow.md` §3 | The acceptance-level test that carried the outer loop, named in the Issue's progress comment |
-| Walking skeleton | ○ | `/product:define-features` (marks it), `/architect:implement-backlog` (implements it first) | the User Story Map's Must row; the first item of a new service |
+| Double loop (ATDD outside, TDD inside) | ◎ | `/architect:generate-acceptance-tests` (the outer loop's tests), `/architect:implement-backlog` Step 5, `rules/tdd-workflow.md` §3 | The acceptance-level test that carried the outer loop, named in the Issue's progress comment; `@wip` scenarios flipped by the item that makes them pass |
+| Walking skeleton | ◎ | `/product:define-features` (Must row), `/architect:export-backlog` (one `walking-skeleton` Issue per new service, first in order), `/architect:implement-backlog` (implements it first) | the User Story Map's Must row; the `walking-skeleton` Issue |
 | Test doubles — Fake per repository port, injected Clock / id generator | ◎ | `/architect:design-implementation` (specifies), `/architect:generate-scalardb-code` (emits), `/architect:generate-contract-tests` (ArchUnit enforces) | `generated/{service}/src/test/java/**/fakes/`; `reports/06_implementation/repository-interfaces-spec.md` |
 | Coverage threshold on the change | ◎ | `/architect:verify-implementation --gate` stage 2, `rules/ai-code-quality-gate.md` §Test quality | `reports/09_verification/quality-gate.json` (`coverage`), JaCoCo verification in `generated/{service}/build.gradle` |
 | Mutation testing on the domain layer | ◎ | `/architect:verify-implementation --gate` stage 2 | `reports/09_verification/quality-gate.json` (`mutation`, survivors by line, invariant survivors by name) |
-| Characterization / golden-master tests for legacy code | ◎ | `/architect:generate-characterization-tests` | `reports/07_test-specs/characterization-test-coverage.md`; the `characterizationTest` task each transformation-plan step is gated on |
-| Test pyramid / suite runtime budget | △ | the stage split of `rules/ai-code-quality-gate.md` (unit / contract / integration) fixes the layers; no runtime budget or ratio is stated | — |
-| Flaky-test policy | △ | `rules/tdd-workflow.md` §4 seeds property tests and masks non-determinism in characterization fixtures; no quarantine or retry policy for the wider suite | — |
-| Test naming from the ubiquitous language | × | — | — |
+| Characterization / golden-master tests for legacy code | ◎ | `/architect:generate-characterization-tests`; baseline in `/architect:implement-backlog` Step 5, stage 4 of the gate | `reports/07_test-specs/characterization-test-coverage.md`; the `characterizationTest` task each transformation-plan step is gated on |
+| Transaction-scenario integration tests over a real engine | ◎ | `/architect:generate-scalardb-code` (`*IT` per `TX-`, SQLite-backed in-process ScalarDB), `/scalardb:scaffold` / `/scalardb:build-app` | `generated/{service}/src/test/java/**/integration/`; stage 4 of the gate |
+| Bug fix as a reproduction test first | ◎ | `/architect:review-issue` Step 4 | `test: reproduce <blocker>` commit before `fix:` on the working branch |
+| Frontend component / routing / e2e tests | ◎ | `/product:generate-frontend` | `*.test.tsx` per component and page over composed stories, `e2e/` Playwright story flow, `vitest.config.ts` thresholds |
+| Suite runtime budget / shape | ◎ | `rules/tdd-workflow.md` §6, `rules/ai-code-quality-gate.md` §Test quality | Wall-clock per task against the layer budget and tests per layer in `reports/09_verification/quality-gate.json` |
+| Flaky-test policy | ◎ | `rules/tdd-workflow.md` §6 — quarantine by tag, counted and aged, never retried; seeded properties, masked characterization fixtures | Quarantined tests with age in `reports/09_verification/quality-gate.json`; follow-up Issues via `/architect:capture-followup` |
+| Test naming from the ubiquitous language | ◎ | `rules/tdd-workflow.md` §6, `/architect:review-consistency` terminology dimension | `should_<outcome>_when_<condition>` in glossary terms; CON-3xx findings on test and scenario names |
 
 ## Deliberately not implemented
 

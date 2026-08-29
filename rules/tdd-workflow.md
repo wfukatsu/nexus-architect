@@ -44,6 +44,8 @@ Two consequences:
   and the affected tests are regenerated from the manifest. Code never becomes the model's source of
   truth by being the only place a rule is written down.
 
+A bug fix is the same series with the reproduction as its Red commit — a defect is a test that was missing, so the fix loop of `review-issue` writes that test first.
+
 A unit is one command on one aggregate, one resolver or operation, one transition, one repository
 method — the granularity `generate-test-specs` specifies at. Several units in one commit is
 acceptable only when they cannot be tested apart; say so in the commit body.
@@ -51,8 +53,9 @@ acceptable only when they cannot be tested apart; say so in the commit body.
 ## 3. The double loop (ATDD outside, TDD inside)
 
 The Gherkin scenarios in `reports/07_test-specs/bdd-scenarios/` are acceptance tests, not
-documentation. When the project has a BDD runner (Cucumber-JVM for the Java services this toolkit
-generates), the outer loop is:
+documentation. When the project has a BDD runner (Cucumber-JVM for the Java services this toolkit generates —
+`/architect:generate-acceptance-tests` emits it from `reports/07_test-specs/bdd-scenarios/`, `@wip`
+until the item lands), the outer loop is:
 
 1. **Red (acceptance)** — the item's scenarios (`@RULE-…` / `@EX-…` tagged) get step definitions and
    fail against the empty implementation. Missing step definitions count as red only until they
@@ -104,7 +107,20 @@ developed test-first, and the gap is reported as such.
 Anything else that skips the order says so in the commit body and the Step 7 comment, with the
 reason. The gate reports the count; the reviewer decides whether the reason holds.
 
-## 6. What the gate records
+## 6. Suite budget, flaky tests, naming
+
+The loop in §2 only runs if the suite is fast enough to run on every unit and trusted enough that
+red means something. Three policies, defaults that a project overrides in
+`options.quality_gate` (@skills/common/progress-registry.md):
+
+| Policy | Default |
+|--------|---------|
+| **Runtime budget** per layer, whole suite | unit ≤ 60 s · contract ≤ 3 min · integration (SQLite-backed) ≤ 10 min · acceptance ≤ 10 min · characterization ≤ 10 min. The gate records each task's wall-clock; a layer over budget is a finding (`major`) with the slowest ten tests named, because a suite nobody waits for is a suite nobody runs before committing |
+| **Shape** | Tests are counted per layer and reported as a ratio. No fixed pyramid ratio is enforced — an aggregate-heavy service is legitimately unit-heavy and an integration-heavy adapter is not — but an item whose only tests are integration or acceptance tests is asked why the behaviour has no unit test at the root |
+| **Flaky tests** | A test that fails and then passes with no code change is quarantined, not retried: tagged `@Tag("flaky")` (JUnit) / `test.skip` with a reason (Vitest), excluded from the gate's pass/fail, **counted and listed** in the gate result, and queued as a follow-up via `/architect:capture-followup` naming the test and the two runs. Quarantine has an age: an entry older than 14 days is a `major` finding on every subsequent gate run until it is fixed or deleted with a recorded reason. Automatic retry (`retry = n`, `--retries`) is never enabled on a gate task — it converts a flaky test into an invisible one |
+| **Naming** | Test and scenario names are sentences in the ubiquitous language, `should_<outcome>_when_<condition>` (or `@DisplayName` prose), using the term `ubiquitous-language.md` records — `should_reject_confirmation_when_order_has_no_lines`, never `testConfirm2`. `review-consistency` checks test and scenario names against the glossary in its terminology dimension |
+
+## 7. What the gate records
 
 Per work item, from the working branch (@rules/ai-code-quality-gate.md §Unit tests):
 
@@ -115,6 +131,7 @@ Per work item, from the working branch (@rules/ai-code-quality-gate.md §Unit te
 | Which test carried the outer loop (scenario / contract / invariant example), and whether it went red → green | Step 7 comment, CI evidence |
 | Fake present per repository port the item touched | `src/test/java/**/fakes/` vs `repository-interfaces-spec.md` |
 | ArchUnit clock/id/transaction rules ran and passed | Stage 8 |
+| Wall-clock per test task against the §6 budget; tests per layer; quarantined tests with their age | Stage 2 / stage 4 task output, `@Tag("flaky")` inventory |
 
 None of these change the verdict on their own; all of them are reported, so that "tests exist and
 pass" is never mistaken for "the tests drove the code".

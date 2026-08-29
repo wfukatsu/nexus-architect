@@ -45,8 +45,12 @@ the newest **stable** release of a supported line (no `-alpha`/`-beta`/`-rc`/`-S
 project opted out (`options.confirm_versions: false` / `--no-confirm-versions`), and record it in the
 generated `README.md`.
 
-### Step 4: Service Layer
-Generate the service class(es) with:
+### Step 4: Service Layer — tests first
+Per operation, in this order (@rules/tdd-workflow.md §2): the `*IT` for the operation against the
+in-process SQLite-backed engine (`ScalarDbTestBackend`, as `/scalardb:scaffold` lays it out) and
+the unit test over the in-memory Fake, run and seen failing; then the service code that makes
+them pass; then a structural pass. Every operation ends with a happy-path IT, and the service as a
+whole with one OCC-conflict IT and one blind-write IT. Generate the service class(es) with:
 - All CRUD operations for each entity
 - Proper exception handling with retry logic
 - Transaction lifecycle management
@@ -70,7 +74,7 @@ Generate all of these:
 1. `build.gradle`
 2. `database.properties` (or `scalardb-sql.properties`)
 3. `schema.json` (and `schema.sql` if JDBC)
-4. Service classes in `src/main/java/`
+4. Service classes in `src/main/java/`, with their repository port, `InMemory*Repository` Fake, unit tests and `*IT` under `src/test/java/`, and the `integrationTest` task in `build.gradle`
 5. `docker-compose.yml`
 6. `README.md` with setup and run instructions
 

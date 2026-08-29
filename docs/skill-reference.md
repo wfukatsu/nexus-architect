@@ -76,6 +76,7 @@ phases, in the listed order. Output lands under `generated/` (git-ignored, overw
 | `/architect:generate-api-code` | opus | `api-specifications/` + `api-layer-spec.md` | API layer from the OpenAPI contract — controllers 1:1 with `operationId`, DTOs + derived Bean Validation, mappers, RFC 9457 handler, and `api-contract-map.json` |
 | `/architect:generate-graphql-code` | opus | GraphQL specifications + `api-layer-spec.md` | Spring GraphQL API layer — resolver bindings, DTOs/mappers, security/context, DataLoader, errors, query limits and combined contract map |
 | `/architect:generate-contract-tests` | sonnet | `api-contract-map.json` + `contract-test-specs.md` | Executable contract tests (swagger-request-validator + `@WebMvcTest` by default; Schemathesis / Pact / ArchUnit opt-in) |
+| `/architect:generate-acceptance-tests` | sonnet | `bdd-scenarios/` + `api-layer-spec.md` or `repository-interfaces-spec.md` | Cucumber-JVM step definitions for the Gherkin scenarios (`RULE-`/`EX-` tagged), driven through the API or the application services over the Fakes, `@wip` until their item lands — the ATDD outer loop and stage 4's `acceptanceTest` |
 | `/architect:generate-infra-code` | sonnet | `reports/08_infrastructure/` | K8s/Terraform/Helm code generation |
 | `/architect:generate-docs` | sonnet | generated/implemented code | README + `docs/` for generated/implemented code (runs after codegen; Step 5b of implement-backlog) |
 | `/architect:verify-implementation` | opus | generated/implemented code + design | Design ↕ code conformance on four axes (contract, transaction, security, requirement); `--gate` runs the eight-stage AI code quality gate (Step 5c of implement-backlog) |
@@ -285,6 +286,7 @@ path by their router, so they are not slash commands and have no signature here.
 /architect:generate-api-code [--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]
 /architect:generate-graphql-code [--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]
 /architect:generate-contract-tests [--service=<name>] [--out=<path>] [--stack=default|schemathesis|pact|archunit] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]
+/architect:generate-acceptance-tests [--service=<name>] [--feature=<id>] [--driver=api|application] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]
 /architect:generate-infra-code
 /architect:generate-docs [target] [--scope=changed|service|repo] [--source-root=<path>] [--readme-only] [--issue=<id>] [--dry-run] [--auto] [--lang=en|ja]
 /architect:verify-implementation [target_path] [--service=<name>] [--scope=changed|service|repo] [--source-root=<path>] [--gate] [--item=<backlog-id>] [--auto] [--lang=en|ja]

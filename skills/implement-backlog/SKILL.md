@@ -276,6 +276,11 @@ in-memory Fake under `src/test/java/**/fakes/` in the same Red commit (§4); a u
 exempts (§5 — wiring, DTOs, adapters, refactor-only) says so in its commit body. The first item of a
 new service is the walking skeleton and is implemented before any other.
 
+When the item is a **transformation-plan step** (legacy path), run the step's `characterizationTest`
+task on the untouched modules first and record the result on the Issue as the baseline; a red
+baseline means the net is not in place — stop and run `/architect:generate-characterization-tests`
+on those modules before any code changes. The same task is stage 4 of the gate after the change.
+
 **Commit the changes to the working branch** in these units,
 each commit message referencing the Issue — uncommitted work cannot be
 reviewed or merged downstream. Verify each commit actually staged the intended files

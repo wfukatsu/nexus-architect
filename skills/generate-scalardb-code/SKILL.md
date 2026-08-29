@@ -78,6 +78,9 @@ service docs, so do not hand-write a competing table inside its marked sections.
 - Entities follow immutable design; value objects are immutable
 - Domain tests import nothing from `infrastructure/`, ScalarDB or Spring; every repository port has an
   in-memory Fake; `Clock` and id generation are injected (@rules/tdd-workflow.md §4)
+- Every `TX-` entry has an `*IT` over the in-process engine covering its happy path, OCC conflict and
+  blind write, plus 2PC / saga scenarios where the design uses them; `./gradlew integrationTest` was
+  run, matched tests, and passed
 - Every pinned version was looked up (not recalled), is a stable release, and is recorded in the
   version decision table — with the user's confirmation when that is the configured mode
 
@@ -87,6 +90,8 @@ service docs, so do not hand-write a competing table inside its marked sections.
 |------|---------------------|--------|
 | reports/06_implementation/ | Required | /architect:design-implementation |
 | reports/03_design/scalardb-schema.md | Required | /architect:design-scalardb |
+| reports/03_design/scalardb-transaction.md | Required | /architect:design-scalardb — the `TX-` entries the integration suite is generated from |
+| reports/07_test-specs/integration-test-specs.md | Recommended | /architect:generate-test-specs — the transaction scenarios per `TX-` |
 | reports/07_test-specs/ | Recommended | /architect:generate-test-specs |
 | reports/07_test-specs/property-test-specs.md | Recommended when an aggregate manifest exists | /architect:generate-test-specs — the property per invariant this skill turns into a jqwik test |
 | reports/03_design/aggregates/aggregate-manifest.json | Optional | /architect:design-aggregate — invariants enforced in the root, and the examples the unit tests replay |
@@ -126,6 +131,34 @@ Without an aggregate manifest, emit no property tests and say so in the run summ
 with no declared invariant has nothing to generate against, and an invented property is a test
 that proves the generator's assumptions, not the design's.
 
+## Integration Tests (the transaction scenarios, against a real engine)
+
+Stage 4 of the quality gate (@rules/ai-code-quality-gate.md) is the one stage nothing else can
+stand in for, and it is only as real as the suite behind it — so this skill emits that suite. Under
+`generated/{service}/src/test/java/**/integration/`, one `*IT` class per `TX-` entry of
+`reports/03_design/scalardb-transaction.md`, following `integration-test-specs.md` where it exists:
+
+| Scenario | What the test proves |
+|----------|----------------------|
+| **Happy path** per `TX-` | The operation commits, and every table the design says it writes is written in that one transaction |
+| **OCC conflict** | Two concurrent writers on one record: exactly one commits, the loser fails with the contracted outcome (not a silent success), and the service's own retry absorbs a conflict that clears |
+| **Blind write** | A `Put`/`Update` on a record the transaction never read fails at `commit()` — the defect no contract test and no static review caught on this pipeline's own reference implementation (@rules/scalardb-crud-patterns.md) |
+| **2PC failure** (when the design uses it) | One manager per participant; a participant whose `prepare()` conflicts rolls every participant back, leaving no half-applied state (@rules/scalardb-2pc-patterns.md) |
+| **Saga compensation** (when the design uses it) | A later step's failure compensates the earlier ones in reverse, and a compensation redelivered twice is idempotent (@rules/scalardb-saga-patterns.md) |
+| **Indeterminate commit** | `UnknownTransactionStatusException` is neither rolled back nor retried; the recorded outcome matches the §3.1 contract (@rules/api-error-standard.md) |
+
+Run them over a **real ScalarDB engine in-process** — `scalar.db.storage=jdbc` with
+`jdbc:sqlite:<tmp>/it.db`, `sqlite-jdbc` as `testRuntimeOnly`, schema created by
+`DistributedTransactionAdmin` in a `@BeforeAll` from the same table definitions
+`scalardb-schema.md` declares — so the suite needs no container and no service, and runs in the
+gate and in CI alike. `samples/scalardb-transaction-tests/` in this repository is the reference
+shape (`ScalarDbTestBackend`, `OccConflictIT`, `TwoPhaseCommitIT`, `SagaCompensationIT`,
+`BlindWriteProbeIT`); copy its structure, not its versions. Register an `integrationTest` Gradle
+task filtering `*IT` with `failOnNoMatchingTests = true`, so a filter matching nothing is a red
+build rather than a green one. The SQLite backend proves transaction semantics, not the production
+backend's performance or its storage-specific limits — say so in the run summary, and keep the
+production backend's own suite (when the project has one) as the CI integration job.
+
 ## Output
 
 Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
@@ -135,6 +168,7 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 | `generated/{service}/src/main/java/` | Java source code |
 | `generated/{service}/src/test/java/**/domain/` | Example and property tests per invariant, plus the value-object arbitraries |
 | `generated/{service}/src/test/java/**/fakes/` | One in-memory Fake per repository port (@rules/tdd-workflow.md §4) |
+| `generated/{service}/src/test/java/**/integration/` | `*IT` per `TX-` entry — happy path, OCC conflict, blind write, 2PC / saga where designed, indeterminate commit — over an in-process SQLite-backed ScalarDB; `integrationTest` task in `build.gradle` |
 | `generated/{service}/build.gradle` | Build configuration (incl. jqwik when property tests are emitted) |
 | `generated/{service}/Dockerfile` | Container definition |
 | `generated/{service}/scalardb.properties` | ScalarDB configuration |

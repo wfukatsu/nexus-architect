@@ -141,6 +141,7 @@ product スキルの全カタログは [スキルリファレンス](skill-refer
 /architect:generate-api-code                  # -> generated/{service}/  api/（OpenAPI 契約に束縛）
 /architect:generate-graphql-code              # -> generated/{service}/  api/graphql/（GraphQL/hybrid の場合）
 /architect:generate-contract-tests            # -> generated/{service}/src/test/
+/architect:generate-acceptance-tests                # -> generated/{service}/src/test/  (Gherkin を実行可能に。実装まで @wip)
 
 # 4. インフラコード                            （要: reports/08_infrastructure/）
 /architect:design-infrastructure              # インフラのレポートがまだ無ければ先にこれ

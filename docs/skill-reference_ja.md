@@ -76,6 +76,7 @@
 | `/architect:generate-api-code` | opus | `api-specifications/` + `api-layer-spec.md` | OpenAPI 契約から API レイヤーを生成 — `operationId` と 1:1 の Controller、スキーマ制約から導出した Bean Validation 付き DTO、マッパー、RFC 9457 ハンドラ、`api-contract-map.json` |
 | `/architect:generate-graphql-code` | opus | GraphQL 仕様 + `api-layer-spec.md` | Spring GraphQL API レイヤー — resolver binding、DTO/mapper、security/context、DataLoader、error、query limit、統合 contract map |
 | `/architect:generate-contract-tests` | sonnet | `api-contract-map.json` + `contract-test-specs.md` | 実行可能な契約テスト（既定は swagger-request-validator + `@WebMvcTest`、Schemathesis / Pact / ArchUnit はオプトイン） |
+| `/architect:generate-acceptance-tests` | sonnet | `bdd-scenarios/` + `api-layer-spec.md` または `repository-interfaces-spec.md` | Gherkin シナリオ（`RULE-`/`EX-` タグ付き）の Cucumber-JVM ステップ定義 — API 経由または Fake 上のアプリケーションサービス経由で駆動し、アイテムが着地するまで `@wip`。ATDD の外側ループとステージ 4 の `acceptanceTest` |
 | `/architect:generate-infra-code` | sonnet | `reports/08_infrastructure/` | K8s/Terraform/Helm コード生成 |
 | `/architect:generate-docs` | sonnet | 生成・実装済みコード | 生成・実装済みコードの README と `docs/`（コード生成の後、および implement-backlog の Step 5b で実行） |
 | `/architect:verify-implementation` | opus | 生成・実装済みコード＋設計 | 設計 ↕ コードの適合性検証（契約・トランザクション・セキュリティ・要件の4軸）。`--gate` で8段階の AI コード品質ゲートを実行（implement-backlog の Step 5c） |
@@ -285,6 +286,7 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 /architect:generate-api-code [--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]
 /architect:generate-graphql-code [--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]
 /architect:generate-contract-tests [--service=<name>] [--out=<path>] [--stack=default|schemathesis|pact|archunit] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]
+/architect:generate-acceptance-tests [--service=<name>] [--feature=<id>] [--driver=api|application] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]
 /architect:generate-infra-code
 /architect:generate-docs [target] [--scope=changed|service|repo] [--source-root=<path>] [--readme-only] [--issue=<id>] [--dry-run] [--auto] [--lang=en|ja]
 /architect:verify-implementation [target_path] [--service=<name>] [--scope=changed|service|repo] [--source-root=<path>] [--gate] [--item=<backlog-id>] [--auto] [--lang=en|ja]

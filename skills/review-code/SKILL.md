@@ -51,6 +51,12 @@ You are a ScalarDB code review expert. Review Java code that uses ScalarDB for c
    - Does it use exponential backoff?
    - Is there a maximum retry limit?
 
+8. **Tests** (@rules/tdd-workflow.md, @rules/ai-code-quality-gate.md):
+   - Is there a test that runs each operation against a **real** ScalarDB engine (in-process SQLite is enough)? A service with only mocked `DistributedTransactionManager` tests has never committed anything
+   - Is an OCC conflict exercised (two writers, exactly one commits)? Is a blind write (write without a prior read) exercised?
+   - Can the domain/service logic be tested without a database — a repository port with an in-memory Fake, `Clock` injected?
+   - Was any test disabled, or does any test assert a value read from the implementation rather than from the design?
+
 ### Minor Issues
 
 8. **Configuration**:
