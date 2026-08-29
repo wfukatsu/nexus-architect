@@ -62,7 +62,7 @@ into one gate result (§4).
 | Verdict | Condition |
 |---------|-----------|
 | **PASS** | Every stage passed |
-| **CONDITIONAL** | Stages 1–4 passed; the remaining findings are all `major` or below, each with a recorded owner and decision |
+| **CONDITIONAL** | Stages 1–4 passed; the remaining findings are all `major` or below, each with a recorded owner and decision. A `major` **without** a recorded decision yet is reported as CONDITIONAL *pending* with the decision named as the condition — it is not PASS and it is not silently accepted |
 | **FAIL** | Any of stages 1–4 failed, or any `critical` finding in stages 5–8 |
 
 **FAIL blocks the human review request.** It does not become a note on the pull request for someone
@@ -91,7 +91,7 @@ Every scanning stage therefore records **what it covered**, and the coverage is 
 |-------|---------------------------|
 | Unit / contract / integration / acceptance / characterization | Number of tests **run** — a suite that ran 0 tests is `not-configured`, never `passed` |
 | Property (invariants) | Invariants covered / declared, and the number of generated cases per property — a property that ran 0 tries, or an invariant with no test class, is a stage-2 failure, not a pass |
-| SAST | Files or rules scanned |
+| SAST | Files **and** rules scanned — 0 files is `not-configured`, the usual cause being a git-ignored tree scanned without `--no-git-ignore` |
 | Dependency scan | Number of dependencies or manifests examined |
 | Secrets scan | Bytes or files scanned |
 | Image scan | The image reference actually pulled |
@@ -102,9 +102,18 @@ A stage whose coverage is zero is recorded as `not-configured` with the reason, 
 exits 0 having run nothing — `./gradlew test` after the generation run's own build reports success
 with 0 tests executed. Every gate command runs against a clean state: `./gradlew clean` first, or
 `--rerun-tasks` on each test task (`npm test` equivalents: no `--changed` / cache-only mode), and
-the recorded count is the number of tests the *gate's own* run executed. The same applies to a
+the recorded count is the number of tests the *gate's own* run executed; for the mutation run, the
+mutation report's timestamp is the proof it re-ran. When the coverage-verification task depends on
+several test tasks (JaCoCo aggregating `test` and `integrationTest`), report the invocation's
+wall-clock and, per layer, the sum from the JUnit XML — the §6 budget is judged per layer. The same applies to a
 scanner over a fat jar: `trivy fs <app>.jar` examines 0 packages and exits 0; scan the extracted
-`BOOT-INF/lib` (or the built image) and record the package count.
+`BOOT-INF/lib` (or the built image) and record the package count. Two more scanner traps seen on
+real runs: a jar whose version carries a classifier suffix (`12.8.2.jre11`) is compared by Trivy as
+`12.8.2` and keeps matching the advisory — exclude the artifact when it is unused rather than
+arguing with the scanner, and record why; and a finding on a transitive dependency is cleared with
+a Gradle `constraints` / `resolutionStrategy` entry whose version was looked up and recorded in the
+version decision table like any other pin (@rules/dependency-versions.md), never by suppressing the
+advisory.
 The same applies to a filtered test task that matched nothing: `--tests '*ContractTest'` with no
 matching class is a green task and an ungated build.
 
@@ -118,7 +127,7 @@ cannot hide behind a well-tested repository:
 
 | Measure | Scope | Threshold | Tool (JVM default) |
 |---------|-------|-----------|---------------------|
-| **Line + branch coverage** | Every production file the change touched | `domain/` and `application/`: **90 % line, 80 % branch**. Other packages: **70 % line**. Files the tdd-workflow rule exempts (§5 — configuration, DTO records, mappers with no logic) are excluded by package pattern, and the exclusion list is in the gate result | JaCoCo (`jacocoTestCoverageVerification` with per-package rules) |
+| **Line + branch coverage** | Every production file the change touched | `domain/` and `application/` (or `usecase/`, under the `clean` layering style): **90 % line, 80 % branch**. Other packages: **70 % line**. Files the tdd-workflow rule exempts (§5 — configuration, DTO records, mappers with no logic) are excluded by package pattern, and the exclusion list is in the gate result | JaCoCo (`jacocoTestCoverageVerification` with per-package rules) |
 | **Mutation score** | `domain/` packages the change touched | **80 % killed**, no surviving mutant on a line that enforces a declared invariant or a state-machine guard (those are listed by name; one survivor there fails the stage regardless of the aggregate score) | PIT (`pitest` Gradle plugin with `targetClasses` set to the touched domain packages, `mutators = DEFAULTS`, `junit5` plugin; jqwik properties included via the JUnit platform) |
 | **Suite budget and quarantine** | Every test task the gate ran | Wall-clock per task against the layer budget of @rules/tdd-workflow.md §6 (over budget = `major`, slowest ten named); quarantined (`@Tag("flaky")`) tests counted, listed with their age, older than 14 days = `major`; no retry setting on any gate task | Task output, test inventory |
 | **Test-first record** | Every behavioural unit of the item | Reported, not thresholded: units by `test-first` / `test-after` / `refactor-only` / `exempt`, the failing tests each Red commit named, and the acceptance-level test that carried the outer loop. `not-applicable` when there is no work item and no working branch — a `--gate` run over `generated/` scaffolding has no history to read | `git log` on the working branch, per @rules/tdd-workflow.md §7 |
@@ -145,7 +154,9 @@ Rules:
   deeper whose own mutant *was* killed; a branch unreachable while the domain admits one currency)
   is recorded as `equivalent` with the evidence — the sibling mutant that died, or the value-object
   rule that closes the branch — and does not fail the stage. Without that evidence it is a
-  survivor. The list of equivalents is part of the gate result and is reviewed like a finding.
+  survivor. The list of equivalents is part of the gate result and is reviewed like a finding; the evidence is **re-read from the current run's mutation report**
+  on every gate run, never carried forward, and the acceptance is a recorded decision
+  (`work/context.md` § Decisions) the result cites.
 - **Coverage over zero tests is not coverage.** JaCoCo reports 0 % for a task that ran no tests;
   the run-count rule above catches that first, and the coverage figure is recorded only when the
   count is non-zero.
@@ -180,7 +191,7 @@ the versions are looked up per @rules/dependency-versions.md rather than recalle
 | Integration | `./gradlew integrationTest` (SQLite-backed in-process engine, `*IT`) | `npm run test:integration` |
 | Acceptance (part of stage 4 when the project has a BDD runner) | `./gradlew acceptanceTest` (Cucumber-JVM over `bdd-scenarios/`) | `npm run test:acceptance` |
 | Characterization (legacy path, part of stage 4) | `./gradlew characterizationTest` | `npm run test:characterization` |
-| SAST | Semgrep (`--config auto`), or SpotBugs + `find-sec-bugs` | Semgrep |
+| SAST | Semgrep (`semgrep scan --config auto --error <src>`; add `--no-git-ignore` when the tree is git-ignored — `generated/` is, and without it Semgrep scans 0 files and exits 0), or SpotBugs + `find-sec-bugs` | Semgrep (same flag) |
 | Dependency | OSV-Scanner, or OWASP Dependency-Check; when neither is installed, Trivy in `rootfs` mode over the extracted dependency jars (`BOOT-INF/lib`), recording the package count — never `trivy fs` on the fat jar (zero coverage) | `npm audit --audit-level=high` / OSV-Scanner |
 | Secrets | Gitleaks (`gitleaks dir <path>` when the tree is not a git repository — `detect` silently scans nothing there) | Gitleaks |
 | Container image (when one is built) | Trivy | Trivy |

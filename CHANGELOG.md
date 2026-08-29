@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+### Added
+- **`/architect:design-implementation --layering=ddd|clean`.** `clean` records Clean Architecture
+  vocabulary for the application layer — one Use Case (input boundary) + Interactor per
+  `operationId`, `InputData` / `OutputData` records, an output boundary and a Presenter under
+  `api/presenter/`, the `usecase/` package in place of `application/`. The choice is written once as
+  `layering_style` in the frontmatter of `api-layer-spec.md` (seeded by `options.layering_style`) and
+  read from there by `generate-api-code`, `generate-graphql-code`, `generate-scalardb-code`,
+  `generate-contract-tests` (ArchUnit: controllers bound to boundaries, interactors never importing
+  `api/` or `infrastructure/`, presenters importing no domain type), `generate-acceptance-tests`
+  and `verify-implementation` — no generator takes a flag of its own. Repository ports keep their
+  DDD name and domain ownership under both styles, since the aggregate manifest, the Fakes and the
+  coverage / mutation thresholds are keyed on them. Documented in `docs/ddd-coverage.md`.
+
+### Changed
+- **AI code quality gate: what the second `order-service` gate run taught.** A `major` finding without
+  a recorded owner and decision keeps the verdict at FAIL rather than CONDITIONAL; SAST evidence is
+  files *and* rules scanned, with 0 files reported as `not-configured` (the usual cause: a
+  git-ignored tree scanned without `--no-git-ignore`); the mutation report's timestamp is the proof
+  it re-ran, equivalent mutants are re-read from the current run and their acceptance is a recorded
+  decision; coverage aggregated over several test tasks is reported per layer against the §6 budget;
+  and two dependency-scanner traps are named — classifier-suffixed jar versions Trivy compares
+  without the suffix, and transitive findings cleared by a looked-up `constraints` pin, never by
+  suppressing the advisory.
+
 ## [0.37.2] - 2026-08-29
 
 ### Changed

@@ -7,6 +7,30 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+### Added
+- **`/architect:design-implementation --layering=ddd|clean`。** `clean` を選ぶとアプリケーション層を
+  クリーンアーキテクチャの語彙で記述する — `operationId` ごとに Use Case（入力境界）＋ Interactor、
+  `InputData` / `OutputData` レコード、出力境界と `api/presenter/` 配下の Presenter、`application/` の
+  代わりに `usecase/` パッケージ。選択は `api-layer-spec.md` の frontmatter `layering_style` に一度だけ
+  記録され（`options.layering_style` が既定値を与える）、`generate-api-code`・`generate-graphql-code`・
+  `generate-scalardb-code`・`generate-contract-tests`（ArchUnit: Controller は境界にのみ依存、Interactor は
+  `api/`・`infrastructure/` を import しない、Presenter はドメイン型を import しない）・
+  `generate-acceptance-tests`・`verify-implementation` がそこから読む — 生成側に個別フラグは増やさない。
+  リポジトリのポートは両スタイルとも DDD の名前とドメイン所有のまま（集約マニフェスト・Fake・
+  カバレッジ/ミューテーション閾値がその名前に紐づくため）。`docs/ddd-coverage.md` に行を追加。
+
+### Changed
+- **AI コード品質ゲート: 2 回目の `order-service` ゲート実行から学んだこと。** 担当者と判断が記録されて
+  いない `major` は CONDITIONAL ではなく FAIL のまま。SAST の証跡はファイル数とルール数の両方で、
+  0 ファイルは `not-configured`（典型原因は git-ignore されたツリーを `--no-git-ignore` なしで走査）。
+  ミューテーションレポートのタイムスタンプが再実行の証明で、等価ミュータントは毎回今回の
+  レポートから読み直し、その受理は記録された決定とする。複数テストタスクを集約したカバレッジは
+  レイヤーごとに §6 の予算と照合。依存スキャナの罠を 2 つ明記 — Trivy が classifier 付き jar の
+  バージョンを接尾辞なしで比較する件と、推移的依存の指摘は参照済みの `constraints` ピンで解消し
+  アドバイザリの抑止では解消しない件。
+
 ## [0.37.2] - 2026-08-29
 
 ### 変更
