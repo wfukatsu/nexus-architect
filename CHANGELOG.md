@@ -27,6 +27,14 @@ Catalog (the `ec-monolith` sample) surfaced in the skill itself.
 - **Auto mode takes the consistency class from `scalardb-transaction.md` when it exists** instead
   of defaulting every command to `local` and opening an `OQ-` per aggregate — the two passages
   contradicted each other.
+- **ADR gaps from the first `design-microservices` run.** A legacy-path record whose drivers are
+  all reports carries them as `sources` on the graph node (empty `upstream`, like physical-only
+  nodes); `upstream` paths may be a review `.json` and carry a `#anchor` in any script; the
+  "typical records" table is illustrative and the skill that decides first writes the record; a
+  contradiction with another skill's design document is a Consequence and a `review-consistency`
+  finding, not an edit; a colliding idempotency key already fixed by `asyncapi/` is kept and
+  recorded as an Open Item; the catalog `.md` names its completer in `completed_by`;
+  `design-microservices` gains ADR outputs and Completion Criteria.
 - `also_writes` is stated to be the `local` case only; re-runs update existing `AGG-` nodes in
   place; the idempotency key must be unique per event type (a `review-risk` finding the skill
   used to copy over); the catalog `.md` has a frontmatter template; completion criteria renumbered.

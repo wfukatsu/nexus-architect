@@ -23,6 +23,12 @@ Nexus Architect の主な変更点を記録します。
   入れる。集約が宣言しているものを孤児にするとバリデータが拒否する。
 - **auto モードは `scalardb-transaction.md` があればそこから一貫性クラスを取る。** 全コマンドを `local` に倒して集約ごとに
   `OQ-` を開く指示と矛盾していた。
+- **`design-microservices` 初回実行で見つかった ADR のギャップ。** レガシー経路で根拠がすべてレポートの記録は、グラフ
+  ノードに `sources` として持つ（`upstream` は空。物理専用ノードと同じ形）。`upstream` のパスはレビュー `.json` でもよく、
+  日本語見出しへの `#anchor` も可。「典型的な記録」表は例示であり、先に決めたスキルが記録を書く。他スキルの設計文書との
+  矛盾は Consequences と `review-consistency` の指摘であって編集ではない。`asyncapi/` が既に固定した衝突する冪等キーは
+  維持して Open Item に記録。カタログ `.md` は完成させたスキルを `completed_by` に持つ。`design-microservices` に ADR の
+  出力行と完了基準を追加。
 - `also_writes` は `local` ケース専用と明記。再実行時は既存 `AGG-` ノードを更新。冪等キーはイベント種別ごとに一意
   （`review-risk` の指摘をスキルがそのまま写していた）。カタログ `.md` のフロントマター雛形を追加。完了基準の採番を修正。
 

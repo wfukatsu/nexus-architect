@@ -23,7 +23,7 @@ FILE_RE = re.compile(r"^adr-(\d{3,})-[a-z0-9]+(?:-[a-z0-9]+)*\.md$")
 NODE_RE = re.compile(r"^[A-Z]+-\d+$")
 # A decision's driver is a traceability node, or — on the legacy path, where investigate /
 # analyze / evaluate mint no nodes — the report that states the finding it rests on.
-REPORT_RE = re.compile(r"^reports/[A-Za-z0-9_./-]+\.md(#[A-Za-z0-9_-]+)?$")
+REPORT_RE = re.compile(r"^reports/[A-Za-z0-9_./-]+\.(md|json)(#[^\s#]+)?$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 STATUSES = ("proposed", "accepted", "superseded", "deprecated")
 HEADINGS = ("## Context", "## Decision", "## Alternatives considered", "## Consequences")

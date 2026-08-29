@@ -379,15 +379,20 @@ in its contract test):
   scope is what it would be if the candidate is confirmed.
 - **Orphans** — an event the design documents name that no aggregate in the manifest declares
   (an entity that was never modeled) is not silently dropped: list it under the catalog's
-  `orphan_events` with the document that names it, and in the `.md` Open Items. The validator
-  accepts the list; a re-run that models the aggregate moves the event into `events`.
+  `orphan_events` with the document that names it, and in the `.md` Open Items. An event named
+  only in another spelling (a state-machine transition `reservation_expired`) is listed in
+  PascalCase with the source spelling in `named_in`. The validator accepts the list; a re-run
+  that models the aggregate moves the event into `events`.
 - **Delivery contract** (`published` only) — `delivery` ∈ `at-least-once` | `at-most-once` |
   `exactly-once`, an `idempotency_key` whenever delivery is at-least-once, an integer
   `version` ≥ 1 and an `evolution` rule ∈ `additive-only` | `versioned` | `frozen`. The key
   must be unique **per event type**: two events of one aggregate sharing `orderId` as their key
   (`OrderCancelled` and `PaymentDeclined` for the same order) collide in a consumer's inbox —
   scope it (`orderId` + event type, or a dedicated `eventId`), and check `review-risk` /
-  `review-consistency` findings before copying a key from the context map.
+  `review-consistency` findings before copying a key from the context map. When a published
+  contract (`asyncapi/`) already fixes a colliding key, keep the contract's key — a contract is
+  never changed silently from here — and record the collision as an Open Item naming
+  `design-api` as the owner.
 - **Completeness** — every event an aggregate declares has a catalog entry. An event the
   manifest emits and the catalog omits is a contract nobody wrote down.
 
@@ -403,6 +408,7 @@ title: "Domain Event Catalog"
 schema_version: 1
 phase: "Phase 3: Design"
 skill: design-aggregate
+completed_by: design-microservices   # only when that skill completed the consumer side
 generated_at: "ISO8601"
 mode: "interactive|auto"
 input_files:
@@ -410,6 +416,9 @@ input_files:
   - reports/03_design/context-map.md
 ---
 ```
+
+`skill` stays `design-aggregate` whichever skill regenerated the projection last; the skill that
+completed the consumer side names itself in `completed_by`.
 
 ## Output Document Structure
 

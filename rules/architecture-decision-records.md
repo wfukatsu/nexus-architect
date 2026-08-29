@@ -20,7 +20,13 @@ A decision earns a record when **all three** hold:
    (@rules/api-style-selection.md) is one; its ADR **links** to it and states the rationale at the
    surface level, it does not restate the per-surface table.
 
-Typical records per skill:
+Typical records per skill — **illustrative, not exhaustive**: the three-part test above decides,
+and a decision that passes it (an outbox pattern, the placement of a migration stage) earns a
+record whether or not this table names it. **The skill that decides first writes the record.** A
+later skill that finds the decision already taken — in an ADR, or in a downstream document from
+an earlier run — cites that record instead of writing a second one; when no record exists yet
+because the deciding skill ran before ADRs did, the first skill to touch the decision writes it,
+with `skill:` naming itself and the Context section naming where the decision was actually taken.
 
 | Skill | Decisions it records |
 |-------|----------------------|
@@ -75,7 +81,7 @@ Field contracts:
 | `status` | `proposed` \| `accepted` \| `superseded` \| `deprecated` |
 | `skill` | The architect skill that wrote it |
 | `decided_at` | ISO 8601 date |
-| `upstream` | **Non-empty.** What drove the decision: traceability nodes — a `CTX-`, `FR-`, `NFR-`, `TECH-`, `ARCH-` or another `ADR-` — **that exist in the graph when the record is written** (a `redesign` record cannot cite an `AGG-`, which `design-aggregate` mints later; name the context and the requirement instead). On the legacy path, where `investigate` / `analyze` / `evaluate-*` mint no nodes, cite the report that states the finding as a `reports/...md` path, optionally with a `#anchor`. A decision that cites nothing is a preference, not a record |
+| `upstream` | **Non-empty.** What drove the decision: traceability nodes — a `CTX-`, `FR-`, `NFR-`, `TECH-`, `ARCH-` or another `ADR-` — **that exist in the graph when the record is written** (a `redesign` record cannot cite an `AGG-`, which `design-aggregate` mints later; name the context and the requirement instead). On the legacy path, where `investigate` / `analyze` / `evaluate-*` mint no nodes, cite the report that states the finding as a `reports/...` path (`.md`, or the `.json` of a review finding), optionally with a `#anchor` in any script — Japanese headings included. Do not pad with a node that did not drive the decision just to have an id. A decision that cites nothing is a preference, not a record |
 | `supersedes` | `ADR-` ids this record replaces; every one must exist and carry `status: superseded` |
 
 Body headings are fixed — `Context`, `Decision`, `Alternatives considered`, `Consequences` — so
@@ -107,11 +113,18 @@ Open Questions store already follow:
     "source_file": "reports/03_design/adr/adr-003-reservation-aggregate.md",
     "upstream": ["CTX-002", "AGG-002", "NFR-004"] }
   ```
-  `upstream` here carries the traceability ids of the frontmatter `upstream`; a `reports/` path
-  is kept in the frontmatter only (the graph links nodes, not files).
+  `upstream` here carries the traceability ids of the frontmatter `upstream`; the `reports/`
+  paths go into a `sources` list on the node. A legacy-path record whose drivers are all reports
+  therefore has an **empty `upstream` and a non-empty `sources`** — the same shape as the
+  physical-only nodes of @docs/design.md §1.5, and the graph's way of saying "architect-
+  originated, grounded in a report". It is not the empty-`upstream` defect: the frontmatter,
+  which the validator checks, is still non-empty.
 - **Never rewrite another skill's record.** A later skill that disagrees writes a new record with
   `supersedes: [ADR-old]` and sets the old one's `status: superseded` — the only field another
-  skill may touch.
+  skill may touch. The same restraint applies to another skill's *design document*: when a record
+  contradicts one (the document rests on a fact the record corrects), say so under Consequences
+  naming the document and the skill that owns it — that is a `review-consistency` finding and a
+  re-run of the owning skill, not an edit from here.
 - **The prefix is registered once.** `redesign` declares `id_prefix: [ADR-]` in
   `skills/common/skill-dependencies.yaml` because it is the first skill in the pipeline that
   writes one; the other four append under that registration. This is the same shape as `NFR-`

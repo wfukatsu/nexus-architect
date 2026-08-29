@@ -34,6 +34,10 @@ than defaulting to "Saga/2PC" (@rules/scalardb-2pc-patterns.md):
 
 The choice drives the deployment view (one Cluster instance vs several, plus the Coordinator table
 owner, plus a saga server if used), so make it here and carry it into `/architect:design-scalardb`.
+On a re-run where `design-scalardb` has already run and decided it, confirm or override that
+decision here with a recorded reason — the ADR is still this skill's (@rules/architecture-decision-records.md
+§1, "the skill that decides first writes the record"; when the record does not exist yet, write
+it and say in its Context where the decision was actually taken).
 
 ### Domain Event Catalog — the consumer side
 
@@ -68,6 +72,18 @@ target architecture — whichever runs second completes the catalog.
 | `reports/03_design/target-architecture.md` | Service catalog, architecture diagrams |
 | `reports/03_design/transformation-plan.md` | Incremental migration roadmap |
 | `reports/03_design/domain-event-catalog.json` / `.md` | Updated in place — consumer side of every published event (only when the catalog exists) |
+| `reports/03_design/adr/adr-NNN-<slug>.md`, `adr/index.md` | This skill's Architecture Decision Records, appended to the log `redesign` opened (or opening it when this is the first skill to write one) |
+
+## Completion Criteria
+
+1. `target-architecture.md` and `transformation-plan.md` written, every cross-service transaction
+   naming its mechanism
+2. This skill's ADRs written and `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/adr_records.py" <project_dir>` exits 0
+3. When the catalog exists, its consumer side completed and
+   `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/domain_event_catalog.py" <project_dir>` exits 0
+4. `ADR-` nodes (`type: decision`) appended to `work/traceability.json`
+5. `work/pipeline-progress.json` stamped — `in_progress` with `plugin: "architect"` before the work,
+   `completed` with `outputs` and `summary` after (@skills/common/progress-registry.md)
 
 Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 
