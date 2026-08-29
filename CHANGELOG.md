@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.37.1] - 2026-08-29
+
+What the first real run of the v0.37.0 test skills on the `ec-monolith` sample taught. The run
+itself worked — `order-service` generated with unit 99/99, `integrationTest` 21/21 over an
+in-process ScalarDB, PIT 96 %, 32 characterization fixtures pinning 6/6 entry points of the legacy
+order module, 30/30 Gherkin scenarios bound — and the gate returned FAIL for the right reasons:
+two acceptance scenarios red because three design artefacts disagree on one rejection slug, and
+a transitive CRITICAL CVE. The fixes below are to the skills, not to the sample.
+
+### Fixed
+- **`generate-characterization-tests`.** A test-only environment substitution (an H2 profile when
+  the `docker-compose` database is absent) is not a modification of the system — allowed, with its
+  boundary reported; the recording mechanism is now specified (`-Precord` mode, two runs, a
+  mask-derivation script); non-determinism inside a string is normalized at observation time
+  under a named rule; a defective outer seam is pinned together with the next one in; defects
+  with no `DEBT-` id get `@ObservedDefect("CHAR-…")` and a follow-up; the standalone output root
+  is defined.
+- **`generate-scalardb-code`.** The blind-write scenario is `Put` / `Insert` — `Update` on an
+  unread record performs an implicit read and commits on 3.19; a multi-service `TX-` is tested
+  for this service's part with Fake participants asserting the binding; Cluster transaction
+  propagation is named as unproven by the SQLite backend; the run summary has a path; outbound
+  ports and Fakes are this skill's, the HTTP client adapters are `generate-api-code`'s (new
+  Outbound Clients section there).
+- **`generate-acceptance-tests`.** `@SelectPackages` rather than the classpath-resource selector
+  the engine warns against; `@wip` goes on the pinned copy only; the three red cases are kept
+  apart — not implemented (`@wip`), unobservable at the chosen driver (`@wip` + `PendingException`),
+  contradicted by the code (a finding, never `@wip`); the `RULE-` / `EX-` criterion is conditional
+  on an example map; the driver default follows the contract map; fixtures are fixed builders
+  with arbitrary-supplied defaults; the coverage report is per service; features another service
+  owns are reported out of scope.
+- **Quality gate / `verify-implementation`.** Every gate command runs from a clean build state —
+  an UP-TO-DATE Gradle task exited 0 having run 0 tests; `trivy fs` on the fat jar scanned 0
+  packages, so dependency scanning without OSV-Scanner uses Trivy `rootfs` over the extracted
+  libs; an equivalent mutant is recorded as such only with evidence; a stage-4 red caused by the
+  design contradicting itself stays FAIL and goes to the design for a decision; stages 5–6 put
+  tool identifiers (CVE ids) in `blocking`; an absent API layer makes the contract map's unmapped
+  operations `info`, not criticals; the project's package coverage rule decides while per-file
+  figures are reported; the test-first record is `not-applicable` without a work item.
+- `.gitignore` covers `graphify-out/`.
+
 ## [0.37.0] - 2026-08-29
 
 A second pass over the toolkit with test-driven development as the premise, closing what the
