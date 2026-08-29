@@ -7,6 +7,18 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+### Fixed
+- **外向きアダプタを `generate-api-code` の契約に含めた。** order-service の API 層を最初に生成した
+  実行は外向きポート 3 つのアダプタを 1 つも出さずに全受入基準を満たしており、その結果
+  `PlaceOrderUseCase` Bean のないサービスが起動していた（VER-117）。すべてのポートメソッドが
+  契約マップの新しい `outbound` 台帳（`rules/api-contract-fidelity.md` §4 — `calls` / `unbound` /
+  `unmapped`）に載ること、仕様欠落ルールの逆（呼び出し先が `required` とする値をポートが供給
+  できなければ `unbound` とし、Open Question を名指しして throw、値の捏造は禁止）、呼び出し先の
+  `security` スキームは `security-design.md` から（なければ質問を起こす）、`operation-contracts.md`
+  の再試行予算をそのまま適用、各アダプタを `MockRestServiceServer` でテスト、を要求する。
+
 ## [0.38.1] - 2026-08-30
 
 ### Fixed

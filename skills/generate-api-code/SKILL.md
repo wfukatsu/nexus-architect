@@ -124,8 +124,17 @@ rather than re-resolving and drifting. Confirm per `--confirm-versions` / `--no-
 `infrastructure/client/`, each bound to the *called* service's OpenAPI contract by `operationId`
 exactly as the inbound controllers are (@rules/api-contract-fidelity.md), with the Problem Details
 of the callee mapped to the port's declared outcomes, timeouts from `operation-contracts.md`, and
-the idempotency key forwarded where the callee requires one. The Fake stays the test double; the
-adapter replaces it at runtime through Spring wiring, never by editing the application service.
+the idempotency key forwarded where the callee requires one, the callee's `security` scheme
+honoured (the service-to-service credential flow comes from `security-design.md`; when it is absent,
+send no credential, invent no flow, and raise the Open Question), and the per-operation retry
+budget of `operation-contracts.md` applied as stated — none for transaction participants, whose
+budget belongs to the transaction mechanism. The Fake stays the test double; the adapter replaces it
+at runtime through Spring wiring, never by editing the application service. Every port method ends
+up in the map's `outbound.calls` or `outbound.unbound` (@rules/api-contract-fidelity.md §4): when
+the callee declares a `required` property the port cannot supply, the method is `unbound`, throws
+naming its Open Question, and is reported — never fed an invented value. Test each adapter against
+the callee contract with `MockRestServiceServer` (request shape, Problem Details → port outcome,
+timeout configuration).
 
 ## Prerequisites
 
@@ -185,7 +194,7 @@ adapter replaces it at runtime through Spring wiring, never by editing the appli
 | `generated/{service}/src/main/java/**/api/mapper/` | Explicit DTO ↔ domain mappers |
 | `generated/{service}/src/main/java/**/api/error/` | `@RestControllerAdvice`, Problem Details types, problem type constants |
 | `reports/06_implementation/api-contract-map.md` | The binding table, human-readable |
-| `reports/06_implementation/api-contract-map.json` | The binding, machine-readable — consumed by verify-implementation, generate-contract-tests, review-api-security, generate-docs |
+| `reports/06_implementation/api-contract-map.json` (inbound `operations` + `outbound` ledger) | The binding, machine-readable — consumed by verify-implementation, generate-contract-tests, review-api-security, generate-docs |
 
 Write reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
 Code identifiers, schema names and `operationId`s stay in English.
@@ -195,6 +204,7 @@ Code identifiers, schema names and `operationId`s stay in English.
 - Every `operationId` in the contract has exactly one generated handler; no handler exists that has none
 - No endpoint, parameter, field, header, or status code was generated that the specification does not declare
 - Every DTO validation annotation traces to a schema constraint — none invented, none dropped; `required` scalars are boxed so `@NotNull` can fire
+- Every outbound port method the domain declares has an adapter bound to the callee's `operationId`, or an `outbound.unbound` entry with its reason and Open Question — a run that emits no adapter for a service with ports has not finished
 - The application context starts with the generated layer in it — the controllers, advice and security configuration are scanned, and the property keys match the resolved Boot major
 - Under `layering_style: clean`: one input boundary, one output boundary and one presenter per wire-facing operation; controllers reference boundaries only; the data records and presenters import no domain type
 - Request and response DTOs are distinct from domain objects and entities, with explicit mappers

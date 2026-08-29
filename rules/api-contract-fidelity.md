@@ -153,6 +153,34 @@ it; `verify-implementation` and the generated inventory test both derive the rou
 and compare, because a generator that mis-scoped produces a map that passes its own check. This is
 not hypothetical: it is the defect the first end-to-end run of this pipeline produced.
 
+### The outbound half has its own ledger
+
+A service that calls other services binds their contracts the same way, and the map records it under
+an `outbound` key — a separate ledger because `operations[]` is counted against the routes the code
+*registers*, and an outbound call registers none:
+
+```jsonc
+"outbound": {
+  "calls": [
+    {"port": "com.example.ec.order.domain.port.InventoryParticipant#reserve",
+     "service": "inventory-service", "operationId": "reserveStock",
+     "adapter": "com.example.ec.order.infrastructure.client.InventoryHttpClient",
+     "timeout_ms": 3000, "idempotency_key": null, "auth": "serviceAuth"}
+  ],
+  "unbound": [
+    {"port": "…PaymentParticipant#charge", "service": "payment-service", "operationId": "chargePayment",
+     "why": "callee requires card.securityCode; the port has no such property", "question": "OQ-047"}
+  ],
+  "unmapped": { "ports_without_adapter": [], "adapters_without_port": [] }
+}
+```
+
+Rules: every port method the domain declares is in `calls` or `unbound`; `unbound` states why and
+cites an Open Question — the reverse of §5's "missing specification" case, where the specification
+is complete and the **port cannot supply a property the callee declares `required`**; the adapter
+never invents the value, and the method throws naming the question. `unmapped` empty is the passing
+state, and `unbound` non-empty is a finding, not a pass.
+
 The `transaction` field joins each operation to the transaction design (`scalardb-transaction.md` /
 the saga definition), and `traces_to` joins it to the requirement graph. Together they are what let
 verification check that an operation the design put inside one transaction is implemented inside

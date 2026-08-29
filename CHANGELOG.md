@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+### Fixed
+- **Outbound adapters are now part of `generate-api-code`'s contract.** The first run that emitted
+  the order-service API layer produced zero adapters for the three outbound ports and satisfied every
+  acceptance criterion, which is how the service came up with no `PlaceOrderUseCase` bean (VER-117).
+  The skill now requires every port method to land in the contract map's new `outbound` ledger
+  (`rules/api-contract-fidelity.md` §4 — `calls` / `unbound` / `unmapped`), states the reverse of
+  the missing-specification rule (a `required` callee property the port cannot supply makes the
+  method `unbound`, throwing and citing its Open Question, never fed an invented value), honours
+  the callee's `security` scheme from `security-design.md` or raises the question, applies the
+  per-operation retry budget as `operation-contracts.md` states it, and tests each adapter with
+  `MockRestServiceServer`.
+
 ## [0.38.1] - 2026-08-30
 
 ### Fixed
