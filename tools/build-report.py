@@ -222,10 +222,10 @@ header.rep h1{font-size:29px;margin:0 0 8px;letter-spacing:-.01em}
 header.rep .meta{color:var(--muted);font-size:13px}
 header.rep .meta code{background:none;padding:0}
 h2{font-size:23px;margin:56px 0 18px;padding-bottom:8px;border-bottom:2px solid var(--line);scroll-margin-top:16px}
-.doc h1.doc-title{font-size:22px;margin:40px 0 14px;scroll-margin-top:16px;display:flex;flex-wrap:wrap;
+.doc h3.doc-title{font-size:22px;margin:40px 0 14px;scroll-margin-top:16px;display:flex;flex-wrap:wrap;
 align-items:baseline;gap:10px;border-left:4px solid var(--accent);padding-left:12px}
-.doc h1.doc-title .src{font-size:11px;color:var(--muted);font-weight:400;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-.doc h3{font-size:18px;margin:34px 0 10px}
+.doc h3.doc-title .src{font-size:11px;color:var(--muted);font-weight:400;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.doc h4{font-size:18px;margin:34px 0 10px}
 .doc h4{font-size:16px;margin:26px 0 8px}
 .doc h5{font-size:14.5px;margin:20px 0 6px}
 .doc h6{font-size:13.5px;margin:18px 0 6px;color:var(--muted)}
@@ -398,7 +398,7 @@ class ReportBuilder:
         title = str(meta.get("title", os.path.basename(path))).strip()
         body_protected, fences = extract_fences(body)
         body_protected = rewrite_links(body_protected)
-        body_protected = shift_headings(body_protected, delta=1)
+        body_protected = shift_headings(body_protected, delta=2)
         body_html = markdown.markdown(
             body_protected, extensions=MD_EXTENSIONS, output_format="html5")
         body_html = substitute_fences(body_html, fences)
@@ -410,8 +410,8 @@ class ReportBuilder:
         self.article_count += 1
 
         article = (
-            '<article class="doc" id="%s"><h1 class="doc-title">%s'
-            '<span class="src">%s</span></h1>%s</article>'
+            '<article class="doc" id="%s"><h3 class="doc-title">%s'
+            '<span class="src">%s</span></h3>%s</article>'
             % (html.escape(stem, quote=True), html.escape(title),
                html.escape(relpath), body_html)
         )
@@ -426,8 +426,8 @@ class ReportBuilder:
         art_id = self.register_id("feature-%s" % stem)
         self.article_count += 1
         article = (
-            '<article class="doc" id="%s"><h1 class="doc-title">%s'
-            '<span class="src">%s</span></h1>'
+            '<article class="doc" id="%s"><h3 class="doc-title">%s'
+            '<span class="src">%s</span></h3>'
             '<pre><code class="language-gherkin">%s\n</code></pre></article>'
             % (html.escape(art_id, quote=True), html.escape(heading),
                html.escape(relpath), html.escape(text))

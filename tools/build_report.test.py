@@ -208,6 +208,13 @@ try:
           "Place an order" in doc)
 
     # --- section identifiers --------------------------------------------------
+    # Heading hierarchy (review-report RPT-502): one page-level h1, phases h2, documents h3,
+    # a document's `##` at h4 — no level skipped and no per-article h1.
+    check("exactly one <h1> on the page", len(re.findall(r"<h1[ >]", doc)) == 1,
+          len(re.findall(r"<h1[ >]", doc)))
+    check("document titles are <h3 class=\"doc-title\">",
+          doc.count('<h3 class="doc-title">') == len(re.findall(r'<article class="doc"', doc)))
+    check("a document's ## renders as <h4>", "<h4" in doc and "<h3 id=" not in doc)
     h2_ids = re.findall(r'<h2 id="([^"]+)"', doc)
     check("section ids are the canonical identifiers, in pipeline order",
           h2_ids == ["analysis", "design", "test-specs"], h2_ids)
