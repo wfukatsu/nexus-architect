@@ -7,7 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
-## [0.33.0] - 2026-08-29
+## [Unreleased]
+
+Gaps the first end-to-end run of `/architect:design-aggregate --auto` with the Domain Event
+Catalog (the `ec-monolith` sample) surfaced in the skill itself.
+
+### Fixed
+- **The catalog can now name its own relationship.** `published-language` joins the consumer
+  `relationship` vocabulary — the catalog is defined as the context map's Published Language, yet
+  the map's "OHS/PL" edges could only be recorded as `open-host-service`.
+- **A synchronous reply is not a consumer.** The scope rule now says a consumer is an asynchronous
+  subscriber; a context reading an event as the reply to its own command keeps the event
+  `internal`, and `api-style-decisions.json` / `asyncapi/` win over design prose when they
+  disagree. Candidate contexts (an open `OQ-` on the `CTX-`) may consume, flagged
+  `candidate: true`.
+- **Orphan events are listed, not dropped.** An event the design names that no modeled aggregate
+  declares goes into `orphan_events` (name + the document that names it); the validator rejects
+  an orphan an aggregate does declare.
+- **Auto mode takes the consistency class from `scalardb-transaction.md` when it exists** instead
+  of defaulting every command to `local` and opening an `OQ-` per aggregate — the two passages
+  contradicted each other.
+- `also_writes` is stated to be the `local` case only; re-runs update existing `AGG-` nodes in
+  place; the idempotency key must be unique per event type (a `review-risk` finding the skill
+  used to copy over); the catalog `.md` has a frontmatter template; completion criteria renumbered.
+
+
 
 The DDD document-set check of 2026-08-29 (issues #32–#35): the four gaps between "the toolkit
 covers every DDD technique" and "a reader can see the complete document set".
