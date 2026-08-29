@@ -7,6 +7,18 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.37.2] - 2026-08-29
+
+### 変更
+- **ドキュメントを TDD ワークフローとテストスキルに合わせて最新化。** `docs/getting-started`（en/ja）に
+  レガシーパスの特性テスト手順、ゲートのステージ 2・4 が足場に要求する内容、テスト駆動としての配送パス
+  （walking-skeleton Issue、`test:` → `feat:` → `refactor:` の系列、Fake と注入される `Clock`、再現テスト
+  先行の修正）を追加。README の配送段落も同様。`docs/architect-input-requirements`（en/ja）に特性テストの
+  入力として実行可能なレガシーシステム — またはテスト専用のデータソース置換 — を追加。
+  `docs/scalardb-development`（en/ja）にスキャフォールドのテストツリーを記載。OMNIGENT の品質ゲート節に
+  ステージ 2/4 のタスクとクリーンビルドの規則。skill-reference の `export-backlog` / `implement-backlog` /
+  `review-issue` 行を現行の挙動に更新。
+
 ## [0.37.1] - 2026-08-29
 
 v0.37.0 のテストスキルを `ec-monolith` サンプルで初めて実走して分かったこと。実走自体は成立した —

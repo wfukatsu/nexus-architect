@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.37.2] - 2026-08-29
+
+### Changed
+- **Documentation brought in line with the TDD workflow and the test skills.** `docs/getting-started`
+  (en/ja) gains the characterization step on the legacy path, what gate stages 2 and 4 hold the
+  scaffold to, and the delivery path described as test-driven (walking-skeleton Issue, the
+  `test:` → `feat:` → `refactor:` series, Fakes and injected `Clock`, reproduce-first fixes);
+  README's delivery paragraph says the same; `docs/architect-input-requirements` (en/ja) lists a
+  runnable legacy system — or a test-only datasource substitution — as an input for
+  characterization tests; `docs/scalardb-development` (en/ja) documents the scaffold's test tree;
+  OMNIGENT's quality-gate section names the stage 2/4 tasks and the clean-build rule; the
+  skill-reference rows for `export-backlog`, `implement-backlog` and `review-issue` describe the
+  current behaviour.
+
 ## [0.37.1] - 2026-08-29
 
 What the first real run of the v0.37.0 test skills on the `ec-monolith` sample taught. The run
