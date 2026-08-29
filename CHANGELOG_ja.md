@@ -7,6 +7,18 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.34.1] - 2026-08-29
+
+レポート一式に対する `tools/docs-site.sh` の初回実行で `blume validate` が出した 2 件の指摘。
+
+### 修正
+- **ドキュメントサイト。** レポート内リンクの節番号アンカー（`scalardb-schema.md#9.5` —
+  `rules/architecture-decision-records.md` が `upstream` に許す書き方）は Blume の見出しスラッグではなく、
+  ADR の出典行すべてで壊れたリンクになっていた。数字のみのアンカーはページ先頭に解決する。ネストした
+  レポートディレクトリ（`adr/`、`aggregates/`、`state-machines/` …）はサイドバー順が一意になり
+  （従来は全件が同順でアルファベット順に退避）、index ページを持つディレクトリはそのページの見出しを
+  グループ名にしてサイドバーとページが一致する。
+
 ## [0.34.0] - 2026-08-29
 
 ### 追加
