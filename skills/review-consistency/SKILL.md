@@ -69,8 +69,10 @@ When `reports/03_design/adr/` exists, run
 `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/adr_records.py" <project_dir>` first and pass its output to Task A.
 It checks the record contract of @rules/architecture-decision-records.md — every record cites a
 non-empty `upstream`, supersession chains close, the index equals the directory. Each violation is a
-CON-1xx finding; the reviewers additionally check that no `ADR-` cites an `upstream` id absent from
-`work/traceability.json` and that a decision a design document states in prose has its record.
+CON-1xx finding; the reviewers additionally check that no `ADR-` cites an `upstream` **id** absent
+from `work/traceability.json` (a `reports/...md` path in `upstream` is the legacy-path form and is
+checked for existence, not against the graph) and that a decision a design document states in
+prose has its record.
 
 ### Step 2: Spawn Three Parallel Dimension Reviewers
 

@@ -10,6 +10,7 @@ written as a decision.
 Usage:  python3 tools/lib/adr_records.py <project_dir>   (exit 1 on violations)
 """
 
+import datetime
 import os
 import re
 import sys
@@ -20,7 +21,10 @@ LABEL = "adr records"
 ID_RE = re.compile(r"^ADR-(\d{3,})$")
 FILE_RE = re.compile(r"^adr-(\d{3,})-[a-z0-9]+(?:-[a-z0-9]+)*\.md$")
 NODE_RE = re.compile(r"^[A-Z]+-\d+$")
-DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}")
+# A decision's driver is a traceability node, or — on the legacy path, where investigate /
+# analyze / evaluate mint no nodes — the report that states the finding it rests on.
+REPORT_RE = re.compile(r"^reports/[A-Za-z0-9_./-]+\.md(#[A-Za-z0-9_-]+)?$")
+DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 STATUSES = ("proposed", "accepted", "superseded", "deprecated")
 HEADINGS = ("## Context", "## Decision", "## Alternatives considered", "## Consequences")
 MAX_RECORD_BYTES = 1024 * 1024
@@ -34,11 +38,18 @@ def parse_frontmatter(text):
     end = text.find("\n---", 3)
     if end < 0:
         return None, "frontmatter is not terminated"
-    data = {}
+    data, current = {}, None
     for line in text[3:end].splitlines():
         if not line.strip() or line.lstrip().startswith("#"):
             continue
-        if ":" not in line:
+        item = re.match(r"^\s+-\s*(.*)$", line)
+        if item and current is not None:
+            # Block-style list continuation: `key:` followed by `  - value` lines.
+            if not isinstance(data[current], list):
+                data[current] = [] if data[current] == "" else [data[current]]
+            data[current].append(item.group(1).strip().strip("\"'"))
+            continue
+        if ":" not in line or line.startswith((" ", "\t")):
             return None, "frontmatter line without a key: %r" % line
         key, _, raw = line.partition(":")
         raw = raw.strip()
@@ -47,8 +58,25 @@ def parse_frontmatter(text):
             value = [v.strip().strip("\"'") for v in inner.split(",") if v.strip()] if inner else []
         else:
             value = raw.strip("\"'")
-        data[key.strip()] = value
+        current = key.strip()
+        data[current] = value
     return data, None
+
+
+def _number(record_id):
+    """The integer an ADR id denotes, so ADR-003 and ADR-0003 are one record, not two."""
+    match = ID_RE.match(str(record_id))
+    return int(match.group(1)) if match else None
+
+
+def _valid_date(value):
+    if not (_text(value) and DATE_RE.match(value)):
+        return False
+    try:
+        datetime.date.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
 
 
 def _text(value):
@@ -67,7 +95,7 @@ def validate_record(name, text):
     record_id = data.get("id")
     if not isinstance(record_id, str) or not ID_RE.match(record_id):
         errors.append("%s: id must match ADR-###" % name)
-    elif match and ID_RE.match(record_id).group(1) != match.group(1):
+    elif match and _number(record_id) != int(match.group(1)):
         errors.append("%s: id %s does not match the number in the file name" % (name, record_id))
     if str(data.get("schema_version")) != "1":
         errors.append("%s: schema_version must be 1" % name)
@@ -76,16 +104,17 @@ def validate_record(name, text):
             errors.append("%s: %s is required" % (name, key))
     if data.get("status") not in STATUSES:
         errors.append("%s: status must be one of %s" % (name, "/".join(STATUSES)))
-    if not (_text(data.get("decided_at")) and DATE_RE.match(data["decided_at"])):
-        errors.append("%s: decided_at must be an ISO 8601 date" % name)
+    if not _valid_date(data.get("decided_at")):
+        errors.append("%s: decided_at must be a real ISO 8601 date" % name)
     upstream = data.get("upstream")
     if not isinstance(upstream, list) or not upstream:
         errors.append("%s: upstream must be a non-empty list — a decision that cites nothing "
                       "is a preference" % name)
     else:
         for node in upstream:
-            if not NODE_RE.match(node):
-                errors.append("%s: upstream entry %r is not a traceability id" % (name, node))
+            if not (NODE_RE.match(node) or REPORT_RE.match(node)):
+                errors.append("%s: upstream entry %r is neither a traceability id nor a "
+                              "reports/ path" % (name, node))
     supersedes = data.get("supersedes", [])
     if isinstance(supersedes, str):
         supersedes = [supersedes] if supersedes else []
@@ -96,7 +125,7 @@ def validate_record(name, text):
         for old in supersedes:
             if not ID_RE.match(old):
                 errors.append("%s: supersedes entry %r is not an ADR id" % (name, old))
-            elif old == record_id:
+            elif _number(old) == _number(record_id):
                 errors.append("%s: supersedes itself" % name)
     body = text[text.find("\n---", 3) + 4:]
     for heading in HEADINGS:
@@ -115,35 +144,44 @@ def validate_directory(records, index_text):
         errors.extend(errs)
         if record is None:
             continue
-        rid = record.get("id")
-        if isinstance(rid, str) and ID_RE.match(rid):
-            if rid in parsed:
-                errors.append("%s: duplicate id %s (also %s)" % (name, rid, parsed[rid]["_file"]))
+        number = _number(record.get("id"))
+        if number is not None:
+            if number in parsed:
+                errors.append("%s: duplicate id %s (also %s)"
+                              % (name, record["id"], parsed[number]["_file"]))
             else:
-                parsed[rid] = record
-    for rid, record in sorted(parsed.items()):
+                parsed[number] = record
+    for number, record in sorted(parsed.items()):
         for old in record["_supersedes"]:
-            if old not in parsed:
+            old_number = _number(old)
+            if old_number not in parsed:
                 errors.append("%s: supersedes %s, which does not exist" % (record["_file"], old))
-            elif parsed[old].get("status") != "superseded":
+            elif parsed[old_number].get("status") != "superseded":
                 errors.append("%s: supersedes %s, but its status is %r, not superseded"
-                              % (record["_file"], old, parsed[old].get("status")))
-    superseded_by = {old for r in parsed.values() for old in r["_supersedes"]}
-    for rid, record in sorted(parsed.items()):
-        if record.get("status") == "superseded" and rid not in superseded_by:
+                              % (record["_file"], old, parsed[old_number].get("status")))
+    superseded_by = {_number(old) for r in parsed.values() for old in r["_supersedes"]}
+    for number, record in sorted(parsed.items()):
+        if record.get("status") == "superseded" and number not in superseded_by:
             errors.append("%s: status superseded but no record supersedes it" % record["_file"])
 
     if index_text is None:
         if parsed:
             errors.append("%s: %s is missing" % (LABEL, INDEX))
     else:
-        listed = set(re.findall(r"\bADR-\d{3,}\b", index_text))
-        for rid in sorted(parsed):
-            if rid not in listed:
-                errors.append("%s: %s is not listed" % (INDEX, rid))
-        for rid in sorted(listed - set(parsed)):
-            errors.append("%s: lists %s, which has no record" % (INDEX, rid))
-    return parsed, errors
+        # The ID column of the table — the first cell of every row — not every ADR- token in
+        # the file: an Upstream cell citing a record is not a row for it, and prose about a
+        # withdrawn id is not a claim that a record exists.
+        listed = {}
+        for line in index_text.splitlines():
+            cell = re.match(r"^\|\s*(ADR-\d{3,})\s*\|", line)
+            if cell:
+                listed.setdefault(_number(cell.group(1)), cell.group(1))
+        for number in sorted(parsed):
+            if number not in listed:
+                errors.append("%s: %s is not listed" % (INDEX, parsed[number]["id"]))
+        for number in sorted(set(listed) - set(parsed)):
+            errors.append("%s: lists %s, which has no record" % (INDEX, listed[number]))
+    return {r["id"]: r for r in parsed.values()}, errors
 
 
 def load_and_validate(project_dir):

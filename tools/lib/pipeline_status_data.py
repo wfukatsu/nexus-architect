@@ -550,6 +550,13 @@ def load_phase_manifest(plugin, root=None):
         spec = dict(spec or {})
         spec.setdefault("category", "core")
         spec["outputs"] = _as_list(spec.get("outputs"))
+        # Artefacts this phase writes that other phases also write (the ADR log, the domain
+        # event catalog). Declared so the writer is known, but deliberately NOT part of
+        # `outputs`: they are not counted toward the bar and their mtime is not this phase's
+        # last_write — a later append by another skill must not mark this phase's dependents
+        # stale, and a phase completed before the shared artefact existed must not drop below
+        # full.
+        spec["shared_outputs"] = _as_list(spec.get("shared_outputs"))
         spec["depends_on"] = _as_list(spec.get("depends_on"))
         spec["conditions"] = _as_list(spec.get("conditions"))
         spec["tier"] = "core"

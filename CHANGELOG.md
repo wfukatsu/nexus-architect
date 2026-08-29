@@ -20,7 +20,13 @@ covers every DDD technique" and "a reader can see the complete document set".
   rewrite another skill's record, supersede instead. Every record cites a non-empty `upstream`
   (a decision that cites nothing is a preference). `rules/architecture-decision-records.md` is the
   contract, `tools/lib/adr_records.py` the validator (24-check suite), `review-consistency` runs
-  it. `ADR-` nodes are `type: decision` in `work/traceability.json`.
+  it. `ADR-` nodes are `type: decision` in `work/traceability.json`. On the legacy path, where
+  no node exists yet, `upstream` cites the report that states the finding as a `reports/` path.
+- **`shared_outputs` in the architect manifest.** An artefact one phase writes and later phases
+  append to (the ADR log, the domain event catalog) is declared as `shared_outputs` on every
+  writer: known to the docs and the dashboard, but neither counted toward a phase's bar nor read
+  as its `last_write` — so a later append never marks the first writer's dependents stale, and a
+  project completed before the artefact existed does not drop below full.
 - **Domain Event Catalog — the context map's Published Language** (#33).
   `reports/03_design/domain-event-catalog.json` + `.md`: every event the aggregates declare, its
   publisher, the contexts that consume it across which context-map relationship, and the delivery

@@ -75,7 +75,7 @@ Field contracts:
 | `status` | `proposed` \| `accepted` \| `superseded` \| `deprecated` |
 | `skill` | The architect skill that wrote it |
 | `decided_at` | ISO 8601 date |
-| `upstream` | **Non-empty.** The traceability nodes that drove the decision — a `CTX-`, `AGG-`, `STM-`, `FR-`, `NFR-`, `TECH-`, `ARCH-` or another `ADR-`. A decision that cites nothing is a preference, not a record; if nothing in the graph drove it, add the driver first (usually an `OQ-` answer or an `NFR-`) |
+| `upstream` | **Non-empty.** What drove the decision: traceability nodes — a `CTX-`, `FR-`, `NFR-`, `TECH-`, `ARCH-` or another `ADR-` — **that exist in the graph when the record is written** (a `redesign` record cannot cite an `AGG-`, which `design-aggregate` mints later; name the context and the requirement instead). On the legacy path, where `investigate` / `analyze` / `evaluate-*` mint no nodes, cite the report that states the finding as a `reports/...md` path, optionally with a `#anchor`. A decision that cites nothing is a preference, not a record |
 | `supersedes` | `ADR-` ids this record replaces; every one must exist and carry `status: superseded` |
 
 Body headings are fixed — `Context`, `Decision`, `Alternatives considered`, `Consequences` — so
@@ -107,7 +107,8 @@ Open Questions store already follow:
     "source_file": "reports/03_design/adr/adr-003-reservation-aggregate.md",
     "upstream": ["CTX-002", "AGG-002", "NFR-004"] }
   ```
-  `upstream` here equals the frontmatter `upstream`.
+  `upstream` here carries the traceability ids of the frontmatter `upstream`; a `reports/` path
+  is kept in the frontmatter only (the graph links nodes, not files).
 - **Never rewrite another skill's record.** A later skill that disagrees writes a new record with
   `supersedes: [ADR-old]` and sets the old one's `status: superseded` — the only field another
   skill may touch.

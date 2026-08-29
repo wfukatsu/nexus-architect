@@ -66,8 +66,8 @@ def validate_catalog(catalog, aggregate_manifest=None):
     if catalog.get("schema_version") != 1:
         return ["%s: schema_version must be 1" % LABEL]
     events = catalog.get("events")
-    if not isinstance(events, list) or not events:
-        return ["%s: events must be a non-empty array" % LABEL]
+    if not isinstance(events, list):
+        return ["%s: events must be an array" % LABEL]
 
     errors = []
     declared, manifest_contexts = aggregate_events(aggregate_manifest)
@@ -79,9 +79,13 @@ def validate_catalog(catalog, aggregate_manifest=None):
         else:
             contexts |= set(listed)
 
-    names = [e.get("name") for e in events if isinstance(e, dict)]
+    names = [e.get("name") for e in events if isinstance(e, dict) and _text(e.get("name"))]
     if duplicates(names):
         errors.append("%s: duplicate event name — one event, one entry, one publisher" % LABEL)
+    # The contexts a consumer may name: the aggregate manifest's and the catalog's own list.
+    # A publisher's context is deliberately NOT added — a misspelt publisher would otherwise
+    # legitimise the same misspelling as a consumer. With neither source the check is skipped.
+    known_contexts = contexts if (manifest_contexts or listed) else None
 
     for index, event in enumerate(events):
         if not isinstance(event, dict):
@@ -107,8 +111,10 @@ def validate_catalog(catalog, aggregate_manifest=None):
             elif _text(owner[1]) and owner[1] != publisher["bounded_context"]:
                 errors.append("%s: publisher context is %r but aggregate %r lives in %r"
                               % (where, publisher["bounded_context"], owner[0], owner[1]))
-        if _text(publisher.get("bounded_context")):
-            contexts.add(publisher["bounded_context"])
+        if known_contexts is not None and _text(publisher.get("bounded_context")) \
+                and publisher["bounded_context"] not in known_contexts:
+            errors.append("%s: publisher context %r is not a declared bounded context"
+                          % (where, publisher["bounded_context"]))
 
         scope = event.get("scope")
         if scope not in SCOPES:
@@ -158,12 +164,12 @@ def validate_catalog(catalog, aggregate_manifest=None):
     # The consumers are contexts the design knows: the aggregate manifest's, the catalog's own
     # `contexts` list, or a publisher's. A consumer nobody declared is a typo or a context that
     # was never designed.
-    for event in events:
+    for event in events if known_contexts is not None else []:
         if not isinstance(event, dict):
             continue
         for consumer in event.get("consumers") if isinstance(event.get("consumers"), list) else []:
             if isinstance(consumer, dict) and _text(consumer.get("bounded_context")) \
-                    and consumer["bounded_context"] not in contexts:
+                    and consumer["bounded_context"] not in known_contexts:
                 errors.append("event %s: consumer %r is not a declared bounded context"
                               % (event.get("name"), consumer["bounded_context"]))
 
@@ -177,21 +183,28 @@ def validate_catalog(catalog, aggregate_manifest=None):
 
 
 def _aggregate_manifest(project_dir):
+    """(manifest, error). Absent is (None, None) — the cross-checks are skipped. Present but
+    unreadable is (None, message): the cross-checks cannot run, and saying nothing would report
+    a catalog as well-formed against a manifest nobody could read."""
     path = os.path.join(project_dir, AGGREGATE_MANIFEST_PATH)
     if not os.path.isfile(path):
-        return None
+        return None, None
     try:
         with open(path, encoding="utf-8") as handle:
-            return json.load(handle)
-    except (OSError, ValueError):
-        return None
+            return json.load(handle), None
+    except (OSError, ValueError) as exc:
+        return None, "%s: %s is unreadable, so publishers and completeness were not " \
+                     "cross-checked — %s" % (LABEL, AGGREGATE_MANIFEST_PATH, exc)
 
 
 def load_and_validate(project_dir):
     """(catalog, errors) for a project directory; a missing catalog is (None, [])."""
-    manifest = _aggregate_manifest(project_dir)
-    return load_manifest(project_dir, CATALOG_PATH, LABEL,
-                         lambda catalog, root: validate_catalog(catalog, manifest))
+    manifest, manifest_error = _aggregate_manifest(project_dir)
+    catalog, errors = load_manifest(project_dir, CATALOG_PATH, LABEL,
+                                    lambda cat, root: validate_catalog(cat, manifest))
+    if catalog is not None and manifest_error:
+        errors = [manifest_error] + errors
+    return catalog, errors
 
 
 def main(argv):

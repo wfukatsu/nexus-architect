@@ -80,7 +80,12 @@ check("by shape alone, without a manifest", errs(FULL, None) == [], errs(FULL, N
 print("Envelope")
 check("not an object", any("object" in e for e in errs([])))
 check("schema_version must be 1", any("schema_version" in e for e in errs({"schema_version": 2, "events": [1]})))
-check("events non-empty", any("non-empty" in e for e in errs(catalog())))
+check("events must be an array", any("array" in e for e in errs({"schema_version": 1, "events": "x"})))
+check("an empty catalog is allowed when no aggregate declares an event", errs(catalog(), None) == [])
+check("…but incomplete against a manifest that does", any("omits" in e for e in errs(catalog())))
+nameless = catalog(*FULL["events"], {"scope": "internal", "consumers": [], "payload": ["x"]},
+                   {"scope": "internal", "consumers": [], "payload": ["x"]})
+check("two nameless events are a name error, not a duplicate", not any("one publisher" in e for e in errs(nameless)), errs(nameless))
 check("contexts, when present, is a list of names",
       any("contexts" in e for e in errs(catalog(*FULL["events"], contexts="Ordering"))))
 
@@ -115,6 +120,13 @@ e = errs(catalog(*FULL["events"][1:], published(consumer="Shipping")))
 check("a consumer must be a declared context", any("not a declared bounded context" in e_ for e_ in e), e)
 listed = catalog(*FULL["events"][1:], published(consumer="Shipping"), contexts=["Shipping"])
 check("…unless the catalog's contexts list declares it", not any("not a declared" in e_ for e_ in errs(listed)), errs(listed))
+typo = catalog(published("A", "Order", "Ordring", "Ordring2"), contexts=["Ordering"])
+e = errs(typo, None)
+check("a publisher's context must be declared too — it does not legitimise itself",
+      any("publisher context 'Ordring' is not a declared" in e_ for e_ in e), e)
+check("…and a consumer with the same typo is still caught", any("consumer 'Ordring2' is not a declared" in e_ for e_ in e), e)
+check("with no context source at all the declared-context check is skipped",
+      not any("not a declared" in e_ for e_ in errs(catalog(published("A", "Order", "Ordring", "Elsewhere")), None)))
 e = errs(catalog(*FULL["events"][1:], published(consumers=[
     {"bounded_context": "Inventory", "relationship": "customer-supplier", "purpose": "a"},
     {"bounded_context": "Inventory", "relationship": "conformist", "purpose": "b"}])))
@@ -161,6 +173,11 @@ try:
         json.dump(FULL, f)
     r = subprocess.run([sys.executable, C.__file__, tmp], capture_output=True, text=True)
     check("complete catalog → exit 0 with a summary", r.returncode == 0 and "3 events" in r.stdout, r.stdout)
+    with open(os.path.join(tmp, C.AGGREGATE_MANIFEST_PATH), "w", encoding="utf-8") as f:
+        f.write('{"aggregates": [,]}')
+    r = subprocess.run([sys.executable, C.__file__, tmp], capture_output=True, text=True)
+    check("a corrupt aggregate manifest → exit 1, not a silent shape-only pass",
+          r.returncode == 1 and "unreadable" in r.stdout, r.stdout)
 finally:
     shutil.rmtree(tmp, ignore_errors=True)
 

@@ -405,6 +405,28 @@ def check_optional_dependency(root):
         "phases": {"redesign": {"status": "completed"}}}))
     state = P.derive_all(proj)
     phases = state["phases"]
+    # Shared outputs (the ADR log) are declared, not counted and not a staleness source: a
+    # later append by design-api must not make redesign's dependents stale, and redesign's bar
+    # is 2/2 whether or not the log exists yet.
+    check("shared outputs are declared on the phase", "reports/03_design/adr/" in
+          P.load_phase_manifest("architect")["redesign"]["shared_outputs"])
+    check("…but not counted toward the bar", phases["redesign"]["declared"] == 2, phases["redesign"]["declared"])
+    write(os.path.join(docs, "target-architecture.md")); write(os.path.join(docs, "transformation-plan.md"))
+    for path in ("target-architecture.md", "transformation-plan.md"):
+        os.utime(os.path.join(docs, path), (base + 30, base + 30))
+    write(os.path.join(docs, "adr", "adr-004-late.md")); write(os.path.join(docs, "adr", "index.md"), "y\n")
+    write(os.path.join(proj, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "optdep", "options": {"scalardb_enabled": False},
+        "phases": {"redesign": {"status": "completed"}, "design-microservices": {"status": "completed"}}}))
+    late = P.derive_all(proj)["phases"]
+    check("…and a later append to a shared output does not stale the dependents",
+          not late["design-microservices"]["stale"], late["design-microservices"])
+    os.remove(os.path.join(docs, "adr", "adr-004-late.md"))
+    for path in ("target-architecture.md", "transformation-plan.md"):
+        os.remove(os.path.join(docs, path))
+    write(os.path.join(proj, "work", "pipeline-progress.json"), json.dumps({
+        "project_name": "optdep", "options": {"scalardb_enabled": False},
+        "phases": {"redesign": {"status": "completed"}}}))
     order = list(phases)
     check("design-state-machine is ordered after design-aggregate",
           order.index("design-aggregate") < order.index("design-state-machine"))

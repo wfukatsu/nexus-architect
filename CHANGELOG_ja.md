@@ -20,6 +20,11 @@ Nexus Architect の主な変更点を記録します。
   空でない `upstream` を引用する（何も引用しない決定は好みであって記録ではない）。契約は
   `rules/architecture-decision-records.md`、バリデータは `tools/lib/adr_records.py`（24 チェックのスイート）、
   `review-consistency` が実行する。`ADR-` ノードは `work/traceability.json` に `type: decision` で追加される。
+  レガシー経路でまだノードが無い場合、`upstream` は所見を述べたレポートを `reports/` パスで引用する。
+- **architect manifest の `shared_outputs`。** あるフェーズが書き、後続フェーズが追記する成果物（ADR ログ、
+  ドメインイベントカタログ）は、書き手すべてに `shared_outputs` として宣言する: ドキュメントとダッシュボードは
+  書き手を知るが、フェーズの進捗バーには数えず `last_write` にも読まない — 後からの追記が最初の書き手の依存先を
+  stale にすることはなく、成果物が存在する前に完了したプロジェクトが未完了に落ちることもない。
 - **ドメインイベントカタログ — コンテキストマップの Published Language**（#33）。
   `reports/03_design/domain-event-catalog.json` + `.md`: 集約が宣言する全イベント、その発行者、どのコンテキストマップ関係で
   どのコンテキストが消費するか、消費側が依拠できる配信契約（保証・冪等キー・バージョン・進化ルール）。

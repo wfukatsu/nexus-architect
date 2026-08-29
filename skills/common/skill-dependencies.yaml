@@ -92,6 +92,11 @@ phases:
     outputs:
       - reports/03_design/bounded-contexts-redesign.md
       - reports/03_design/context-map.md
+    # Written by this phase AND appended to by later ones. A shared output is declared so the
+    # dashboard and the docs know who writes it, but it is neither counted toward the phase's
+    # bar nor read for staleness — otherwise every later append would mark redesign's dependents
+    # stale (tools/lib/pipeline_status_data.py, derive_phase).
+    shared_outputs:
       - reports/03_design/adr/
       - reports/03_design/adr/index.md
     model: opus
@@ -121,8 +126,10 @@ phases:
     outputs:
       - reports/03_design/aggregates/
       - reports/03_design/aggregates/aggregate-manifest.json
-      - reports/03_design/domain-event-catalog.md
+    # The catalog is completed by design-microservices (consumer side), so it is shared.
+    shared_outputs:
       - reports/03_design/domain-event-catalog.json
+      - reports/03_design/domain-event-catalog.md
     model: opus
 
   design-state-machine:
@@ -145,6 +152,11 @@ phases:
     outputs:
       - reports/03_design/target-architecture.md
       - reports/03_design/transformation-plan.md
+    shared_outputs:
+      - reports/03_design/adr/
+      - reports/03_design/adr/index.md
+      - reports/03_design/domain-event-catalog.json
+      - reports/03_design/domain-event-catalog.md
     model: opus
 
   design-scalardb:
@@ -155,6 +167,9 @@ phases:
       - reports/03_design/scalardb-schema.md
       - reports/03_design/scalardb-transaction.md
       - reports/03_design/scalardb-migration.md
+    shared_outputs:
+      - reports/03_design/adr/
+      - reports/03_design/adr/index.md
     model: opus
 
   design-data-layer:
@@ -163,6 +178,9 @@ phases:
     conditions: [scalardb_disabled]
     outputs:
       - reports/03_design/data-layer-design.md
+    shared_outputs:
+      - reports/03_design/adr/
+      - reports/03_design/adr/index.md
     model: opus
 
   design-api:
@@ -172,6 +190,9 @@ phases:
       - reports/03_design/api-style-decisions.md
       - reports/03_design/api-style-decisions.json
       - reports/03_design/api-specifications/
+    shared_outputs:
+      - reports/03_design/adr/
+      - reports/03_design/adr/index.md
     model: opus
 
   design-graphql:

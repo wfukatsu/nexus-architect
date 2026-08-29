@@ -4,7 +4,7 @@ title: "引当（Reservation）を StockItem とは別集約にし、同一ト�
 status: accepted
 skill: redesign
 decided_at: "2026-08-29"
-upstream: [ADR-001, AGG-002, AGG-003, NFR-002]
+upstream: [ADR-001, CTX-002, NFR-002]
 supersedes: []
 schema_version: 1
 ---
@@ -26,6 +26,8 @@ schema_version: 1
 | 引当行を持たず、注文 ID をキーにした冪等テーブルだけ置く | 引当数量の解放時に数量をもう一度伝える必要があり、再配信で二重解放する |
 
 ## Consequences
+
+- この決定の集約側の実体は `design-aggregate` が後から採番する AGG-002（StockItem）と AGG-003（Reservation）であり、両ノードの `upstream` がこの ADR を指す（ADR が集約を指すのではない — 採番順序の都合）。
 
 - `rules/aggregate-design.md` §4 の第 3 ケース（`local` + `also_writes`）を適用する。二集約・一トランザクションの唯一の例外であり、`scalardb-transaction.md` TX-002 に記録する。
 - `design-scalardb` は StockItem と Reservation を同一パーティションキー（productId）に置く。

@@ -59,7 +59,8 @@ for label, name, text, needle in [
     ("decided_at is a date", "adr-001-x.md", record(decided="yesterday"), "decided_at"),
     ("schema_version is 1", "adr-001-x.md", record(schema="2"), "schema_version"),
     ("upstream must be non-empty", "adr-001-x.md", record(upstream="[]"), "preference"),
-    ("upstream entries are traceability ids", "adr-001-x.md", record(upstream="[the boss said so]"), "not a traceability id"),
+    ("upstream entries are traceability ids or reports/ paths", "adr-001-x.md", record(upstream="[the boss said so]"), "neither a traceability id"),
+    ("decided_at must be a real date", "adr-001-x.md", record(decided="2026-13-99garbage"), "decided_at"),
     ("the four body headings are present", "adr-001-x.md", record(body="\n## Context\n\nx\n"), "missing section"),
     ("frontmatter must be present", "adr-001-x.md", "# no frontmatter\n", "frontmatter"),
     ("supersedes itself is rejected", "adr-001-x.md", record(supersedes="[ADR-001]"), "itself"),
@@ -67,7 +68,16 @@ for label, name, text, needle in [
     errs = errors_of({name: text}, index("ADR-001"))
     check(label, any(needle in e for e in errs), errs)
 
+legacy = {"adr-001-x.md": record(upstream="[reports/02_evaluation/unified-improvement-plan.md#finding-3]")}
+check("a reports/ path is an acceptable driver on the legacy path", errors_of(legacy, index("ADR-001")) == [],
+      errors_of(legacy, index("ADR-001")))
+block = {"adr-001-x.md": record().replace("upstream: [CTX-001, NFR-002]", "upstream:\n  - CTX-001\n  - NFR-002")}
+check("a block-style YAML list is parsed like a flow-style one", errors_of(block, index("ADR-001")) == [],
+      errors_of(block, index("ADR-001")))
+
 print("Cross-record rules (§4)")
+errs = errors_of({"adr-003-a.md": record(rid="ADR-003"), "adr-0003-b.md": record(rid="ADR-0003")}, index("ADR-003"))
+check("ADR-003 and ADR-0003 are one number, hence a duplicate", any("duplicate id" in e for e in errs), errs)
 errs = errors_of({"adr-001-a.md": record(), "adr-002-b.md": record(rid="ADR-001")}, index("ADR-001"))
 check("duplicate id across files is rejected", any("duplicate id" in e for e in errs), errs)
 errs = errors_of({"adr-002-b.md": record(rid="ADR-002", supersedes="[ADR-001]")}, index("ADR-002"))
@@ -89,6 +99,13 @@ errs = errors_of(ok, index())
 check("a record absent from the index", any("not listed" in e for e in errs), errs)
 errs = errors_of(ok, index("ADR-001", "ADR-009"))
 check("an index row with no record", any("no record" in e for e in errs), errs)
+two = {"adr-001-a.md": record(), "adr-002-b.md": record(rid="ADR-002")}
+cited_only = index("ADR-002").replace("| CTX-001 |", "| ADR-001 |")
+errs = errors_of(two, cited_only)
+check("a record cited in another row's Upstream cell still needs its own row",
+      any("ADR-001 is not listed" in e for e in errs), errs)
+prose = index("ADR-001") + "\nADR-009 was withdrawn before it was written.\n"
+check("prose mentioning an id is not a row", errors_of(ok, prose) == [], errors_of(ok, prose))
 
 print("CLI envelope")
 tmp = tempfile.mkdtemp()
