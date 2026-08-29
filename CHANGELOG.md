@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+### Fixed
+- **`review-consistency` after its first run with the new validators.** The file list now includes
+  the machine-readable artifacts (`.json`, `asyncapi/*.yaml`) and `work/traceability.json`; the
+  three Task prompts carry a `<VALIDATOR_OUTPUT>` block and the result a `validators` object; the
+  ADR checks are split — record shape to Task A, graph-side (`upstream` ids resolve, nodes carry
+  `sources`, prose decisions have records) to Task B; "already tracked in Open Items" downgrades
+  uniformly to minor; an `orphan_events` entry counts as catalogued for the AsyncAPI check; the
+  nine Canvas parts are named; finding text follows `output_language`; the registry stamp is
+  stated, including clearing the previous run's `completed_at` on re-run.
+
 ## [0.33.2] - 2026-08-29
 
 Gaps the first end-to-end runs of `/architect:design-api` (AsyncAPI from the catalog) and
