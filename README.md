@@ -270,6 +270,11 @@ each phase's status, declared-output completion, what is running right now and i
 a finished phase `stale` once an upstream one changed after it, down the whole dependency chain. Both let
 you ask Claude about the selected row (`a`) and launch the generated command (`--exec`).
 
+To *read* the output rather than watch it, `tools/docs-site.sh` serves `reports/` as a local
+documentation site (Blume): one page per report with Mermaid rendered, the OpenAPI/AsyncAPI specs as
+an API reference, full-text search, and a landing page built from the pipeline status. See
+docs/docs-site.md.
+
 **C. Frontend** — `/product:generate-frontend` (offered by `/product:start` after the UI mocks) emits
 a runnable React + Storybook scaffold under `generated/frontend/`.
 

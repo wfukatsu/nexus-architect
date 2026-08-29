@@ -225,6 +225,13 @@ Consolidated HTML report:
 # -> reports/00_summary/full-report.html
 ```
 
+Browse everything under `reports/` as a local documentation site — sidebar per phase, search,
+Mermaid rendered, the OpenAPI/AsyncAPI specs as an API reference (Blume, Node ≥ 22.12):
+```bash
+tools/docs-site.sh            # sync + dev server, re-syncs as reports/ changes
+```
+See docs/docs-site.md.
+
 ## 8. ScalarDB Application Development
 
 ```bash

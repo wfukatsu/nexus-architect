@@ -1,0 +1,9 @@
+# Everything here except the config, the sync script and package.json is generated
+node_modules/
+package-lock.json
+.blume/
+.blume-verify/
+dist/
+docs/
+public/
+specs/

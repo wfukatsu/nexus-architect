@@ -1,0 +1,20 @@
+{
+  "name": "nexus-architect-docs-site",
+  "private": true,
+  "description": "Serves a nexus-architect project's reports/ tree as a local documentation site (Blume).",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "sync": "python3 sync_reports.py",
+    "dev": "blume dev",
+    "build": "blume build",
+    "preview": "blume preview",
+    "validate": "blume validate"
+  },
+  "dependencies": {
+    "blume": "1.5.3",
+    "zod": "4.5.2"
+  }
+}

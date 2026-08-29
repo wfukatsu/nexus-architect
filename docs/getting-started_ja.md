@@ -222,6 +222,13 @@ work/             # パイプライン状態
 # -> reports/00_summary/full-report.html
 ```
 
+`reports/` 配下をまるごとローカルのドキュメントサイトとして閲覧できます — フェーズごとのサイドバー、
+全文検索、Mermaid 描画、OpenAPI/AsyncAPI 仕様の API リファレンス（Blume、Node 22.12 以上）：
+```bash
+tools/docs-site.sh            # 同期 + dev サーバー起動。reports/ の変更を再同期
+```
+詳細は docs/docs-site_ja.md を参照。
+
 ## 8. ScalarDBアプリケーション開発
 
 ```bash
