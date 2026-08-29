@@ -457,13 +457,21 @@ def sync(project: Path) -> int:
             write_meta(DOCS / slug_segment(key), label, i)
     for i, top in enumerate(sorted(present - {k for k, _ in GROUPS})):
         write_meta(DOCS / slug_segment(top), top, len(GROUPS) + i)
+    sub_order = list(SUBGROUPS)
     for rel in files:
         for depth in range(1, len(rel.parts) - 1):
             name = rel.parts[depth]
             if name in SUBGROUPS:
                 target = DOCS.joinpath(*[slug_segment(p) for p in rel.parts[:depth + 1]])
                 if not (target / "meta.ts").exists():
-                    write_meta(target, SUBGROUPS[name], depth)
+                    # A directory with its own index page is labelled by that page's title, so
+                    # the sidebar group and the page it opens agree (Blume warns otherwise).
+                    index_md = reports.joinpath(*rel.parts[:depth + 1]) / "index.md"
+                    label = SUBGROUPS[name]
+                    if index_md.exists():
+                        label = scalar(split_frontmatter(index_md.read_text(encoding="utf-8"))[0],
+                                       "title") or label
+                    write_meta(target, label, 10 + sub_order.index(name))
 
     (SPECS / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2))
     write_page(DOCS / "index.mdx", manifest["project"] + " — reports",
