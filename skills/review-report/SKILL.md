@@ -45,13 +45,17 @@ Tolerance: scores must match exactly (no rounding drift beyond ±0.5).
 
 ### 3. Mermaid Syntax (weight: 0.15)
 
-Scan all `<div class="mermaid">` blocks in the HTML for common syntax errors:
+Scan all `<pre class="mermaid">` blocks in the HTML (`tools/build-report.py` emits
+`<div class="mermaid-wrap"><pre class="mermaid">…</pre></div>`) for common syntax errors:
 
 - Mismatched brackets or quotes in node labels
 - Invalid arrow syntax (e.g. `->` instead of `-->`)
 - Non-ASCII text in node IDs (must be in labels only)
 - Empty diagram blocks
 - Unsupported diagram types
+- A `<code>` element inside the block — `<pre class="mermaid"><code>` is what a generic
+  Markdown converter emits, and Mermaid's `startOnLoad` reads `innerHTML`, so every such
+  diagram fails with "No diagram type detected". One occurrence scores this lens 1.
 
 Report each problematic block with the first 3 lines of the block as location context.
 
@@ -197,13 +201,16 @@ You are checking Mermaid diagram blocks in an HTML file for syntax errors.
 
 Read the HTML file at reports/00_summary/full-report.html.
 
-Extract all content inside <div class="mermaid">...</div> blocks.
+Extract all content inside <pre class="mermaid">...</pre> blocks (the tool wraps each in
+<div class="mermaid-wrap">). The content is HTML-escaped source; unescape it before checking.
 For each block, check for:
 1. Invalid arrow syntax (e.g. single-dash -> instead of -->)
 2. Non-ASCII characters in node IDs (only allowed in quoted labels)
 3. Unclosed brackets or quotes in node labels
 4. Empty or near-empty blocks (less than 2 lines of content)
 5. Unknown diagram type keyword in the first line
+6. A <code> tag inside the block (<pre class="mermaid"><code>): Mermaid reads innerHTML, so
+   the tag becomes diagram text and the diagram cannot render — a major error, score 1
 
 Score 1-5: 5=All diagrams syntactically valid, 4=1 minor issue, 3=2-3 minor issues, 2=1 major syntax error, 1=Multiple major errors
 

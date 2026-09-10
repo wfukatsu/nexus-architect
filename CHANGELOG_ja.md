@@ -10,6 +10,25 @@ Nexus Architect の主な変更点を記録します。
 ## [Unreleased]
 
 ### Fixed
+- **`/product:report` が Mermaid 図をすべて構文エラーにしたレポートを出さなくなった。** スキルは
+  HTML の「何を」だけを述べてツールを名指ししていなかったため、実走行では pandoc で Markdown を変換し、
+  Mermaid フェンスが `<pre class="mermaid"><code>…</code></pre>` になっていた。Mermaid の
+  `startOnLoad` は `innerHTML` を読むため `<code>` タグが図テキストに混入し、実プロジェクトの図 10 個が
+  すべて「No diagram type detected」で失敗していた。`/architect:report` の生成器
+  `tools/build-report.py`（エスケープ済みソースだけを `<pre class="mermaid">` に入れる）が product
+  ツリーも描画するようになった: レイアウトは `reports/00_core` / `01_ux` / `02_spec` / `03_domain` から
+  自動判定（`--layout` で上書き、`--lang` でプロジェクト言語を上書き）、出力は
+  `reports/report/full-report.html`、セクションは `core` / `ux` / `spec` / `domain` / `quality` /
+  `adaptation` / `other` / `review` で文書順は `skills/product/common/skill-dependencies.yaml` の
+  パイプライン順、HTML モックや図版は埋め込まずファイル名のみ列挙、冒頭は「Key Assumptions &
+  Validation Status」（`pipeline-progress.json` のゲート判定、`assumptions.md` / `validation-plan.md`
+  の未検証 `ASM-` 行の再掲、文書別の `TBD` / `TBD-assumption` と参照 `OQ-`、状態別・担当付きの
+  Open Questions。ストアはヘッダ駆動で解析するため 8 列形式から担当が取れ、4 列形式も従来どおり
+  集計できる）。セクションのアンカーを予約し、`summary.md` / `review.md` という文書がセクション id と
+  衝突しなくなった。スキルは「ツールが作る、手書きしない」に書き換え、`tools/build_report.test.py`
+  に product の契約と両レイアウト共通の「Mermaid ブロック内に `<code>` を含まない」検査を追加、
+  `/architect:review-report` は実在しなかった `<div class="mermaid">` ではなくツールが実際に出す
+  `<pre class="mermaid">` を走査し、`<code>` ラッパーを重大エラーとして扱う。
 - **外向きアダプタを `generate-api-code` の契約に含めた。** order-service の API 層を最初に生成した
   実行は外向きポート 3 つのアダプタを 1 つも出さずに全受入基準を満たしており、その結果
   `PlaceOrderUseCase` Bean のないサービスが起動していた（VER-117）。すべてのポートメソッドが
