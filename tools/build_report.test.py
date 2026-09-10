@@ -110,10 +110,157 @@ FEATURE = """Feature: Place an order
 """
 
 
+# ---------------------------------------------------------------- product fixtures
+# The product tree has its own section map and opens with the validation status instead
+# of a review verdict. The shapes below mirror a real /product:start run: an ASM- table
+# with bold cells, TBD placeholders in both ASCII and full-width parentheses, the 8-column
+# Open Questions store, a Mermaid fence inside a domain story, example maps with an index,
+# HTML mocks and figures that must be listed but never embedded, and an undeclared
+# directory (poc/) that still has to appear.
+PRODUCT_ASSUMPTIONS = """---
+title: "Assumptions"
+schema_version: 1
+---
+
+## Desirability
+
+| ID | Category | Hypothesis | Impact |
+|----|----------|------------|--------|
+| ASM-001 | Desirability | **Auditors want external proof** (VIS-001) | high |
+
+## Feasibility
+
+| ID | Category | Hypothesis | Impact |
+|----|----------|------------|--------|
+| ASM-002 | Feasibility | **Zero impact on existing jobs** | high |
+
+## Viability
+
+| ID | Category | Hypothesis | Impact |
+|----|----------|------------|--------|
+| ASM-003 | Viability | Customers pay per seal event | low |
+
+The unit price is TBD-assumption until the pilot.
+"""
+
+PRODUCT_VALIDATION_PLAN = """---
+title: "Validation Plan"
+schema_version: 1
+---
+
+| ID | Test | Threshold | Status |
+|----|------|-----------|--------|
+| ASM-001 | interviews | majority agree | not run |
+| ASM-002 | PoC week 1 | < 5% slowdown | not run |
+| ASM-003 | price survey | < 50% too expensive | not run |
+"""
+
+PRODUCT_PERSONAS = """---
+title: "Personas"
+schema_version: 1
+---
+
+## PER-001
+
+The p95 target is TBD (OQ-001) and the tenant model is TBD（OQ-004）.
+
+Never write `TBD (OQ-999)` without an entry in the store.
+
+```text
+TBD (OQ-998)
+```
+"""
+
+PRODUCT_STORY = """---
+title: "Domain Story: Disclosure"
+schema_version: 1
+---
+
+```mermaid
+%s
+```
+""" % MERMAID_SRC
+
+PRODUCT_FEATURES = """---
+title: "Feature List"
+schema_version: 1
+---
+
+See the [example maps](examples/index.md).
+"""
+
+PRODUCT_OQ_STORE = (
+    "## Open Questions\n\n"
+    "| ID | Question | Status | Answer | Options offered | Owner | Impact | Asked at |\n"
+    "|----|----------|--------|--------|-----------------|-------|--------|----------|\n"
+    "| OQ-001 | What is the p95 latency target? | **deferred** | — | 200ms / 500ms | product owner | High | define-nfr |\n"
+    "| OQ-002 | Which tenant isolation model? | answered | schema per tenant | — | architect | Medium | map-domains |\n"
+    "| OQ-003 | Is the brand name registrable? | external | — | — | legal | Low | name-product |\n"
+    "| OQ-004 | Who approves on mobile? | unasked | — | — | product owner | Medium | map-journey |\n"
+)
+
+
+def simple_doc(title, body="Body.\n"):
+    return '---\ntitle: "%s"\nschema_version: 1\n---\n\n%s' % (title, body)
+
+
 def write(path, text):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         f.write(text)
+
+
+def build_product_project(root, language, degraded=False):
+    """A product-pipeline scratch project. `degraded` drops the gate, the assumptions
+    document and the Open Questions store — the shapes the summary must survive."""
+    progress = {
+        "schema_version": 1,
+        "project_name": "scratch-product",
+        "options": {"output_language": language, "profile": "full"},
+        "phases": {},
+    }
+    if not degraded:
+        progress["gates"] = {"validate-assumptions": {
+            "verdict": "go", "open_assumptions": ["ASM-001", "ASM-002"],
+            "evaluated_at": "2026-01-01T00:00:00+00:00"}}
+    write(os.path.join(root, "work", "pipeline-progress.json"), json.dumps(progress, indent=2))
+    if not degraded:
+        write(os.path.join(root, "work", "context.md"), PRODUCT_OQ_STORE)
+    core = os.path.join(root, "reports", "00_core")
+    # Written in reverse pipeline order so name order and manifest order disagree.
+    write(os.path.join(core, "scope-definition.md"), simple_doc("Scope Definition"))
+    write(os.path.join(core, "vision-mission-value.md"), simple_doc("Vision"))
+    if not degraded:
+        write(os.path.join(core, "assumptions.md"), PRODUCT_ASSUMPTIONS)
+    write(os.path.join(core, "validation-plan.md"), PRODUCT_VALIDATION_PLAN)
+    write(os.path.join(core, "summary.md"), simple_doc("A document named summary"))
+    write(os.path.join(root, "reports", "01_ux", "personas.md"), PRODUCT_PERSONAS)
+    write(os.path.join(root, "reports", "01_ux", "domain-stories", "domain-story-disclosure.md"),
+          PRODUCT_STORY)
+    spec = os.path.join(root, "reports", "02_spec")
+    write(os.path.join(spec, "feature-list.md"), PRODUCT_FEATURES)
+    write(os.path.join(spec, "examples", "index.md"), simple_doc("Example Map Index"))
+    write(os.path.join(spec, "examples", "example-map-feat-001.md"),
+          simple_doc("Example Map: Search"))
+    write(os.path.join(spec, "ui-mocks", "solution-exploration.md"),
+          simple_doc("Solution Exploration"))
+    write(os.path.join(spec, "ui-mocks", "SCR-001.html"), "<html><body>mock</body></html>")
+    write(os.path.join(root, "reports", "03_domain", "domain-map.md"),
+          simple_doc("Domain Map", "![runtime view](figures/arch.png)\n"))
+    write(os.path.join(root, "reports", "03_domain", "figures", "arch.png"), "")
+    write(os.path.join(root, "reports", "poc", "poc-results.md"), simple_doc("PoC Results"))
+    write(os.path.join(root, "reports", "report", "review.md"), simple_doc("Multi-Lens Review"))
+
+
+def summary_of(doc):
+    m = re.search(r'<section id="summary".*?</section>', doc, re.S)
+    return m.group(0) if m else ""
+
+
+def oq_group(doc, label):
+    """The table that follows the `<h4>label (n)</h4>` heading of one status group."""
+    m = re.search(r"<h4>%s \(\d+\)</h4>(.*?)</table>" % re.escape(label), doc, re.S)
+    return m.group(1) if m else ""
 
 
 def build_project(root, language):
@@ -145,10 +292,11 @@ def build_project(root, language):
           FEATURE)
 
 
-def run(project_dir, output):
-    return subprocess.run(
-        [sys.executable, TOOL, project_dir, "--output", output],
-        capture_output=True, text=True)
+def run(project_dir, output=None, *extra):
+    argv = [sys.executable, TOOL, project_dir]
+    if output:
+        argv += ["--output", output]
+    return subprocess.run(argv + list(extra), capture_output=True, text=True)
 
 
 tmp = tempfile.mkdtemp(prefix="build-report-test-")
@@ -193,6 +341,13 @@ try:
           repr(html_mod.unescape(blocks[0])) if blocks else "no block")
     check("the escaping is applied exactly once (no &amp;amp; in the block)",
           bool(blocks) and "&amp;amp;" not in blocks[0])
+    # Mermaid's startOnLoad reads innerHTML: a <code> wrapper inside <pre class="mermaid">
+    # becomes part of the diagram text and every diagram fails with "No diagram type
+    # detected". The fence must therefore never go through the generic code path.
+    check("no mermaid block wraps its source in <code>",
+          '<pre class="mermaid"><code' not in doc)
+    check("no mermaid fence fell through to the generic code renderer",
+          "language-mermaid" not in doc)
     check("braces in prose survive the render",
           "order-{tenant}-svc" in doc and "{max: 3}" in doc)
 
@@ -251,6 +406,163 @@ try:
           "System Overview" in ja_doc and "Place an order" in ja_doc)
     check("the section identifiers are language-independent",
           re.findall(r'<h2 id="([^"]+)"', ja_doc) == h2_ids)
+
+    # --------------------------------------------------------------- product project
+    print("A product project is detected, ordered by the manifest and opens with the "
+          "validation status")
+
+    pr_dir = os.path.join(tmp, "product")
+    build_product_project(pr_dir, "en")
+    pr_proc = run(pr_dir)                      # no --output: the layout's default path
+    pr_out = os.path.join(pr_dir, "reports", "report", "full-report.html")
+    check("exit 0 on a product project", pr_proc.returncode == 0,
+          pr_proc.stderr.strip() or pr_proc.stdout.strip())
+    check("the default output of a product project is reports/report/full-report.html",
+          os.path.exists(pr_out))
+    check("the printed line names the detected layout", "layout=product" in pr_proc.stdout,
+          pr_proc.stdout.strip())
+    pr_doc = open(pr_out, encoding="utf-8").read() if os.path.exists(pr_out) else ""
+    pr_summary = summary_of(pr_doc)
+
+    # --- sections --------------------------------------------------------------
+    pr_h2 = re.findall(r'<h2 id="([^"]+)"', pr_doc)
+    check("product section ids are the canonical identifiers, in pipeline order",
+          pr_h2 == ["core", "ux", "spec", "domain", "other", "review"], pr_h2)
+    check("the summary section precedes every phase section",
+          0 < pr_doc.find('id="summary"') < pr_doc.find('<h2 id="core"'))
+    check("the summary is titled Key Assumptions & Validation Status",
+          "<h2>Key Assumptions &amp; Validation Status</h2>" in pr_summary)
+    check('id="summary" is emitted exactly once', pr_doc.count('id="summary"') == 1)
+    check("exactly one <h1> on the product page", len(re.findall(r"<h1[ >]", pr_doc)) == 1)
+
+    # --- gate, assumptions, TBD, Open Questions -------------------------------
+    check("the gate verdict is a GO banner",
+          'verdict-banner ok' in pr_summary and ">GO<" in pr_summary)
+    check("only the open ASM- rows are repeated in the summary",
+          "ASM-001" in pr_summary and "ASM-002" in pr_summary and "ASM-003" not in pr_summary)
+    check("an open ASM- in a later per-category table is still found",
+          "no row for this ID" not in pr_summary
+          and "<strong>Zero impact on existing jobs</strong>" in pr_summary)
+    check("bold inside an ASM- cell renders as <strong>",
+          "<strong>Auditors want external proof</strong>" in pr_summary)
+    check("the validation plan rows are repeated too",
+          "PoC week 1" in pr_summary and "price survey" not in pr_summary)
+    personas_row = re.search(r'<tr><td><a href="#personas">.*?</tr>', pr_summary, re.S)
+    check("the TBD table links the personas document with both placeholders and their OQs",
+          bool(personas_row) and '<td class="num">2</td><td class="num">0</td>' in
+          personas_row.group(0) and "OQ-001" in personas_row.group(0)
+          and "OQ-004" in personas_row.group(0),
+          personas_row.group(0) if personas_row else "no row")
+    asm_row = re.search(r'<tr><td><a href="#assumptions">.*?</tr>', pr_summary, re.S)
+    check("a TBD-assumption is counted in its own column",
+          bool(asm_row) and '<td class="num">0</td><td class="num">1</td>' in asm_row.group(0),
+          asm_row.group(0) if asm_row else "no row")
+    check("a TBD quoted in a fence or in inline code is not a placeholder",
+          "OQ-998" not in pr_summary and "OQ-999" not in pr_summary)
+    check("the TBD note totals the placeholders",
+          "2 <code>TBD</code> and 1 <code>TBD-assumption</code>" in pr_summary)
+    check("a **deferred** status cell is read as deferred, not as a fifth status",
+          "<h4>**deferred**" not in pr_summary)
+    check("a deferred question is listed with its owner",
+          "OQ-001" in oq_group(pr_summary, "deferred")
+          and "product owner" in oq_group(pr_summary, "deferred"))
+    check("an external question is listed with its owner",
+          "OQ-003" in oq_group(pr_summary, "external")
+          and "legal" in oq_group(pr_summary, "external"))
+    check("an unasked question is visibly different from a deferred one",
+          "OQ-004" in oq_group(pr_summary, "unasked")
+          and "OQ-004" not in oq_group(pr_summary, "deferred"))
+    check("answered questions are a count, not a table",
+          "1 answered" in pr_summary and "OQ-002" not in pr_summary)
+
+    # --- order, subgroups, assets, other -------------------------------------
+    pr_ids = re.findall(r'<article class="doc" id="([^"]+)"', pr_doc)
+    core_ids = [i for i in pr_ids if i in
+                ("vision-mission-value", "scope-definition", "assumptions", "validation-plan",
+                 "summary-2")]
+    check("documents follow the manifest's pipeline order, not name order",
+          core_ids == ["vision-mission-value", "scope-definition", "assumptions",
+                       "validation-plan", "summary-2"], core_ids)
+    check("examples/index.md leads its subgroup",
+          pr_ids.index("index") < pr_ids.index("example-map-feat-001"))
+    check("a link to examples/index.md became an in-page anchor", 'href="#index"' in pr_doc)
+    check("subgroup titles are the bilingual UI strings",
+          ">Domain Stories</h3>" in pr_doc and ">Example Maps</h3>" in pr_doc
+          and ">UI Mocks</h3>" in pr_doc)
+    check("HTML mocks and figures are listed by name, never embedded",
+          "<code>SCR-001.html</code>" in pr_doc and "<code>arch.png</code>" in pr_doc
+          and "mock</body>" not in pr_doc)
+    check("a Markdown document under ui-mocks/ is still an article",
+          "solution-exploration" in pr_ids)
+    check("a relative image path is re-based onto the output directory",
+          'src="../03_domain/figures/arch.png"' in pr_doc)
+    check("an undeclared directory becomes a subgroup of Other Documents",
+          ">poc</h3>" in pr_doc and "poc-results" in pr_ids)
+    check("a document named summary.md does not collide with the summary section",
+          "summary-2" in pr_ids and "summary" not in pr_ids)
+    check("review.md does not collide with the review section",
+          "review-2" in pr_ids and "review" not in pr_ids)
+    check("no product article id is emitted twice", len(pr_ids) == len(set(pr_ids)))
+
+    # --- Mermaid ---------------------------------------------------------------
+    pr_blocks = re.findall(r'<pre class="mermaid">(.*?)</pre>', pr_doc, re.S)
+    check("one mermaid block per fence in the product report", len(pr_blocks) == 1,
+          len(pr_blocks))
+    check("the product fence round-trips unchanged",
+          bool(pr_blocks) and html_mod.unescape(pr_blocks[0]) == MERMAID_SRC)
+    check("no product mermaid block wraps its source in <code>",
+          '<pre class="mermaid"><code' not in pr_doc and "language-mermaid" not in pr_doc)
+
+    # --- flags -----------------------------------------------------------------
+    ja_pr_out = os.path.join(tmp, "product-ja.html")
+    ja_pr = run(pr_dir, ja_pr_out, "--lang", "ja")
+    ja_pr_doc = open(ja_pr_out, encoding="utf-8").read() if os.path.exists(ja_pr_out) else ""
+    check("--lang overrides the project's output_language", ja_pr.returncode == 0
+          and '<html lang="ja">' in ja_pr_doc and "主要な仮説と検証状況" in ja_pr_doc)
+    check("the product section identifiers are language-independent",
+          re.findall(r'<h2 id="([^"]+)"', ja_pr_doc) == pr_h2)
+    forced_out = os.path.join(tmp, "product-as-architect.html")
+    forced = run(pr_dir, forced_out, "--layout", "architect")
+    forced_doc = open(forced_out, encoding="utf-8").read() if os.path.exists(forced_out) else ""
+    check("--layout architect overrides the detection",
+          forced.returncode == 0 and '<h2 id="core"' not in forced_doc
+          and "Executive Summary" in forced_doc)
+
+    # --- handoff: both trees under one reports/ --------------------------------
+    print("A project handed off from product to architect defaults to the architect layout")
+    ho_dir = os.path.join(tmp, "handoff")
+    build_product_project(ho_dir, "en")
+    write(os.path.join(ho_dir, "reports", "01_analysis", "system-overview.md"),
+          simple_doc("System Overview"))
+    ho = run(ho_dir)
+    ho_arch = os.path.join(ho_dir, "reports", "00_summary", "full-report.html")
+    ho_prod = os.path.join(ho_dir, "reports", "report", "full-report.html")
+    check("exit 0 on a handed-off project", ho.returncode == 0, ho.stderr.strip())
+    check("the architect tree wins the detection", "layout=architect" in ho.stdout,
+          ho.stdout.strip())
+    check("the architect deliverable reports/00_summary/full-report.html is written",
+          os.path.exists(ho_arch) and not os.path.exists(ho_prod))
+    ho_forced = run(ho_dir, None, "--layout", "product")
+    check("--layout product still builds the product report of the same project",
+          ho_forced.returncode == 0 and os.path.exists(ho_prod)
+          and '<h2 id="core"' in open(ho_prod, encoding="utf-8").read())
+
+    # --- degraded inputs -------------------------------------------------------
+    print("A product project without a gate, assumptions or an OQ store still renders")
+    dg_dir = os.path.join(tmp, "product-degraded")
+    build_product_project(dg_dir, "en", degraded=True)
+    dg_out = os.path.join(tmp, "product-degraded.html")
+    dg = run(dg_dir, dg_out)
+    dg_doc = open(dg_out, encoding="utf-8").read() if os.path.exists(dg_out) else ""
+    dg_summary = summary_of(dg_doc)
+    check("exit 0 without gate, assumptions.md or context.md", dg.returncode == 0,
+          dg.stderr.strip())
+    check("the missing gate is a warning banner, not a fabricated verdict",
+          'verdict-banner warn' in dg_summary and "has not been evaluated" in dg_summary)
+    check("the missing assumptions document is stated",
+          "assumptions.md</code> does not exist" in dg_summary)
+    check("the missing OQ store is stated",
+          "context.md</code> does not exist" in dg_summary)
 
     # ------------------------------------------------------------------ failure mode
     print("A directory that is not a project is refused, not half-rendered")

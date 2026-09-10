@@ -1,30 +1,41 @@
 #!/usr/bin/env python3
 """Build the consolidated HTML report for a nexus-architect project.
 
-This is the engine behind `/architect:report`. It reads the Markdown a pipeline run
-already wrote under `<project>/reports/`, plus the review synthesis JSON, the pipeline
-progress registry and the Open Questions store in `work/context.md`, and emits one
-self-contained HTML file: Mermaid inlined where a local copy of the library is
-available, no network request needed to read it.
+This is the engine behind `/architect:report` and `/product:report`. It reads the
+Markdown a pipeline run already wrote under `<project>/reports/`, plus the pipeline
+progress registry, the Open Questions store in `work/context.md` and (architect) the
+review synthesis JSON, and emits one self-contained HTML file: Mermaid inlined where a
+local copy of the library is available, no network request needed to read it.
 
 Nothing here is authored by a model at run time. The report is a deterministic
 rendering of files on disk, so re-running it after a phase re-ran is cheap and the
-result is diffable.
+result is diffable. In particular a Mermaid fence always becomes
+`<pre class="mermaid">` holding the escaped source and nothing else — never a
+`<pre><code>` pair, which Mermaid's `startOnLoad` (it reads `innerHTML`) cannot parse.
 
 Usage
 -----
     python3 tools/build-report.py [PROJECT_DIR] [--output PATH] [--mermaid-js PATH]
+                                  [--layout architect|product] [--lang en|ja]
 
 `PROJECT_DIR` defaults to the current directory and must contain `reports/`. All other
-paths are resolved relative to it. Output language comes from `options.output_language`
-in `work/pipeline-progress.json` (`en` default, `ja` supported): every UI string — section
-headings, table headers, executive-summary labels — goes through the one bilingual table
-below. Document content is rendered as written.
+paths are resolved relative to it. Output language comes from `--lang`, else from
+`options.output_language` in `work/pipeline-progress.json` (`en` default, `ja`
+supported): every UI string — section headings, table headers, summary labels — goes
+through the one bilingual table below. Document content is rendered as written.
 
-Sections
---------
-Each is skipped when its directory is absent or holds nothing renderable. The `<h2 id>`s
-are the canonical section identifiers of `skills/report/SKILL.md` § Input Sources.
+Layouts
+-------
+The layout is detected from the report tree (`--layout` overrides): a project holding
+any architect directory (`reports/01_analysis`, `03_design`, `review`, `before`, …) is
+an **architect** project — a project handed off from product to architect holds both
+trees, and its consolidated report is the architect one — a project holding only
+`reports/00_core`, `01_ux`, `02_spec`, `03_domain` is a **product** project, and an
+empty tree is architect. The skills pass `--layout` explicitly rather than rely on this. Each is skipped when its directory is absent
+or holds nothing renderable. The `<h2 id>`s are the canonical section identifiers of
+`skills/report/SKILL.md` / `skills/product/report/SKILL.md` § Input Sources.
+
+architect — output `reports/00_summary/full-report.html`
 
     id               source
     ---------------- --------------------------------------------------------------
@@ -40,6 +51,29 @@ are the canonical section identifiers of `skills/report/SKILL.md` § Input Sourc
     test-specs       reports/07_test-specs/ and bdd-scenarios/*.feature as Gherkin
     review           reports/review/ plus the per-perspective table built from
                      reports/review/individual/*.json
+
+product — output `reports/report/full-report.html`
+
+    id               source
+    ---------------- --------------------------------------------------------------
+    summary          "Key Assumptions & Validation Status": the validate-assumptions
+                     gate in work/pipeline-progress.json, the open ASM- rows of
+                     reports/00_core/assumptions.md and validation-plan.md, every
+                     TBD / TBD-assumption placeholder per document, and the Open
+                     Questions of work/context.md grouped by status with owners
+    core             reports/00_core/
+    ux               reports/01_ux/ and domain-stories/
+    spec             reports/02_spec/, examples/ (index first) and ui-mocks/
+    domain           reports/03_domain/ (figures/, slides/ listed by name only)
+    quality          reports/04_quality/
+    adaptation       reports/05_adaptation/
+    other            any other reports/<dir>/ — one subgroup per directory
+    review           reports/report/review.md
+
+Documents inside a product section follow the pipeline order of
+`skills/product/common/skill-dependencies.yaml` (`phases.*.outputs`); anything the
+manifest does not declare comes after, in name order. Non-Markdown assets (HTML mocks,
+images, slides) are listed by file name, never embedded.
 
 Manifest JSON (`aggregate-manifest.json`, `state-machine-manifest.json`,
 `api-style-decisions.json`, …) is the machine-readable model, not report content: it is
@@ -182,6 +216,83 @@ UI = {
     "oq_deferred": ("deferred", "先送り (deferred)"),
     "oq_answered": ("answered", "answered (回答済み)"),
     "oq_external": ("external", "外部確認待ち (external)"),
+    # Product layout — chrome
+    "report_title_product": ("Product Direction Consolidated Report",
+                             "プロダクト方向性統合レポート"),
+    "pipeline_meta_product": ("nexus-architect / product pipeline",
+                              "nexus-architect / product パイプライン"),
+    "profile": ("Profile", "プロファイル"),
+    "sec_summary_product": ("Key Assumptions & Validation Status",
+                            "主要な仮説と検証状況（Key Assumptions & Validation Status）"),
+    "sec_core": ("Product Core", "プロダクトコア（Product Core）"),
+    "sec_ux": ("UX Foundation", "UX 基盤（UX Foundation）"),
+    "sec_spec": ("Specification", "仕様（Specification）"),
+    "sec_domain": ("Domain & Architecture", "ドメインとアーキテクチャ（Domain & Architecture）"),
+    "sec_quality": ("Quality & NFR", "品質と非機能要件（Quality & NFR）"),
+    "sec_adaptation": ("Adaptation", "変更適応（Adaptation）"),
+    "sec_other": ("Other Documents", "その他の文書（Other Documents）"),
+    "sub_domain_stories": ("Domain Stories", "ドメインストーリー（Domain Stories）"),
+    "sub_examples": ("Example Maps", "Example Map（実例マッピング）"),
+    "sub_ui_mocks": ("UI Mocks", "UI モック（UI Mocks）"),
+    "asset_table_caption": ("Files in %s (listed, not embedded)",
+                            "%s のファイル一覧（本文には埋め込まない）"),
+    # Product layout — Key Assumptions & Validation Status
+    "gate_label": ("Validation gate verdict", "検証ゲート判定"),
+    "gate_evaluated": ("evaluated", "判定日時"),
+    "gate_not_run": (
+        "The validation gate has not been evaluated: <code>gates.validate-assumptions</code> "
+        "is absent from <code>work/pipeline-progress.json</code>, so this report carries no "
+        "Go/No-Go verdict. Run <code>/product:validate-assumptions</code> and rebuild.",
+        "検証ゲートは未評価です: <code>work/pipeline-progress.json</code> に "
+        "<code>gates.validate-assumptions</code> が無いため、本レポートには Go/No-Go 判定が"
+        "含まれません。<code>/product:validate-assumptions</code> を実行してから再生成してください。",
+    ),
+    "summary_lede_product": (
+        "This report consolidates %(docs)s product artifacts of %(project)s "
+        "(%(pipeline)s, <code>profile: %(profile)s</code>).",
+        "本レポートは %(project)s（%(pipeline)s、<code>profile: %(profile)s</code>）の"
+        "プロダクト成果物 %(docs)s 件を集約したものである。",
+    ),
+    "h_open_assumptions": ("Open assumptions", "未検証の仮説（Open assumptions）"),
+    "open_assumptions_note": (
+        "%(count)s assumption(s) still open per "
+        "<code>gates.validate-assumptions.open_assumptions</code>; the rows below are taken "
+        "verbatim from the source documents.",
+        "<code>gates.validate-assumptions.open_assumptions</code> に基づく未検証の仮説 "
+        "%(count)s 件。以下の行は元文書の表からそのまま再掲している。",
+    ),
+    "asm_source_note": ("From <code>%s</code>", "<code>%s</code> より"),
+    "asm_missing": ("(no row for this ID in %s)", "（%s に該当行なし）"),
+    "assumptions_missing": (
+        "<code>reports/00_core/assumptions.md</code> does not exist — the assumptions have "
+        "not been validated yet.",
+        "<code>reports/00_core/assumptions.md</code> が存在しないため、仮説はまだ検証されていない。",
+    ),
+    "h_tbd": ("TBD placeholders by document", "文書別 TBD 一覧"),
+    "col_document": ("Document", "文書"),
+    "col_tbd": ("TBD", "TBD"),
+    "col_tbd_assumption": ("TBD-assumption", "TBD-assumption"),
+    "col_oq_refs": ("Linked OQ", "紐付く OQ"),
+    "tbd_note": (
+        "%(tbd)s <code>TBD</code> and %(asm)s <code>TBD-assumption</code> placeholders across "
+        "%(docs)s document(s).",
+        "<code>TBD</code> %(tbd)s 件・<code>TBD-assumption</code> %(asm)s 件（%(docs)s 文書）。",
+    ),
+    "tbd_none": ("No TBD placeholders remain in the rendered documents.",
+                 "収録文書に TBD は残っていない。"),
+    "h_oq_by_status": ("Open Questions by status", "未決事項（Open Questions）— 状態別"),
+    "col_id": ("ID", "ID"),
+    "col_question": ("Question", "質問"),
+    "col_owner": ("Owner", "担当"),
+    "col_impact": ("Impact", "影響"),
+    "oq_answered_count": (
+        "%(count)s answered — kept in the store as decision records, not repeated here.",
+        "回答済み %(count)s 件（決定記録としてストアに保持、ここでは再掲しない）。",
+    ),
+    "oq_store_missing": (
+        "<code>work/context.md</code> does not exist; no Open Questions could be read.",
+        "<code>work/context.md</code> が存在しないため、Open Questions を読み取れなかった。",
+    ),
     # Mermaid
     "mermaid_cdn_note": (
         "The Mermaid library could not be bundled locally, so this report falls back to "
@@ -323,6 +434,22 @@ def rewrite_links(text):
     return re.sub(r'href="([^"]+\.md(?:#[^"]*)?)"', repl_html, text)
 
 
+def rewrite_images(text, doc_dir, out_dir):
+    """Re-base relative image paths from the document's directory onto the output file's
+    directory, so `![…](figures/x.png)` in reports/03_domain/ still resolves when the report
+    lives in reports/report/. Absolute paths, URLs and data URIs are left alone."""
+    def rebase(src):
+        if src.startswith(("http://", "https://", "data:", "/", "#")):
+            return src
+        target = os.path.normpath(os.path.join(doc_dir, src))
+        return os.path.relpath(target, out_dir).replace(os.sep, "/")
+
+    text = re.sub(r"(!\[[^\]]*\]\()([^)\s]+)(\))",
+                  lambda m: m.group(1) + rebase(m.group(2)) + m.group(3), text)
+    return re.sub(r'(<img\b[^>]*\bsrc=")([^"]+)(")',
+                  lambda m: m.group(1) + rebase(m.group(2)) + m.group(3), text)
+
+
 def extract_fences(text):
     """Lift fenced blocks out before Markdown conversion so their bodies stay verbatim."""
     fences = []
@@ -363,15 +490,91 @@ def substitute_fences(html_text, fences):
     return html_text
 
 
+# ------------------------------------------------------------- pipe-table helpers
+def split_cells(line):
+    """`| a | **b** | c |` -> ['a', '**b**', 'c']; an escaped pipe stays in its cell."""
+    s = line.strip()
+    if s.startswith("|"):
+        s = s[1:]
+    if s.endswith("|"):
+        s = s[:-1]
+    return [c.strip() for c in re.split(r"(?<!\\)\|", s)]
+
+
+def is_separator_row(cells):
+    return bool(cells) and all(set(c) <= set("-: ") for c in cells)
+
+
+def id_table(text, prefix):
+    """(header cells, {id: cells}) of every pipe table whose first column holds
+    `<prefix>-###` ids — a document that splits its assumptions into one table per
+    category (desirability / viability / feasibility) is still read in full. The header
+    is the one of the first table that yielded an id row, returned as written so the
+    summary can reuse the document's own column names in the document's own language."""
+    header, table_header, rows = None, None, {}
+    for line in text.splitlines():
+        if not line.lstrip().startswith("|"):
+            table_header = None
+            continue
+        cells = split_cells(line)
+        if table_header is None:
+            table_header = cells
+            continue
+        if is_separator_row(cells):
+            continue
+        if cells and re.fullmatch(prefix + r"-\d{3}", cells[0]):
+            if header is None:
+                header = table_header
+            rows[cells[0]] = cells
+    return (header or []), rows
+
+
+# `TBD`, `TBD-assumption`, optionally followed by `(OQ-###)` in ASCII or full-width
+# parentheses — the Japanese documents write `TBD（OQ-012）`.
+TBD_PATTERN = re.compile(r"\bTBD(-assumption)?\b(?:\s*[（(]\s*(OQ-\d{3})\s*[)）])?")
+
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PRODUCT_MANIFEST = os.path.join(REPO_ROOT, "skills", "product", "common",
+                                "skill-dependencies.yaml")
+
+
+def load_manifest_ranks(path=PRODUCT_MANIFEST):
+    """{declared output path: rank} in manifest order — which is pipeline order, the
+    manifest being what `/product:start` reads to sequence the phases. `{}` when the
+    manifest cannot be read, so ordering degrades to name order rather than failing."""
+    try:
+        data = yaml.safe_load(read(path)) or {}
+    except Exception:
+        return {}
+    ranks = {}
+    for i, spec in enumerate((data.get("phases") or {}).values()):
+        for j, out in enumerate((spec or {}).get("outputs") or []):
+            ranks.setdefault(str(out), (i, j))
+    return ranks
+
+
 class ReportBuilder:
-    def __init__(self, project_dir, lang="en", mermaid_js=None):
+    layout = "architect"
+    title_key = "report_title"
+    pipeline_key = "pipeline_meta"
+    summary_key = "sec_summary"
+    default_output = ("reports", "00_summary", "full-report.html")
+    section_ids = ("investigation", "analysis", "evaluation", "design", "stories",
+                   "implementation", "test-specs", "review")
+
+    def __init__(self, project_dir, lang="en", mermaid_js=None, output_dir=None):
         self.project_dir = project_dir
         self.lang_index = LANGS.index(lang) if lang in LANGS else 0
         self.lang = LANGS[self.lang_index]
         self.mermaid_js_override = mermaid_js
+        # Where the HTML will live — relative image paths are re-based onto it.
+        self.output_dir = output_dir or os.path.join(project_dir, *self.default_output[:-1])
         self.article_count = 0
         self.mermaid_count = 0
-        self.ids_seen = set()
+        # Section anchors are reserved so a document named summary.md or review.md
+        # cannot collide with the <section>/<h2> that carries the same id.
+        self.ids_seen = {"summary", *self.section_ids}
+        self.articles = []
 
     # ------------------------------------------------------------------ helpers
     def t(self, key):
@@ -398,16 +601,29 @@ class ReportBuilder:
         title = str(meta.get("title", os.path.basename(path))).strip()
         body_protected, fences = extract_fences(body)
         body_protected = rewrite_links(body_protected)
+        body_protected = rewrite_images(body_protected, os.path.dirname(path), self.output_dir)
         body_protected = shift_headings(body_protected, delta=2)
         body_html = markdown.markdown(
             body_protected, extensions=MD_EXTENSIONS, output_format="html5")
         body_html = substitute_fences(body_html, fences)
 
         stem = self.register_id(norm_stem(path))
-        relpath = os.path.relpath(path, self.project_dir)
+        relpath = os.path.relpath(path, self.project_dir).replace(os.sep, "/")
         mermaid_count = sum(1 for lang, _ in fences if lang.strip().lower() == "mermaid")
         self.mermaid_count += mermaid_count
         self.article_count += 1
+
+        # TBD placeholders are counted on the prose only — frontmatter, fenced blocks and
+        # inline code spans excluded, so a document that quotes the rule (`TBD (OQ-012)`)
+        # is not reported as carrying one — and indexed per article; the product summary
+        # lists them, the architect summary ignores them.
+        hits = TBD_PATTERN.findall(re.sub(r"`[^`\n]*`", "", body_protected))
+        tbd_asm = sum(1 for kind, _ in hits if kind)
+        self.articles.append({
+            "id": stem, "title": title, "relpath": relpath,
+            "tbd": len(hits) - tbd_asm, "tbd_assumption": tbd_asm,
+            "oq_refs": sorted({oq for _, oq in hits if oq}),
+        })
 
         article = (
             '<article class="doc" id="%s"><h3 class="doc-title">%s'
@@ -416,6 +632,12 @@ class ReportBuilder:
                html.escape(relpath), body_html)
         )
         return {"id": stem, "title": title, "html": article}
+
+    def inline_md(self, cell):
+        """Bold, code and links inside a table cell, through the same converter as the body."""
+        out = markdown.markdown(rewrite_links(cell), extensions=MD_EXTENSIONS,
+                                output_format="html5").strip()
+        return re.sub(r"^<p>|</p>$", "", out)
 
     def render_feature_file(self, path):
         text = read(path)
@@ -634,17 +856,38 @@ class ReportBuilder:
         return self.section("review", self.t("sec_review"), articles), toc
 
     # ---------------------------------------------------------- executive summary
-    def open_questions(self):
-        """Latest status per OQ- ID from the one store, work/context.md § Open Questions."""
+    def open_question_rows(self):
+        """Latest row per OQ- id from the one store, work/context.md § Open Questions,
+        header-driven so both the 4-column and the 8-column table shapes parse
+        (rules/open-questions.md §6). Any `| ID | …` line starts a new table. `None`
+        when the store does not exist."""
         path = self.path("work", "context.md")
         if not os.path.exists(path):
-            return {}
-        latest = {}
-        for oid, status in re.findall(r"^\| (OQ-\d{3}) \|.*?\| (\w+) \|", read(path), re.M):
-            latest[oid] = status
+            return None
+        header, latest = None, {}
+        for line in read(path).splitlines():
+            if not line.lstrip().startswith("|"):
+                continue
+            cells = split_cells(line)
+            if cells and cells[0].lower() == "id":
+                header = [c.lower() for c in cells]
+                continue
+            if not header or not cells or not re.fullmatch(r"OQ-\d{3}", cells[0]):
+                continue
+            row = dict(zip(header, cells))
+            row["status_raw"] = row.get("status", "")
+            # `**deferred**`, `` `answered` `` and `answered (回答済み)` all mean their
+            # first word; emphasis and code marks around it are not part of the status.
+            m = re.search(r"[a-z-]+", row["status_raw"].strip("*` ").lower())
+            row["status"] = m.group(0) if m else row["status_raw"]
+            latest[cells[0]] = row
+        return list(latest.values())
+
+    def open_questions(self):
+        """Count per status — the shape the executive summary table renders."""
         counts = {}
-        for status in latest.values():
-            counts[status] = counts.get(status, 0) + 1
+        for row in self.open_question_rows() or []:
+            counts[row["status"]] = counts.get(row["status"], 0) + 1
         return counts
 
     def summary_section(self, progress, synthesis, oq_counts):
@@ -770,7 +1013,7 @@ class ReportBuilder:
     # ------------------------------------------------------------------------ toc
     def build_toc(self, sections_toc):
         parts = ['<li class="nav-sec"><a href="#summary">%s</a></li>'
-                 % html.escape(self.t("sec_summary"))]
+                 % html.escape(self.t(self.summary_key))]
         for sid, heading, entries in sections_toc:
             if not entries:
                 continue
@@ -783,15 +1026,18 @@ class ReportBuilder:
         return "".join(parts)
 
     # ---------------------------------------------------------------------- build
-    def build(self):
-        progress = {}
+    def load_progress(self):
         progress_path = self.path("work", "pipeline-progress.json")
         if os.path.exists(progress_path):
             try:
-                progress = json.loads(read(progress_path))
+                return json.loads(read(progress_path))
             except Exception:
-                progress = {}
+                return {}
+        return {}
 
+    def render_summary(self, progress):
+        """The section that opens the report. Architect: the quality gate verdict from
+        the review synthesis; product overrides this with the validation status."""
         synthesis = None
         synthesis_path = self.path("reports", "review", "review-synthesis.json")
         if os.path.exists(synthesis_path):
@@ -799,16 +1045,21 @@ class ReportBuilder:
                 synthesis = json.loads(read(synthesis_path))
             except Exception:
                 synthesis = None
+        return self.summary_section(progress, synthesis, self.open_questions())
 
-        sections_toc = []
-        body_sections = []
+    def header_meta(self, progress, target_path, now):
+        options = progress.get("options", {}) or {}
+        return (
+            f"{html.escape(self.t(self.pipeline_key))}\n"
+            f"    (<code>workflow_type: {html.escape(str(options.get('workflow_type', '')))}</code>,\n"
+            f"    <code>scalardb_enabled: {str(options.get('scalardb_enabled')).lower()}</code>,\n"
+            f"    <code>output_language: {html.escape(self.lang)}</code>)<br>\n"
+            f"    {html.escape(self.t('target'))}: <code>{html.escape(target_path)}</code> /\n"
+            f"    {html.escape(self.t('documents'))}: {self.article_count}{self.t('count_unit')} /\n"
+            f"    {html.escape(self.t('generated'))}: {now}"
+        )
 
-        def add(result, sid, heading_key):
-            section_html, toc = result
-            if section_html:
-                body_sections.append(section_html)
-                sections_toc.append((sid, self.t(heading_key), toc))
-
+    def add_sections(self, add):
         add(self.investigation_section(), "investigation", "sec_investigation")
         add(self.simple_section("analysis", "sec_analysis", "reports/01_analysis"),
             "analysis", "sec_analysis")
@@ -823,7 +1074,21 @@ class ReportBuilder:
         add(self.test_specs_section(), "test-specs", "sec_test_specs")
         add(self.review_section(), "review", "sec_review")
 
-        summary_html = self.summary_section(progress, synthesis, self.open_questions())
+    def build(self):
+        progress = self.load_progress()
+
+        sections_toc = []
+        body_sections = []
+
+        def add(result, sid, heading_key):
+            section_html, toc = result
+            if section_html:
+                body_sections.append(section_html)
+                sections_toc.append((sid, self.t(heading_key), toc))
+
+        self.add_sections(add)
+
+        summary_html = self.render_summary(progress)
         toc_html = self.build_toc(sections_toc)
         mermaid_script, mermaid_note, mermaid_src = self.mermaid_block()
 
@@ -831,8 +1096,8 @@ class ReportBuilder:
         project_name = str(progress.get("project_name", "") or os.path.basename(
             os.path.abspath(self.project_dir)))
         target_path = str(progress.get("target_path", ""))
-        options = progress.get("options", {}) or {}
-        doc_title = "%s — %s" % (project_name, self.t("report_title"))
+        doc_title = "%s — %s" % (project_name, self.t(self.title_key))
+        meta_html = self.header_meta(progress, target_path, now)
 
         html_doc = f"""<!DOCTYPE html>
 <html lang="{self.lang}">
@@ -851,13 +1116,7 @@ class ReportBuilder:
 <header class="rep">
   <h1>{html.escape(doc_title)}</h1>
   <div class="meta">
-    {html.escape(self.t('pipeline_meta'))}
-    (<code>workflow_type: {html.escape(str(options.get('workflow_type', '')))}</code>,
-    <code>scalardb_enabled: {str(options.get('scalardb_enabled')).lower()}</code>,
-    <code>output_language: {html.escape(self.lang)}</code>)<br>
-    {html.escape(self.t('target'))}: <code>{html.escape(target_path)}</code> /
-    {html.escape(self.t('documents'))}: {self.article_count}{self.t('count_unit')} /
-    {html.escape(self.t('generated'))}: {now}
+    {meta_html}
   </div>
   {mermaid_note}
 </header>
@@ -875,6 +1134,304 @@ mermaid.initialize({{startOnLoad:true, securityLevel:'loose', theme: window.matc
         return html_doc, mermaid_src
 
 
+# ------------------------------------------------------------------ product layout
+PRODUCT_MARKERS = ("00_core", "01_ux", "02_spec", "03_domain")
+# The architect tree's own directories. A project that ran the product pipeline and then
+# handed off to architect (docs/design.md §1) holds both trees under one reports/, and
+# the consolidated report of such a project is the architect one — so these win.
+ARCHITECT_MARKERS = ("00_requirements", "before", "01_analysis", "02_evaluation",
+                     "03_design", "04_stories", "06_implementation", "07_test-specs",
+                     "review")
+PRODUCT_SECTIONS = (            # (section id, UI key, directory under reports/)
+    ("core", "sec_core", "00_core"),
+    ("ux", "sec_ux", "01_ux"),
+    ("spec", "sec_spec", "02_spec"),
+    ("domain", "sec_domain", "03_domain"),
+    ("quality", "sec_quality", "04_quality"),
+    ("adaptation", "sec_adaptation", "05_adaptation"),
+)
+KNOWN_PRODUCT_DIRS = {d for _, _, d in PRODUCT_SECTIONS} | {"report"}
+SUBGROUP_KEYS = {"domain-stories": "sub_domain_stories", "examples": "sub_examples",
+                 "ui-mocks": "sub_ui_mocks"}
+# Listed by name, never embedded: UI mocks, figures, slides, exported diagrams.
+ASSET_EXTS = (".html", ".png", ".jpg", ".jpeg", ".svg", ".gif", ".drawio", ".pdf")
+OQ_STATUS_ORDER = ("deferred", "unasked", "external", "answered")
+
+
+def detect_layout(project_dir):
+    """Architect when any architect directory exists (a handed-off project has both trees
+    and `/architect:report` must still write reports/00_summary/full-report.html),
+    product when only product directories do, architect otherwise. `--layout` overrides."""
+    reports = os.path.join(project_dir, "reports")
+    if any(os.path.isdir(os.path.join(reports, d)) for d in ARCHITECT_MARKERS):
+        return "architect"
+    if any(os.path.isdir(os.path.join(reports, d)) for d in PRODUCT_MARKERS):
+        return "product"
+    return "architect"
+
+
+class ProductReportBuilder(ReportBuilder):
+    """The `/product:report` rendering: the same article/fence/anchor contract, a
+    different section tree, and "Key Assumptions & Validation Status" up front."""
+    layout = "product"
+    title_key = "report_title_product"
+    pipeline_key = "pipeline_meta_product"
+    summary_key = "sec_summary_product"
+    default_output = ("reports", "report", "full-report.html")
+    section_ids = tuple(s for s, _, _ in PRODUCT_SECTIONS) + ("other", "review")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.ranks = load_manifest_ranks()
+
+    # ------------------------------------------------------------- ordering
+    def manifest_key(self, path):
+        """Sort key: index.md first, then the manifest (pipeline) rank of the file or of
+        the declared directory holding it, then the file name."""
+        rel = os.path.relpath(path, self.project_dir).replace(os.sep, "/")
+        rank = self.ranks.get(rel)
+        if rank is None:
+            rank = self.ranks.get(os.path.dirname(rel) + "/")
+        return (0 if os.path.basename(path) == "index.md" else 1,
+                rank if rank is not None else (10 ** 6, 0),
+                os.path.basename(path))
+
+    def render_ordered(self, directory, toc):
+        if not os.path.isdir(directory):
+            return []
+        paths = [os.path.join(directory, f) for f in os.listdir(directory)
+                 if f.endswith(".md") and not f.startswith(".")]
+        out = []
+        for p in sorted(paths, key=self.manifest_key):
+            doc = self.render_markdown_file(p)
+            out.append(doc["html"])
+            toc.append((doc["id"], doc["title"]))
+        return out
+
+    def asset_table(self, directory):
+        names = sorted(f for f in os.listdir(directory)
+                       if f.lower().endswith(ASSET_EXTS) and not f.startswith("."))
+        if not names:
+            return None
+        rel = os.path.relpath(directory, self.project_dir).replace(os.sep, "/")
+        rows = "".join("<tr><td><code>%s</code></td></tr>" % html.escape(n) for n in names)
+        return (
+            '<div class="callout"><p><strong>%s</strong></p>'
+            '<table class="score-table"><thead><tr><th>%s</th></tr></thead>'
+            "<tbody>%s</tbody></table></div>"
+            % (html.escape(self.t("asset_table_caption") % rel),
+               html.escape(self.t("col_file")), rows))
+
+    # -------------------------------------------------------------- sections
+    def product_section(self, section_id, heading_key, base):
+        if not os.path.isdir(base):
+            return None, []
+        toc = []
+        articles = self.render_ordered(base, toc)
+        for name in sorted(os.listdir(base)):
+            sub_dir = os.path.join(base, name)
+            if name.startswith(".") or not os.path.isdir(sub_dir):
+                continue
+            sub = self.render_ordered(sub_dir, toc)
+            assets = self.asset_table(sub_dir)
+            if assets:
+                sub.append(assets)
+            if sub:
+                title = self.t(SUBGROUP_KEYS[name]) if name in SUBGROUP_KEYS else name
+                articles.append(self.subgroup(title, sub))
+        if not articles:
+            return None, []
+        return self.section(section_id, self.t(heading_key), articles), toc
+
+    def other_section(self):
+        base = self.path("reports")
+        toc = []
+        articles = []
+        for name in sorted(os.listdir(base)):
+            d = os.path.join(base, name)
+            if name.startswith(".") or name in KNOWN_PRODUCT_DIRS or not os.path.isdir(d):
+                continue
+            sub = self.render_dir(d, toc)
+            if sub:
+                articles.append(self.subgroup(name, sub))
+        if not articles:
+            return None, []
+        return self.section("other", self.t("sec_other"), articles), toc
+
+    def add_sections(self, add):
+        for sid, key, d in PRODUCT_SECTIONS:
+            add(self.product_section(sid, key, self.path("reports", d)), sid, key)
+        add(self.other_section(), "other", "sec_other")
+        add(self.simple_section("review", "sec_review", "reports/report"),
+            "review", "sec_review")
+
+    # --------------------------------------------------------------- summary
+    def header_meta(self, progress, target_path, now):
+        options = progress.get("options", {}) or {}
+        return (
+            f"{html.escape(self.t(self.pipeline_key))}\n"
+            f"    (<code>profile: {html.escape(str(options.get('profile', '')))}</code>,\n"
+            f"    <code>output_language: {html.escape(self.lang)}</code>)<br>\n"
+            f"    {html.escape(self.t('documents'))}: {self.article_count}{self.t('count_unit')} /\n"
+            f"    {html.escape(self.t('generated'))}: {now}"
+        )
+
+    def asm_table(self, relpath, open_ids):
+        """The open ASM- rows of one source document, header and cells verbatim."""
+        path = self.path(*relpath.split("/"))
+        if not os.path.exists(path):
+            return None
+        header, rows = id_table(read(path), "ASM")
+        if not header:
+            return None
+        body = []
+        for asm in open_ids:
+            cells = rows.get(asm)
+            if cells is None:
+                body.append('<tr><td><code>%s</code></td><td colspan="%d">%s</td></tr>'
+                            % (html.escape(asm), max(len(header) - 1, 1),
+                               html.escape(self.t("asm_missing") % relpath)))
+                continue
+            cells = (cells + [""] * len(header))[:len(header)]
+            body.append("<tr>%s</tr>" % "".join(
+                "<td>%s</td>" % self.inline_md(c) for c in cells))
+        head = "".join("<th>%s</th>" % self.inline_md(h) for h in header)
+        anchor = norm_stem(path)
+        return (
+            '<p class="note">%s</p>'
+            '<table class="score-table"><thead><tr>%s</tr></thead><tbody>%s</tbody></table>'
+            % (self.t("asm_source_note") % ('<a href="#%s">%s</a>'
+                                            % (html.escape(anchor, quote=True),
+                                               html.escape(relpath))),
+               head, "".join(body)))
+
+    def tbd_table(self):
+        rows = [a for a in self.articles if a["tbd"] or a["tbd_assumption"]]
+        if not rows:
+            return '<p class="note">%s</p>' % self.t("tbd_none")
+        body = "".join(
+            '<tr><td><a href="#%s">%s</a> <code>%s</code></td><td class="num">%d</td>'
+            '<td class="num">%d</td><td>%s</td></tr>'
+            % (html.escape(a["id"], quote=True), html.escape(a["title"]),
+               html.escape(a["relpath"]), a["tbd"], a["tbd_assumption"],
+               ", ".join("<code>%s</code>" % html.escape(o) for o in a["oq_refs"]) or "-")
+            for a in rows)
+        note = self.t("tbd_note") % {
+            "tbd": sum(a["tbd"] for a in rows),
+            "asm": sum(a["tbd_assumption"] for a in rows),
+            "docs": len(rows),
+        }
+        return (
+            '<table class="score-table"><thead><tr><th>%s</th><th>%s</th><th>%s</th>'
+            "<th>%s</th></tr></thead><tbody>%s</tbody></table><p class=\"note\">%s</p>"
+            % (html.escape(self.t("col_document")), html.escape(self.t("col_tbd")),
+               html.escape(self.t("col_tbd_assumption")), html.escape(self.t("col_oq_refs")),
+               body, note))
+
+    def oq_tables(self, rows):
+        if rows is None:
+            return '<p class="note">%s</p>' % self.t("oq_store_missing")
+        by_status = {}
+        for r in rows:
+            by_status.setdefault(r["status"], []).append(r)
+
+        def status_rank(s):
+            return (OQ_STATUS_ORDER.index(s) if s in OQ_STATUS_ORDER
+                    else len(OQ_STATUS_ORDER), s)
+
+        parts = []
+        for status in sorted(by_status, key=status_rank):
+            group = by_status[status]
+            if status == "answered":
+                parts.append('<p class="note">%s</p>'
+                             % (self.t("oq_answered_count") % {"count": len(group)}))
+                continue
+            label = self.t(OQ_STATUS_KEYS[status]) if status in OQ_STATUS_KEYS else status
+            body = "".join(
+                "<tr><td><code>%s</code></td><td>%s</td><td>%s</td><td>%s</td></tr>"
+                % (html.escape(r.get("id", "")), self.inline_md(r.get("question", "")),
+                   self.inline_md(r.get("owner", "")), self.inline_md(r.get("impact", "")))
+                for r in group)
+            parts.append(
+                "<h4>%s (%d)</h4>"
+                '<table class="score-table"><thead><tr><th>%s</th><th>%s</th><th>%s</th>'
+                "<th>%s</th></tr></thead><tbody>%s</tbody></table>"
+                % (html.escape(label), len(group), html.escape(self.t("col_id")),
+                   html.escape(self.t("col_question")), html.escape(self.t("col_owner")),
+                   html.escape(self.t("col_impact")), body))
+
+        counts = {}
+        for r in rows:
+            counts[r["status"]] = counts.get(r["status"], 0) + 1
+        count_rows = "".join(
+            '<tr><td>%s</td><td class="num">%d</td></tr>'
+            % (html.escape(self.t(OQ_STATUS_KEYS[s]) if s in OQ_STATUS_KEYS else s), c)
+            for s, c in sorted(counts.items(), key=lambda kv: -kv[1]))
+        parts.append(
+            '<table class="score-table"><thead><tr><th>%s</th><th>%s</th></tr></thead>'
+            "<tbody>%s</tbody></table><p class=\"note\">%s</p>"
+            % (html.escape(self.t("col_status")), html.escape(self.t("col_count")),
+               count_rows, self.t("oq_note") % {"total": len(rows)}))
+        return "".join(parts)
+
+    def render_summary(self, progress):
+        options = progress.get("options", {}) or {}
+        gate = ((progress.get("gates") or {}).get("validate-assumptions")) or None
+        lede = self.t("summary_lede_product") % {
+            "docs": self.article_count,
+            "project": "<code>%s</code>" % html.escape(str(progress.get("project_name", ""))),
+            "pipeline": html.escape(self.t(self.pipeline_key)),
+            "profile": html.escape(str(options.get("profile", ""))),
+        }
+
+        if gate:
+            verdict = str(gate.get("verdict", "?"))
+            v = verdict.lower()
+            verdict_class = "ok" if v == "go" else "fail" if v == "no-go" else "warn"
+            evaluated = str(gate.get("evaluated_at", ""))
+            banner = (
+                '<div class="verdict-banner %s"><div class="verdict-label">%s</div>'
+                '<div class="verdict-value">%s</div>'
+                '<div class="verdict-score">%s: %s</div></div>'
+                % (verdict_class, html.escape(self.t("gate_label")),
+                   html.escape(verdict.upper()), html.escape(self.t("gate_evaluated")),
+                   html.escape(evaluated)))
+            gate_note = ""
+            open_ids = [str(a) for a in (gate.get("open_assumptions") or [])]
+        else:
+            banner = (
+                '<div class="verdict-banner warn"><div class="verdict-label">%s</div>'
+                '<div class="verdict-value">—</div></div>'
+                % html.escape(self.t("gate_label")))
+            gate_note = '<p class="note">%s</p>' % self.t("gate_not_run")
+            open_ids = []
+
+        assumptions_html = []
+        if not os.path.exists(self.path("reports", "00_core", "assumptions.md")):
+            assumptions_html.append('<p class="note">%s</p>' % self.t("assumptions_missing"))
+        elif open_ids:
+            assumptions_html.append('<p class="note">%s</p>' % (
+                self.t("open_assumptions_note") % {"count": len(open_ids)}))
+            for rel in ("reports/00_core/assumptions.md", "reports/00_core/validation-plan.md"):
+                table = self.asm_table(rel, open_ids)
+                if table:
+                    assumptions_html.append(table)
+
+        return (
+            '<section id="summary" class="doc verdict-section"><h2>%s</h2>%s%s'
+            '<p class="lede">%s</p>'
+            "<h3>%s</h3>%s"
+            "<h3>%s</h3>%s"
+            "<h3>%s</h3>%s</section>"
+            % (html.escape(self.t("sec_summary_product")), banner, gate_note, lede,
+               html.escape(self.t("h_open_assumptions")), "".join(assumptions_html),
+               html.escape(self.t("h_tbd")), self.tbd_table(),
+               html.escape(self.t("h_oq_by_status")), self.oq_tables(self.open_question_rows())))
+
+
+BUILDERS = {"architect": ReportBuilder, "product": ProductReportBuilder}
+
+
 def resolve_language(project_dir):
     path = os.path.join(project_dir, "work", "pipeline-progress.json")
     if not os.path.exists(path):
@@ -890,13 +1447,19 @@ def resolve_language(project_dir):
 def main(argv=None):
     parser = argparse.ArgumentParser(
         prog="build-report.py",
-        description="Build reports/00_summary/full-report.html for a nexus-architect project.")
+        description="Build the consolidated HTML report for a nexus-architect project: "
+                    "reports/00_summary/full-report.html (architect layout) or "
+                    "reports/report/full-report.html (product layout).")
     parser.add_argument("project_dir", nargs="?", default=".",
                         help="project root holding reports/ and work/ (default: cwd)")
     parser.add_argument("--output", default=None,
-                        help="output path (default: <project>/reports/00_summary/full-report.html)")
+                        help="output path (default: the layout's canonical path)")
     parser.add_argument("--mermaid-js", default=None,
                         help="path to mermaid.min.js to inline, tried before the defaults")
+    parser.add_argument("--layout", choices=sorted(BUILDERS), default=None,
+                        help="report tree layout (default: detected from reports/)")
+    parser.add_argument("--lang", choices=LANGS, default=None,
+                        help="UI language (default: options.output_language of the project)")
     args = parser.parse_args(argv)
 
     project_dir = os.path.abspath(args.project_dir)
@@ -906,20 +1469,21 @@ def main(argv=None):
             % project_dir)
         return 1
 
-    builder = ReportBuilder(project_dir, lang=resolve_language(project_dir),
-                            mermaid_js=args.mermaid_js)
+    layout = args.layout or detect_layout(project_dir)
+    builder_cls = BUILDERS[layout]
+    out_path = args.output or os.path.join(project_dir, *builder_cls.default_output)
+    out_path = os.path.abspath(out_path)
+    builder = builder_cls(project_dir, lang=args.lang or resolve_language(project_dir),
+                          mermaid_js=args.mermaid_js, output_dir=os.path.dirname(out_path))
     html_doc, mermaid_src = builder.build()
 
-    out_path = args.output or os.path.join(project_dir, "reports", "00_summary",
-                                           "full-report.html")
-    out_path = os.path.abspath(out_path)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(html_doc)
 
-    print("build-report: %d articles, %d mermaid blocks, %d bytes, mermaid=%s -> %s"
+    print("build-report: %d articles, %d mermaid blocks, %d bytes, mermaid=%s, layout=%s -> %s"
           % (builder.article_count, builder.mermaid_count, os.path.getsize(out_path),
-             mermaid_src or "cdn", out_path))
+             mermaid_src or "cdn", layout, out_path))
     return 0
 
 

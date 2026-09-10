@@ -283,8 +283,10 @@ To *read* the output rather than watch it, `tools/docs-site.sh` serves `reports/
 documentation site (Blume): one page per report with Mermaid rendered, the OpenAPI/AsyncAPI specs as
 an API reference, full-text search, and a landing page built from the pipeline status. See
 docs/docs-site.md. For one self-contained file instead of a site, `tools/build-report.py` renders
-the whole report tree into `reports/00_summary/full-report.html` with Mermaid inlined — that is
-what `/architect:report` runs, so the report is generated rather than re-authored per run.
+the whole report tree into `reports/00_summary/full-report.html` (architect projects) or
+`reports/report/full-report.html` (product projects, opening with the validation status) with
+Mermaid inlined — that is what `/architect:report` and `/product:report` run, so the report is
+generated rather than re-authored per run.
 
 **C. Frontend** — `/product:generate-frontend` (offered by `/product:start` after the UI mocks) emits
 a runnable React + Storybook scaffold under `generated/frontend/`.
