@@ -32,7 +32,9 @@ costs a full re-read of every report on every run.
 One command does the whole job:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/tools/build-report.py" <project_dir>
+python3 "${CLAUDE_PLUGIN_ROOT}/tools/build-report.py" <project_dir> --layout architect
+# --layout architect  always passed: a project handed off from /product:* holds both report
+#                     trees, and this skill's deliverable is the architect report
 # --output PATH       write somewhere other than reports/00_summary/full-report.html
 # --mermaid-js PATH   inline this copy of mermaid.min.js instead of the resolved default
 ```

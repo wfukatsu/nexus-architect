@@ -27,8 +27,11 @@ through the one bilingual table below. Document content is rendered as written.
 Layouts
 -------
 The layout is detected from the report tree (`--layout` overrides): a project holding
-any of `reports/00_core`, `01_ux`, `02_spec`, `03_domain` is a **product** project,
-anything else is an **architect** project. Each is skipped when its directory is absent
+any architect directory (`reports/01_analysis`, `03_design`, `review`, `before`, …) is
+an **architect** project — a project handed off from product to architect holds both
+trees, and its consolidated report is the architect one — a project holding only
+`reports/00_core`, `01_ux`, `02_spec`, `03_domain` is a **product** project, and an
+empty tree is architect. The skills pass `--layout` explicitly rather than rely on this. Each is skipped when its directory is absent
 or holds nothing renderable. The `<h2 id>`s are the canonical section identifiers of
 `skills/report/SKILL.md` / `skills/product/report/SKILL.md` § Input Sources.
 
@@ -503,23 +506,25 @@ def is_separator_row(cells):
 
 
 def id_table(text, prefix):
-    """(header cells, {id: cells}) of the first pipe table whose first column holds
-    `<prefix>-###` ids. The header is returned as written so the summary can reuse the
-    document's own column names in the document's own language."""
-    header, rows = None, {}
+    """(header cells, {id: cells}) of every pipe table whose first column holds
+    `<prefix>-###` ids — a document that splits its assumptions into one table per
+    category (desirability / viability / feasibility) is still read in full. The header
+    is the one of the first table that yielded an id row, returned as written so the
+    summary can reuse the document's own column names in the document's own language."""
+    header, table_header, rows = None, None, {}
     for line in text.splitlines():
         if not line.lstrip().startswith("|"):
-            if rows:
-                break
-            header = None
+            table_header = None
             continue
         cells = split_cells(line)
-        if header is None:
-            header = cells
+        if table_header is None:
+            table_header = cells
             continue
         if is_separator_row(cells):
             continue
         if cells and re.fullmatch(prefix + r"-\d{3}", cells[0]):
+            if header is None:
+                header = table_header
             rows[cells[0]] = cells
     return (header or []), rows
 
@@ -608,9 +613,11 @@ class ReportBuilder:
         self.mermaid_count += mermaid_count
         self.article_count += 1
 
-        # TBD placeholders are counted on the body (frontmatter excluded) and indexed per
-        # article; the product summary lists them, the architect summary ignores them.
-        hits = TBD_PATTERN.findall(body)
+        # TBD placeholders are counted on the prose only — frontmatter, fenced blocks and
+        # inline code spans excluded, so a document that quotes the rule (`TBD (OQ-012)`)
+        # is not reported as carrying one — and indexed per article; the product summary
+        # lists them, the architect summary ignores them.
+        hits = TBD_PATTERN.findall(re.sub(r"`[^`\n]*`", "", body_protected))
         tbd_asm = sum(1 for kind, _ in hits if kind)
         self.articles.append({
             "id": stem, "title": title, "relpath": relpath,
@@ -869,7 +876,9 @@ class ReportBuilder:
                 continue
             row = dict(zip(header, cells))
             row["status_raw"] = row.get("status", "")
-            m = re.match(r"[a-z-]+", row["status_raw"].lower())
+            # `**deferred**`, `` `answered` `` and `answered (回答済み)` all mean their
+            # first word; emphasis and code marks around it are not part of the status.
+            m = re.search(r"[a-z-]+", row["status_raw"].strip("*` ").lower())
             row["status"] = m.group(0) if m else row["status_raw"]
             latest[cells[0]] = row
         return list(latest.values())
@@ -1041,7 +1050,7 @@ class ReportBuilder:
     def header_meta(self, progress, target_path, now):
         options = progress.get("options", {}) or {}
         return (
-            f"{html.escape(self.t('pipeline_meta'))}\n"
+            f"{html.escape(self.t(self.pipeline_key))}\n"
             f"    (<code>workflow_type: {html.escape(str(options.get('workflow_type', '')))}</code>,\n"
             f"    <code>scalardb_enabled: {str(options.get('scalardb_enabled')).lower()}</code>,\n"
             f"    <code>output_language: {html.escape(self.lang)}</code>)<br>\n"
@@ -1127,6 +1136,12 @@ mermaid.initialize({{startOnLoad:true, securityLevel:'loose', theme: window.matc
 
 # ------------------------------------------------------------------ product layout
 PRODUCT_MARKERS = ("00_core", "01_ux", "02_spec", "03_domain")
+# The architect tree's own directories. A project that ran the product pipeline and then
+# handed off to architect (docs/design.md §1) holds both trees under one reports/, and
+# the consolidated report of such a project is the architect one — so these win.
+ARCHITECT_MARKERS = ("00_requirements", "before", "01_analysis", "02_evaluation",
+                     "03_design", "04_stories", "06_implementation", "07_test-specs",
+                     "review")
 PRODUCT_SECTIONS = (            # (section id, UI key, directory under reports/)
     ("core", "sec_core", "00_core"),
     ("ux", "sec_ux", "01_ux"),
@@ -1144,7 +1159,12 @@ OQ_STATUS_ORDER = ("deferred", "unasked", "external", "answered")
 
 
 def detect_layout(project_dir):
+    """Architect when any architect directory exists (a handed-off project has both trees
+    and `/architect:report` must still write reports/00_summary/full-report.html),
+    product when only product directories do, architect otherwise. `--layout` overrides."""
     reports = os.path.join(project_dir, "reports")
+    if any(os.path.isdir(os.path.join(reports, d)) for d in ARCHITECT_MARKERS):
+        return "architect"
     if any(os.path.isdir(os.path.join(reports, d)) for d in PRODUCT_MARKERS):
         return "product"
     return "architect"
@@ -1249,7 +1269,7 @@ class ProductReportBuilder(ReportBuilder):
     def header_meta(self, progress, target_path, now):
         options = progress.get("options", {}) or {}
         return (
-            f"{html.escape(self.t('pipeline_meta_product'))}\n"
+            f"{html.escape(self.t(self.pipeline_key))}\n"
             f"    (<code>profile: {html.escape(str(options.get('profile', '')))}</code>,\n"
             f"    <code>output_language: {html.escape(self.lang)}</code>)<br>\n"
             f"    {html.escape(self.t('documents'))}: {self.article_count}{self.t('count_unit')} /\n"
@@ -1360,7 +1380,7 @@ class ProductReportBuilder(ReportBuilder):
         lede = self.t("summary_lede_product") % {
             "docs": self.article_count,
             "project": "<code>%s</code>" % html.escape(str(progress.get("project_name", ""))),
-            "pipeline": html.escape(self.t("pipeline_meta_product")),
+            "pipeline": html.escape(self.t(self.pipeline_key)),
             "profile": html.escape(str(options.get("profile", ""))),
         }
 

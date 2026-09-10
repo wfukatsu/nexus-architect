@@ -122,10 +122,22 @@ title: "Assumptions"
 schema_version: 1
 ---
 
+## Desirability
+
 | ID | Category | Hypothesis | Impact |
 |----|----------|------------|--------|
 | ASM-001 | Desirability | **Auditors want external proof** (VIS-001) | high |
+
+## Feasibility
+
+| ID | Category | Hypothesis | Impact |
+|----|----------|------------|--------|
 | ASM-002 | Feasibility | **Zero impact on existing jobs** | high |
+
+## Viability
+
+| ID | Category | Hypothesis | Impact |
+|----|----------|------------|--------|
 | ASM-003 | Viability | Customers pay per seal event | low |
 
 The unit price is TBD-assumption until the pilot.
@@ -151,6 +163,12 @@ schema_version: 1
 ## PER-001
 
 The p95 target is TBD (OQ-001) and the tenant model is TBD（OQ-004）.
+
+Never write `TBD (OQ-999)` without an entry in the store.
+
+```text
+TBD (OQ-998)
+```
 """
 
 PRODUCT_STORY = """---
@@ -175,7 +193,7 @@ PRODUCT_OQ_STORE = (
     "## Open Questions\n\n"
     "| ID | Question | Status | Answer | Options offered | Owner | Impact | Asked at |\n"
     "|----|----------|--------|--------|-----------------|-------|--------|----------|\n"
-    "| OQ-001 | What is the p95 latency target? | deferred | — | 200ms / 500ms | product owner | High | define-nfr |\n"
+    "| OQ-001 | What is the p95 latency target? | **deferred** | — | 200ms / 500ms | product owner | High | define-nfr |\n"
     "| OQ-002 | Which tenant isolation model? | answered | schema per tenant | — | architect | Medium | map-domains |\n"
     "| OQ-003 | Is the brand name registrable? | external | — | — | legal | Low | name-product |\n"
     "| OQ-004 | Who approves on mobile? | unasked | — | — | product owner | Medium | map-journey |\n"
@@ -422,6 +440,9 @@ try:
           'verdict-banner ok' in pr_summary and ">GO<" in pr_summary)
     check("only the open ASM- rows are repeated in the summary",
           "ASM-001" in pr_summary and "ASM-002" in pr_summary and "ASM-003" not in pr_summary)
+    check("an open ASM- in a later per-category table is still found",
+          "no row for this ID" not in pr_summary
+          and "<strong>Zero impact on existing jobs</strong>" in pr_summary)
     check("bold inside an ASM- cell renders as <strong>",
           "<strong>Auditors want external proof</strong>" in pr_summary)
     check("the validation plan rows are repeated too",
@@ -436,8 +457,12 @@ try:
     check("a TBD-assumption is counted in its own column",
           bool(asm_row) and '<td class="num">0</td><td class="num">1</td>' in asm_row.group(0),
           asm_row.group(0) if asm_row else "no row")
+    check("a TBD quoted in a fence or in inline code is not a placeholder",
+          "OQ-998" not in pr_summary and "OQ-999" not in pr_summary)
     check("the TBD note totals the placeholders",
           "2 <code>TBD</code> and 1 <code>TBD-assumption</code>" in pr_summary)
+    check("a **deferred** status cell is read as deferred, not as a fifth status",
+          "<h4>**deferred**" not in pr_summary)
     check("a deferred question is listed with its owner",
           "OQ-001" in oq_group(pr_summary, "deferred")
           and "product owner" in oq_group(pr_summary, "deferred"))
@@ -502,6 +527,25 @@ try:
     check("--layout architect overrides the detection",
           forced.returncode == 0 and '<h2 id="core"' not in forced_doc
           and "Executive Summary" in forced_doc)
+
+    # --- handoff: both trees under one reports/ --------------------------------
+    print("A project handed off from product to architect defaults to the architect layout")
+    ho_dir = os.path.join(tmp, "handoff")
+    build_product_project(ho_dir, "en")
+    write(os.path.join(ho_dir, "reports", "01_analysis", "system-overview.md"),
+          simple_doc("System Overview"))
+    ho = run(ho_dir)
+    ho_arch = os.path.join(ho_dir, "reports", "00_summary", "full-report.html")
+    ho_prod = os.path.join(ho_dir, "reports", "report", "full-report.html")
+    check("exit 0 on a handed-off project", ho.returncode == 0, ho.stderr.strip())
+    check("the architect tree wins the detection", "layout=architect" in ho.stdout,
+          ho.stdout.strip())
+    check("the architect deliverable reports/00_summary/full-report.html is written",
+          os.path.exists(ho_arch) and not os.path.exists(ho_prod))
+    ho_forced = run(ho_dir, None, "--layout", "product")
+    check("--layout product still builds the product report of the same project",
+          ho_forced.returncode == 0 and os.path.exists(ho_prod)
+          and '<h2 id="core"' in open(ho_prod, encoding="utf-8").read())
 
     # --- degraded inputs -------------------------------------------------------
     print("A product project without a gate, assumptions or an OQ store still renders")

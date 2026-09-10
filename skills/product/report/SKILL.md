@@ -67,16 +67,19 @@ contract silently; in particular a converter wraps a Mermaid fence as
 One command does the whole job:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/tools/build-report.py" <project_dir> [--lang ja|en]
-# --layout product    force the product layout (detected from reports/00_core etc. by default)
+python3 "${CLAUDE_PLUGIN_ROOT}/tools/build-report.py" <project_dir> --layout product [--lang ja|en]
+# --layout product    always passed: a project that has already handed off to /architect:*
+#                     holds both report trees, and detection then prefers the architect layout
 # --output PATH       write somewhere other than reports/report/full-report.html
 # --mermaid-js PATH   inline this copy of mermaid.min.js instead of the resolved default
 ```
 
 `<project_dir>` is the project root — the directory holding `reports/` and `work/`; it
 defaults to the current directory. Without `--lang` the tool reads `options.output_language`
-from `work/pipeline-progress.json` itself. The layout is detected from the report tree: any
-of `reports/00_core`, `01_ux`, `02_spec`, `03_domain` selects the product layout.
+from `work/pipeline-progress.json` itself. Without an explicit layout the tool detects one
+from the report tree — product when only `reports/00_core` / `01_ux` / `02_spec` /
+`03_domain` exist, architect as soon as any architect directory does — which is why this
+skill always names the product layout on the command line.
 
 Steps:
 

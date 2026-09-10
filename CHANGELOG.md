@@ -16,17 +16,23 @@ all four plugins (`product`, `architect`, `scalardb`, `infra`) are released toge
   `startOnLoad` reads `innerHTML`, so the `<code>` tag became diagram text and all ten diagrams
   of a real project failed with "No diagram type detected". `tools/build-report.py` — the
   generator behind `/architect:report`, which already emits `<pre class="mermaid">` with the
-  escaped source and nothing else — now renders the product tree too: the layout is detected
-  from `reports/00_core` / `01_ux` / `02_spec` / `03_domain` (`--layout` overrides, `--lang`
-  overrides the project language), the output is `reports/report/full-report.html`, sections
+  escaped source and nothing else — now renders the product tree too: both skills pass
+  `--layout` explicitly, and without it the tool detects the layout from the tree — architect
+  as soon as any architect directory exists, since a project handed off from product to
+  architect holds both trees and its consolidated report is the architect one; product when
+  only `reports/00_core` / `01_ux` / `02_spec` / `03_domain` do (`--lang` overrides the project
+  language). The product output is `reports/report/full-report.html`, sections
   are `core` / `ux` / `spec` / `domain` / `quality` / `adaptation` / `other` / `review` with
   documents in the pipeline order of `skills/product/common/skill-dependencies.yaml`, HTML
   mocks and figures are listed by name rather than embedded, and the report opens with "Key
   Assumptions & Validation Status" built from the gate in `pipeline-progress.json`, the open
   `ASM-` rows of `assumptions.md` and `validation-plan.md` verbatim, the `TBD` /
-  `TBD-assumption` placeholders per document with the `OQ-` they cite, and the Open Questions
-  store grouped by status with owners (the store is now parsed by its header, so the 8-column
-  shape yields owners and the 4-column shape still counts). Section anchors are reserved so a
+  `TBD-assumption` placeholders per document with the `OQ-` they cite (prose only — a `TBD`
+  quoted in a code fence or inline code is not a placeholder), and the Open Questions store
+  grouped by status with owners (the store is now parsed by its header, so the 8-column shape
+  yields owners and the 4-column shape still counts, and a decorated status cell such as
+  `**deferred**` still reads as its status word). An assumptions document that splits its
+  `ASM-` rows into one table per category is read in full. Section anchors are reserved so a
   document named `summary.md` or `review.md` no longer collides with its section. The skill is
   rewritten as "built by a tool, not authored", `tools/build_report.test.py` gains the product
   contract plus an explicit "no `<code>` inside a Mermaid block" assertion for both layouts,
