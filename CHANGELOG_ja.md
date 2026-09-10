@@ -7,7 +7,7 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
-## [Unreleased]
+## [0.38.2] - 2026-09-10
 
 ### Fixed
 - **`/product:report` が Mermaid 図をすべて構文エラーにしたレポートを出さなくなった。** スキルは

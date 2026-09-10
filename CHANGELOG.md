@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
-## [Unreleased]
+## [0.38.2] - 2026-09-10
 
 ### Fixed
 - **`/product:report` no longer ships a report whose every Mermaid diagram is a syntax error.**
