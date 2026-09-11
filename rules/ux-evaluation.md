@@ -151,22 +151,27 @@ severity; a severity other than the default carries a one-line `severity_reason`
 | `low-contrast` | A | WCAG 1.4.3 / 1.4.11 | `major` |
 | `missing-lang` | A | WCAG 3.1.1 | `major` |
 | `small-target` | A | WCAG 2.5.8 | `minor` |
-| `error-not-identified` | A | WCAG 3.3.1 / 3.3.3 | `minor` |
+| `error-not-identified` | A | WCAG 3.3.1 / 3.3.3 | `minor` — the message is not tied to its field, visually or programmatically |
 | `missing-input-purpose` | A | WCAG 1.3.5 | `minor` |
 | `destructive-without-confirmation` | H | H5 | `major` — `critical` when it irreversibly deletes business data |
-| `vague-error-message` | H | H9 | `major` |
+| `vague-error-message` | H | H9 | `major` — the message names no cause or field |
 | `no-feedback` | H | H1 | `minor` |
 | `script-dependent-content` | H | H1 | `minor` |
 | `redundant-input` | E | WCAG 3.3.7 (or H7) | `minor` |
 | `excessive-steps` | E | H7 | `minor` |
 | `excessive-inputs` | E | H7 | `minor` |
-| `label-drift` | C | H4 | `minor` |
+| `label-drift` | C | H4 | `minor` — one command, several labels |
+| `navigation-label-variant` | C | H4 | `minor` — one destination or navigation pattern, several labels in the same rendered state |
 | `hand-built-duplicate` | C | H4 | `minor` |
 | `token-fragmentation` | C | H4 | `minor` |
 | `dead-end` | N | H3 | `major` |
 | `missing-path` | N | H3 | `major` — a capability with no way in |
 | `orphan-screen` | N | H10 (help) or H6 | `minor` — `major` when a task needs what it holds |
 | `other` | any | any the axis owns | judged; `severity_reason` required |
+
+An escalated severity — the condition after the dash — is not the default: it carries a
+`severity_reason` naming the condition, and `unlabeled-input` escalates to `critical` only for a
+required input on the path of a primary task.
 
 Severity follows the table rather than `skills/review-registry.json`: `critical` blocks a task or
 excludes a group of users from one; `major` makes a task error-prone or markedly harder, or must be
@@ -176,9 +181,36 @@ fixed before the new UI ships; `minor` is friction; `info` is a suggestion.
 
 At least one of `screen`, `component`, `feature` or `token` is set, and what is set agrees:
 `action` is an action id of `screen`, `input` is an input name of `screen`, `component` is used by
-`screen`, `feature` has an action on `screen`. `source` is `path:line` into the target code. The
-**subject** of a finding is its most specific element — action, then input, then component, token,
-feature, screen.
+`screen`, `feature` has an action on `screen`. `source` is `path:line` into a file of the located element —
+the screen's template, its components, handlers, scripts and stylesheets as the inventory cites
+them; a token's own sources — and for a defect of absence (`dead-end`, `missing-path`) the template
+of the screen where the missing exit or way in would be. The **subject** of a finding is its most
+specific element — action, then input, then component, token, feature, screen — with two fixed
+placements:
+
+- a `global` action (shared chrome) is never a subject: it is filed once, on its feature or its
+  chrome component;
+- a fragmented cluster is filed once, on the token of its dominant member (the value to keep), with
+  the stray values named in the description.
+
+Two elements co-exist only when they render in the same state: read the template's branches before
+claiming a variant or a duplicate on one screen.
+
+### What the metrics settle
+
+A defect the metrics measure — an unlabeled input, an image without `alt`, a missing `lang`, a
+low-contrast pair, a destructive action without confirmation, a redundant input, a dead end, an
+orphan, label drift, a hand-built duplicate, a fragmented cluster — is **filed**, and filed only
+where the metrics show it. A static finding of one of these defects on an element the metrics do
+not flag is a contradiction, not a judgement; runtime evidence may refine a measured defect, never
+silently drop it.
+
+### Routed items
+
+The evaluation lists in `routed` every view-only guard (screen or action), every client-only
+validation rule and every view-layer logic item of the inventory, each with its source and its
+destination (`/architect:investigate-security` or `/architect:redesign`). They are compiled from
+the inventory, not judged.
 
 ## 6. Well-formedness rules
 
@@ -193,12 +225,15 @@ An evaluation is not written out until all ten hold. Each is asserted by
 5. **Every finding is complete** — a unique `UX-###` id, a defect from §5 on its axis, a criterion
    its axis owns, a severity (with a reason when it is not the defect's default), a title, a
    description and a recommendation.
-6. **Every location exists and agrees** (§5 Location), and its source is real.
-7. **Every score of 3 or lower is justified** by a finding on its axis, and every finding is listed
-   by exactly its own axis.
+6. **Every location exists and agrees** (§5 Location) — its source is real and belongs to the
+   located element, a measured defect is one the metrics show there, and an escalated
+   `unlabeled-input` meets its condition.
+7. **Every score of 3 or lower is justified** by a finding on its axis, every finding is listed by
+   exactly its own axis, and `routed` lists every routed item of the inventory (§5).
 8. **The metrics are the tool's** — the `metrics` block equals what `ui_metrics.py` computes from
    the inventory now.
-9. **One defect, one finding** — no two findings share a defect and a subject.
+9. **One defect, one finding** — no two findings share a defect and a subject, no global action is a
+   subject, a fragmented cluster is filed once, and every defect the metrics measure has its finding.
 10. **Runtime evidence is real** — `mode`, `base_url` and the capture list agree; a runtime finding
     cites a file under `reports/02_evaluation/ux-evidence/` for a screen that was captured, and says
     whether it `confirmed`, `refined` or is `new` against the static pass; a static finding cites no

@@ -25,7 +25,8 @@ REPO = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, HERE)
 import ui_fixture  # noqa: E402
 from ui_metrics import compute  # noqa: E402
-from ux_evaluation import AXES, DEFECTS, OWNS, band, uxi, validate_evaluation  # noqa: E402
+from ux_evaluation import (AXES, DEFECTS, OWNS, band, routed_from_inventory, uxi,  # noqa: E402
+                           validate_evaluation)
 
 TOOL = os.path.join(HERE, "ux_evaluation.py")
 PASSED = 0
@@ -57,14 +58,33 @@ def finding(fid, axis, defect, criterion, severity, **location):
 
 
 def well_formed():
+    """Every defect the fixture's metrics measure, filed once, where they measure it."""
     scores = {"H": 3, "A": 2, "E": 4, "C": 2, "N": 3}
     findings = [
         finding("UX-001", "H", "destructive-without-confirmation", "H5", "major",
                 screen="UIS-003", action="UIS-003.A2", source="web/cart.jsp:24"),
         finding("UX-002", "A", "unlabeled-input", "WCAG 1.3.1", "major",
                 screen="UIS-003", input="quantity", source="web/cart.jsp:12"),
-        finding("UX-003", "N", "dead-end", "H3", "major", screen="UIS-004"),
-        finding("UX-004", "C", "token-fragmentation", "H4", "minor", token="color.hex-1a73e8"),
+        finding("UX-003", "A", "unlabeled-input", "WCAG 1.3.1", "major",
+                screen="UIS-003", input="email", source="web/cart.jsp:16"),
+        finding("UX-004", "A", "missing-alt", "WCAG 1.1.1", "major",
+                screen="UIS-003", source="web/cart.jsp:21"),
+        finding("UX-005", "A", "missing-lang", "WCAG 3.1.1", "major",
+                screen="UIS-001", source="web/login.jsp"),
+        finding("UX-006", "A", "low-contrast", "WCAG 1.4.3", "major",
+                screen="UIS-003", source="web/css/common.css:14"),
+        finding("UX-007", "N", "dead-end", "H3", "major", screen="UIS-004",
+                source="web/complete.jsp"),
+        finding("UX-008", "E", "redundant-input", "WCAG 3.3.7", "minor",
+                screen="UIS-003", input="email", source="web/cart.jsp:16"),
+        finding("UX-009", "C", "label-drift", "H4", "minor", feature="UIF-004",
+                source="web/header.jspf:4"),
+        finding("UX-010", "C", "hand-built-duplicate", "H4", "minor", component="UIC-003",
+                source="web/cart.jsp:30"),
+        finding("UX-011", "C", "token-fragmentation", "H4", "minor", token="color.hex-0066cc",
+                source="web/css/common.css:3"),
+        finding("UX-012", "N", "orphan-screen", "H10", "minor", screen="UIS-005",
+                source="web/help.jsp"),
     ]
     by_axis = {}
     for f in findings:
@@ -82,7 +102,7 @@ def well_formed():
         "band": "needs-improvement",
         "findings": findings,
         "withdrawn": [],
-        "routed": [],
+        "routed": routed_from_inventory(INVENTORY),
         "runtime": {"base_url": None, "tool": None, "captured": []},
     }
 
@@ -151,8 +171,7 @@ rejects("a score above its cap",
         lambda e: (axis(e, "C").update(score=4), e.update(uxi=59.0)),
         expect="axis C scores 4 above its metric cap 3")
 rejects("a score above its severity bound",
-        lambda e: (axis(e, "E").update(score=4), fnd(e, "UX-003").update(severity="critical",
-                                                                         severity_reason="x"),
+        lambda e: (fnd(e, "UX-007").update(severity="critical", severity_reason="x"),
                    axis(e, "N").update(score=3)),
         expect="axis N scores 3 but has a critical finding — at most 2")
 rejects("a major finding on an axis scored 4",
@@ -174,23 +193,23 @@ rejects("a defect on an axis that does not own it",
         lambda e: fnd(e, "UX-002").update(axis="H", criterion="H5"),
         expect="unlabeled-input belongs to axis A, not H")
 rejects("a criterion the axis does not own",
-        lambda e: fnd(e, "UX-004").update(criterion="H6"), expect="is not one axis C owns")
+        lambda e: fnd(e, "UX-011").update(criterion="H6"), expect="is not one axis C owns")
 rejects("a WCAG criterion that does not exist",
         lambda e: fnd(e, "UX-002").update(criterion="WCAG 4.9.9"), expect="is not one axis A owns")
 rejects("a severity off the default without a reason",
-        lambda e: fnd(e, "UX-004").update(severity="major"), expect="departs from the default")
+        lambda e: fnd(e, "UX-011").update(severity="major"), expect="departs from the default")
 accepts("a severity off the default with a reason",
         lambda e: (fnd(e, "UX-002").update(severity="critical", severity_reason="required input "
                                            "on the Buy task"),))
 rejects("an 'other' defect without a reason",
-        lambda e: fnd(e, "UX-004").update(defect="other"), expect="departs from the default")
+        lambda e: fnd(e, "UX-012").update(defect="other"), expect="departs from the default")
 rejects("no recommendation", lambda e: fnd(e, "UX-001").pop("recommendation"),
         expect="recommendation is required")
 rejects("a malformed id", lambda e: fnd(e, "UX-001").update(id="F-1"), expect="UX-###")
 
 print("rule 6 — locations exist and agree")
 rejects("a screen that does not exist",
-        lambda e: fnd(e, "UX-003")["location"].update(screen="UIS-099"),
+        lambda e: fnd(e, "UX-007")["location"].update(screen="UIS-099"),
         expect="location.screen 'UIS-099'")
 rejects("an action of another screen",
         lambda e: fnd(e, "UX-001")["location"].update(action="UIS-001.A1"),
@@ -199,13 +218,13 @@ rejects("an input the screen does not have",
         lambda e: fnd(e, "UX-002")["location"].update(input="phone"),
         expect="is not an input of UIS-003")
 rejects("a component the screen does not use",
-        lambda e: fnd(e, "UX-003")["location"].update(component="UIC-002"),
+        lambda e: fnd(e, "UX-007")["location"].update(component="UIC-002"),
         expect="UIC-002 is not used by UIS-004")
 rejects("a feature with no action on the screen",
-        lambda e: fnd(e, "UX-003")["location"].update(feature="UIF-001"),
+        lambda e: fnd(e, "UX-007")["location"].update(feature="UIF-001"),
         expect="UIF-001 has no action on UIS-004")
 rejects("a token that does not exist",
-        lambda e: fnd(e, "UX-004")["location"].update(token="color.hex-000000"),
+        lambda e: fnd(e, "UX-011")["location"].update(token="color.hex-000000"),
         expect="location.token")
 rejects("an input without its screen",
         lambda e: fnd(e, "UX-002")["location"].update(screen=None), expect="names its screen")
@@ -213,16 +232,16 @@ rejects("a malformed source",
         lambda e: fnd(e, "UX-002")["location"].update(source="web/cart.jsp:12,18"),
         expect="is not path[:line[-end]]")
 rejects("a location naming nothing",
-        lambda e: fnd(e, "UX-004")["location"].update(token=None), expect="names none of")
+        lambda e: fnd(e, "UX-011")["location"].update(token=None), expect="names none of")
 
 print("rule 7 — justified scores, findings listed by their own axis")
 rejects("a 3 with no finding on its axis",
-        lambda e: (e["findings"].pop(2), axis(e, "N").update(finding_ids=[])),
+        lambda e: (e["findings"].pop(11), e["findings"].pop(6), axis(e, "N").update(finding_ids=[])),
         expect="axis N scores 3 with no finding")
 rejects("a finding no axis lists", lambda e: axis(e, "C").update(finding_ids=[]),
-        expect="UX-004: is not listed")
+        expect="UX-009: is not listed")
 rejects("an axis citing another axis's finding",
-        lambda e: axis(e, "E").update(finding_ids=["UX-002"]), expect="a finding on axis A")
+        lambda e: axis(e, "E").update(finding_ids=["UX-008", "UX-002"]), expect="a finding on axis A")
 
 print("rule 8 — measured metrics")
 rejects("a metric edited by hand",
@@ -232,16 +251,52 @@ rejects("no metrics at all", lambda e: e.pop("metrics"), expect="metrics must be
 
 print("rule 9 — one defect, one finding")
 rejects("the same defect on the same subject twice",
-        lambda e: (e["findings"].append(dict(fnd(e, "UX-002"), id="UX-005")),
-                   axis(e, "A")["finding_ids"].append("UX-005")),
+        lambda e: (e["findings"].append(dict(fnd(e, "UX-002"), id="UX-013")),
+                   axis(e, "A")["finding_ids"].append("UX-013")),
         expect="one defect, one finding")
-accepts("two defects on one input",
-        lambda e: (e["findings"].append(finding("UX-005", "E", "redundant-input", "WCAG 3.3.7",
-                                                "minor", screen="UIS-003", input="email")),
-                   axis(e, "E")["finding_ids"].append("UX-005"),
-                   e["findings"].append(finding("UX-006", "A", "unlabeled-input", "WCAG 1.3.1",
-                                                "major", screen="UIS-003", input="email")),
-                   axis(e, "A")["finding_ids"].append("UX-006")))
+accepts("two defects on one input (the fixture's e-mail: unlabeled and redundant)", lambda e: None)
+rejects("a fragmented cluster filed twice",
+        lambda e: (e["findings"].append(finding("UX-013", "C", "token-fragmentation", "H4", "minor",
+                                                token="color.hex-1a73e8", source="web/cart.jsp:30")),
+                   axis(e, "C")["finding_ids"].append("UX-013")),
+        expect="one defect, one finding")
+rejects("a shared-chrome action as a subject",
+        lambda e: (e["findings"].append(finding("UX-013", "H", "no-feedback", "H1", "minor",
+                                                screen="UIS-003", action="UIS-003.A1",
+                                                source="web/header.jspf:4")),
+                   axis(e, "H")["finding_ids"].append("UX-013")),
+        expect="is a shared-chrome action")
+rejects("a measured defect nobody files",
+        lambda e: (e["findings"].pop(4), axis(e, "A")["finding_ids"].remove("UX-005")),
+        expect="the metrics measure missing-lang on UIS-001 but no finding files it")
+rejects("a measured defect filed where the metrics do not show it",
+        lambda e: (e["findings"].append(finding("UX-013", "H", "destructive-without-confirmation",
+                                                "H5", "major", screen="UIS-003",
+                                                action="UIS-003.A3", source="web/cart.jsp:30")),
+                   axis(e, "H")["finding_ids"].append("UX-013")),
+        expect="the metrics do not show destructive-without-confirmation there")
+rejects("a redundant input the inventory does not record",
+        lambda e: fnd(e, "UX-008")["location"].update(input="quantity"),
+        expect="the metrics do not show redundant-input there")
+rejects("a dead end on a screen with exits",
+        lambda e: fnd(e, "UX-007")["location"].update(screen="UIS-003", source="web/cart.jsp"),
+        expect="the metrics do not show dead-end there")
+rejects("a source that is not a file of the located screen",
+        lambda e: fnd(e, "UX-005")["location"].update(source="web/css/common.css:3"),
+        expect="is not a file of the located element")
+rejects("an unlabeled input escalated off the primary tasks",
+        lambda e: (fnd(e, "UX-002").update(severity="critical", severity_reason="checkout"),
+                   e.update(primary_tasks=["Log in"])),
+        expect="escalates to critical only for a required input on a primary task's path")
+accepts("an unlabeled required input escalated on a primary task",
+        lambda e: fnd(e, "UX-002").update(severity="critical", severity_reason="Buy task"))
+accepts("a navigation label variant (not a command) on consistency",
+        lambda e: (e["findings"].append(finding("UX-013", "C", "navigation-label-variant", "H4",
+                                                "minor", screen="UIS-005",
+                                                source="web/help.jsp:3")),
+                   axis(e, "C")["finding_ids"].append("UX-013")))
+rejects("routed items missing from the evaluation", lambda e: e["routed"].pop(),
+        expect="routed lacks 1 item(s) of the inventory")
 
 print("rule 10 — runtime evidence and the evaluation's own fields")
 rejects("a static finding with an evidence file",
@@ -276,7 +331,7 @@ rejects("runtime evidence outside the evidence directory",
                                                        evidence_ref="/etc/hosts")),
         expect="cites a file under reports/02_evaluation/ux-evidence/")
 rejects("runtime evidence for a screen that was not captured",
-        lambda e: (runtime(e), fnd(e, "UX-003").update(
+        lambda e: (runtime(e), fnd(e, "UX-007").update(
             evidence="runtime", runtime_outcome="new",
             evidence_ref="reports/02_evaluation/ux-evidence/UIS-003.png")),
         expect="a screen that was not captured")
@@ -340,8 +395,13 @@ def run(root):
 try:
     proc = run(project("clean", well_formed()))
     check("exit 0 on a clean evaluation",
-          proc.returncode == 0 and "UXI 56.0, needs-improvement, 4 findings" in proc.stdout,
+          proc.returncode == 0 and "UXI 56.0, needs-improvement, 12 findings" in proc.stdout,
           proc.stdout)
+    proc = subprocess.run([sys.executable, TOOL, os.path.join(tmp, "clean"), "--routed"],
+                          capture_output=True, text=True)
+    check("--routed compiles the routed items from the inventory",
+          proc.returncode == 0 and json.loads(proc.stdout) == routed_from_inventory(INVENTORY)
+          and len(json.loads(proc.stdout)) == 2, proc.stdout + proc.stderr)
     ev = well_formed()
     fnd(ev, "UX-002")["location"]["source"] = "web/cart.jsp:400"
     proc = run(project("bad-source", ev))

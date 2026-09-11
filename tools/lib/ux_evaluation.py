@@ -9,7 +9,9 @@ default severity; and every score stays within the bound its own findings' sever
 arithmetic — the UXI and its band — is recomputed.
 
 Usage:
-    python3 tools/lib/ux_evaluation.py <project_dir>   (exit 1 on violations)
+    python3 tools/lib/ux_evaluation.py <project_dir>            (exit 1 on violations)
+    python3 tools/lib/ux_evaluation.py <project_dir> --routed   (the routed items of the project's
+                                                                  inventory, as JSON)
 """
 
 import json
@@ -19,8 +21,9 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from manifest_common import duplicates  # noqa: E402
-from ui_inventory import SourceChecker, iter_tokens, resolve_target, validate_inventory  # noqa: E402
-from ui_metrics import compute  # noqa: E402
+from ui_inventory import (SourceChecker, is_alias, iter_tokens, resolve_target,  # noqa: E402
+                          token_extension, validate_inventory)
+from ui_metrics import compute, load  # noqa: E402
 
 EVALUATION_PATH = os.path.join("reports", "02_evaluation", "ux-evaluation.json")
 EVIDENCE_DIR = "reports/02_evaluation/ux-evidence/"
@@ -48,7 +51,8 @@ DEFECTS = {
     "no-feedback": ("H", "minor"), "script-dependent-content": ("H", "minor"),
     "redundant-input": ("E", "minor"), "excessive-steps": ("E", "minor"),
     "excessive-inputs": ("E", "minor"),
-    "label-drift": ("C", "minor"), "hand-built-duplicate": ("C", "minor"),
+    "label-drift": ("C", "minor"), "navigation-label-variant": ("C", "minor"),
+    "hand-built-duplicate": ("C", "minor"),
     "token-fragmentation": ("C", "minor"),
     "dead-end": ("N", "major"), "missing-path": ("N", "major"), "orphan-screen": ("N", "minor"),
 }
@@ -67,6 +71,9 @@ URL_RE = re.compile(r"^https?://[^\s/]+")
 ISO_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}")
 TOLERANCE = 0.05
 SUBJECT_ORDER = ("action", "input", "component", "token", "feature", "screen")
+MEASURED = {"unlabeled-input", "redundant-input", "destructive-without-confirmation", "missing-alt",
+            "missing-lang", "low-contrast", "dead-end", "orphan-screen", "label-drift",
+            "hand-built-duplicate", "token-fragmentation"}
 
 
 def _text(value):
@@ -110,8 +117,152 @@ def subject(finding):
     return None
 
 
+def _path(source):
+    return source.split(":", 1)[0].strip() if isinstance(source, str) and source.strip() else None
+
+
+def _screen_files(screen, component_sources):
+    """Every file the inventory cites for a screen: where a finding about it may point."""
+    files = {_path(screen.get("source"))}
+    access = screen.get("access") if isinstance(screen.get("access"), dict) else {}
+    for item in _dicts(screen.get("handlers")) + _dicts(access.get("guards")):
+        files.add(_path(item.get("source")))
+    for key in ("inputs", "outputs", "actions", "messages", "embedded_logic", "images",
+                "color_pairs"):
+        for item in _dicts(screen.get(key)):
+            files.update({_path(item.get("source")), _path(item.get("bg_source"))})
+            for rule in _dicts(item.get("validation")):
+                files.update({_path(rule.get("source")), _path(rule.get("client_source"))})
+            if isinstance(item.get("guard"), dict):
+                files.add(_path(item["guard"].get("source")))
+    files.update(_path(component_sources.get(c)) for c in _list(screen.get("components"))
+                 if isinstance(c, str))
+    return {f for f in files if f}
+
+
+def routed_from_inventory(inventory):
+    """@rules/ux-evaluation.md §5 Routed items — compiled, not judged: every view-only guard, every
+    client-only validation rule and every view-layer logic item, with its source and destination."""
+    security, redesign = "/architect:investigate-security", "/architect:redesign"
+    out, seen = [], set()
+
+    def add(to, what, source):
+        if isinstance(source, str) and source and (to, source) not in seen:
+            seen.add((to, source))
+            out.append({"to": to, "what": what, "source": source})
+
+    for screen in _dicts(inventory.get("screens")):
+        sid = screen.get("id")
+        access = screen.get("access") if isinstance(screen.get("access"), dict) else {}
+        guards = _dicts(access.get("guards"))
+        if guards and all(g.get("kind") == "view" for g in guards):
+            for guard in guards:
+                add(security, "view-only guard of %s (%s)" % (sid, screen.get("name")),
+                    guard.get("source"))
+        for action in _dicts(screen.get("actions")):
+            guard = action.get("guard")
+            if isinstance(guard, dict) and guard.get("kind") == "view":
+                add(security, "view-only guard on %s (%s)" % (action.get("id"), action.get("label")),
+                    guard.get("source"))
+        for field in _dicts(screen.get("inputs")):
+            rules = _dicts(field.get("validation"))
+            server = {r.get("rule") for r in rules if r.get("where") in ("server", "both")}
+            for rule in rules:
+                if rule.get("where") == "client" and rule.get("rule") not in server:
+                    add(security, "client-only %s on %s.%s" % (rule.get("rule"), sid,
+                                                              field.get("name")), rule.get("source"))
+        for item in _dicts(screen.get("embedded_logic")):
+            add(redesign, "%s in the view of %s: %s" % (item.get("kind"), sid,
+                                                        item.get("description")), item.get("source"))
+    return out
+
+
+def measured(metrics):
+    """The defects the metrics measure, as (defect, key) pairs a finding must file (§5 What the
+    metrics settle). Keys: (screen,), (screen, input), (action,), (command,), (component,),
+    (cluster,)."""
+    found = set()
+    for sid, per in metrics["per_screen"].items():
+        found.update(("unlabeled-input", (sid, name)) for name in per["unlabeled_inputs"])
+        found.update(("redundant-input", (sid, name)) for name in per["redundant_inputs"])
+        found.update(("destructive-without-confirmation", (aid,))
+                     for aid in per["destructive_without_confirmation"])
+        if per["images_without_alt"]:
+            found.add(("missing-alt", (sid,)))
+        if per["lang_missing"]:
+            found.add(("missing-lang", (sid,)))
+        if per["low_contrast_pairs"]:
+            found.add(("low-contrast", (sid,)))
+    found.update(("dead-end", (sid,)) for sid in metrics["navigation"]["dead_ends"])
+    found.update(("orphan-screen", (sid,)) for sid in metrics["navigation"]["orphans"])
+    con = metrics["consistency"]
+    found.update(("label-drift", (d["command"],)) for d in con["label_drift"])
+    found.update(("hand-built-duplicate", (cid,)) for cid in con["components_with_duplicates"])
+    found.update(("token-fragmentation", (cluster,)) for cluster in con["fragmented_clusters"])
+    return found
+
+
 def _axis(axis, expected):
     return isinstance(axis, dict) and isinstance(axis.get("key"), str) and axis["key"] in expected
+
+
+def files_defect(defect, key, finding, model):
+    """Whether a finding files the measured defect (defect, key)."""
+    if finding.get("defect") != defect:
+        return False
+    loc = finding.get("location") if isinstance(finding.get("location"), dict) else {}
+    if defect in ("unlabeled-input", "redundant-input"):
+        return (loc.get("screen"), loc.get("input")) == key
+    if defect in ("missing-alt", "missing-lang", "low-contrast", "dead-end", "orphan-screen"):
+        return loc.get("screen") == key[0]
+    if defect == "destructive-without-confirmation":
+        return loc.get("action") == key[0] \
+            or key[0] in model.feature_actions.get(loc.get("feature"), set())
+    if defect == "label-drift":
+        return key[0] in (model.feature_command.get(loc.get("feature")),
+                          model.command_of.get(loc.get("action")))
+    if defect == "hand-built-duplicate":
+        return loc.get("component") == key[0]
+    if defect == "token-fragmentation":
+        return model.cluster.get(loc.get("token")) == key[0]
+    return False
+
+
+def _check_against_model(fid, finding, defect, model, measured_set, primary):
+    """Rules 6 and 9 against the inventory: placement, provenance, agreement with the metrics, and
+    the condition an escalated unlabeled input must meet."""
+    errors = []
+    loc = finding["location"]
+    action = loc.get("action")
+    if _text(action) and action in model.global_actions:
+        errors.append("%s: %s is a shared-chrome action — file it once, on its feature or chrome "
+                      "component" % (fid, action))
+    path = _path(loc.get("source"))
+    if path:
+        allowed = set()
+        if _text(loc.get("screen")):
+            allowed |= model.screen_files.get(loc["screen"], set())
+        if _text(loc.get("component")):
+            allowed |= model.component_files.get(loc["component"], set())
+        if _text(loc.get("token")):
+            allowed |= model.token_files.get(loc["token"], set())
+        if _text(loc.get("feature")):
+            for sid in model.features.get(loc["feature"], set()):
+                allowed |= model.screen_files.get(sid, set())
+        if path not in allowed:
+            errors.append("%s: source %r is not a file of the located element" % (fid, path))
+    if measured_set is not None and finding.get("evidence") == "static" and defect in MEASURED:
+        if not any(files_defect(defect, key, finding, model)
+                   for d, key in measured_set if d == defect):
+            errors.append("%s: the metrics do not show %s there — a measured defect is filed where "
+                          "the metrics show it" % (fid, defect))
+    if defect == "unlabeled-input" and finding.get("severity") == "critical":
+        sid = loc.get("screen")
+        on_primary = any(sid in model.tasks.get(task, set()) for task in primary)
+        if (sid, loc.get("input")) not in model.required or not on_primary:
+            errors.append("%s: unlabeled-input escalates to critical only for a required input on "
+                          "a primary task's path" % fid)
+    return errors
 
 
 class Model:
@@ -131,8 +282,28 @@ class Model:
                            if isinstance(c.get("id"), str)}
         self.features = {f.get("id"): set(_list(f.get("screens")))
                          for f in _dicts(inventory.get("features")) if isinstance(f.get("id"), str)}
-        self.tasks = {t.get("name") for t in _dicts(inventory.get("tasks"))}
-        self.token_paths = {path for path, _ in iter_tokens(tokens or {})}
+        self.tasks = {t.get("name"): set(_list(t.get("screens")))
+                      for t in _dicts(inventory.get("tasks"))}
+        leaves = dict(iter_tokens(tokens or {}))
+        self.token_paths = set(leaves)
+        self.token_files = {p: {_path(s) for s in _list(token_extension(t).get("sources"))} - {None}
+                            for p, t in leaves.items()}
+        self.cluster = {p: "%s:%s" % (t.get("$type"), token_extension(t)["cluster"])
+                        for p, t in leaves.items()
+                        if not is_alias(t) and token_extension(t).get("cluster")}
+        component_sources = {c.get("id"): c.get("source") for c in _dicts(inventory.get("components"))}
+        self.component_files = {cid: {_path(src)} - {None} for cid, src in component_sources.items()}
+        self.screen_files = {sid: _screen_files(s, component_sources)
+                             for sid, s in self.screens.items()}
+        actions = [a for s in self.screens.values() for a in _dicts(s.get("actions"))]
+        self.global_actions = {a.get("id") for a in actions if a.get("scope") == "global"}
+        self.command_of = {a.get("id"): a.get("command") for a in actions}
+        self.feature_command = {f.get("id"): f.get("command")
+                                for f in _dicts(inventory.get("features"))}
+        self.feature_actions = {f.get("id"): set(_list(f.get("actions")))
+                                for f in _dicts(inventory.get("features"))}
+        self.required = {(sid, f.get("name")) for sid, s in self.screens.items()
+                         for f in _dicts(s.get("inputs")) if f.get("required") is True}
         root = resolve_target(inventory, project_dir) if project_dir else None
         self.sources = SourceChecker(root if root and os.path.isdir(root) else None)
 
@@ -153,6 +324,10 @@ def validate_evaluation(evaluation, project_dir=None, inventory=None, tokens=Non
         inventory, tokens, load_errors = _load_model(evaluation, project_dir)
         errors.extend(load_errors)
     model = Model(inventory, tokens, project_dir) if inventory is not None else None
+    metrics_now = compute(inventory, tokens) if inventory is not None and tokens is not None \
+        else None
+    measured_set = measured(metrics_now) if metrics_now is not None else None
+    primary = {t for t in _list(evaluation.get("primary_tasks")) if isinstance(t, str)}
 
     if not (isinstance(evaluation.get("generated_at"), str) and ISO_RE.match(evaluation["generated_at"])):
         errors.append("%s: generated_at must be an ISO-8601 timestamp" % LABEL)
@@ -280,10 +455,18 @@ def validate_evaluation(evaluation, project_dir=None, inventory=None, tokens=Non
             if not _text(finding.get(key)):
                 errors.append("%s: %s is required" % (fid, key))
         errors.extend(_check_location(fid, finding.get("location"), model))
-        # Rule 9 — one defect, one finding.
-        key = (defect or finding.get("criterion"), subject(finding))
+        if model is not None and isinstance(finding.get("location"), dict):
+            errors.extend(_check_against_model(fid, finding, defect, model, measured_set, primary))
+        # Rule 9 — one defect, one finding; a fragmented cluster is one subject.
+        subj = subject(finding)
+        if defect == "token-fragmentation" and model is not None:
+            token = (finding.get("location") or {}).get("token") \
+                if isinstance(finding.get("location"), dict) else None
+            if token in model.cluster:
+                subj = "cluster=%s" % model.cluster[token]
+        key = (defect or finding.get("criterion"), subj)
         if defect == OTHER:
-            key = (OTHER, finding.get("criterion"), subject(finding))
+            key = (OTHER, finding.get("criterion"), subj)
         if key[-1] is not None:
             if key in subjects:
                 errors.append("%s: the same defect on the same %s as %s — one defect, one finding"
@@ -322,6 +505,22 @@ def validate_evaluation(evaluation, project_dir=None, inventory=None, tokens=Non
     for fid, finding in sorted(by_id.items()):
         if finding.get("axis") in expected and listed.get(fid) != [finding["axis"]]:
             errors.append("%s: is not listed (once) in its axis's finding_ids" % fid)
+    if not isinstance(evaluation.get("routed", []), list):
+        errors.append("%s: routed must be an array" % LABEL)
+    elif inventory is not None:
+        stated = {(r.get("to"), r.get("source")) for r in _dicts(evaluation.get("routed"))}
+        missing = [r for r in routed_from_inventory(inventory)
+                   if (r["to"], r["source"]) not in stated]
+        if missing:
+            errors.append("%s: routed lacks %d item(s) of the inventory (%s) — compile them with "
+                          "ux_evaluation.py --routed" % (LABEL, len(missing),
+                                                        ", ".join(r["source"] for r in missing[:3])))
+    # Rule 9 — every defect the metrics measure is filed.
+    if measured_set is not None and model is not None:
+        for defect, key in sorted(measured_set):
+            if not any(files_defect(defect, key, f, model) for f in objects):
+                errors.append("%s: the metrics measure %s on %s but no finding files it"
+                              % (LABEL, defect, ":".join(str(k) for k in key)))
 
     # Rule 2 — severity bounds.
     for key, score in sorted(scores.items()):
@@ -335,8 +534,8 @@ def validate_evaluation(evaluation, project_dir=None, inventory=None, tokens=Non
     if not isinstance(metrics, dict):
         errors.append("%s: metrics must be the ui_metrics.py output" % LABEL)
         metrics = {}
-    if inventory is not None and tokens is not None:
-        recomputed = compute(inventory, tokens)
+    if metrics_now is not None:
+        recomputed = metrics_now
         if metrics != recomputed:
             differing = sorted(k for k in set(metrics) | set(recomputed)
                                if metrics.get(k) != recomputed.get(k))
@@ -453,7 +652,16 @@ def load_and_validate(project_dir):
 
 
 def main(argv):
-    project_dir = argv[1] if len(argv) > 1 else "."
+    args = [a for a in argv[1:] if not a.startswith("--")]
+    project_dir = args[0] if args else "."
+    if "--routed" in argv[1:]:
+        inventory, _, problems = load(project_dir)
+        if problems:
+            for problem in problems:
+                print(problem, file=sys.stderr)
+            return 1
+        print(json.dumps(routed_from_inventory(inventory), ensure_ascii=False, indent=2))
+        return 0
     evaluation, errors = load_and_validate(project_dir)
     if evaluation is None and not errors:
         print("no %s in %s — nothing to validate" % (LABEL, project_dir))

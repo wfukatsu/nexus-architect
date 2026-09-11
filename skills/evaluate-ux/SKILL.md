@@ -170,6 +170,9 @@ per axis of @rules/ux-evaluation.md §2. Each prompt carries:
 
 - the paths of the inventory, the token file, `work/ux-evaluation/metrics.json`, the baseline if any,
   and the runtime evidence files if any;
+- the primary tasks (every evaluator: A escalates an unlabeled required input on a primary task's
+  path to `critical`) and the Open Questions about the UI — "cite the `OQ-` id; do not assert what
+  it leaves open";
 - the output language: "write rationale, titles, descriptions and recommendations in
   <OUTPUT_LANGUAGE>; labels and messages stay verbatim";
 - **its cap** — "your score must not exceed <cap>" — and the severity bounds and score bands of §2;
@@ -189,7 +192,15 @@ per axis of @rules/ux-evaluation.md §2. Each prompt carries:
     axis owns (a redundant input seen from H) is left to that axis;
   - one finding per defect and subject; the subject is the most specific of action, input,
     component, token, feature, screen — set `location.action` / `location.input` when that is what
-    the finding is about, and keep `component` / `feature` to ones that belong to the screen;
+    the finding is about, and keep `component` / `feature` to ones that belong to the screen; a
+    shared-chrome (`global`) action is filed once, on its feature or chrome component; a fragmented
+    cluster once, on its dominant token;
+  - every defect the metrics measure on your axis is filed, where the metrics show it (§5 What the
+    metrics settle);
+  - two elements co-exist only when they render in the same state — read the template's branches
+    before claiming a variant or a duplicate;
+  - `source` is a file of the located screen (its template, components, handlers, scripts,
+    stylesheets); for a dead end or a missing way in, the template where the exit would be;
   - a severity other than the defect's default carries a one-line `severity_reason`;
   - quote numbers as `metrics.<path>` (value); state none the metrics do not give;
   - `runtime` only when the claim is observable in a capture of that screen, with `runtime_outcome`
@@ -220,13 +231,22 @@ per axis of @rules/ux-evaluation.md §2. Each prompt carries:
    owner already has the same defect on the same subject, in which case it is dropped.
 3. **Deduplicate** by (defect, subject), keeping the higher severity and merging the evidence;
    `other` findings deduplicate by (criterion, subject).
-4. **Calibrate** — a severity that differs from the defect's default without a `severity_reason`
+4. **Verify against the source** — open each finding's `source` at its line and check the claim:
+   that the element exists there, renders in the state the finding describes, and does what the
+   finding says. A finding the source contradicts moves to `withdrawn` with the reason and the
+   source as its `evidence_ref`. Evaluators judge from summaries; this is where a claim about two
+   links that never render together is caught.
+5. **Routed items** — compile them from the inventory, never by judgement:
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/ux_evaluation.py" <project_dir> --routed > work/ux-evaluation/routed.json
+   ```
+6. **Calibrate** — a severity that differs from the defect's default without a `severity_reason`
    is reset to the default.
-5. Assign ids `UX-001…` ordered by severity (`critical` first), then axis (`H A E C N`), then subject;
+7. Assign ids `UX-001…` ordered by severity (`critical` first), then axis (`H A E C N`), then subject;
    set each axis's `finding_ids`.
-6. **Score** — each axis takes the lowest of the evaluator's score, its cap, and its severity bound
+8. **Score** — each axis takes the lowest of the evaluator's score, its cap, and its severity bound
    (`critical` → 2, `major` → 3, `minor` → 4); a lowered score's rationale says which fence applied.
-7. Compute the index and the band by the formula — the parent's job, not a sub-agent's:
+9. Compute the index and the band by the formula — the parent's job, not a sub-agent's:
    `UXI = (0.30 × H + 0.25 × A + 0.20 × E + 0.15 × C + 0.10 × N) / 5 × 100`, rounded to 0.1.
 
 ### Step 7: Write and validate the evaluation
@@ -261,8 +281,8 @@ python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/ux_evaluation.py" <project_dir>
 ```
 
 It asserts the ten rules of @rules/ux-evaluation.md §6 — among them that every finding's defect and
-criterion belong to its axis, that locations exist and agree, that no two findings share a defect and
-a subject, that every score stays within its cap and its severity bound, that the UXI is the
+criterion belong to its axis, that locations exist and agree with the metrics, that no two findings
+share a defect and a subject and every measured defect is filed, that `routed` is complete, that every score stays within its cap and its severity bound, that the UXI is the
 formula's value and that the metrics are exactly what `ui_metrics.py` computes now. Fix the
 evaluation until it exits 0.
 
@@ -281,7 +301,7 @@ another language:
   keyboard users), the fix.
 - `## Findings by Axis` — the rest, grouped by axis and defect.
 - `## Screen Heatmap` — screens × axes with the number of findings per cell, plus one row for
-  findings located only on a token or component.
+  findings located only on a token, component or feature.
 - `## Key Metrics` — the figures the scores rest on, quoted from the metrics.
 - `## Improvement Priorities` — in the terms `/architect:integrate-evaluations` merges:
   short-term (quick wins) and medium-to-long-term (structural improvements).
