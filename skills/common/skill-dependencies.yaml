@@ -38,7 +38,7 @@ phases:
   analyze-ui:
     category: investigation
     # UIS-/UIC-/UIF- are architect-originated as-is facts: the screens, components and features of
-    # the existing UI, recorded with empty upstream (rules/ui-analysis.md §9). SCR-/CMP- stay the
+    # the existing UI, recorded with empty upstream (rules/ui-analysis.md §7). SCR-/CMP- stay the
     # product manifest's — those name to-be mocks and design-system components, not as-is code.
     id_prefix: [UIS-, UIC-, UIF-]
     depends_on: [investigate]

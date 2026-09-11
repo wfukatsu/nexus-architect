@@ -97,10 +97,29 @@ check("global navigation to a non-entry screen is an exit",
       "UIS-004" not in compute(inv, ui_fixture.tokens())["navigation"]["dead_ends"])
 
 print("features, input burden, consistency")
-check("a feature's steps are its actions", m["features"]["UIF-003"]["steps"] == 1)
+check("a feature counts only the visible inputs its actions send",
+      m["features"]["UIF-003"] == {"occurrences": 1, "screens": 1, "inputs": 2,
+                                   "required_inputs": 2}, m["features"]["UIF-003"])
+check("a hidden input a delete sends is not typed", m["features"]["UIF-002"]["inputs"] == 0)
+check("a global command counts every occurrence", m["features"]["UIF-004"]["occurrences"] == 3)
+check("a task's steps are the screens on its path",
+      {k: v["steps"] for k, v in m["tasks"].items()} == {"Log in": 2, "Buy": 3, "Log out": 2},
+      m["tasks"])
+check("a task's inputs are what its features send on its path",
+      m["tasks"]["Buy"]["inputs"] == 2 and m["tasks"]["Log in"]["inputs"] == 2, m["tasks"])
 check("input burden totals", m["input_burden"] == {
-    "avg_visible_inputs": 0.8, "max_visible_inputs": 2, "max_feature_steps": 1,
+    "avg_visible_inputs": 0.8, "max_visible_inputs": 2, "max_task_steps": 3, "max_task_inputs": 2,
     "redundant_inputs": 1, "client_only_validations": 1}, m["input_burden"])
+variants = ui_fixture.inventory()
+screen(variants, "UIS-005")["actions"][0]["label"] = "Back to menu"
+screen(variants, "UIS-003")["actions"].append({
+    "id": "UIS-003.A4", "label": "Menu", "command": None, "kind": "link", "scope": "screen",
+    "method": "GET", "endpoint": None, "target": "UIS-002", "destructive": False,
+    "confirmation": False, "unresolved": None, "source": "web/cart.jsp:35"})
+check("one destination under two names is reported, and not capped",
+      compute(variants, ui_fixture.tokens())["consistency"]["destination_label_variants"]
+      == [{"target": "UIS-002", "labels": ["Back to menu", "Menu"]}]
+      and compute(variants, ui_fixture.tokens())["caps"] == ui_fixture.EXPECTED_CAPS)
 con = m["consistency"]
 check("one fragmented cluster: two shades of the primary blue",
       con["fragmented_clusters"] == ["color:primary-blue"], con["fragmented_clusters"])
@@ -126,7 +145,7 @@ check("a clean UI caps every axis at 5", axis_caps(clean) == dict.fromkeys("HAEC
 many = json.loads(json.dumps(clean))
 many["per_screen"]["UIS-003"]["destructive_without_confirmation"] = ["a", "b", "c"]
 many["accessibility"]["screens_with_violations"] = 5
-many["input_burden"].update(redundant_inputs=2, max_feature_steps=6, max_visible_inputs=13)
+many["input_burden"].update(redundant_inputs=2, max_task_steps=6, max_visible_inputs=13)
 many["consistency"].update(fragmented_clusters=["a", "b", "c"], label_drift=[{}],
                            components_with_duplicates=["x"])
 many["navigation"].update(orphans=["x"], dead_ends=["y"], unreachable_not_orphan=["z"],

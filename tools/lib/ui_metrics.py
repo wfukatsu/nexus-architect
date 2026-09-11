@@ -27,7 +27,7 @@ from ui_inventory import (  # noqa: E402
 
 CONTRAST_MINIMUM = {"normal": 4.5, "large": 3.0}
 UNLABELED = ("placeholder-only", "none")
-MAX_FEATURE_STEPS = 5
+MAX_TASK_STEPS = 5
 MAX_VISIBLE_INPUTS = 12
 MAX_COLORS = 12
 MAX_DEPTH = 4
@@ -161,6 +161,15 @@ def _consistency(inventory, tokens):
                 labels.setdefault(action["command"], set()).add(action.get("label"))
     drift = [{"command": command, "labels": sorted(str(l) for l in found)}
              for command, found in sorted(labels.items()) if len(found) > 1]
+    # Navigation to one destination under several names. Reported, not capped: "continue
+    # shopping" and "find products" may both be right in their context — the evaluator judges.
+    destinations = {}
+    for screen in _dicts(inventory.get("screens")):
+        for action in _dicts(screen.get("actions")):
+            if not action.get("command") and isinstance(action.get("target"), str):
+                destinations.setdefault(action["target"], set()).add(action.get("label"))
+    variants = [{"target": target, "labels": sorted(str(l) for l in found)}
+                for target, found in sorted(destinations.items()) if len(found) > 1]
     return {
         "colors": sum(1 for t in raw.values() if t.get("$type") == "color"),
         "font_sizes": count("font.size."),
@@ -168,20 +177,54 @@ def _consistency(inventory, tokens):
         "radius_values": count("radius."),
         "fragmented_clusters": fragmented,
         "label_drift": drift,
+        "destination_label_variants": variants,
         "components_with_duplicates": sorted(
             c.get("id") for c in _dicts(inventory.get("components")) if _list(c.get("duplicates"))),
     }
 
 
-def _features(inventory, per_screen):
+def _sent(inventory):
+    """{action id: (screen id, visible inputs sent, required visible inputs sent)} for every
+    submit/AJAX action — what a user has to type to fire it. Hidden inputs are not typed."""
+    out = {}
+    for screen in _dicts(inventory.get("screens")):
+        fields = {f.get("name"): f for f in _dicts(screen.get("inputs"))}
+        for action in _dicts(screen.get("actions")):
+            if action.get("kind") not in ("submit", "ajax"):
+                continue
+            visible = [fields[n] for n in _list(action.get("inputs"))
+                       if n in fields and fields[n].get("control") != "hidden"]
+            out[action.get("id")] = (screen.get("id"), len(visible),
+                                     sum(1 for f in visible if f.get("required") is True))
+    return out
+
+
+def _features(inventory, sent):
     out = {}
     for feature in _dicts(inventory.get("features")):
-        screens = [s for s in _list(feature.get("screens")) if s in per_screen]
+        mine = [sent[a] for a in _list(feature.get("actions")) if a in sent]
         out[feature.get("id")] = {
-            "steps": len(_list(feature.get("actions"))),
-            "screens": len(screens),
-            "inputs": sum(per_screen[s]["inputs"] for s in screens),
-            "required_inputs": sum(per_screen[s]["required_inputs"] for s in screens),
+            "occurrences": len(_list(feature.get("actions"))),
+            "screens": len(_list(feature.get("screens"))),
+            "inputs": sum(m[1] for m in mine),
+            "required_inputs": sum(m[2] for m in mine),
+        }
+    return out
+
+
+def _tasks(inventory, sent):
+    """@rules/ui-analysis.md §6 — a task's steps are the screens on its path; its inputs are what
+    its features' actions on that path make the user type."""
+    features = {f.get("id"): f for f in _dicts(inventory.get("features"))}
+    out = {}
+    for task in _dicts(inventory.get("tasks")):
+        path = set(_list(task.get("screens")))
+        mine = [sent[a] for fid in _list(task.get("features")) if fid in features
+                for a in _list(features[fid].get("actions")) if a in sent and sent[a][0] in path]
+        out[task.get("name")] = {
+            "steps": len(_list(task.get("screens"))),
+            "inputs": sum(m[1] for m in mine),
+            "required_inputs": sum(m[2] for m in mine),
         }
     return out
 
@@ -202,7 +245,7 @@ def axis_caps(metrics):
         3 if share <= 0.25 else 2 if share <= 0.50 else 1
 
     e = 5 - sum((burden["redundant_inputs"] >= 1,
-                 burden["max_feature_steps"] > MAX_FEATURE_STEPS,
+                 burden["max_task_steps"] > MAX_TASK_STEPS,
                  burden["max_visible_inputs"] > MAX_VISIBLE_INPUTS))
     c = 5 - sum((len(con["fragmented_clusters"]) >= 1,
                  len(con["fragmented_clusters"]) >= 3 or con["colors"] > MAX_COLORS,
@@ -222,7 +265,9 @@ def compute(inventory, tokens):
     screens = _dicts(inventory.get("screens"))
     per_screen = {s.get("id"): _screen_metrics(s) for s in screens}
     navigation = _navigation(screens, per_screen)
-    features = _features(inventory, per_screen)
+    sent = _sent(inventory)
+    features = _features(inventory, sent)
+    tasks = _tasks(inventory, sent)
     violating = sorted(sid for sid, m in per_screen.items()
                        if m["unlabeled_inputs"] or m["images_without_alt"] or m["lang_missing"]
                        or m["low_contrast_pairs"])
@@ -235,6 +280,7 @@ def compute(inventory, tokens):
         "per_screen": per_screen,
         "navigation": navigation,
         "features": features,
+        "tasks": tasks,
         "accessibility": {
             "screens_with_violations": len(violating),
             "violating_screens": violating,
@@ -246,7 +292,8 @@ def compute(inventory, tokens):
         "input_burden": {
             "avg_visible_inputs": round(sum(visible) / float(len(visible)), 2) if visible else 0.0,
             "max_visible_inputs": max(visible) if visible else 0,
-            "max_feature_steps": max((f["steps"] for f in features.values()), default=0),
+            "max_task_steps": max((t["steps"] for t in tasks.values()), default=0),
+            "max_task_inputs": max((t["inputs"] for t in tasks.values()), default=0),
             "redundant_inputs": sum(len(m["redundant_inputs"]) for m in per_screen.values()),
             "client_only_validations": sum(len(m["client_only_validations"])
                                            for m in per_screen.values()),

@@ -34,16 +34,20 @@ INVENTORY_PATH = "reports/before/shop/ui-inventory.json"
 
 
 def _action(aid, label, kind, target=None, endpoint=None, command=None, scope="screen",
-            destructive=False, confirmation=False, source="web/menu.jsp:5"):
-    return {"id": aid, "label": label, "command": command, "kind": kind, "scope": scope,
-            "method": "POST" if kind == "submit" else "GET", "endpoint": endpoint,
-            "target": target, "destructive": destructive, "confirmation": confirmation,
-            "unresolved": None, "source": source}
+            destructive=False, confirmation=False, source="web/menu.jsp:5", inputs=None):
+    action = {"id": aid, "label": label, "command": command, "kind": kind, "scope": scope,
+              "method": "POST" if kind == "submit" else "GET", "endpoint": endpoint,
+              "target": target, "destructive": destructive, "confirmation": confirmation,
+              "unresolved": None, "source": source}
+    if inputs is not None:
+        action["inputs"] = list(inputs)
+    return action
 
 
 def _access(roles=("customer",), guards=()):
-    return {"authentication": "required" if roles else "none", "roles": list(roles),
-            "guards": [dict(g) for g in guards]}
+    """`roles=()` is a screen that needs no authentication: its one role is `anonymous`."""
+    return {"authentication": "required" if roles else "none",
+            "roles": list(roles) or ["anonymous"], "guards": [dict(g) for g in guards]}
 
 
 _INVENTORY = {
@@ -72,7 +76,7 @@ _INVENTORY = {
             "outputs": [],
             "actions": [_action("UIS-001.A1", "Log in", "submit", target="UIS-002",
                                 endpoint="POST /login", command="LogIn",
-                                source="web/login.jsp:12")],
+                                source="web/login.jsp:12", inputs=["userId", "password"])],
             "messages": [{"kind": "error", "text": "Invalid user ID or password",
                           "source": "web/login.jsp:6"}],
             "components": [],
@@ -113,7 +117,7 @@ _INVENTORY = {
                                  "source": "js/cart.js:9"}],
                  "prefilled_from": None, "redundant_with": "the logged-in user's e-mail",
                  "source": "web/cart.jsp:16"},
-                {"name": "csrf", "label": None, "label_association": "none", "control": "hidden",
+                {"name": "csrf", "label": None, "label_association": "n/a", "control": "hidden",
                  "type": "string", "required": True, "validation": [], "prefilled_from": "session",
                  "redundant_with": None, "source": "web/cart.jsp:18"},
             ],
@@ -124,9 +128,10 @@ _INVENTORY = {
                         scope="global", source="web/header.jspf:4"),
                 _action("UIS-003.A2", "Remove", "submit", target="UIS-003",
                         endpoint="POST /cart/remove", command="RemoveCartLine", destructive=True,
-                        source="web/cart.jsp:24"),
+                        source="web/cart.jsp:24", inputs=["csrf"]),
                 _action("UIS-003.A3", "Order", "submit", target="UIS-004",
-                        endpoint="POST /order", command="PlaceOrder", source="web/cart.jsp:30"),
+                        endpoint="POST /order", command="PlaceOrder", source="web/cart.jsp:30",
+                        inputs=["quantity", "email", "csrf"]),
             ],
             "messages": [],
             "components": ["UIC-001", "UIC-002", "UIC-003"],
@@ -181,7 +186,20 @@ _INVENTORY = {
          "entities": ["Cart"], "handlers": ["CartServlet#doPost"]},
         {"id": "UIF-003", "name": "Place an order", "command": "PlaceOrder",
          "actions": ["UIS-003.A3"], "screens": ["UIS-003"], "actors": ["customer"],
-         "entities": ["Order"], "handlers": ["CartServlet#doPost"]},
+         "entities": ["Order"], "entity_operations": {"Order": "C", "Cart": "RD"},
+         "handlers": ["CartServlet#doPost"]},
+        {"id": "UIF-004", "name": "Log out", "command": "LogOut",
+         "actions": ["UIS-002.A2", "UIS-003.A1", "UIS-004.A1"],
+         "screens": ["UIS-002", "UIS-003", "UIS-004"], "actors": ["customer"],
+         "entities": [], "handlers": ["LogoutServlet#doGet"]},
+    ],
+    "tasks": [
+        {"name": "Log in", "goal": "Reach the menu", "features": ["UIF-001"],
+         "screens": ["UIS-001", "UIS-002"]},
+        {"name": "Buy", "goal": "Order what is in the cart", "features": ["UIF-002", "UIF-003"],
+         "screens": ["UIS-002", "UIS-003", "UIS-004"]},
+        {"name": "Log out", "goal": "End the session", "features": ["UIF-004"],
+         "screens": ["UIS-002", "UIS-001"]},
     ],
     "coverage": {"template_files": 7, "screens": 5, "unresolved": []},
 }

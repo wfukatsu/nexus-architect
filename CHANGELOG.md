@@ -23,7 +23,7 @@ all four plugins (`product`, `architect`, `scalardb`, `infra`) are released toge
   four views: a screen catalog with the transition diagram and screen-to-code map, features,
   components, and a design-system extract that `/product:design-system --import` takes as is.
   `UIS-`/`UIC-`/`UIF-` are registered prefixes; `rules/ui-analysis.md` states what counts, detection
-  per UI technology, the shape and nine well-formedness rules, and `tools/lib/ui_inventory.py`
+  per UI technology, the shape and ten well-formedness rules, and `tools/lib/ui_inventory.py`
   enforces them — including that every cited source line exists in the analysed code.
 - **`/architect:evaluate-ux` — a UX index that cannot carry an unmeasured number.** Five axes
   (Nielsen heuristics 30%, WCAG 2.2 accessibility 25%, task efficiency 20%, consistency 15%,

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Validate the UI inventory `/architect:analyze-ui` emits.
 
-The nine well-formedness rules of @rules/ui-analysis.md §4 are checked here rather than trusted
+The ten well-formedness rules of @rules/ui-analysis.md §4 are checked here rather than trusted
 to prose: an inventory that lists a transition to a screen nobody declared, a component whose
-`used_by` disagrees with the screens that use it, or a source line past the end of its file reads
-perfectly well and is wrong — and everything downstream (`evaluate-ux`, the actor matrix, the
-legacy requirements) inherits the error.
+`used_by` disagrees with the screens that use it, a submit button no feature owns, a task whose
+path skips a screen, or a source line past the end of its file reads perfectly well and is wrong —
+and everything downstream (`evaluate-ux`, the actor matrix, the legacy requirements) inherits it.
 
 The inventory lives at `reports/before/<project>/ui-inventory.json`; every `source` in it is
 relative to its `target_path` (resolved against the project directory unless absolute), so the
@@ -33,21 +33,24 @@ SCREEN_RE = re.compile(r"^UIS-\d{3,}$")
 COMPONENT_RE = re.compile(r"^UIC-\d{3,}$")
 FEATURE_RE = re.compile(r"^UIF-\d{3,}$")
 ACTION_RE = re.compile(r"^(UIS-\d{3,})\.A\d+$")
-HEX_RE = re.compile(r"^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
+OQ_RE = re.compile(r"^OQ-\d{3,}$")
+HEX_RE = re.compile(r"^#[0-9a-f]{6}$")
 SOURCE_RE = re.compile(r"^(?P<path>[^:]+?)(?::(?P<start>\d+)(?:-(?P<end>\d+))?)?$")
 ALIAS_RE = re.compile(r"^\{([^{}]+)\}$")
 
 CONTROLS = ("text", "password", "email", "number", "tel", "date", "select", "radio",
             "checkbox", "textarea", "file", "hidden", "other")
 DATA_TYPES = ("string", "integer", "decimal", "date", "boolean", "enum", "file", "other")
-LABEL_ASSOCIATIONS = ("for", "wrapping", "aria", "placeholder-only", "none")
+LABEL_ASSOCIATIONS = ("for", "wrapping", "aria", "legend", "placeholder-only", "none")
+HIDDEN_ASSOCIATION = "n/a"
 VALIDATION_RULES = ("required", "min", "max", "minLength", "maxLength", "pattern", "enum",
                     "format", "custom")
 WHERE = ("client", "server", "both")
+ENFORCEMENT = ("reject", "clamp", "ignore")
 OUTPUT_KINDS = ("field", "table", "list", "message", "image", "chart", "download", "other")
 MESSAGE_KINDS = ("error", "warning", "info", "success")
 ACTION_KINDS = ("submit", "link", "button", "ajax", "other")
-FEATURE_ACTION_KINDS = ("submit", "ajax")
+SENDING_KINDS = ("submit", "ajax")
 ACTION_SCOPES = ("screen", "global")
 GUARD_KINDS = ("view", "controller", "filter", "config", "route")
 AUTHENTICATION = ("required", "none")
@@ -55,9 +58,11 @@ LOGIC_KINDS = ("calculation", "validation", "authorization", "workflow", "format
                "data-access", "other")
 LOGIC_HOMES = ("domain", "application", "presentation")
 COMPONENT_KINDS = ("include", "tag", "fragment", "component", "macro", "css-class",
-                   "inline-style", "other")
+                   "inline-style", "copy", "other")
+DUPLICATE_KINDS = ("inline-style", "copy")
 LEVELS = ("atom", "molecule", "organism", "template")
 TEXT_SIZES = ("normal", "large")
+CRUD = set("CRUD")
 TOKEN_TYPES = ("color", "dimension", "fontFamily", "fontWeight", "number", "shadow", "duration",
                "typography", "border", "cubicBezier")
 
@@ -72,6 +77,11 @@ def _list(value):
 
 def _dicts(value):
     return [v for v in _list(value) if isinstance(v, dict)]
+
+
+def _texts(value):
+    """A non-empty list of non-empty strings."""
+    return isinstance(value, list) and bool(value) and all(_text(v) for v in value)
 
 
 # ------------------------------------------------------------------------------- tokens
@@ -100,7 +110,7 @@ def is_alias(token):
     return isinstance(token.get("$value"), str) and bool(ALIAS_RE.match(token["$value"]))
 
 
-def validate_tokens(tokens, label="ui-design-tokens.json"):
+def validate_tokens(tokens, label=LABEL_TOKENS):
     """Rule 9, the file half: valid DTCG with provenance on every raw token."""
     if not isinstance(tokens, dict):
         return ["%s: must be an object" % label], {}
@@ -120,7 +130,8 @@ def validate_tokens(tokens, label="ui-design-tokens.json"):
         if value in (None, "", [], {}):
             errors.append("%s: %s.$value is empty" % (label, path))
         if token.get("$type") == "color" and not (isinstance(value, str) and HEX_RE.match(value)):
-            errors.append("%s: %s.$value %r is not a hex color" % (label, path, value))
+            errors.append("%s: %s.$value %r is not a 6-digit lowercase hex color"
+                          % (label, path, value))
         ext = token_extension(token)
         if not [s for s in _list(ext.get("sources")) if _text(s)]:
             errors.append("%s: %s has no $extensions.%s.sources — a raw token names where it is "
@@ -138,7 +149,6 @@ def token_sources(leaves):
             continue
         for source in _list(token_extension(token).get("sources")):
             yield "%s (token %s)" % (LABEL_TOKENS, path), source
-
 
 
 # ------------------------------------------------------------------------------ sources
@@ -194,13 +204,21 @@ def resolve_target(inventory, project_dir, target_root=None):
 
 
 # ------------------------------------------------------------------------------ screens
+def _validate_guard(where, guard, *, needs_roles):
+    if not isinstance(guard, dict) or guard.get("kind") not in GUARD_KINDS:
+        return ["%s.kind must be one of %s" % (where, ", ".join(GUARD_KINDS))]
+    if needs_roles and not _texts(guard.get("roles")):
+        return ["%s.roles must name the roles the check lets through" % where]
+    return []
+
+
 def _validate_screen(screen, index, screen_ids, component_ids):
     errors = []
     sid = screen.get("id") if _text(screen.get("id")) else "screens[%d]" % index
     # Rule 1 — ids.
     if not (isinstance(screen.get("id"), str) and SCREEN_RE.match(screen["id"])):
         errors.append("%s: id must be UIS-###" % sid)
-    # Rule 2 — name, source, route.
+    # Rule 2 — name, source, route, entry, access.
     if not _text(screen.get("name")):
         errors.append("%s: name is required" % sid)
     if not _text(screen.get("source")):
@@ -209,21 +227,24 @@ def _validate_screen(screen, index, screen_ids, component_ids):
         errors.append("%s: route is required unless route_unresolved says why" % sid)
     if not isinstance(screen.get("entry"), bool):
         errors.append("%s: entry must be a boolean" % sid)
-
     access = screen.get("access")
     if not isinstance(access, dict):
         errors.append("%s: access must be an object" % sid)
     else:
         if access.get("authentication") not in AUTHENTICATION:
             errors.append("%s: access.authentication must be required or none" % sid)
-        if not isinstance(access.get("roles"), list):
-            errors.append("%s: access.roles must be an array" % sid)
+        if not _texts(access.get("roles")):
+            errors.append("%s: access.roles must name at least one role (anonymous when no "
+                          "authentication is needed)" % sid)
         for g, guard in enumerate(_list(access.get("guards"))):
-            if not isinstance(guard, dict) or guard.get("kind") not in GUARD_KINDS:
-                errors.append("%s: access.guards[%d].kind must be one of %s"
-                              % (sid, g, ", ".join(GUARD_KINDS)))
+            errors.extend(_validate_guard("%s: access.guards[%d]" % (sid, g), guard,
+                                          needs_roles=False))
+    for h, handler in enumerate(_list(screen.get("handlers"))):
+        if not isinstance(handler, dict) or not _text(handler.get("ref")):
+            errors.append("%s.handlers[%d]: ref is required" % (sid, h))
 
     # Rule 3 — typed inputs and accessibility facts.
+    names = set()
     for i, field in enumerate(_list(screen.get("inputs"))):
         where = "%s.inputs[%d]" % (sid, i)
         if not isinstance(field, dict):
@@ -231,11 +252,17 @@ def _validate_screen(screen, index, screen_ids, component_ids):
             continue
         if not _text(field.get("name")):
             errors.append("%s: name is required" % where)
+        else:
+            names.add(field["name"])
         if field.get("control") not in CONTROLS:
             errors.append("%s: control must be one of %s" % (where, ", ".join(CONTROLS)))
         if field.get("type") not in DATA_TYPES:
             errors.append("%s: type must be one of %s" % (where, ", ".join(DATA_TYPES)))
-        if field.get("label_association") not in LABEL_ASSOCIATIONS:
+        association = field.get("label_association")
+        if association == HIDDEN_ASSOCIATION:
+            if field.get("control") != "hidden":
+                errors.append("%s: label_association n/a is only for hidden controls" % where)
+        elif association not in LABEL_ASSOCIATIONS:
             errors.append("%s: label_association must be one of %s"
                           % (where, ", ".join(LABEL_ASSOCIATIONS)))
         if not isinstance(field.get("required"), bool):
@@ -243,30 +270,43 @@ def _validate_screen(screen, index, screen_ids, component_ids):
         if not isinstance(field.get("validation", []), list):
             errors.append("%s: validation must be an array" % where)
         for v, rule in enumerate(_list(field.get("validation"))):
+            at = "%s.validation[%d]" % (where, v)
             if not isinstance(rule, dict) or rule.get("rule") not in VALIDATION_RULES \
                     or rule.get("where") not in WHERE:
-                errors.append("%s.validation[%d]: rule and where (client|server|both) are required"
-                              % (where, v))
+                errors.append("%s: rule and where (client|server|both) are required" % at)
+                continue
+            if rule.get("enforcement", "reject") not in ENFORCEMENT:
+                errors.append("%s: enforcement must be one of %s" % (at, ", ".join(ENFORCEMENT)))
+            if rule["where"] == "both" and not _text(rule.get("client_source")):
+                errors.append("%s: a rule enforced on both sides cites the client check too "
+                              "(client_source)" % at)
     for i, image in enumerate(_list(screen.get("images"))):
         if not isinstance(image, dict) or "alt" not in image \
                 or not (image["alt"] is None or isinstance(image["alt"], str)):
             errors.append("%s.images[%d]: alt must be stated, as a string or null" % (sid, i))
+        elif not isinstance(image.get("decorative"), bool):
+            errors.append("%s.images[%d]: decorative must be a boolean" % (sid, i))
+    if "lang" not in screen or not (screen["lang"] is None or _text(screen["lang"])):
+        errors.append("%s: lang must be stated, as a language code or null" % sid)
     for i, pair in enumerate(_list(screen.get("color_pairs"))):
         if not isinstance(pair, dict) or not all(
                 isinstance(pair.get(k), str) and HEX_RE.match(pair[k]) for k in ("fg", "bg")):
-            errors.append("%s.color_pairs[%d]: fg and bg must be hex colors" % (sid, i))
+            errors.append("%s.color_pairs[%d]: fg and bg must be 6-digit lowercase hex colors"
+                          % (sid, i))
         elif pair.get("text", "normal") not in TEXT_SIZES:
             errors.append("%s.color_pairs[%d]: text must be normal or large" % (sid, i))
     for i, output in enumerate(_list(screen.get("outputs"))):
         if not isinstance(output, dict) or output.get("kind") not in OUTPUT_KINDS \
                 or not _text(output.get("name")):
             errors.append("%s.outputs[%d]: name and kind are required" % (sid, i))
+        elif not all(isinstance(f, str) for f in _list(output.get("fields"))):
+            errors.append("%s.outputs[%d]: fields are field names" % (sid, i))
     for i, message in enumerate(_list(screen.get("messages"))):
         if not isinstance(message, dict) or message.get("kind") not in MESSAGE_KINDS \
                 or not _text(message.get("text")):
             errors.append("%s.messages[%d]: kind and text are required" % (sid, i))
 
-    # Rule 4 — every action resolves.
+    # Rule 4 — every action resolves; Rule 6 (the action half) — senders carry a command.
     for i, action in enumerate(_list(screen.get("actions"))):
         where = "%s.actions[%d]" % (sid, i)
         if not isinstance(action, dict):
@@ -292,6 +332,21 @@ def _validate_screen(screen, index, screen_ids, component_ids):
                 and not _text(action.get("unresolved")):
             errors.append("%s: resolves to neither a target screen nor an endpoint, and says "
                           "nothing about why (unresolved)" % where)
+        command = action.get("command")
+        if command is not None and not _text(command):
+            errors.append("%s: command must be a verb-first name or null" % where)
+        if action.get("kind") in SENDING_KINDS:
+            if not _text(command):
+                errors.append("%s: a %s action changes something and must carry a command"
+                              % (where, action["kind"]))
+            if not isinstance(action.get("inputs"), list):
+                errors.append("%s: a %s action lists the inputs it sends (inputs, possibly [])"
+                              % (where, action["kind"]))
+        for name in _list(action.get("inputs")):
+            if not isinstance(name, str) or name not in names:
+                errors.append("%s: sends %r, which is not an input of %s" % (where, name, sid))
+        if "guard" in action and action["guard"] is not None:
+            errors.extend(_validate_guard("%s: guard" % where, action["guard"], needs_roles=True))
 
     # Rule 5 (the screen half) — listed components are declared.
     for cid in _list(screen.get("components")):
@@ -309,21 +364,26 @@ def _validate_screen(screen, index, screen_ids, component_ids):
 
 
 def _screen_sources(screen, sid):
-    yield "%s" % sid, screen.get("source")
+    """Rule 8 — every place a screen cites code. Elements that must carry a source yield it even
+    when it is missing, so the checker reports the omission."""
+    yield sid, screen.get("source")
     for i, handler in enumerate(_dicts(screen.get("handlers"))):
-        if "source" in handler:
-            yield "%s.handlers[%d]" % (sid, i), handler.get("source")
+        yield "%s.handlers[%d]" % (sid, i), handler.get("source")
     access = screen.get("access") if isinstance(screen.get("access"), dict) else {}
     for i, guard in enumerate(_dicts(access.get("guards"))):
         yield "%s.access.guards[%d]" % (sid, i), guard.get("source")
     for key in ("inputs", "outputs", "actions", "messages", "embedded_logic", "images",
                 "color_pairs"):
         for i, item in enumerate(_dicts(screen.get(key))):
-            if key in ("inputs", "embedded_logic") or "source" in item:
-                yield "%s.%s[%d]" % (sid, key, i), item.get("source")
+            yield "%s.%s[%d]" % (sid, key, i), item.get("source")
             if key == "inputs":
                 for v, rule in enumerate(_dicts(item.get("validation"))):
                     yield "%s.inputs[%d].validation[%d]" % (sid, i, v), rule.get("source")
+                    if _text(rule.get("client_source")):
+                        yield ("%s.inputs[%d].validation[%d].client_source" % (sid, i, v),
+                               rule["client_source"])
+            if key == "actions" and isinstance(item.get("guard"), dict):
+                yield "%s.actions[%d].guard" % (sid, i), item["guard"].get("source")
 
 
 # ----------------------------------------------------------------------------- manifest
@@ -344,21 +404,25 @@ def validate_inventory(inventory, project_dir=None, target_root=None, check_sour
     for key in ("project", "target_path"):
         if not _text(inventory.get(key)):
             errors.append("%s: %s is required" % (LABEL, key))
-    for key in ("components", "features"):
+    for key in ("components", "features", "tasks"):
         if not isinstance(inventory.get(key, []), list):
             errors.append("%s: %s must be an array" % (LABEL, key))
 
     screen_objs = [s for s in screens if isinstance(s, dict)]
     components = _dicts(inventory.get("components"))
     features = _dicts(inventory.get("features"))
+    tasks = _dicts(inventory.get("tasks"))
     screen_ids = {s.get("id") for s in screen_objs if _text(s.get("id"))}
     component_ids = {c.get("id") for c in components if _text(c.get("id"))}
+    feature_ids = {f.get("id") for f in features if _text(f.get("id"))}
 
     # Rule 1 — unique ids, across every kind.
     for kind, items in (("screen", screen_objs), ("component", components),
                         ("feature", features)):
         if duplicates([i.get("id") for i in items]):
             errors.append("%s: duplicate %s id" % (LABEL, kind))
+    if duplicates([t.get("name") for t in tasks]):
+        errors.append("%s: duplicate task name" % LABEL)
     action_ids = [a.get("id") for s in screen_objs for a in _dicts(s.get("actions"))]
     if duplicates(action_ids):
         errors.append("%s: duplicate action id" % LABEL)
@@ -368,6 +432,10 @@ def validate_inventory(inventory, project_dir=None, target_root=None, check_sour
             errors.append("%s: screens[%d] must be an object" % (LABEL, index))
             continue
         errors.extend(_validate_screen(screen, index, screen_ids, component_ids))
+    # Rule 2 — navigation needs somewhere to start.
+    if not any(s.get("entry") is True for s in screen_objs):
+        errors.append("%s: no screen is an entry — depth and reachability cannot be measured"
+                      % LABEL)
 
     # Rule 5 — component references agree both ways.
     listed_by = {}
@@ -405,11 +473,18 @@ def validate_inventory(inventory, project_dir=None, target_root=None, check_sour
                     or other == component.get("id"):
                 errors.append("%s: duplicates names %r, which is not another declared component"
                               % (cid, other))
+        if component.get("kind") in DUPLICATE_KINDS and not _list(component.get("duplicates")):
+            errors.append("%s: an %s component names the component it rebuilds (duplicates)"
+                          % (cid, component.get("kind")))
 
-    # Rule 6 — features and the submit/AJAX actions they own.
+    # Rule 6 — commands and features agree.
+    # Screens whose id is not a string are already reported (rule 1); leaving them out here keeps
+    # the id sets below hashable instead of crashing on the malformed entry.
+    named = [s for s in screen_objs if isinstance(s.get("id"), str)]
     actions = {a.get("id"): (s.get("id"), a)
-               for s in screen_objs for a in _dicts(s.get("actions")) if _text(a.get("id"))}
+               for s in named for a in _dicts(s.get("actions")) if _text(a.get("id"))}
     owners = {}
+    commands = []
     for index, feature in enumerate(inventory.get("features") or []):
         if not isinstance(feature, dict):
             errors.append("%s: features[%d] must be an object" % (LABEL, index))
@@ -419,25 +494,78 @@ def validate_inventory(inventory, project_dir=None, target_root=None, check_sour
             errors.append("%s: id must be UIF-###" % fid)
         if not _text(feature.get("name")) or not _text(feature.get("command")):
             errors.append("%s: name and command are required" % fid)
+        commands.append(feature.get("command"))
+        if not _texts(feature.get("actors")):
+            errors.append("%s: actors must name who uses it (the union of its screens' roles)"
+                          % fid)
+        for entity, ops in (feature.get("entity_operations") or {}).items() \
+                if isinstance(feature.get("entity_operations"), dict) else []:
+            if not isinstance(ops, str) or not ops or not set(ops) <= CRUD:
+                errors.append("%s: entity_operations[%r] must be letters of CRUD" % (fid, entity))
         cited = [a for a in _list(feature.get("actions")) if isinstance(a, str)]
         if not cited:
             errors.append("%s: cites no action" % fid)
         for aid in cited:
             if aid not in actions:
                 errors.append("%s: action %r does not exist" % (fid, aid))
-            else:
-                owners.setdefault(aid, []).append(str(feature.get("id")))
+                continue
+            owners.setdefault(aid, []).append(str(feature.get("id")))
+            if actions[aid][1].get("command") != feature.get("command"):
+                errors.append("%s: action %s carries command %r, not the feature's %r"
+                              % (fid, aid, actions[aid][1].get("command"), feature.get("command")))
         expected = {actions[a][0] for a in cited if a in actions}
         stated = {s for s in _list(feature.get("screens")) if isinstance(s, str)}
         if stated != expected:
             errors.append("%s: screens %s are not the screens of its actions %s"
                           % (fid, sorted(stated), sorted(expected)))
+    if duplicates([c for c in commands if _text(c)]):
+        errors.append("%s: two features share a command — one command is one feature" % LABEL)
     for aid, (sid, action) in sorted(actions.items()):
-        if action.get("kind") in FEATURE_ACTION_KINDS:
+        if _text(action.get("command")):
             count = len(owners.get(aid, []))
             if count != 1:
-                errors.append("%s: %s action belongs to %d features — exactly one is required"
-                              % (aid, action.get("kind"), count))
+                errors.append("%s: action with command %r belongs to %d features — exactly one "
+                              "is required" % (aid, action.get("command"), count))
+
+    # Rule 10 — every feature is used in a walkable task.
+    edges = {(s["id"], a.get("target")) for s in named for a in _dicts(s.get("actions"))
+             if isinstance(a.get("target"), str)}
+    action_screens = {f.get("id"): {actions[a][0] for a in _list(f.get("actions")) if a in actions}
+                      for f in features}
+    in_task = set()
+    if features and not tasks:
+        errors.append("%s: tasks must be declared — every feature is used in at least one task"
+                      % LABEL)
+    for index, task in enumerate(inventory.get("tasks") or []):
+        if not isinstance(task, dict):
+            errors.append("%s: tasks[%d] must be an object" % (LABEL, index))
+            continue
+        name = task.get("name") if _text(task.get("name")) else "tasks[%d]" % index
+        if not _text(task.get("name")):
+            errors.append("%s: name is required" % name)
+        path = task.get("screens")
+        if not isinstance(path, list) or not path:
+            errors.append("task %s: screens must be the non-empty path a user walks" % name)
+            path = []
+        for sid in path:
+            if not isinstance(sid, str) or sid not in screen_ids:
+                errors.append("task %s: screen %r is not declared" % (name, sid))
+        for a, b in zip(path, path[1:]):
+            if (a, b) not in edges:
+                errors.append("task %s: no declared transition leads from %s to %s" % (name, a, b))
+        cited = _list(task.get("features"))
+        if not cited:
+            errors.append("task %s: names no feature" % name)
+        for fid in cited:
+            if not isinstance(fid, str) or fid not in feature_ids:
+                errors.append("task %s: feature %r does not exist" % (name, fid))
+                continue
+            in_task.add(fid)
+            if not action_screens.get(fid, set()) & {s for s in path if isinstance(s, str)}:
+                errors.append("task %s: feature %s has no action on the task's path" % (name, fid))
+    for fid in sorted(f for f in feature_ids if f not in in_task):
+        if tasks:
+            errors.append("%s: is used in no task" % fid)
 
     coverage = inventory.get("coverage")
     if not isinstance(coverage, dict):
@@ -446,10 +574,17 @@ def validate_inventory(inventory, project_dir=None, target_root=None, check_sour
         if coverage.get("screens") != len(screens):
             errors.append("%s: coverage.screens is %r but %d screens are declared"
                           % (LABEL, coverage.get("screens"), len(screens)))
+        count = coverage.get("template_files")
+        if not isinstance(count, int) or isinstance(count, bool) or count < 0:
+            errors.append("%s: coverage.template_files must be the number of templates examined"
+                          % LABEL)
         for i, item in enumerate(_list(coverage.get("unresolved"))):
             if not isinstance(item, dict) or not _text(item.get("ref")) \
                     or not _text(item.get("reason")):
                 errors.append("%s: coverage.unresolved[%d] needs ref and reason" % (LABEL, i))
+            elif not (isinstance(item.get("oq"), str) and OQ_RE.match(item["oq"])):
+                errors.append("%s: coverage.unresolved[%d] cites the Open Question it became (oq)"
+                              % (LABEL, i))
 
     # Rule 9 — the token file, and every component's references into it.
     leaves = None
@@ -531,9 +666,9 @@ def main(argv):
         if errors:
             failed += len(errors)
         else:
-            print("%s is well-formed (%d screens, %d components, %d features)"
+            print("%s is well-formed (%d screens, %d components, %d features, %d tasks)"
                   % (rel, len(inventory["screens"]), len(inventory.get("components") or []),
-                     len(inventory.get("features") or [])))
+                     len(inventory.get("features") or []), len(inventory.get("tasks") or [])))
     if failed:
         print("%d violation(s)" % failed)
         return 1

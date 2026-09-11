@@ -31,7 +31,7 @@ numbers the tool can compute.
 |-----|------|--------|-------------|
 | H | Heuristic usability | 30% | Nielsen's ten heuristics (§4) |
 | A | Accessibility | 25% | WCAG 2.2 level A and AA success criteria that code can show (§4) |
-| E | Task efficiency and input burden | 20% | Steps per feature, inputs per screen, required inputs, redundant entry |
+| E | Task efficiency and input burden | 20% | Screens per task, inputs per task and per screen, required inputs, redundant entry |
 | C | Consistency | 15% | Token fragmentation, component duplicates, label drift for the same command |
 | N | Navigation and information architecture | 10% | Depth, orphans, unreachable screens, dead ends |
 
@@ -54,7 +54,7 @@ A score never exceeds the cap its metrics allow. The caps are computed by `ui_me
 |------|-----|
 | H | 5, minus 1 if any destructive action has no confirmation, minus 1 more if three or more do |
 | A | Share of screens with at least one static violation (unlabeled input, image without `alt`, missing `lang`, text pair below the contrast minimum): 0 → 5, ≤ 10% → 4, ≤ 25% → 3, ≤ 50% → 2, more → 1 |
-| E | 5, minus 1 each for: any redundant input; a feature longer than five steps; a screen with more than twelve visible inputs |
+| E | 5, minus 1 each for: any redundant input; a task longer than five screens; a screen with more than twelve visible inputs |
 | C | 5, minus 1 each for: any fragmented token cluster; three or more fragmented clusters or more than twelve distinct colors; any label drift; any component duplicate |
 | N | 5, minus 1 each for: any orphan; any dead end; any unreachable screen that is not an orphan; a depth greater than four |
 
