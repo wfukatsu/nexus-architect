@@ -168,7 +168,7 @@ def check_real_manifests():
           {"investigate", "analyze", "review-synthesizer", "report"} <= set(arch),
           sorted(arch)[:5])
     check("architect deps survive",
-          arch["analyze"]["depends_on"] == ["investigate"], arch["analyze"])
+          arch["analyze"]["depends_on"] == ["investigate", "analyze-ui"], arch["analyze"])
     check("architect conditions survive",
           arch["design-scalardb"]["conditions"] == ["scalardb_enabled"],
           arch["design-scalardb"])

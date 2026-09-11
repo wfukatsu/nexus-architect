@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_1.xsd"
+         version="6.1">
+
+  <display-name>Legacy UI Shop</display-name>
+
+  <request-character-encoding>UTF-8</request-character-encoding>
+  <response-character-encoding>UTF-8</response-character-encoding>
+
+  <!-- JSTL fmt: resource bundle and fixed locale (domestic business application) -->
+  <context-param>
+    <param-name>jakarta.servlet.jsp.jstl.fmt.localizationContext</param-name>
+    <param-value>messages</param-value>
+  </context-param>
+  <context-param>
+    <param-name>jakarta.servlet.jsp.jstl.fmt.locale</param-name>
+    <param-value>ja</param-value>
+  </context-param>
+
+  <session-config>
+    <session-timeout>30</session-timeout>
+    <tracking-mode>COOKIE</tracking-mode>
+  </session-config>
+
+  <jsp-config>
+    <jsp-property-group>
+      <url-pattern>*.jsp</url-pattern>
+      <url-pattern>*.jspf</url-pattern>
+      <page-encoding>UTF-8</page-encoding>
+    </jsp-property-group>
+  </jsp-config>
+
+</web-app>

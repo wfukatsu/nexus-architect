@@ -1,0 +1,41 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.example'
+version = '1.0.0'
+java.sourceCompatibility = JavaVersion.VERSION_17
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Versions resolved from repo1.maven.org maven-metadata.xml per rules/dependency-versions.md,
+    // 2026-09-11. See README.md "Version decisions".
+    implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.25'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-jasper:11.0.25'
+
+    // Jakarta Standard Tag Library 3.0 (jakarta.tags.* URIs). The API pom drags in older
+    // Servlet 6.0 / EL 5.0 API jars; Tomcat 11 already ships Servlet 6.1 / EL 6.0, so exclude them
+    // to keep a single copy of each jakarta.* API on the classpath.
+    implementation('jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:3.0.2') {
+        exclude group: 'jakarta.servlet', module: 'jakarta.servlet-api'
+        exclude group: 'jakarta.el', module: 'jakarta.el-api'
+    }
+    implementation 'org.glassfish.web:jakarta.servlet.jsp.jstl:3.0.1'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+application {
+    mainClass = 'com.example.shop.Main'
+}
+
+run {
+    // Main resolves src/main/webapp relative to the working directory.
+    workingDir = projectDir
+}

@@ -1,0 +1,835 @@
+{
+  "$description": "As-is design tokens of legacy-ui-shop, extracted by /architect:analyze-ui",
+  "border": {
+    "width": {
+      "px-1": {
+        "$type": "dimension",
+        "$value": "1px",
+        "$extensions": {
+          "nexus-architect": {
+            "sources": [
+              "src/main/webapp/css/admin.css:7",
+              "src/main/webapp/css/admin.css:22",
+              "src/main/webapp/css/common.css:44",
+              "src/main/webapp/css/common.css:56",
+              "src/main/webapp/css/common.css:73",
+              "src/main/webapp/css/common.css:92",
+              "src/main/webapp/css/common.css:100",
+              "src/main/webapp/css/common.css:101",
+              "src/main/webapp/css/common.css:107",
+              "src/main/webapp/css/common.css:108",
+              "src/main/webapp/css/common.css:118",
+              "src/main/webapp/css/common.css:121",
+              "src/main/webapp/css/common.css:127",
+              "src/main/webapp/css/common.css:133",
+              "src/main/webapp/css/common.css:145"
+            ],
+            "usage_count": 15,
+            "cluster": "hairline"
+          }
+        }
+      },
+      "px-2": {
+        "$type": "dimension",
+        "$value": "2px",
+        "$extensions": {
+          "nexus-architect": {
+            "sources": [
+              "src/main/webapp/css/common.css:22",
+              "src/main/webapp/css/common.css:113"
+            ],
+            "usage_count": 2,
+            "cluster": "emphasis-rule"
+          }
+        }
+      },
+      "px-5": {
+        "$type": "dimension",
+        "$value": "5px",
+        "$extensions": {
+          "nexus-architect": {
+            "sources": [
+              "src/main/webapp/css/admin.css:13"
+            ],
+            "usage_count": 1,
+            "cluster": "accent-bar"
+          }
+        }
+      }
+    }
+  },
+  "color": {
+    "hex-0052a3": {
+      "$type": "color",
+      "$value": "#0052a3",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:61"
+          ],
+          "usage_count": 1,
+          "cluster": "primary-hover"
+        }
+      }
+    },
+    "hex-006600": {
+      "$type": "color",
+      "$value": "#006600",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:93"
+          ],
+          "usage_count": 1,
+          "cluster": "success"
+        }
+      }
+    },
+    "hex-0066cc": {
+      "$type": "color",
+      "$value": "#0066cc",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:14",
+            "src/main/webapp/css/common.css:22",
+            "src/main/webapp/css/common.css:32",
+            "src/main/webapp/css/common.css:60",
+            "src/main/webapp/css/common.css:131",
+            "src/main/webapp/css/common.css:137"
+          ],
+          "usage_count": 6,
+          "cluster": "primary"
+        }
+      }
+    },
+    "hex-0a66c2": {
+      "$type": "color",
+      "$value": "#0a66c2",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/admin.css:13",
+            "src/main/webapp/css/admin.css:26"
+          ],
+          "usage_count": 2,
+          "cluster": "primary"
+        }
+      }
+    },
+    "hex-1a73e8": {
+      "$type": "color",
+      "$value": "#1a73e8",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:54"
+          ],
+          "usage_count": 1,
+          "cluster": "primary"
+        }
+      }
+    },
+    "hex-333333": {
+      "$type": "color",
+      "$value": "#333333",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:9",
+            "src/main/webapp/css/common.css:21",
+            "src/main/webapp/css/common.css:62",
+            "src/main/webapp/css/common.css:113"
+          ],
+          "usage_count": 4,
+          "cluster": "text"
+        }
+      }
+    },
+    "hex-444444": {
+      "$type": "color",
+      "$value": "#444444",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:27",
+            "src/main/webapp/css/common.css:100"
+          ],
+          "usage_count": 2,
+          "cluster": "text"
+        }
+      }
+    },
+    "hex-666666": {
+      "$type": "color",
+      "$value": "#666666",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:45",
+            "src/main/webapp/css/common.css:50",
+            "src/main/webapp/css/common.css:89",
+            "src/main/webapp/css/common.css:117",
+            "src/main/webapp/css/common.css:130",
+            "src/main/webapp/css/common.css:138"
+          ],
+          "usage_count": 6,
+          "cluster": "text-muted"
+        }
+      }
+    },
+    "hex-aaaaaa": {
+      "$type": "color",
+      "$value": "#aaaaaa",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:125"
+          ],
+          "usage_count": 1,
+          "cluster": "text-faint"
+        }
+      }
+    },
+    "hex-cc0000": {
+      "$type": "color",
+      "$value": "#cc0000",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:83",
+            "src/main/webapp/css/common.css:90",
+            "src/main/webapp/css/common.css:91",
+            "src/main/webapp/css/common.css:92"
+          ],
+          "usage_count": 5,
+          "cluster": "danger"
+        }
+      }
+    },
+    "hex-cccccc": {
+      "$type": "color",
+      "$value": "#cccccc",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:62",
+            "src/main/webapp/css/common.css:73"
+          ],
+          "usage_count": 2,
+          "cluster": "border"
+        }
+      }
+    },
+    "hex-d9d9d9": {
+      "$type": "color",
+      "$value": "#d9d9d9",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/admin.css:22"
+          ],
+          "usage_count": 1,
+          "cluster": "border"
+        }
+      }
+    },
+    "hex-dddddd": {
+      "$type": "color",
+      "$value": "#dddddd",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:44",
+            "src/main/webapp/css/common.css:100",
+            "src/main/webapp/css/common.css:101",
+            "src/main/webapp/css/common.css:121",
+            "src/main/webapp/css/common.css:133",
+            "src/main/webapp/css/common.css:145"
+          ],
+          "usage_count": 6,
+          "cluster": "border"
+        }
+      }
+    },
+    "hex-e0e0e0": {
+      "$type": "color",
+      "$value": "#e0e0e0",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:107",
+            "src/main/webapp/css/common.css:108",
+            "src/main/webapp/css/common.css:118",
+            "src/main/webapp/css/common.css:127"
+          ],
+          "usage_count": 4,
+          "cluster": "border"
+        }
+      }
+    },
+    "hex-e5e5e5": {
+      "$type": "color",
+      "$value": "#e5e5e5",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/admin.css:7"
+          ],
+          "usage_count": 1,
+          "cluster": "border"
+        }
+      }
+    },
+    "hex-e8e8e8": {
+      "$type": "color",
+      "$value": "#e8e8e8",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:63"
+          ],
+          "usage_count": 1,
+          "cluster": "secondary-hover"
+        }
+      }
+    },
+    "hex-eeeeee": {
+      "$type": "color",
+      "$value": "#eeeeee",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:100",
+            "src/main/webapp/css/common.css:130"
+          ],
+          "usage_count": 2,
+          "cluster": "surface-subtle"
+        }
+      }
+    },
+    "hex-efefef": {
+      "$type": "color",
+      "$value": "#efefef",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:102"
+          ],
+          "usage_count": 1,
+          "cluster": "surface-subtle"
+        }
+      }
+    },
+    "hex-f2f2f2": {
+      "$type": "color",
+      "$value": "#f2f2f2",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/admin.css:6"
+          ],
+          "usage_count": 1,
+          "cluster": "surface-subtle"
+        }
+      }
+    },
+    "hex-f4f4f4": {
+      "$type": "color",
+      "$value": "#f4f4f4",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:107",
+            "src/main/webapp/css/common.css:127"
+          ],
+          "usage_count": 2,
+          "cluster": "surface-subtle"
+        }
+      }
+    },
+    "hex-f5f5f5": {
+      "$type": "color",
+      "$value": "#f5f5f5",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:62",
+            "src/main/webapp/css/common.css:144"
+          ],
+          "usage_count": 2,
+          "cluster": "surface-subtle"
+        }
+      }
+    },
+    "hex-fff0f0": {
+      "$type": "color",
+      "$value": "#fff0f0",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:92"
+          ],
+          "usage_count": 1,
+          "cluster": "danger-surface"
+        }
+      }
+    },
+    "hex-ffffff": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:10",
+            "src/main/webapp/css/common.css:33",
+            "src/main/webapp/css/common.css:39",
+            "src/main/webapp/css/common.css:60",
+            "src/main/webapp/css/common.css:84",
+            "src/main/webapp/css/common.css:131",
+            "src/main/webapp/css/common.css:137",
+            "src/main/webapp/css/common.css:145",
+            "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:54"
+          ],
+          "usage_count": 9,
+          "cluster": "surface"
+        }
+      }
+    }
+  },
+  "font": {
+    "family": {
+      "hiragino-kaku-gothic-pron": {
+        "$type": "fontFamily",
+        "$value": [
+          "Hiragino Kaku Gothic ProN",
+          "Meiryo",
+          "sans-serif"
+        ],
+        "$extensions": {
+          "nexus-architect": {
+            "sources": [
+              "src/main/webapp/css/common.css:7"
+            ],
+            "usage_count": 1,
+            "cluster": "base-font"
+          }
+        }
+      }
+    },
+    "size": {
+      "px-11": {
+        "$type": "dimension",
+        "$value": "11px",
+        "$extensions": {
+          "nexus-architect": {
+            "sources": [
+              "src/main/webapp/css/common.css:85"
+            ],
+            "usage_count": 1,
+            "cluster": "small-text"
+          }
+        }
+      },
+      "px-12": {
+        "$type": "dimension",
+        "$value": "12px",
+        "$extensions": {
+          "nexus-architect": {
+            "sources": [
+              "src/main/webapp/css/common.css:46",
+              "src/main/webapp/css/common.css:50",
+              "src/main/webapp/css/common.css:89",
+              "src/main/webapp/css/common.css:90",
+              "src/main/webapp/css/common.css:117",
+              "src/main/webapp/css/common.css:125"
+            ],
+            "usage_count": 6,
+            "cluster": "small-text"
+          }
+        }
+      },
+      "px-13": {
+        "$type": "dimension",
+        "$value": "13px",
+        "$extensions": {
+          "nexus-architect": {
+            "sources": [
+              "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:54"
+            ],
+            "usage_count": 1,
+            "cluster": "body-text"
+          }
+        }
+      },
+      "px-14": {
+        "$type": "dimension",
+        "$value": "14px",
+        "$extensions": {
+          "nexus-architect": {
+            "sources": [
+              "src/main/webapp/css/common.css:8",
+              "src/main/webapp/css/common.css:54"
+            ],
+            "usage_count": 2,
+            "cluster": "body-text"
+          }
+        }
+      },
+      "px-16": {
+        "$type": "dimension",
+        "$value": "16px",
+        "$extensions": {
+          "nexus-architect": {
+            "sources": [
+              "src/main/webapp/css/common.css:26",
+              "src/main/webapp/css/common.css:37",
+              "src/main/webapp/css/common.css:113"
+            ],
+            "usage_count": 3,
+            "cluster": "heading-2"
+          }
+        }
+      },
+      "px-20": {
+        "$type": "dimension",
+        "$value": "20px",
+        "$extensions": {
+          "nexus-architect": {
+            "sources": [
+              "src/main/webapp/css/common.css:18"
+            ],
+            "usage_count": 1,
+            "cluster": "heading-1"
+          }
+        }
+      }
+    },
+    "weight": {
+      "w-700": {
+        "$type": "fontWeight",
+        "$value": 700,
+        "$extensions": {
+          "nexus-architect": {
+            "sources": [
+              "src/main/webapp/css/common.css:37",
+              "src/main/webapp/css/common.css:68",
+              "src/main/webapp/css/common.css:76",
+              "src/main/webapp/css/common.css:91",
+              "src/main/webapp/css/common.css:113",
+              "src/main/webapp/css/common.css:122",
+              "src/main/webapp/css/common.css:140"
+            ],
+            "usage_count": 7,
+            "cluster": "bold"
+          }
+        }
+      }
+    }
+  },
+  "radius": {
+    "px-3": {
+      "$type": "dimension",
+      "$value": "3px",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:57"
+          ],
+          "usage_count": 1,
+          "cluster": "control-radius"
+        }
+      }
+    },
+    "px-12": {
+      "$type": "dimension",
+      "$value": "12px",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:54"
+          ],
+          "usage_count": 1,
+          "cluster": "pill-radius"
+        }
+      }
+    }
+  },
+  "space": {
+    "px-1": {
+      "$type": "dimension",
+      "$value": "1px",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:86"
+          ],
+          "usage_count": 1,
+          "cluster": "space-1"
+        }
+      }
+    },
+    "px-2": {
+      "$type": "dimension",
+      "$value": "2px",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:136"
+          ],
+          "usage_count": 2,
+          "cluster": "space-2"
+        }
+      }
+    },
+    "px-4": {
+      "$type": "dimension",
+      "$value": "4px",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:20",
+            "src/main/webapp/css/common.css:73",
+            "src/main/webapp/css/common.css:86",
+            "src/main/webapp/css/common.css:111",
+            "src/main/webapp/css/common.css:112",
+            "src/main/webapp/css/common.css:130",
+            "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:54"
+          ],
+          "usage_count": 8,
+          "cluster": "control-padding-y"
+        }
+      }
+    },
+    "px-6": {
+      "$type": "dimension",
+      "$value": "6px",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:55",
+            "src/main/webapp/css/common.css:73",
+            "src/main/webapp/css/common.css:87",
+            "src/main/webapp/css/common.css:100",
+            "src/main/webapp/css/common.css:101",
+            "src/main/webapp/css/common.css:107",
+            "src/main/webapp/css/common.css:108"
+          ],
+          "usage_count": 7,
+          "cluster": "control-padding-y"
+        }
+      }
+    },
+    "px-8": {
+      "$type": "dimension",
+      "$value": "8px",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/admin.css:14",
+            "src/main/webapp/css/common.css:34",
+            "src/main/webapp/css/common.css:41",
+            "src/main/webapp/css/common.css:47",
+            "src/main/webapp/css/common.css:89",
+            "src/main/webapp/css/common.css:90",
+            "src/main/webapp/css/common.css:92",
+            "src/main/webapp/css/common.css:95",
+            "src/main/webapp/css/common.css:100",
+            "src/main/webapp/css/common.css:101",
+            "src/main/webapp/css/common.css:106",
+            "src/main/webapp/css/common.css:110",
+            "src/main/webapp/css/common.css:118",
+            "src/main/webapp/css/common.css:122",
+            "src/main/webapp/css/common.css:127",
+            "src/main/webapp/css/common.css:136"
+          ],
+          "usage_count": 16,
+          "cluster": "space-8"
+        }
+      }
+    },
+    "px-12": {
+      "$type": "dimension",
+      "$value": "12px",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/admin.css:21",
+            "src/main/webapp/css/common.css:66",
+            "src/main/webapp/css/common.css:96",
+            "src/main/webapp/css/common.css:99",
+            "src/main/webapp/css/common.css:107",
+            "src/main/webapp/css/common.css:108",
+            "src/main/webapp/css/common.css:116",
+            "src/main/webapp/css/common.css:123",
+            "src/main/webapp/css/common.css:125",
+            "src/main/webapp/css/common.css:135",
+            "src/main/webapp/css/common.css:140"
+          ],
+          "usage_count": 11,
+          "cluster": "space-12"
+        }
+      }
+    },
+    "px-16": {
+      "$type": "dimension",
+      "$value": "16px",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/admin.css:8",
+            "src/main/webapp/css/admin.css:27",
+            "src/main/webapp/css/common.css:19",
+            "src/main/webapp/css/common.css:34",
+            "src/main/webapp/css/common.css:38",
+            "src/main/webapp/css/common.css:55",
+            "src/main/webapp/css/common.css:77",
+            "src/main/webapp/css/common.css:92",
+            "src/main/webapp/css/common.css:106",
+            "src/main/webapp/css/common.css:110",
+            "src/main/webapp/css/common.css:111",
+            "src/main/webapp/css/common.css:112",
+            "src/main/webapp/css/common.css:117",
+            "src/main/webapp/css/common.css:118",
+            "src/main/webapp/css/common.css:127",
+            "src/main/webapp/css/common.css:130",
+            "src/main/webapp/css/common.css:133",
+            "src/main/webapp/css/common.css:141"
+          ],
+          "usage_count": 21,
+          "cluster": "space-16"
+        }
+      }
+    },
+    "px-20": {
+      "$type": "dimension",
+      "$value": "20px",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/admin.css:20",
+            "src/main/webapp/css/common.css:78",
+            "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:54"
+          ],
+          "usage_count": 3,
+          "cluster": "space-20"
+        }
+      }
+    },
+    "px-24": {
+      "$type": "dimension",
+      "$value": "24px",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/admin.css:8",
+            "src/main/webapp/css/common.css:41",
+            "src/main/webapp/css/common.css:47",
+            "src/main/webapp/css/common.css:79",
+            "src/main/webapp/css/common.css:121",
+            "src/main/webapp/css/common.css:133",
+            "src/main/webapp/css/common.css:145"
+          ],
+          "usage_count": 7,
+          "cluster": "space-24"
+        }
+      }
+    },
+    "px-32": {
+      "$type": "dimension",
+      "$value": "32px",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:41",
+            "src/main/webapp/css/common.css:145"
+          ],
+          "usage_count": 2,
+          "cluster": "space-32"
+        }
+      }
+    },
+    "px-80": {
+      "$type": "dimension",
+      "$value": "80px",
+      "$extensions": {
+        "nexus-architect": {
+          "sources": [
+            "src/main/webapp/css/common.css:145"
+          ],
+          "usage_count": 1,
+          "cluster": "space-80"
+        }
+      }
+    }
+  },
+  "semantic": {
+    "color": {
+      "primary": {
+        "$type": "color",
+        "$value": "{color.hex-0066cc}",
+        "$description": "candidate — most-used member of cluster primary (3 members)"
+      },
+      "primary-hover": {
+        "$type": "color",
+        "$value": "{color.hex-0052a3}",
+        "$description": "candidate — most-used member of cluster primary-hover (1 member)"
+      },
+      "fg": {
+        "$type": "color",
+        "$value": "{color.hex-333333}",
+        "$description": "candidate — most-used member of cluster text (2 members)"
+      },
+      "fg-muted": {
+        "$type": "color",
+        "$value": "{color.hex-666666}",
+        "$description": "candidate — most-used member of cluster text-muted (1 member)"
+      },
+      "fg-faint": {
+        "$type": "color",
+        "$value": "{color.hex-aaaaaa}",
+        "$description": "candidate — most-used member of cluster text-faint (1 member)"
+      },
+      "bg": {
+        "$type": "color",
+        "$value": "{color.hex-ffffff}",
+        "$description": "candidate — most-used member of cluster surface (1 member)"
+      },
+      "surface": {
+        "$type": "color",
+        "$value": "{color.hex-eeeeee}",
+        "$description": "candidate — tie on usage broken by the shared component's use, then lexical order of cluster surface-subtle (5 members)"
+      },
+      "secondary-hover": {
+        "$type": "color",
+        "$value": "{color.hex-e8e8e8}",
+        "$description": "candidate — most-used member of cluster secondary-hover (1 member)"
+      },
+      "border": {
+        "$type": "color",
+        "$value": "{color.hex-dddddd}",
+        "$description": "candidate — most-used member of cluster border (5 members)"
+      },
+      "danger": {
+        "$type": "color",
+        "$value": "{color.hex-cc0000}",
+        "$description": "candidate — most-used member of cluster danger (1 member)"
+      },
+      "danger-bg": {
+        "$type": "color",
+        "$value": "{color.hex-fff0f0}",
+        "$description": "candidate — most-used member of cluster danger-surface (1 member)"
+      },
+      "success": {
+        "$type": "color",
+        "$value": "{color.hex-006600}",
+        "$description": "candidate — most-used member of cluster success (1 member)"
+      },
+      "on-primary": {
+        "$type": "color",
+        "$value": "{color.hex-ffffff}",
+        "$description": "candidate — the second role of #ffffff (text on the primary blue: title bar, primary button, active step, current page); the raw token's cluster records its surface role only"
+      }
+    }
+  }
+}

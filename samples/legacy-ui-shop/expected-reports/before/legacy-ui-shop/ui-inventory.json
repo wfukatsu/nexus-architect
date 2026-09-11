@@ -1,0 +1,3266 @@
+{
+  "schema_version": 1,
+  "project": "legacy-ui-shop",
+  "target_path": "samples/legacy-ui-shop",
+  "ui_roots": [
+    "src/main/webapp"
+  ],
+  "technologies": [
+    {
+      "name": "Jakarta Servlet 6.1 / JSP (embedded Tomcat 11)",
+      "evidence": "build.gradle:17-18"
+    },
+    {
+      "name": "Jakarta Standard Tag Library 3.0 (JSTL core/fmt/functions)",
+      "evidence": "build.gradle:23-27"
+    },
+    {
+      "name": "JSP tag files",
+      "evidence": "src/main/webapp/WEB-INF/tags/button.tag:1"
+    },
+    {
+      "name": "jQuery 3.7.1 (vendored)",
+      "evidence": "src/main/webapp/WEB-INF/jspf/header.jspf:14"
+    },
+    {
+      "name": "Resource bundle messages (fmt, fixed locale ja)",
+      "evidence": "src/main/webapp/WEB-INF/web.xml:13-20"
+    }
+  ],
+  "screens": [
+    {
+      "id": "UIS-001",
+      "name": "ログイン",
+      "route": "/login",
+      "source": "src/main/webapp/WEB-INF/jsp/login.jsp",
+      "entry": true,
+      "handlers": [
+        {
+          "ref": "LoginServlet#doGet",
+          "source": "src/main/java/com/example/shop/web/LoginServlet.java:21-24",
+          "services": [],
+          "entities": []
+        },
+        {
+          "ref": "LoginServlet#doPost",
+          "source": "src/main/java/com/example/shop/web/LoginServlet.java:27-50",
+          "services": [
+            "ShopData#authenticate"
+          ],
+          "entities": [
+            "User"
+          ]
+        }
+      ],
+      "access": {
+        "authentication": "none",
+        "roles": [
+          "anonymous"
+        ],
+        "guards": []
+      },
+      "inputs": [
+        {
+          "name": "userId",
+          "label": "ユーザーID",
+          "label_association": "for",
+          "control": "text",
+          "type": "string",
+          "required": true,
+          "validation": [
+            {
+              "rule": "required",
+              "value": true,
+              "where": "server",
+              "enforcement": "reject",
+              "source": "src/main/java/com/example/shop/web/LoginServlet.java:32-36",
+              "client_source": null
+            }
+          ],
+          "prefilled_from": null,
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/login.jsp:19-20"
+        },
+        {
+          "name": "password",
+          "label": "パスワード",
+          "label_association": "for",
+          "control": "password",
+          "type": "string",
+          "required": true,
+          "validation": [
+            {
+              "rule": "required",
+              "value": true,
+              "where": "server",
+              "enforcement": "reject",
+              "source": "src/main/java/com/example/shop/web/LoginServlet.java:32-36",
+              "client_source": null
+            }
+          ],
+          "prefilled_from": null,
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/login.jsp:23-24"
+        }
+      ],
+      "outputs": [],
+      "actions": [
+        {
+          "label": "ログイン",
+          "command": "LogIn",
+          "kind": "submit",
+          "scope": "screen",
+          "method": "POST",
+          "endpoint": "POST /login",
+          "inputs": [
+            "userId",
+            "password"
+          ],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/login.jsp:17-28",
+          "id": "UIS-001.A1",
+          "target": "UIS-002"
+        }
+      ],
+      "messages": [
+        {
+          "kind": "error",
+          "text": "ユーザーIDとパスワードを入力してください。",
+          "source": "src/main/java/com/example/shop/web/LoginServlet.java:33"
+        },
+        {
+          "kind": "error",
+          "text": "ユーザーIDまたはパスワードが正しくありません。",
+          "source": "src/main/java/com/example/shop/web/LoginServlet.java:39"
+        }
+      ],
+      "embedded_logic": [],
+      "lang": null,
+      "images": [],
+      "color_pairs": [
+        {
+          "fg": "#333333",
+          "bg": "#f5f5f5",
+          "text": "normal",
+          "where": "body (background overridden by .login-page)",
+          "source": "src/main/webapp/css/common.css:5-11"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": ".login-box (labels, form text)",
+          "source": "src/main/webapp/css/common.css:145"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "h1 \"ログイン\" inside .login-box",
+          "source": "src/main/webapp/css/common.css:17-23"
+        },
+        {
+          "fg": "#cc0000",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": ".error-message paragraph inside .login-box",
+          "source": "src/main/webapp/css/common.css:91"
+        },
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": ".btn-primary (\"ログイン\" button)",
+          "source": "src/main/webapp/css/common.css:60"
+        }
+      ],
+      "components": [
+        "UIC-003",
+        "UIC-009",
+        "UIC-010"
+      ]
+    },
+    {
+      "id": "UIS-002",
+      "name": "メニュー",
+      "route": "/menu",
+      "source": "src/main/webapp/WEB-INF/jsp/menu.jsp",
+      "entry": false,
+      "handlers": [
+        {
+          "ref": "MenuServlet#doGet",
+          "source": "src/main/java/com/example/shop/web/MenuServlet.java:17-20",
+          "services": [],
+          "entities": []
+        }
+      ],
+      "access": {
+        "authentication": "required",
+        "roles": [
+          "customer",
+          "admin"
+        ],
+        "guards": [
+          {
+            "kind": "filter",
+            "source": "src/main/java/com/example/shop/filter/LoginFilter.java:19-44"
+          }
+        ]
+      },
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "accountInfo",
+          "label": "アカウント情報",
+          "kind": "field",
+          "fields": [
+            "氏名",
+            "メールアドレス"
+          ],
+          "source": "src/main/webapp/WEB-INF/jsp/menu.jsp:28-36"
+        }
+      ],
+      "actions": [
+        {
+          "label": "商品検索",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /products",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/menu.jsp:9",
+          "id": "UIS-002.A1",
+          "target": "UIS-003"
+        },
+        {
+          "label": "ショッピングカート",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /cart",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/menu.jsp:13",
+          "id": "UIS-002.A2",
+          "target": "UIS-005"
+        },
+        {
+          "label": "商品メンテナンス",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /admin/products/edit",
+          "inputs": [],
+          "guard": {
+            "kind": "view",
+            "roles": [
+              "admin"
+            ],
+            "source": "src/main/webapp/WEB-INF/jsp/menu.jsp:16-25"
+          },
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/menu.jsp:21",
+          "id": "UIS-002.A3",
+          "target": "UIS-009"
+        },
+        {
+          "label": "ログアウト",
+          "command": "LogOut",
+          "kind": "link",
+          "scope": "global",
+          "method": "GET",
+          "endpoint": "GET /logout",
+          "inputs": [],
+          "guard": null,
+          "destructive": true,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jspf/header.jspf:19-22",
+          "id": "UIS-002.A4",
+          "target": "UIS-001"
+        }
+      ],
+      "messages": [],
+      "embedded_logic": [
+        {
+          "kind": "authorization",
+          "description": "「商品メンテナンス」メニュー項目の表示可否を、スクリプトレットがセッションの loginUser の getRole() を文字列 \"admin\" と比較して決めている。共通のアクセス制御ではなくビュー内の判定。",
+          "should_live_in": "application",
+          "source": "src/main/webapp/WEB-INF/jsp/menu.jsp:16-25"
+        }
+      ],
+      "lang": "ja",
+      "images": [],
+      "color_pairs": [
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": ".title-bar (app name, logout link)",
+          "source": "src/main/webapp/css/common.css:31-39"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "body/.content default text",
+          "source": "src/main/webapp/css/common.css:5-11"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "h1 \"メニュー\"",
+          "source": "src/main/webapp/css/common.css:17-23"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": ".footer",
+          "source": "src/main/webapp/css/common.css:43-48"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": ".menu-list .menu-desc",
+          "source": "src/main/webapp/css/common.css:117"
+        },
+        {
+          "fg": "#0066cc",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "メニュー項目のリンク（a 要素の色、背景宣言なしのため #ffffff）",
+          "source": "src/main/webapp/css/common.css:13-15"
+        },
+        {
+          "fg": "#444444",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "h2「アカウント情報」（背景宣言なしのため #ffffff）",
+          "source": "src/main/webapp/css/common.css:25-28"
+        }
+      ],
+      "components": [
+        "UIC-001",
+        "UIC-002"
+      ]
+    },
+    {
+      "id": "UIS-003",
+      "name": "商品検索",
+      "route": "/products",
+      "source": "src/main/webapp/WEB-INF/jsp/product/search.jsp",
+      "entry": false,
+      "handlers": [
+        {
+          "ref": "ProductSearchServlet#doGet",
+          "source": "src/main/java/com/example/shop/web/ProductSearchServlet.java:22-41",
+          "services": [
+            "ShopData#categories",
+            "ShopData#searchProducts"
+          ],
+          "entities": [
+            "Product"
+          ]
+        }
+      ],
+      "access": {
+        "authentication": "required",
+        "roles": [
+          "customer",
+          "admin"
+        ],
+        "guards": [
+          {
+            "kind": "filter",
+            "source": "src/main/java/com/example/shop/filter/LoginFilter.java:19-44"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "name": "keyword",
+          "label": "キーワードを入力",
+          "label_association": "placeholder-only",
+          "control": "text",
+          "type": "string",
+          "required": false,
+          "validation": [],
+          "prefilled_from": null,
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/product/search.jsp:11"
+        },
+        {
+          "name": "category",
+          "label": "カテゴリ",
+          "label_association": "for",
+          "control": "select",
+          "type": "enum",
+          "required": false,
+          "validation": [],
+          "prefilled_from": null,
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/product/search.jsp:12-18"
+        },
+        {
+          "name": "productId",
+          "label": null,
+          "label_association": "n/a",
+          "control": "hidden",
+          "type": "string",
+          "required": true,
+          "validation": [],
+          "prefilled_from": null,
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/product/search.jsp:46"
+        },
+        {
+          "name": "quantity",
+          "label": null,
+          "label_association": "n/a",
+          "control": "hidden",
+          "type": "integer",
+          "required": true,
+          "validation": [],
+          "prefilled_from": "固定値 1（hidden、search.jsp:47）",
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/product/search.jsp:47"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "hitCount",
+          "label": "{0}件の商品が見つかりました",
+          "kind": "field",
+          "fields": [
+            "hitCount"
+          ],
+          "source": "src/main/webapp/WEB-INF/jsp/product/search.jsp:21"
+        },
+        {
+          "name": "productResults",
+          "label": "検索結果",
+          "kind": "table",
+          "fields": [
+            "image",
+            "name",
+            "price",
+            "stock"
+          ],
+          "source": "src/main/webapp/WEB-INF/jsp/product/search.jsp:27-56"
+        }
+      ],
+      "actions": [
+        {
+          "label": "検索",
+          "command": "SearchProducts",
+          "kind": "submit",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /products",
+          "inputs": [
+            "keyword",
+            "category"
+          ],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/product/search.jsp:10-20",
+          "id": "UIS-003.A1",
+          "target": "UIS-003"
+        },
+        {
+          "label": "カートに追加",
+          "command": "AddToCart",
+          "kind": "submit",
+          "scope": "screen",
+          "method": "POST",
+          "endpoint": "POST /cart",
+          "inputs": [
+            "productId",
+            "quantity"
+          ],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/product/search.jsp:44-49",
+          "id": "UIS-003.A2",
+          "target": "UIS-005"
+        },
+        {
+          "label": "前へ / ページ番号 / 次へ",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /products",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/tags/pager.tag:9-23",
+          "id": "UIS-003.A3",
+          "target": "UIS-003"
+        },
+        {
+          "label": "ログアウト",
+          "command": "LogOut",
+          "kind": "link",
+          "scope": "global",
+          "method": "GET",
+          "endpoint": "GET /logout",
+          "inputs": [],
+          "guard": null,
+          "destructive": true,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jspf/header.jspf:19-22",
+          "id": "UIS-003.A4",
+          "target": "UIS-001"
+        },
+        {
+          "label": "メニューへ戻る",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /menu",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/product/search.jsp:8",
+          "id": "UIS-003.A5",
+          "target": "UIS-002"
+        },
+        {
+          "label": "商品名（検索結果の各行）",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /products/detail",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/product/search.jsp:40",
+          "id": "UIS-003.A6",
+          "target": "UIS-004"
+        }
+      ],
+      "messages": [
+        {
+          "kind": "info",
+          "text": "該当する商品はありません。",
+          "source": "src/main/resources/messages_ja.properties:8"
+        },
+        {
+          "kind": "info",
+          "text": "在庫切れ",
+          "source": "src/main/resources/messages_ja.properties:14"
+        },
+        {
+          "kind": "info",
+          "text": "{0}件の商品が見つかりました",
+          "source": "src/main/resources/messages_ja.properties:7"
+        }
+      ],
+      "embedded_logic": [
+        {
+          "kind": "other",
+          "description": "注文可否（在庫数 > 0）をテンプレートの EL（p.stock > 0 / p.stock <= 0）で判定し、「カートに追加」フォームと「在庫切れ」表示を切り替えている。サーバーも CartServlet.java:37 で在庫を確認するが、ルールはドメインのメソッド（例: Product#isOrderable）にない。",
+          "should_live_in": "domain",
+          "source": "src/main/webapp/WEB-INF/jsp/product/search.jsp:43-51"
+        }
+      ],
+      "lang": "ja",
+      "images": [
+        {
+          "src": "${ctx}/images/products/${p.image}",
+          "alt": null,
+          "decorative": false,
+          "source": "src/main/webapp/WEB-INF/jsp/product/search.jsp:39"
+        }
+      ],
+      "color_pairs": [
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": ".title-bar",
+          "source": "src/main/webapp/css/common.css:31-39"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "h1 \"商品検索\"",
+          "source": "src/main/webapp/css/common.css:17-23"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": ".breadcrumb",
+          "source": "src/main/webapp/css/common.css:50"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": ".footer",
+          "source": "src/main/webapp/css/common.css:43-48"
+        },
+        {
+          "fg": "#444444",
+          "bg": "#eeeeee",
+          "text": "normal",
+          "where": ".list-table th",
+          "source": "src/main/webapp/css/common.css:100"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": ".list-table td (product name, price)",
+          "source": "src/main/webapp/css/common.css:101"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#f5f5f5",
+          "text": "normal",
+          "where": ".btn-secondary (\"カートに追加\")",
+          "source": "src/main/webapp/css/common.css:62"
+        },
+        {
+          "fg": "#0066cc",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "パンくず・商品名のリンク（a 要素の色、背景宣言なしのため #ffffff）",
+          "source": "src/main/webapp/css/common.css:13-15"
+        },
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": ".btn-primary（検索ボタン）",
+          "source": "src/main/webapp/css/common.css:60"
+        },
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": ".pager .current（現在ページ）",
+          "source": "src/main/webapp/css/common.css:137"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": ".pager .disabled（前へ／次へ 無効、背景宣言なしのため #ffffff）",
+          "source": "src/main/webapp/css/common.css:138"
+        }
+      ],
+      "components": [
+        "UIC-001",
+        "UIC-002",
+        "UIC-003",
+        "UIC-004",
+        "UIC-005",
+        "UIC-006"
+      ]
+    },
+    {
+      "id": "UIS-004",
+      "name": "商品詳細",
+      "route": "/products/detail",
+      "source": "src/main/webapp/WEB-INF/jsp/product/detail.jsp",
+      "entry": false,
+      "handlers": [
+        {
+          "ref": "ProductDetailServlet#doGet",
+          "source": "src/main/java/com/example/shop/web/ProductDetailServlet.java:20-29",
+          "services": [
+            "ShopData#findProduct"
+          ],
+          "entities": [
+            "Product"
+          ]
+        }
+      ],
+      "access": {
+        "authentication": "required",
+        "roles": [
+          "customer",
+          "admin"
+        ],
+        "guards": [
+          {
+            "kind": "filter",
+            "source": "src/main/java/com/example/shop/filter/LoginFilter.java:19-44"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "name": "quantity",
+          "label": "数量",
+          "label_association": "for",
+          "control": "number",
+          "type": "integer",
+          "required": false,
+          "validation": [
+            {
+              "rule": "min",
+              "value": 1,
+              "where": "both",
+              "enforcement": "clamp",
+              "source": "src/main/java/com/example/shop/web/CartServlet.java:58",
+              "client_source": "src/main/webapp/WEB-INF/jsp/product/detail.jsp:25"
+            },
+            {
+              "rule": "max",
+              "value": 99,
+              "where": "both",
+              "enforcement": "clamp",
+              "source": "src/main/java/com/example/shop/web/CartServlet.java:58",
+              "client_source": "src/main/webapp/WEB-INF/jsp/product/detail.jsp:25"
+            }
+          ],
+          "prefilled_from": "既定値 1（detail.jsp:25）",
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/product/detail.jsp:24-25"
+        },
+        {
+          "name": "productId",
+          "label": null,
+          "label_association": "n/a",
+          "control": "hidden",
+          "type": "string",
+          "required": true,
+          "validation": [],
+          "prefilled_from": null,
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/product/detail.jsp:23"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "productDetail",
+          "label": "商品詳細",
+          "kind": "field",
+          "fields": [
+            "商品コード",
+            "商品名",
+            "カテゴリ",
+            "価格",
+            "在庫"
+          ],
+          "source": "src/main/webapp/WEB-INF/jsp/product/detail.jsp:11-17"
+        }
+      ],
+      "actions": [
+        {
+          "label": "カートに入れる",
+          "command": "AddToCart",
+          "kind": "submit",
+          "scope": "screen",
+          "method": "POST",
+          "endpoint": "POST /cart",
+          "inputs": [
+            "productId",
+            "quantity"
+          ],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/product/detail.jsp:21-27",
+          "id": "UIS-004.A1",
+          "target": "UIS-005"
+        },
+        {
+          "label": "メニュー",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /menu",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/product/detail.jsp:7",
+          "id": "UIS-004.A2",
+          "target": "UIS-002"
+        },
+        {
+          "label": "商品検索",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /products",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/product/detail.jsp:7",
+          "id": "UIS-004.A3",
+          "target": "UIS-003"
+        },
+        {
+          "label": "ログアウト",
+          "command": "LogOut",
+          "kind": "link",
+          "scope": "global",
+          "method": "GET",
+          "endpoint": "GET /logout",
+          "inputs": [],
+          "guard": null,
+          "destructive": true,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jspf/header.jspf:19-22",
+          "id": "UIS-004.A4",
+          "target": "UIS-001"
+        }
+      ],
+      "messages": [
+        {
+          "kind": "error",
+          "text": "この商品は現在在庫切れのため、ご注文いただけません。",
+          "source": "src/main/webapp/WEB-INF/jsp/product/detail.jsp:30"
+        },
+        {
+          "kind": "error",
+          "text": "指定された商品は見つかりません。",
+          "source": "src/main/java/com/example/shop/web/ProductDetailServlet.java:24"
+        }
+      ],
+      "embedded_logic": [
+        {
+          "kind": "other",
+          "description": "注文可否（在庫数 > 0）をテンプレートの EL で判定し、「在庫あり／在庫切れ」の表示（detail.jsp:16）とカート投入フォーム／在庫切れメッセージ（detail.jsp:19-31）を切り替えている。",
+          "should_live_in": "domain",
+          "source": "src/main/webapp/WEB-INF/jsp/product/detail.jsp:16-31"
+        }
+      ],
+      "lang": "ja",
+      "images": [
+        {
+          "src": "${ctx}/images/products/${product.image}",
+          "alt": "${product.name}",
+          "decorative": false,
+          "source": "src/main/webapp/WEB-INF/jsp/product/detail.jsp:10"
+        }
+      ],
+      "color_pairs": [
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": ".title-bar",
+          "source": "src/main/webapp/css/common.css:31-39"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "h1 \"商品詳細\"",
+          "source": "src/main/webapp/css/common.css:17-23"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": ".breadcrumb",
+          "source": "src/main/webapp/css/common.css:50"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": ".footer",
+          "source": "src/main/webapp/css/common.css:43-48"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#f4f4f4",
+          "text": "normal",
+          "where": ".detail-table th",
+          "source": "src/main/webapp/css/common.css:107"
+        },
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": ".btn-primary (\"カートに入れる\")",
+          "source": "src/main/webapp/css/common.css:60"
+        },
+        {
+          "fg": "#cc0000",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": ".error-message (out-of-stock notice)",
+          "source": "src/main/webapp/css/common.css:91"
+        },
+        {
+          "fg": "#0066cc",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "パンくずのリンク（a 要素の色、背景宣言なしのため #ffffff）",
+          "source": "src/main/webapp/css/common.css:13-15"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": ".detail-table td（背景宣言なしのため #ffffff）",
+          "source": "src/main/webapp/css/common.css:108"
+        }
+      ],
+      "components": [
+        "UIC-001",
+        "UIC-002",
+        "UIC-003",
+        "UIC-005",
+        "UIC-007",
+        "UIC-009"
+      ]
+    },
+    {
+      "id": "UIS-005",
+      "name": "ショッピングカート",
+      "route": "/cart",
+      "source": "src/main/webapp/WEB-INF/jsp/cart.jsp",
+      "entry": false,
+      "handlers": [
+        {
+          "ref": "CartServlet#doGet",
+          "source": "src/main/java/com/example/shop/web/CartServlet.java:22-26",
+          "services": [],
+          "entities": [
+            "Cart"
+          ]
+        },
+        {
+          "ref": "CartServlet#doPost",
+          "source": "src/main/java/com/example/shop/web/CartServlet.java:29-44",
+          "services": [
+            "ShopData#findProduct"
+          ],
+          "entities": [
+            "Cart",
+            "Product",
+            "CartLine"
+          ]
+        }
+      ],
+      "access": {
+        "authentication": "required",
+        "roles": [
+          "customer",
+          "admin"
+        ],
+        "guards": [
+          {
+            "kind": "filter",
+            "source": "src/main/java/com/example/shop/filter/LoginFilter.java:19-44"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "name": "productId",
+          "label": null,
+          "label_association": "n/a",
+          "control": "hidden",
+          "type": "string",
+          "required": true,
+          "validation": [],
+          "prefilled_from": null,
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/cart.jsp:29"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "cartLines",
+          "label": "ショッピングカート内容",
+          "kind": "table",
+          "fields": [
+            "商品名",
+            "単価",
+            "数量",
+            "金額"
+          ],
+          "source": "src/main/webapp/WEB-INF/jsp/cart.jsp:15-39"
+        },
+        {
+          "name": "subtotal",
+          "label": "合計（税抜）",
+          "kind": "field",
+          "fields": [
+            "subtotal"
+          ],
+          "source": "src/main/webapp/WEB-INF/jsp/cart.jsp:37"
+        }
+      ],
+      "actions": [
+        {
+          "label": "削除",
+          "command": "RemoveCartLine",
+          "kind": "submit",
+          "scope": "screen",
+          "method": "POST",
+          "endpoint": "POST /cart",
+          "inputs": [
+            "productId"
+          ],
+          "guard": null,
+          "destructive": true,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/cart.jsp:27-31",
+          "id": "UIS-005.A1",
+          "target": "UIS-005"
+        },
+        {
+          "label": "買い物を続ける",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /products",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/cart.jsp:42",
+          "id": "UIS-005.A2",
+          "target": "UIS-003"
+        },
+        {
+          "label": "注文手続きへ進む",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /order/entry",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/cart.jsp:43-45",
+          "id": "UIS-005.A3",
+          "target": "UIS-006"
+        },
+        {
+          "label": "商品を探す",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /products",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/cart.jsp:12",
+          "id": "UIS-005.A4",
+          "target": "UIS-003"
+        },
+        {
+          "label": "メニュー",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /menu",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/cart.jsp:7",
+          "id": "UIS-005.A5",
+          "target": "UIS-002"
+        },
+        {
+          "label": "ログアウト",
+          "command": "LogOut",
+          "kind": "link",
+          "scope": "global",
+          "method": "GET",
+          "endpoint": "GET /logout",
+          "inputs": [],
+          "guard": null,
+          "destructive": true,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jspf/header.jspf:19-22",
+          "id": "UIS-005.A6",
+          "target": "UIS-001"
+        }
+      ],
+      "messages": [
+        {
+          "kind": "info",
+          "text": "カートに商品が入っていません。",
+          "source": "src/main/webapp/WEB-INF/jsp/cart.jsp:11"
+        },
+        {
+          "kind": "info",
+          "text": "※表示価格はすべて税抜です。消費税および会員割引はご注文手続きの画面で計算されます。在庫状況によりお届けまでお時間をいただく場合があります。",
+          "source": "src/main/webapp/WEB-INF/jsp/cart.jsp:40"
+        }
+      ],
+      "embedded_logic": [
+        {
+          "kind": "calculation",
+          "description": "カート各行の金額（単価 × 数量）をサーバーは空欄で返し、cart.js が data-price / data-quantity から計算・書式化している。ドメインの CartLine#getLineTotal() と重複し、JavaScript が動かなければ金額は表示されない。",
+          "should_live_in": "domain",
+          "source": "src/main/webapp/js/cart.js:5-16"
+        }
+      ],
+      "lang": "ja",
+      "images": [],
+      "color_pairs": [
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": ".title-bar",
+          "source": "src/main/webapp/css/common.css:31-39"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "h1 \"ショッピングカート\"",
+          "source": "src/main/webapp/css/common.css:17-23"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": ".breadcrumb",
+          "source": "src/main/webapp/css/common.css:50"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": ".footer",
+          "source": "src/main/webapp/css/common.css:43-48"
+        },
+        {
+          "fg": "#444444",
+          "bg": "#eeeeee",
+          "text": "normal",
+          "where": ".list-table th",
+          "source": "src/main/webapp/css/common.css:100"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": ".list-table td (cart lines)",
+          "source": "src/main/webapp/css/common.css:101"
+        },
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": ".btn-primary (\"注文手続きへ進む\")",
+          "source": "src/main/webapp/css/common.css:60"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#f5f5f5",
+          "text": "normal",
+          "where": ".btn-secondary (\"削除\")",
+          "source": "src/main/webapp/css/common.css:62"
+        },
+        {
+          "fg": "#aaaaaa",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": ".cart-notes",
+          "source": "src/main/webapp/css/common.css:125"
+        },
+        {
+          "fg": "#0066cc",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "パンくず・買い物を続けるのリンク（a 要素の色、背景宣言なしのため #ffffff）",
+          "source": "src/main/webapp/css/common.css:13-15"
+        },
+        {
+          "fg": "#444444",
+          "bg": "#efefef",
+          "text": "normal",
+          "where": ".list-table tfoot th（合計行）",
+          "source": "src/main/webapp/css/common.css:102"
+        }
+      ],
+      "components": [
+        "UIC-001",
+        "UIC-002",
+        "UIC-003",
+        "UIC-005",
+        "UIC-006"
+      ]
+    },
+    {
+      "id": "UIS-006",
+      "name": "ご注文情報の入力",
+      "route": "/order/entry",
+      "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp",
+      "entry": false,
+      "handlers": [
+        {
+          "ref": "OrderEntryServlet#doGet",
+          "source": "src/main/java/com/example/shop/web/OrderEntryServlet.java:24-41",
+          "services": [],
+          "entities": [
+            "Cart",
+            "OrderForm",
+            "User"
+          ]
+        },
+        {
+          "ref": "OrderEntryServlet#doPost",
+          "source": "src/main/java/com/example/shop/web/OrderEntryServlet.java:44-82",
+          "services": [],
+          "entities": [
+            "OrderForm",
+            "Cart"
+          ]
+        }
+      ],
+      "access": {
+        "authentication": "required",
+        "roles": [
+          "customer",
+          "admin"
+        ],
+        "guards": [
+          {
+            "kind": "filter",
+            "source": "src/main/java/com/example/shop/filter/LoginFilter.java:19-44"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "name": "shippingName",
+          "label": "お届け先氏名",
+          "label_association": "for",
+          "control": "text",
+          "type": "string",
+          "required": true,
+          "validation": [
+            {
+              "rule": "required",
+              "value": null,
+              "where": "server",
+              "enforcement": "reject",
+              "source": "src/main/java/com/example/shop/web/OrderEntryServlet.java:62"
+            }
+          ],
+          "prefilled_from": "ログインユーザーの氏名（OrderEntryServlet.java:34-36、注文フォーム未作成時）",
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:48-49"
+        },
+        {
+          "name": "postalCode",
+          "label": "郵便番号",
+          "label_association": "for",
+          "control": "text",
+          "type": "string",
+          "required": true,
+          "validation": [
+            {
+              "rule": "required",
+              "value": null,
+              "where": "server",
+              "enforcement": "reject",
+              "source": "src/main/java/com/example/shop/web/OrderEntryServlet.java:63"
+            },
+            {
+              "rule": "pattern",
+              "value": "^\\d{3}-\\d{4}$",
+              "where": "client",
+              "enforcement": "reject",
+              "source": "src/main/webapp/js/validation.js:15-19"
+            },
+            {
+              "rule": "maxLength",
+              "value": 8,
+              "where": "client",
+              "enforcement": "reject",
+              "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:53"
+            }
+          ],
+          "prefilled_from": null,
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:52-55"
+        },
+        {
+          "name": "address",
+          "label": "住所",
+          "label_association": "for",
+          "control": "text",
+          "type": "string",
+          "required": true,
+          "validation": [
+            {
+              "rule": "required",
+              "value": null,
+              "where": "server",
+              "enforcement": "reject",
+              "source": "src/main/java/com/example/shop/web/OrderEntryServlet.java:64"
+            }
+          ],
+          "prefilled_from": null,
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:56-59"
+        },
+        {
+          "name": "phone",
+          "label": "電話番号",
+          "label_association": "none",
+          "control": "text",
+          "type": "string",
+          "required": true,
+          "validation": [
+            {
+              "rule": "required",
+              "value": null,
+              "where": "server",
+              "enforcement": "reject",
+              "source": "src/main/java/com/example/shop/web/OrderEntryServlet.java:65"
+            }
+          ],
+          "prefilled_from": null,
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:60-63"
+        },
+        {
+          "name": "email",
+          "label": "メールアドレス",
+          "label_association": "for",
+          "control": "text",
+          "type": "string",
+          "required": true,
+          "validation": [
+            {
+              "rule": "required",
+              "value": null,
+              "where": "server",
+              "enforcement": "reject",
+              "source": "src/main/java/com/example/shop/web/OrderEntryServlet.java:66"
+            },
+            {
+              "rule": "format",
+              "value": "contains '@'",
+              "where": "server",
+              "enforcement": "reject",
+              "source": "src/main/java/com/example/shop/web/OrderEntryServlet.java:67-69"
+            }
+          ],
+          "prefilled_from": null,
+          "redundant_with": "ログインユーザーのメールアドレス（User.email、メニュー画面に表示）— 入力画面では初期表示されない",
+          "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:64-68"
+        },
+        {
+          "name": "paymentMethod",
+          "label": "お支払い方法",
+          "label_association": "legend",
+          "control": "radio",
+          "type": "enum",
+          "required": true,
+          "validation": [
+            {
+              "rule": "required",
+              "value": null,
+              "where": "server",
+              "enforcement": "reject",
+              "source": "src/main/java/com/example/shop/web/OrderEntryServlet.java:70-72"
+            },
+            {
+              "rule": "enum",
+              "value": [
+                "CARD",
+                "BANK",
+                "COD"
+              ],
+              "where": "server",
+              "enforcement": "reject",
+              "source": "src/main/java/com/example/shop/web/OrderEntryServlet.java:70-72"
+            }
+          ],
+          "prefilled_from": "既定値 CARD（OrderEntryServlet.java:37、注文フォーム未作成時）",
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:69-74"
+        },
+        {
+          "name": "notes",
+          "label": "備考",
+          "label_association": "for",
+          "control": "textarea",
+          "type": "string",
+          "required": false,
+          "validation": [],
+          "prefilled_from": null,
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:75-78"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "orderSummary",
+          "label": "商品小計（税抜）／会員割引",
+          "kind": "field",
+          "fields": [
+            "subtotal",
+            "discount"
+          ],
+          "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:30-37"
+        }
+      ],
+      "actions": [
+        {
+          "label": "確認画面へ進む",
+          "command": "EnterOrderDetails",
+          "kind": "submit",
+          "scope": "screen",
+          "method": "POST",
+          "endpoint": "POST /order/entry",
+          "inputs": [
+            "shippingName",
+            "postalCode",
+            "address",
+            "phone",
+            "email",
+            "paymentMethod",
+            "notes"
+          ],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:46-83",
+          "id": "UIS-006.A1",
+          "target": "UIS-007"
+        },
+        {
+          "label": "カートに戻る",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /cart",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:80",
+          "id": "UIS-006.A2",
+          "target": "UIS-005"
+        },
+        {
+          "label": "メニュー",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /menu",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:23",
+          "id": "UIS-006.A3",
+          "target": "UIS-002"
+        },
+        {
+          "label": "ショッピングカート",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /cart",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:23",
+          "id": "UIS-006.A4",
+          "target": "UIS-005"
+        },
+        {
+          "label": "ログアウト",
+          "command": "LogOut",
+          "kind": "link",
+          "scope": "global",
+          "method": "GET",
+          "endpoint": "GET /logout",
+          "inputs": [],
+          "guard": null,
+          "destructive": true,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jspf/header.jspf:19-22",
+          "id": "UIS-006.A5",
+          "target": "UIS-001"
+        }
+      ],
+      "messages": [
+        {
+          "kind": "error",
+          "text": "入力内容に誤りがあります。以下の項目をご確認ください。",
+          "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:40"
+        },
+        {
+          "kind": "error",
+          "text": "お届け先氏名を入力してください。",
+          "source": "src/main/java/com/example/shop/web/OrderEntryServlet.java:62"
+        },
+        {
+          "kind": "error",
+          "text": "郵便番号を入力してください。",
+          "source": "src/main/java/com/example/shop/web/OrderEntryServlet.java:63"
+        },
+        {
+          "kind": "error",
+          "text": "住所を入力してください。",
+          "source": "src/main/java/com/example/shop/web/OrderEntryServlet.java:64"
+        },
+        {
+          "kind": "error",
+          "text": "電話番号を入力してください。",
+          "source": "src/main/java/com/example/shop/web/OrderEntryServlet.java:65"
+        },
+        {
+          "kind": "error",
+          "text": "メールアドレスを入力してください。",
+          "source": "src/main/java/com/example/shop/web/OrderEntryServlet.java:66"
+        },
+        {
+          "kind": "error",
+          "text": "メールアドレスの形式が正しくありません。",
+          "source": "src/main/java/com/example/shop/web/OrderEntryServlet.java:68"
+        },
+        {
+          "kind": "error",
+          "text": "お支払い方法を選択してください。",
+          "source": "src/main/java/com/example/shop/web/OrderEntryServlet.java:71"
+        },
+        {
+          "kind": "error",
+          "text": "郵便番号は「123-4567」の形式で入力してください。",
+          "source": "src/main/webapp/js/validation.js:17"
+        }
+      ],
+      "embedded_logic": [
+        {
+          "kind": "calculation",
+          "description": "会員割引（会員かつ商品小計が 10,000 円以上なら小計の 10%、切り捨て）をスクリプトレットで計算し、セッション属性 discount に書き込んでいる。注文確定（OrderConfirmServlet.java:39, 48-49）はこの値をそのまま使う。",
+          "should_live_in": "domain",
+          "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:10-19"
+        },
+        {
+          "kind": "validation",
+          "description": "郵便番号の形式（^\\d{3}-\\d{4}$）はクライアントの JavaScript だけで検査している。サーバー（OrderEntryServlet.java:63）は必須チェックのみのため、直接 POST すれば形式ルールを回避できる。",
+          "should_live_in": "domain",
+          "source": "src/main/webapp/js/validation.js:5-19"
+        }
+      ],
+      "lang": "ja",
+      "images": [],
+      "color_pairs": [
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": "title bar (app name / user info / logout)",
+          "source": "src/main/webapp/css/common.css:31-39"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "footer copyright text, no background declared",
+          "source": "src/main/webapp/css/common.css:43-48"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "breadcrumb text",
+          "source": "src/main/webapp/css/common.css:50"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "h1 page title (20px, not bold — below the 24px large threshold)",
+          "source": "src/main/webapp/css/common.css:17-23"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#eeeeee",
+          "text": "normal",
+          "where": "inactive step indicator",
+          "source": "src/main/webapp/css/common.css:129-130"
+        },
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": "active step indicator",
+          "source": "src/main/webapp/css/common.css:131"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#f4f4f4",
+          "text": "normal",
+          "where": "order summary box (subtotal/discount)",
+          "source": "src/main/webapp/css/common.css:127"
+        },
+        {
+          "fg": "#ffffff",
+          "bg": "#cc0000",
+          "text": "normal",
+          "where": "'required' badge next to field labels",
+          "source": "src/main/webapp/css/common.css:82-88"
+        },
+        {
+          "fg": "#cc0000",
+          "bg": "#fff0f0",
+          "text": "normal",
+          "where": "validation error box",
+          "source": "src/main/webapp/css/common.css:92"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "field hint text",
+          "source": "src/main/webapp/css/common.css:89"
+        },
+        {
+          "fg": "#cc0000",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "client-inserted per-field error text",
+          "source": "src/main/webapp/css/common.css:90"
+        },
+        {
+          "fg": "#0066cc",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "'カートに戻る' link and other body links",
+          "source": "src/main/webapp/css/common.css:13-15"
+        },
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": "primary submit button ('確認画面へ進む')",
+          "source": "src/main/webapp/css/common.css:60"
+        }
+      ],
+      "components": [
+        "UIC-001",
+        "UIC-002",
+        "UIC-003",
+        "UIC-005",
+        "UIC-008",
+        "UIC-010"
+      ]
+    },
+    {
+      "id": "UIS-007",
+      "name": "ご注文内容の確認",
+      "route": "/order/confirm",
+      "source": "src/main/webapp/WEB-INF/jsp/order/confirm.jsp",
+      "entry": false,
+      "handlers": [
+        {
+          "ref": "OrderConfirmServlet#doGet",
+          "source": "src/main/java/com/example/shop/web/OrderConfirmServlet.java:24-32",
+          "services": [],
+          "entities": [
+            "Cart",
+            "OrderForm"
+          ]
+        },
+        {
+          "ref": "OrderConfirmServlet#doPost",
+          "source": "src/main/java/com/example/shop/web/OrderConfirmServlet.java:35-58",
+          "services": [
+            "ShopData#placeOrder"
+          ],
+          "entities": [
+            "Cart",
+            "OrderForm",
+            "Order",
+            "User"
+          ]
+        }
+      ],
+      "access": {
+        "authentication": "required",
+        "roles": [
+          "customer",
+          "admin"
+        ],
+        "guards": [
+          {
+            "kind": "filter",
+            "source": "src/main/java/com/example/shop/filter/LoginFilter.java:19-44"
+          }
+        ]
+      },
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "orderLines",
+          "label": "ご注文商品",
+          "kind": "table",
+          "fields": [
+            "product.name",
+            "product.price",
+            "quantity",
+            "lineTotal"
+          ],
+          "source": "src/main/webapp/WEB-INF/jsp/order/confirm.jsp:31-45"
+        },
+        {
+          "name": "amountSummary",
+          "label": "金額（小計／割引／消費税／合計）",
+          "kind": "field",
+          "fields": [
+            "subtotal",
+            "discount",
+            "tax",
+            "total"
+          ],
+          "source": "src/main/webapp/WEB-INF/jsp/order/confirm.jsp:46-51"
+        },
+        {
+          "name": "shippingDetails",
+          "label": "お届け先・お支払い方法",
+          "kind": "field",
+          "fields": [
+            "shippingName",
+            "postalCode",
+            "address",
+            "phone",
+            "email",
+            "paymentMethodLabel",
+            "notes"
+          ],
+          "source": "src/main/webapp/WEB-INF/jsp/order/confirm.jsp:52-61"
+        }
+      ],
+      "actions": [
+        {
+          "label": "注文を確定する",
+          "command": "PlaceOrder",
+          "kind": "submit",
+          "scope": "screen",
+          "method": "POST",
+          "endpoint": "POST /order/confirm",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": true,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/order/confirm.jsp:62-67",
+          "id": "UIS-007.A1",
+          "target": "UIS-008"
+        },
+        {
+          "label": "入力画面に戻る",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /order/entry",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/order/confirm.jsp:64",
+          "id": "UIS-007.A2",
+          "target": "UIS-006"
+        },
+        {
+          "label": "メニュー",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /menu",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/order/confirm.jsp:23",
+          "id": "UIS-007.A3",
+          "target": "UIS-002"
+        },
+        {
+          "label": "ショッピングカート",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /cart",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/order/confirm.jsp:23",
+          "id": "UIS-007.A4",
+          "target": "UIS-005"
+        },
+        {
+          "label": "ログアウト",
+          "command": "LogOut",
+          "kind": "link",
+          "scope": "global",
+          "method": "GET",
+          "endpoint": "GET /logout",
+          "inputs": [],
+          "guard": null,
+          "destructive": true,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jspf/header.jspf:19-22",
+          "id": "UIS-007.A5",
+          "target": "UIS-001"
+        }
+      ],
+      "messages": [],
+      "embedded_logic": [
+        {
+          "kind": "calculation",
+          "description": "消費税（(小計 − 割引) × 10% の切り捨て）と支払合計をスクリプトレットで計算している。税率 10% はハードコード。",
+          "should_live_in": "domain",
+          "source": "src/main/webapp/WEB-INF/jsp/order/confirm.jsp:8-15"
+        },
+        {
+          "kind": "workflow",
+          "description": "計算した消費税・合計をビューがセッション属性 orderTax / orderTotal に書き込み、OrderConfirmServlet#doPost（OrderConfirmServlet.java:40-41, 48-49）がそれを読んで注文を登録する。確認画面を経由しないと注文できず、金額の正はビューにある。",
+          "should_live_in": "application",
+          "source": "src/main/webapp/WEB-INF/jsp/order/confirm.jsp:16-17"
+        }
+      ],
+      "lang": "ja",
+      "images": [],
+      "color_pairs": [
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": "title bar",
+          "source": "src/main/webapp/css/common.css:31-39"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "footer text",
+          "source": "src/main/webapp/css/common.css:43-48"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "breadcrumb",
+          "source": "src/main/webapp/css/common.css:50"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "h1 page title",
+          "source": "src/main/webapp/css/common.css:17-23"
+        },
+        {
+          "fg": "#444444",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "h2 section title",
+          "source": "src/main/webapp/css/common.css:25-28"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#eeeeee",
+          "text": "normal",
+          "where": "inactive step indicator",
+          "source": "src/main/webapp/css/common.css:129-130"
+        },
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": "active step indicator",
+          "source": "src/main/webapp/css/common.css:131"
+        },
+        {
+          "fg": "#444444",
+          "bg": "#eeeeee",
+          "text": "normal",
+          "where": "order-lines table header",
+          "source": "src/main/webapp/css/common.css:100"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#f4f4f4",
+          "text": "normal",
+          "where": "amount/detail table header cells",
+          "source": "src/main/webapp/css/common.css:107"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "total row (16px bold, below the 18.66px bold large threshold)",
+          "source": "src/main/webapp/css/common.css:113"
+        },
+        {
+          "fg": "#0066cc",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "'入力画面に戻る' link",
+          "source": "src/main/webapp/css/common.css:13-15"
+        },
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": "primary submit button ('注文を確定する')",
+          "source": "src/main/webapp/css/common.css:60"
+        }
+      ],
+      "components": [
+        "UIC-001",
+        "UIC-002",
+        "UIC-003",
+        "UIC-005",
+        "UIC-006",
+        "UIC-007",
+        "UIC-008"
+      ]
+    },
+    {
+      "id": "UIS-008",
+      "name": "ご注文完了",
+      "route": "/order/complete",
+      "source": "src/main/webapp/WEB-INF/jsp/order/complete.jsp",
+      "entry": false,
+      "handlers": [
+        {
+          "ref": "OrderCompleteServlet#doGet",
+          "source": "src/main/java/com/example/shop/web/OrderCompleteServlet.java:17-26",
+          "services": [],
+          "entities": []
+        }
+      ],
+      "access": {
+        "authentication": "required",
+        "roles": [
+          "customer",
+          "admin"
+        ],
+        "guards": [
+          {
+            "kind": "filter",
+            "source": "src/main/java/com/example/shop/filter/LoginFilter.java:19-44"
+          }
+        ]
+      },
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "orderNo",
+          "label": "ご注文番号",
+          "kind": "field",
+          "fields": [
+            "orderNo"
+          ],
+          "source": "src/main/webapp/WEB-INF/jsp/order/complete.jsp:23"
+        }
+      ],
+      "actions": [],
+      "messages": [
+        {
+          "kind": "success",
+          "text": "ご注文ありがとうございました。",
+          "source": "src/main/webapp/WEB-INF/jsp/order/complete.jsp:22"
+        },
+        {
+          "kind": "info",
+          "text": "ご入力いただいたメールアドレスに注文確認メールをお送りしました。",
+          "source": "src/main/webapp/WEB-INF/jsp/order/complete.jsp:24"
+        }
+      ],
+      "embedded_logic": [],
+      "lang": "ja",
+      "images": [],
+      "color_pairs": [
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": "hand-copied title bar (app name only — no logout/user-info, unlike every other screen's chrome)",
+          "source": "src/main/webapp/WEB-INF/jsp/order/complete.jsp:11-13"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "h1 page title",
+          "source": "src/main/webapp/css/common.css:17-23"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#eeeeee",
+          "text": "normal",
+          "where": "inactive step indicators",
+          "source": "src/main/webapp/css/common.css:129-130"
+        },
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": "active step indicator",
+          "source": "src/main/webapp/css/common.css:131"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "complete-box body text and order number (border only, no declared background)",
+          "source": "src/main/webapp/css/common.css:133"
+        }
+      ],
+      "components": [
+        "UIC-008",
+        "UIC-012"
+      ]
+    },
+    {
+      "id": "UIS-009",
+      "name": "商品編集",
+      "route": "/admin/products/edit",
+      "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp",
+      "entry": false,
+      "handlers": [
+        {
+          "ref": "AdminProductEditServlet#doGet",
+          "source": "src/main/java/com/example/shop/web/AdminProductEditServlet.java:23-38",
+          "services": [
+            "ShopData#categories",
+            "ShopData#findProduct"
+          ],
+          "entities": [
+            "Product"
+          ]
+        },
+        {
+          "ref": "AdminProductEditServlet#doPost",
+          "source": "src/main/java/com/example/shop/web/AdminProductEditServlet.java:41-87",
+          "services": [
+            "ShopData#categories",
+            "ShopData#deleteProduct",
+            "ShopData#saveProduct"
+          ],
+          "entities": [
+            "Product"
+          ]
+        }
+      ],
+      "access": {
+        "authentication": "required",
+        "roles": [
+          "admin"
+        ],
+        "guards": [
+          {
+            "kind": "filter",
+            "source": "src/main/java/com/example/shop/filter/LoginFilter.java:19-44"
+          },
+          {
+            "kind": "view",
+            "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:9-17"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "name": "id",
+          "label": null,
+          "label_association": "n/a",
+          "control": "hidden",
+          "type": "string",
+          "required": false,
+          "validation": [],
+          "prefilled_from": "編集中の商品の商品コード（新規登録時は空）",
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:28"
+        },
+        {
+          "name": "name",
+          "label": "商品名",
+          "label_association": "for",
+          "control": "text",
+          "type": "string",
+          "required": true,
+          "validation": [
+            {
+              "rule": "required",
+              "value": null,
+              "where": "server",
+              "enforcement": "reject",
+              "source": "src/main/java/com/example/shop/web/AdminProductEditServlet.java:58-60"
+            }
+          ],
+          "prefilled_from": "編集中の商品（ShopData#findProduct）",
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:33-36"
+        },
+        {
+          "name": "price",
+          "label": "価格（税抜）",
+          "label_association": "for",
+          "control": "text",
+          "type": "integer",
+          "required": true,
+          "validation": [
+            {
+              "rule": "format",
+              "value": "integer",
+              "where": "server",
+              "enforcement": "reject",
+              "source": "src/main/java/com/example/shop/web/AdminProductEditServlet.java:61-68"
+            },
+            {
+              "rule": "min",
+              "value": 0,
+              "where": "server",
+              "enforcement": "reject",
+              "source": "src/main/java/com/example/shop/web/AdminProductEditServlet.java:63-64"
+            }
+          ],
+          "prefilled_from": "編集中の商品（ShopData#findProduct）",
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:37-40"
+        },
+        {
+          "name": "stock",
+          "label": "在庫数",
+          "label_association": "for",
+          "control": "text",
+          "type": "integer",
+          "required": true,
+          "validation": [
+            {
+              "rule": "format",
+              "value": "integer",
+              "where": "server",
+              "enforcement": "reject",
+              "source": "src/main/java/com/example/shop/web/AdminProductEditServlet.java:69-76"
+            },
+            {
+              "rule": "min",
+              "value": 0,
+              "where": "server",
+              "enforcement": "reject",
+              "source": "src/main/java/com/example/shop/web/AdminProductEditServlet.java:71-72"
+            }
+          ],
+          "prefilled_from": "編集中の商品（ShopData#findProduct）",
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:41-44"
+        },
+        {
+          "name": "category",
+          "label": "カテゴリ",
+          "label_association": "for",
+          "control": "select",
+          "type": "enum",
+          "required": true,
+          "validation": [
+            {
+              "rule": "enum",
+              "value": [
+                "文房具",
+                "事務用品",
+                "オフィス家具"
+              ],
+              "where": "server",
+              "enforcement": "reject",
+              "source": "src/main/java/com/example/shop/web/AdminProductEditServlet.java:77-79"
+            }
+          ],
+          "prefilled_from": "編集中の商品のカテゴリ、新規登録時はカテゴリ一覧の先頭（AdminProductEditServlet.java:29）",
+          "redundant_with": null,
+          "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:45-52"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "productCode",
+          "label": "商品コード",
+          "kind": "field",
+          "fields": [
+            "id"
+          ],
+          "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:29-32"
+        }
+      ],
+      "actions": [
+        {
+          "label": "保存",
+          "command": "SaveProduct",
+          "kind": "submit",
+          "scope": "screen",
+          "method": "POST",
+          "endpoint": "POST /admin/products/edit",
+          "inputs": [
+            "id",
+            "name",
+            "price",
+            "stock",
+            "category"
+          ],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:54",
+          "id": "UIS-009.A1",
+          "target": "UIS-009"
+        },
+        {
+          "label": "削除",
+          "command": "DeleteProduct",
+          "kind": "submit",
+          "scope": "screen",
+          "method": "POST",
+          "endpoint": "POST /admin/products/edit",
+          "inputs": [
+            "id"
+          ],
+          "guard": null,
+          "destructive": true,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:55-57",
+          "id": "UIS-009.A2",
+          "target": "UIS-003"
+        },
+        {
+          "label": "商品一覧へ",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /products",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:58",
+          "id": "UIS-009.A3",
+          "target": "UIS-003"
+        },
+        {
+          "label": "メニューへ戻る",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /menu",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:14",
+          "id": "UIS-009.A4",
+          "target": "UIS-002"
+        },
+        {
+          "label": "メニュー",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /menu",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:18",
+          "id": "UIS-009.A5",
+          "target": "UIS-002"
+        },
+        {
+          "label": "ログアウト",
+          "command": "LogOut",
+          "kind": "link",
+          "scope": "global",
+          "method": "GET",
+          "endpoint": "GET /logout",
+          "inputs": [],
+          "guard": null,
+          "destructive": true,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jspf/header.jspf:19-22",
+          "id": "UIS-009.A6",
+          "target": "UIS-001"
+        }
+      ],
+      "messages": [
+        {
+          "kind": "error",
+          "text": "この画面を表示する権限がありません。",
+          "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:13"
+        },
+        {
+          "kind": "info",
+          "text": "保存しました。",
+          "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:22"
+        },
+        {
+          "kind": "error",
+          "text": "エラーが発生しました",
+          "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:25"
+        }
+      ],
+      "embedded_logic": [
+        {
+          "kind": "authorization",
+          "description": "管理者のみの制限をスクリプトレット（loginUser.role == \"admin\"）だけで行っている。AdminProductEditServlet の doGet / doPost にロールチェックはなく、ログイン済みの一般会員が /admin/products/edit に直接 POST すれば商品を保存・削除できる。",
+          "should_live_in": "application",
+          "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:9-17"
+        }
+      ],
+      "lang": "ja",
+      "images": [],
+      "color_pairs": [
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": "title bar",
+          "source": "src/main/webapp/css/common.css:31-39"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "footer text",
+          "source": "src/main/webapp/css/common.css:43-48"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "breadcrumb",
+          "source": "src/main/webapp/css/common.css:50"
+        },
+        {
+          "fg": "#cc0000",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "permission-denied message (rendered outside the admin panel)",
+          "source": "src/main/webapp/css/common.css:91"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#f2f2f2",
+          "text": "normal",
+          "where": "admin panel body text / h1 (no color override, background from .admin-panel)",
+          "source": "src/main/webapp/css/admin.css:5-15"
+        },
+        {
+          "fg": "#006600",
+          "bg": "#f2f2f2",
+          "text": "normal",
+          "where": "'保存しました。' info message inside the admin panel",
+          "source": "src/main/webapp/css/common.css:93"
+        },
+        {
+          "fg": "#cc0000",
+          "bg": "#f2f2f2",
+          "text": "normal",
+          "where": "'エラーが発生しました' message inside the admin panel",
+          "source": "src/main/webapp/css/common.css:91"
+        },
+        {
+          "fg": "#ffffff",
+          "bg": "#1a73e8",
+          "text": "normal",
+          "where": "hand-built inline-styled save button (does not match the shared .btn-primary color #0066cc)",
+          "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:54"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#f5f5f5",
+          "text": "normal",
+          "where": "secondary delete button (button.tag variant=secondary)",
+          "source": "src/main/webapp/css/common.css:62"
+        },
+        {
+          "fg": "#0a66c2",
+          "bg": "#f2f2f2",
+          "text": "normal",
+          "where": "admin-panel action links (a different blue than the global link color #0066cc)",
+          "source": "src/main/webapp/css/admin.css:25-27"
+        },
+        {
+          "fg": "#0066cc",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "パンくず・メニューへ戻るのリンク（a 要素の色、背景宣言なしのため #ffffff）",
+          "source": "src/main/webapp/css/common.css:13-15"
+        }
+      ],
+      "components": [
+        "UIC-001",
+        "UIC-002",
+        "UIC-003",
+        "UIC-005",
+        "UIC-009",
+        "UIC-010",
+        "UIC-011"
+      ]
+    },
+    {
+      "id": "UIS-010",
+      "name": "よくあるご質問",
+      "route": "/help.jsp",
+      "source": "src/main/webapp/help.jsp",
+      "entry": false,
+      "handlers": [],
+      "access": {
+        "authentication": "required",
+        "roles": [
+          "customer",
+          "admin"
+        ],
+        "guards": [
+          {
+            "kind": "filter",
+            "source": "src/main/java/com/example/shop/filter/LoginFilter.java:19-44"
+          }
+        ]
+      },
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "faq",
+          "label": "よくあるご質問",
+          "kind": "list",
+          "fields": [
+            "question",
+            "answer"
+          ],
+          "source": "src/main/webapp/help.jsp:6-15"
+        }
+      ],
+      "actions": [
+        {
+          "label": "メニューへ戻る",
+          "command": null,
+          "kind": "link",
+          "scope": "screen",
+          "method": "GET",
+          "endpoint": "GET /menu",
+          "inputs": [],
+          "guard": null,
+          "destructive": false,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/help.jsp:16",
+          "id": "UIS-010.A1",
+          "target": "UIS-002"
+        },
+        {
+          "label": "ログアウト",
+          "command": "LogOut",
+          "kind": "link",
+          "scope": "global",
+          "method": "GET",
+          "endpoint": "GET /logout",
+          "inputs": [],
+          "guard": null,
+          "destructive": true,
+          "confirmation": false,
+          "unresolved": null,
+          "source": "src/main/webapp/WEB-INF/jspf/header.jspf:19-22",
+          "id": "UIS-010.A2",
+          "target": "UIS-001"
+        }
+      ],
+      "messages": [],
+      "embedded_logic": [],
+      "lang": "ja",
+      "images": [],
+      "color_pairs": [
+        {
+          "fg": "#ffffff",
+          "bg": "#0066cc",
+          "text": "normal",
+          "where": "title bar",
+          "source": "src/main/webapp/css/common.css:31-39"
+        },
+        {
+          "fg": "#666666",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "footer text",
+          "source": "src/main/webapp/css/common.css:43-48"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "h1 page title",
+          "source": "src/main/webapp/css/common.css:17-23"
+        },
+        {
+          "fg": "#333333",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "FAQ question/answer text (.faq dt/dd, no color override)",
+          "source": "src/main/webapp/css/common.css:140-141"
+        },
+        {
+          "fg": "#0066cc",
+          "bg": "#ffffff",
+          "text": "normal",
+          "where": "'メニューへ戻る' link",
+          "source": "src/main/webapp/css/common.css:13-15"
+        }
+      ],
+      "components": [
+        "UIC-001",
+        "UIC-002"
+      ]
+    }
+  ],
+  "components": [
+    {
+      "id": "UIC-001",
+      "name": "header.jspf",
+      "kind": "include",
+      "level": "template",
+      "source": "src/main/webapp/WEB-INF/jspf/header.jspf",
+      "variants": [
+        "extraCss=admin.css（管理画面用スタイルを追加）"
+      ],
+      "states": [
+        "ログイン中（ログアウトリンクと氏名を表示）",
+        "未ログイン（ログアウトリンクなし）"
+      ],
+      "token_refs": [
+        "color.hex-0066cc",
+        "color.hex-ffffff",
+        "font.size.px-16",
+        "font.weight.w-700",
+        "space.px-8",
+        "space.px-16",
+        "space.px-24",
+        "space.px-32"
+      ],
+      "duplicates": [],
+      "used_by": [
+        "UIS-002",
+        "UIS-003",
+        "UIS-004",
+        "UIS-005",
+        "UIS-006",
+        "UIS-007",
+        "UIS-009",
+        "UIS-010"
+      ],
+      "unused": false
+    },
+    {
+      "id": "UIC-002",
+      "name": "footer.jspf",
+      "kind": "include",
+      "level": "template",
+      "source": "src/main/webapp/WEB-INF/jspf/footer.jspf",
+      "variants": [],
+      "states": [],
+      "token_refs": [
+        "color.hex-dddddd",
+        "color.hex-666666",
+        "font.size.px-12",
+        "border.width.px-1",
+        "space.px-8",
+        "space.px-24"
+      ],
+      "duplicates": [],
+      "used_by": [
+        "UIS-002",
+        "UIS-003",
+        "UIS-004",
+        "UIS-005",
+        "UIS-006",
+        "UIS-007",
+        "UIS-009",
+        "UIS-010"
+      ],
+      "unused": false
+    },
+    {
+      "id": "UIC-003",
+      "name": "button.tag",
+      "kind": "tag",
+      "level": "atom",
+      "source": "src/main/webapp/WEB-INF/tags/button.tag",
+      "variants": [
+        "variant=primary",
+        "variant=secondary",
+        "type=submit（既定）|button",
+        "name/value 指定あり"
+      ],
+      "states": [
+        "hover"
+      ],
+      "token_refs": [
+        "font.size.px-14",
+        "space.px-6",
+        "space.px-16",
+        "border.width.px-1",
+        "radius.px-3",
+        "color.hex-0066cc",
+        "color.hex-ffffff",
+        "color.hex-0052a3",
+        "color.hex-f5f5f5",
+        "color.hex-333333",
+        "color.hex-cccccc",
+        "color.hex-e8e8e8"
+      ],
+      "duplicates": [],
+      "used_by": [
+        "UIS-001",
+        "UIS-003",
+        "UIS-004",
+        "UIS-005",
+        "UIS-006",
+        "UIS-007",
+        "UIS-009"
+      ],
+      "unused": false
+    },
+    {
+      "id": "UIC-004",
+      "name": "pager.tag",
+      "kind": "tag",
+      "level": "atom",
+      "source": "src/main/webapp/WEB-INF/tags/pager.tag",
+      "variants": [],
+      "states": [
+        "非表示（1ページのみ）",
+        "現在ページ",
+        "前へ／次へ 無効"
+      ],
+      "token_refs": [
+        "color.hex-0066cc",
+        "color.hex-ffffff",
+        "color.hex-666666",
+        "space.px-2",
+        "space.px-8",
+        "space.px-12"
+      ],
+      "duplicates": [],
+      "used_by": [
+        "UIS-003"
+      ],
+      "unused": false
+    },
+    {
+      "id": "UIC-005",
+      "name": "breadcrumb",
+      "kind": "css-class",
+      "level": "atom",
+      "source": "src/main/webapp/css/common.css:50",
+      "variants": [],
+      "states": [],
+      "token_refs": [
+        "font.size.px-12",
+        "color.hex-666666"
+      ],
+      "duplicates": [],
+      "used_by": [
+        "UIS-003",
+        "UIS-004",
+        "UIS-005",
+        "UIS-006",
+        "UIS-007",
+        "UIS-009"
+      ],
+      "unused": false
+    },
+    {
+      "id": "UIC-006",
+      "name": "list-table",
+      "kind": "css-class",
+      "level": "atom",
+      "source": "src/main/webapp/css/common.css:99-104",
+      "variants": [
+        "tfoot 合計行（common.css:102）"
+      ],
+      "states": [],
+      "token_refs": [
+        "color.hex-eeeeee",
+        "color.hex-444444",
+        "color.hex-dddddd",
+        "color.hex-efefef",
+        "border.width.px-1",
+        "space.px-6",
+        "space.px-8",
+        "space.px-12"
+      ],
+      "duplicates": [],
+      "used_by": [
+        "UIS-003",
+        "UIS-005",
+        "UIS-007"
+      ],
+      "unused": false
+    },
+    {
+      "id": "UIC-007",
+      "name": "detail-table",
+      "kind": "css-class",
+      "level": "atom",
+      "source": "src/main/webapp/css/common.css:106-108",
+      "variants": [],
+      "states": [],
+      "token_refs": [
+        "color.hex-f4f4f4",
+        "color.hex-e0e0e0",
+        "border.width.px-1",
+        "space.px-6",
+        "space.px-8",
+        "space.px-12",
+        "space.px-16"
+      ],
+      "duplicates": [],
+      "used_by": [
+        "UIS-004",
+        "UIS-007"
+      ],
+      "unused": false
+    },
+    {
+      "id": "UIC-008",
+      "name": "steps",
+      "kind": "css-class",
+      "level": "atom",
+      "source": "src/main/webapp/css/common.css:129-131",
+      "variants": [],
+      "states": [
+        "active（現在のステップ）"
+      ],
+      "token_refs": [
+        "color.hex-eeeeee",
+        "color.hex-666666",
+        "color.hex-0066cc",
+        "color.hex-ffffff",
+        "space.px-4",
+        "space.px-16"
+      ],
+      "duplicates": [],
+      "used_by": [
+        "UIS-006",
+        "UIS-007",
+        "UIS-008"
+      ],
+      "unused": false
+    },
+    {
+      "id": "UIC-009",
+      "name": "error-message",
+      "kind": "css-class",
+      "level": "atom",
+      "source": "src/main/webapp/css/common.css:91",
+      "variants": [],
+      "states": [],
+      "token_refs": [
+        "color.hex-cc0000",
+        "font.weight.w-700"
+      ],
+      "duplicates": [],
+      "used_by": [
+        "UIS-001",
+        "UIS-004",
+        "UIS-009"
+      ],
+      "unused": false
+    },
+    {
+      "id": "UIC-010",
+      "name": "form-row",
+      "kind": "css-class",
+      "level": "atom",
+      "source": "src/main/webapp/css/common.css:66-76",
+      "variants": [
+        "fieldset.form-row（ラジオグループ＋legend、common.css:75-76）",
+        "login-box 内でラベル幅 100px（common.css:146）",
+        "admin-panel 内でラベル幅 120px（admin.css:17）"
+      ],
+      "states": [],
+      "token_refs": [
+        "space.px-12",
+        "space.px-4",
+        "space.px-6",
+        "font.weight.w-700",
+        "border.width.px-1",
+        "color.hex-cccccc"
+      ],
+      "duplicates": [],
+      "used_by": [
+        "UIS-001",
+        "UIS-006",
+        "UIS-009"
+      ],
+      "unused": false
+    },
+    {
+      "id": "UIC-011",
+      "name": "インラインスタイルの保存ボタン",
+      "kind": "inline-style",
+      "level": "atom",
+      "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:54",
+      "variants": [],
+      "states": [],
+      "token_refs": [
+        "color.hex-1a73e8",
+        "color.hex-ffffff",
+        "space.px-4",
+        "space.px-20",
+        "radius.px-12",
+        "font.size.px-13"
+      ],
+      "duplicates": [
+        "UIC-003"
+      ],
+      "used_by": [
+        "UIS-009"
+      ],
+      "unused": false
+    },
+    {
+      "id": "UIC-012",
+      "name": "手作業で複製されたタイトルバー",
+      "kind": "copy",
+      "level": "atom",
+      "source": "src/main/webapp/WEB-INF/jsp/order/complete.jsp:11-13",
+      "variants": [],
+      "states": [],
+      "token_refs": [
+        "color.hex-0066cc",
+        "color.hex-ffffff",
+        "font.size.px-16",
+        "font.weight.w-700",
+        "space.px-8",
+        "space.px-16"
+      ],
+      "duplicates": [
+        "UIC-001"
+      ],
+      "used_by": [
+        "UIS-008"
+      ],
+      "unused": false
+    }
+  ],
+  "features": [
+    {
+      "id": "UIF-001",
+      "name": "ログインする",
+      "command": "LogIn",
+      "actions": [
+        "UIS-001.A1"
+      ],
+      "screens": [
+        "UIS-001"
+      ],
+      "actors": [
+        "anonymous"
+      ],
+      "entities": [
+        "User"
+      ],
+      "entity_operations": {
+        "User": "R"
+      },
+      "handlers": [
+        "LoginServlet#doPost"
+      ]
+    },
+    {
+      "id": "UIF-002",
+      "name": "ログアウトする",
+      "command": "LogOut",
+      "actions": [
+        "UIS-002.A4",
+        "UIS-003.A4",
+        "UIS-004.A4",
+        "UIS-005.A6",
+        "UIS-006.A5",
+        "UIS-007.A5",
+        "UIS-009.A6",
+        "UIS-010.A2"
+      ],
+      "screens": [
+        "UIS-002",
+        "UIS-003",
+        "UIS-004",
+        "UIS-005",
+        "UIS-006",
+        "UIS-007",
+        "UIS-009",
+        "UIS-010"
+      ],
+      "actors": [
+        "admin",
+        "customer"
+      ],
+      "entities": [
+        "Cart"
+      ],
+      "entity_operations": {
+        "Cart": "D"
+      },
+      "handlers": [
+        "LogoutServlet#doGet"
+      ]
+    },
+    {
+      "id": "UIF-003",
+      "name": "商品を検索する",
+      "command": "SearchProducts",
+      "actions": [
+        "UIS-003.A1"
+      ],
+      "screens": [
+        "UIS-003"
+      ],
+      "actors": [
+        "admin",
+        "customer"
+      ],
+      "entities": [
+        "Product"
+      ],
+      "entity_operations": {
+        "Product": "R"
+      },
+      "handlers": [
+        "ProductSearchServlet#doGet"
+      ]
+    },
+    {
+      "id": "UIF-004",
+      "name": "カートに商品を追加する",
+      "command": "AddToCart",
+      "actions": [
+        "UIS-003.A2",
+        "UIS-004.A1"
+      ],
+      "screens": [
+        "UIS-003",
+        "UIS-004"
+      ],
+      "actors": [
+        "admin",
+        "customer"
+      ],
+      "entities": [
+        "Cart",
+        "Product"
+      ],
+      "entity_operations": {
+        "Product": "R",
+        "Cart": "CU"
+      },
+      "handlers": [
+        "CartServlet#doPost"
+      ]
+    },
+    {
+      "id": "UIF-005",
+      "name": "カートから商品を削除する",
+      "command": "RemoveCartLine",
+      "actions": [
+        "UIS-005.A1"
+      ],
+      "screens": [
+        "UIS-005"
+      ],
+      "actors": [
+        "admin",
+        "customer"
+      ],
+      "entities": [
+        "Cart"
+      ],
+      "entity_operations": {
+        "Cart": "U"
+      },
+      "handlers": [
+        "CartServlet#doPost"
+      ]
+    },
+    {
+      "id": "UIF-006",
+      "name": "注文情報（お届け先・支払い方法）を入力する",
+      "command": "EnterOrderDetails",
+      "actions": [
+        "UIS-006.A1"
+      ],
+      "screens": [
+        "UIS-006"
+      ],
+      "actors": [
+        "admin",
+        "customer"
+      ],
+      "entities": [
+        "Cart",
+        "OrderForm"
+      ],
+      "entity_operations": {
+        "Cart": "R",
+        "OrderForm": "C"
+      },
+      "handlers": [
+        "OrderEntryServlet#doPost"
+      ]
+    },
+    {
+      "id": "UIF-007",
+      "name": "注文を確定する",
+      "command": "PlaceOrder",
+      "actions": [
+        "UIS-007.A1"
+      ],
+      "screens": [
+        "UIS-007"
+      ],
+      "actors": [
+        "admin",
+        "customer"
+      ],
+      "entities": [
+        "Cart",
+        "Order",
+        "OrderForm",
+        "User"
+      ],
+      "entity_operations": {
+        "Order": "C",
+        "Cart": "RD",
+        "OrderForm": "RD",
+        "User": "R"
+      },
+      "handlers": [
+        "OrderConfirmServlet#doPost"
+      ]
+    },
+    {
+      "id": "UIF-008",
+      "name": "商品を登録・更新する",
+      "command": "SaveProduct",
+      "actions": [
+        "UIS-009.A1"
+      ],
+      "screens": [
+        "UIS-009"
+      ],
+      "actors": [
+        "admin"
+      ],
+      "entities": [
+        "Product"
+      ],
+      "entity_operations": {
+        "Product": "CU"
+      },
+      "handlers": [
+        "AdminProductEditServlet#doPost"
+      ]
+    },
+    {
+      "id": "UIF-009",
+      "name": "商品を削除する",
+      "command": "DeleteProduct",
+      "actions": [
+        "UIS-009.A2"
+      ],
+      "screens": [
+        "UIS-009"
+      ],
+      "actors": [
+        "admin"
+      ],
+      "entities": [
+        "Product"
+      ],
+      "entity_operations": {
+        "Product": "D"
+      },
+      "handlers": [
+        "AdminProductEditServlet#doPost"
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "name": "ログインする",
+      "goal": "認証してメニューに到達する",
+      "features": [
+        "UIF-001"
+      ],
+      "screens": [
+        "UIS-001",
+        "UIS-002"
+      ]
+    },
+    {
+      "name": "商品を探してカートに入れる",
+      "goal": "欲しい商品を見つけ、数量を指定してカートに入れる",
+      "features": [
+        "UIF-003",
+        "UIF-004"
+      ],
+      "screens": [
+        "UIS-002",
+        "UIS-003",
+        "UIS-004",
+        "UIS-005"
+      ]
+    },
+    {
+      "name": "カートの中身を整理する",
+      "goal": "不要になった商品をカートから外す",
+      "features": [
+        "UIF-005"
+      ],
+      "screens": [
+        "UIS-005"
+      ]
+    },
+    {
+      "name": "注文する（チェックアウト）",
+      "goal": "カートの商品をお届け先・支払い方法を指定して注文する",
+      "features": [
+        "UIF-006",
+        "UIF-007"
+      ],
+      "screens": [
+        "UIS-005",
+        "UIS-006",
+        "UIS-007",
+        "UIS-008"
+      ]
+    },
+    {
+      "name": "商品を登録・更新する",
+      "goal": "管理者が商品名・価格・在庫・カテゴリを登録または変更する",
+      "features": [
+        "UIF-008"
+      ],
+      "screens": [
+        "UIS-009"
+      ]
+    },
+    {
+      "name": "商品を削除する",
+      "goal": "管理者が商品を取り扱いから外す",
+      "features": [
+        "UIF-009"
+      ],
+      "screens": [
+        "UIS-009"
+      ]
+    },
+    {
+      "name": "利用を終了する",
+      "goal": "ログアウトしてセッションを終える",
+      "features": [
+        "UIF-002"
+      ],
+      "screens": [
+        "UIS-002",
+        "UIS-001"
+      ]
+    }
+  ],
+  "design_tokens": "reports/before/legacy-ui-shop/ui-design-tokens.json",
+  "coverage": {
+    "template_files": 14,
+    "screens": 10,
+    "unresolved": []
+  },
+  "generated_at": "2026-09-11T02:56:47Z",
+  "open_questions": [
+    "OQ-001",
+    "OQ-002",
+    "OQ-003"
+  ]
+}

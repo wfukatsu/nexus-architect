@@ -29,6 +29,10 @@ visually consistent (the same token CSS is injected into each HTML file — no s
   variable theme (MUI/Chakra). An unmapped value is asked — which token it belongs to, or the raw
   value via free text — and becomes `TBD` with an Open Question only if it stays unanswered
   (@rules/open-questions.md); never invent brand values silently.
+  An as-is token file from `/architect:analyze-ui` (`reports/before/{project}/ui-design-tokens.json`,
+  @rules/ui-analysis.md §5) is DTCG already: map its `semantic.*` candidates to the semantic
+  aliases, ask which value each multi-member `cluster` consolidates to, and treat the raw per-value
+  tokens as evidence of the current fragmentation rather than as the system to adopt.
 
 Both modes converge on **one DTCG token file**, so downstream tooling is identical.
 

@@ -1,0 +1,1149 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-11T03:30:26Z",
+  "inventory": "reports/before/legacy-ui-shop/ui-inventory.json",
+  "mode": "static",
+  "primary_tasks": [
+    "ログインする",
+    "商品を探してカートに入れる",
+    "カートの中身を整理する",
+    "注文する（チェックアウト）",
+    "商品を登録・更新する",
+    "商品を削除する",
+    "利用を終了する"
+  ],
+  "metrics": {
+    "accessibility": {
+      "images_without_alt": 1,
+      "low_contrast_pairs": 1,
+      "screens_with_violations": 4,
+      "screens_without_lang": 1,
+      "unlabeled_inputs": 2,
+      "violating_screens": [
+        "UIS-001",
+        "UIS-003",
+        "UIS-005",
+        "UIS-006"
+      ]
+    },
+    "caps": {
+      "A": 3,
+      "C": 3,
+      "E": 4,
+      "H": 3,
+      "N": 3
+    },
+    "consistency": {
+      "colors": 23,
+      "components_with_duplicates": [
+        "UIC-011",
+        "UIC-012"
+      ],
+      "destination_label_variants": [
+        {
+          "labels": [
+            "メニュー",
+            "メニューへ戻る"
+          ],
+          "target": "UIS-002"
+        },
+        {
+          "labels": [
+            "前へ / ページ番号 / 次へ",
+            "商品を探す",
+            "商品一覧へ",
+            "商品検索",
+            "買い物を続ける"
+          ],
+          "target": "UIS-003"
+        },
+        {
+          "labels": [
+            "カートに戻る",
+            "ショッピングカート"
+          ],
+          "target": "UIS-005"
+        },
+        {
+          "labels": [
+            "入力画面に戻る",
+            "注文手続きへ進む"
+          ],
+          "target": "UIS-006"
+        }
+      ],
+      "font_sizes": 6,
+      "fragmented_clusters": [
+        "color:border",
+        "color:primary",
+        "color:surface-subtle",
+        "color:text",
+        "dimension:body-text",
+        "dimension:control-padding-y",
+        "dimension:small-text"
+      ],
+      "label_drift": [
+        {
+          "command": "AddToCart",
+          "labels": [
+            "カートに入れる",
+            "カートに追加"
+          ]
+        }
+      ],
+      "radius_values": 2,
+      "spacing_values": 11
+    },
+    "counts": {
+      "components": 12,
+      "features": 9,
+      "screens": 10
+    },
+    "features": {
+      "UIF-001": {
+        "inputs": 2,
+        "occurrences": 1,
+        "required_inputs": 2,
+        "screens": 1
+      },
+      "UIF-002": {
+        "inputs": 0,
+        "occurrences": 8,
+        "required_inputs": 0,
+        "screens": 8
+      },
+      "UIF-003": {
+        "inputs": 2,
+        "occurrences": 1,
+        "required_inputs": 0,
+        "screens": 1
+      },
+      "UIF-004": {
+        "inputs": 1,
+        "occurrences": 2,
+        "required_inputs": 0,
+        "screens": 2
+      },
+      "UIF-005": {
+        "inputs": 0,
+        "occurrences": 1,
+        "required_inputs": 0,
+        "screens": 1
+      },
+      "UIF-006": {
+        "inputs": 7,
+        "occurrences": 1,
+        "required_inputs": 6,
+        "screens": 1
+      },
+      "UIF-007": {
+        "inputs": 0,
+        "occurrences": 1,
+        "required_inputs": 0,
+        "screens": 1
+      },
+      "UIF-008": {
+        "inputs": 4,
+        "occurrences": 1,
+        "required_inputs": 4,
+        "screens": 1
+      },
+      "UIF-009": {
+        "inputs": 0,
+        "occurrences": 1,
+        "required_inputs": 0,
+        "screens": 1
+      }
+    },
+    "input_burden": {
+      "avg_visible_inputs": 1.6,
+      "client_only_validations": 1,
+      "max_task_inputs": 7,
+      "max_task_steps": 4,
+      "max_visible_inputs": 7,
+      "redundant_inputs": 1
+    },
+    "navigation": {
+      "dead_ends": [
+        "UIS-008"
+      ],
+      "entry": [
+        "UIS-001"
+      ],
+      "max_depth": 5,
+      "orphans": [
+        "UIS-010"
+      ],
+      "unreachable": [
+        "UIS-010"
+      ],
+      "unreachable_not_orphan": []
+    },
+    "per_screen": {
+      "UIS-001": {
+        "actions": 1,
+        "client_only_validations": [],
+        "depth": 0,
+        "destructive_without_confirmation": [],
+        "embedded_logic": 0,
+        "images_without_alt": 0,
+        "inputs": 2,
+        "lang_missing": true,
+        "low_contrast_pairs": [],
+        "outputs": 0,
+        "redundant_inputs": [],
+        "required_inputs": 2,
+        "unlabeled_inputs": []
+      },
+      "UIS-002": {
+        "actions": 4,
+        "client_only_validations": [],
+        "depth": 1,
+        "destructive_without_confirmation": [
+          "UIS-002.A4"
+        ],
+        "embedded_logic": 1,
+        "images_without_alt": 0,
+        "inputs": 0,
+        "lang_missing": false,
+        "low_contrast_pairs": [],
+        "outputs": 1,
+        "redundant_inputs": [],
+        "required_inputs": 0,
+        "unlabeled_inputs": []
+      },
+      "UIS-003": {
+        "actions": 6,
+        "client_only_validations": [],
+        "depth": 2,
+        "destructive_without_confirmation": [
+          "UIS-003.A4"
+        ],
+        "embedded_logic": 1,
+        "images_without_alt": 1,
+        "inputs": 2,
+        "lang_missing": false,
+        "low_contrast_pairs": [],
+        "outputs": 2,
+        "redundant_inputs": [],
+        "required_inputs": 0,
+        "unlabeled_inputs": [
+          "keyword"
+        ]
+      },
+      "UIS-004": {
+        "actions": 4,
+        "client_only_validations": [],
+        "depth": 3,
+        "destructive_without_confirmation": [
+          "UIS-004.A4"
+        ],
+        "embedded_logic": 1,
+        "images_without_alt": 0,
+        "inputs": 1,
+        "lang_missing": false,
+        "low_contrast_pairs": [],
+        "outputs": 1,
+        "redundant_inputs": [],
+        "required_inputs": 0,
+        "unlabeled_inputs": []
+      },
+      "UIS-005": {
+        "actions": 6,
+        "client_only_validations": [],
+        "depth": 2,
+        "destructive_without_confirmation": [
+          "UIS-005.A1",
+          "UIS-005.A6"
+        ],
+        "embedded_logic": 1,
+        "images_without_alt": 0,
+        "inputs": 0,
+        "lang_missing": false,
+        "low_contrast_pairs": [
+          {
+            "bg": "#ffffff",
+            "fg": "#aaaaaa",
+            "ratio": 2.32,
+            "text": "normal"
+          }
+        ],
+        "outputs": 2,
+        "redundant_inputs": [],
+        "required_inputs": 0,
+        "unlabeled_inputs": []
+      },
+      "UIS-006": {
+        "actions": 5,
+        "client_only_validations": [
+          "postalCode"
+        ],
+        "depth": 3,
+        "destructive_without_confirmation": [
+          "UIS-006.A5"
+        ],
+        "embedded_logic": 2,
+        "images_without_alt": 0,
+        "inputs": 7,
+        "lang_missing": false,
+        "low_contrast_pairs": [],
+        "outputs": 1,
+        "redundant_inputs": [
+          "email"
+        ],
+        "required_inputs": 6,
+        "unlabeled_inputs": [
+          "phone"
+        ]
+      },
+      "UIS-007": {
+        "actions": 5,
+        "client_only_validations": [],
+        "depth": 4,
+        "destructive_without_confirmation": [
+          "UIS-007.A5"
+        ],
+        "embedded_logic": 2,
+        "images_without_alt": 0,
+        "inputs": 0,
+        "lang_missing": false,
+        "low_contrast_pairs": [],
+        "outputs": 3,
+        "redundant_inputs": [],
+        "required_inputs": 0,
+        "unlabeled_inputs": []
+      },
+      "UIS-008": {
+        "actions": 0,
+        "client_only_validations": [],
+        "depth": 5,
+        "destructive_without_confirmation": [],
+        "embedded_logic": 0,
+        "images_without_alt": 0,
+        "inputs": 0,
+        "lang_missing": false,
+        "low_contrast_pairs": [],
+        "outputs": 1,
+        "redundant_inputs": [],
+        "required_inputs": 0,
+        "unlabeled_inputs": []
+      },
+      "UIS-009": {
+        "actions": 6,
+        "client_only_validations": [],
+        "depth": 2,
+        "destructive_without_confirmation": [
+          "UIS-009.A2",
+          "UIS-009.A6"
+        ],
+        "embedded_logic": 1,
+        "images_without_alt": 0,
+        "inputs": 4,
+        "lang_missing": false,
+        "low_contrast_pairs": [],
+        "outputs": 1,
+        "redundant_inputs": [],
+        "required_inputs": 4,
+        "unlabeled_inputs": []
+      },
+      "UIS-010": {
+        "actions": 2,
+        "client_only_validations": [],
+        "depth": null,
+        "destructive_without_confirmation": [
+          "UIS-010.A2"
+        ],
+        "embedded_logic": 0,
+        "images_without_alt": 0,
+        "inputs": 0,
+        "lang_missing": false,
+        "low_contrast_pairs": [],
+        "outputs": 1,
+        "redundant_inputs": [],
+        "required_inputs": 0,
+        "unlabeled_inputs": []
+      }
+    },
+    "schema_version": 1,
+    "tasks": {
+      "カートの中身を整理する": {
+        "inputs": 0,
+        "required_inputs": 0,
+        "steps": 1
+      },
+      "ログインする": {
+        "inputs": 2,
+        "required_inputs": 2,
+        "steps": 2
+      },
+      "利用を終了する": {
+        "inputs": 0,
+        "required_inputs": 0,
+        "steps": 2
+      },
+      "商品を削除する": {
+        "inputs": 0,
+        "required_inputs": 0,
+        "steps": 1
+      },
+      "商品を探してカートに入れる": {
+        "inputs": 3,
+        "required_inputs": 0,
+        "steps": 4
+      },
+      "商品を登録・更新する": {
+        "inputs": 4,
+        "required_inputs": 4,
+        "steps": 1
+      },
+      "注文する（チェックアウト）": {
+        "inputs": 7,
+        "required_inputs": 6,
+        "steps": 4
+      }
+    }
+  },
+  "axes": [
+    {
+      "key": "H",
+      "name": "Heuristic usability",
+      "weight": 0.3,
+      "score": 2,
+      "rationale": "商品削除（DeleteProduct, UIS-009.A2）が確認なしに商品マスタを完全削除するため critical 欠陥があり（H5）、ログアウトとカート行削除も確認なしに実行される（H5, major）。管理画面の「エラーが発生しました」は原因を示さない汎用エラー文言（H9, major）であり、カート金額表示は JavaScript に依存し失敗すると表示されない（H1, minor）。注文完了画面の確認メール送信メッセージも実装が確認できていない（H1, minor, OQ-001）。critical 欠陥が1件あるため H は 2 点とする。",
+      "finding_ids": [
+        "UX-001",
+        "UX-003",
+        "UX-004",
+        "UX-005",
+        "UX-012",
+        "UX-013"
+      ]
+    },
+    {
+      "key": "A",
+      "name": "Accessibility",
+      "weight": 0.25,
+      "score": 2,
+      "rationale": "ご注文情報の入力画面（UIS-006）の「電話番号」欄はlabel・aria-label・idのいずれも持たずアクセシブルネームが一切なく、チェックアウトという主要タスクの必須項目であるため致命的な欠陥と判定した。加えて、商品検索画面のキーワード欄がplaceholderのみでラベルが無く、商品サムネイル画像にalt属性が無く、ログイン画面のhtml要素にlang属性が欠落し、カート画面の注意書きテキストがコントラスト比2.32:1（基準4.5:1）しかない。1件のcriticalと4件のmajorにより、スコアはseverity boundの上限である2に抑えられる。",
+      "finding_ids": [
+        "UX-002",
+        "UX-006",
+        "UX-007",
+        "UX-008",
+        "UX-009"
+      ]
+    },
+    {
+      "key": "E",
+      "name": "Task efficiency and input burden",
+      "weight": 0.2,
+      "score": 4,
+      "rationale": "唯一の測定済み欠陥は注文情報入力画面（UIS-006）のメールアドレス欄で、ログイン済みユーザーが既に持つメールアドレスをシステムが再入力させている（metrics.input_burden.redundant_inputs = 1）。タスクの最長ステップ数は4（metrics.input_burden.max_task_steps = 4、しきい値5画面超）、画面あたりの最大可視入力数は7（metrics.input_burden.max_visible_inputs = 7、しきい値12件超）でいずれも上限に達していないため、minor 所見1件のみとなり、メトリクス上限（metrics.caps.E = 4）と重大度上限（minor のみ→4以下）の双方から4点とする。",
+      "finding_ids": [
+        "UX-014"
+      ]
+    },
+    {
+      "key": "C",
+      "name": "Consistency",
+      "weight": 0.15,
+      "score": 3,
+      "rationale": "同一コマンド（AddToCart）のボタンラベルが画面ごとに表記ゆれしており、共有パンくずコンポーネント（UIC-005）も商品検索画面だけ型を外れている。手作業で複製されたボタン・タイトルバーが2コンポーネントあり、トークンでは primary / border / surface-subtle / text の色と、本文サイズ・小文字サイズ・コントロール縦パディングの寸法が計7クラスタで断片化している（metrics.consistency.fragmented_clusters）。一方、カート/注文情報入力画面の遷移先ラベル差はカート空/非空や、パンくずと明示的な戻るリンクという別役割の分岐によるもので、文脈上妥当と判断し欠陥として扱わなかった。重大度は minor のみだが consistency の caps.C = 3 が上限となるためスコアは3。",
+      "finding_ids": [
+        "UX-015",
+        "UX-016",
+        "UX-017",
+        "UX-018",
+        "UX-019",
+        "UX-020",
+        "UX-021",
+        "UX-022",
+        "UX-023",
+        "UX-024",
+        "UX-025"
+      ]
+    },
+    {
+      "key": "N",
+      "name": "Navigation and information architecture",
+      "weight": 0.1,
+      "score": 3,
+      "rationale": "metrics.navigation.dead_ends に挙がる UIS-008（ご注文完了）は退出手段を一切持たないデッドエンドであり、UIS-010（よくあるご質問）は metrics.navigation.orphans / unreachable の双方に現れる、どの画面からも到達できない孤立画面である。加えて、既存商品の編集という能力（UIF-008）には入口となる導線が一つも無く、いずれも H3（利用者の主導権と自由度）を損なう major 相当の欠陥であるため、caps.N=3 とも整合する形でスコアは3に留まる。",
+      "finding_ids": [
+        "UX-010",
+        "UX-011",
+        "UX-026"
+      ]
+    }
+  ],
+  "uxi": 53.0,
+  "band": "needs-improvement",
+  "findings": [
+    {
+      "id": "UX-001",
+      "axis": "H",
+      "defect": "destructive-without-confirmation",
+      "criterion": "H5",
+      "severity": "critical",
+      "severity_reason": "Product（商品マスタ）を確認なしに完全削除し（entity_operations: Product: D）、元に戻す手段が見当たらないため、irreversibly deletes business data の基準に該当する。",
+      "location": {
+        "screen": "UIS-009",
+        "action": "UIS-009.A2",
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": null,
+        "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:55-57"
+      },
+      "title": "商品削除が確認なしに商品マスタを完全削除する",
+      "description": "商品編集画面の「削除」ボタン（UIS-009.A2、コマンド DeleteProduct）は destructive: true・confirmation: false のまま ShopData#deleteProduct を呼び出し、商品（Product）を完全に削除する。取り消し手段は確認できず、管理者の誤クリックがそのまま業務データの永久喪失につながる。",
+      "recommendation": "削除前に商品名を明示した確認ダイアログ（例:「商品『○○』を削除します。よろしいですか？」）を必須にし、可能であれば論理削除・復元機能を設ける。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-002",
+      "axis": "A",
+      "defect": "unlabeled-input",
+      "criterion": "WCAG 1.3.1",
+      "severity": "critical",
+      "severity_reason": "必須項目「電話番号」がチェックアウト（主要タスク「注文する（チェックアウト）」）の入力欄であり、label・aria-label・title・idのいずれも無くアクセシブルネームを一切持たないため、defect表が定める重大化条件（主要タスク上の必須入力にアクセシブルネームが全く無い場合）に該当する。",
+      "location": {
+        "screen": "UIS-006",
+        "action": null,
+        "input": "phone",
+        "component": null,
+        "feature": null,
+        "token": null,
+        "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:61-62"
+      },
+      "title": "「電話番号」欄にアクセシブルネームが一切ない",
+      "description": "ご注文情報の入力画面（UIS-006）の電話番号欄は `<span class=\"form-label\">電話番号...</span>` でラベル文字列を表示しているだけで、`<label for>` も `id` も `aria-label` も付与されていない（entry.jsp:61-62）。他の6項目（shippingName/postalCode/address/email/paymentMethod/notes）はすべて `label for` または `legend` で関連付けられているのに対し、phoneだけが無関係な `<span>` のままで、スクリーンリーダー利用者にはこの入力欄が何を尋ねているか一切伝わらない。metrics.per_screen.UIS-006.unlabeled_inputs は [\"phone\"] を示している。",
+      "recommendation": "`<input id=\"phone\" name=\"phone\" ...>` とし、`<label for=\"phone\">電話番号<span class=\"required\">必須</span></label>` を他の項目と同じ形で追加する。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-003",
+      "axis": "H",
+      "defect": "destructive-without-confirmation",
+      "criterion": "H5",
+      "severity": "major",
+      "severity_reason": null,
+      "location": {
+        "screen": "UIS-005",
+        "action": "UIS-005.A1",
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": null,
+        "source": "src/main/webapp/WEB-INF/jsp/cart.jsp:27-31"
+      },
+      "title": "カートからの商品削除に確認がない",
+      "description": "ショッピングカート画面の「削除」ボタン（UIS-005.A1、コマンド RemoveCartLine）は destructive: true・confirmation: false で、押すと即座にカート行が削除される（POST /cart）。誤操作を防ぐ仕組みがない。",
+      "recommendation": "削除前に確認ダイアログを表示するか、削除直後に「元に戻す」を提示する Undo パターンを導入する。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-004",
+      "axis": "H",
+      "defect": "destructive-without-confirmation",
+      "criterion": "H5",
+      "severity": "major",
+      "severity_reason": null,
+      "location": {
+        "screen": null,
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": "UIF-002",
+        "token": null,
+        "source": "src/main/webapp/WEB-INF/jspf/header.jspf:19-22"
+      },
+      "title": "ログアウトが確認なしにカートを破棄する",
+      "description": "「ログアウト」は共通ヘッダー（header.jspf）から全画面（UIS-002/003/004/005/006/007/009/010）に配置され、クリック一つで実行される。ui-inventory.json ではこのアクション（コマンド LogOut、機能 UIF-002）は destructive: true・confirmation: false と記録され、entity_operations は Cart: D（カートの破棄）である。買い物中に誤ってクリックすると、確認なしにカートの中身が失われる。",
+      "recommendation": "ログアウト前に「カートに商品が入っています。ログアウトしますか？」等の確認ダイアログを表示するか、カートを破棄せずセッションのみ終了する設計に変更する。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-005",
+      "axis": "H",
+      "defect": "vague-error-message",
+      "criterion": "H9",
+      "severity": "major",
+      "severity_reason": null,
+      "location": {
+        "screen": "UIS-009",
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": null,
+        "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:25"
+      },
+      "title": "商品保存時の汎用エラーメッセージ「エラーが発生しました」",
+      "description": "商品編集画面の保存／削除処理が失敗した際に表示されるメッセージは「エラーが発生しました」のみで、原因（入力値の不備かシステム障害か）も、利用者が次に何をすべきかも示されない。",
+      "recommendation": "失敗理由ごとに具体的なメッセージ（例:「価格は数値で入力してください」「在庫数が不正です」）を出し分け、再入力すべき項目を明示する。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-006",
+      "axis": "A",
+      "defect": "unlabeled-input",
+      "criterion": "WCAG 1.3.1",
+      "severity": "major",
+      "severity_reason": null,
+      "location": {
+        "screen": "UIS-003",
+        "action": null,
+        "input": "keyword",
+        "component": null,
+        "feature": null,
+        "token": null,
+        "source": "src/main/webapp/WEB-INF/jsp/product/search.jsp:11"
+      },
+      "title": "「キーワードを入力」欄がplaceholderのみでラベルが無い",
+      "description": "商品検索画面（UIS-003）のキーワード入力欄（search.jsp:11）は `placeholder` 属性のみで項目名を示しており、`<label>` 要素を持たない。placeholderは入力を始めると消え、支援技術によってはフォーム項目一覧に表示されないため、視覚的に空欄になった状態やスクリーンリーダーでの一覧表示時に何を入力する欄か分からなくなる。metrics.accessibility.unlabeled_inputs は 2、per_screen.UIS-003.unlabeled_inputs は [\"keyword\"] を示している。",
+      "recommendation": "同じフォーム内の `category` セレクトと同様に `<label for=\"keyword\">キーワード</label>` を可視ラベルとして追加し、placeholderは補助ヒントに留める。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-007",
+      "axis": "A",
+      "defect": "missing-lang",
+      "criterion": "WCAG 3.1.1",
+      "severity": "major",
+      "severity_reason": null,
+      "location": {
+        "screen": "UIS-001",
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": null,
+        "source": "src/main/webapp/WEB-INF/jsp/login.jsp:5"
+      },
+      "title": "ログイン画面の html 要素に lang 属性が無い",
+      "description": "ログイン画面（UIS-001, login.jsp:5）は唯一、共通ヘッダー（header.jspf の `<html lang=\"ja\">`、他の全画面が経由）を使わず独自に `<html>` を出力しており、`lang` 属性が欠落している。metrics.accessibility.screens_without_lang は 1、per_screen.UIS-001.lang_missing は true を示す。支援技術がページの自然言語を判定できず、音声読み上げの発音言語切り替えや翻訳ツールの動作に支障が出る。",
+      "recommendation": "`<html lang=\"ja\">` に修正する。他画面と同様 header.jspf を経由させるか、同じ属性を直接追加する。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-008",
+      "axis": "A",
+      "defect": "missing-alt",
+      "criterion": "WCAG 1.1.1",
+      "severity": "major",
+      "severity_reason": null,
+      "location": {
+        "screen": "UIS-003",
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": null,
+        "source": "src/main/webapp/WEB-INF/jsp/product/search.jsp:39"
+      },
+      "title": "検索結果の商品サムネイル画像に alt 属性が無い",
+      "description": "商品検索結果一覧（UIS-003, search.jsp:39）の商品サムネイル `<img src=\"...${p.image}\" width=\"64\" height=\"64\">` は `alt` 属性を持たず、`decorative` として宣言されてもいない（実際に商品を識別する情報を運ぶ画像であり、装飾ではない）。商品詳細画面（UIS-004）の同種の画像は `alt=\"${product.name}\"` を持っており、検索結果側だけが欠落している。metrics.accessibility.images_without_alt は 1、per_screen.UIS-003.images_without_alt も 1 を示す。",
+      "recommendation": "商品詳細画面と同様に `alt=\"${p.name}\"` を付与し、商品名を代替テキストとして提供する。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-009",
+      "axis": "A",
+      "defect": "low-contrast",
+      "criterion": "WCAG 1.4.3",
+      "severity": "major",
+      "severity_reason": null,
+      "location": {
+        "screen": "UIS-005",
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": null,
+        "source": "src/main/webapp/css/common.css:125"
+      },
+      "title": "カート画面の注意書きテキストがコントラスト比不足",
+      "description": "ショッピングカート画面（UIS-005）の `.cart-notes`（税抜表示・在庫状況に関する注意書き、common.css:125）は前景 #aaaaaa / 背景 #ffffff の通常サイズテキストで、metrics.per_screen.UIS-005.low_contrast_pairs が示すコントラスト比は 2.32:1 であり、WCAG 1.4.3 の通常テキスト基準 4.5:1 を大きく下回る。会員割引や消費税の扱いなど注文に影響する重要な注意事項が読み取りにくい。",
+      "recommendation": "前景色を4.5:1以上を満たす濃さ（例: #666666以上、common.css内の他の補助テキストで使われている色）に変更する。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-010",
+      "axis": "N",
+      "defect": "missing-path",
+      "criterion": "H3",
+      "severity": "major",
+      "severity_reason": null,
+      "location": {
+        "screen": "UIS-002",
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": null,
+        "source": "src/main/webapp/WEB-INF/jsp/menu.jsp:21"
+      },
+      "title": "既存商品を編集する画面への導線が存在しない",
+      "description": "UIF-008（商品を登録・更新する）が扱う画面 UIS-009（商品編集）は、新規登録時は空、編集時は既存商品の id を hidden で受け取って商品名・価格・在庫・カテゴリを事前表示する作りになっているが（admin/product-edit.jsp:28, 33-52）、この id 付き遷移を発生させるリンクがどの画面にも見当たらない。メニュー画面の「商品メンテナンス」（menu.jsp:21、UIS-002.A3）は UIS-009 へ id なしで遷移するのみで新規登録用の導線であり、商品検索（UIS-003）・商品詳細（UIS-004）の各画面にも編集へのリンクは無い。管理者が既存商品を編集する手段が UI 上に存在しない（OQ-002 として未解決）。",
+      "recommendation": "商品検索結果一覧または商品詳細画面に、管理者ロールが見えるときのみ「編集」リンク（GET /admin/products/edit?id=…）を追加し、既存商品編集への到達経路を確保する。OQ-002 の回答と合わせて導線を確定する。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-011",
+      "axis": "N",
+      "defect": "dead-end",
+      "criterion": "H3",
+      "severity": "major",
+      "severity_reason": null,
+      "location": {
+        "screen": "UIS-008",
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": null,
+        "source": "src/main/webapp/WEB-INF/jsp/order/complete.jsp:11-24"
+      },
+      "title": "注文完了画面に離脱手段が一つもない",
+      "description": "metrics.navigation.dead_ends (value [\"UIS-008\"]) の通り、UIS-008（ご注文完了）は actions が0件で、メニューやショッピングカートへ戻るリンクは元よりログアウト以外の共通ナビゲーションすら持たない。header.jspf を使わず手作業で複製されたタイトルバー（UIC-012、order/complete.jsp:11-13）に置き換えられており、そこにログアウトリンクや氏名表示も含まれていないため、注文完了後に利用者が次の行動（買い物を続ける・メニューに戻る）へ進む手段が画面内に存在しない。",
+      "recommendation": "「メニューへ戻る」「引き続き買い物をする」等の次の行動へのリンクを注文完了画面に追加し、他画面と同じ header.jspf / footer.jspf を使ってナビゲーションの一貫性も回復する。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-012",
+      "axis": "H",
+      "defect": "script-dependent-content",
+      "criterion": "H1",
+      "severity": "minor",
+      "severity_reason": null,
+      "location": {
+        "screen": "UIS-005",
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": null,
+        "source": "src/main/webapp/js/cart.js:5-16"
+      },
+      "title": "カート行の金額表示が JavaScript 依存",
+      "description": "ショッピングカートの各行金額（単価 × 数量）はサーバーが計算せず、cart.js が data-price / data-quantity を読み取ってブラウザ側で計算・整形している。JavaScript が無効または読み込みに失敗した環境では金額欄が空のまま表示され、利用者は自分がいくら注文しようとしているか把握できない。",
+      "recommendation": "金額計算をサーバー側（例: CartLine#getLineTotal）で行い、初期 HTML に確定値を出力する。JavaScript は装飾・補助的な再計算にとどめる。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-013",
+      "axis": "H",
+      "defect": "other",
+      "criterion": "H1",
+      "severity": "minor",
+      "severity_reason": "処理そのものを止めたり誤動作を招くものではなく、注文自体は完了しているため friction にとどまると判断した。",
+      "location": {
+        "screen": "UIS-008",
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": null,
+        "source": "src/main/webapp/WEB-INF/jsp/order/complete.jsp:24"
+      },
+      "title": "注文完了画面の「確認メールをお送りしました」の実態が確認できない",
+      "description": "ご注文完了画面は「ご入力いただいたメールアドレスに注文確認メールをお送りしました。」と表示するが、レビューではメール送信を行う実装が見つかっていない（OQ-001、未確認）。実際に送信されているか未確定のまま断定的な文言でシステムの処理結果を伝えており、画面表示と実際の処理が一致していない可能性がある。",
+      "recommendation": "メール送信の実装有無を確認し（OQ-001 の解消）、送信していないなら文言を削除するか、送信を実装したうえで実際の送信結果に応じたメッセージ（成功/失敗）に改める。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-014",
+      "axis": "E",
+      "defect": "redundant-input",
+      "criterion": "WCAG 3.3.7",
+      "severity": "minor",
+      "severity_reason": null,
+      "location": {
+        "screen": "UIS-006",
+        "action": null,
+        "input": "email",
+        "component": null,
+        "feature": null,
+        "token": null,
+        "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:64-68"
+      },
+      "title": "注文情報入力画面でログイン済みユーザーのメールアドレスを再入力させている",
+      "description": "「ご注文情報の入力」画面（UIS-006）の email 入力欄は、ログインユーザーが既に持つメールアドレス（User.email、メニュー画面のアカウント情報に表示済み）と同じ値であるにもかかわらず、初期値として表示されず毎回手入力させている（inventory: redundant_with = \"ログインユーザーのメールアドレス（User.email、メニュー画面に表示）— 入力画面では初期表示されない\"、metrics.input_burden.redundant_inputs = 1）。氏名（shippingName）は同じサーブレットでログインユーザー情報から事前入力されている（OrderEntryServlet.java:34-36）のに対し、メールアドレスだけ同様の事前入力がされておらず扱いが一貫しない。なお、注文完了画面（UIS-008）は「ご入力いただいたメールアドレスに注文確認メールをお送りしました」と表示するが、実際にメールを送信するコードは見当たらず、この入力欄が何のために独立して必要とされているのかは未確定である（OQ-001、work/context.md）。この点はメール送信の実装有無という別軸の論点であり、本所見はあくまで「システムが既に持つ値の再入力を求めている」という入力負荷の事実のみを対象とする。",
+      "recommendation": "OrderEntryServlet#doGet で shippingName と同様に、注文フォーム未作成時はログインユーザーの User.email を email フィールドの初期値として設定する。ユーザーが別の受取用アドレスを使いたい場合は上書きできるようにし、初期値はあくまで既知の値の再提示に留める。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-015",
+      "axis": "C",
+      "defect": "navigation-label-variant",
+      "criterion": "H4",
+      "severity": "minor",
+      "severity_reason": null,
+      "location": {
+        "screen": "UIS-003",
+        "action": null,
+        "input": null,
+        "component": "UIC-005",
+        "feature": null,
+        "token": null,
+        "source": "src/main/webapp/WEB-INF/jsp/product/search.jsp:8"
+      },
+      "title": "商品検索画面だけパンくずが「メニュー > 現在ページ」の型を外れている",
+      "description": "共有の breadcrumb コンポーネント（UIC-005、metrics.consistency.components_with_duplicates とは別に6画面で共用）は、商品詳細・カート・注文情報入力・注文確認・商品編集（認可済み分岐）の5画面では「メニュー > … > 現在ページ」という同一の型（例: detail.jsp:7, cart.jsp:7, entry.jsp:23, confirm.jsp:23, product-edit.jsp:18）で描画されるが、商品検索画面だけは末尾の現在ページ表示のない単独リンク「メニューへ戻る」（messages_ja.properties: search.backToMenu、search.jsp:8）になっている。同じ場所・同じ役割のコンポーネントが1画面だけ違う文言・違う構造で描画され、遷移先ラベル群（metrics.consistency.destination_label_variants, target: UIS-002）にある表記ゆれの一因になっている。",
+      "recommendation": "商品検索画面のパンくずも他画面と同じ「メニュー > 商品検索」の型に揃え、専用の search.backToMenu メッセージキーを廃止する。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-016",
+      "axis": "C",
+      "defect": "hand-built-duplicate",
+      "criterion": "H4",
+      "severity": "minor",
+      "severity_reason": null,
+      "location": {
+        "screen": "UIS-009",
+        "action": null,
+        "input": null,
+        "component": "UIC-011",
+        "feature": null,
+        "token": null,
+        "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:54"
+      },
+      "title": "商品編集画面の保存ボタンがインラインスタイルで共通ボタンを複製している",
+      "description": "商品編集画面の「保存」ボタン（UIC-011）は共通の button.tag（UIC-003）を使わずインラインスタイルで再実装されており、色（#1a73e8 vs 共通の #0066cc）・角丸（12px vs 3px）・フォントサイズ（13px vs 14px）が独自の値になっている（metrics.consistency.components_with_duplicates に UIC-011 として記録）。管理画面だけボタンの見た目・触感が異なる。",
+      "recommendation": "インラインスタイルを廃し、共通の button.tag（variant=primary）を使うよう置き換える。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-017",
+      "axis": "C",
+      "defect": "hand-built-duplicate",
+      "criterion": "H4",
+      "severity": "minor",
+      "severity_reason": null,
+      "location": {
+        "screen": "UIS-008",
+        "action": null,
+        "input": null,
+        "component": "UIC-012",
+        "feature": null,
+        "token": null,
+        "source": "src/main/webapp/WEB-INF/jsp/order/complete.jsp:11-13"
+      },
+      "title": "ご注文完了画面のタイトルバーが共通ヘッダーを手作業で複製している",
+      "description": "ご注文完了画面（UIS-008）のタイトルバーは共通の header.jspf（UIC-001）をインクルードせず手作業でコピーされたマークアップ（UIC-012）になっており、ログアウトリンクやユーザー情報が欠落するなど、他の全画面のヘッダーと構成が異なる（metrics.consistency.components_with_duplicates に UIC-012 として記録）。",
+      "recommendation": "手作業コピーをやめ、共通の header.jspf をインクルードする形に戻す。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-018",
+      "axis": "C",
+      "defect": "label-drift",
+      "criterion": "H4",
+      "severity": "minor",
+      "severity_reason": null,
+      "location": {
+        "screen": null,
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": "UIF-004",
+        "token": null,
+        "source": "src/main/webapp/WEB-INF/jsp/product/detail.jsp:21-27"
+      },
+      "title": "「カートに追加」コマンドのボタンラベルが画面ごとに異なる",
+      "description": "同じコマンド AddToCart のボタンラベルが商品検索画面（search.jsp:44-49）では「カートに追加」、商品詳細画面（detail.jsp:21-27）では「カートに入れる」と表記ゆれしている（metrics.consistency.label_drift）。同じ操作なのに違う言葉が使われるため、両者が同じ結果になるという確信をユーザーが持ちにくい。",
+      "recommendation": "AddToCart の表示ラベルをどちらか一方（例:「カートに入れる」）に統一し、共有コンポーネント（button.tag等）またはメッセージリソースで一元管理する。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-019",
+      "axis": "C",
+      "defect": "token-fragmentation",
+      "criterion": "H4",
+      "severity": "minor",
+      "severity_reason": null,
+      "location": {
+        "screen": null,
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": "color.hex-0066cc",
+        "source": "src/main/webapp/css/common.css:60"
+      },
+      "title": "プライマリカラーが3種類の色値に断片化している（color:primary クラスタ）",
+      "description": "プライマリカラーを表す色が #0066cc（usage 6, common.css）・#0a66c2（usage 2, admin.css）・#1a73e8（usage 1, product-edit.jsp:54 のインラインスタイル）の3値に分かれている（metrics.consistency.fragmented_clusters に color:primary として記録、metrics.consistency.colors = 23）。管理画面と通常画面でブランドカラーの見え方が微妙に異なる。",
+      "recommendation": "3値を1つの semantic トークン（例: semantic.color.primary）に統合し、admin.css とインラインスタイルをそのトークン参照に置き換える。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-020",
+      "axis": "C",
+      "defect": "token-fragmentation",
+      "criterion": "H4",
+      "severity": "minor",
+      "severity_reason": null,
+      "location": {
+        "screen": null,
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": "color.hex-333333",
+        "source": "src/main/webapp/css/common.css:9"
+      },
+      "title": "本文テキスト色が2種類の色値に断片化している（color:text クラスタ）",
+      "description": "本文相当のテキスト色として #333333（usage 4）と #444444（usage 2、見出し・テーブル見出しなど）が併用されている（metrics.consistency.fragmented_clusters に color:text として記録）。",
+      "recommendation": "本文テキスト色を semantic.color.text の1トークンに統一する。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-021",
+      "axis": "C",
+      "defect": "token-fragmentation",
+      "criterion": "H4",
+      "severity": "minor",
+      "severity_reason": null,
+      "location": {
+        "screen": null,
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": "color.hex-dddddd",
+        "source": "src/main/webapp/css/common.css:44"
+      },
+      "title": "境界線色が5種類の色値に断片化している（color:border クラスタ）",
+      "description": "罫線・区切り線の色が #cccccc・#d9d9d9・#dddddd（usage 6）・#e0e0e0（usage 4）・#e5e5e5 の5値に分かれている（metrics.consistency.fragmented_clusters に color:border として記録）。近似色が並立し意図の違いが読み取れない。",
+      "recommendation": "境界線色を semantic.color.border 系の1〜2トークンに集約する。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-022",
+      "axis": "C",
+      "defect": "token-fragmentation",
+      "criterion": "H4",
+      "severity": "minor",
+      "severity_reason": null,
+      "location": {
+        "screen": null,
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": "color.hex-eeeeee",
+        "source": "src/main/webapp/css/common.css:100"
+      },
+      "title": "淡色サーフェス背景が5種類の色値に断片化している（color:surface-subtle クラスタ）",
+      "description": "テーブル見出しや管理パネルなど淡色背景に #eeeeee・#efefef・#f2f2f2・#f4f4f4・#f5f5f5 の5値が使われている（metrics.consistency.fragmented_clusters に color:surface-subtle として記録）。ほぼ同じ濃淡のグレーが場所ごとに違う値で実装されている。",
+      "recommendation": "淡色サーフェス背景を semantic.color.surface-subtle の1トークンに統合する。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-023",
+      "axis": "C",
+      "defect": "token-fragmentation",
+      "criterion": "H4",
+      "severity": "minor",
+      "severity_reason": null,
+      "location": {
+        "screen": null,
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": "font.size.px-12",
+        "source": "src/main/webapp/css/common.css:46"
+      },
+      "title": "小文字サイズが11pxと12pxに断片化している（dimension:small-text クラスタ）",
+      "description": "footer・breadcrumb・ヒントテキストなどの小文字サイズは12px（usage 6）が主だが、必須バッジのみ11px（usage 1, common.css:85）になっている（metrics.consistency.fragmented_clusters に dimension:small-text として記録）。",
+      "recommendation": "必須バッジの11pxを共通の12pxトークンに合わせる。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-024",
+      "axis": "C",
+      "defect": "token-fragmentation",
+      "criterion": "H4",
+      "severity": "minor",
+      "severity_reason": null,
+      "location": {
+        "screen": null,
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": "font.size.px-14",
+        "source": "src/main/webapp/css/common.css:8"
+      },
+      "title": "本文フォントサイズが13pxと14pxに断片化している（dimension:body-text クラスタ）",
+      "description": "本文サイズとして common.css 全体では14px（usage 2）が使われる一方、商品編集画面の保存ボタン（インラインスタイル、product-edit.jsp:54）だけ13pxになっている（metrics.consistency.fragmented_clusters に dimension:body-text として記録、metrics.consistency.font_sizes = 6）。",
+      "recommendation": "インラインスタイルの13pxを廃し、共通の本文サイズトークン（14px）に合わせる。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-025",
+      "axis": "C",
+      "defect": "token-fragmentation",
+      "criterion": "H4",
+      "severity": "minor",
+      "severity_reason": null,
+      "location": {
+        "screen": null,
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": "space.px-4",
+        "source": "src/main/webapp/css/common.css:20"
+      },
+      "title": "コントロールの縦パディングが4pxと6pxに断片化している（dimension:control-padding-y クラスタ）",
+      "description": "ボタンやテーブルセルなどコントロールの縦方向パディングとして4px（usage 8）と6px（usage 7）がほぼ同数使われており、使い分けの基準が読み取れない（metrics.consistency.fragmented_clusters に dimension:control-padding-y として記録、metrics.consistency.spacing_values = 11）。",
+      "recommendation": "コントロール縦パディングを1つのトークン（例: space.control-padding-y）に統一するか、用途別に明示的な2トークンとして命名し直す。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    },
+    {
+      "id": "UX-026",
+      "axis": "N",
+      "defect": "orphan-screen",
+      "criterion": "H10",
+      "severity": "minor",
+      "severity_reason": null,
+      "location": {
+        "screen": "UIS-010",
+        "action": null,
+        "input": null,
+        "component": null,
+        "feature": null,
+        "token": null,
+        "source": "src/main/webapp/help.jsp:6-15"
+      },
+      "title": "よくあるご質問画面がどの画面からもリンクされていない",
+      "description": "metrics.navigation.orphans (value [\"UIS-010\"]) および metrics.navigation.unreachable (value [\"UIS-010\"]) の通り、UIS-010（よくあるご質問）は他のどの画面のアクションからも遷移先として参照されておらず、エントリ画面（UIS-001）から到達できない。画面自体は「メニューへ戻る」で抜けられるため出口はあるが、入口が無い。ヘルプ機能として提供する意図なのか、削除予定の未接続画面なのかは OQ-003 として未解決であり、意図的な提供であれば主要タスク一覧にこの画面を必要とするものは無い（デフォルトの minor 相当）。",
+      "recommendation": "OQ-003 の回答に応じて、提供するならメニュー画面またはヘッダーに「よくあるご質問」へのリンクを追加し、不要であれば画面を削除する。",
+      "evidence": "static",
+      "evidence_ref": null,
+      "runtime_outcome": null
+    }
+  ],
+  "withdrawn": [],
+  "routed": [
+    {
+      "to": "/architect:investigate-security",
+      "what": "メニュー（UIS-002）の「商品メンテナンス」リンクの表示可否をスクリプトレットがセッションのロール文字列比較で決めている（action guard kind: view）。表示制御がアクセス制御の代わりになっていないかを確認する。",
+      "source": "src/main/webapp/WEB-INF/jsp/menu.jsp:16-25"
+    },
+    {
+      "to": "/architect:redesign",
+      "what": "authorization in the view of UIS-002: 「商品メンテナンス」メニュー項目の表示可否を、スクリプトレットがセッションの loginUser の getRole() を文字列 \"admin\" と比較して決めている。共通のアクセス制御ではなくビュー内の判定。",
+      "source": "src/main/webapp/WEB-INF/jsp/menu.jsp:16-25"
+    },
+    {
+      "to": "/architect:redesign",
+      "what": "注文可否（在庫数 > 0）を商品検索・商品詳細テンプレートの EL で判定してフォームと在庫切れ表示を切り替えている。ルールがドメイン（例: Product#isOrderable）にない。",
+      "source": "src/main/webapp/WEB-INF/jsp/product/search.jsp:43-51"
+    },
+    {
+      "to": "/architect:redesign",
+      "what": "商品詳細でも同じ注文可否判定（在庫数 > 0）をテンプレートの EL で行っている（商品検索と重複）。",
+      "source": "src/main/webapp/WEB-INF/jsp/product/detail.jsp:16-31"
+    },
+    {
+      "to": "/architect:redesign",
+      "what": "カート各行の金額（単価 × 数量）を cart.js が計算しており、ドメインの CartLine#getLineTotal() と重複している。計算をサーバー側に一本化する（UX 上の帰結＝JavaScript 無効時に金額が出ない点は H 軸の所見として別に扱う）。",
+      "source": "src/main/webapp/js/cart.js:5-16"
+    },
+    {
+      "to": "/architect:investigate-security",
+      "what": "client-only pattern on UIS-006.postalCode",
+      "source": "src/main/webapp/js/validation.js:15-19"
+    },
+    {
+      "to": "/architect:investigate-security",
+      "what": "client-only maxLength on UIS-006.postalCode",
+      "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:53"
+    },
+    {
+      "to": "/architect:redesign",
+      "what": "会員割引（会員かつ小計 10,000 円以上で 10%）を注文入力画面のスクリプトレットで計算してセッションに書き込み、注文確定がその値をそのまま使っている。ドメインへ移す。",
+      "source": "src/main/webapp/WEB-INF/jsp/order/entry.jsp:10-19"
+    },
+    {
+      "to": "/architect:redesign",
+      "what": "validation in the view of UIS-006: 郵便番号の形式（^\\d{3}-\\d{4}$）はクライアントの JavaScript だけで検査している。サーバー（OrderEntryServlet.java:63）は必須チェックのみのため、直接 POST すれば形式ルールを回避できる。",
+      "source": "src/main/webapp/js/validation.js:5-19"
+    },
+    {
+      "to": "/architect:redesign",
+      "what": "calculation in the view of UIS-007: 消費税（(小計 − 割引) × 10% の切り捨て）と支払合計をスクリプトレットで計算している。税率 10% はハードコード。",
+      "source": "src/main/webapp/WEB-INF/jsp/order/confirm.jsp:8-15"
+    },
+    {
+      "to": "/architect:redesign",
+      "what": "workflow in the view of UIS-007: 計算した消費税・合計をビューがセッション属性 orderTax / orderTotal に書き込み、OrderConfirmServlet#doPost（OrderConfirmServlet.java:40-41, 48-49）がそれを読んで注文を登録する。確認画面を経由しないと注文できず、金額の正はビューにある。",
+      "source": "src/main/webapp/WEB-INF/jsp/order/confirm.jsp:16-17"
+    },
+    {
+      "to": "/architect:redesign",
+      "what": "authorization in the view of UIS-009: 管理者のみの制限をスクリプトレット（loginUser.role == \"admin\"）だけで行っている。AdminProductEditServlet の doGet / doPost にロールチェックはなく、ログイン済みの一般会員が /admin/products/edit に直接 POST すれば商品を保存・削除できる。",
+      "source": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp:9-17"
+    }
+  ],
+  "runtime": {
+    "base_url": null,
+    "tool": null,
+    "captured": []
+  }
+}

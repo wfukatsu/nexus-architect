@@ -91,9 +91,11 @@ rerun too. If you are writing your own tooling against these files, read
 
 # Or run individual skills step by step
 /architect:investigate ./path/to/legacy-project
+/architect:analyze-ui ./path/to/legacy-project   # when the system has a UI
 /architect:analyze ./path/to/legacy-project
 /architect:evaluate-mmi ./path/to/legacy-project
 /architect:evaluate-ddd ./path/to/legacy-project
+/architect:evaluate-ux   # when the system has a UI
 /architect:integrate-evaluations
 ```
 

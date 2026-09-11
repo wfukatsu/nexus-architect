@@ -40,10 +40,13 @@ part of the automated run.
    blocking error and must never be interpreted as REST-only.
 7. Phases the manifest marks `optional: true` may be skipped without failing the run. Three of them
    are dialogue-driven (`create-domain-story`, `design-aggregate`, `design-state-machine`) and an automated run has
-   nobody to facilitate with: invoke those with `--auto` and record what that mode had to assume.
+   nobody to facilitate with: invoke those with `--auto` and record what that mode had to assume. `analyze-ui` and
+   `evaluate-ux` run with `--auto` too, and `evaluate-ux` never with `--base-url`: an automated run
+   evaluates the UI statically.
    When the inputs show no evidence for an optional phase — no domain to narrate, no invariant
    spanning more than one attribute (nothing to make an aggregate of), no aggregate with a
-   lifecycle, no data model to analyze — record it `skipped` with the reason in `summary`
+   lifecycle, no data model to analyze, no presentation layer (the technology stack reports none and
+   no templates or routed views exist), no UI inventory to evaluate — record it `skipped` with the reason in `summary`
    rather than emitting a document derived from nothing. An optional phase that was skipped or
    never ran does not block its dependents: `design-state-machine` depends on `design-aggregate`
    for ordering, not for existence, and runs from `redesign` alone when there is no aggregate

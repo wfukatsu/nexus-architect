@@ -36,6 +36,7 @@
 |---------|-------|------|
 | `/architect:analyze` | opus | ユビキタス言語、アクター、ドメインマッピング |
 | `/architect:analyze-data-model` | sonnet | データモデル、DB設計、ER図 |
+| `/architect:analyze-ui` | sonnet | 既存 UI 解析: 画面の入力・出力・操作・アクセス制御、部品、機能、画面層に埋もれた業務ロジック、デザイントークン（DTCG） |
 
 ## 評価
 
@@ -43,6 +44,7 @@
 |---------|-------|------|
 | `/architect:evaluate-mmi` | sonnet | MMI 4軸定性評価 |
 | `/architect:evaluate-ddd` | sonnet | DDD 12基準3層評価 |
+| `/architect:evaluate-ux` | sonnet | 既存 UI の UX 指数: ヒューリスティック、WCAG 2.2、効率、一貫性、ナビゲーション。`--base-url` で実画面の証拠を追加 |
 | `/architect:integrate-evaluations` | sonnet | MMI+DDD統合、改善計画 |
 
 ## 設計
@@ -256,8 +258,10 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 /architect:investigate-security [target_path]
 /architect:analyze [target_path]
 /architect:analyze-data-model [target_path]
+/architect:analyze-ui [target_path] [--ui-root=<path>] [--auto]
 /architect:evaluate-mmi [target_path]
 /architect:evaluate-ddd [target_path]
+/architect:evaluate-ux [--base-url=<url>] [--storage-state=<path>] [--confirm-versions|--no-confirm-versions] [--auto]
 /architect:integrate-evaluations
 
 # Design

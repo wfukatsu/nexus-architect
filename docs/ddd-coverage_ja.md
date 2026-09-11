@@ -25,6 +25,7 @@
 | EventStorming — Software Design | ○ | `/architect:design-aggregate` | 集約ごとのコマンドとイベント |
 | Event Modeling | × | 意図的に実装しない — 下記参照 | — |
 | Knowledge crunching | ○ | 探索系スキルの対話ステージ、ユビキタス言語 | — |
+| 既存 UI からの Knowledge crunching | ◎ | `/architect:analyze-ui` | `reports/before/{project}/ui-inventory.json`, `reports/before/{project}/ui-features.md`（画面とその入出力、ロールガード、画面層の業務ルール — `/architect:analyze` が証拠として読む） |
 | CRC カード | × | — | — |
 
 ## 戦略設計

@@ -69,6 +69,28 @@ elicits — everything else is confirm-or-correct.
   - User mentions ScalarDB / ScalarDB Saga / Scalar / distributed transactions -> Include
   - Otherwise -> Use the design-data-layer alternative path
 
+## UI Analysis Option
+
+After `/architect:investigate` completes, read the **Presentation Layer** section of
+`reports/before/{project}/technology-stack.md`. When it names a UI — server-rendered templates or a
+routed SPA — ask in one question:
+
+> "The system has a UI (<technology>, about <N> screens). Should I analyze it — each screen's inputs,
+> outputs, actions and role guards, the components, the features, the business logic in the view
+> layer and the design tokens — and then evaluate its UX? A running instance lets the UX evaluation
+> add screenshots and a rendered accessibility check; without one it is a static review of the code."
+
+Offer: analyze and evaluate (recommended), analyze only, skip. When a running instance exists, ask for
+its URL and, for screens behind a login, a Playwright storage-state file — never for credentials.
+
+Run `/architect:analyze-ui` **before** `/architect:analyze`, which takes its role guards, labels and
+screens as evidence (@rules/ui-analysis.md §9), and `/architect:evaluate-ux` — with `--base-url` /
+`--storage-state` when given — alongside `evaluate-mmi` and `evaluate-ddd`, before
+`integrate-evaluations`.
+
+Skip both without asking when the technology stack reports no presentation layer (a pure API or
+batch system), and say so.
+
 ## Domain Story Option
 
 After `/architect:redesign` completes, ask the user:
@@ -128,12 +150,15 @@ rather than leaving the omission silent.
    to it; `plugin` is what keeps that attribution off the product pipeline's phase of the
    same name. On the handoff path this file already holds product's phases — add to it,
    never re-register it
-5. After `redesign`: offer Domain Story generation, aggregate design and state transition
+5. After `investigate`: when the technology stack reports a presentation layer, offer UI analysis
+   and UX evaluation (see UI Analysis Option), then run `analyze-ui` before `analyze` and
+   `evaluate-ux` alongside the other evaluations
+6. After `redesign`: offer Domain Story generation, aggregate design and state transition
    modeling in one question (see the three Option sections above), then run what the user
    selected — `create-domain-story`, then `design-aggregate`, then `design-state-machine` —
    before `design-microservices` and the data/API design phases
-6. Accumulate findings in `work/context.md` between phases
-7. Determine which phases to skip if not applicable
+7. Accumulate findings in `work/context.md` between phases
+8. Determine which phases to skip if not applicable
 
 After `design-api`, read canonical `reports/03_design/api-style-decisions.json`. Run
 `design-graphql` when any surface selects GraphQL/hybrid and mark it conditionally skipped only when

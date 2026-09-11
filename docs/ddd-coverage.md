@@ -27,6 +27,7 @@ skill · △ referenced, evaluated or partially produced, not a standalone metho
 | EventStorming — Software Design | ○ | `/architect:design-aggregate` | commands and events per aggregate |
 | Event Modeling | × | deliberately not implemented — see below | — |
 | Knowledge crunching | ○ | the facilitated stages of the discovery skills, the ubiquitous language | — |
+| Knowledge crunching from an existing UI | ◎ | `/architect:analyze-ui` | `reports/before/{project}/ui-inventory.json`, `reports/before/{project}/ui-features.md` (screens, their inputs and outputs, role guards, view-layer rules — evidence `/architect:analyze` reads) |
 | CRC cards | × | — | — |
 
 ## Strategic design
