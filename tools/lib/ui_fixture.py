@@ -227,10 +227,10 @@ _TOKENS = {
 }
 
 # What ui_metrics.compute must say about the model above (asserted by ui_metrics.test.py and
-# relied on by ux_evaluation.test.py): H 4 (one unconfirmed delete), A 2 (two of five screens
-# violate), E 4 (one redundant input), C 2 (fragmented blue, drift, duplicate), N 3 (orphan,
-# dead end).
-EXPECTED_CAPS = {"H": 4, "A": 2, "E": 4, "C": 2, "N": 3}
+# relied on by ux_evaluation.test.py): H 4 (one unconfirmed delete), A 3 (two of five screens
+# violate), E 4 (one redundant input), C 3 (fragmented blue, drift, duplicate — capped at two
+# points), N 3 (orphan, dead end).
+EXPECTED_CAPS = {"H": 4, "A": 3, "E": 4, "C": 3, "N": 3}
 
 
 def inventory():

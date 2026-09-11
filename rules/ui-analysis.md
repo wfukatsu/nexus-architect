@@ -15,10 +15,10 @@ exists to make it a checked fact rather than an impression.
 | Element | Counts when | Does not count |
 |---------|-------------|----------------|
 | **Screen** (`UIS-`) | A view a user lands on: a routed page, a template reachable directly by URL, a routed SPA view, a modal or wizard step with its own inputs or actions. A landing page with nothing to do on it (an order-complete page) **is** a screen — that is how a dead end becomes visible | A fragment or include rendered into a host page (it belongs to the host); an AJAX partial; a redirect-only endpoint (`/logout`); the container's default error page |
-| **Component** (`UIC-`) | A reusable UI part: an include (`.jspf`, `th:fragment`, partial), a tag file or custom tag, a framework component, a CSS class that defines a visual element (color, border, background or typography) **and is used on two or more screens** — and a hand-built duplicate of one of these (§3 Component) | Layout boilerplate with no visual or behavioural identity (`<div class="row">`); a class used on one screen only |
+| **Component** (`UIC-`) | A reusable UI part: an include (`.jspf`, `th:fragment`, partial), a tag file or custom tag, a framework component, a CSS class whose own or descendant rules set color, border, background or typography **and that appears on two or more screens** (count its class tokens in each screen's template and includes) — and a hand-built duplicate of one of these (§3 Component) | Layout boilerplate with no visual or behavioural identity (`<div class="row">`); a class used on one screen only |
 | **Feature** (`UIF-`) | A capability: every action that carries the same verb-first command (`PlaceOrder`), across however many screens it appears on | Pure navigation — an action with no command |
 | **Task** | A user goal walked across screens: the ordered path a user takes and the features they use on it (checkout = cart → entry → confirm → complete) | — (every feature belongs to at least one task; a one-screen feature is a one-screen task) |
-| **Embedded logic** | A business rule, calculation, authorization decision or workflow step implemented **in the view layer** (scriptlet, template expression, client-side script) | Formatting with no business meaning (a date display format, pager arithmetic) |
+| **Embedded logic** | A business rule, calculation, eligibility decision, authorization decision or workflow step implemented **in the view layer** (scriptlet, template expression, client-side script) — including one that duplicates a server check, since two places must now change together | Formatting with no business meaning (a date display format, pager arithmetic); a generic error message (that is a UX finding) |
 | **Design token** | A raw visual value the UI uses: color, font family / size / weight, spacing, radius, border width, shadow | Values inside vendored third-party CSS (record the framework in `technologies`); layout sizes (widths, heights); zero, `inherit`, `transparent` |
 
 **Every screen is counted — no sampling.** A UI of 300 screens yields 300 `UIS-` entries. A
@@ -40,13 +40,17 @@ templates: the route map is what decides which templates are screens.
 | React / Vue / Angular SPA | route-bound components | `react-router` config, `vue-router` routes, Angular `Routes` | `*.jsx`/`*.tsx`, `*.vue`, `*.component.ts` + template | CSS/SCSS modules, CSS-in-JS, Tailwind config, theme objects |
 
 Client-side scripts (`**/*.js`, jQuery handlers, inline `<script>`) are read for three things:
-validation, embedded logic, and AJAX calls.
+validation, embedded logic, and AJAX calls. Build output (`build/`, `target/`, `out/`, compiled
+`*_jsp.java`) and vendored assets are never sources.
 
 ## 3. The inventory
 
 `reports/before/{project}/ui-inventory.json` is the canonical model; every Markdown the skill
 writes is a projection of it. Every `source` is `path`, `path:line` or `path:start-end`, relative to
-`target_path` — and every element below that says `source` has one.
+`target_path` — one citation, and every element below that says `source` has one. Free-text fields
+(`description`, `prefilled_from`, `redundant_with`, `where`, `reason`, feature and task names, token
+`$description`) are written in the configured `output_language`; labels, messages and screen names
+stay verbatim.
 
 ### Screen
 
@@ -56,17 +60,17 @@ writes is a projection of it. Every `source` is `path`, `path:line` or `path:sta
 | `route` | The URL path (`/order/entry`, no query string) or router path; `null` only with `route_unresolved` stating why |
 | `source` | The template or component file that renders it |
 | `entry` | `true` for a screen a user reaches without navigating from another screen **and without being authenticated first**: the login page, a public landing page. A home page reached only after logging in is not an entry — it is one transition away from the login. At least one screen is an entry |
-| `handlers` | `[{ref, source, services, entities}]` — the controller/servlet/action that serves the screen, the services it calls and the entities it reads or writes (for the screen-to-code map) |
+| `handlers` | `[{ref, source, services, entities}]` — the controller/servlet/action that serves the screen; `services` are the `Class#method`s of non-web classes it calls (a DAO or data holder when there is no service layer); `entities` the domain objects it reads or writes, session-held ones (a cart) included |
 | `access` | `{authentication: required\|none, roles, guards}`. `roles` is never empty: the roles allowed to see the screen — every role the system defines when the screen is authenticated but checks no role, `["anonymous"]` when it needs no authentication. `guards` are the checks that protect the **whole screen**: `[{kind: view\|controller\|filter\|config\|route, source}]`. A guard that exists only as `kind: view` is a finding for `investigate-security` and is recorded exactly as found |
 | `inputs` | See Input |
 | `outputs` | `[{name, label, kind, fields, source}]` — what the screen shows. `kind`: `field` (values of one record shown as label/value pairs), `table` or `list` (rows), `message`, `image`, `chart`, `download`, `other`. `fields` lists the displayed field names |
 | `actions` | See Action |
 | `messages` | `[{kind: error\|warning\|info\|success, text, source}]` — verbatim text a user can see on this screen. `source` is where the text is authored: the resource-bundle line for bundle text, the template line for literal text, the handler line for text the handler passes in (including `sendError` messages shown on an error page) |
 | `components` | `UIC-` ids the screen uses |
-| `embedded_logic` | `[{kind: calculation\|validation\|authorization\|workflow\|formatting\|data-access\|other, description, should_live_in: domain\|application\|presentation, source}]` |
+| `embedded_logic` | `[{kind: calculation\|validation\|decision\|authorization\|workflow\|formatting\|data-access\|other, description, should_live_in: domain\|application\|presentation, source}]` — `decision` is an eligibility or availability rule ("can this be ordered") |
 | `lang` | The document language (`ja`), `null` when the page declares none |
 | `images` | `[{src, alt, decorative, source}]` — `alt` is the attribute value, `null` when the attribute is absent; `decorative` is a boolean |
-| `color_pairs` | `[{fg, bg, text: normal\|large, where, source}]` — for text whose color (declared or inherited) sits on a declared background: the 6-digit lowercase hex pair, and `large` for WCAG large text (≥ 24 px, or ≥ 18.66 px bold). Shared chrome's pairs are recorded on every screen that includes it — they are part of what the user sees there |
+| `color_pairs` | `[{fg, bg, text: normal\|large, where, source, bg_source}]` — every distinct pair of a text color (declared or inherited) and the declared background it sits on, from the classes the template and its includes apply, link colors included: the 6-digit lowercase hex pair and `text` (`large` for WCAG large text, ≥ 24 px or ≥ 18.66 px bold). Declared styles only; of the user-agent defaults only a heading's bold counts. `source` cites the foreground declaration, `bg_source` the background's when it is elsewhere. Shared chrome's pairs are recorded on every screen that includes it |
 
 Chrome **actions** (header logout, footer links) are recorded on every screen that includes the
 chrome, with `scope: global`; chrome **outputs** (the logged-in user's name) belong to the component,
@@ -89,7 +93,8 @@ not to each screen.
   `where` is what the code shows: a rule enforced only by a script is `client`, and that is a finding
   in its own right. `source` cites the enforcing check — the server's when `where` is `server` or
   `both` — and `client_source` cites the client check when `where` is `both`. `enforcement` is
-  `reject` (the default), `clamp` (the server silently corrects the value) or `ignore`.
+  `reject` (the default), `clamp` (the server silently corrects the value) or `ignore`; on the
+  client, `reject` blocks the submit and `clamp` limits what can be typed (`maxlength`).
 - `prefilled_from` — the system-held data or default the screen pre-populates it with (`session
   user's e-mail`), or `null`. Re-displaying what the user just submitted is not pre-filling.
 - `redundant_with` — where the system already holds this value when the screen asks for it again
@@ -105,7 +110,9 @@ to-be mock can be compared field by field.
 
 `{id, label, command, kind, scope, method, endpoint, target, inputs, guard, destructive, confirmation, unresolved, source}`
 
-- `id` is `<screen id>.A<n>` (`UIS-006.A1`).
+- `id` is `<screen id>.A<n>` (`UIS-006.A1`). `source` is the element — the `<a>`, `<form>` or button in
+  the template or include, or the script line of an AJAX call; the handler is in the screen's
+  `handlers`.
 - `kind` is decided by **effect**, not by markup: `submit` sends data or changes state; `link`
   navigates without changing anything (a GET form that only moves to the next screen is a `link`);
   `ajax` calls an endpoint without leaving the screen; `button` acts on the page itself (toggle,
@@ -132,15 +139,18 @@ to-be mock can be compared field by field.
 
 ### Component
 
-`{id, name, kind, level, source, variants, states, used_by, token_refs, duplicates, unused}`
+`{id, name, kind, level, source, variants, states, used_by, token_refs, duplicates, unused, actions}`
 
 - `kind` — `include | tag | fragment | component | macro | css-class | inline-style | copy | other`.
   `inline-style` is an element rebuilt with inline styles instead of the shared component (the
   inline-styled save button next to the button tag); `copy` is a hand-copied duplicate of a shared
   component's markup (a title bar pasted into a page that does not include the header).
 - `level` — Atomic Design level (`atom | molecule | organism | template`): an include that opens or
-  closes the page structure (header, footer, layout) is a `template`; otherwise decide by whether it
-  contains other components, the test `@rules/product/atomic-react-storybook.md` uses.
+  closes the page structure (header, footer, layout) is a `template`; a hand-built duplicate takes
+  the level of what it duplicates; otherwise decide by whether it contains other components, the
+  test `@rules/product/atomic-react-storybook.md` uses.
+- `actions` — for chrome, the actions it contributes, `[{label, command, target}]`. Every screen
+  that lists the component carries each of them as a `global` action.
 - `used_by` — the screens that use it (for a class a script injects, the screens whose scripts
   inject it); `unused: true` marks a declared component no screen uses.
 - `token_refs` — dotted paths into the design-token file (`color.hex-0066cc`).
@@ -158,37 +168,46 @@ operations the feature performs on it (`{"Order": "C", "Cart": "RU"}`, letters f
 ### Task
 
 `{name, goal, features, screens}` — `screens` is the ordered path a user walks, each screen reached
-from the previous one by a declared transition; `features` are the features used along it. Tasks are
+from the previous one by a declared transition, from the screen where the user begins the goal —
+even one where no feature acts (the cart, for checkout) — to the screen the last feature's action
+lands on; `features` are the features used along it. A feature on shared chrome gets the shortest
+such path: from the shallowest screen it appears on to where it lands. Tasks are
 the unit of efficiency: `ui_metrics.py` counts a task's screens as its steps and adds up the inputs
 its features' actions send.
 
 ### Top level
 
-`{schema_version: 1, project, target_path, ui_roots, technologies: [{name, evidence}], screens,
-components, features, tasks, design_tokens, coverage: {template_files, screens, unresolved: [{ref,
-reason, oq}]}}`
+`{schema_version: 1, project, generated_at, target_path, ui_roots, technologies: [{name, evidence}],
+screens, components, features, tasks, design_tokens, open_questions, coverage: {template_files,
+screens, unresolved: [{ref, reason, oq}]}}`
 
 `design_tokens` is the project-relative path of the token file (§5). `coverage.template_files` is
 the number of templates examined; every `unresolved` item cites the Open Question it became.
+`open_questions` lists the `OQ-` ids of every question the analysis raised — the unresolved items
+and the behaviour questions the code cannot settle — so the views can show them from the store.
 
 ## 4. Well-formedness rules
 
 An inventory is not written out until all ten hold. Each is mechanically checkable and each is
 asserted by `tools/lib/ui_inventory.py` against the inventory the skill emits.
 
-1. **Unique, well-formed ids** — `UIS-`, `UIC-` and `UIF-` ids are unique; every action id is
-   `<its own screen id>.A<n>` and unique; task names are unique.
+1. **Unique, well-formed ids, and no batch residue** — `UIS-`, `UIC-` and `UIF-` ids are unique;
+   every action id is `<its own screen id>.A<n>` and unique; task names are unique; no field of the
+   extraction batch shape remains.
 2. **Every screen has a name, a source, an access block with at least one role**, and a route unless
    `route_unresolved` says why not; **at least one screen is an entry**.
 3. **Every input and every accessibility fact is typed** — an input names its control, data type,
    label association and `required`; every validation names its rule and where it runs, and a rule
    enforced on both sides cites both; every image states `alt` and `decorative`; every color pair is
-   two 6-digit lowercase hex colors.
+   two 6-digit lowercase hex colors with its text size.
 4. **Every action resolves** — to a declared target screen, to an endpoint, or it carries
-   `unresolved` with the reason; the inputs it sends exist on its screen; its guard, if any, is typed.
+   `unresolved` with the reason; the inputs it sends exist on its screen; its guard, if any, is
+   typed; its source is its element — the template, a component the screen uses, or a script — not
+   the handler.
 5. **Component references agree both ways** — every component a screen lists is declared, every
    component's `used_by` is exactly the set of screens that list it, an unused component says
-   `unused: true`, and a duplicate names another declared component.
+   `unused: true`, a duplicate names another declared component, and every screen that includes
+   chrome carries the actions the chrome contributes.
 6. **Commands and features agree** — every `submit` and `ajax` action has a command; every action
    with a command belongs to exactly one feature; a feature's command is its actions' command, no two
    features share one, its `screens` are its actions' screens, and it names its actors.
@@ -219,13 +238,16 @@ visual language can be incorporated without conversion.
   `path:line`), `usage_count` (the number of declarations that use it — two on one line count two),
   and `cluster` — the group of near-identical values that play the same role.
 - **Clusters** are decided by role first and closeness second: colors used for the same purpose
-  (the primary action, body text, borders, surfaces) within about 48 in RGB distance; font sizes
-  within 2 px for the same text role (button text at 13 and 14 px); spacing within 2 px for the same
-  purpose. A hover or active shade is its own role. A cluster with more than one member is a
-  consolidation candidate.
+  (the primary action, body text, borders, surfaces) within about 48 in RGB distance; a font size,
+  spacing or radius only when the same property on the same kind of element takes two values
+  (button text at 13 and 14 px, button padding 4 and 6 px). A hover or active shade is its own role.
+  A value that plays several roles joins the cluster of its dominant role. A cluster with more than
+  one member is a consolidation candidate.
 - A `semantic` group holds **candidate** aliases, `semantic.color.<role>` = `{color.hex-…}`, each
   pointing at the most-used member of its cluster (ties: the member a shared component uses, then
-  the lexically first), with a `$description` saying it is a candidate. Role names follow
+  the lexically first), with a `$description` saying it is a candidate — for every color role
+  (including the further roles a multi-role value plays: `#ffffff` as `surface` and as
+  `semantic.color.on-primary`), and for other types when a cluster has more than one member. Role names follow
   `@rules/product/design-system.md` where they fit (`semantic.color.bg`, `.fg`, `.primary`,
   `.danger`).
 - Values from vendored third-party CSS are excluded (§1).
@@ -261,7 +283,10 @@ keeps its node with `status: "removed"`, so downstream links do not dangle.
 Extract screens in batches of about ten per sub-agent, issued in one message; each sub-agent writes
 its screens to its own batch file and returns only a summary, so no single reply carries the whole
 UI. The parent — never a sub-agent — assigns ids, merges components two batches both found,
-synthesizes features and tasks, and writes the inventory. Coverage is complete or it is reported as
+normalizes commands across batches (`Login` and `LogIn` are one command) before it synthesizes
+features and tasks, and writes the inventory. Before writing, it checks completeness: every
+`<a href>`, `<form>` and button in a screen's template and includes is one of the screen's actions,
+or is explained. Coverage is complete or it is reported as
 incomplete: `coverage.screens` equals the number of screen entries, and every template that is
 neither a screen, a component nor included anywhere is accounted for in `coverage.unresolved`.
 

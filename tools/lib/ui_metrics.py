@@ -29,8 +29,6 @@ CONTRAST_MINIMUM = {"normal": 4.5, "large": 3.0}
 UNLABELED = ("placeholder-only", "none")
 MAX_TASK_STEPS = 5
 MAX_VISIBLE_INPUTS = 12
-MAX_COLORS = 12
-MAX_DEPTH = 4
 
 
 def _list(value):
@@ -230,7 +228,9 @@ def _tasks(inventory, sent):
 
 
 def axis_caps(metrics):
-    """@rules/ux-evaluation.md §2 — the highest score each axis's metrics allow."""
+    """@rules/ux-evaluation.md §2 — the highest score each axis's metrics allow: 5 minus one point
+    per measured defect class, never below 3. A cap says the axis is not perfect; how far below 3
+    it goes is the severity of its findings, which the evaluation validator bounds."""
     screens = metrics["per_screen"]
     acc = metrics["accessibility"]
     nav = metrics["navigation"]
@@ -238,25 +238,18 @@ def axis_caps(metrics):
     burden = metrics["input_burden"]
 
     destructive = sum(len(s["destructive_without_confirmation"]) for s in screens.values())
-    h = 5 - (1 if destructive >= 1 else 0) - (1 if destructive >= 3 else 0)
-
     share = acc["screens_with_violations"] / float(len(screens)) if screens else 0.0
-    a = 5 if acc["screens_with_violations"] == 0 else 4 if share <= 0.10 else \
-        3 if share <= 0.25 else 2 if share <= 0.50 else 1
-
-    e = 5 - sum((burden["redundant_inputs"] >= 1,
-                 burden["max_task_steps"] > MAX_TASK_STEPS,
-                 burden["max_visible_inputs"] > MAX_VISIBLE_INPUTS))
-    c = 5 - sum((len(con["fragmented_clusters"]) >= 1,
-                 len(con["fragmented_clusters"]) >= 3 or con["colors"] > MAX_COLORS,
-                 len(con["label_drift"]) >= 1,
-                 len(con["components_with_duplicates"]) >= 1))
-    n = 5 - sum((len(nav["orphans"]) >= 1,
-                 len(nav["dead_ends"]) >= 1,
-                 len(nav["unreachable_not_orphan"]) >= 1,
-                 nav["max_depth"] > MAX_DEPTH))
-    return {key: max(1, value) for key, value in
-            (("H", h), ("A", a), ("E", e), ("C", c), ("N", n))}
+    points = {
+        "H": (destructive >= 1) + (destructive >= 2),
+        "A": (acc["screens_with_violations"] >= 1) + (share > 0.10),
+        "E": (burden["redundant_inputs"] >= 1) + (burden["max_task_steps"] > MAX_TASK_STEPS)
+             + (burden["max_visible_inputs"] > MAX_VISIBLE_INPUTS),
+        "C": (len(con["fragmented_clusters"]) >= 1) + (len(con["label_drift"]) >= 1)
+             + (len(con["components_with_duplicates"]) >= 1),
+        "N": (len(nav["orphans"]) >= 1) + (len(nav["dead_ends"]) >= 1)
+             + (len(nav["unreachable_not_orphan"]) >= 1),
+    }
+    return {key: 5 - min(2, int(points[key])) for key in ("H", "A", "E", "C", "N")}
 
 
 def compute(inventory, tokens):

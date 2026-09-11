@@ -82,7 +82,8 @@ base name) — the directory `/architect:investigate` writes to.
 - **Glob/Grep/Read** — templates, routes, includes, resource bundles, style and script files
 - **Task (general-purpose)** — batched per-screen extraction (Step 4)
 - `tools/lib/ui_inventory.py` — validates the inventory (Step 8)
-- `tools/lib/ui_metrics.py` — the navigation, task and consistency figures the views show (Step 9)
+- `tools/lib/ui_metrics.py` — the navigation, task and consistency figures (Step 9)
+- `tools/lib/ui_views.py` — renders the four views from the inventory (Step 9)
 
 ## Execution
 
@@ -111,8 +112,8 @@ nothing, stamp the phase `skipped` with `summary: "no UI layer found"`, and stop
 
 Apply the detection table of @rules/ui-analysis.md §2: build files and dependencies first, then
 file extensions. Record each technology with the file that proves it. Identify **vendored**
-third-party assets (`js/lib/`, `webjars/`, `node_modules/`, a UI framework's `*.min.css`) so the
-later steps exclude them. Write `work/ui-analysis/technologies.json`.
+third-party assets (`js/lib/`, `webjars/`, `node_modules/`, a UI framework's `*.min.css`) and build
+output (`build/`, `target/`, `out/`, compiled `*_jsp.java`) so the later steps exclude them. Write `work/ui-analysis/technologies.json`.
 
 ### Step 3: Build the route map and the screen list
 
@@ -131,8 +132,9 @@ it renders, and to where its success path redirects or forwards.
 
 Assign ids: reuse the previous inventory's id where `route` and `source` match; number new screens
 `max + 1` over the inventory and the traceability graph. Write `work/ui-analysis/route-map.json`:
-`{screens: [{id, route, source, handlers, entry}], non_screen_routes: [{route, handlers,
-redirects_to}]}`.
+`{screens: [{id, route, source, handlers: [{ref, redirects}], entry}], non_screen_routes: [{route,
+handlers, redirects_to}], filters: [{ref, applies_to, checks}]}` — the sub-agents need the handlers'
+redirects and the filters to decide where an action lands and which guards protect a screen.
 
 ### Step 4: Extract each screen (parallel batches)
 
@@ -153,7 +155,10 @@ relative to it, and must point at the construct you describe.
 
 Screens in this batch: <SCREENS>   [id, route, template source, handler refs — from the route map]
 Route map of the whole UI:        <ROUTE_MAP>   [screens and non-screen routes with their redirects]
-Vendored files to skip:           <VENDORED>
+Vendored and build files to skip: <VENDORED>
+Output language:                  <OUTPUT_LANGUAGE> — write every free-text field (description,
+                                  prefilled_from, redundant_with, where, reason) in it; labels,
+                                  messages and names stay verbatim
 
 For each screen read the template, every include/fragment/tag it uses, the scripts it loads, and the
 handler that serves it. Produce:
@@ -172,7 +177,7 @@ handler that serves it. Produce:
   "hand_built": [{"name", "kind": "inline-style|copy", "mimics_source", "source"}],
   "embedded_logic": [{"kind", "description", "should_live_in", "source"}],
   "lang", "images": [{"src", "alt", "decorative", "source"}],
-  "color_pairs": [{"fg", "bg", "text", "where", "source"}] }
+  "color_pairs": [{"fg", "bg", "text", "where", "source", "bg_source"}] }
 
 Allowed values:
 - label_association: for | wrapping | aria | legend | placeholder-only | none (n/a for hidden only)
@@ -185,8 +190,9 @@ Allowed values:
   that only moves on is a link) | ajax | button (acts on the page itself) | other; scope: screen | global
 - messages.kind: error warning info success
 - guards.kind: view controller filter config route
-- embedded_logic.kind: calculation validation authorization workflow formatting data-access other;
-  should_live_in: domain | application | presentation
+- embedded_logic.kind: calculation validation decision authorization workflow formatting data-access
+  other (decision = an eligibility or availability rule); should_live_in: domain | application |
+  presentation. A view rule that duplicates a server check still counts.
 
 Rules:
 - access.roles is never empty: the roles the screen admits — every role the system defines when it
@@ -200,6 +206,11 @@ Rules:
   forward, and follow non-screen routes (/logout -> /login). A re-render on validation failure is not
   where it lands. Leave it null and fill `unresolved` only when the path itself is built at runtime.
 - inputs (on submit/ajax actions): the names of this screen's inputs the action sends.
+- action `source` is the element — the <a>, <form> or button line in the template or include, or
+  the script line of an AJAX call — never the handler (that is in `handlers`).
+- handlers.services: the Class#method of each non-web class the handler calls (a DAO or data holder
+  when there is no service layer); handlers.entities: the domain objects it reads or writes,
+  session-held ones included.
 - destructive: deletes, cancels or discards something the user would lose (including a session cart
   dropped by logging out). confirmation: a dialog, a confirm step or undo exists — read the script,
   not the label; a submit on a review screen that shows what will happen is confirmed by it.
@@ -208,18 +219,23 @@ Rules:
   is `none`.
 - validation: `where` is what the code shows; confirm a server rule in the handler before writing
   `server`. For `both`, `source` is the server check and `client_source` the client one. A server that
-  silently corrects the value is `enforcement: clamp`.
+  silently corrects the value is `enforcement: clamp`; on the client, `clamp` is a limit on what can
+  be typed (maxlength) and `reject` blocks the submit.
 - prefilled_from: system-held data or defaults only — not a value re-displayed after a failed submit.
   redundant_with: where the system already holds a value the screen asks for again.
 - hidden inputs: record those carrying data the action depends on (ids, tokens); skip ones that only
   tell buttons apart (action=add).
 - messages: verbatim; `source` is where the text is authored (bundle line, template line, or the
   handler line for text it passes in or sends as an error).
-- chrome: record header/footer actions on each screen that includes them (scope global); do not
-  record chrome outputs per screen.
-- color_pairs: text whose color (declared or inherited) sits on a declared background — the nearest
-  declared background up the containers, #ffffff when none is (say so in `where`). 6-digit lowercase
-  hex. `large` = WCAG large text (>= 24px, or >= 18.66px bold). Include the chrome's pairs.
+- chrome: record header/footer actions on each screen that includes them (scope global) — the
+  parent also injects them from the include, so an omission is repaired, not silent; do not record
+  chrome outputs per screen.
+- color_pairs: every distinct pair from the classes the template and its includes apply, link colors
+  included — a text color (declared or inherited) on the nearest declared background up the
+  containers, #ffffff when none is (say so in `where`). Declared styles only; of the user-agent
+  defaults only a heading's bold counts. 6-digit lowercase hex. `text` is always stated: `large` =
+  WCAG large text (>= 24px, or >= 18.66px bold). `source` cites the fg declaration, `bg_source` the
+  bg declaration when it is elsewhere — one citation each. Include the chrome's pairs.
 - hand_built: an element rebuilt with inline styles instead of a shared component (inline-style), or
   a shared component's markup pasted by hand (copy); `mimics_source` is the shared component's file.
 
@@ -240,17 +256,32 @@ When every batch has returned, convert the batch shape to the inventory shape (@
 | `hand_built` | a component of kind `inline-style` / `copy` (Step 5), whose `duplicates` is the `UIC-` of `mimics_source`; the screen lists it in `components` |
 | everything else | unchanged |
 
+Then, before Step 5:
+
+- **Normalize commands across batches** — two batches naming one capability differently (`Login` /
+  `LogIn`, `SubmitOrderDetails` / `EnterOrderDetails`) get one command; keep the alias table in
+  `work/ui-analysis/commands.json`.
+- **Check completeness** — count the `<a href>`, `<form>` and button elements in each screen's
+  template and includes (Grep) and match every one to an action; a batch that dropped one (a
+  breadcrumb, the only link into a detail screen) is repaired now, because the validator cannot see
+  an action nobody recorded.
+- **Review the free text** — every free-text field is in the output language.
+
 ### Step 5: Components
 
 Collect every component source of @rules/ui-analysis.md §2 (includes, fragments, tag files,
-framework components, CSS classes that define a visual element and are used on two or more screens)
-plus the batches' `components_used` and `hand_built` entries. Deduplicate by source, keep previous ids
+framework components, CSS classes whose own or descendant rules set color, border, background or
+typography) plus the batches' `components_used` and `hand_built` entries. A CSS class's usage is
+found by scanning the `class="…"` tokens of each screen's template and includes; keep it when it
+appears on two or more screens. Deduplicate by source, keep previous ids
 where `source` and `name` match, and assign new `UIC-` ids. For each: read it for its `variants`
 (attribute or prop values that change its rendering) and `states` (disabled, error, loading…); set
-`level` — `template` for an include that opens or closes the page structure, otherwise by whether it
-contains other components; set `used_by` from the screens that use it (for a class a script injects,
+`level` — `template` for an include that opens or closes the page structure, the level of what it
+duplicates for a hand-built duplicate, otherwise by whether it contains other components; set `used_by` from the screens that use it (for a class a script injects,
 the screens whose scripts inject it) and `token_refs` from the values it applies. A declared
-component no screen uses is `unused: true`.
+component no screen uses is `unused: true`. For chrome (an include every screen shares), list the
+actions it contributes in `actions: [{label, command, target}]`, and inject each as a `global`
+action into every screen that lists the component and lacks it.
 
 ### Step 6: Design tokens
 
@@ -262,12 +293,14 @@ configuration), excluding vendored files, and apply @rules/ui-analysis.md §5:
 - **One raw token per distinct value, named by it** — `color.hex-0066cc`, `font.size.px-14`,
   `font.family.<first family slug>`, `font.weight.w-700`, `space.px-8`, `radius.px-4`,
   `border.width.px-1`, `shadow.<slug>` — with `sources` and `usage_count` (declarations using it).
-- **Cluster** by role, then closeness: colors for the same purpose within about 48 in RGB distance,
-  font sizes within 2 px for the same text role, spacing within 2 px for the same purpose; a hover or
-  active shade is its own role.
-- **Semantic candidates** — `semantic.color.<role>` aliasing the most-used member of each role cluster
-  (ties: the member a shared component uses, then the lexically first), `$description` stating it is
-  a candidate.
+- **Cluster** by role, then closeness: colors for the same purpose within about 48 in RGB distance;
+  a font size, spacing or radius only when the same property on the same kind of element takes two
+  values; a hover or active shade is its own role; a value playing several roles joins its dominant
+  role's cluster.
+- **Semantic candidates** — `semantic.color.<role>` aliasing the most-used member of each color role
+  (ties: the member a shared component uses, then the lexically first), one more candidate for each
+  further role a value plays (`semantic.color.on-primary`), and a candidate for any other type whose
+  cluster has more than one member; `$description` states it is a candidate, in the output language.
 
 Write `reports/before/{project}/ui-design-tokens.json`:
 
@@ -294,15 +327,18 @@ Write `reports/before/{project}/ui-design-tokens.json`:
 entity) come from tracing those handlers through services and repositories.
 
 **Tasks.** Name the user goals the features serve and the path a user walks for each: `screens` in
-order, each reached from the previous by a declared transition; `features` used along it. Checkout
-is one task across cart, entry, confirm and complete even when it spans two commands; a feature used
-on one screen is a one-screen task. Every feature appears in at least one task.
+order, each reached from the previous by a declared transition, from the screen where the user
+begins the goal — even one where no feature acts — to the screen the last feature's action lands on;
+`features` used along it. Checkout is one task from the cart to the completion page even when it
+spans two commands; a feature used and landing on one screen is a one-screen task; a feature on
+shared chrome gets the shortest path, from the shallowest screen it appears on to where it lands.
+Every feature appears in at least one task.
 
 ### Step 8: Assemble and validate the inventory
 
 Write `reports/before/{project}/ui-inventory.json` — top level `{schema_version: 1, project,
-target_path, ui_roots, technologies, screens, components, features, tasks, design_tokens,
-coverage}` — with `coverage.template_files` (the number of templates examined), `coverage.screens`
+generated_at, target_path, ui_roots, technologies, screens, components, features, tasks,
+design_tokens, open_questions, coverage}` — with `coverage.template_files` (the number of templates examined), `coverage.screens`
 (equal to the number of screens) and `coverage.unresolved` (every template that is neither a screen,
 a component nor included anywhere, and every route or target the code cannot settle, each with its
 reason and Open Question id — Step 11).
@@ -317,52 +353,24 @@ It checks the ten rules of @rules/ui-analysis.md §4, including that every `sour
 line is inside its file. Treat a violation as a defect in the inventory, not in the checker: fix the
 model and re-run until it exits 0.
 
-### Step 9: Write the views
+### Step 9: Render the views
 
-Render the four views **from the inventory** with a small script under `work/ui-analysis/`, so a
-rerun regenerates them rather than re-authoring them. Take depth, orphans, dead ends, unreachable
-screens, task steps, label drift and fragmented clusters **from**
-`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/ui_metrics.py" <project_dir>` — the views show measured
-figures, they do not re-derive them.
-
-Every view carries the frontmatter of @rules/output-conventions.md
-(`phase: "Phase 1: Investigation"`, `skill: analyze-ui`, `input_files` naming the inventory), starts
-its headings at `##`, and is written in the configured `output_language`. The section names below
-are canonical; in another language write the translation with the English name in parentheses
-(`## 画面一覧（Screen List）`). Labels, messages and screen names stay verbatim as the UI shows them.
-
-**`ui-screen-catalog.md`**
-- `## Summary` — screens, entry screens, components, features, tasks, unresolved items.
-- `## Screen Transition Diagram` — Mermaid `flowchart LR`; node ids without hyphens (`UIS001`),
-  labels quoted; global actions omitted; orphans and dead ends styled distinctly. Over about forty
-  screens, one diagram per task or per top-level area instead of one unreadable graph.
-- `## Screen List` — id, name, route, roles, input / output / action counts, source.
-- `## Screen Details` — one `###` per screen: an **INPUT** table (label, name, control, type,
-  required, validation with where it runs), an **OUTPUT** table (label, kind, fields), an
-  **Actions** table (label, command, where it lands or its endpoint, the inputs it sends, destructive,
-  confirmation, guard), messages, and access with its guards.
-- `## Screen-to-Code Map` — screen → handler → services → entities, from `handlers`.
-- `## Business Logic in the View Layer` — kind, description, where it should live, source.
-- `## Unresolved` — the `coverage.unresolved` rows with their Open Question ids.
-
-**`ui-features.md`** — `## Feature List` (id, name, command, screens, actors, entities),
-`## Tasks` (name, goal, screen path, steps, inputs — from the metrics), `## Actor × Feature`,
-`## Feature × Entity` (`entity_operations`), and `## Validation Rules as Acceptance-Criteria
-Candidates` (feature → the inputs its actions send → each rule and where it runs; a client-only rule
-is flagged).
-
-**`ui-components.md`** — `## Component Inventory` (id, name, kind, level, variants, states, used by,
-source), `## Hand-Built Duplicates` (each `inline-style` / `copy` component and what it rebuilds),
-`## Unused Components`.
-
-**`ui-design-system-extract.md`** — `## Palette` (every color token with usage count and cluster),
-`## Typography`, `## Spacing, Radius, Borders and Shadow`, `## Fragmentation` (each cluster with
-more than one member and a consolidation proposal), `## Semantic Token Candidates`,
-`## Component Variants`, and `## Importing into a Design System`:
-
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/ui_views.py" <project_dir>
 ```
-/product:design-system --import=reports/before/{project}/ui-design-tokens.json --name=<name>
-```
+
+The tool renders the four views from the inventory, the token file, the metrics and the Open
+Questions store, in the configured `output_language` (headings in that language with the English
+section name in parentheses; labels, messages and names verbatim) — the same inventory always
+renders the same views. **Do not edit a view by hand**: a correction belongs in the inventory, and a
+rerun regenerates the views.
+
+| View | Sections |
+|------|----------|
+| `ui-screen-catalog.md` | Summary; Screen Transition Diagram (dead ends and orphans styled, global chrome omitted, one diagram per task above forty screens); Screen List; Screen Details — per screen an INPUT table (validation with where it runs), an OUTPUT table, an Actions table (where it lands, what it sends, destructive, confirmation, guard), messages, access (a view-only guard marked); Screen-to-Code Map; Business Logic in the View Layer; Unresolved Items and Open Questions |
+| `ui-features.md` | Feature List; Tasks (steps and inputs from the metrics); Actor × Feature (roles enforced only in the view marked); Feature × Entity; Validation Rules as Acceptance-Criteria Candidates (client-only rules flagged) |
+| `ui-components.md` | Component Inventory; Hand-Built Duplicates; Unused Components |
+| `ui-design-system-extract.md` | Palette; Typography; Spacing, Radius, Borders and Shadow; Fragmentation (a consolidation proposal per multi-member cluster); Semantic Token Candidates; Component Variants; Importing into a Design System |
 
 ### Step 10: Append traceability
 
@@ -417,12 +425,12 @@ Stamp `analyze-ui` `completed` with `completed_at`, `outputs` (the six files) an
 | `reports/before/{project}/ui-components.md` | Component inventory, hand-built duplicates, unused components |
 | `reports/before/{project}/ui-design-system-extract.md` | Palette, typography, spacing, fragmentation, semantic token candidates, import instructions |
 
-Intermediate: `work/ui-analysis/` (technologies, route map, per-batch extractions, the view renderer).
+Intermediate: `work/ui-analysis/` (technologies, route map, per-batch extractions, the command alias table).
 
 ## Completion
 
-1. The six outputs are written, and `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/ui_inventory.py"
-   <project_dir>` exits 0.
+1. The six outputs are written — the four views by `ui_views.py` — and
+   `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/ui_inventory.py" <project_dir>` exits 0.
 2. `coverage.screens` equals the number of screens, and every unresolved item has an Open Question.
 3. `UIS-` / `UIC-` / `UIF-` nodes are in `work/traceability.json`.
 4. The phase is stamped `completed` (or `skipped` with the reason when there is no UI layer).

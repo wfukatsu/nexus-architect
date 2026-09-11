@@ -223,7 +223,32 @@ rejects("entity operations that are not CRUD",
         lambda i: i["features"][2]["entity_operations"].update(Order="CX"),
         expect="must be letters of CRUD")
 
+print("the batch shape does not survive into the inventory")
+rejects("a leftover local_id", lambda i: action(i, "UIS-002.A1").update(local_id="A1"),
+        expect="local_id is a batch field")
+rejects("a leftover components_used", lambda i: screen(i, "UIS-002").update(components_used=[]),
+        expect="components_used is a batch field")
+rejects("an action citing its handler instead of its element",
+        lambda i: action(i, "UIS-003.A3").update(source="src/CartServlet.java:40"),
+        expect="the handler belongs in handlers")
+accepts("an AJAX action citing its script", lambda i: action(i, "UIS-003.A2").update(
+    source="js/cart.js:9"))
+rejects("a color pair that does not state its text size",
+        lambda i: screen(i, "UIS-003")["color_pairs"][0].pop("text"),
+        expect="text must be stated")
+rejects("chrome whose action a screen lacks",
+        lambda i: i["components"][0].update(actions=[{"label": "Log out", "target": "UIS-001",
+                                                      "command": "LogOut"}]),
+        expect="UIS-003: includes UIC-001 but lacks its global action 'Log out'")
+accepts("chrome whose action every screen carries",
+        lambda i: (i["components"][0].update(actions=[{"label": "Log out", "target": "UIS-001",
+                                                       "command": "LogOut"}]),
+                   action(i, "UIS-003.A1").update(label="Log out"),
+                   action(i, "UIS-004.A1").update(label="Log out")))
+
 print("rule 7 — embedded logic is classified")
+accepts("an eligibility decision in the view",
+        lambda i: screen(i, "UIS-003")["embedded_logic"][0].update(kind="decision"))
 rejects("logic without a home",
         lambda i: screen(i, "UIS-003")["embedded_logic"][0].pop("should_live_in"),
         expect="should_live_in")
@@ -373,6 +398,12 @@ try:
     errors = validate_inventory(inv, project("client-source", inv))
     check("a client_source that does not exist",
           any("client_source" in e and "does not exist" in e for e in errors), errors)
+
+    inv = ui_fixture.inventory()
+    screen(inv, "UIS-003")["color_pairs"][0]["bg_source"] = "web/css/none.css:2"
+    errors = validate_inventory(inv, project("bg-source", inv))
+    check("a color pair's bg_source is checked too",
+          any("bg_source" in e and "does not exist" in e for e in errors), errors)
 
     inv = ui_fixture.inventory()
     action(inv, "UIS-002.A1")["guard"] = {"kind": "view", "roles": ["admin"],

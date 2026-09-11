@@ -54,8 +54,13 @@ SENDING_KINDS = ("submit", "ajax")
 ACTION_SCOPES = ("screen", "global")
 GUARD_KINDS = ("view", "controller", "filter", "config", "route")
 AUTHENTICATION = ("required", "none")
-LOGIC_KINDS = ("calculation", "validation", "authorization", "workflow", "formatting",
-               "data-access", "other")
+LOGIC_KINDS = ("calculation", "validation", "decision", "authorization", "workflow",
+               "formatting", "data-access", "other")
+# Fields of the Step 4 batch shape that the conversion replaces; one left behind means a batch
+# was merged without being converted.
+BATCH_ONLY = {"screen": ("components_used", "hand_built"), "action": ("local_id", "lands_on_route"),
+              "component": ("mimics_source",)}
+SCRIPT_EXTENSIONS = (".js", ".mjs", ".ts", ".jsx", ".tsx", ".vue", ".svelte")
 LOGIC_HOMES = ("domain", "application", "presentation")
 COMPONENT_KINDS = ("include", "tag", "fragment", "component", "macro", "css-class",
                    "inline-style", "copy", "other")
@@ -212,9 +217,20 @@ def _validate_guard(where, guard, *, needs_roles):
     return []
 
 
-def _validate_screen(screen, index, screen_ids, component_ids):
+def _source_path(source):
+    return source.split(":", 1)[0].strip() if isinstance(source, str) else None
+
+
+def _validate_screen(screen, index, screen_ids, component_ids, component_sources=None):
     errors = []
     sid = screen.get("id") if _text(screen.get("id")) else "screens[%d]" % index
+    for field in BATCH_ONLY["screen"]:
+        if field in screen:
+            errors.append("%s: %s is a batch field — convert it (analyze-ui Step 4)" % (sid, field))
+    # Where an action's element may live: the screen's template, a component it lists, a script.
+    element_files = {_source_path(screen.get("source"))} | {
+        _source_path((component_sources or {}).get(c)) for c in _list(screen.get("components"))
+        if isinstance(c, str)}
     # Rule 1 — ids.
     if not (isinstance(screen.get("id"), str) and SCREEN_RE.match(screen["id"])):
         errors.append("%s: id must be UIS-###" % sid)
@@ -293,8 +309,8 @@ def _validate_screen(screen, index, screen_ids, component_ids):
                 isinstance(pair.get(k), str) and HEX_RE.match(pair[k]) for k in ("fg", "bg")):
             errors.append("%s.color_pairs[%d]: fg and bg must be 6-digit lowercase hex colors"
                           % (sid, i))
-        elif pair.get("text", "normal") not in TEXT_SIZES:
-            errors.append("%s.color_pairs[%d]: text must be normal or large" % (sid, i))
+        elif pair.get("text") not in TEXT_SIZES:
+            errors.append("%s.color_pairs[%d]: text must be stated, normal or large" % (sid, i))
     for i, output in enumerate(_list(screen.get("outputs"))):
         if not isinstance(output, dict) or output.get("kind") not in OUTPUT_KINDS \
                 or not _text(output.get("name")):
@@ -312,6 +328,14 @@ def _validate_screen(screen, index, screen_ids, component_ids):
         if not isinstance(action, dict):
             errors.append("%s must be an object" % where)
             continue
+        for field in BATCH_ONLY["action"]:
+            if field in action:
+                errors.append("%s: %s is a batch field — convert it (analyze-ui Step 4)"
+                              % (where, field))
+        path = _source_path(action.get("source"))
+        if path and path not in element_files and not path.endswith(SCRIPT_EXTENSIONS):
+            errors.append("%s: source %r is neither the screen's template, a component it uses, "
+                          "nor a script — the handler belongs in handlers" % (where, path))
         aid = action.get("id")
         m = ACTION_RE.match(aid) if isinstance(aid, str) else None
         if not m or m.group(1) != screen.get("id"):
@@ -384,6 +408,8 @@ def _screen_sources(screen, sid):
                                rule["client_source"])
             if key == "actions" and isinstance(item.get("guard"), dict):
                 yield "%s.actions[%d].guard" % (sid, i), item["guard"].get("source")
+            if key == "color_pairs" and _text(item.get("bg_source")):
+                yield "%s.color_pairs[%d].bg_source" % (sid, i), item["bg_source"]
 
 
 # ----------------------------------------------------------------------------- manifest
@@ -427,11 +453,14 @@ def validate_inventory(inventory, project_dir=None, target_root=None, check_sour
     if duplicates(action_ids):
         errors.append("%s: duplicate action id" % LABEL)
 
+    component_sources = {c.get("id"): c.get("source") for c in components
+                         if isinstance(c.get("id"), str)}
     for index, screen in enumerate(screens):
         if not isinstance(screen, dict):
             errors.append("%s: screens[%d] must be an object" % (LABEL, index))
             continue
-        errors.extend(_validate_screen(screen, index, screen_ids, component_ids))
+        errors.extend(_validate_screen(screen, index, screen_ids, component_ids,
+                                       component_sources))
     # Rule 2 — navigation needs somewhere to start.
     if not any(s.get("entry") is True for s in screen_objs):
         errors.append("%s: no screen is an entry — depth and reachability cannot be measured"
@@ -476,6 +505,22 @@ def validate_inventory(inventory, project_dir=None, target_root=None, check_sour
         if component.get("kind") in DUPLICATE_KINDS and not _list(component.get("duplicates")):
             errors.append("%s: an %s component names the component it rebuilds (duplicates)"
                           % (cid, component.get("kind")))
+        for field in BATCH_ONLY["component"]:
+            if field in component:
+                errors.append("%s: %s is a batch field — convert it (analyze-ui Step 5)"
+                              % (cid, field))
+        # Chrome contributes the same actions to every screen that includes it.
+        for a, contributed in enumerate(_list(component.get("actions"))):
+            if not isinstance(contributed, dict) or not _text(contributed.get("label")):
+                errors.append("%s: actions[%d] needs a label" % (cid, a))
+                continue
+            for sid in sorted(actual):
+                screen = next(s for s in screen_objs if s.get("id") == sid)
+                if not any(x.get("scope") == "global" and x.get("label") == contributed["label"]
+                           and x.get("target") == contributed.get("target")
+                           for x in _dicts(screen.get("actions"))):
+                    errors.append("%s: includes %s but lacks its global action %r"
+                                  % (sid, cid, contributed["label"]))
 
     # Rule 6 — commands and features agree.
     # Screens whose id is not a string are already reported (rule 1); leaving them out here keeps

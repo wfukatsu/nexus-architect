@@ -150,11 +150,14 @@ many["consistency"].update(fragmented_clusters=["a", "b", "c"], label_drift=[{}]
                            components_with_duplicates=["x"])
 many["navigation"].update(orphans=["x"], dead_ends=["y"], unreachable_not_orphan=["z"],
                           max_depth=5)
-check("caps never go below 1", axis_caps(many) == {"H": 3, "A": 1, "E": 2, "C": 1, "N": 1},
-      axis_caps(many))
+check("caps never go below 3 — severity, not metrics, takes an axis lower",
+      axis_caps(many) == dict.fromkeys("HAECN", 3), axis_caps(many))
 check("ten percent of screens caps A at 4", axis_caps(dict(clean, accessibility=dict(
     clean["accessibility"], screens_with_violations=1), per_screen={
         str(n): clean["per_screen"]["UIS-001"] for n in range(10)}))["A"] == 4)
+deep = json.loads(json.dumps(clean))
+deep["navigation"]["max_depth"] = 9
+check("depth is reported, not capped", axis_caps(deep)["N"] == 5)
 
 print("CLI")
 tmp = tempfile.mkdtemp(prefix="ui-metrics-test-")
