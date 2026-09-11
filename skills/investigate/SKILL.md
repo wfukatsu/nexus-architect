@@ -12,7 +12,7 @@ user_invocable: true
 ## Desired Outcome
 
 Gain a comprehensive understanding of the target system and generate the following four investigation reports:
-1. **Technology Stack Analysis** — Languages, frameworks, libraries, external services
+1. **Technology Stack Analysis** — Languages, frameworks, libraries, external services, and the presentation layer
 2. **Codebase Structure** — Directory layout, module structure, entry points
 3. **Issues and Technical Debt** — Problem identification and severity classification (CRITICAL/High/Medium/Low)
 4. **DDD Readiness** — Assessment of readiness for migration to domain-driven design
@@ -65,7 +65,7 @@ Write output files immediately upon completing each section:
 
 | File | Content |
 |------|---------|
-| `reports/before/{project}/technology-stack.md` | Technology stack inventory and assessment |
+| `reports/before/{project}/technology-stack.md` | Technology stack inventory and assessment, with a **Presentation Layer** section: the UI technology, the UI source roots, and the approximate number of templates / routed views — or "none" for a system without a UI. `/architect:start` and `/architect:pipeline` read it to decide whether `/architect:analyze-ui` runs |
 | `reports/before/{project}/codebase-structure.md` | Directory and module structure |
 | `reports/before/{project}/issues-and-debt.md` | Technical debt and issues list |
 | `reports/before/{project}/ddd-readiness.md` | DDD readiness assessment |
@@ -89,3 +89,4 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 |-------|-------------|
 | /architect:analyze | Downstream (uses these investigation results as input) |
 | /architect:investigate-security | Related (detailed security investigation) |
+| /architect:analyze-ui | Downstream (analyzes the presentation layer this skill detects) |

@@ -1,0 +1,24 @@
+<%@ page pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%-- Common header. Set "pageTitle" (and optionally "extraCss") before including this file. --%>
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>${pageTitle} | オフィス用品通販システム</title>
+<link rel="stylesheet" href="${ctx}/css/common.css">
+<c:if test="${not empty extraCss}">
+<link rel="stylesheet" href="${ctx}/css/${extraCss}">
+</c:if>
+<script src="${ctx}/js/lib/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+<div class="title-bar">
+  <span class="app-name">オフィス用品通販システム</span>
+  <c:if test="${not empty sessionScope.loginUser}">
+    <a class="logout" href="${ctx}/logout">ログアウト</a>
+    <span class="user-info"><c:out value="${sessionScope.loginUser.name}" /> さん</span>
+  </c:if>
+</div>
+<div class="content">

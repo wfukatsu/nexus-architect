@@ -29,7 +29,10 @@ product プラグインのインプットは [product-input-requirements_ja.md](
 | `target_path`（調査対象コードベースのパス） | **必須** | 解析対象のリポジトリ/ディレクトリ。これが無いと開始できない |
 | レガシーシステムを**実行する**手段（`/architect:generate-characterization-tests` 用） | 最初の移行ステップの前に必須 | セッション内でビルドが通り、1 つのシーム（HTTP、CLI、公開関数）を駆動できること。必要な DB は利用可能（`docker-compose`、デーモン）か、**テスト専用**に置換する — テスト依存として追加する H2/SQLite プロファイルであり、`src/main/` の変更ではない — 置換の限界はレポートに記す。ゴールデンマスターは稼働中のコードから記録するため、実行できないシステムからは特性テストは作れない |
 
-> コードベースさえ指定すれば、技術スタック・構造・技術的負債・DDD Readiness の調査が自動で走ります。追加資料は不要ですが、既存設計書があれば後段の `define-requirements` に `--input` で渡せます。
+| `target_path` の外にある UI ソース（テンプレート、SPA のルート） | 任意 | UI が別リポジトリや別モジュールにある場合に `/architect:analyze-ui` の UI ルートとして渡す。無ければ `target_path` 内から UI を検出する |
+| 稼働中の UI（URL と、ログインが必要な画面用の Playwright storage state） | 任意 | `/architect:evaluate-ux` がスクリーンショットと描画後のアクセシビリティ検査で所見を裏づけられる。無ければ UX 評価はコードの静的レビューとなり、その旨を明記する |
+
+> コードベースさえ指定すれば、技術スタック・構造・技術的負債・DDD Readiness の調査が自動で走ります。UI 層があれば `/architect:analyze-ui` と `/architect:evaluate-ux` が画面インベントリと UX 評価を加えます。追加資料は不要ですが、既存設計書があれば後段の `define-requirements` に `--input` で渡せます。
 
 ## 2. グリーンフィールド設計パス（`/architect:define-requirements` 起点）
 

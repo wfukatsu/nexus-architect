@@ -89,9 +89,11 @@ product スキルの全カタログは [スキルリファレンス](skill-refer
 
 # または個別のスキルをステップごとに実行
 /architect:investigate ./path/to/legacy-project
+/architect:analyze-ui ./path/to/legacy-project   # UI 層があるシステムの場合
 /architect:analyze ./path/to/legacy-project
 /architect:evaluate-mmi ./path/to/legacy-project
 /architect:evaluate-ddd ./path/to/legacy-project
+/architect:evaluate-ux   # UI 層があるシステムの場合
 /architect:integrate-evaluations
 ```
 

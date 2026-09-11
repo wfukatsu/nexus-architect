@@ -36,6 +36,7 @@ For the inputs you should prepare before running each pipeline, see the
 |---------|-------|-------------|
 | `/architect:analyze` | opus | Ubiquitous language, actors, domain mapping |
 | `/architect:analyze-data-model` | sonnet | Data model, DB design, ER diagrams |
+| `/architect:analyze-ui` | sonnet | Existing UI: screens with inputs, outputs, actions and access; components; features; business logic in the view layer; design tokens (DTCG) |
 
 ## Evaluation
 
@@ -43,6 +44,7 @@ For the inputs you should prepare before running each pipeline, see the
 |---------|-------|-------------|
 | `/architect:evaluate-mmi` | sonnet | MMI 4-axis qualitative evaluation |
 | `/architect:evaluate-ddd` | sonnet | DDD 12-criteria 3-layer evaluation |
+| `/architect:evaluate-ux` | sonnet | UX index of an existing UI: heuristics, WCAG 2.2, efficiency, consistency, navigation; `--base-url` adds runtime evidence |
 | `/architect:integrate-evaluations` | sonnet | MMI+DDD integration, improvement plan |
 
 ## Design
@@ -256,8 +258,10 @@ path by their router, so they are not slash commands and have no signature here.
 /architect:investigate-security [target_path]
 /architect:analyze [target_path]
 /architect:analyze-data-model [target_path]
+/architect:analyze-ui [target_path] [--ui-root=<path>] [--auto]
 /architect:evaluate-mmi [target_path]
 /architect:evaluate-ddd [target_path]
+/architect:evaluate-ux [--base-url=<url>] [--storage-state=<path>] [--confirm-versions|--no-confirm-versions] [--auto]
 /architect:integrate-evaluations
 
 # Design

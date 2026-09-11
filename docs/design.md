@@ -137,7 +137,8 @@ Rules:
    first, then append. Never start a second graph file.
 2. **`FR-` nodes** — one per functional requirement, `type: "requirement"`,
    `upstream: ["FEAT-…"]` for every product feature it derives from (empty `upstream`
-   only when the FR was elicited fresh, i.e. has no product origin).
+   only when the FR was elicited fresh, i.e. has no product origin). On the legacy path an FR derived
+   from a feature of the existing UI carries that `UIF-` node (`/architect:analyze-ui`) as its upstream.
 3. **`NFR-` nodes** — when an NFR is carried over from product, **do not create a second
    node**; the product `NFR-` node already exists and is reused verbatim. Create a node
    only for NFRs that originate in architect (elicited targets product never set),

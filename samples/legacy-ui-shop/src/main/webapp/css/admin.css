@@ -1,0 +1,28 @@
+/* ==========================================================
+   admin.css - maintenance screens (added with the 2016 admin release)
+   ========================================================== */
+
+.admin-panel {
+  background-color: #f2f2f2;
+  border: 1px solid #e5e5e5;
+  padding: 16px 24px;
+}
+
+.admin-panel h1 {
+  border-bottom: none;
+  border-left: 5px solid #0a66c2;
+  padding-left: 8px;
+}
+
+.admin-panel .form-row > label { width: 120px; }
+
+.admin-actions {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #d9d9d9;
+}
+
+.admin-actions a {
+  color: #0a66c2;
+  margin-left: 16px;
+}

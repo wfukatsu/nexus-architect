@@ -34,10 +34,31 @@ phases:
       - reports/before/{project}/ddd-readiness.md
     model: sonnet
 
+  # Phase: Investigation (optional) — the existing UI
+  analyze-ui:
+    category: investigation
+    # UIS-/UIC-/UIF- are architect-originated as-is facts: the screens, components and features of
+    # the existing UI, recorded with empty upstream (rules/ui-analysis.md §9). SCR-/CMP- stay the
+    # product manifest's — those name to-be mocks and design-system components, not as-is code.
+    id_prefix: [UIS-, UIC-, UIF-]
+    depends_on: [investigate]
+    optional: true
+    outputs:
+      - reports/before/{project}/ui-inventory.json
+      - reports/before/{project}/ui-design-tokens.json
+      - reports/before/{project}/ui-screen-catalog.md
+      - reports/before/{project}/ui-features.md
+      - reports/before/{project}/ui-components.md
+      - reports/before/{project}/ui-design-system-extract.md
+    model: sonnet
+
   # Phase: Analysis
   analyze:
     category: analysis
-    depends_on: [investigate]
+    # analyze-ui is optional: it orders analyze after it when it runs (its role guards, labels and
+    # screens are evidence for the actor matrix, the ubiquitous language and the domain-code
+    # mapping) and blocks nothing when it does not.
+    depends_on: [investigate, analyze-ui]
     outputs:
       - reports/01_analysis/system-overview.md
       - reports/01_analysis/ubiquitous-language.md
@@ -58,7 +79,7 @@ phases:
   evaluate-mmi:
     category: evaluation
     depends_on: [analyze]
-    parallel_with: [evaluate-ddd]
+    parallel_with: [evaluate-ddd, evaluate-ux]
     outputs:
       - reports/02_evaluation/mmi-overview.md
       - reports/02_evaluation/mmi-by-module.md
@@ -67,15 +88,28 @@ phases:
   evaluate-ddd:
     category: evaluation
     depends_on: [analyze]
-    parallel_with: [evaluate-mmi]
+    parallel_with: [evaluate-mmi, evaluate-ux]
     outputs:
       - reports/02_evaluation/ddd-strategic-evaluation.md
       - reports/02_evaluation/ddd-tactical-architecture-evaluation.md
     model: sonnet
 
+  evaluate-ux:
+    category: evaluation
+    # Without analyze-ui's inventory there is nothing to evaluate: the pipeline records this phase
+    # skipped with that reason (skills/pipeline/SKILL.md step 7) rather than scoring a UI it never read.
+    depends_on: [analyze-ui, analyze]
+    optional: true
+    parallel_with: [evaluate-mmi, evaluate-ddd]
+    outputs:
+      - reports/02_evaluation/ux-evaluation.json
+      - reports/02_evaluation/ux-evaluation.md
+    model: sonnet
+
   integrate-evaluations:
     category: evaluation
-    depends_on: [evaluate-mmi, evaluate-ddd]
+    # evaluate-ux is optional — it adds the UX track when it ran and blocks nothing when it did not.
+    depends_on: [evaluate-mmi, evaluate-ddd, evaluate-ux]
     outputs:
       - reports/02_evaluation/integrated-evaluation.md
       - reports/02_evaluation/unified-improvement-plan.md

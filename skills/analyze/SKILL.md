@@ -29,6 +29,20 @@ Structure the domain knowledge of the target system and generate the following f
 | File | Required/Recommended | Source |
 |------|---------------------|--------|
 | reports/before/{project}/ | Required | /architect:investigate |
+| reports/before/{project}/ui-inventory.json | Optional | /architect:analyze-ui (when the system has a UI) |
+
+### Using the UI inventory (when present)
+
+The existing UI is evidence the backend alone does not give (@rules/ui-analysis.md §9):
+
+- **Actors, roles, permissions** — every screen's `access` (authentication, roles, guards) is a
+  row of evidence for the permission matrix. A role enforced only by a `view` guard is recorded
+  as such — as UI-hidden, not as access-controlled.
+- **Ubiquitous language** — screen names, labels and messages are the users' vocabulary. A label
+  that differs from the code name for the same concept is a synonym to resolve, not a new term.
+- **Domain-code mapping** — add a screen column: concept → screens (`UIS-`) → handlers → code.
+- **Business rules in the code** — the inventory's `embedded_logic` items are business rules the
+  view layer implements; map them like any other rule location.
 
 ## Available Resources
 
@@ -59,6 +73,7 @@ Write all reports in the language configured in `work/pipeline-progress.json` (`
 | Skill | Relationship |
 |-------|-------------|
 | /architect:investigate | Upstream (input source) |
+| /architect:analyze-ui | Upstream (optional — the UI inventory) |
 | /architect:evaluate-mmi | Downstream |
 | /architect:evaluate-ddd | Downstream |
 | /architect:analyze-data-model | Downstream |

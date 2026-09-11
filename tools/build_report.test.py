@@ -290,6 +290,16 @@ def build_project(root, language):
           json.dumps({"aggregates": [{"id": "AGG-001", "root": "Order"}]}))
     write(os.path.join(root, "reports", "07_test-specs", "bdd-scenarios", "order.feature"),
           FEATURE)
+    # The UI analysis and the UX evaluation: their Markdown views are articles, their canonical
+    # JSON (inventory, tokens, evaluation) is the model and is never rendered.
+    before = os.path.join(root, "reports", "before", "scratch-project")
+    write(os.path.join(before, "ui-screen-catalog.md"),
+          '---\ntitle: "Screen Catalog"\nschema_version: 1\n---\n\nScreens.\n')
+    write(os.path.join(before, "ui-inventory.json"), json.dumps({"marker": "UI_INVENTORY_JSON"}))
+    write(os.path.join(root, "reports", "02_evaluation", "ux-evaluation.md"),
+          '---\ntitle: "UX Evaluation"\nschema_version: 1\n---\n\nUXI.\n')
+    write(os.path.join(root, "reports", "02_evaluation", "ux-evaluation.json"),
+          json.dumps({"marker": "UX_EVALUATION_JSON"}))
 
 
 def run(project_dir, output=None, *extra):
@@ -317,7 +327,7 @@ try:
     # --- article identity -----------------------------------------------------
     ids = re.findall(r'<article class="doc" id="([^"]+)"', doc)
     expected = {"system-overview", "data-model", "index", "adr-001-consensus-commit",
-                "aggregate-order", "feature-order"}
+                "aggregate-order", "feature-order", "ui-screen-catalog", "ux-evaluation"}
     check("every source document became exactly one article",
           set(ids) == expected, "got %s" % sorted(ids))
     check("no article id is emitted twice", len(ids) == len(set(ids)),
@@ -372,7 +382,7 @@ try:
     check("a document's ## renders as <h4>", "<h4" in doc and "<h3 id=" not in doc)
     h2_ids = re.findall(r'<h2 id="([^"]+)"', doc)
     check("section ids are the canonical identifiers, in pipeline order",
-          h2_ids == ["analysis", "design", "test-specs"], h2_ids)
+          h2_ids == ["investigation", "analysis", "evaluation", "design", "test-specs"], h2_ids)
     check("the summary section is present", 'id="summary"' in doc)
 
     # --- missing review synthesis --------------------------------------------
@@ -406,6 +416,15 @@ try:
           "System Overview" in ja_doc and "Place an order" in ja_doc)
     check("the section identifiers are language-independent",
           re.findall(r'<h2 id="([^"]+)"', ja_doc) == h2_ids)
+
+    check("an analyze-ui view is an article of the investigation section",
+          'id="ui-screen-catalog"' in doc
+          and doc.find('<h2 id="investigation"') < doc.find('id="ui-screen-catalog"'))
+    check("the UX evaluation is an article of the evaluation section",
+          'id="ux-evaluation"' in doc
+          and doc.find('<h2 id="evaluation"') < doc.find('id="ux-evaluation"'))
+    check("the UI inventory and the UX evaluation JSON are never rendered",
+          "UI_INVENTORY_JSON" not in doc and "UX_EVALUATION_JSON" not in doc)
 
     # --------------------------------------------------------------- product project
     print("A product project is detected, ordered by the manifest and opens with the "

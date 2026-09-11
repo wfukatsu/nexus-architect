@@ -29,7 +29,10 @@ For the product plugin, see [product-input-requirements.md](product-input-requir
 | `target_path` (path to the codebase to investigate) | **Required** | The repository/directory to analyze. Cannot start without it |
 | A way to **run** the legacy system (for `/architect:generate-characterization-tests`) | Required before the first transformation step | The build must succeed in-session and one seam (HTTP, CLI, public function) must be drivable. The database it needs is either available (its `docker-compose`, a daemon) or substituted **test-only** — an H2/SQLite profile added as a test dependency, never a change under `src/main/` — with the substitution's limits reported. Golden masters are recorded from the running code, so a system that cannot be run yields no characterization suite |
 
-> With just the codebase specified, the investigation of technology stack, structure, technical debt, and DDD readiness runs automatically. No additional materials are required, but if you have existing design docs, they can be passed to the downstream `define-requirements` via `--input`.
+| UI source outside `target_path` (templates, SPA root) | Optional | Passed to `/architect:analyze-ui` as its UI root when the UI lives in another repository or module. Without it the UI is detected inside `target_path` |
+| A running instance of the UI (a URL, and a Playwright storage state for screens behind a login) | Optional | Lets `/architect:evaluate-ux` back its findings with screenshots and a rendered accessibility check. Without it the UX evaluation is a static review of the code, and says so |
+
+> With just the codebase specified, the investigation of technology stack, structure, technical debt, and DDD readiness runs automatically. When the codebase has a UI layer, `/architect:analyze-ui` and `/architect:evaluate-ux` add a screen inventory and a UX evaluation. No additional materials are required, but if you have existing design docs, they can be passed to the downstream `define-requirements` via `--input`.
 
 ## 2. Greenfield Design Path (via `/architect:define-requirements`)
 

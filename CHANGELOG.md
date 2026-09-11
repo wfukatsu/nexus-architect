@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+### Added
+- **`/architect:analyze-ui` — the existing UI as evidence.** The legacy path read the backend only:
+  no skill inventoried screens, so a system with hundreds of JSPs reached the redesign with its
+  screens, their inputs and outputs, its UI-only role checks and the business rules buried in
+  scriptlets and jQuery all invisible. The new optional phase runs after `investigate` and before
+  `analyze`, reads the route map before the templates, and writes one canonical inventory
+  (`ui-inventory.json`: every screen with its INPUT — fields, controls, validation and whether it
+  runs on the client, the server or both — its OUTPUT, actions and transitions, access guards,
+  view-layer logic, language, images and color pairs; every component with variants, states, usage
+  and hand-built duplicates; every feature as the submit/AJAX actions sharing a command) plus an
+  as-is W3C DTCG token file that keeps near-identical values apart so the fragmentation shows, and
+  four views: a screen catalog with the transition diagram and screen-to-code map, features,
+  components, and a design-system extract that `/product:design-system --import` takes as is.
+  `UIS-`/`UIC-`/`UIF-` are registered prefixes; `rules/ui-analysis.md` states what counts, detection
+  per UI technology, the shape and nine well-formedness rules, and `tools/lib/ui_inventory.py`
+  enforces them — including that every cited source line exists in the analysed code.
+- **`/architect:evaluate-ux` — a UX index that cannot carry an unmeasured number.** Five axes
+  (Nielsen heuristics 30%, WCAG 2.2 accessibility 25%, task efficiency 20%, consistency 15%,
+  navigation 10%) combine into a UXI with half-open bands. Every count, ratio and contrast value
+  comes from `tools/lib/ui_metrics.py`, which also caps each axis score from its metrics; five
+  sub-agents return scores and findings, the parent computes the index, and
+  `tools/lib/ux_evaluation.py` fails the evaluation when its metrics differ from a recomputation,
+  a score exceeds its cap, the UXI is not the formula's, or a finding cites a screen, component or
+  token that does not exist. Static expert review is the default and is labelled as such;
+  `--base-url` adds screenshots and a rendered accessibility check per screen.
+- **Wiring.** `investigate` reports a Presentation Layer section that decides whether the UI phases
+  run; `analyze` takes role guards, labels and screens as evidence for the actor matrix, the
+  ubiquitous language and a screen column in the domain-code mapping; `integrate-evaluations` adds a
+  UX track; `define-requirements` records `UIF-` as the upstream of legacy `FR-`s; `start` offers
+  the two phases after `investigate`, and `pipeline` runs them statically under `--auto` or records
+  them skipped when there is no UI. `samples/legacy-ui-shop/` is a runnable JSP + jQuery shop with
+  21 planted UI defects and their answer key.
+
 ## [0.38.2] - 2026-09-10
 
 ### Fixed

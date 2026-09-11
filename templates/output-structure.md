@@ -9,11 +9,17 @@ reports/
 │   ├── data-transaction-requirements.md
 │   ├── scalardb-applicability.md  # Omitted with --no-scalardb
 │   └── open-questions.md
-├── before/{project}/              # investigate
+├── before/{project}/              # investigate, analyze-ui
 │   ├── technology-stack.md
 │   ├── codebase-structure.md
 │   ├── issues-and-debt.md
-│   └── ddd-readiness.md
+│   ├── ddd-readiness.md
+│   ├── ui-inventory.json          # analyze-ui (optional): canonical UI inventory
+│   ├── ui-design-tokens.json      # as-is design tokens (W3C DTCG)
+│   ├── ui-screen-catalog.md
+│   ├── ui-features.md
+│   ├── ui-components.md
+│   └── ui-design-system-extract.md
 ├── 00_summary/                    # report
 │   └── full-report.html
 ├── 01_analysis/                   # analyze, analyze-data-model
@@ -23,11 +29,13 @@ reports/
 │   ├── domain-code-mapping.md
 │   ├── data-model-analysis.md
 │   └── er-diagram-current.md
-├── 02_evaluation/                 # evaluate-mmi, evaluate-ddd, integrate-evaluations
+├── 02_evaluation/                 # evaluate-mmi, evaluate-ddd, evaluate-ux, integrate-evaluations
 │   ├── mmi-overview.md
 │   ├── mmi-by-module.md
 │   ├── ddd-strategic-evaluation.md
 │   ├── ddd-tactical-architecture-evaluation.md
+│   ├── ux-evaluation.json         # evaluate-ux (optional): canonical UX evaluation
+│   ├── ux-evaluation.md
 │   ├── integrated-evaluation.md
 │   └── unified-improvement-plan.md
 ├── 03_design/                     # redesign, design-*, map-domains
@@ -107,9 +115,9 @@ it git-ignored and break the implement → review → merge chain.
 ```
 define-requirements (optional; greenfield entry point)
         ↓  (referenced by map-domains, design-scalardb, design-data-layer)
-investigate → analyze → analyze-data-model
+investigate → [analyze-ui (optional)] → analyze → analyze-data-model
                             ↓
-              [evaluate-mmi, evaluate-ddd] → integrate-evaluations
+              [evaluate-mmi, evaluate-ddd, evaluate-ux (optional)] → integrate-evaluations
                                                     ↓
               map-domains → redesign → design-microservices
                                 ↓                   ↓

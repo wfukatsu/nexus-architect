@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "defects": [
+    {
+      "id": "PD-01",
+      "category": "embedded-logic",
+      "file": "src/main/webapp/WEB-INF/jsp/order/entry.jsp",
+      "line": 10,
+      "route": "/order/entry",
+      "criterion": null,
+      "description": "Members-only 10% discount (subtotal >= 10,000 yen) computed in a scriptlet; the view stores the result in the session attribute \"discount\", which OrderConfirmServlet later trusts"
+    },
+    {
+      "id": "PD-02",
+      "category": "embedded-logic",
+      "file": "src/main/webapp/WEB-INF/jsp/order/confirm.jsp",
+      "line": 8,
+      "route": "/order/confirm",
+      "criterion": null,
+      "description": "Consumption tax (10%, rounded down) and order total computed in a scriptlet and written to the session (orderTax / orderTotal); the servlet persists these values without recomputing them"
+    },
+    {
+      "id": "PD-03",
+      "category": "embedded-logic",
+      "file": "src/main/webapp/js/cart.js",
+      "line": 13,
+      "route": null,
+      "criterion": null,
+      "description": "Cart line amount (price x quantity) calculated client-side in jQuery and shown to the user, duplicating CartLine.getLineTotal() on the server"
+    },
+    {
+      "id": "PD-04",
+      "category": "role-guard",
+      "file": "src/main/webapp/WEB-INF/jsp/menu.jsp",
+      "line": 18,
+      "route": "/menu",
+      "criterion": null,
+      "description": "Scriptlet if on the session user's role (\"admin\") hides the product maintenance link"
+    },
+    {
+      "id": "PD-05",
+      "category": "role-guard",
+      "file": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp",
+      "line": 11,
+      "route": "/admin/products/edit",
+      "criterion": null,
+      "description": "Admin role checked only in a scriptlet in the JSP; AdminProductEditServlet and LoginFilter check login only, so a customer's POST (save / delete) is executed"
+    },
+    {
+      "id": "PD-06",
+      "category": "client-only-validation",
+      "file": "src/main/webapp/js/validation.js",
+      "line": 16,
+      "route": "/order/entry",
+      "criterion": null,
+      "description": "Postal code format NNN-NNNN checked only in jQuery (pattern at validation.js:5, field at entry.jsp:53); OrderEntryServlet.java:63 checks presence only, so \"1000001\" is accepted"
+    },
+    {
+      "id": "PD-07",
+      "category": "unlabeled-input",
+      "file": "src/main/webapp/WEB-INF/jsp/product/search.jsp",
+      "line": 11,
+      "route": "/products",
+      "criterion": "WCAG 1.3.1",
+      "description": "Keyword text input has only a placeholder: no <label>, aria-label or aria-labelledby"
+    },
+    {
+      "id": "PD-08",
+      "category": "unlabeled-input",
+      "file": "src/main/webapp/WEB-INF/jsp/order/entry.jsp",
+      "line": 62,
+      "route": "/order/entry",
+      "criterion": "WCAG 1.3.1",
+      "description": "Phone input has visible text \"電話番号\" in a <span class=\"form-label\"> (line 61) but no id and no <label for> association"
+    },
+    {
+      "id": "PD-09",
+      "category": "missing-alt",
+      "file": "src/main/webapp/WEB-INF/jsp/product/search.jsp",
+      "line": 39,
+      "route": "/products",
+      "criterion": "WCAG 1.1.1",
+      "description": "Product thumbnail <img> in the results table has no alt attribute"
+    },
+    {
+      "id": "PD-10",
+      "category": "low-contrast",
+      "file": "src/main/webapp/WEB-INF/jsp/cart.jsp",
+      "line": 40,
+      "route": "/cart",
+      "criterion": "WCAG 1.4.3",
+      "description": "Cart notes text uses .cart-notes (common.css:125, #aaaaaa at 12px) on the white page background: contrast about 2.3:1"
+    },
+    {
+      "id": "PD-11",
+      "category": "missing-lang",
+      "file": "src/main/webapp/WEB-INF/jsp/login.jsp",
+      "line": 5,
+      "route": "/login",
+      "criterion": "WCAG 3.1.1",
+      "description": "Standalone login page (does not include header.jspf) declares <html> without a lang attribute"
+    },
+    {
+      "id": "PD-12",
+      "category": "destructive-without-confirmation",
+      "file": "src/main/webapp/WEB-INF/jsp/cart.jsp",
+      "line": 30,
+      "route": "/cart",
+      "criterion": "H5",
+      "description": "Per-line remove button (削除) submits the form immediately: no confirmation, no undo"
+    },
+    {
+      "id": "PD-13",
+      "category": "destructive-without-confirmation",
+      "file": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp",
+      "line": 56,
+      "route": "/admin/products/edit",
+      "criterion": "H5",
+      "description": "Delete product button submits immediately and deletes the product: no confirmation, styled as an ordinary secondary button"
+    },
+    {
+      "id": "PD-14",
+      "category": "vague-error-message",
+      "file": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp",
+      "line": 25,
+      "route": "/admin/products/edit",
+      "criterion": "H9",
+      "description": "Validation failure shows only \"エラーが発生しました\" although the servlet knows which fields failed (name / price / stock / category); no field or cause is named"
+    },
+    {
+      "id": "PD-15",
+      "category": "inconsistent-button",
+      "file": "src/main/webapp/WEB-INF/jsp/admin/product-edit.jsp",
+      "line": 54,
+      "route": "/admin/products/edit",
+      "criterion": "H4",
+      "description": "Save button hand-built with inline styles (#1a73e8, padding 4px 20px, radius 12px, 13px font) instead of WEB-INF/tags/button.tag (.btn-primary: #0066cc, 6px 16px, radius 3px, 14px)"
+    },
+    {
+      "id": "PD-16",
+      "category": "inconsistent-color",
+      "file": "src/main/webapp/css/admin.css",
+      "line": 13,
+      "route": null,
+      "criterion": "H4",
+      "description": "Primary blue defined four ways: #0066cc (common.css:22,32,60,131,137), #06c (common.css:14, links), #0a66c2 (admin.css:13,26) and inline #1a73e8 (product-edit.jsp:54)"
+    },
+    {
+      "id": "PD-17",
+      "category": "inconsistent-color",
+      "file": "src/main/webapp/css/common.css",
+      "line": 102,
+      "route": null,
+      "criterion": "H4",
+      "description": "Near-identical grays with no token: light fills #eeeeee / #efefef / #f4f4f4 / #f5f5f5 (+ admin.css #f2f2f2), borders #dddddd / #ddd / #e0e0e0 (+ admin.css #e5e5e5, #d9d9d9), text #333333 / #333 / #444444 / #444"
+    },
+    {
+      "id": "PD-18",
+      "category": "label-drift",
+      "file": "src/main/webapp/WEB-INF/jsp/product/detail.jsp",
+      "line": 26,
+      "route": "/products/detail",
+      "criterion": "H4",
+      "description": "Add-to-cart action labelled \"カートに入れる\" on the detail screen but \"カートに追加\" on the search results (search.jsp:48 via messages_ja.properties:12 search.addToCart)"
+    },
+    {
+      "id": "PD-19",
+      "category": "dead-end",
+      "file": "src/main/webapp/WEB-INF/jsp/order/complete.jsp",
+      "line": 21,
+      "route": "/order/complete",
+      "criterion": "H3",
+      "description": "Order complete page has no link or button at all (no header include, no menu link, no logout); the only way out is the browser back button or typing a URL"
+    },
+    {
+      "id": "PD-20",
+      "category": "orphan-screen",
+      "file": "src/main/webapp/help.jsp",
+      "line": 1,
+      "route": "/help.jsp",
+      "criterion": "H10",
+      "description": "FAQ page outside WEB-INF that no screen, fragment or script links to; reachable only by typing the URL"
+    },
+    {
+      "id": "PD-21",
+      "category": "redundant-input",
+      "file": "src/main/webapp/WEB-INF/jsp/order/entry.jsp",
+      "line": 66,
+      "route": "/order/entry",
+      "criterion": "H7",
+      "description": "Email address is required and left empty although the logged-in user's email is known (User.email, shown on /menu at menu.jsp:34); OrderEntryServlet pre-fills the shipping name but not the email"
+    }
+  ]
+}
