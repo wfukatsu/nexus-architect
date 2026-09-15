@@ -42,7 +42,8 @@ def normalize(rows, spec, result, eid, collected_at):
                 "value": row.get("value"), "unit": spec["unit"], "semantics": spec["semantics"],
                 "collected_at": collected_at, "updated_at": row.get("updated_at"),
                 "reset_at": row.get("reset_at"), "evidence_ids": [eid],
-                "granularity": spec.get("granularity", "table"),
+                # A row may narrow the query's granularity (a partition among tables).
+                "granularity": row.get("granularity") or spec.get("granularity", "table"),
             })
             continue
         target_kind = "table" if kind in {"column", "constraint"} else row.get("object_kind", kind)

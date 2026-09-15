@@ -16,7 +16,7 @@
     {
       "id": "constraints",
       "kind": "constraint",
-      "sql": "SELECT c.OWNER AS \"schema\",c.TABLE_NAME AS \"name\",c.CONSTRAINT_NAME AS \"constraint_name\",CASE c.CONSTRAINT_TYPE WHEN 'P' THEN 'primary_key' WHEN 'R' THEN 'foreign_key' WHEN 'U' THEN 'unique' WHEN 'C' THEN 'check' END AS \"constraint_kind\",k.COLUMN_NAME AS \"column_name\",rc.OWNER AS \"ref_schema\",rc.TABLE_NAME AS \"ref_table\",rk.COLUMN_NAME AS \"ref_column\" FROM ALL_CONSTRAINTS c LEFT JOIN ALL_CONS_COLUMNS k ON k.OWNER=c.OWNER AND k.CONSTRAINT_NAME=c.CONSTRAINT_NAME LEFT JOIN ALL_CONSTRAINTS rc ON rc.OWNER=c.R_OWNER AND rc.CONSTRAINT_NAME=c.R_CONSTRAINT_NAME LEFT JOIN ALL_CONS_COLUMNS rk ON rk.OWNER=rc.OWNER AND rk.CONSTRAINT_NAME=rc.CONSTRAINT_NAME AND rk.POSITION=k.POSITION WHERE c.OWNER=:scope AND c.CONSTRAINT_TYPE IN ('P','R','U','C') ORDER BY c.TABLE_NAME,c.CONSTRAINT_NAME,k.POSITION"
+      "sql": "SELECT c.OWNER AS \"schema\",c.TABLE_NAME AS \"name\",c.CONSTRAINT_NAME AS \"constraint_name\",CASE c.CONSTRAINT_TYPE WHEN 'P' THEN 'primary_key' WHEN 'R' THEN 'foreign_key' WHEN 'U' THEN 'unique' WHEN 'C' THEN 'check' END AS \"constraint_kind\",k.COLUMN_NAME AS \"column_name\",rc.OWNER AS \"ref_schema\",rc.TABLE_NAME AS \"ref_table\",rk.COLUMN_NAME AS \"ref_column\" FROM ALL_CONSTRAINTS c LEFT JOIN ALL_CONS_COLUMNS k ON k.OWNER=c.OWNER AND k.CONSTRAINT_NAME=c.CONSTRAINT_NAME LEFT JOIN ALL_CONSTRAINTS rc ON rc.OWNER=c.R_OWNER AND rc.CONSTRAINT_NAME=c.R_CONSTRAINT_NAME LEFT JOIN ALL_CONS_COLUMNS rk ON rk.OWNER=rc.OWNER AND rk.CONSTRAINT_NAME=rc.CONSTRAINT_NAME AND rk.POSITION=k.POSITION WHERE c.OWNER=:scope AND c.CONSTRAINT_TYPE IN ('P','R','U','C') AND NOT (c.CONSTRAINT_TYPE='C' AND REGEXP_LIKE(c.SEARCH_CONDITION_VC,'^\"[^\"]+\" IS NOT NULL$')) ORDER BY c.TABLE_NAME,c.CONSTRAINT_NAME,k.POSITION"
     },
     {
       "id": "indexes",
@@ -58,5 +58,6 @@
       "empty_reason": "owner-only USER_SEGMENTS: requested owner may differ from connected user, or own segments are absent"
     }
   ],
-  "id": "oracle"
+  "id": "oracle",
+  "compatible_markers": []
 }

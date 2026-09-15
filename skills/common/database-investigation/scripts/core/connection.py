@@ -59,15 +59,17 @@ def verify_probe(spec, port, expected_version, expected_catalog):
         raise ValueError("database identification failed")
     row = rows[0]
     product = str(row.get("product", "")).lower()
-    if spec["id"] not in product or any(x in product for x in ("mariadb", "tidb", "aurora", "yugabyte")):
-        raise ValueError("database product mismatch or unverified compatible product")
     version = str(row["version"])
+    # Compatible products report the base product's name; the adapter declares what gives them away.
+    identity = product + " " + version.lower()
+    if spec["id"] not in product or row.get("compatible_product") or any(m in identity for m in spec.get("compatible_markers", [])):
+        raise ValueError("database product mismatch or unverified compatible product")
     release = re.match(r"\d+(?:\.\d+)*", version)
     if not isinstance(expected_version, str) or not re.fullmatch(r"\d+(?:\.\d+)*", expected_version):
         raise ValueError("expected version must be an explicit numeric release")
     if not release or not (release[0] == expected_version or release[0].startswith(expected_version + ".")):
         raise ValueError("database version differs from approved profile")
-    if int(version.split(".")[0]) < spec["min_major"]:
+    if int(release[0].split(".")[0]) < spec["min_major"]:
         raise ValueError("database version outside adapter capability")
     if expected_catalog is not None and row["catalog"] != expected_catalog:
         raise ValueError("database catalog differs from profile")

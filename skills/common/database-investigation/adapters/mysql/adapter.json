@@ -67,6 +67,11 @@
     }
   ],
   "id": "mysql",
+  "compatible_markers": [
+    "mariadb",
+    "tidb",
+    "aurora"
+  ],
   "index_scope": "table",
   "inline_indexes": true
 }

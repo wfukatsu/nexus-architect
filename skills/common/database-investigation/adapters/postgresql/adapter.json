@@ -1,27 +1,27 @@
 {
   "fold": "lower",
   "min_major": 14,
-  "probe": "SELECT version() AS product, current_setting('server_version') AS version, current_database() AS catalog",
+  "probe": "SELECT version() AS product, current_setting('server_version') AS version, current_database() AS catalog,(SELECT pg_catalog.string_agg(p.proname, ',') FROM pg_catalog.pg_proc p WHERE p.proname IN ('aurora_version','yb_servers')) AS compatible_product",
   "queries": [
     {
       "id": "tables",
       "kind": "table",
-      "sql": "SELECT n.nspname AS schema, c.relname AS name FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=%s AND c.relkind IN ('r','p') ORDER BY c.relname"
+      "sql": "SELECT n.nspname AS schema, c.relname AS name FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=%s AND c.relkind IN ('r','p') AND NOT c.relispartition ORDER BY c.relname"
     },
     {
       "id": "columns",
       "kind": "column",
-      "sql": "SELECT n.nspname AS schema,c.relname AS name,a.attname AS column_name,pg_catalog.format_type(a.atttypid,a.atttypmod) AS data_type,a.attnum AS ordinal,NOT a.attnotnull AS nullable FROM pg_catalog.pg_attribute a JOIN pg_catalog.pg_class c ON c.oid=a.attrelid JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=%s AND c.relkind IN ('r','p') AND a.attnum>0 AND NOT a.attisdropped ORDER BY c.relname,a.attnum"
+      "sql": "SELECT n.nspname AS schema,c.relname AS name,a.attname AS column_name,pg_catalog.format_type(a.atttypid,a.atttypmod) AS data_type,a.attnum AS ordinal,NOT a.attnotnull AS nullable FROM pg_catalog.pg_attribute a JOIN pg_catalog.pg_class c ON c.oid=a.attrelid JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=%s AND c.relkind IN ('r','p') AND NOT c.relispartition AND a.attnum>0 AND NOT a.attisdropped ORDER BY c.relname,a.attnum"
     },
     {
       "id": "constraints",
       "kind": "constraint",
-      "sql": "SELECT n.nspname AS schema,t.relname AS name,c.conname AS constraint_name,CASE c.contype WHEN 'p' THEN 'primary_key' WHEN 'f' THEN 'foreign_key' WHEN 'u' THEN 'unique' WHEN 'c' THEN 'check' END AS constraint_kind,a.attname AS column_name,rn.nspname AS ref_schema,rt.relname AS ref_table,ra.attname AS ref_column FROM pg_catalog.pg_constraint c JOIN pg_catalog.pg_class t ON t.oid=c.conrelid JOIN pg_catalog.pg_namespace n ON n.oid=t.relnamespace LEFT JOIN LATERAL unnest(c.conkey) WITH ORDINALITY k(attnum,pos) ON true LEFT JOIN pg_catalog.pg_attribute a ON a.attrelid=t.oid AND a.attnum=k.attnum LEFT JOIN pg_catalog.pg_class rt ON rt.oid=c.confrelid LEFT JOIN pg_catalog.pg_namespace rn ON rn.oid=rt.relnamespace LEFT JOIN pg_catalog.pg_attribute ra ON ra.attrelid=rt.oid AND ra.attnum=c.confkey[k.pos] WHERE n.nspname=%s AND c.contype IN ('p','f','u','c') ORDER BY t.relname,c.conname,k.pos"
+      "sql": "SELECT n.nspname AS schema,t.relname AS name,c.conname AS constraint_name,CASE c.contype WHEN 'p' THEN 'primary_key' WHEN 'f' THEN 'foreign_key' WHEN 'u' THEN 'unique' WHEN 'c' THEN 'check' END AS constraint_kind,a.attname AS column_name,rn.nspname AS ref_schema,rt.relname AS ref_table,ra.attname AS ref_column FROM pg_catalog.pg_constraint c JOIN pg_catalog.pg_class t ON t.oid=c.conrelid JOIN pg_catalog.pg_namespace n ON n.oid=t.relnamespace LEFT JOIN LATERAL unnest(c.conkey) WITH ORDINALITY k(attnum,pos) ON true LEFT JOIN pg_catalog.pg_attribute a ON a.attrelid=t.oid AND a.attnum=k.attnum LEFT JOIN pg_catalog.pg_class rt ON rt.oid=c.confrelid LEFT JOIN pg_catalog.pg_namespace rn ON rn.oid=rt.relnamespace LEFT JOIN pg_catalog.pg_attribute ra ON ra.attrelid=rt.oid AND ra.attnum=c.confkey[k.pos] WHERE n.nspname=%s AND NOT t.relispartition AND c.contype IN ('p','f','u','c') ORDER BY t.relname,c.conname,k.pos"
     },
     {
       "id": "indexes",
       "kind": "index",
-      "sql": "SELECT n.nspname AS schema,i.relname AS name,t.relname AS table_name,a.attname AS column_name,x.indisunique AS is_unique FROM pg_catalog.pg_index x JOIN pg_catalog.pg_class i ON i.oid=x.indexrelid JOIN pg_catalog.pg_class t ON t.oid=x.indrelid JOIN pg_catalog.pg_namespace n ON n.oid=t.relnamespace LEFT JOIN LATERAL unnest(x.indkey) WITH ORDINALITY k(attnum,pos) ON true LEFT JOIN pg_catalog.pg_attribute a ON a.attrelid=t.oid AND a.attnum=k.attnum WHERE n.nspname=%s ORDER BY i.relname,k.pos"
+      "sql": "SELECT n.nspname AS schema,i.relname AS name,t.relname AS table_name,a.attname AS column_name,x.indisunique AS is_unique FROM pg_catalog.pg_index x JOIN pg_catalog.pg_class i ON i.oid=x.indexrelid JOIN pg_catalog.pg_class t ON t.oid=x.indrelid JOIN pg_catalog.pg_namespace n ON n.oid=t.relnamespace LEFT JOIN LATERAL unnest(x.indkey) WITH ORDINALITY k(attnum,pos) ON true LEFT JOIN pg_catalog.pg_attribute a ON a.attrelid=t.oid AND a.attnum=k.attnum WHERE n.nspname=%s AND NOT t.relispartition ORDER BY i.relname,k.pos"
     },
     {
       "id": "views",
@@ -36,12 +36,12 @@
     {
       "id": "triggers",
       "kind": "trigger",
-      "sql": "SELECT n.nspname AS schema,c.relname || '.' || t.tgname AS name FROM pg_catalog.pg_trigger t JOIN pg_catalog.pg_class c ON c.oid=t.tgrelid JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=%s AND NOT t.tgisinternal ORDER BY name"
+      "sql": "SELECT n.nspname AS schema,c.relname || '.' || t.tgname AS name FROM pg_catalog.pg_trigger t JOIN pg_catalog.pg_class c ON c.oid=t.tgrelid JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=%s AND NOT t.tgisinternal AND NOT c.relispartition ORDER BY name"
     },
     {
       "id": "rows",
       "kind": "statistic",
-      "sql": "SELECT current_setting('track_counts') AS enabled,schemaname AS schema,relname AS name,n_live_tup AS value,GREATEST(last_analyze,last_autoanalyze)::text AS updated_at FROM pg_catalog.pg_stat_user_tables WHERE schemaname=%s",
+      "sql": "SELECT current_setting('track_counts') AS enabled,s.schemaname AS schema,s.relname AS name,s.n_live_tup AS value,GREATEST(s.last_analyze,s.last_autoanalyze)::text AS updated_at,CASE WHEN c.relispartition THEN 'partition' ELSE 'table' END AS granularity FROM pg_catalog.pg_stat_user_tables s JOIN pg_catalog.pg_class c ON c.oid=s.relid WHERE s.schemaname=%s",
       "metric": "rows",
       "semantics": "estimate",
       "unit": "rows",
@@ -50,7 +50,7 @@
     {
       "id": "bytes",
       "kind": "statistic",
-      "sql": "SELECT n.nspname AS schema,c.relname AS name,pg_catalog.pg_total_relation_size(c.oid) AS value FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=%s AND c.relkind IN ('r','p')",
+      "sql": "SELECT n.nspname AS schema,c.relname AS name,pg_catalog.pg_total_relation_size(c.oid) AS value,CASE WHEN c.relispartition THEN 'partition' ELSE 'table' END AS granularity FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=%s AND c.relkind IN ('r','p')",
       "metric": "total_bytes",
       "semantics": "measured",
       "unit": "bytes",
@@ -59,12 +59,17 @@
     {
       "id": "index_scans",
       "kind": "statistic",
-      "sql": "SELECT current_setting('track_counts') AS enabled,schemaname AS schema,indexrelname AS name,idx_scan AS value,(SELECT stats_reset::text FROM pg_catalog.pg_stat_database WHERE datname=current_database()) AS reset_at FROM pg_catalog.pg_stat_user_indexes WHERE schemaname=%s",
+      "sql": "SELECT current_setting('track_counts') AS enabled,s.schemaname AS schema,s.indexrelname AS name,s.idx_scan AS value,(SELECT stats_reset::text FROM pg_catalog.pg_stat_database WHERE datname=current_database()) AS reset_at,CASE WHEN i.relispartition THEN 'partition_index' ELSE 'index' END AS granularity FROM pg_catalog.pg_stat_user_indexes s JOIN pg_catalog.pg_class i ON i.oid=s.indexrelid WHERE s.schemaname=%s",
       "metric": "index_scans",
       "semantics": "cumulative",
       "unit": "scans",
       "granularity": "index"
     }
   ],
-  "id": "postgresql"
+  "id": "postgresql",
+  "compatible_markers": [
+    "aurora",
+    "yugabyte",
+    "-yb-"
+  ]
 }
