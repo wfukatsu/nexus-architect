@@ -8,7 +8,7 @@ tracks the upstream automatically.
 | | |
 |---|---|
 | Upstream | https://github.com/wfukatsu/sql-migration |
-| Commit | `c32996d` (2026-09-15; first imported at `1d2e4db`, then re-imported for upstream issues #1–#4) |
+| Commit | `917eded` (2026-09-15; first imported at `1d2e4db`, then re-imported for upstream issues #1–#5) |
 | License | MIT, Copyright (c) 2026 Wataru Fukatsu — kept verbatim in `LICENSE` |
 
 ## What was copied, and how it changed
@@ -39,6 +39,7 @@ copied either: `scripts/verify/common.py` already takes environment-reference pr
 | `14991ee` | #2 hard-coded connection details in `difftest/` | nothing (see above) |
 | `7970e63` | #3 H2 2.5.250, Gson 2.14.0 | already pinned here |
 | `55b4ae6` | #4 no SLF4J provider | `slf4j-simple` in `build.gradle`, `src/main/resources/simplelogger.properties` (verbatim, already English), the logging note in `Runner`'s Javadoc |
+| `772f5d5` | #5 golden diffs labelled `oracle=` / `java=` whatever the source; a raw NUL byte in `GoldenCheck.rowKey` | `GoldenCheck` merged by hand around the local `params` extension: diffs say `expected` / `actual`, the optional `source` of golden.json is shown in the summary line (the `Golden` record keeps `params` and adds `source` last), the separator written as the escape `'\u0000'`; `GoldenCheckTest` changes ported. Upstream's `difftest/golden.py` writes `"source": "oracle"`; `scripts/verify/golden.py` writes the manifest's source dialect |
 
 The kanji in `OracleOrderingTest` is test data (the ordering of surrogate-pair characters), not prose.
 
@@ -61,8 +62,8 @@ Resolved 2026-09-15 per @rules/dependency-versions.md and confirmed by the user.
 
 - Python: the four ported suites (78 test functions, parametrized cases as subtests) pass on sqlglot
   30.18.0, as upstream's pytest cases do on the same commit.
-- Java: `gradle test` in `runtime-java/` — 37 tests after removing `AreaSalesReportTest` (2 of upstream's 39), all
-  passing on the dependency set below.
+- Java: `gradle test` in `runtime-java/` — 40 tests: upstream's suite without `AreaSalesReportTest`, plus the local
+  `params` tests, all passing on the dependency set above.
 
 ## Re-importing from upstream
 

@@ -131,7 +131,10 @@ SKILL.md、登録、カタログ、サンプル、文書は `c273f6a`、`797fc0a
   - [#2](https://github.com/wfukatsu/sql-migration/issues/2): 接続情報のハードコード
   - [#3](https://github.com/wfukatsu/sql-migration/issues/3): H2 / Gson の更新
   - [#4](https://github.com/wfukatsu/sql-migration/issues/4): SLF4J の実装が無い
+  - [#5](https://github.com/wfukatsu/sql-migration/issues/5): GoldenCheck の差分が移行元を問わず `oracle=` と表示する（golden 検証の実行中に登録）
 
-  4 件とも元リポジトリで修正された（`c32996d`）。#1 と #4 の修正は nexus に取り込んだ（テスト先行、`5eed027` から）。#2 は複製していない `difftest/` への修正、#3 は取り込み済みの版なので、取り込む変更はない。
+  4 件とも元リポジトリで修正された（`c32996d`）。#1 と #4 の修正は nexus に取り込んだ（テスト先行、`5eed027` から）。#2 は複製していない `difftest/` への修正、#3 は取り込み済みの版なので、取り込む変更はない。#5 は元リポジトリの `772f5d5`
+  で修正された。nexus の `params` 拡張に合わせて手作業で統合し、テスト先行で取り込んだ（`d2b55c0` から）。差分は
+  `expected=` / `actual=` と表示し、golden.json に移行元の方言を記録する。
 
   `--expected-rows` の案内は、元の CLI にはこのオプションがあるので nexus 側の問題である。JPA の `:name` は、ScalarDB SQL が名前付きバインドマーカーに対応しているので問題ではない。いずれも登録していない。
