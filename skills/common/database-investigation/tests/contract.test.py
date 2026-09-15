@@ -18,6 +18,14 @@ from core.output import validate
 
 
 class ContractTests(unittest.TestCase):
+    def test_each_adapter_bounds_server_results_with_bound_parameters(self):
+        for product in ("oracle","postgresql","mysql"):
+            _,module=load_adapter(product)
+            self.assertTrue(callable(getattr(module,"bound_query",None)))
+            sql,params=module.bound_query("SELECT x WHERE owner="+(":scope" if product=="oracle" else "%s"),"a' OR 1=1",3)
+            self.assertNotIn("a' OR 1=1",sql)
+            self.assertIn(4,params.values() if isinstance(params,dict) else params)
+
     def test_probe_accepts_packaging_suffix_but_rejects_wrong_release(self):
         class Probe:
             def query(self, *args):

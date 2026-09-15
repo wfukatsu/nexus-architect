@@ -24,6 +24,12 @@ class FakePort:
 
 
 class LiveTests(unittest.TestCase):
+    def test_disabled_metric_has_no_zero_measurement(self):
+        port=FakePort({"rows":[{"schema":"app","name":"t","value":0,"enabled":False}]})
+        result=collect(self.adapter(),port,"app",lambda:"now")
+        self.assertEqual(result["collections"][2]["status"],"disabled")
+        self.assertEqual(result["statistics"],[])
+
     def adapter(self):
         return {"id": "testdb", "queries": [
             {"id": "tables", "kind": "table", "sql": "SELECT fixed"},

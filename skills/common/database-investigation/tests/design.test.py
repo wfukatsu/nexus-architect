@@ -12,6 +12,11 @@ from core.design import parse_design
 
 
 class DesignTests(unittest.TestCase):
+    def test_table_primary_key_implies_not_null(self):
+        result=self.parse('CREATE TABLE t(a INT,b INT,PRIMARY KEY(a));')
+        self.assertFalse(result["objects"][0]["columns"][0]["nullable"])
+        self.assertTrue(result["objects"][0]["columns"][1]["nullable"])
+
     def parse(self, ddl, product="postgresql", schema="app"):
         with tempfile.TemporaryDirectory() as d:
             p = Path(d) / "input.sql"
