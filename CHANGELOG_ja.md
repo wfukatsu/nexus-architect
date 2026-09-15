@@ -7,7 +7,7 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
-## [Unreleased]
+## [0.41.2] - 2026-09-15
 
 ### Fixed
 - **golden 検証の差分表示が Oracle を前提にしなくなった。** `GoldenCheck` は、golden データを取った DB に関係なく、
