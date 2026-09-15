@@ -79,7 +79,8 @@ def write_reports(inv, folder, language):
             er += f'    {aliases[o["id"]]} {{\n'
             for i, col in enumerate(o["columns"]):
                 # Use generated identifiers: SQL names may contain Mermaid syntax or HTML.
-                er += f"        text C{i}\n"
+                native_type = re.sub(r"[^A-Za-z0-9_]", "_", col["type"])
+                er += f"        type_{native_type} C{i}\n"
             er += "    }\n"
         for o in page:
             for c in o["constraints"]:
@@ -90,7 +91,8 @@ def write_reports(inv, folder, language):
                     er += f'    {aliases[parent["id"]]} }}o..o{{ {aliases[o["id"]]} : FK\n'
         er += "```\n\n| Alias | Object | Columns in order |\n|---|---|---|\n"
         for o in page:
-            er += f'| {aliases[o["id"]]} | {safe(o["schema"])}.{safe(o["name"])} | {safe(", ".join(c["name"] for c in o["columns"]))} |\n'
+            columns = ", ".join(c["name"] + ": " + c["type"] for c in o["columns"])
+            er += f'| {aliases[o["id"]]} | {safe(o["schema"])}.{safe(o["name"])} | {safe(columns)} |\n'
     er += "\n" + ("FK宣言のみを表示します。多重度は未評価で広い範囲を表示しています。分割図を跨ぐ関連と未解決参照はinventory.jsonで確認してください。\n" if ja else "Only declared FKs are drawn. Multiplicities are deliberately unconstrained, not assessed. See inventory.json for cross-page and unresolved references.\n")
     (folder / "inventory.json").write_text(json.dumps(inv, ensure_ascii=False, indent=2, default=str) + "\n")
     summary = {k: inv[k] for k in ("run_id", "mode", "product", "status", "started_at", "finished_at", "collections")}

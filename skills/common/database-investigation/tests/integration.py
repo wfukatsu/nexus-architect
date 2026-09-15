@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -17,6 +18,7 @@ from core.registry import load_adapter
 from core.connection import verify_probe
 from core.live import collect
 from core.output import write_reports
+from core.design import parse_design
 
 
 def setup(product, password):
@@ -98,7 +100,41 @@ def test(product, runtime, initialize):
     assert [x.lower() for x in fk["columns"]]==["a","b"]
     assert [x.lower() for x in fk["references"]["columns"]]==["a","b"]
     assert result["statistics"], "no statistics captured"
+    declared=parse_design([ROOT/"tests/fixtures"/(product+".sql")],spec,schema)
+    for table in tables:
+        expected=next(o for o in declared["objects"] if o["kind"]=="table" and o["name"]==table["name"])
+        assert [(c["name"],c["nullable"]) for c in table["columns"]]==[(c["name"],c["nullable"]) for c in expected["columns"]]
+        for constraint in expected["constraints"]:
+            actual=next(c for c in table["constraints"] if c["kind"]==constraint["kind"])
+            assert actual["columns"]==constraint["columns"]
+            assert actual.get("references")==constraint.get("references")
     assert password not in json.dumps(result,default=str)
+    bounded=collect(spec,module.connect(config),schema,now,1,60)
+    assert next(c for c in bounded["collections"] if c["id"]=="tables")["truncated"]
+    assert all(c["row_count"]<=1 for c in bounded["collections"])
+    # Actual parameter binding: injection-shaped scope must not widen the visible schema.
+    scoped=collect({"queries":[spec["queries"][0]]},module.connect(config),schema+"' OR 1=1 --",now,10,30)
+    assert scoped["objects"]==[]
+    assert scoped["collections"][0]["status"]=="empty"
+    slow={
+        "postgresql":"SELECT %s AS schema, 'slow' AS name, pg_sleep(4) AS value",
+        "mysql":"SELECT %s AS `schema`, 'slow' AS name, SUM(a.ORDINAL_POSITION*b.ORDINAL_POSITION*c.ORDINAL_POSITION) AS value FROM information_schema.COLUMNS a CROSS JOIN information_schema.COLUMNS b CROSS JOIN information_schema.COLUMNS c",
+        "oracle":'SELECT :scope AS "schema", \'slow\' AS "name", SUM(a.OBJECT_ID*b.OBJECT_ID) AS "value" FROM ALL_OBJECTS a CROSS JOIN ALL_OBJECTS b',
+    }[product]
+    timed_port=module.connect(config)
+    timed_port.query_timeout=1
+    before=time.monotonic()
+    timed=collect({"queries":[dict(id="deadline-test",kind="statistic",metric="test",semantics="measured",unit="test",sql=slow)]},timed_port,schema,now,10,10)
+    elapsed=time.monotonic()-before
+    assert timed["collections"][0]["status"]=="timeout", "server deadline was not observed: " + timed["collections"][0]["status"]
+    assert elapsed<8, "deadline cleanup exceeded test budget"
+    print(product,"PASS: server row bound, bound hostile scope, query deadline",round(elapsed,2),"seconds")
+    if product=="mysql":
+        monitoring=dict(config,user="root")
+        index_spec=next(q for q in spec["queries"] if q["id"]=="index_reads")
+        available=collect({"queries":[index_spec]},module.connect(monitoring),schema,now,100,30)
+        assert available["collections"][0]["status"] in {"ok","empty","disabled"}
+        print("mysql monitoring privilege comparison:",available["collections"][0]["status"])
     partial=any(c["status"] not in {"ok","empty"} for c in result["collections"])
     inv=dict(result,schema_version=1,run_id=now().replace(":","-"),mode="live",product=product,version=version,schema=schema,target_id="integration",status="partial" if partial else "complete",observed=observed,started_at=started,finished_at=now())
     dest=runtime/"reports"/product/inv["run_id"]

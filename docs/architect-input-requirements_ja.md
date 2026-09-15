@@ -108,3 +108,9 @@ product が意図的に**供給しない**もの — つまりヒアリングで
 | 既存システムの分析・刷新 | `/architect:investigate <path>` | 対象コードベースのパス |
 | 新規システムの要件定義から設計 | `/architect:define-requirements --input=<資料>` | RFP/議事録/設計書 いずれか（無ければ対話のみ） |
 | product の成果を実装設計へ引き継ぐ | `/architect:define-requirements` | product パイプラインの成果物一式（自動検出） |
+
+## 既存データベースの単独調査
+
+`/architect:investigate-db-design` にはDDLまたはテキスト設計資料、製品、正確なスキーマ名、資料の基準時点を渡します。既知なら版も指定します。
+`/architect:investigate-db-live` には調査を許可された接続プロファイル、対象環境・製品・期待する版・スキーマを渡します。秘密情報はチャットに貼らず、環境変数参照またはWalletを使います。
+両スキルともコードベースやScalarDB移行先は不要です。出力は実行ごとに分け、`analyze-data-model` の任意入力として利用できます。

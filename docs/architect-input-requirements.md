@@ -108,3 +108,9 @@ actor/role/permission matrix (design.md §1.4).
 | Analyze / refactor an existing system | `/architect:investigate <path>` | Path to the target codebase |
 | Design a new system from requirements | `/architect:define-requirements --input=<materials>` | An RFP / meeting notes / design doc (else dialogue only) |
 | Carry product output into implementation design | `/architect:define-requirements` | The product pipeline's artifact set (auto-detected) |
+
+## Standalone existing-database investigation
+
+For `/architect:investigate-db-design`, supply DDL or text design documents, the product, exact schema and source baseline date; include the version when known.
+For `/architect:investigate-db-live`, supply an authorized connection profile, target environment, product, expected version and exact schema. Use environment references or Wallets; never paste credentials into chat.
+Neither requires a codebase or ScalarDB target. Outputs are isolated per run and can be explicitly supplied to `analyze-data-model`.

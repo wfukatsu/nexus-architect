@@ -27,6 +27,7 @@ Sources:
 - [Existing table statistics](https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/ALL_TAB_STATISTICS.html)
 - [Management pack licensing reference](https://docs.oracle.com/en/database/oracle/oracle-database/19/dblic/Licensing-Information.html)
 - [Driver cancellation/call timeout](https://python-oracledb.readthedocs.io/en/latest/api_manual/connection.html)
+- [Thin driver timeout codes (DPY-4024)](https://python-oracledb.readthedocs.io/en/latest/user_guide/appendix_c.html)
 
 Driver pin source: `https://pypi.org/pypi/oracledb/json`, user-approved 2026-09-15.
 Registry image: `gvenzl/oracle-free:23.26.3-slim`, digest
