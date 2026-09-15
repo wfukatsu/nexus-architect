@@ -121,6 +121,18 @@ class ConvertInventoryTests(unittest.TestCase):
         self.assertNotIn("SECRET-LITERAL", json.dumps(out["conversion"]) + json.dumps(out["draft"]))
         self.assertIn("'?'", self.result(out, "SELECT NVL")[0]["source_masked"])
 
+    def test_masking_removes_the_statement_literals_but_keeps_identifiers_in_messages(self):
+        out = self.run_convert()
+        table, _ = self.result(out, "CREATE TABLE")
+        keys = " ".join(f["message"] for f in table["findings"] if f["code"] == "KEYS")
+        self.assertIn("'customer_id'", keys)
+        plan, _ = self.result(out, "SELECT NVL")
+        self.assertNotIn("SECRET-LITERAL", json.dumps(plan))
+
+    def test_keys_say_where_the_split_came_from(self):
+        out = self.run_convert()
+        self.assertEqual(out["draft"]["keys"][0]["source"], "source_ddl")
+
     def test_dynamic_sql_and_jpql_are_proposed_but_never_decided_by_the_tool(self):
         app = self.root / "app"
         (app / "mapper").mkdir(parents=True)
