@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.scalar.migrate.appside.AppSideQuery;
 import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class GoldenCheckTest {
   static Path fixture() throws Exception {
@@ -39,6 +41,40 @@ class GoldenCheckTest {
       out.sort(Comparator.comparing(m -> (Long) m.get("id")));
       return out;
     }
+  }
+
+  /** SELECT id FROM t WHERE id >= :min — a query that needs its bind parameter. */
+  public static class AtLeastQuery implements AppSideQuery {
+    @Override
+    public List<Map<String, Object>> run(Map<String, List<Map<String, Object>>> tables) {
+      return run(tables, Map.of());
+    }
+
+    @Override
+    public List<Map<String, Object>> run(Map<String, List<Map<String, Object>>> tables, Map<String, Object> params) {
+      BigDecimal min = (BigDecimal) params.get("min");
+      List<Map<String, Object>> out = new ArrayList<>();
+      for (Map<String, Object> r : tables.get("t")) {
+        if (((BigDecimal) r.get("id")).compareTo(min) >= 0) out.add(Map.of("id", r.get("id")));
+      }
+      return out;
+    }
+  }
+
+  @Test
+  void parametersReachTheImplementation(@TempDir Path dir) throws Exception {
+    Path golden = dir.resolve("golden.json");
+    Files.writeString(golden, "{\"query\": \"SELECT id FROM t WHERE id >= :min\", \"ordered\": false, \"params\": {\"min\": 2},"
+        + " \"tables\": {\"t\": [{\"id\": 1}, {\"id\": 2}, {\"id\": 3}]}, \"expected\": {\"columns\": [\"id\"], \"rows\": [[2], [3]]}}");
+    assertEquals(Map.of("min", new BigDecimal("2")), GoldenCheck.load(golden).params());
+    assertEquals(List.of(), GoldenCheck.check(golden, new AtLeastQuery()));
+    assertEquals(0, GoldenCheck.run(new String[] {golden.toString(), AtLeastQuery.class.getName()}));
+  }
+
+  @Test
+  void aGoldenWithoutParametersGivesAnEmptyMap() throws Exception {
+    assertEquals(Map.of(), GoldenCheck.load(fixture()).params());
+    assertEquals(List.of(), GoldenCheck.check(fixture(), new TinyQuery())); // one-argument implementations still run
   }
 
   static Map<String, Object> row(String[] cols, Object... values) {
