@@ -114,3 +114,17 @@ actor/role/permission matrix (design.md §1.4).
 For `/architect:investigate-db-design`, supply DDL or text design documents, the product, exact schema and source baseline date; include the version when known.
 For `/architect:investigate-db-live`, supply an authorized connection profile, target environment, product, expected version and exact schema. Use environment references or Wallets; never paste credentials into chat.
 Neither requires a codebase or ScalarDB target. Outputs are isolated per run and can be explicitly supplied to `analyze-data-model`.
+
+## SQL migration to ScalarDB
+
+`/architect:design-sql-migration` needs something to inventory: application source roots (MyBatis mappers, JDBC or
+Spring JDBC code, JPA repositories), SQL scripts, or an `investigate-db-design` run. Add an `investigate-db-live` run
+for row estimates, and the `design-scalardb` and `select-scalardb-edition` reports when they exist; otherwise be
+ready to state the ScalarDB edition (ScalarDB SQL needs Enterprise Premium), the storage behind ScalarDB and the
+namespace. Expect to confirm how dynamic SQL is rendered and how application-side rewrites keep the source's
+semantics. Install `requirements.txt` for the pinned SQLGlot converter.
+`/architect:implement-sql-migration` needs the validated manifest from that run, the source files it cites, the Java
+package for the generated classes, and Java 17 with Gradle.
+`/architect:verify-sql-migration` needs an authorized source database that is **not production** (a disposable,
+test or staging copy) described by an environment-reference profile, a ScalarDB instance holding the same data for
+the differential test, and ScalarDB Cluster with a license only when ScalarDB SQL statements are to be compared.
