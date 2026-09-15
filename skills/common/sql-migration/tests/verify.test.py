@@ -83,6 +83,9 @@ class Project(unittest.TestCase):
         self.generated = self.root / "generated/sql-migration/shop"
         (self.generated / "src/main/resources/plans").mkdir(parents=True)
         (self.generated / f"src/main/resources/plans/{self.id['plan']}.plan.json").write_text("{}")
+        (self.generated / "src/main/resources/sql").mkdir(parents=True)
+        (self.generated / f"src/main/resources/sql/{self.id['get']}.sql").write_text(
+            "SELECT total FROM orders WHERE customer_id = 1 AND order_no = 2;\n")
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -103,7 +106,7 @@ class ComparisonTests(unittest.TestCase):
         self.assertTrue(common.same_rows([(1,), (2,)], [[2], [1]], ordered=False)[0])
         ok, detail = common.same_rows([(1,), (2,)], [[2], [1]], ordered=True)
         self.assertFalse(ok)
-        self.assertEqual(detail, "row 1 differs (2 rows expected, 2 returned)")
+        self.assertEqual(detail, "row 0 differs (2 rows expected, 2 returned)")
         ok, detail = common.same_rows([("secret-value",)], [], ordered=False)
         self.assertEqual((ok, detail), (False, "1 rows expected, 0 returned"))
 
