@@ -17,7 +17,7 @@ tracks the upstream automatically.
 |---|---|---|
 | `scripts/scalardb_migrate/` (8 modules) | `scalardb_migrate/` | Code unchanged. Comments, docstrings, one help string and one cost message that cited upstream `docs/*.md` or the `sql-transpile` skill now cite `references/*.md` |
 | `scripts/convert.py` | — | New: runs `scalardb_migrate.cli` by path |
-| `runtime-java/` | `runtime-java/` | `Bench` removed together with the `bench` sub-command in `Runner`; the `examples` package (`AreaSalesReport` and its test) removed; the `GoldenCheck` Javadoc points at `scripts/verify/golden.py`; `build.gradle` re-resolved (below) without the benchmark-only Oracle, MySQL and PostgreSQL drivers |
+| `runtime-java/` | `runtime-java/` | `Bench` removed together with the `bench` sub-command in `Runner`; the `examples` package (`AreaSalesReport` and its test) removed; Javadoc in `GoldenCheck`, `Plan`, `Residual` and `OracleFunctions` that cited upstream `docs/` points at `scripts/verify/golden.py` or `references/architecture.md`; `build.gradle` re-resolved (below) without the benchmark-only Oracle, MySQL and PostgreSQL drivers |
 | `references/scalardb-grammar.md` | `skills/sql-transpile/references/scalardb-grammar.md` | Translated; commands point at `scripts/convert.py` |
 | `references/app-side-notes.md` | `skills/sql-transpile/references/app-side-notes.md` | Translated; golden commands moved to `references/operations.md` |
 | `references/architecture.md` | `docs/architecture.md`, `docs/app-side-processing-plan.md` | Translated and condensed to what the skills need |

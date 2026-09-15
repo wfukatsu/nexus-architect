@@ -37,7 +37,7 @@ public class Residual implements AutoCloseable {
   /**
    * @param buildIndexes build the plan's index_columns before the first query. Joins over tens of thousands of fetched
    *     rows (batch jobs) go from nested-loop scans to index lookups; single-table plans only pay the build time and
-   *     the index memory (about 1.6x the rows, docs/dml-followup-research.md).
+   *     the index memory (about 1.6x the rows, references/architecture.md, Performance).
    */
   public Residual(String mode, boolean buildIndexes) throws Exception {
     this.buildIndexes = buildIndexes;

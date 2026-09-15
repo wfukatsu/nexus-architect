@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 
 /**
  * Oracle functions that H2's Oracle compatibility mode lacks, implemented as H2 Java user-defined functions
- * (the "function compatibility table" of docs/app-side-processing-plan.md). Semantics follow the Oracle SQL
+ * (the function compatibility gaps in references/architecture.md). Semantics follow the Oracle SQL
  * Language Reference; each function is registered with CREATE ALIAS on every residual session.
  */
 public final class OracleFunctions {

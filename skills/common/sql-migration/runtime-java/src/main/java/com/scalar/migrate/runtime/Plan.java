@@ -3,7 +3,7 @@ package com.scalar.migrate.runtime;
 import java.util.List;
 import java.util.Map;
 
-/** Execution plan produced by scalardb_migrate (docs/app-side-processing-plan.md §3.1). */
+/** Execution plan produced by scalardb_migrate (references/architecture.md, Execution plans). */
 public class Plan {
   public String pattern;
   public String source_dialect;
