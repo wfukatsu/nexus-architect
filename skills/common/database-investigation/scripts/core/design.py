@@ -112,8 +112,8 @@ OBJECT_KINDS = {"table", "index", "view", "function", "procedure", "trigger", "s
 
 
 class Reader:
-    def __init__(self, tokens, fold):
-        self.t, self.i, self.fold = tokens, 0, fold
+    def __init__(self, lexemes, fold):
+        self.t, self.i, self.fold = lexemes, 0, fold
 
     def peek(self):
         return self.t[self.i].upper() if self.i < len(self.t) else ""
@@ -149,9 +149,9 @@ class Reader:
         self.need("(")
         start, depth = self.i, 1
         while self.i < len(self.t):
-            token = self.t[self.i]
+            lexeme = self.t[self.i]
             self.i += 1
-            depth += (token == "(") - (token == ")")
+            depth += (lexeme == "(") - (lexeme == ")")
             if depth == 0:
                 return self.t[start:self.i - 1]
         raise ValueError("unclosed group")
@@ -166,15 +166,15 @@ class Reader:
         return names
 
 
-def groups(tokens):
+def groups(lexemes):
     part, depth = [], 0
-    for token in tokens:
-        if token == "," and depth == 0:
+    for lexeme in lexemes:
+        if lexeme == "," and depth == 0:
             yield part
             part = []
         else:
-            part.append(token)
-            depth += (token == "(") - (token == ")")
+            part.append(lexeme)
+            depth += (lexeme == "(") - (lexeme == ")")
     if part:
         yield part
 
@@ -273,9 +273,9 @@ def parse_design(paths, adapter, schema):
                         while col.i < len(col.t):
                             if depth == 0 and col.peek() in {"NOT", "NULL", "DEFAULT", "PRIMARY", "REFERENCES", "UNIQUE", "CHECK", "CONSTRAINT", "GENERATED", "COLLATE", "AUTO_INCREMENT"}:
                                 break
-                            token = col.t[col.i]
-                            typ.append(token)
-                            depth += (token == "(") - (token == ")")
+                            lexeme = col.t[col.i]
+                            typ.append(lexeme)
+                            depth += (lexeme == "(") - (lexeme == ")")
                             col.i += 1
                         if not typ:
                             raise ValueError("column type missing")

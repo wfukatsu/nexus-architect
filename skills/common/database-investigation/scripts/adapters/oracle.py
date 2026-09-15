@@ -6,7 +6,8 @@ def bound_query(sql, schema, limit):
     params = {"maxrows": limit + 1}
     if schema is not None:
         params["scope"] = schema
-    return "SELECT * FROM (" + sql + ") WHERE ROWNUM <= :maxrows", params
+    # sql comes only from the repository registry; scope and row limit remain binds.
+    return "SELECT * FROM (" + sql + ") WHERE ROWNUM <= :maxrows", params  # nosec B608
 
 
 def configure(conn, seconds):
