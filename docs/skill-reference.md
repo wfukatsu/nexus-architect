@@ -301,7 +301,7 @@ path by their router, so they are not slash commands and have no signature here.
 /architect:generate-infra-code
 /architect:generate-docs [target] [--scope=changed|service|repo] [--source-root=<path>] [--readme-only] [--issue=<id>] [--dry-run] [--auto] [--lang=en|ja]
 /architect:verify-implementation [target_path] [--service=<name>] [--scope=changed|service|repo] [--source-root=<path>] [--gate] [--item=<backlog-id>] [--auto] [--lang=en|ja]
-/architect:design-sql-migration [target_path] [--source=oracle|postgres|mysql] [--app-root=<path>] [--sql-file=<path>] [--db-run=<path>] [--live-run=<path>] [--edition=community|enterprise_standard|enterprise_premium] [--storage=jdbc|cassandra] [--auto] [--lang=en|ja]
+/architect:design-sql-migration [target_path] [--source=oracle|postgres|mysql] [--app-root=<path>] [--sql-file=<path>] [--db-run=<path>] [--live-run=<path>] [--edition=community|enterprise_standard|enterprise_premium] [--storage=jdbc|cassandra] [--namespace=<name>] [--auto] [--lang=en|ja]
 /architect:implement-sql-migration [target_path] [--out=<path>] [--package=<java.package>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja]
 /architect:verify-sql-migration [target_path] [--mode=golden|difftest|all] [--id=<SQM-###>] [--source-profile=<path>] [--scalardb-properties=<path>] [--fetcher=core|jdbc] [--out=<path>] [--auto] [--lang=en|ja]
 

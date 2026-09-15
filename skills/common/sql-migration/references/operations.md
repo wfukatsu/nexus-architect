@@ -7,7 +7,7 @@ Procedures the three SQL migration skills refer to. Read a section when a step n
 | Need | Setup |
 |---|---|
 | Conversion (no database) | `pip install -r "${CLAUDE_PLUGIN_ROOT}/requirements.txt"` — pins `sqlglot` |
-| Plan validation and application-side tests | Java 17 and Gradle; `cd "${CLAUDE_PLUGIN_ROOT}/skills/common/sql-migration/runtime-java" && gradle installDist` builds `build/install/residual-runner/bin/residual-runner` |
+| Plan validation and application-side tests | Java 17 and Gradle; copy `${CLAUDE_PLUGIN_ROOT}/skills/common/sql-migration/runtime-java` to the project's `work/sql-migration/runtime-java` and run `gradle installDist` there, which builds `build/install/residual-runner/bin/residual-runner`. The verification harness prefers that build to one under the plugin root |
 | Differential test | Docker, disposable containers for the source database and ScalarDB's backend; ScalarDB Cluster and a license only for the ScalarDB SQL path |
 
 Run the tooling from the project directory; write outputs where the calling skill says.

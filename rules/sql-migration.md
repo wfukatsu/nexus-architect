@@ -46,7 +46,8 @@ and are reported as open work, never silently dropped.
 ## 4. Dynamic SQL
 
 A `dynamic` statement (string concatenation with a variable, MyBatis dynamic elements, `${...}`) is a
-family of statements; the converter saw one rendering of it. It takes an automatic route (`schema`,
+family of statements; the inventory keeps one rendering with its dynamic parts marked, and the converter's
+verdict on it (usually `PARSE`) says nothing about the real renderings. It takes an automatic route (`schema`,
 `scalardb_sql`, `core_api`, `plan`) only with `confirmation: {"by": "user", "note": ...}` recording which
 variants were expanded and converted. Otherwise it takes `app_side`, `redesign` or `retire`.
 
@@ -63,7 +64,8 @@ cannot narrow becomes a cross-partition scan.
 - Each statement's `origin` lines must still exist in the source file; the full text is re-extracted from
   there when code is generated (`inventory.py`), and a changed source is refused, not guessed.
 - `upstream` IDs, when given, resolve in `work/traceability.json`. The skill appends one `SQM-` node per
-  statement with those upstreams (allocation `max + 1`, @docs/design.md §1.5).
+  statement with those upstreams (@docs/design.md §1.5). `SQM-` IDs are minted only by the inventory — `max + 1`
+  over the previous inventory, so a statement keeps its ID across runs — and a re-run updates its node in place.
 
 ## 7. Verification
 

@@ -98,13 +98,17 @@ Implementing the `core_api` methods and the application-side skeletons is the ne
    cd generated/sql-migration/<namespace> && gradle build
    ```
 
-   Then validate each plan against H2 without a database. Run it from the vendored runtime, which
-   `gradle installDist` builds once:
+   Then validate each plan against H2 without a database, with the vendored runtime built into the project —
+   never into `${CLAUDE_PLUGIN_ROOT}`, which an installed plugin may keep read-only or shared:
 
    ```bash
-   cd "${CLAUDE_PLUGIN_ROOT}/skills/common/sql-migration/runtime-java" && gradle installDist
-   build/install/residual-runner/bin/residual-runner validate --plan <out>/src/main/resources/plans/<SQM-###>.plan.json
+   mkdir -p work/sql-migration && rm -rf work/sql-migration/runtime-java
+   cp -R "${CLAUDE_PLUGIN_ROOT}/skills/common/sql-migration/runtime-java" work/sql-migration/runtime-java
+   cd work/sql-migration/runtime-java && gradle installDist && cd -
+   work/sql-migration/runtime-java/build/install/residual-runner/bin/residual-runner validate --plan <out>/src/main/resources/plans/<SQM-###>.plan.json
    ```
+
+   `verify-sql-migration` uses the same build.
 
    A plan H2 rejects goes back to design as a finding against that statement; the build failing is a generator
    defect to report, not to patch by hand.

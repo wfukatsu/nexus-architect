@@ -68,7 +68,7 @@ This skill opens database connections, so it runs only when explicitly invoked.
 |------|---------------------|--------|
 | `reports/03_design/sql-migration/sql-migration-manifest.json`, `sql-inventory.json` | Required | /architect:design-sql-migration |
 | `generated/sql-migration/<namespace>/` built with `gradle build` | Required | /architect:implement-sql-migration |
-| The vendored runtime installed | Required | `cd "${CLAUDE_PLUGIN_ROOT}/skills/common/sql-migration/runtime-java" && gradle installDist` |
+| The vendored runtime built into the project | Required | `work/sql-migration/runtime-java/build/install/` from `/architect:implement-sql-migration` step 5; the harness falls back to a build under the plugin root |
 | An authorized source database profile | Required for capture and difftest | the user |
 | ScalarDB with the migrated schema and the same data | Required for difftest | Schema Loader with `schema.json`, then `residual-runner load` |
 | The source database driver (`oracledb`, `psycopg`, `PyMySQL`) | Required for capture and difftest | the pins in `skills/common/database-investigation/adapters/<product>/requirements.txt` |

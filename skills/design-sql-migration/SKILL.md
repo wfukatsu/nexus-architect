@@ -5,7 +5,7 @@ description: |
   the vendored SQLGlot converter with the schema, keys, storage and row estimates the analysis established,
   and decide one route per statement (ScalarDB SQL, Core API, fetch-and-H2 plan, application code, redesign,
   retire) in a validated manifest.
-  /architect:design-sql-migration [target_path] [--source=oracle|postgres|mysql] [--app-root=<path>] [--sql-file=<path>] [--db-run=<path>] [--live-run=<path>] [--edition=community|enterprise_standard|enterprise_premium] [--storage=jdbc|cassandra] [--auto] [--lang=en|ja] to invoke.
+  /architect:design-sql-migration [target_path] [--source=oracle|postgres|mysql] [--app-root=<path>] [--sql-file=<path>] [--db-run=<path>] [--live-run=<path>] [--edition=community|enterprise_standard|enterprise_premium] [--storage=jdbc|cassandra] [--namespace=<name>] [--auto] [--lang=en|ja] to invoke.
   Extension tier; recommended after investigate-db-design / investigate-db-live and design-scalardb.
   Feeds implement-sql-migration and verify-sql-migration.
 model: opus
@@ -39,7 +39,7 @@ Read @rules/sql-migration.md before Stage 1. The mechanism behind the converter 
 ## Invocation
 
 ```
-/architect:design-sql-migration [target_path] [--source=oracle|postgres|mysql] [--app-root=<path>] [--sql-file=<path>] [--db-run=<path>] [--live-run=<path>] [--edition=community|enterprise_standard|enterprise_premium] [--storage=jdbc|cassandra] [--auto] [--lang=en|ja]
+/architect:design-sql-migration [target_path] [--source=oracle|postgres|mysql] [--app-root=<path>] [--sql-file=<path>] [--db-run=<path>] [--live-run=<path>] [--edition=community|enterprise_standard|enterprise_premium] [--storage=jdbc|cassandra] [--namespace=<name>] [--auto] [--lang=en|ja]
 ```
 
 - `target_path` — Project directory; defaults to the current directory.
@@ -52,6 +52,7 @@ Read @rules/sql-migration.md before Stage 1. The mechanism behind the converter 
   `scalardb-edition-selection.md` when omitted.
 - `--storage` — Storage behind ScalarDB; `cassandra` has no cross-partition scan. Taken from the
   `design-scalardb` ADR when omitted.
+- `--namespace` — ScalarDB namespace of the migrated tables. Taken from `scalardb-schema.md` when omitted.
 - `--auto` — No questions; everything the user owns becomes an `unasked` Open Question.
 - `--lang` — Output language of the design view. Defaults to `options.output_language`.
 
@@ -68,8 +69,10 @@ Read @rules/sql-migration.md before Stage 1. The mechanism behind the converter 
   findings include a WARN, and leave `verification.status: pending` for `verify-sql-migration`.
 - **The edition gates ScalarDB SQL.** It is Enterprise Premium (@rules/scalardb-edition-profiles.md). Under
   any other edition a convertible statement takes `core_api`; never propose a license to make a route work.
-- **Dynamic SQL is a family of statements.** The converter saw one rendering. Ask which renderings exist and
-  convert each before any automatic route; otherwise take `app_side`, `redesign` or `retire`.
+- **Dynamic SQL is a family of statements.** The inventory keeps one rendering with its dynamic parts marked,
+  which the converter usually cannot parse (`ERROR` with `PARSE`) — that verdict says nothing about the
+  real renderings. Ask which renderings exist and convert each before any automatic route; otherwise take
+  `app_side`, `redesign` or `retire`.
 - **Cost comes from measured estimates.** Row counts are the live run's estimates (`semantics: estimate`),
   quoted as such; a statement over its row limit or deadline is a redesign candidate, not a plan to accept.
 - **Resolve, then ask, then record** (@rules/open-questions.md). Never ask what the reports already state;
@@ -97,8 +100,9 @@ run silently, and never combine a design run and a live run as if they were one 
 
 ### Interactive Mode (default)
 
-Six stages, at most two question rounds each. Record `in_progress` in `work/pipeline-progress.json`
-(`plugin: architect`) before Stage 1 and `completed` with the outputs at the end (@skills/common/progress-registry.md).
+Six stages, at most two question rounds each. In both modes, record `in_progress` in
+`work/pipeline-progress.json` (`plugin: architect`) before the first stage and `completed` with the outputs at the
+end (@skills/common/progress-registry.md).
 
 **Stage 1 — Scope and target**
 Resolve from the reports what they already state: source dialect and version (the investigation run's
@@ -137,8 +141,12 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/common/sql-migration/scripts/convert_inven
   --inventory reports/03_design/sql-migration/sql-inventory.json \
   --edition <edition> --storage <jdbc|cassandra> --namespace <namespace> \
   --out-dir reports/03_design/sql-migration \
-  --schema <existing-schema.json> --keys <table>=<partition,...>/<clustering,...> --live-run <live-run>
+  --schema <existing-schema.json> --keys <table>=<partition,...>/<clustering,...> --live-run <live-run> \
+  --scalardb-version <major.minor>
 ```
+
+Pass the ScalarDB version when `scalardb-edition-selection.md` or `work/version-decisions.json` names it;
+`implement-sql-migration` pins that line.
 
 It writes `schema.json`, `conversion.json` and `sql-migration-manifest.draft.json`. Exit 2 lists statements
 skipped because their source changed — re-run Stage 2. The draft proposes the route the rule assigns and
@@ -175,12 +183,22 @@ report hooks on the view.
 
 ### Auto Mode (`--auto`)
 
-Run Stages 2, 4 and 6 without questions, taking the edition and storage from the reports (stop with an error
-when neither the flags nor the reports state them — a guessed edition changes every route). Accept the
+Run Stages 2, 4 and 6 without questions, taking the edition, storage and namespace from the flags or the reports
+(stop with an error when neither states one of them — a guessed edition changes every route, a guessed namespace
+every generated plan). Accept the
 draft's routes except: a dynamic statement proposed for an automatic route takes `app_side` instead; each
 `APP_SEMANTICS` note's `handling` is `TBD (OQ-###)`; JPQL keeps the proposed `app_side`. Every such item is an
 `unasked` Open Question carrying the options that would have been offered (@rules/open-questions.md §5).
 Auto mode never retires a statement.
+
+Auto Mode still finalises the draft as Stage 5 does, without asking:
+
+1. Replace each `proposed:` rationale with `auto: ` and the same reason, so a reader sees nobody decided it.
+2. Remove the draft-only `status` and `open` fields and write `sql-migration-manifest.json`.
+3. Turn every `open` item, every converter-default key split (`source: source_ddl` or `investigation`) and every
+   plan whose row limit rests on no live row estimate into an `unasked` entry of `work/context.md`
+   § Open Questions, allocated `max + 1` (create the store as @rules/open-questions.md §6 describes when the
+   file does not exist).
 
 ## Output
 
