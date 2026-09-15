@@ -217,6 +217,7 @@ class GoldenTests(Project):
         self.assertEqual(data["tables"]["orders"], [{"customer_id": 1, "total": {"$dec": "9.50"}}])
         self.assertEqual(data["expected"], {"columns": ["order_no", "level"], "rows": [[1, 1]]})
         self.assertFalse(data["ordered"])
+        self.assertEqual(data["source"], "oracle")  # GoldenCheck names the source only in its summary line
 
     def test_capture_refuses_a_table_over_the_row_bound(self):
         source = FakeSource({"SELECT * FROM orders": (["customer_id"], [[n] for n in range(6)])})
