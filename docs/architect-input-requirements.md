@@ -128,3 +128,7 @@ package for the generated classes, and Java 17 with Gradle.
 `/architect:verify-sql-migration` needs an authorized source database that is **not production** (a disposable,
 test or staging copy) described by an environment-reference profile, a ScalarDB instance holding the same data for
 the differential test, and ScalarDB Cluster with a license only when ScalarDB SQL statements are to be compared.
+Golden checks run on the built generated module (Java 17 with Gradle) and need the application-side reads
+implemented. A JPQL, dynamic or parameterised read cannot run on the source database as written, so be ready to
+confirm a rendering for each: one concrete SELECT, the dynamic branch it takes, and the parameter values. The
+proof covers that variant only.

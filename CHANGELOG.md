@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+### Fixed
+- **Golden check diffs no longer assume Oracle.** `GoldenCheck` labelled every difference `oracle=` /
+  `java=`, whichever database produced the golden data. Diffs now read `expected=` / `actual=`, and the
+  summary line names the source recorded in `golden.json` (for example
+  `PASS 3 rows (expected from postgres)`). `golden.py capture` records the manifest's source dialect.
+  The upstream fix (wfukatsu/sql-migration#5) was merged by hand around the local parameter
+  extension. The NUL separator in `GoldenCheck.rowKey` is now an escape sequence, so the source file
+  is text again.
+
+### Changed
+- Documentation for golden verification of parameterised reads:
+  - `references/app-side-notes.md`: `run(tables, params)`, NULL ordering per source, the diff labels.
+  - Architect input requirements: rendering confirmation and the built module.
+  - `samples/sql-migration-shop/README.md`: the verified renderings.
+
 ## [0.41.1] - 2026-09-15
 
 ### Fixed
