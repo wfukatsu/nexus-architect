@@ -115,6 +115,9 @@ def _reconvert(project, manifest, inventory, schema_path, conversion):
     expected = {t: (v["rows"], None) for t, v in (conversion.get("expected_rows") or {}).items()}
     isolation = conversion.get("isolation", "SERIALIZABLE")
     statements = {s["id"]: s for s in inventory["statements"]}
+    # DDL is checked against a registry of its own: feeding it into the schema registry would redefine the
+    # namespace-qualified tables of schema.json without their namespace, and every plan would fetch from none.
+    ddl_registry = SchemaRegistry()
     failures, verdicts = [], {}
     for entry in sorted(manifest["statements"], key=lambda e: statements[e["id"]]["category"] != "ddl"):
         stmt = statements[entry["id"]]
@@ -128,14 +131,23 @@ def _reconvert(project, manifest, inventory, schema_path, conversion):
             failures.append(f"{entry['id']}: source changed since the inventory; re-run design-sql-migration")
             continue
         plan_options = entry.get("plan") or {}
-        results, registry = convert_script(text, dialect, registry, storage=storage, expected_rows=expected,
+        is_ddl = stmt["category"] == "ddl"
+        results, updated = convert_script(text, dialect, ddl_registry if is_ddl else registry, storage=storage,
+                                           expected_rows=expected,
                                            isolation=isolation,
                                            row_limit=plan_options.get("row_limit") or conversion.get("row_limit") or DEFAULT_ROW_LIMIT,
                                            h2_indexes=bool(plan_options.get("h2_indexes")))
         status = max((r.status for r in results), key=SEVERITY.get) if results else "ERROR"
         if status != recorded:
             failures.append(f"{entry['id']}: the converter now says {status}, the manifest recorded {recorded}")
+        if is_ddl:
+            ddl_registry = updated
         plan = next((r.plan for r in results if r.plan), None)
+        if entry["route"] == "plan" and plan:
+            for fetch in plan.get("fetch", []):
+                if not fetch.get("namespace"):
+                    failures.append(f"{entry['id']}: the plan fetches {fetch.get('table')} without a namespace; "
+                                    "schema.json must qualify every table")
         verdicts[entry["id"]] = (status, [c for r in results for c in r.converted], plan)
     if failures:
         raise GateFailure("\n".join(failures))
@@ -274,6 +286,10 @@ def _semantics_doc(entry):
         [f" *   <li>{_javadoc(n['note'])} — handled by {_javadoc(n['handling'])}</li>" for n in notes] + [" * </ul>"]
 
 
+NEEDS_IDS = re.compile(r"\bNEXTVAL\b|\bnextval\s*\(", re.I)
+NEEDS_CLOCK = re.compile(r"\b(SYSDATE|SYSTIMESTAMP|CURRENT_DATE|CURRENT_TIMESTAMP|LOCALTIMESTAMP)\b|\bNOW\s*\(", re.I)
+
+
 def _app_side_files(package, entry, stmt):
     stem, sid = _class_stem(entry["id"]), entry["id"]
     pattern = entry["app_side"]["pattern"]
@@ -299,31 +315,40 @@ def _app_side_files(package, entry, stmt):
              f'    Path golden = Path.of("src/test/resources/golden/{sid}/golden.json");',
              f'    assertTrue(Files.isRegularFile(golden), "capture " + golden + " first");',
              "    // verify-sql-migration runs the comparison: scripts/verify/golden.py check", "  }", "}"]) + "\n"
-    elif pattern in WRITE_PATTERNS:
-        clock = pattern == "app_clock"
+    elif pattern == "id_generation" and stmt["category"] == "ddl":
+        body = header + [" * <p>ScalarDB has no sequences or identity columns; the application supplies these IDs.", " */"]
+        files[f"appside/{stem}IdGenerator.java"] = "\n".join(
+            [f"package {package}.appside;", ""] + body +
+            [f"public interface {stem}IdGenerator {{", "  long next() throws Exception;", "}"]) + "\n"
+    else:  # a write: rmw, conditional_write, app_clock, or id_generation on DML
+        ids = pattern == "id_generation" or bool(NEEDS_IDS.search(stmt["sql"]))
+        clock = pattern == "app_clock" or bool(NEEDS_CLOCK.search(stmt["sql"]))
+        fields = ["  private final DistributedTransactionManager manager;"]
+        params, assigns = ["DistributedTransactionManager manager"], ["    this.manager = manager;"]
+        if ids:
+            fields.append("  private final LongSupplier ids;  // the values the source took from a sequence or identity")
+            params.append("LongSupplier ids")
+            assigns.append("    this.ids = ids;")
+        if clock:
+            fields.append("  private final Clock clock;  // the time the source took from the database server")
+            params.append("Clock clock")
+            assigns.append("    this.clock = clock;")
         body = header + [" * <p>Read, compute and write in one ScalarDB transaction. On UnknownTransactionStatusException the",
                          " * outcome is unknown: do not roll back or retry blindly (rules/scalardb-exception-handling.md).", " */"]
+        imports = ["import com.scalar.db.api.DistributedTransaction;", "import com.scalar.db.api.DistributedTransactionManager;",
+                   "import com.scalar.db.exception.transaction.UnknownTransactionStatusException;"]
+        imports += (["import java.time.Clock;"] if clock else []) + ["import java.util.Map;"] + \
+            (["import java.util.function.LongSupplier;"] if ids else [])
         files[f"appside/{stem}Write.java"] = "\n".join(
-            [f"package {package}.appside;", "", "import com.scalar.db.api.DistributedTransaction;",
-             "import com.scalar.db.api.DistributedTransactionManager;",
-             "import com.scalar.db.exception.transaction.UnknownTransactionStatusException;"] +
-            (["import java.time.Clock;"] if clock else []) + ["import java.util.Map;", ""] + body +
-            [f"public final class {stem}Write {{", "  private final DistributedTransactionManager manager;"] +
-            (["  private final Clock clock;"] if clock else []) + [""] +
-            ([f"  public {stem}Write(DistributedTransactionManager manager, Clock clock) {{", "    this.manager = manager;",
-              "    this.clock = clock;", "  }"] if clock else
-             [f"  public {stem}Write(DistributedTransactionManager manager) {{", "    this.manager = manager;", "  }"]) +
-            ["", "  public void execute(Map<String, Object> params) throws Exception {",
+            [f"package {package}.appside;", ""] + imports + [""] + body +
+            [f"public final class {stem}Write {{"] + fields + ["",
+             f"  public {stem}Write({', '.join(params)}) {{"] + assigns + ["  }", "",
+             "  public void execute(Map<String, Object> params) throws Exception {",
              "    DistributedTransaction transaction = manager.start();", "    try {", "      apply(transaction, params);",
              "      transaction.commit();", "    } catch (UnknownTransactionStatusException e) {", "      throw e;",
              "    } catch (Exception e) {", "      transaction.rollback();", "      throw e;", "    }", "  }", "",
              "  void apply(DistributedTransaction transaction, Map<String, Object> params) throws Exception {",
              f'    throw new UnsupportedOperationException("{sid}: not implemented yet");', "  }", "}"]) + "\n"
-    else:  # id_generation
-        body = header + [" * <p>ScalarDB has no sequences or identity columns; the application supplies these IDs.", " */"]
-        files[f"appside/{stem}IdGenerator.java"] = "\n".join(
-            [f"package {package}.appside;", ""] + body +
-            [f"public interface {stem}IdGenerator {{", "  long next() throws Exception;", "}"]) + "\n"
     return files
 
 
