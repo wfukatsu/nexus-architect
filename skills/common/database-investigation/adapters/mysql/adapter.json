@@ -1,0 +1,61 @@
+{
+  "fold": "preserve",
+  "min_major": 8,
+  "probe": "SELECT @@version_comment AS product, VERSION() AS version, DATABASE() AS catalog",
+  "queries": [
+    {
+      "id": "tables",
+      "kind": "table",
+      "sql": "SELECT TABLE_SCHEMA AS `schema`,TABLE_NAME AS name,ENGINE AS engine FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_TYPE='BASE TABLE' ORDER BY TABLE_NAME"
+    },
+    {
+      "id": "columns",
+      "kind": "column",
+      "sql": "SELECT TABLE_SCHEMA AS `schema`,TABLE_NAME AS name,COLUMN_NAME AS column_name,COLUMN_TYPE AS data_type,ORDINAL_POSITION AS ordinal,IS_NULLABLE AS nullable FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=%s ORDER BY TABLE_NAME,ORDINAL_POSITION"
+    },
+    {
+      "id": "constraints",
+      "kind": "constraint",
+      "sql": "SELECT c.TABLE_SCHEMA AS `schema`,c.TABLE_NAME AS name,c.CONSTRAINT_NAME AS constraint_name,CASE c.CONSTRAINT_TYPE WHEN 'PRIMARY KEY' THEN 'primary_key' WHEN 'FOREIGN KEY' THEN 'foreign_key' WHEN 'UNIQUE' THEN 'unique' WHEN 'CHECK' THEN 'check' END AS constraint_kind,k.COLUMN_NAME AS column_name,k.REFERENCED_TABLE_SCHEMA AS ref_schema,k.REFERENCED_TABLE_NAME AS ref_table,k.REFERENCED_COLUMN_NAME AS ref_column FROM information_schema.TABLE_CONSTRAINTS c LEFT JOIN information_schema.KEY_COLUMN_USAGE k ON k.CONSTRAINT_SCHEMA=c.CONSTRAINT_SCHEMA AND k.TABLE_NAME=c.TABLE_NAME AND k.CONSTRAINT_NAME=c.CONSTRAINT_NAME WHERE c.TABLE_SCHEMA=%s ORDER BY c.TABLE_NAME,c.CONSTRAINT_NAME,k.ORDINAL_POSITION"
+    },
+    {
+      "id": "indexes",
+      "kind": "index",
+      "sql": "SELECT TABLE_SCHEMA AS `schema`,CONCAT(TABLE_NAME,'.',INDEX_NAME) AS name,TABLE_NAME AS table_name,COLUMN_NAME AS column_name,(NON_UNIQUE=0) AS is_unique FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=%s ORDER BY TABLE_NAME,INDEX_NAME,SEQ_IN_INDEX"
+    },
+    {
+      "id": "views",
+      "kind": "view",
+      "sql": "SELECT TABLE_SCHEMA AS `schema`,TABLE_NAME AS name FROM information_schema.VIEWS WHERE TABLE_SCHEMA=%s ORDER BY TABLE_NAME"
+    },
+    {
+      "id": "routines",
+      "kind": "function",
+      "sql": "SELECT ROUTINE_SCHEMA AS `schema`,ROUTINE_NAME AS name FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA=%s ORDER BY ROUTINE_NAME"
+    },
+    {
+      "id": "triggers",
+      "kind": "trigger",
+      "sql": "SELECT TRIGGER_SCHEMA AS `schema`,TRIGGER_NAME AS name FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA=%s ORDER BY TRIGGER_NAME"
+    },
+    {
+      "id": "rows",
+      "kind": "statistic",
+      "sql": "SELECT TABLE_SCHEMA AS `schema`,TABLE_NAME AS name,TABLE_ROWS AS value FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_TYPE='BASE TABLE'",
+      "metric": "rows",
+      "semantics": "estimate",
+      "unit": "rows",
+      "granularity": "table"
+    },
+    {
+      "id": "bytes",
+      "kind": "statistic",
+      "sql": "SELECT TABLE_SCHEMA AS `schema`,TABLE_NAME AS name,DATA_LENGTH+INDEX_LENGTH AS value FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_TYPE='BASE TABLE'",
+      "metric": "allocated_bytes",
+      "semantics": "estimate",
+      "unit": "bytes",
+      "granularity": "table"
+    }
+  ],
+  "id": "mysql"
+}

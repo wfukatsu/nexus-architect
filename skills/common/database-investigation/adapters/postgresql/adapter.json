@@ -1,0 +1,70 @@
+{
+  "fold": "lower",
+  "min_major": 14,
+  "probe": "SELECT version() AS product, current_setting('server_version') AS version, current_database() AS catalog",
+  "queries": [
+    {
+      "id": "tables",
+      "kind": "table",
+      "sql": "SELECT n.nspname AS schema, c.relname AS name FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=%s AND c.relkind IN ('r','p') ORDER BY c.relname"
+    },
+    {
+      "id": "columns",
+      "kind": "column",
+      "sql": "SELECT n.nspname AS schema,c.relname AS name,a.attname AS column_name,pg_catalog.format_type(a.atttypid,a.atttypmod) AS data_type,a.attnum AS ordinal,NOT a.attnotnull AS nullable FROM pg_catalog.pg_attribute a JOIN pg_catalog.pg_class c ON c.oid=a.attrelid JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=%s AND c.relkind IN ('r','p') AND a.attnum>0 AND NOT a.attisdropped ORDER BY c.relname,a.attnum"
+    },
+    {
+      "id": "constraints",
+      "kind": "constraint",
+      "sql": "SELECT n.nspname AS schema,t.relname AS name,c.conname AS constraint_name,CASE c.contype WHEN 'p' THEN 'primary_key' WHEN 'f' THEN 'foreign_key' WHEN 'u' THEN 'unique' WHEN 'c' THEN 'check' END AS constraint_kind,a.attname AS column_name,rn.nspname AS ref_schema,rt.relname AS ref_table,ra.attname AS ref_column FROM pg_catalog.pg_constraint c JOIN pg_catalog.pg_class t ON t.oid=c.conrelid JOIN pg_catalog.pg_namespace n ON n.oid=t.relnamespace LEFT JOIN LATERAL unnest(c.conkey) WITH ORDINALITY k(attnum,pos) ON true LEFT JOIN pg_catalog.pg_attribute a ON a.attrelid=t.oid AND a.attnum=k.attnum LEFT JOIN pg_catalog.pg_class rt ON rt.oid=c.confrelid LEFT JOIN pg_catalog.pg_namespace rn ON rn.oid=rt.relnamespace LEFT JOIN pg_catalog.pg_attribute ra ON ra.attrelid=rt.oid AND ra.attnum=c.confkey[k.pos] WHERE n.nspname=%s AND c.contype IN ('p','f','u','c') ORDER BY t.relname,c.conname,k.pos"
+    },
+    {
+      "id": "indexes",
+      "kind": "index",
+      "sql": "SELECT n.nspname AS schema,i.relname AS name,t.relname AS table_name,a.attname AS column_name,x.indisunique AS is_unique FROM pg_catalog.pg_index x JOIN pg_catalog.pg_class i ON i.oid=x.indexrelid JOIN pg_catalog.pg_class t ON t.oid=x.indrelid JOIN pg_catalog.pg_namespace n ON n.oid=t.relnamespace LEFT JOIN LATERAL unnest(x.indkey) WITH ORDINALITY k(attnum,pos) ON true LEFT JOIN pg_catalog.pg_attribute a ON a.attrelid=t.oid AND a.attnum=k.attnum WHERE n.nspname=%s ORDER BY i.relname,k.pos"
+    },
+    {
+      "id": "views",
+      "kind": "view",
+      "sql": "SELECT schemaname AS schema,viewname AS name FROM pg_catalog.pg_views WHERE schemaname=%s ORDER BY viewname"
+    },
+    {
+      "id": "routines",
+      "kind": "function",
+      "sql": "SELECT n.nspname AS schema,p.proname || '(' || pg_catalog.oidvectortypes(p.proargtypes) || ')' AS name FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname=%s ORDER BY name"
+    },
+    {
+      "id": "triggers",
+      "kind": "trigger",
+      "sql": "SELECT n.nspname AS schema,c.relname || '.' || t.tgname AS name FROM pg_catalog.pg_trigger t JOIN pg_catalog.pg_class c ON c.oid=t.tgrelid JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=%s AND NOT t.tgisinternal ORDER BY name"
+    },
+    {
+      "id": "rows",
+      "kind": "statistic",
+      "sql": "SELECT schemaname AS schema,relname AS name,n_live_tup AS value,GREATEST(last_analyze,last_autoanalyze)::text AS updated_at FROM pg_catalog.pg_stat_user_tables WHERE schemaname=%s",
+      "metric": "rows",
+      "semantics": "estimate",
+      "unit": "rows",
+      "granularity": "table"
+    },
+    {
+      "id": "bytes",
+      "kind": "statistic",
+      "sql": "SELECT n.nspname AS schema,c.relname AS name,pg_catalog.pg_total_relation_size(c.oid) AS value FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=%s AND c.relkind IN ('r','p')",
+      "metric": "total_bytes",
+      "semantics": "measured",
+      "unit": "bytes",
+      "granularity": "table"
+    },
+    {
+      "id": "index_scans",
+      "kind": "statistic",
+      "sql": "SELECT schemaname AS schema,indexrelname AS name,idx_scan AS value,(SELECT stats_reset::text FROM pg_catalog.pg_stat_database WHERE datname=current_database()) AS reset_at FROM pg_catalog.pg_stat_user_indexes WHERE schemaname=%s",
+      "metric": "index_scans",
+      "semantics": "cumulative",
+      "unit": "scans",
+      "granularity": "index"
+    }
+  ],
+  "id": "postgresql"
+}

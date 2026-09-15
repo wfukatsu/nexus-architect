@@ -1,0 +1,5 @@
+{
+  "oracle": "oracle",
+  "postgresql": "postgresql",
+  "mysql": "mysql"
+}

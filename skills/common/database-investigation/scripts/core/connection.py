@@ -1,0 +1,70 @@
+"""Validated environment references and bounded DB-API execution."""
+import math
+import os
+import re
+
+
+def connection_config(profile):
+    allowed = {"product", "expected_version", "schema", "target_id", "allow_local_plaintext"}
+    fields = {"host", "port", "database", "user", "password", "service", "tls_ca", "wallet_location", "wallet_password"}
+    if set(profile) - allowed - {f + "_env" for f in fields}:
+        raise ValueError("profile accepts environment references, not literal connection secrets or driver options")
+    config = {}
+    for field in fields:
+        key = profile.get(field + "_env")
+        if key:
+            if not re.fullmatch(r"[A-Za-z_][A-Za-z_0-9]*", key) or key not in os.environ:
+                raise ValueError("missing connection environment variable")
+            config[field] = os.environ[key]
+    for field in ("host", "port", "user"):
+        if not config.get(field):
+            raise ValueError("host, port and user environment references are required")
+    config["port"] = int(config["port"])
+    plaintext = profile.get("allow_local_plaintext", False)
+    if not isinstance(plaintext, bool):
+        raise ValueError("allow_local_plaintext must be boolean")
+    if plaintext and config["host"] not in {"127.0.0.1", "::1", "localhost"}:
+        raise ValueError("plaintext is limited to explicit local test connections")
+    config["plaintext"] = plaintext
+    return config
+
+
+class Port:
+    def __init__(self, connection, configure, bind, query_timeout=15):
+        self.connection, self.configure, self.bind = connection, configure, bind
+        self.query_timeout = query_timeout
+
+    def query(self, spec, schema, limit, timeout):
+        sql = spec["sql"]
+        if not sql.lstrip().upper().startswith("SELECT ") or ";" in sql:
+            raise ValueError("query is not a registered single SELECT")
+        seconds = max(1, math.ceil(min(timeout, self.query_timeout)))
+        self.configure(self.connection, seconds)
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute(sql, self.bind(schema) if schema is not None else None)
+            names = [x[0].lower() for x in cursor.description]
+            return [dict(zip(names, row)) for row in cursor.fetchmany(limit + 1)]
+        finally:
+            cursor.close()
+
+    def close(self):
+        self.connection.close()
+
+
+def verify_probe(spec, port, expected_version, expected_catalog):
+    rows = port.query({"id": "probe", "sql": spec["probe"]}, None, 1, 10)
+    if len(rows) != 1:
+        raise ValueError("database identification failed")
+    row = rows[0]
+    product = str(row.get("product", "")).lower()
+    if spec["id"] not in product or any(x in product for x in ("mariadb", "tidb", "aurora", "yugabyte")):
+        raise ValueError("database product mismatch or unverified compatible product")
+    version = str(row["version"])
+    if not (version == expected_version or version.startswith(expected_version + ".")):
+        raise ValueError("database version differs from approved profile")
+    if int(version.split(".")[0]) < spec["min_major"]:
+        raise ValueError("database version outside adapter capability")
+    if expected_catalog is not None and row["catalog"] != expected_catalog:
+        raise ValueError("database catalog differs from profile")
+    return {"product": spec["id"], "version": version, "catalog": row["catalog"], "visibility": "objects visible to connected user; absence is not proof of nonexistence"}
