@@ -208,6 +208,7 @@ DOC_EXTENSION_TIER = [
     "generate-api-code", "generate-graphql-code", "generate-contract-tests",
     "generate-acceptance-tests",
     "generate-infra-code", "generate-docs", "verify-implementation",
+    "design-sql-migration", "implement-sql-migration", "verify-sql-migration",
     "design-infrastructure", "design-security",
     "design-observability", "design-disaster-recovery", "estimate-cost",
     "estimate-token-cost", "report-token-cost",

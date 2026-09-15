@@ -115,7 +115,9 @@ Implementing the `core_api` methods and the application-side skeletons is the ne
 
 | File | Content |
 |------|---------|
-| `generated/sql-migration/<namespace>/` | The Gradle module; `migration-summary.json` lists what was generated per statement |
+| `generated/sql-migration/<namespace>/` | The Gradle module |
+| `generated/sql-migration/*/build.gradle` | The module's build, pinning the versions from `work/version-decisions.json` |
+| `generated/sql-migration/*/migration-summary.json` | What was generated per statement, what still needs implementing, and the manifest hash it came from |
 | `reports/06_implementation/sql-migration-implementation.md` | The implementation report |
 
 Report structure (frontmatter `title`, `schema_version: 1`, `phase: "Phase 6: Implementation"`,

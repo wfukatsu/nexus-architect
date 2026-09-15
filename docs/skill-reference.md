@@ -84,6 +84,9 @@ phases, in the listed order. Output lands under `generated/` (git-ignored, overw
 | `/architect:generate-infra-code` | sonnet | `reports/08_infrastructure/` | K8s/Terraform/Helm code generation |
 | `/architect:generate-docs` | sonnet | generated/implemented code | README + `docs/` for generated/implemented code (runs after codegen; Step 5b of implement-backlog) |
 | `/architect:verify-implementation` | opus | generated/implemented code + design | Design ↕ code conformance on four axes (contract, transaction, security, requirement); `--gate` runs the eight-stage AI code quality gate (Step 5c of implement-backlog) |
+| `/architect:design-sql-migration` | opus | application code / SQL files / `investigate-db-*` runs + `design-scalardb` | SQL → ScalarDB migration design: an inventory of every statement (MyBatis, JDBC, JPA, SQL files, DDL, views, routines), the vendored SQLGlot converter run with the analysed keys, storage, edition and row estimates, and one validated route per statement in `sql-migration-manifest.json` |
+| `/architect:implement-sql-migration` | sonnet | `sql-migration-manifest.json` | Gradle module under `generated/sql-migration/` — ScalarDB SQL, schema, fetch-and-H2 plans, a Core API interface and application-side skeletons carrying their semantics — behind an offline gate that refuses converter drift or a changed source |
+| `/architect:verify-sql-migration` | sonnet | generated migration module + authorized non-production source database | Golden checks for application-side reads and differential tests for plan / ScalarDB SQL routes, with the verification states recorded in the manifest |
 
 ## Backlog Delivery
 
@@ -298,6 +301,9 @@ path by their router, so they are not slash commands and have no signature here.
 /architect:generate-infra-code
 /architect:generate-docs [target] [--scope=changed|service|repo] [--source-root=<path>] [--readme-only] [--issue=<id>] [--dry-run] [--auto] [--lang=en|ja]
 /architect:verify-implementation [target_path] [--service=<name>] [--scope=changed|service|repo] [--source-root=<path>] [--gate] [--item=<backlog-id>] [--auto] [--lang=en|ja]
+/architect:design-sql-migration [target_path] [--source=oracle|postgres|mysql] [--app-root=<path>] [--sql-file=<path>] [--db-run=<path>] [--live-run=<path>] [--edition=community|enterprise_standard|enterprise_premium] [--storage=jdbc|cassandra] [--auto] [--lang=en|ja]
+/architect:implement-sql-migration [target_path] [--out=<path>] [--package=<java.package>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja]
+/architect:verify-sql-migration [target_path] [--mode=golden|difftest|all] [--id=<SQM-###>] [--source-profile=<path>] [--scalardb-properties=<path>] [--fetcher=core|jdbc] [--out=<path>] [--auto] [--lang=en|ja]
 
 # Review
 /architect:review-consistency

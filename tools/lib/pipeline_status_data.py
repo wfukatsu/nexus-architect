@@ -485,6 +485,21 @@ EXTENSION_PHASES = {
     "verify-implementation": dict(category="extension", model="opus", depends_on=["design-implementation"],
                                   outputs=["reports/09_verification/design-code-conformance.md",
                                            "reports/09_verification/design-code-conformance.json"]),
+    # SQL migration to ScalarDB: design decides one route per statement, implement generates the module from
+    # that manifest, verify proves the routes on data. Design reads investigation runs and application code,
+    # neither of which is a manifest phase, so it declares no dependency.
+    "design-sql-migration": dict(category="extension", model="opus", depends_on=[],
+                                 outputs=["reports/03_design/sql-migration/sql-inventory.json",
+                                          "reports/03_design/sql-migration/schema.json",
+                                          "reports/03_design/sql-migration/conversion.json",
+                                          "reports/03_design/sql-migration/sql-migration-manifest.json",
+                                          "reports/03_design/sql-migration/sql-migration-design.md"]),
+    "implement-sql-migration": dict(category="extension", model="sonnet", depends_on=["design-sql-migration"],
+                                    outputs=["generated/sql-migration/*/build.gradle",
+                                             "generated/sql-migration/*/migration-summary.json",
+                                             "reports/06_implementation/sql-migration-implementation.md"]),
+    "verify-sql-migration": dict(category="extension", model="sonnet", depends_on=["implement-sql-migration"],
+                                 outputs=["reports/09_verification/sql-migration/verification-report.md"]),
     "design-infrastructure": dict(category="extension", model="sonnet", depends_on=["design-microservices"],
                                   outputs=["reports/08_infrastructure/infrastructure-architecture.md",
                                            "reports/08_infrastructure/deployment-guide.md"]),
@@ -515,7 +530,7 @@ EXTENSION_PHASES = {
 CODEGEN_PHASES = {
     "architect": ("generate-scalardb-code", "generate-api-code", "generate-graphql-code",
                   "generate-contract-tests", "generate-acceptance-tests",
-                  "generate-infra-code", "generate-docs"),
+                  "generate-infra-code", "generate-docs", "implement-sql-migration"),
     "product": ("generate-frontend",),
 }
 

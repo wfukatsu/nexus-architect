@@ -115,7 +115,8 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/common/sql-migration/scripts/inventory.py"
   --previous reports/03_design/sql-migration/sql-inventory.json
 ```
 
-Pass `--previous` only when an inventory already exists, so statement IDs survive the re-run. Exit 2 means
+Name the earlier inventory (the last argument above) only when one already exists, so statement IDs
+survive the re-run. Exit 2 means
 problems: a stale evidence line means the DDL changed after the investigation — re-run the investigation or
 pass the file with `--sql-file`; do not continue on stale input. Present the counts by origin and category,
 the dynamic statements, the JPQL statements, the `unextracted` calls and the `unavailable` definitions.

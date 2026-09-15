@@ -84,6 +84,9 @@
 | `/architect:generate-infra-code` | sonnet | `reports/08_infrastructure/` | K8s/Terraform/Helm コード生成 |
 | `/architect:generate-docs` | sonnet | 生成・実装済みコード | 生成・実装済みコードの README と `docs/`（コード生成の後、および implement-backlog の Step 5b で実行） |
 | `/architect:verify-implementation` | opus | 生成・実装済みコード＋設計 | 設計 ↕ コードの適合性検証（契約・トランザクション・セキュリティ・要件の4軸）。`--gate` で8段階の AI コード品質ゲートを実行（implement-backlog の Step 5c） |
+| `/architect:design-sql-migration` | opus | アプリケーションコード / SQL ファイル / `investigate-db-*` の実行結果 + `design-scalardb` | SQL → ScalarDB 移行設計 — 全文の棚卸し（MyBatis、JDBC、JPA、SQL ファイル、DDL、ビュー、ルーチン）、分析したキー・ストレージ・エディション・推定行数を与えた同梱の SQLGlot 変換器の実行、文ごとに検証済みの経路を `sql-migration-manifest.json` に記録 |
+| `/architect:implement-sql-migration` | sonnet | `sql-migration-manifest.json` | `generated/sql-migration/` に Gradle モジュールを生成 — ScalarDB SQL、スキーマ、取得と H2 の実行計画、Core API インターフェース、結果を変えないための注意を持つアプリ側の雛形。変換結果の食い違いやソースの変更を拒否するオフラインゲート付き |
+| `/architect:verify-sql-migration` | sonnet | 生成した移行モジュール + 許可された本番以外の移行元 DB | アプリ側の読み取りは golden 検証、実行計画 / ScalarDB SQL の経路は差分テストで確認し、検証状態をマニフェストに記録 |
 
 ## バックログ配送
 
@@ -298,6 +301,9 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 /architect:generate-infra-code
 /architect:generate-docs [target] [--scope=changed|service|repo] [--source-root=<path>] [--readme-only] [--issue=<id>] [--dry-run] [--auto] [--lang=en|ja]
 /architect:verify-implementation [target_path] [--service=<name>] [--scope=changed|service|repo] [--source-root=<path>] [--gate] [--item=<backlog-id>] [--auto] [--lang=en|ja]
+/architect:design-sql-migration [target_path] [--source=oracle|postgres|mysql] [--app-root=<path>] [--sql-file=<path>] [--db-run=<path>] [--live-run=<path>] [--edition=community|enterprise_standard|enterprise_premium] [--storage=jdbc|cassandra] [--auto] [--lang=en|ja]
+/architect:implement-sql-migration [target_path] [--out=<path>] [--package=<java.package>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja]
+/architect:verify-sql-migration [target_path] [--mode=golden|difftest|all] [--id=<SQM-###>] [--source-profile=<path>] [--scalardb-properties=<path>] [--fetcher=core|jdbc] [--out=<path>] [--auto] [--lang=en|ja]
 
 # Review
 /architect:review-consistency

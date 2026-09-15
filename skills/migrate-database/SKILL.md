@@ -17,6 +17,11 @@ databases, data types, transaction guarantees, edition-gated features) against t
 OKF knowledge bundle per @rules/okf-knowledge-bundle.md — pin the target ScalarDB version first
 and cite the concept's `resource` URL, not memory.
 
+**Application SQL**: this router migrates schemas, stored procedures and triggers. The SQL the application
+runs — MyBatis mappers, JDBC and Spring JDBC calls, JPA native queries, batch scripts — is migrated statement by
+statement by `/architect:design-sql-migration` → `/architect:implement-sql-migration` →
+`/architect:verify-sql-migration`; point the user there when the question is about queries rather than tables.
+
 ---
 
 ## Execution Instructions
