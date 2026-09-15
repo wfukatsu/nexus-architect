@@ -39,7 +39,7 @@ EDITIONS = ("community", "enterprise_standard", "enterprise_premium")
 SQL_EDITION = "enterprise_premium"
 STORAGES = ("jdbc", "cassandra")
 APP_PATTERNS = ("read", "rmw", "conditional_write", "id_generation", "app_clock")
-KEY_SOURCES = ("design-scalardb", "investigation", "user")
+KEY_SOURCES = ("design-scalardb", "investigation", "source_ddl", "user")
 VERIFICATION_STATUSES = ("pending", "verified", "failed", "skipped")
 VERIFICATION_METHODS = ("golden", "difftest", "plan_validate", "unit")
 

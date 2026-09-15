@@ -73,8 +73,23 @@ def rows_from_live_runs(runs):
     return rows, provenance
 
 
-def _merge(results):
+def mask_message(message, literals):
+    """Mask the statement's own literals in a converter message, and keep the identifiers the converter quotes.
+
+    A literal of three characters or more is also masked where it appears inside another quoted string (a date
+    literal the converter rewrote with a time); a shorter one only when it is the whole quoted string.
+    """
+    def replace(match):
+        inner = match.group()[1:-1]
+        if any(inner == lit or (len(lit) >= 3 and lit in inner) for lit in literals):
+            return "'?'"
+        return match.group()
+    return inventory_module.STRING_LITERAL.sub(replace, message)
+
+
+def _merge(results, text=""):
     """One verdict for a statement whose text the converter split into several (a PL/SQL body, say)."""
+    literals = {lit[1:-1].replace("''", "'") for lit in inventory_module.STRING_LITERAL.findall(text)} - {""}
     status = max((r.status for r in results), key=SEVERITY_ORDER.get)
     codes, findings = [], []
     for r in results:
@@ -82,7 +97,7 @@ def _merge(results):
             if issue.code not in codes:
                 codes.append(issue.code)
             findings.append({"severity": issue.severity, "code": issue.code,
-                             "message": inventory_module.mask(issue.message)})
+                             "message": mask_message(issue.message, literals)})
     plans = [r.plan for r in results if r.plan]
     plan = None
     if plans:
@@ -152,7 +167,7 @@ def convert(inventory, project_dir, edition, storage, namespace, schema_file=Non
                    row_limit=row_limit, h2_indexes=h2_indexes)
 
     statements = inventory.get("statements", [])
-    results, skipped, texts = [], [], {}
+    results, skipped, texts, key_origin = [], [], {}, {}
     for stmt in statements:
         try:
             texts[stmt["id"]] = inventory_module.statement_text(stmt, project_dir=project_dir)
@@ -166,10 +181,13 @@ def convert(inventory, project_dir, edition, storage, namespace, schema_file=Non
             entry.update(status="ERROR", codes=["JPQL"], pattern=None, plan=None, converted_masked=[],
                          findings=[{"severity": "ERROR", "code": "JPQL", "message": "JPQL is not SQL; the converter does not read it"}])
         else:
+            before = {t.name.lower() for t in registry.tables()}
             converted, registry = convert_script(texts[stmt["id"]], dialect, registry, **options)
+            for table in {t.name.lower() for t in registry.tables()} - before:
+                key_origin[table] = "investigation" if stmt["origin"]["kind"] == "db_design_run" else "source_ddl"
             if not converted:
                 continue
-            status, codes, findings, plan, masked = _merge(converted)
+            status, codes, findings, plan, masked = _merge(converted, texts[stmt["id"]])
             entry.update(status=status, codes=codes, pattern=(plan or {}).get("pattern"), plan=plan,
                          converted_masked=masked, findings=findings)
         results.append(entry)
@@ -180,13 +198,15 @@ def convert(inventory, project_dir, edition, storage, namespace, schema_file=Non
     keys = []
     for table in registry.tables():
         name = table.name.lower()
-        source = "user" if name in hints else "design-scalardb" if name in from_schema_file else "investigation"
+        source = "user" if name in hints else "design-scalardb" if name in from_schema_file \
+            else key_origin.get(name, "source_ddl")
         keys.append({"table": table.name, "partition_key": list(table.partition_key),
                      "clustering_key": list(table.clustering_key), "secondary_indexes": list(table.secondary_indexes),
                      "source": source,
                      "rationale": {"user": "key split given by the user",
                                    "design-scalardb": "taken from the existing ScalarDB schema",
-                                   "investigation": "source primary key: first column partitions, the rest cluster"}[source]})
+                                   "investigation": "investigated primary key: first column partitions, the rest cluster",
+                                   "source_ddl": "source DDL primary key: first column partitions, the rest cluster"}[source]})
 
     by_id = {s["id"]: s for s in statements}
     draft_statements, open_items = [], []

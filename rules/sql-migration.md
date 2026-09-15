@@ -53,7 +53,8 @@ variants were expanded and converted. Otherwise it takes `app_side`, `redesign` 
 ## 5. Keys
 
 `keys[]` records the partition key, clustering key and secondary indexes per table, where the choice came
-from (`design-scalardb`, `investigation`, `user`) and why. Every table and column named there exists in
+from (`design-scalardb`; `investigation` for an investigate-db-design run; `source_ddl` for DDL read from
+a SQL file or the application; `user`) and why. Every table and column named there exists in
 `schema.json`. Key design decides post-migration cost more than any rewrite: a query the partition key
 cannot narrow becomes a cross-partition scan.
 
