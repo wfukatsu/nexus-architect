@@ -138,6 +138,21 @@ class GenerateMigrationTests(unittest.TestCase):
         self.assertTrue((self.out / "src/main/java/com/example/shop/migration/appside"
                          / f"{self.ids['seq'].replace('-', '').capitalize()}IdGenerator.java").is_file())
 
+    def test_a_read_that_takes_parameters_gets_them_in_its_skeleton(self):
+        tree = self.ids["tree"]
+        self.rewrite(BASE / "sql-inventory.json",
+                     lambda inv: next(s for s in inv["statements"] if s["id"] == tree).update(binds=["root", "root"]))
+        self.generate()
+        query = self.java(f"appside/{tree.replace('-', '').capitalize()}Query.java")
+        self.assertIn("run(Map<String, List<Map<String, Object>>> tables, Map<String, Object> params)", query)
+        self.assertIn("Parameters: root", query)
+        self.assertIn("return run(tables, Map.of());", query)
+
+    def test_parameter_names_come_from_binds_and_substitutions(self):
+        self.assertEqual(generate_migration.query_params({"binds": ["status", "?", "status"], "sql": "ORDER BY ${column}"}),
+                         ["status", "p2", "column"])
+        self.assertEqual(generate_migration.query_params({"binds": [], "sql": "SELECT 1"}), [])
+
     def test_core_api_statements_become_an_interface_to_implement(self):
         self.generate()
         interface = self.java("CoreApiStatements.java")
