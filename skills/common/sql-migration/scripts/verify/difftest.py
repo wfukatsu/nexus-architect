@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import datetime
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -26,6 +27,10 @@ sys.path.insert(0, str(HERE.parents[4] / "tools" / "lib"))
 
 import inventory as inventory_module  # noqa: E402
 from verify import common  # noqa: E402
+
+# A bind marker in the masked SQL: `?`, or `:name` that is not a PostgreSQL `::type` cast. Masked literals are
+# removed first, since masking itself writes `'?'`.
+BIND_MARKER = re.compile(r"\?|(?<![:\w]):[A-Za-z_]\w*")
 
 SKIP_REASONS = {
     "core_api": "Core API implementations are verified by unit tests against a real engine",
@@ -57,6 +62,9 @@ def run(manifest, inventory, project_dir, source, runner, fetcher, generated_dir
             continue
         if route == "scalardb_sql" and fetcher != "jdbc":
             results.append(_skip(sid, "ScalarDB SQL needs ScalarDB Cluster and a license (--fetcher jdbc)"))
+            continue
+        if stmt.get("binds") or BIND_MARKER.search(stmt["sql"].replace("'?'", "")):
+            results.append(_skip(sid, "the statement takes bind parameters; prove it with golden or unit tests"))
             continue
         try:
             text = inventory_module.statement_text(stmt, project_dir=project_dir)
