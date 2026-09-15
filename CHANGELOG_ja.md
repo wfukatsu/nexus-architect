@@ -7,6 +7,44 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.40.0] - 2026-09-15
+
+### Added
+- **`/architect:investigate-db-design` — 既存データベースの宣言された設計を DDL だけから読む。**
+  これまでスキーマを読むのは ScalarDB 移行の最初の一歩としてだけだった。新しい単独スキルは DB に接続せず、
+  入力を決して実行しない有界のオフライン読み取りで DDL とテキストのスキーマ出力を読む。Oracle・PostgreSQL・
+  MySQL の方言差（引用識別子、ドル引用、`DELIMITER`、PL/SQL ブロック、実行可能コメント）に加え、ダンプツールの
+  出力形式を扱う。pg_dump の `ALTER TABLE ONLY ... ADD CONSTRAINT`・`CREATE INDEX ... USING`・セッション文、
+  mysqldump の表内 `KEY` / `UNIQUE KEY`、DBMS_METADATA の `EDITIONABLE` ブロックである。全オブジェクトが
+  ファイルのハッシュと行範囲を引用する。リテラル、コメント、既定式と check 式、定義本文は保存しない。
+  スキルは、生成されるインベントリ・レポート・ER 図の上に、根拠付きの `design-review.md` を加える。
+- **`/architect:investigate-db-live` — 許可された接続でカタログと既存統計を読む。** 明示的に呼んだときだけ
+  動く（`disable-model-invocation`）。問い合わせはリポジトリのレジストリにある固定・バインド済み・スキーマ
+  限定の単一 SELECT で、読み取り専用セッション上で行数上限、問い合わせごとの期限、取得予算の範囲で実行する。
+  認証情報は環境変数参照か Wallet からだけ取り、TLS は既定で検証する。取得前に製品・版・カタログの probe が
+  一致しなければならない。互換製品（Aurora、YugabyteDB、MariaDB、TiDB）は致命的エラーとし、別アダプタには
+  切り替えない。統計は単位、意味（estimate / measured / cumulative）、粒度（PostgreSQL のパーティションは
+  表ではなく `partition`）、更新・リセット時刻を保持し、null を 0 に変えない。
+- **両モードに共通の契約**（`skills/common/database-investigation/`）: `contract.md`、`inventory.schema.json`、
+  明示的なアダプタレジストリ、共通コア。
+  - 8 つの取得状態で empty・permission denied・disabled・unsupported・timeout・error を区別し、文や
+    問い合わせごとに最も重い結果を記録する。
+  - 方針による非収集は `withheld` に記録し、取得漏れとは数えない。
+  - 終了コードは 0 が自動取得範囲の完了、2 が部分取得、1 が致命的エラー。
+  - Oracle・PostgreSQL・MySQL のアダプタは `adapter.json` とモジュール 1 つで構成する。第 4 のアダプタは
+    コアを変更せずに読み込める。
+  - `rules/database-investigation.md` が根拠、範囲、認証情報の規則を定める。
+- **4 つのオフラインスイートと実エンジン用ハーネス。** `skills/common/database-investigation/tests/` が
+  DDL 読み取り、フェイクポート経由の live 取得、レジストリと probe の契約、CLI を検査する。`tests/integration.py`
+  は使い捨てコンテナに対して明示的に実行するもので、テストランナーには含めない。PostgreSQL 18.6、
+  MySQL 8.4.11、Oracle Free 23.26.3 で成功した。
+
+### Changed
+- `/architect:analyze-data-model` は、明示的に選んだ DB 調査の実行結果を任意入力として受け取る。設計上の宣言と
+  live の観測を区別し、最新の実行を黙って選ばない。
+- カタログ、件数（112 コマンド）、AGENTS.md、OMNIGENT.md、入力要件、CLAUDE.md に 2 スキルを追加した。
+  パイプラインの工程ではなく、単独のユーティリティである。
+
 ## [0.39.0] - 2026-09-11
 
 ### Added

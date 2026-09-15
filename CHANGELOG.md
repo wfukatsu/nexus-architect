@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.40.0] - 2026-09-15
+
+### Added
+- **`/architect:investigate-db-design` — an existing database's declared design, from DDL alone.**
+  Reading a schema used to happen only as the first step of a ScalarDB migration. The new
+  standalone skill reads DDL and text schema exports without connecting, through a bounded offline
+  reader that never executes its input. The reader handles the Oracle, PostgreSQL and MySQL dialect
+  differences (quoted identifiers, dollar quoting, `DELIMITER`, PL/SQL blocks, executable comments)
+  and the shapes dump tools emit: pg_dump's `ALTER TABLE ONLY ... ADD CONSTRAINT`,
+  `CREATE INDEX ... USING` and session statements; mysqldump's inline `KEY` / `UNIQUE KEY`;
+  DBMS_METADATA's `EDITIONABLE` blocks. Every object cites its file hash and line range. Literals,
+  comments, default and check expressions and definition bodies are withheld. The skill adds an
+  evidence-backed `design-review.md` on top of the generated inventory, report and ER diagram.
+- **`/architect:investigate-db-live` — catalogs and existing statistics over an authorized
+  connection.** It runs only when explicitly invoked (`disable-model-invocation`). Queries are
+  fixed, bound, schema-scoped single SELECTs from the repository registry, run on read-only
+  sessions with a row limit, a per-query deadline and a collection budget. Credentials come only
+  from environment references or Wallets, and TLS is verified by default. A product, version and
+  catalog probe must match before collection. A compatible product (Aurora, YugabyteDB, MariaDB,
+  TiDB) is fatal, never a fallback to another adapter. Statistics keep their unit, their semantics
+  (estimate / measured / cumulative), their granularity (PostgreSQL partitions are
+  `partition`, never tables) and their update/reset times. A null is never turned into a zero.
+- **One contract for both modes** (`skills/common/database-investigation/`): `contract.md`,
+  `inventory.schema.json`, an explicit adapter registry and a shared core.
+  - Eight collection statuses keep empty, permission denied, disabled, unsupported, timeout and
+    error apart, and each statement or query records its most severe outcome.
+  - Policy withholding is listed in `withheld` and is never counted as a coverage gap.
+  - Exit codes: 0 complete automated subset, 2 partial, 1 fatal.
+  - Oracle, PostgreSQL and MySQL adapters ship as `adapter.json` plus one module each. A fourth
+    adapter loads without core edits.
+  - `rules/database-investigation.md` states the evidence, scope and credential rules.
+- **Four offline suites and a real-engine harness.** `skills/common/database-investigation/tests/`
+  covers DDL reading, live collection through a fake port, the registry and probe contract, and
+  the CLI. `tests/integration.py` is an explicit run against disposable containers, not part of
+  the runner. It passed on PostgreSQL 18.6, MySQL 8.4.11 and Oracle Free 23.26.3.
+
+### Changed
+- `/architect:analyze-data-model` accepts an explicitly selected database investigation run as
+  optional input. It keeps design declarations and live observations apart and never picks the
+  latest run silently.
+- Catalogues, counts (112 commands), AGENTS.md, OMNIGENT.md, input requirements and CLAUDE.md
+  include the two skills. They are standalone utilities, not pipeline phases.
+
 ## [0.39.0] - 2026-09-11
 
 ### Added
