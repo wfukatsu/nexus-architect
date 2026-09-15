@@ -290,6 +290,22 @@ NEEDS_IDS = re.compile(r"\bNEXTVAL\b|\bnextval\s*\(", re.I)
 NEEDS_CLOCK = re.compile(r"\b(SYSDATE|SYSTIMESTAMP|CURRENT_DATE|CURRENT_TIMESTAMP|LOCALTIMESTAMP)\b|\bNOW\s*\(", re.I)
 
 
+SUBSTITUTION = re.compile(r"\$\{\s*([A-Za-z_]\w*)")
+
+
+def query_params(stmt):
+    """The parameter names a read's implementation receives: its binds (a positional one as p<n>), then ${...} substitutions."""
+    names = []
+    for index, bind in enumerate(stmt.get("binds") or [], start=1):
+        name = f"p{index}" if bind == "?" else bind
+        if name not in names:
+            names.append(name)
+    for name in SUBSTITUTION.findall(stmt.get("sql") or ""):
+        if name not in names:
+            names.append(name)
+    return names
+
+
 def _app_side_files(package, entry, stmt):
     stem, sid = _class_stem(entry["id"]), entry["id"]
     pattern = entry["app_side"]["pattern"]
@@ -299,12 +315,18 @@ def _app_side_files(package, entry, stmt):
     if pattern == "read":
         body = header + [" * <p>Helpers: com.scalar.migrate.appside (references/app-side-notes.md). Prove it with the golden",
                          " * check of /architect:verify-sql-migration.", " */"]
+        tables = "Map<String, List<Map<String, Object>>> tables"
+        names = query_params(stmt)
+        if names:  # the golden check passes golden.json's "params" to the two-argument form
+            run = ["  @Override", f"  public List<Map<String, Object>> run({tables}) {{", "    return run(tables, Map.of());",
+                   "  }", "", f"  /** Parameters: {', '.join(names)}. */", "  @Override",
+                   f"  public List<Map<String, Object>> run({tables}, Map<String, Object> params) {{"]
+        else:
+            run = ["  @Override", f"  public List<Map<String, Object>> run({tables}) {{"]
         files[f"appside/{stem}Query.java"] = "\n".join(
             [f"package {package}.appside;", "", "import com.scalar.migrate.appside.AppSideQuery;", "import java.util.List;",
-             "import java.util.Map;", ""] + body +
-            [f"public final class {stem}Query implements AppSideQuery {{", "  @Override",
-             "  public List<Map<String, Object>> run(Map<String, List<Map<String, Object>>> tables) {",
-             f'    throw new UnsupportedOperationException("{sid}: not implemented yet");', "  }", "}"]) + "\n"
+             "import java.util.Map;", ""] + body + [f"public final class {stem}Query implements AppSideQuery {{"] + run +
+            [f'    throw new UnsupportedOperationException("{sid}: not implemented yet");', "  }", "}"]) + "\n"
         files[f"test:appside/{stem}QueryGoldenTest.java"] = "\n".join(
             [f"package {package}.appside;", "", "import static org.junit.jupiter.api.Assertions.assertTrue;", "",
              "import java.nio.file.Files;", "import java.nio.file.Path;", "import org.junit.jupiter.api.Disabled;",
