@@ -1,7 +1,7 @@
 {
   "fold": "upper",
   "min_major": 19,
-  "probe": "SELECT PRODUCT AS \"product\", VERSION_FULL AS \"version\", SYS_CONTEXT('USERENV','CON_NAME') AS \"catalog\" FROM PRODUCT_COMPONENT_VERSION WHERE PRODUCT LIKE 'Oracle Database%'",
+  "probe": "SELECT PRODUCT AS \"product\", VERSION_FULL AS \"version\", SYS_CONTEXT('USERENV','CON_NAME') AS \"catalog\" FROM PRODUCT_COMPONENT_VERSION WHERE PRODUCT LIKE 'Oracle%Database%'",
   "queries": [
     {
       "id": "tables",
@@ -11,7 +11,7 @@
     {
       "id": "columns",
       "kind": "column",
-      "sql": "SELECT OWNER AS \"schema\",TABLE_NAME AS \"name\",COLUMN_NAME AS \"column_name\",DATA_TYPE AS \"data_type\",COLUMN_ID AS \"ordinal\",NULLABLE AS \"nullable\" FROM ALL_TAB_COLUMNS WHERE OWNER=:scope ORDER BY TABLE_NAME,COLUMN_ID"
+      "sql": "SELECT OWNER AS \"schema\",TABLE_NAME AS \"name\",COLUMN_NAME AS \"column_name\",CASE WHEN DATA_TYPE IN ('VARCHAR2','CHAR','NVARCHAR2','NCHAR') THEN DATA_TYPE || '(' || CHAR_LENGTH || CASE CHAR_USED WHEN 'C' THEN ' CHAR' ELSE ' BYTE' END || ')' WHEN DATA_TYPE='NUMBER' AND DATA_PRECISION IS NOT NULL THEN DATA_TYPE || '(' || DATA_PRECISION || ',' || NVL(DATA_SCALE,0) || ')' ELSE DATA_TYPE END AS \"data_type\",COLUMN_ID AS \"ordinal\",NULLABLE AS \"nullable\" FROM ALL_TAB_COLUMNS WHERE OWNER=:scope AND TABLE_NAME IN (SELECT TABLE_NAME FROM ALL_TABLES t WHERE t.OWNER=ALL_TAB_COLUMNS.OWNER) ORDER BY TABLE_NAME,COLUMN_ID"
     },
     {
       "id": "constraints",
@@ -31,7 +31,7 @@
     {
       "id": "routines",
       "kind": "function",
-      "sql": "SELECT OWNER AS \"schema\",OBJECT_NAME AS \"name\" FROM ALL_OBJECTS WHERE OWNER=:scope AND OBJECT_TYPE IN ('FUNCTION','PROCEDURE','PACKAGE') ORDER BY OBJECT_NAME"
+      "sql": "SELECT LOWER(OBJECT_TYPE) AS \"object_kind\",OWNER AS \"schema\",OBJECT_NAME AS \"name\" FROM ALL_OBJECTS WHERE OWNER=:scope AND OBJECT_TYPE IN ('FUNCTION','PROCEDURE','PACKAGE') ORDER BY OBJECT_NAME"
     },
     {
       "id": "triggers",
@@ -54,7 +54,8 @@
       "metric": "segment_bytes",
       "semantics": "measured",
       "unit": "bytes",
-      "granularity": "table"
+      "granularity": "segment",
+      "empty_reason": "owner-only USER_SEGMENTS: requested owner may differ from connected user, or own segments are absent"
     }
   ],
   "id": "oracle"

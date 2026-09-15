@@ -2,6 +2,13 @@
 from core.connection import Port
 
 
+def bound_query(sql, schema, limit):
+    params = {"maxrows": limit + 1}
+    if schema is not None:
+        params["scope"] = schema
+    return "SELECT * FROM (" + sql + ") WHERE ROWNUM <= :maxrows", params
+
+
 def configure(conn, seconds):
     conn.call_timeout = seconds * 1000
 
@@ -24,4 +31,4 @@ def connect(config):
     except Exception:
         conn.close()
         raise
-    return Port(conn, configure, lambda schema: {"scope": schema})
+    return Port(conn, configure, bound_query)

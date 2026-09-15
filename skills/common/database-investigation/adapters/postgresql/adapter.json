@@ -31,7 +31,7 @@
     {
       "id": "routines",
       "kind": "function",
-      "sql": "SELECT n.nspname AS schema,p.proname || '(' || pg_catalog.oidvectortypes(p.proargtypes) || ')' AS name FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname=%s ORDER BY name"
+      "sql": "SELECT CASE p.prokind WHEN 'p' THEN 'procedure' ELSE 'function' END AS object_kind,n.nspname AS schema,p.proname || '(' || pg_catalog.oidvectortypes(p.proargtypes) || ')' AS name FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname=%s ORDER BY name"
     },
     {
       "id": "triggers",
@@ -41,7 +41,7 @@
     {
       "id": "rows",
       "kind": "statistic",
-      "sql": "SELECT schemaname AS schema,relname AS name,n_live_tup AS value,GREATEST(last_analyze,last_autoanalyze)::text AS updated_at FROM pg_catalog.pg_stat_user_tables WHERE schemaname=%s",
+      "sql": "SELECT current_setting('track_counts') AS enabled,schemaname AS schema,relname AS name,n_live_tup AS value,GREATEST(last_analyze,last_autoanalyze)::text AS updated_at FROM pg_catalog.pg_stat_user_tables WHERE schemaname=%s",
       "metric": "rows",
       "semantics": "estimate",
       "unit": "rows",
@@ -59,7 +59,7 @@
     {
       "id": "index_scans",
       "kind": "statistic",
-      "sql": "SELECT schemaname AS schema,indexrelname AS name,idx_scan AS value,(SELECT stats_reset::text FROM pg_catalog.pg_stat_database WHERE datname=current_database()) AS reset_at FROM pg_catalog.pg_stat_user_indexes WHERE schemaname=%s",
+      "sql": "SELECT current_setting('track_counts') AS enabled,schemaname AS schema,indexrelname AS name,idx_scan AS value,(SELECT stats_reset::text FROM pg_catalog.pg_stat_database WHERE datname=current_database()) AS reset_at FROM pg_catalog.pg_stat_user_indexes WHERE schemaname=%s",
       "metric": "index_scans",
       "semantics": "cumulative",
       "unit": "scans",

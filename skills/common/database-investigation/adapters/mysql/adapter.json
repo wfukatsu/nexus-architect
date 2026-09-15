@@ -11,7 +11,7 @@
     {
       "id": "columns",
       "kind": "column",
-      "sql": "SELECT TABLE_SCHEMA AS `schema`,TABLE_NAME AS name,COLUMN_NAME AS column_name,COLUMN_TYPE AS data_type,ORDINAL_POSITION AS ordinal,IS_NULLABLE AS nullable FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=%s ORDER BY TABLE_NAME,ORDINAL_POSITION"
+      "sql": "SELECT TABLE_SCHEMA AS `schema`,TABLE_NAME AS name,COLUMN_NAME AS column_name,COLUMN_TYPE AS data_type,ORDINAL_POSITION AS ordinal,IS_NULLABLE AS nullable FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME IN (SELECT TABLE_NAME FROM information_schema.TABLES t WHERE t.TABLE_SCHEMA=COLUMNS.TABLE_SCHEMA AND t.TABLE_TYPE='BASE TABLE') ORDER BY TABLE_NAME,ORDINAL_POSITION"
     },
     {
       "id": "constraints",
@@ -31,7 +31,7 @@
     {
       "id": "routines",
       "kind": "function",
-      "sql": "SELECT ROUTINE_SCHEMA AS `schema`,ROUTINE_NAME AS name FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA=%s ORDER BY ROUTINE_NAME"
+      "sql": "SELECT LOWER(ROUTINE_TYPE) AS object_kind,ROUTINE_SCHEMA AS `schema`,ROUTINE_NAME AS name FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA=%s ORDER BY ROUTINE_NAME"
     },
     {
       "id": "triggers",
@@ -55,6 +55,15 @@
       "semantics": "estimate",
       "unit": "bytes",
       "granularity": "table"
+    },
+    {
+      "id": "index_reads",
+      "kind": "statistic",
+      "metric": "index_reads",
+      "semantics": "cumulative",
+      "unit": "reads",
+      "granularity": "index",
+      "sql": "SELECT OBJECT_SCHEMA AS `schema`,CONCAT(OBJECT_NAME,'.',INDEX_NAME) AS name,COUNT_READ AS value,(@@performance_schema AND EXISTS (SELECT 1 FROM performance_schema.setup_instruments WHERE NAME='wait/io/table/sql/handler' AND ENABLED='YES')) AS enabled FROM performance_schema.table_io_waits_summary_by_index_usage WHERE OBJECT_SCHEMA=%s AND INDEX_NAME IS NOT NULL ORDER BY OBJECT_NAME,INDEX_NAME"
     }
   ],
   "id": "mysql"

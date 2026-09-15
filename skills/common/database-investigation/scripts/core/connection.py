@@ -30,8 +30,8 @@ def connection_config(profile):
 
 
 class Port:
-    def __init__(self, connection, configure, bind, query_timeout=15):
-        self.connection, self.configure, self.bind = connection, configure, bind
+    def __init__(self, connection, configure, bound_query, query_timeout=15):
+        self.connection, self.configure, self.bound_query = connection, configure, bound_query
         self.query_timeout = query_timeout
 
     def query(self, spec, schema, limit, timeout):
@@ -42,7 +42,8 @@ class Port:
         self.configure(self.connection, seconds)
         cursor = self.connection.cursor()
         try:
-            cursor.execute(sql, self.bind(schema) if schema is not None else None)
+            sql, params = self.bound_query(sql, schema, limit)
+            cursor.execute(sql, params)
             names = [x[0].lower() for x in cursor.description]
             return [dict(zip(names, row)) for row in cursor.fetchmany(limit + 1)]
         finally:

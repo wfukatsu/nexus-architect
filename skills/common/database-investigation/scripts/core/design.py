@@ -12,7 +12,7 @@ def object_id(schema, name, kind, catalog=None):
 def statements(text, dialect):
     """Scan strings/comments before separators, preserving source line ranges."""
     i, line, start = 0, 1, 1
-    buf, delimiter = [], ";"
+    buf, delimiter, oracle_block = [], ";", False
     while i < len(text):
         if i == 0 or text[i - 1] == "\n":
             end = text.find("\n", i)
@@ -26,6 +26,7 @@ def statements(text, dialect):
                 if "".join(buf).strip():
                     yield "".join(buf), start, line, False
                 buf = []
+                oracle_block = False
                 i = end
                 continue
         c = text[i]
@@ -92,7 +93,8 @@ def statements(text, dialect):
                 yield "".join(buf), start, line, True
                 return
             continue
-        oracle_block = dialect == "oracle" and re.match(r"\s*(?:CREATE\s+(?:OR\s+REPLACE\s+)?(?:PROCEDURE|FUNCTION|PACKAGE|TRIGGER|TYPE\s+BODY)|DECLARE|BEGIN)\b", "".join(buf), re.I)
+        if dialect == "oracle" and not oracle_block and len(buf) < 120:
+            oracle_block = bool(re.match(r"\s*(?:CREATE\s+(?:OR\s+REPLACE\s+)?(?:PROCEDURE|FUNCTION|PACKAGE|TRIGGER|TYPE\s+BODY)|DECLARE|BEGIN)\b", "".join(buf), re.I))
         if text.startswith(delimiter, i) and not oracle_block:
             yield "".join(buf), start, line, False
             buf = []
@@ -277,7 +279,7 @@ def parse_design(paths, adapter, schema):
                             col.i += 1
                         if not typ:
                             raise ValueError("column type missing")
-                        nullable = None
+                        nullable = True
                         while col.i < len(col.t):
                             if col.take("NOT"):
                                 col.need("NULL")
@@ -323,6 +325,10 @@ def parse_design(paths, adapter, schema):
         else:
             status.update(status="unsupported", reason="ALTER target unresolved or out of scope")
     for obj in result["objects"]:
+        required = {name for c in obj["constraints"] if c["kind"] == "primary_key" for name in c["columns"]}
+        for col in obj["columns"]:
+            if col["name"] in required:
+                col["nullable"] = False
         for c in obj["constraints"]:
             ref = c.get("references")
             if ref and object_id(ref["schema"], ref["name"], "table") not in seen:

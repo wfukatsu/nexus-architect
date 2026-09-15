@@ -7,7 +7,7 @@ import sys
 import uuid
 
 from core.connection import connection_config, verify_probe
-from core.design import parse_design
+from core.design import parse_design, object_id
 from core.live import collect
 from core.output import path_component, write_reports
 from core.registry import load_adapter
@@ -36,7 +36,7 @@ def run(args, clock, new_id):
             raise ValueError("CLI accepts SQL; use the skill's documented evidence workflow for other design documents")
         if any(p.stat().st_size > 10_000_000 for p in paths):
             raise ValueError("split input files larger than 10 MB")
-        data = parse_design(paths, spec, schema)
+        data = getattr(module, "parse_design", parse_design)(paths, spec, schema)
         data["statistics"] = []
     else:
         port = module.connect(config)
@@ -46,6 +46,9 @@ def run(args, clock, new_id):
             port.close()
             raise
         data = collect(spec, port, schema, clock, args.limit, args.budget)
+        for obj in data["objects"]:
+            obj["catalog"] = observed["catalog"]
+            obj["id"] = object_id(obj["schema"], obj["name"], obj["kind"], observed["catalog"])
     complete = bool(data["collections"]) and all(c["status"] in {"ok", "empty"} and not c["truncated"] for c in data["collections"]) and not data["findings"]
     inv = dict(data, schema_version=1, run_id=run_id, mode=args.mode, product=product,
                version=version, schema=schema, target_id=target, started_at=started,

@@ -43,7 +43,7 @@ def normalize(rows, spec, result, eid, collected_at):
                 "granularity": spec.get("granularity", "table"),
             })
             continue
-        target_kind = "table" if kind in {"column", "constraint"} else kind
+        target_kind = "table" if kind in {"column", "constraint"} else row.get("object_kind", kind)
         oid = object_id(schema, name, target_kind)
         obj = next((o for o in result["objects"] if o["id"] == oid), None)
         if obj is None:
@@ -93,10 +93,15 @@ def collect(adapter, port, schema, clock, limit=10000, budget=120):
                 rows = port.query(spec, schema, limit, remaining)
                 if any(r.get("schema") != schema for r in rows):
                     raise ValueError("scope violation")
+                if rows and any(r.get("enabled") in {False, "NO", "N", "off"} for r in rows):
+                    record["status"] = "disabled"
+                    continue
                 record["truncated"] = len(rows) > limit
                 rows = rows[:limit]
                 record["row_count"] = len(rows)
                 record["status"] = "ok" if rows else "empty"
+                if not rows and spec.get("empty_reason"):
+                    record.update(status="not_collected", reason=spec["empty_reason"])
                 # Normalize into a scratch inventory; malformed rows never leak partial objects.
                 staged = copy.deepcopy(result)
                 normalize(rows, spec, staged, eid, now)

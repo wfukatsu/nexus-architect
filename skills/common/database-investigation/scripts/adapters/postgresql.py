@@ -2,6 +2,10 @@
 from core.connection import Port
 
 
+def bound_query(sql, schema, limit):
+    return sql + " LIMIT %s", (schema, limit + 1) if schema is not None else (limit + 1,)
+
+
 def configure(conn, seconds):
     with conn.cursor() as cur:
         cur.execute("SELECT pg_catalog.set_config('statement_timeout', %s, false)", (str(seconds * 1000),))
@@ -15,4 +19,4 @@ def connect(config):
         sslmode="disable" if config["plaintext"] else "verify-full",
         sslrootcert=config.get("tls_ca"), options="-c default_transaction_read_only=on -c statement_timeout=15000 -c lock_timeout=3000",
     )
-    return Port(conn, configure, lambda schema: (schema,))
+    return Port(conn, configure, bound_query)

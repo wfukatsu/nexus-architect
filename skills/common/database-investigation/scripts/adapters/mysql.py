@@ -2,6 +2,10 @@
 from core.connection import Port
 
 
+def bound_query(sql, schema, limit):
+    return sql + " LIMIT %s", (schema, limit + 1) if schema is not None else (limit + 1,)
+
+
 def configure(conn, seconds):
     with conn.cursor() as cur:
         cur.execute("SET SESSION MAX_EXECUTION_TIME = %s", (seconds * 1000,))
@@ -24,4 +28,4 @@ def connect(config):
     except Exception:
         conn.close()
         raise
-    return Port(conn, configure, lambda schema: (schema,))
+    return Port(conn, configure, bound_query)
