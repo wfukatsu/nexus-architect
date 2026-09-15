@@ -50,6 +50,11 @@ SQL_METHODS = {"prepareStatement", "prepareCall", "executeQuery", "executeUpdate
                "addBatch", "createNativeQuery", "query", "queryForObject", "queryForList", "queryForMap",
                "queryForRowSet", "queryForStream", "update", "batchUpdate"}
 JPQL_METHODS = {"createQuery"}
+# A call whose SQL cannot be resolved is counted as unextracted when the method is JDBC-specific, or when the
+# method name is generic (execute, query, update) and the receiver looks like a JDBC handle.
+JDBC_ONLY_METHODS = {"prepareStatement", "prepareCall", "executeQuery", "executeUpdate", "executeLargeUpdate",
+                     "addBatch", "createNativeQuery"}
+JDBC_RECEIVER = re.compile(r"jdbc|template|statement|stmt|conn", re.I)
 CONTROL_WORDS = {"if", "for", "while", "switch", "catch", "synchronized", "try", "return", "new", "else", "do"}
 
 MYBATIS_STATEMENT = re.compile(r"<(select|insert|update|delete)\b([^>]*)>(.*?)</\1\s*>", re.S | re.I)
@@ -289,7 +294,21 @@ def _resolve(operands, constants, reasons, stack=()):
     return "".join(parts)
 
 
-def _from_java(path: Path, rel: str, raw: bytes) -> list[tuple[dict, str]]:
+def _receiver(tokens, i):
+    """Identifier the call at tokens[i] is made on (`jdbc.update` -> jdbc, `c.createStatement().execute` -> createStatement)."""
+    j = i - 2
+    if j >= 0 and tokens[j][1] == ")":
+        depth = 0
+        while j >= 0:
+            depth += (tokens[j][1] == ")") - (tokens[j][1] == "(")
+            if depth == 0:
+                break
+            j -= 1
+        j -= 1
+    return tokens[j][1] if j >= 0 and tokens[j][0] == "id" else ""
+
+
+def _from_java(path: Path, rel: str, raw: bytes, unextracted: list | None = None) -> list[tuple[dict, str]]:
     tokens = _java_tokens(raw.decode("utf-8-sig"))
     constants = _java_constants(tokens)
     package = ""
@@ -345,13 +364,17 @@ def _from_java(path: Path, rel: str, raw: bytes) -> list[tuple[dict, str]]:
         elif kind == "id" and value in SQL_METHODS | JPQL_METHODS and prev[1] == "." \
                 and i + 1 < len(tokens) and tokens[i + 1][1] == "(":
             operands, end = _expression(tokens, i + 2)
-            if operands and any(len(o) == 1 and o[0][0] == "str" for o in operands[:1]) or \
-                    (operands and len(operands[0]) >= 1 and operands[0][0][0] == "id"):
+            if operands:
                 reasons: list[str] = []
                 text = _resolve(operands, constants, reasons)
                 language = "jpql" if value in JPQL_METHODS else "sql"
                 if (JPQL_START if language == "jpql" else SQL_START).match(text):
                     emit(i, end, text, language, reasons, locator())
+                elif unextracted is not None and not any(len(o) == 1 and o[0][0] == "str" for o in operands) \
+                        and (value in JDBC_ONLY_METHODS or JDBC_RECEIVER.search(_receiver(tokens, i))):
+                    unextracted.append({"path": rel, "locator": locator(), "method": value,
+                                        "lines": [tokens[i][2], tokens[min(end, len(tokens) - 1)][2]],
+                                        "reason": "the SQL argument is not a literal or a resolvable constant"})
         i += 1
     return out
 
@@ -500,11 +523,11 @@ def _walk(root: Path, exclude):
         yield path
 
 
-def _extract_file(path: Path, rel: str, dialect: str) -> list[tuple[dict, str]]:
+def _extract_file(path: Path, rel: str, dialect: str, unextracted: list | None = None) -> list[tuple[dict, str]]:
     raw = path.read_bytes()
     suffix = path.suffix.lower()
     if suffix == ".java":
-        return _from_java(path, rel, raw)
+        return _from_java(path, rel, raw, unextracted)
     if suffix == ".xml" and b"<mapper" in raw:
         return _from_mapper(path, rel, raw)
     if suffix == ".sql":
@@ -516,12 +539,12 @@ def build(source: str, app_roots=(), sql_files=(), db_runs=(), project_dir=None,
     if source not in DIALECTS:
         raise ValueError(f"source must be one of {', '.join(DIALECTS)}")
     project = Path(project_dir) if project_dir else Path.cwd()
-    found, problems, unavailable, sources = [], [], [], []
+    found, problems, unavailable, sources, unextracted = [], [], [], [], []
     for root in map(Path, app_roots):
         sources.append({"kind": "app_root", "path": _rel(project, root)})
         for path in _walk(root, exclude):
             try:
-                found += _extract_file(path, _rel(project, path), source)
+                found += _extract_file(path, _rel(project, path), source, unextracted)
             except (UnicodeDecodeError, AttributeError, StopIteration) as e:
                 problems.append({"code": "unreadable", "path": _rel(project, path), "detail": type(e).__name__})
     for f in map(Path, sql_files):
@@ -556,10 +579,12 @@ def build(source: str, app_roots=(), sql_files=(), db_runs=(), project_dir=None,
         "sources": sources,
         "statements": statements,
         "unavailable": unavailable,
+        "unextracted": unextracted,
         "problems": problems,
         "summary": {"statements": len(statements), "by_origin": count(lambda s: s["origin"]["kind"]),
                     "by_category": count(lambda s: s["category"]), "dynamic": sum(s["dynamic"] for s in statements),
                     "jpql": sum(s["language"] == "jpql" for s in statements), "unavailable": len(unavailable),
+                    "unextracted": len(unextracted),
                     "problems": len(problems)},
     }
 
@@ -612,8 +637,8 @@ def main(argv=None) -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     s = result["summary"]
-    print(f"{s['statements']} statements ({s['dynamic']} dynamic, {s['jpql']} JPQL), "
-          f"{s['unavailable']} unavailable, {s['problems']} problems -> {out}")
+    print(f"{s['statements']} statements ({s['dynamic']} dynamic, {s['jpql']} JPQL), {s['unextracted']} unextracted "
+          f"calls, {s['unavailable']} unavailable, {s['problems']} problems -> {out}")
     return 2 if result["problems"] else 0
 
 
