@@ -5,12 +5,14 @@ refusal to touch a production database, and results written back to the manifest
 import copy
 import datetime
 import decimal
+import io
 import json
 import os
 import sys
 import tempfile
 import textwrap
 import unittest
+from contextlib import redirect_stderr
 from pathlib import Path
 from unittest import mock
 
@@ -38,10 +40,11 @@ SQL = textwrap.dedent("""\
 
 class FakeSource:
     def __init__(self, answers):
-        self.answers, self.queries = answers, []
+        self.answers, self.queries, self.params = answers, [], []
 
-    def rows(self, sql):
+    def rows(self, sql, params=None):
         self.queries.append(sql)
+        self.params.append(params)
         for fragment, answer in self.answers.items():
             if fragment in sql:
                 return answer
@@ -231,6 +234,52 @@ class GoldenTests(Project):
         self.assertIn("com.scalar.migrate.appside.golden.GoldenCheck", calls[0])
         self.assertEqual(golden.check(self.id["tree"], self.generated, "com.example.shop.migration", java=lambda cmd: 0)["outcome"], "pass")
         self.assertEqual(golden.check(self.id["tree"], self.generated, "com.example.shop.migration", java=lambda cmd: 2)["outcome"], "error")
+
+    def test_capture_refuses_a_statement_that_does_not_run_as_written(self):
+        with self.assertRaisesRegex(ValueError, r"bind parameters.*--query"):
+            golden.capture(self.entry(self.manifest, "bound"), self.inventory, self.root, FakeSource({}), self.generated, "oracle")
+
+    def test_capture_runs_a_rendering_with_its_parameters_and_records_both(self):
+        rendered = "SELECT NVL(total, 0) AS t FROM orders WHERE customer_id = :customer ORDER BY order_no"
+        source = FakeSource({"SELECT * FROM orders": (["customer_id", "total"], [[1, 7]]), "NVL(total": (["t"], [[7]])})
+        path = golden.capture(self.entry(self.manifest, "bound"), self.inventory, self.root, source, self.generated, "oracle",
+                              rendering={"sql": rendered, "params": {"customer": 1}})
+        data = json.loads(path.read_text())
+        self.assertEqual((source.queries[-1], source.params[-1]), (rendered, {"customer": 1}))
+        self.assertEqual((data["query"], data["params"], data["rendering"]), (rendered, {"customer": 1}, "user"))
+        self.assertTrue(data["ordered"])
+        self.assertEqual(data["tables"]["orders"], [{"customer_id": 1, "total": 7}])
+        self.assertEqual(data["expected"], {"columns": ["t"], "rows": [[7]]})
+
+    def test_a_rendering_is_one_read_with_every_marker_bound(self):
+        entry = self.entry(self.manifest, "bound")
+        for sql, params, message in [("UPDATE orders SET total = 0", {}, "one SELECT"),
+                                     ("SELECT total FROM orders; SELECT total FROM orders", {}, "one SELECT"),
+                                     ("SELECT total FROM orders WHERE customer_id = :customer", {}, "no value for :customer")]:
+            with self.subTest(sql=sql), self.assertRaisesRegex(ValueError, message):
+                golden.capture(entry, self.inventory, self.root, FakeSource({}), self.generated, "oracle",
+                               rendering={"sql": sql, "params": params})
+
+    def test_parameters_are_typed_from_the_command_line(self):
+        self.assertEqual(golden.parse_params(["customer=1", "status=PAID", "ratio=1.5", 'note="42"']),
+                         {"customer": 1, "status": "PAID", "ratio": 1.5, "note": "42"})
+        with self.assertRaisesRegex(ValueError, "NAME=VALUE"):
+            golden.parse_params(["customer"])
+
+    def test_a_query_file_renders_exactly_one_statement(self):
+        err = io.StringIO()
+        with redirect_stderr(err):
+            code = golden.main(["capture", "--project-dir", str(self.root), "--out", str(self.generated), "--profile", "p.json",
+                                "--query", "q.sql", "--id", "SQM-001", "--id", "SQM-002"])
+        self.assertEqual(code, 1)
+        self.assertIn("--query renders one statement", err.getvalue())
+
+    def test_named_markers_become_the_driver_style(self):
+        sql = "SELECT a::int, '%:x' FROM t WHERE b = :b AND c LIKE 'p%' AND d = :d"
+        self.assertEqual(common.driver_sql(sql, "postgresql"),
+                         "SELECT a::int, '%%:x' FROM t WHERE b = %(b)s AND c LIKE 'p%%' AND d = %(d)s")
+        self.assertEqual(common.driver_sql(sql, "oracle"), sql)
+        self.assertEqual(common.markers("WHERE b = :b AND x = ':y' AND c = :b"), ["b"])
 
 
 class RecordTests(Project):
