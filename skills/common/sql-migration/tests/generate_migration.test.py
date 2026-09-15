@@ -35,6 +35,7 @@ SQL = textwrap.dedent("""\
     SELECT order_no, LEVEL FROM orders START WITH order_no = 1 CONNECT BY PRIOR order_no = customer_id;
     UPDATE orders SET total = total - 1 WHERE customer_id = 1 AND order_no = 2;
     SELECT order_no FROM orders WHERE status = 'X' ORDER BY total;
+    INSERT INTO orders (customer_id, order_no, status, total) VALUES (1, order_seq.NEXTVAL, TO_CHAR(SYSDATE, 'YYYY'), 0);
     """)
 
 VERSIONS = {"schema_version": 1, "checked_at": "2026-09-15T00:00:00Z", "confirmed_by_user": True, "entries": [
@@ -64,7 +65,8 @@ class GenerateMigrationTests(unittest.TestCase):
         self.ids = {name: by_prefix(inv, prefix) for name, prefix in {
             "get": "SELECT total", "scan": "SELECT order_no FROM orders WHERE total", "plan": "SELECT NVL",
             "tree": "SELECT order_no, LEVEL", "rmw": "UPDATE orders", "seq": "CREATE SEQUENCE",
-            "redesign": "SELECT order_no FROM orders WHERE status", "table": "CREATE TABLE"}.items()}
+            "redesign": "SELECT order_no FROM orders WHERE status", "table": "CREATE TABLE",
+            "insert": "INSERT INTO orders"}.items()}
         for entry in manifest["statements"]:
             entry["rationale"] = "decided with the user"
             if entry["id"] == self.ids["scan"]:
@@ -114,6 +116,27 @@ class GenerateMigrationTests(unittest.TestCase):
         executor = self.java("MigrationPlans.java")
         self.assertIn(f'"{self.ids["plan"]}"', executor)
         self.assertIn("fetcher.begin()", executor)
+
+    def test_plans_and_statements_keep_the_target_namespace(self):
+        self.generate()
+        plan = json.loads((self.out / f"src/main/resources/plans/{self.ids['plan']}.plan.json").read_text())
+        self.assertEqual({f["namespace"] for f in plan["fetch"]}, {"shop"})
+
+    def test_a_plan_without_a_namespace_refuses_generation(self):
+        self.rewrite(BASE / "schema.json", lambda s: s.update({"orders": s.pop("shop.orders")}))
+        with self.assertRaises(generate_migration.GateFailure) as refused:
+            self.generate()
+        self.assertIn(f"{self.ids['plan']}: the plan fetches orders without a namespace", str(refused.exception))
+
+    def test_a_write_that_needs_ids_and_the_clock_gets_a_write_skeleton_with_both(self):
+        self.generate()
+        stem = self.ids["insert"].replace("-", "").capitalize()
+        write = self.java(f"appside/{stem}Write.java")
+        self.assertIn("LongSupplier", write)
+        self.assertIn("Clock", write)
+        self.assertFalse((self.out / f"src/main/java/com/example/shop/migration/appside/{stem}IdGenerator.java").exists())
+        self.assertTrue((self.out / "src/main/java/com/example/shop/migration/appside"
+                         / f"{self.ids['seq'].replace('-', '').capitalize()}IdGenerator.java").is_file())
 
     def test_core_api_statements_become_an_interface_to_implement(self):
         self.generate()
