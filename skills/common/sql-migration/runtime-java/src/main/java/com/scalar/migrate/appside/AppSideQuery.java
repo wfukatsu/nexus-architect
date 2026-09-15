@@ -11,4 +11,12 @@ import java.util.Map;
  */
 public interface AppSideQuery {
   List<Map<String, Object>> run(Map<String, List<Map<String, Object>>> tables);
+
+  /**
+   * The query with the values of its bind parameters (and of any substitution, such as a column to order by), keyed by
+   * name; a golden check passes golden.json's "params". Queries without parameters keep only the one-argument form.
+   */
+  default List<Map<String, Object>> run(Map<String, List<Map<String, Object>>> tables, Map<String, Object> params) {
+    return run(tables);
+  }
 }

@@ -87,10 +87,44 @@ SKILL.md、登録、カタログ、サンプル、文書は `c273f6a`、`797fc0a
 
 スキップの理由はすべて manifest の `verification` にそのまま書き戻され、`verified` は実際に一致した 1 文だけだった。
 
+## golden 検証（実 DB）
+
+2026-09-15、使い捨ての PostgreSQL 18.6 コンテナで golden 検証を実行した。
+
+**見つかった問題**: そのままでは、サンプルの app_side の読み取り 3 文をどれも取得できなかった。
+`golden.py capture` はインベントリの本文をそのまま移行元 DB で実行するが、SQM-010 は JPQL、SQM-012 は
+`${column}` を含む動的 SQL、SQM-015 はバインド変数付きである。さらに `AppSideQuery.run(tables)` にはパラメータを
+渡す口が無かった。利用者の承認を得て、テスト先行で次のように直した。
+
+| 単位 | Red | Green |
+|---|---|---|
+| capture が実行できない文を拒否し、利用者の具体化（`--query` の SELECT 1 文と `--param` の値）を受けて、golden.json に記録する | `f3cbfc5` | `0a1782f` |
+| `AppSideQuery.run(tables, params)` と、GoldenCheck からのパラメータの受け渡し（ランタイムを nexus 側で拡張） | `e2b8c51` | `6f2ce13` |
+| パラメータを受ける読み取りには、生成する雛形に `run(tables, params)` を出す | `c212d64` | `fedb6a4` |
+
+あわせて、`references/operations.md` の golden の節が `golden.py` の受け付けない引数（`--setup`、`--tables`、
+`--golden`、`--impl`）を案内していた誤りを直した。
+
+**実行結果**:
+
+| 文 | 具体化（利用者が確認する形） | 取得 | 結果 |
+|---|---|---|---|
+| SQM-010 | JPQL を `SELECT customer_id, name, region, vip FROM customers WHERE vip = TRUE` に | 2 行 | **verified** |
+| SQM-012 | `${column}` = `total`（NULL を含む列。PostgreSQL は昇順で NULL を最後に置く） | 8 行（順序付き） | **verified** |
+| SQM-015 | `<if>` の分岐を両方通し、`status = 'PAID'`、`minTotal = 5000` | 2 行 | **verified** |
+
+- 未実装の雛形では、3 文とも GoldenCheck が例外で終了して `error` になり、検証状態は変わらなかった
+  （ハーネスの異常は判定にしない、という規則どおり）。
+- 検査が素通りでないことも確認した。SQM-012 の実装を NULL 先頭に変えると `fail` になり（記録はしていない）、
+  元に戻すと再び `pass` になった。
+- 記録後もバリデータは成功した（16 文）。verified は具体化した 1 通りだけを証明する。SQM-012 の他の列、
+  SQM-015 の分岐を片方だけ通す場合などは、未検証のままである。
+
 ## 未検証
 
-- **golden 検証の実 DB での取得**: `golden.py capture` を移行元 DB に対して実行していない。app_side の 6 文は
-  `skipped` のまま。
+- **app_side の書き込み**（SQM-002、008、016）: golden は読み取りだけが対象。書き込みは単体テストか、ScalarDB を
+  使った結合テストで確かめる必要がある。
+- **golden で具体化しなかった変形**: SQM-012 の `total` 以外の列、SQM-015 の分岐の片方だけを通す場合など。
 - **ScalarDB SQL（JDBC）経路**: ScalarDB Cluster とライセンスが無いため未検証。
 - **変換器自体の文言の誤り**（上表）は元リポジトリで扱う。2026-09-15 に次の Issue を登録した。
   - [#1](https://github.com/wfukatsu/sql-migration/issues/1): SUM の文言の矛盾

@@ -38,13 +38,22 @@ Capturing is the only step that needs the source database, and it runs only agai
 authorized, through an environment-reference profile (the same shape as `/architect:investigate-db-live`).
 
 ```bash
-# once, with the source database
+# once, with the source database: the statement's tables and its result into <module>/src/test/resources/golden/SQM-###/
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/common/sql-migration/scripts/verify/golden.py" capture \
-  --profile <private/profile.json> --setup <setup.sql> --query <query.sql> --tables <t1>,<t2> --out <golden-dir>
-# afterwards, no database
+  --project-dir <project_dir> --profile <private/profile.json> --out <generated module> --id <SQM-###>
+# a JPQL, dynamic or parameterised statement: one concrete SELECT with :name markers, and its values
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/common/sql-migration/scripts/verify/golden.py" capture \
+  --project-dir <project_dir> --profile <private/profile.json> --out <generated module> --id <SQM-###> \
+  --query <rendering.sql> --param status=PAID --param minTotal=5000
+# afterwards, no database: GoldenCheck runs <package>.appside.Sqm###Query from the built module
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/common/sql-migration/scripts/verify/golden.py" check \
-  --golden <golden-dir> --impl <fully.qualified.AppSideQueryClass> --cp <generated module classes>
+  --project-dir <project_dir> --out <generated module> --package <java.package> --id <SQM-###> [--record]
 ```
+
+Capture refuses a table over `--max-rows`, and a statement that cannot run as written unless it is rendered. A
+rendering must parse as one SELECT with a value for every marker. Its values reach the implementation through
+`AppSideQuery.run(tables, params)`, including values without a marker, such as the column of a `${column}`
+substitution. Build the module (`gradle build`) before `check`.
 
 See references/app-side-notes.md for the comparison rules.
 

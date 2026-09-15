@@ -11,6 +11,7 @@ import datetime
 import decimal
 import importlib.util
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -84,6 +85,31 @@ def is_ordered(sql, dialect):
         return False
 
 
+SQL_TOKEN = re.compile(r"'(?:[^']|'')*'|(?<![:\w]):([A-Za-z_]\w*)|%")
+
+
+def markers(sql):
+    """Named bind markers (:name) outside string literals, each once, in order of first use."""
+    names = []
+    for match in SQL_TOKEN.finditer(sql):
+        if match.group(1) and match.group(1) not in names:
+            names.append(match.group(1))
+    return names
+
+
+def driver_sql(sql, product):
+    """sql for a driver call with parameters: :name -> %(name)s with every % doubled (psycopg, PyMySQL); Oracle binds :name."""
+    if product == "oracle":
+        return sql
+
+    def token(match):
+        if match.group(1):
+            return f"%({match.group(1)})s"
+        return match.group(0).replace("%", "%%")
+
+    return SQL_TOKEN.sub(token, sql)
+
+
 def tables_of(sql, dialect):
     import sqlglot
     from sqlglot import exp
@@ -150,12 +176,16 @@ class SourceDatabase:
             self.connection = oracledb.connect(**params)
             self.connection.call_timeout = QUERY_TIMEOUT_MS
 
-    def rows(self, sql):
+    def rows(self, sql, params=None):
+        """params binds the :name markers of sql; None runs it as it is."""
         cursor = self.connection.cursor()
         try:
             if self.config["product"] == "oracle":
                 cursor.execute("SET TRANSACTION READ ONLY")
-            cursor.execute(sql)
+            if params is None:
+                cursor.execute(sql)
+            else:
+                cursor.execute(driver_sql(sql, self.config["product"]), params)
             columns = [d[0].lower() for d in cursor.description]
             fetched = cursor.fetchmany(self.max_rows + 1)
             if len(fetched) > self.max_rows:
