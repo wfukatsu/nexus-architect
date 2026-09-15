@@ -66,9 +66,30 @@ SKILL.md、登録、カタログ、サンプル、文書は `c273f6a`、`797fc0a
 3. **修正後の再実行**: 現在のスクリプトでサンプルを最後まで通し、実行計画の namespace が `shop` になること、
    書き込みの雛形がコンパイルできること（`gradle build` 成功）を確認した。
 
+## 差分テスト（実 DB）
+
+2026-09-15、使い捨ての PostgreSQL 18.6 コンテナで `verify-sql-migration` の差分テストを Core API 経路で実行した。
+
+- 移行元 DB `shop_source` にサンプルの DDL と seed を投入。ScalarDB 側のバックエンドは同じコンテナの別 DB `scalardb`
+  とし、Schema Loader 3.19.1（`--coordinator`）で `schema.json` を適用して、`residual-runner load` で同じ行
+  （customers 4、orders 8、order_items 10、stock 5）を入れた。
+- 接続情報はその場で生成し、権限 600 のファイルと環境変数の参照（`environment: local`）だけで渡した。
+- `difftest.py --fetcher core --record` の結果は **pass 1、skipped 10**、終了コード 0。記録後もバリデータは成功した
+  （16 文）。
+
+| 文 | 経路 | 結果 |
+|---|---|---|
+| SQM-001 | plan | **verified**（元 DB と ScalarDB + H2 の結果集合が一致） |
+| SQM-011 | plan | skipped（バインド変数付き。golden か単体テストで確かめる） |
+| SQM-009、013、014 | scalardb_sql | skipped（ScalarDB Cluster とライセンスが必要） |
+| SQM-002、008、010、012、015、016 | app_side | skipped（golden で確かめる） |
+| SQM-003〜007 | schema | pending（差分テストの対象外。Schema Loader の適用は成功） |
+
+スキップの理由はすべて manifest の `verification` にそのまま書き戻され、`verified` は実際に一致した 1 文だけだった。
+
 ## 未検証
 
-- **差分テストと golden 検証の実 DB 実行**: 使い捨ての PostgreSQL コンテナで行う予定だったが、Docker デーモンが
-  停止していたため未実施。手順は scratchpad の `verify-smoke.sh` に用意してある。
+- **golden 検証の実 DB での取得**: `golden.py capture` を移行元 DB に対して実行していない。app_side の 6 文は
+  `skipped` のまま。
 - **ScalarDB SQL（JDBC）経路**: ScalarDB Cluster とライセンスが無いため未検証。
 - **変換器自体の文言の誤り**（上表）は元リポジトリで扱う。
