@@ -12,9 +12,15 @@ ALL_ views list objects visible to the connected reader. Integration grants CREA
 plus SELECT on the fixture tables/views, not DBA privileges. ALL_TAB_COLUMNS includes views
 and clusters, so the query explicitly restricts table columns to ALL_TABLES.
 NUMBER precision/scale and character length semantics are retained; vendor type extensions
-outside these common types still require source review. Oracle C constraints include NOT NULL
-constraints as well as explicit CHECKs; expressions are withheld, so do not distinguish them
-without additional source evidence. No ALL_SOURCE or LONG definition bodies are exported.
+outside these common types still require source review. Oracle stores every NOT NULL as a C
+constraint; the constraints query excludes those whose `SEARCH_CONDITION_VC` is exactly
+`"<column>" IS NOT NULL` (nullability is already `ALL_TAB_COLUMNS.NULLABLE`), so `check` means
+a declared CHECK, as in the DDL and the other adapters. The condition is matched in the query and
+never returned. A hand-written `CHECK ("A" IS NOT NULL)` has the same stored form and is excluded
+too. No ALL_SOURCE or LONG definition bodies are exported.
+
+DBMS_METADATA output (`CREATE OR REPLACE EDITIONABLE PROCEDURE ...`) is recognised as a PL/SQL
+block offline, so its body is not split at inner semicolons.
 
 Rows are optimizer estimates with native LAST_ANALYZED timestamps. USER_SEGMENTS is owner-only;
 it cannot describe a different owner's capacity using a restricted reader. Partition topology

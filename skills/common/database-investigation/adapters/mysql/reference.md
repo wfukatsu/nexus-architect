@@ -7,7 +7,12 @@ MariaDB, TiDB and Aurora require separately verified adapters.
 Database equals schema. Preserve table/column spelling: do not infer identifier folding
 without the target's lower_case_table_names and SQL mode. MySQL routine DELIMITER blocks are
 recognized offline; executable version comments are marked unsupported rather than discarded.
-Indexes are table-qualified in live object IDs since index names are table-local.
+Index names are table-local, so both modes name an index `<table>.<index>` (`index_scope:
+table`), and a design run and a live run of the same schema agree on its ID. mysqldump declares
+indexes inside CREATE TABLE (`KEY`, `INDEX`, `UNIQUE KEY`, `FULLTEXT KEY`, `SPATIAL KEY`);
+`inline_indexes` reads them as index objects, never as columns. A prefix length or expression
+part (`KEY ix (name(10))`) is unsupported and left to source review. `compatible_markers` rejects
+MariaDB, TiDB and Aurora from the probe's product and version strings.
 
 The integration reader has SELECT and SHOW VIEW on its fixture database. Extra monitoring
 privileges are optional. Never enable instruments or consumers to complete a report.

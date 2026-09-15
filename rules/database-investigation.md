@@ -12,6 +12,8 @@ Applies to `investigate-db-design` and `investigate-db-live`.
   query business rows, enable diagnostics, refresh statistics, or execute user-supplied SQL.
 - Credentials stay in environment references/Wallets, never argv, Git, reports or error logs.
   Default to verified TLS; plaintext is only for explicitly authorized loopback test servers.
+- Content withheld by policy (defaults, check expressions, comments, definitions) is listed as
+  `withheld` and is not a coverage gap; a gap is a status. Never report one as the other.
 - Empty, inaccessible, disabled, unsupported, timeout and truncation are distinct outcomes.
   Limit queries, rows and time; always release the connection. A partial report is not success
   without qualifications. Fatal identification/connection errors never produce a complete run.

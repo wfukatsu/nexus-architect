@@ -11,6 +11,17 @@ Catalog visibility is not blanket authorization to application data. The integra
 has schema USAGE and SELECT on the fixture tables/views. No superuser or extension installation
 is required. Permission failures remain partial collection. Default sessions are read-only.
 
+Partitions (`relispartition`) are not listed as tables, and their cloned constraints, indexes
+and triggers are not repeated; the partitioned parent carries the declared structure. Their
+statistics are kept with `granularity: partition` / `partition_index`, so a partition is never
+counted as a table. Partition bounds and topology are not reconstructed.
+
+The probe also returns `compatible_product`: the names of Aurora (`aurora_version`) or
+YugabyteDB (`yb_servers`) functions when present. Both report a PostgreSQL `version()`, so the
+probe fails closed on them instead of trusting the version string; `compatible_markers` adds
+the version-string forms (`-YB-`). Other forks remain undetected — treat an unexpected build
+string as a question for the user.
+
 Metrics: estimated live rows, measured total relation bytes, cumulative index scans. PostgreSQL
 partitioned parent storage and counters are not necessarily a recursive total over partitions;
 do not sum or compare these blindly. Empty/null statistics do not prove a table is empty.

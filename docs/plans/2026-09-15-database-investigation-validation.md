@@ -78,6 +78,26 @@ Codex標準 `quick_validate.py` はClaude互換の `model` / `user_invocable` �
 
 TLS/Walletの設定経路は実装したが、今回のloopbackコンテナ検証は明示的な平文接続であり、実証明書/Walletを使った接続は未検証。予算はquery/driver単位の制限で、ネットワーク切断やcleanupを含む厳密なwall-clock SLAではない。
 
+## レビュー指摘の修正と再検証（2026-09-15）
+
+ブランチレビューで、実際のdump形式のDDLを入力すると誤った事実が出る問題を再現した。各項目はテストを先に追加して失敗を確認してから修正した。
+
+| 指摘 | 修正 | 検証 |
+|---|---|---|
+| mysqldumpの `KEY idx (col)` が列として記録される | `inline_indexes` を持つadapterでは表内の `KEY`/`INDEX`/`UNIQUE KEY`/`FULLTEXT KEY` を索引objectとして読む。MySQLの索引名は設計・liveとも `<table>.<index>` | `design.test.py`（PostgreSQLでは `key` 列が引き続き列になることも確認） |
+| 解析を打ち切った列が `nullable: true` になる | NULL句を読む前に止まった列は `null`（不明） | `design.test.py` |
+| Oracleで `--schema` の大小文字差により一部の表が黙って除外される | 大小文字だけ異なるownerは `not_collected` と `schema_case_mismatch` findingで明示 | `design.test.py` |
+| pg_dumpのPK/FKがすべて失われる | `ALTER TABLE ONLY`、`ON DELETE/UPDATE`、`CREATE INDEX ... USING`、`SET`/`set_config`/`OWNER TO` に対応。search_pathの変更は `not_collected` | `design.test.py`、pg_dump形式の入力で終了0 |
+| Oracle liveでNOT NULLがcheck制約として出る | `SEARCH_CONDITION_VC` が `"<列>" IS NOT NULL` のC制約を除外（条件は返さない） | 統合テストで設計↔liveの制約種別を双方向比較に強化、Oracle 23.26.3でPASS |
+| PostgreSQLのパーティション子表が表として出る | `relispartition` を表・列・制約・索引・トリガーから除外し、統計は `granularity: partition` で保持 | 使い捨てPGコンテナの一時スキーマで確認後に削除 |
+| 状態とreasonの不一致、DEFAULTによるunsupportedの上書き | 1文の状態は最も重い結果、reasonはその状態のもの | `design.test.py` |
+| 方針上の非収集だけでexit 2になる | 既定式・check式・コメント・定義本文は `withheld` に記録し状態を変えない | `design.test.py`、`cli.test.py` |
+| Aurora/YugabyteDBがPostgreSQLとして通る | probeが `aurora_version`/`yb_servers` の有無を返し、adapterの `compatible_markers` と合わせて拒否 | `contract.test.py`、実PGでprobe列を確認 |
+
+あわせて、helperの全オプションをcontractに表で記載した。`investigate-db-live` には `disable-model-invocation: true` を付けた。生成レポートのfrontmatterには `phase`/`generated_at`/`input_files` を追加し、両SKILL.mdをhouse structureに揃えた。CLAUDE.mdのテスト表も更新した。
+
+再検証：`bash tools/run-tests.sh` 26/26成功。統合テスト3製品（PostgreSQL 18.6、MySQL 8.4.11、Oracle Free 23.26.3.0.0）は既存fixtureに対し初期化なしで再実行し、終了0。dump形式の入力で生成したinventoryは `jsonschema` で検証し、レポートは両hookを通過した。
+
 ## テスト先行の履歴
 
 主な単位でRed→Green→Refactorを記録した。
@@ -89,3 +109,11 @@ TLS/Walletの設定経路は実装したが、今回のloopbackコンテナ検�
 | CLI・成果物 | `ca560d6` | `af000fc` | `50e2067` |
 
 後続の不具合も、式索引/証拠参照 `cfb5ec9`、版表記 `04371a8`、取得上限/統計無効 `8a16965`、Oracle timeout `72f7fd1` の失敗テストを修正前に記録した。接続実装・固定SQLは実インフラアダプタとして実DB検証を実施。文書・登録・表示のみの変更は独立のTDD単位にしていない。
+
+レビュー指摘の修正も同じ順序で記録した。
+
+| 単位 | Red | Green |
+|---|---|---|
+| dump形式DDLの読解 | `f771984` | `d568576` |
+| カタログの重複・パーティション・互換製品 | `d75e74a` | `726606d` |
+| レポートfrontmatter | `dd59f57` | `2d62595` |
