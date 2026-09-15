@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.41.0] - 2026-09-15
+
+### Added
+- **`/architect:design-sql-migration` — one route per SQL statement, decided from the analysis.**
+  Moving existing SQL to ScalarDB used to stop at a prose impact assessment. The new skill builds an
+  inventory of every statement: DDL and view/routine bodies re-read through the evidence lines of an
+  explicitly selected investigation run, application SQL (MyBatis XML, JDBC strings, Spring and JPA
+  `@Query`, SQL resources) and user SQL files. It runs the vendored converter over the inventory and
+  records one route per statement in the migration manifest (`SQM-###`): `schema`, `scalardb_sql`,
+  `core_api`, `plan`, `app_side`, `redesign` or `retire`. Routes are bound to the converter's verdict
+  and gated by the edition (ScalarDB SQL requires Enterprise Premium). Dynamic SQL is flagged and
+  never routed automatically without the user's confirmation, and calls static reading cannot
+  resolve are counted. Literals are masked in reports and full text is re-extracted from the source,
+  which raises `StaleEvidence` when the source changed.
+- **`/architect:implement-sql-migration` — the migration module, generated from the manifest alone.**
+  A Gradle module under `generated/sql-migration/<namespace>/` with ScalarDB SQL, `schema.json`,
+  execution plans (ScalarDB fetches plus an H2 residual query), Core API statements, and
+  application-side queries with disabled golden tests. Write skeletons take an injected
+  `LongSupplier` and `Clock` and roll back except on `UnknownTransactionStatusException`. An offline
+  gate refuses on converter drift, a stale source, an invalid manifest, missing versions, a plan
+  without a namespace or a foreign output directory; every plan must pass
+  `residual-runner validate`.
+- **`/architect:verify-sql-migration` — the routes proven on data.** It runs only when explicitly
+  invoked. A golden check compares application-side code with results captured once from the source
+  database, and an optional differential test compares the source database with ScalarDB on
+  disposable containers. Production and unstated environments are refused, credentials come only
+  from environment references, and evidence carries no row values. `verified` is written back only
+  for what was actually compared; everything else records `skipped` with its reason.
+- **Vendored converter and runtime** (`skills/common/sql-migration/`): a copy of
+  [wfukatsu/sql-migration](https://github.com/wfukatsu/sql-migration), translated to English, with
+  `PROVENANCE.md` recording the upstream commit, what was removed and changed, and the re-import
+  procedure. The converter runs on sqlglot 30.18.0, now pinned in `requirements.txt`; the Java
+  runtime on ScalarDB 3.19.1, H2 2.5.250, Gson 2.14.0 and slf4j-simple 2.0.18.
+- **`rules/sql-migration.md` and its validator.** `tools/lib/sql_migration_manifest.py` enforces the
+  contract: every statement decided once, routes consistent with converter status, DDL, JPQL and
+  edition, per-route payloads, keys against `schema.json`, evidence lines that still exist,
+  verification states with method and evidence.
+- **`samples/sql-migration-shop/`** — 16 statements across PostgreSQL DDL, MyBatis, JDBC, JPA and a
+  batch SQL file, with an answer key.
+
+### Changed
+- `/architect:migrate-database` points at the new chain for application SQL.
+- Catalogues, counts (115 commands, extension tier 24), AGENTS.md, OMNIGENT.md, input requirements
+  and CLAUDE.md include the three skills.
+
+### Verified
+- 35/35 contract suites; the vendored runtime's 37 Java tests.
+- The sample end to end in Auto Mode: validator, `gradle build` of the generated module and
+  `residual-runner validate` on every plan, with every route matching the answer key.
+- A differential test on a disposable PostgreSQL 18.6 container through the Core API: one plan
+  verified, ten statements skipped with their reasons. Golden capture against a real source
+  database and the ScalarDB SQL (JDBC) path, which needs ScalarDB Cluster and a license, are not yet
+  verified.
+- Four problems in the vendored code were reported upstream (wfukatsu/sql-migration#1–#4), fixed
+  there and re-imported where they apply.
+
 ## [0.40.0] - 2026-09-15
 
 ### Added

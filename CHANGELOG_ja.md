@@ -7,6 +7,61 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.41.0] - 2026-09-15
+
+### Added
+- **`/architect:design-sql-migration` — 分析結果から、SQL 文ごとに移行経路を 1 つ決める。**
+  既存 SQL の ScalarDB への移行は、これまで散文の影響評価で止まっていた。新しいスキルは、次の出どころから全文の
+  インベントリを作る。
+  - DDL とビュー・ルーチン本体: 明示して選んだ調査 run の証拠行から、元のソースを読み直す。
+  - アプリの SQL: MyBatis XML、JDBC の文字列、Spring と JPA の `@Query`、SQL リソース。
+  - 利用者が渡す SQL ファイル。
+
+  複製した変換器をインベントリにかけ、文ごとの経路を移行マニフェスト（`SQM-###`）に記録する。経路は `schema`・
+  `scalardb_sql`・`core_api`・`plan`・`app_side`・`redesign`・`retire` のいずれかで、変換器の判定に縛られ、
+  エディションで制限される（ScalarDB SQL は Enterprise Premium）。動的 SQL は印を付け、利用者の確認なしに自動の
+  経路へは回さない。静的に読めない呼び出しは件数を数える。レポートではリテラルを伏せ、全文はソースから取り直す。
+  ソースが変わっていれば `StaleEvidence` になる。
+- **`/architect:implement-sql-migration` — マニフェストだけから移行モジュールを生成する。**
+  `generated/sql-migration/<namespace>/` に Gradle モジュールを出力する。中身は次のとおり。
+  - ScalarDB SQL、`schema.json`、Core API の文
+  - 実行計画（ScalarDB からの取得と H2 の残差クエリ）
+  - アプリ側のクエリと、無効化した golden テスト
+  - 書き込みの雛形。`LongSupplier` と `Clock` を注入し、`UnknownTransactionStatusException` 以外ではロールバックする
+
+  オフラインゲートは、変換器の結果のずれ、古いソース、不正なマニフェスト、版の欠落、namespace の無い計画、
+  別の出力先を拒否する。すべての計画は `residual-runner validate` を通らなければならない。
+- **`/architect:verify-sql-migration` — 経路をデータで確かめる。** 明示的に呼んだときだけ動く。
+  - golden 検証: アプリ側のコードを、移行元 DB から一度だけ取った結果と比べる。
+  - 差分テスト（任意）: 使い捨てコンテナで、移行元 DB と ScalarDB の結果を比べる。
+
+  本番や環境の明示が無い接続先は拒否し、認証情報は環境変数の参照からだけ取る。証拠には行の値を残さない。
+  `verified` は実際に比べた文にだけ書き戻し、それ以外は理由付きの `skipped` を記録する。
+- **複製した変換器とランタイム**（`skills/common/sql-migration/`）: [wfukatsu/sql-migration](https://github.com/wfukatsu/sql-migration)
+  を英語に訳して複製した。元のコミット、外した部分と変えた部分、取り込み直す手順は `PROVENANCE.md` に記録した。
+  変換器は sqlglot 30.18.0（`requirements.txt` に固定）で、Java ランタイムは ScalarDB 3.19.1、H2 2.5.250、
+  Gson 2.14.0、slf4j-simple 2.0.18 で動く。
+- **`rules/sql-migration.md` とバリデータ。** `tools/lib/sql_migration_manifest.py` が次の契約を検査する。
+  - 全文がちょうど 1 回決定されている。
+  - 経路が変換器の判定、DDL、JPQL、エディションと矛盾しない。
+  - 経路ごとの必須項目、`schema.json` に対するキー、今も存在する証拠行、方法と証拠を伴う検証状態。
+- **`samples/sql-migration-shop/`** — PostgreSQL の DDL、MyBatis、JDBC、JPA、バッチ SQL にまたがる 16 文と、
+  その答え表。
+
+### Changed
+- `/architect:migrate-database` は、アプリの SQL について新しい 3 スキルを案内する。
+- カタログ、件数（115 コマンド、拡張ティア 24）、AGENTS.md、OMNIGENT.md、入力要件、CLAUDE.md に 3 スキルを載せた。
+
+### Verified
+- 契約スイート 35/35、複製したランタイムの Java テスト 37 件。
+- サンプルを Auto Mode で最後まで通した。バリデータ、生成モジュールの `gradle build`、全計画の
+  `residual-runner validate` が成功し、全経路が答え表と一致した。
+- 使い捨ての PostgreSQL 18.6 コンテナで、Core API 経由の差分テストを実行した。計画 1 文が verified、10 文が理由付きで
+  skipped。実際の移行元 DB からの golden 取得と、ScalarDB SQL（JDBC）経路（ScalarDB Cluster とライセンスが必要）は
+  未検証。
+- 複製したコードの問題 4 件を元リポジトリに報告し（wfukatsu/sql-migration#1–#4）、そこで修正されたものを、
+  該当する範囲で取り込んだ。
+
 ## [0.40.0] - 2026-09-15
 
 ### Added
