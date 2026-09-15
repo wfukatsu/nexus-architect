@@ -83,6 +83,10 @@ This skill opens database connections, so it runs only when explicitly invoked.
    ```bash
    python3 "${CLAUDE_PLUGIN_ROOT}/skills/common/sql-migration/scripts/verify/golden.py" capture \
      --project-dir <project_dir> --profile <private/profile.json> --out <generated module> --id <SQM-###>
+   # a JPQL, dynamic or parameterised statement, through a rendering the user confirmed
+   python3 "${CLAUDE_PLUGIN_ROOT}/skills/common/sql-migration/scripts/verify/golden.py" capture \
+     --project-dir <project_dir> --profile <private/profile.json> --out <generated module> --id <SQM-###> \
+     --query <rendering.sql> --param <name>=<value>
    python3 "${CLAUDE_PLUGIN_ROOT}/skills/common/sql-migration/scripts/verify/golden.py" check \
      --project-dir <project_dir> --out <generated module> --package <java.package> --id <SQM-###> --record
    ```
@@ -90,6 +94,20 @@ This skill opens database connections, so it runs only when explicitly invoked.
    Capture only when the user authorized it; it refuses a table over its row bound (a golden set is a fixture, not a
    copy of production). A statement whose skeleton still throws fails — that is the expected state before it is
    implemented.
+
+   Capture also refuses a statement that cannot run as the inventory holds it: JPQL, dynamic SQL, or a statement with
+   bind parameters. Such a statement is proven through a **rendering**: one concrete SELECT in the source dialect,
+   with `:name` markers, and the values that go with it. Pass the rendering file and one `<name>=<value>` pair per value
+   to the capture, as in the second command above, with exactly one statement ID. Values parse as JSON when they can
+   (`1`, `1.5`, `true`), otherwise as text. A value without a marker still reaches the implementation, for example the
+   column a `${column}` substitution orders by.
+   - **The user chooses the rendering.** Propose the JPQL translation, the dynamic branch taken and the values, then
+     confirm them before capturing, because they decide which variant the proof covers. In `--auto`, do not render:
+     record the statement `skipped` with that reason.
+   - `golden.json` records `"rendering": "user"` and the `params`. The check passes those params to the
+     implementation's `run(tables, params)`, which the generated skeleton of a parameterised read already declares.
+   - A verified rendering proves that variant only. Name the rendering and its values in the report's Results row,
+     and list the variants not captured under Unproven.
 4. **Differential tests** (`--mode=difftest|all`):
 
    ```bash

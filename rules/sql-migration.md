@@ -79,6 +79,10 @@ cannot narrow becomes a cross-partition scan.
 A statement is migrated when it is `verified`. `pending` and `skipped` are reported as unproven, never as
 done.
 
+A JPQL, dynamic or parameterised statement is proven through a rendering the user confirmed: one concrete SELECT,
+the dynamic branch it takes, and the parameter values. The golden data records the rendering and the values.
+`verified` then covers that variant only, and the report lists the variants that were not captured as unproven.
+
 ## 8. Never
 
 - Connect to ScalarDB's backend database directly — fetch and load go through ScalarDB.
