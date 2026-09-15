@@ -32,6 +32,7 @@ SQL = textwrap.dedent("""\
     SELECT NVL(status, 'NONE') AS s FROM orders WHERE customer_id = 1 ORDER BY order_no;
     SELECT order_no, LEVEL FROM orders START WITH order_no = 1 CONNECT BY PRIOR order_no = customer_id;
     UPDATE orders SET total = total - 1 WHERE customer_id = 1 AND order_no = 2;
+    SELECT NVL(total, 0) AS t FROM orders WHERE customer_id = :customer ORDER BY order_no;
     """)
 
 
@@ -79,7 +80,7 @@ class Project(unittest.TestCase):
                 note["handling"] = "Hierarchy.connectBy"
         self.id = {name: next(s["id"] for s in self.inventory["statements"] if s["sql"].startswith(prefix)) for name, prefix in
                    {"get": "SELECT total", "plan": "SELECT NVL", "tree": "SELECT order_no, LEVEL", "rmw": "UPDATE",
-                    "table": "CREATE TABLE"}.items()}
+                    "table": "CREATE TABLE", "bound": "SELECT NVL(total"}.items()}
         self.generated = self.root / "generated/sql-migration/shop"
         (self.generated / "src/main/resources/plans").mkdir(parents=True)
         (self.generated / f"src/main/resources/plans/{self.id['plan']}.plan.json").write_text("{}")
@@ -166,6 +167,13 @@ class DifftestTests(Project):
                                                  FakeSource({"SELECT total": (["total"], [[7]]), "NVL": (["s"], [["A"]])}),
                                                  FakeRunner(plan_rows=[["A"]], sql_rows=[[7]]), "jdbc", self.generated)}
         self.assertEqual(jdbc[self.id["get"]]["outcome"], "pass")
+
+    def test_a_statement_with_bind_parameters_is_skipped_with_its_reason(self):
+        results = difftest.run(self.manifest, self.inventory, self.root, FakeSource({"NVL(status": (["s"], [["A"]])}),
+                               FakeRunner(plan_rows=[["A"]]), "core", self.generated)
+        bound = next(r for r in results if r["id"] == self.id["bound"])
+        self.assertEqual((bound["outcome"], bound["reason"]),
+                         ("skipped", "the statement takes bind parameters; prove it with golden or unit tests"))
 
     def test_a_changed_source_is_skipped_not_compared(self):
         (self.root / "db/schema.sql").write_text(SQL.replace("'NONE'", "'OTHER'"))
