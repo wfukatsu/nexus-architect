@@ -92,4 +92,10 @@ SKILL.md、登録、カタログ、サンプル、文書は `c273f6a`、`797fc0a
 - **golden 検証の実 DB での取得**: `golden.py capture` を移行元 DB に対して実行していない。app_side の 6 文は
   `skipped` のまま。
 - **ScalarDB SQL（JDBC）経路**: ScalarDB Cluster とライセンスが無いため未検証。
-- **変換器自体の文言の誤り**（上表）は元リポジトリで扱う。
+- **変換器自体の文言の誤り**（上表）は元リポジトリで扱う。2026-09-15 に次の Issue を登録した。
+  - [#1](https://github.com/wfukatsu/sql-migration/issues/1): SUM の文言の矛盾
+  - [#2](https://github.com/wfukatsu/sql-migration/issues/2): 接続情報のハードコード
+  - [#3](https://github.com/wfukatsu/sql-migration/issues/3): H2 / Gson の更新
+  - [#4](https://github.com/wfukatsu/sql-migration/issues/4): SLF4J の実装が無い
+
+  `--expected-rows` の案内は、元の CLI にはこのオプションがあるので nexus 側の問題である。JPA の `:name` は、ScalarDB SQL が名前付きバインドマーカーに対応しているので問題ではない。いずれも登録していない。
