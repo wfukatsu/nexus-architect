@@ -37,8 +37,13 @@ def safe(value):
     return html.escape(str(value), quote=True).replace("|", "&#124;").replace("`", "&#96;").replace("\n", " ").replace("\r", " ")
 
 
-def header(title, skill):
-    return f'---\ntitle: {json.dumps(title, ensure_ascii=False)}\nschema_version: 1\nskill: {skill}\n---\n\n'
+def header(title, skill, inv):
+    # Live runs cite no file: the connection profile is private and never a report input.
+    inputs = sorted({e["path"] for e in inv["evidence"] if e["kind"] == "file"})
+    listed = "".join("\n  - " + json.dumps(p, ensure_ascii=False) for p in inputs) or " []"
+    return (f'---\ntitle: {json.dumps(title, ensure_ascii=False)}\nschema_version: 1\n'
+            f'phase: "Phase 1: Analysis"\nskill: {skill}\n'
+            f'generated_at: {json.dumps(inv.get("finished_at"))}\ninput_files:{listed}\n---\n\n')
 
 
 def write_reports(inv, folder, language):
@@ -47,7 +52,7 @@ def write_reports(inv, folder, language):
     skill = "investigate-db-" + inv["mode"]
     ja = language == "ja"
     title = "データベース調査" if ja else "Database investigation"
-    report = header(title, skill) + "# " + title + "\n\n"
+    report = header(title, skill, inv) + "# " + title + "\n\n"
     report += f'{safe(inv["product"])} / {safe(inv["schema"])} / {safe(inv["mode"])} / **{inv["status"]}**\n\n'
     report += ("設計資料の記載または接続ユーザーから見える範囲の観測です。不在・0件は全DBでの不存在を保証しません。\n\n" if ja else "Design declarations or observations visible to the connected user. Absence does not prove nonexistence across the database.\n\n")
     report += "| Object | Kind | Columns | Evidence |\n|---|---|---:|---|\n"
@@ -68,7 +73,7 @@ def write_reports(inv, folder, language):
     report += "\n## Evidence\n\n"
     for e in inv["evidence"]:
         report += f'- {e["id"]}: {safe(json.dumps(e, ensure_ascii=False))}\n'
-    er = header("ER diagram", skill) + "# ER diagram\n\n"
+    er = header("ER diagram", skill, inv) + "# ER diagram\n\n"
     tables = [o for o in inv["objects"] if o["kind"] == "table"]
     aliases = {o["id"]: "T" + str(i) for i, o in enumerate(tables)}
     names = {(o["schema"], o["name"]): o for o in tables}
