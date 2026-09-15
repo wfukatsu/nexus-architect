@@ -28,6 +28,17 @@ class CLITests(unittest.TestCase):
             self.assertEqual(second.returncode, 1)
             self.assertEqual((folder / "inventory.json").read_bytes(), before)
 
+    def test_policy_withholding_completes_and_reports_carry_output_frontmatter(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "input.sql"
+            p.write_text("CREATE TABLE t (id INT DEFAULT 1); COMMENT ON TABLE t IS 'doc'; CREATE VIEW v AS SELECT id FROM t;")
+            r = subprocess.run([sys.executable, str(SCRIPT), "design", "--product", "postgresql", "--schema", "app", "--target-id", "demo", "--input", str(p), "--output-root", d, "--run-id", "r"], capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            for name in ("investigation-report.md", "er-diagram.md"):
+                head = (Path(d) / "demo/design/r" / name).read_text().split("---")[1]
+                for key in ("title:", "schema_version: 1", "phase:", "skill: investigate-db-design", "generated_at:", "input_files:", str(p)):
+                    self.assertIn(key, head, name)
+
     def test_unsupported_sql_returns_partial_not_success(self):
         with tempfile.TemporaryDirectory() as d:
             p = Path(d) / "input.sql"
