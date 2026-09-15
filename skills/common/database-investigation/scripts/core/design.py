@@ -106,6 +106,7 @@ def statements(text, dialect):
 
 
 TOKEN = re.compile(r'"(?:""|[^"])*"|`(?:``|[^`])*`|\'(?:\'\'|[^\'])*\'|[\w$#]+|[^\s]', re.UNICODE)
+OBJECT_KINDS = {"table", "index", "view", "function", "procedure", "trigger", "sequence", "package"}
 
 
 class Reader:
@@ -235,7 +236,7 @@ def parse_design(paths, adapter, schema):
                     r.need("REPLACE")
                 unique = r.take("UNIQUE")
                 kind = r.peek().lower()
-                if kind not in {"table", "index", "view", "function", "procedure", "trigger", "sequence", "package"}:
+                if kind not in OBJECT_KINDS:
                     raise ValueError("unsupported object")
                 r.i += 1
                 if r.take("IF"):

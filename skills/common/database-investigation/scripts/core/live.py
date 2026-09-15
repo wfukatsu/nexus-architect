@@ -1,4 +1,5 @@
 """Live collection through a bounded query port."""
+import copy
 import time
 from .design import object_id
 
@@ -97,7 +98,6 @@ def collect(adapter, port, schema, clock, limit=10000, budget=120):
                 record["row_count"] = len(rows)
                 record["status"] = "ok" if rows else "empty"
                 # Normalize into a scratch inventory; malformed rows never leak partial objects.
-                import copy
                 staged = copy.deepcopy(result)
                 normalize(rows, spec, staged, eid, now)
                 result["objects"], result["statistics"] = staged["objects"], staged["statistics"]
