@@ -14,8 +14,9 @@ bounded fixture from a test copy, not an export. A statement that cannot run as 
 SQL, bind parameters) is refused unless the user renders it: --query is one concrete SELECT in the source dialect with
 :name markers, --param gives their values (and any other value the implementation needs, such as a substituted column).
 golden.json keeps GoldenCheck's format:
-{"query", "ordered", "params", "rendering", "tables": {name: [{col: value}]}, "expected": {"columns", "rows"}} with
-Decimal -> {"$dec": "1.5"}, datetime -> {"$ts": ISO}, date -> {"$date": ISO}; "rendering" is "statement" or "user".
+{"source", "query", "ordered", "params", "rendering", "tables": {name: [{col: value}]}, "expected": {"columns", "rows"}}
+with Decimal -> {"$dec": "1.5"}, datetime -> {"$ts": ISO}, date -> {"$date": ISO}; "rendering" is "statement" or "user";
+"source" is the manifest's source dialect, which GoldenCheck names in its summary line (its diffs say expected / actual).
 """
 from __future__ import annotations
 
@@ -122,7 +123,7 @@ def capture(entry, inventory, project_dir, source, generated_dir, dialect, max_r
         tables[table] = [dict(zip([c.lower() for c in columns], map(encode, row))) for row in rows]
     bound = {name: params[name] for name in common.markers(query)}  # Oracle refuses a bind the SQL does not use
     columns, rows = source.rows(query, bound or None)
-    data = {"id": sid, "query": query, "ordered": common.is_ordered(query, dialect),
+    data = {"id": sid, "source": dialect, "query": query, "ordered": common.is_ordered(query, dialect),
             "params": {name: encode(value) for name, value in params.items()},
             "rendering": "statement" if rendering is None else "user", "tables": tables,
             "expected": {"columns": [c.lower() for c in columns], "rows": [[encode(v) for v in row] for row in rows]}}

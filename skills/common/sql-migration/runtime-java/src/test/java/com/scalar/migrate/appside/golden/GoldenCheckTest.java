@@ -6,7 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.scalar.migrate.appside.AppSideQuery;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -134,8 +137,9 @@ class GoldenCheckTest {
     List<String> diffs = GoldenCheck.compare(List.of(cols), expected,
         List.of(row(cols, "a", 2), row(cols, "b", null), row(cols, "c", 3)), true);
     assertEquals(3, diffs.size(), diffs.toString());
-    assertTrue(diffs.stream().anyMatch(d -> d.contains("v: oracle=1 java=2")), diffs.toString());
-    assertTrue(diffs.stream().anyMatch(d -> d.contains("row count: oracle=2, java=3")), diffs.toString());
+    assertTrue(diffs.stream().anyMatch(d -> d.contains("v: expected=1 actual=2")), diffs.toString());
+    assertTrue(diffs.stream().anyMatch(d -> d.contains("row count: expected=2, actual=3")), diffs.toString());
+    assertTrue(diffs.stream().noneMatch(d -> d.contains("oracle") || d.contains("java")), diffs.toString());
   }
 
   @Test
@@ -146,7 +150,31 @@ class GoldenCheckTest {
         List.of(row(cols, "y"), row(cols, "x"), row(cols, "x")), false));
     List<String> diffs = GoldenCheck.compare(List.of(cols), expected,
         List.of(row(cols, "y"), row(cols, "x"), row(cols, "z")), false);
-    assertEquals(List.of("missing (in oracle only): ['x']", "unexpected (in java only): ['z']"), diffs);
+    assertEquals(List.of("missing (expected only): ['x']", "unexpected (actual only): ['z']"), diffs);
+  }
+
+  @Test
+  void sourceIsOptionalAndShownOnlyInTheSummary(@TempDir Path dir) throws Exception {
+    assertNull(GoldenCheck.load(fixture()).source()); // older golden.json without "source"
+    Path pg = dir.resolve("golden.json");
+    Files.writeString(pg, Files.readString(fixture()).replaceFirst("\\{", "{\"source\": \"postgres\", "));
+    assertEquals("postgres", GoldenCheck.load(pg).source());
+
+    PrintStream stdout = System.out;
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(out, true, StandardCharsets.UTF_8));
+    try {
+      AppSideQuery reversed = tables -> {
+        List<Map<String, Object>> rows = new TinyQuery().run(tables);
+        java.util.Collections.reverse(rows);
+        return rows;
+      };
+      assertEquals(2, GoldenCheck.check(pg, reversed).size());
+      assertEquals(0, GoldenCheck.run(new String[] {pg.toString(), TinyQuery.class.getName()}));
+    } finally {
+      System.setOut(stdout);
+    }
+    assertEquals("PASS 3 rows (expected from postgres)", out.toString(StandardCharsets.UTF_8).trim());
   }
 
   @Test
