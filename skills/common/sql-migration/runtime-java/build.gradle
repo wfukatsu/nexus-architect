@@ -25,6 +25,9 @@ dependencies {
     // Residual engine: pure-Java in-memory SQL with Oracle / PostgreSQL / MySQL compatibility modes
     implementation 'com.h2database:h2:2.5.250'
     implementation 'com.google.code.gson:gson:2.14.0'
+    // SLF4J provider for ScalarDB's logging (slf4j-api 2.0.18 is what the runtime classpath resolves): warnings and
+    // errors to stderr, configured in src/main/resources/simplelogger.properties
+    runtimeOnly 'org.slf4j:slf4j-simple:2.0.18'
 
     testImplementation platform('org.junit:junit-bom:5.14.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'

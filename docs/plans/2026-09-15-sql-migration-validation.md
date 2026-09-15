@@ -98,4 +98,6 @@ SKILL.md、登録、カタログ、サンプル、文書は `c273f6a`、`797fc0a
   - [#3](https://github.com/wfukatsu/sql-migration/issues/3): H2 / Gson の更新
   - [#4](https://github.com/wfukatsu/sql-migration/issues/4): SLF4J の実装が無い
 
+  4 件とも元リポジトリで修正された（`c32996d`）。#1 と #4 の修正は nexus に取り込んだ（テスト先行、`5eed027` から）。#2 は複製していない `difftest/` への修正、#3 は取り込み済みの版なので、取り込む変更はない。
+
   `--expected-rows` の案内は、元の CLI にはこのオプションがあるので nexus 側の問題である。JPA の `:name` は、ScalarDB SQL が名前付きバインドマーカーに対応しているので問題ではない。いずれも登録していない。

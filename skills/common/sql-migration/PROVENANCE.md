@@ -8,7 +8,7 @@ tracks the upstream automatically.
 | | |
 |---|---|
 | Upstream | https://github.com/wfukatsu/sql-migration |
-| Commit | `1d2e4dbfb53151477ad2e4ac218194f4bd664316` (2026-09-15) |
+| Commit | `c32996d` (2026-09-15; first imported at `1d2e4db`, then re-imported for upstream issues #1–#4) |
 | License | MIT, Copyright (c) 2026 Wataru Fukatsu — kept verbatim in `LICENSE` |
 
 ## What was copied, and how it changed
@@ -28,6 +28,17 @@ tracks the upstream automatically.
 Deliberately not copied: the generic dialect-to-dialect transpiler (`skills/sql-transpile/scripts/generic.py`,
 function catalogs, `vendor_sync.py`), `difftest/` benchmarks and experiments, `spikes/`, slides, drawio
 diagrams and the investigation reports under `docs/`. None of them is on the ScalarDB migration path.
+Upstream's connection profiles for `difftest/` (`difftest/sources.py`, `difftest/conf/sources/`, issue #2) are not
+copied either: `scripts/verify/common.py` already takes environment-reference profiles and refuses production.
+
+## Re-imports
+
+| Upstream | Issue | Taken here |
+|---|---|---|
+| `19875ea` | #1 aggregate over an expression reported as an unsupported function | `converter.py`, `appside.py` patched verbatim; test ported to `tests/appside.test.py`; the `AGG` and `PROJECTION` rows of `references/scalardb-grammar.md` translated |
+| `14991ee` | #2 hard-coded connection details in `difftest/` | nothing (see above) |
+| `7970e63` | #3 H2 2.5.250, Gson 2.14.0 | already pinned here |
+| `55b4ae6` | #4 no SLF4J provider | `slf4j-simple` in `build.gradle`, `src/main/resources/simplelogger.properties` (verbatim, already English), the logging note in `Runner`'s Javadoc |
 
 The kanji in `OracleOrderingTest` is test data (the ordering of surrogate-pair characters), not prose.
 
@@ -40,15 +51,16 @@ Resolved 2026-09-15 per @rules/dependency-versions.md and confirmed by the user.
 |---|---|---|---|---|---|
 | `sqlglot` (Python) | 30.18.0 | 30.18.0 | 30.18.0 | https://pypi.org/pypi/sqlglot/json | the release the converter rules are asserted against; exact pin because a parser change can reclassify statements |
 | `com.scalar-labs:scalardb`, `scalardb-sql-jdbc`, `scalardb-cluster-java-client-sdk` | 3.19.1 | 3.19.1 | 3.19.1 | repo1.maven.org maven-metadata.xml; `gh release list -R scalar-labs/scalardb` | newest supported line |
-| `com.h2database:h2` | 2.5.250 | 2.5.250 | 2.2.224 | repo1.maven.org maven-metadata.xml | newest stable; residual and compatibility-mode tests pass |
-| `com.google.code.gson:gson` | 2.14.0 | 2.14.0 | 2.11.0 | repo1.maven.org maven-metadata.xml | newest stable |
+| `com.h2database:h2` | 2.5.250 | 2.5.250 | 2.5.250 (2.2.224 at `1d2e4db`) | repo1.maven.org maven-metadata.xml | newest stable; residual and compatibility-mode tests pass |
+| `com.google.code.gson:gson` | 2.14.0 | 2.14.0 | 2.14.0 | repo1.maven.org maven-metadata.xml | newest stable |
+| `org.slf4j:slf4j-simple` | 2.0.18 | 2.0.19 | 2.0.18 | repo1.maven.org maven-metadata.xml; `build/install/residual-runner/lib` | matches the `slf4j-api` 2.0.18 the runtime classpath resolves (ScalarDB's pom declares 1.7.36, overridden by a transitive 2.0.x); 2.0.19 would move the API too, for no change the runner needs |
 | `org.junit:junit-bom` | 5.14.4 | 6.1.3 | 5.14.4 | repo1.maven.org maven-metadata.xml | newest 5.x; JUnit 6 is a new major not required here |
 | Java toolchain | 17 | — | 17 | endoflife.date | LTS, supported; the runtime is verified on it |
 
 ## Verified equivalence
 
-- Python: the four ported suites (77 test functions, parametrized cases as subtests) pass on sqlglot
-  30.18.0, as upstream's 257 pytest cases did on the same commit.
+- Python: the four ported suites (78 test functions, parametrized cases as subtests) pass on sqlglot
+  30.18.0, as upstream's pytest cases do on the same commit.
 - Java: `gradle test` in `runtime-java/` — 37 tests after removing `AreaSalesReportTest` (2 of upstream's 39), all
   passing on the dependency set below.
 

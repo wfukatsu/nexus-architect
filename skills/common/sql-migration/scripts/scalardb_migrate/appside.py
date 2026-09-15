@@ -61,6 +61,12 @@ def _is_plain_aggregate(e: exp.Expression) -> bool:
         and isinstance(e.this, (exp.Column, exp.Star, exp.Literal))
 
 
+def _clip(sql: str, limit: int = 80) -> str:
+    """One expression's SQL for a message, on one line and cut to `limit` characters."""
+    sql = " ".join(sql.split())
+    return sql if len(sql) <= limit else sql[:limit - 3] + "..."
+
+
 def _constructs(e: exp.Expression) -> list[str]:
     """Function and operator names inside an expression, leaving out window functions and subqueries (reported on
     their own) and the literal forms the converter accepts."""
@@ -134,13 +140,14 @@ def inventory(node: exp.Expression, dialect: str) -> list[tuple[str, str]]:
         exprs = []
         for p in sel.expressions:
             inner = p.this if isinstance(p, exp.Alias) else p
-            if isinstance(inner, (exp.Column, exp.Star)) or _is_plain_aggregate(inner):
+            if isinstance(inner, (exp.Column, exp.Star)) or _is_plain_aggregate(inner) or not _constructs(inner):
                 continue
-            for name in _constructs(inner):
-                if name not in exprs:
-                    exprs.append(name)
+            # the expression itself, not its operator names: "(SUM, *)" read as SELECT *
+            text = _clip(inner.sql(dialect=dialect))
+            if text not in exprs:
+                exprs.append(text)
         if exprs:
-            add("PROJECTION", f"{where}: expressions in the select list ({', '.join(exprs)}) -- compute them in the "
+            add("PROJECTION", f"{where}: expressions in the select list ({'; '.join(exprs)}) -- compute them in the "
                               f"application")
         group = sel.args.get("group")
         if group:

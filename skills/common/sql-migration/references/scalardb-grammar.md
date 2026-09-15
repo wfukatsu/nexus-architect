@@ -120,7 +120,8 @@ and subqueries.
 | `CTE` / `SUBQUERY` / `SET_OP` | ERROR | `WITH`, subqueries, `UNION` and similar are evaluated by the application |
 | `HIERARCHICAL` | ERROR | `START WITH` / `CONNECT BY`: walk the tree in the application, or precompute the hierarchy into a table |
 | `WINDOW` / `KEEP` | ERROR | window functions, `KEEP (DENSE_RANK FIRST/LAST)` |
-| `PROJECTION` / `GROUP` / `PRED` / `ORDER` | ERROR | expressions and functions in the select list, `GROUP BY`, `WHERE`, `ORDER BY`; lists which function in which scope |
+| `PROJECTION` / `GROUP` / `PRED` / `ORDER` | ERROR | expressions and functions in the select list, `GROUP BY`, `WHERE`, `ORDER BY`; names the scope, and lists the expressions themselves for the select list and `GROUP BY`, the function names for `WHERE` and `ORDER BY` |
+| `AGG` | ERROR | an aggregate function outside COUNT / SUM / AVG / MIN / MAX, or a supported one whose argument is an expression rather than a column (`SUM(qty * price)`) |
 | `PIVOT` / `DISTINCT` / `OFFSET` / `NOW` | ERROR | the named construct; `NOW` means compute the time in the application and bind it |
 | `RESIDUAL_H2` | ERROR | a construct the plan's H2 cannot run (`CONNECT BY`, `ROLLUP` / `CUBE` / `GROUPING SETS`, `PIVOT` / `UNPIVOT`, `KEEP`); no plan is built |
 | `FULL_SCAN` | ERROR | with `--storage cassandra`, a table readable by neither key nor index; every table is listed with a way to read it through a joined table's key (following CTE columns too) |

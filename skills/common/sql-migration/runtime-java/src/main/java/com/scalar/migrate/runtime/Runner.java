@@ -19,6 +19,9 @@ import java.util.Map;
  *   validate --plan p.json                       (compile the residual SQL against empty H2 tables, no database needed)
  *
  * All data access goes through ScalarDB (Core API or SQL JDBC); the runtime never connects to the backend database.
+ *
+ * Results go to stdout as JSON; logs (ScalarDB's, through slf4j-simple) go to stderr at WARN. For more detail:
+ * RESIDUAL_RUNNER_OPTS=-Dorg.slf4j.simpleLogger.defaultLogLevel=info (src/main/resources/simplelogger.properties).
  */
 public class Runner {
   static final Gson GSON = new GsonBuilder().serializeNulls().create();

@@ -678,6 +678,11 @@ class StatementConverter:
             return
         if isinstance(inner, AGGREGATES) and isinstance(inner.this, exp.Distinct):
             self.fail("AGG_DISTINCT", "COUNT(DISTINCT ...) is not supported")
+        if isinstance(inner, AGGREGATES):
+            # a supported function over an expression: the argument is the problem, not the function
+            arg = inner.this.sql(dialect=self.dialect) if inner.this is not None else ""
+            self.fail("AGG", f"aggregate {inner.sql_name()} over an expression ({arg}) is not supported; ScalarDB SQL "
+                             f"aggregates only a column (or * for COUNT)")
         if isinstance(inner, exp.AggFunc):
             self.fail("AGG", f"aggregate {inner.sql_name()} is not supported (only COUNT, SUM, AVG, MIN, MAX)")
         self.fail("PROJECTION", f"projection '{inner.sql(dialect=self.dialect)}' is an expression; ScalarDB SQL only "
