@@ -4,7 +4,7 @@ from pathlib import Path
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from core.live import collect
+from core.live import collect, error_status
 
 
 class FakePort:
@@ -24,6 +24,11 @@ class FakePort:
 
 
 class LiveTests(unittest.TestCase):
+    def test_oracle_thin_timeout_is_classified_by_full_code(self):
+        from types import SimpleNamespace
+        self.assertEqual(error_status(Exception(SimpleNamespace(code=0,full_code="DPY-4024"))),"timeout")
+        self.assertEqual(error_status(Exception(SimpleNamespace(code=0,full_code="DPY-4011"))),"error")
+
     def test_disabled_metric_has_no_zero_measurement(self):
         port=FakePort({"rows":[{"schema":"app","name":"t","value":0,"enabled":False}]})
         result=collect(self.adapter(),port,"app",lambda:"now")
