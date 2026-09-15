@@ -61,7 +61,10 @@ def verify_probe(spec, port, expected_version, expected_catalog):
     if spec["id"] not in product or any(x in product for x in ("mariadb", "tidb", "aurora", "yugabyte")):
         raise ValueError("database product mismatch or unverified compatible product")
     version = str(row["version"])
-    if not (version == expected_version or version.startswith(expected_version + ".")):
+    release = re.match(r"\d+(?:\.\d+)*", version)
+    if not isinstance(expected_version, str) or not re.fullmatch(r"\d+(?:\.\d+)*", expected_version):
+        raise ValueError("expected version must be an explicit numeric release")
+    if not release or not (release[0] == expected_version or release[0].startswith(expected_version + ".")):
         raise ValueError("database version differs from approved profile")
     if int(version.split(".")[0]) < spec["min_major"]:
         raise ValueError("database version outside adapter capability")
