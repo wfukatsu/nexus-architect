@@ -86,6 +86,20 @@ class AppSideTests(unittest.TestCase):
         assert "area_hierarchy" in text and "CTE monthly_sales" in text and "LAG" in text and "DENSE_RANK" in text
         assert "TO_CHAR(sales_date, 'YYYY-MM')" in text  # rendered in the source dialect, not as CAST(... AS TEXT)
 
+    def test_aggregate_over_an_expression_names_the_argument_not_the_function(self):
+        ddl = ("CREATE TABLE order_items (order_id INT, line_no INT, quantity INT, unit_price NUMERIC(10,2), "
+               "PRIMARY KEY (order_id, line_no));\n")
+        results, _ = convert_script(ddl + "SELECT SUM(quantity * unit_price) AS amount FROM order_items WHERE order_id = 1;",
+                                    "postgres")
+        r = results[-1]
+        assert r.status == "PLANNED", r.issues
+        assert messages(r, "AGG") == ["aggregate SUM over an expression (quantity * unit_price) is not supported; "
+                                      "ScalarDB SQL aggregates only a column (or * for COUNT)"]
+        assert messages(r, "PROJECTION") == ["main query: expressions in the select list (SUM(quantity * unit_price)) "
+                                             "-- compute them in the application"]
+        other, _ = convert_script("SELECT STDDEV(sal) FROM emp", "postgres")
+        assert "aggregate STDDEV is not supported (only COUNT, SUM, AVG, MIN, MAX)" in messages(other[-1], "AGG")
+
     def test_plan_is_rejected_when_h2_cannot_run_connect_by(self):
         r = last(AREA_SQL)
         assert r.status == "ERROR" and r.plan is None
