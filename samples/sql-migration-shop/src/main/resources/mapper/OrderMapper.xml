@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shop.OrderMapper">
+
+  <select id="findOrder" resultType="Order">
+    SELECT status, total FROM orders WHERE customer_id = #{customerId} AND order_no = #{orderNo}
+  </select>
+
+  <select id="findByStatus" resultType="OrderKey">
+    SELECT customer_id, order_no FROM orders WHERE status = #{status}
+  </select>
+
+  <select id="search" resultType="OrderKey">
+    SELECT customer_id, order_no FROM orders
+    <where>
+      <if test="status != null">status = #{status}</if>
+      <if test="minTotal != null">AND total &gt;= #{minTotal}</if>
+    </where>
+  </select>
+
+  <insert id="insertOrder">
+    INSERT INTO orders (customer_id, order_no, status, total, ordered_at)
+    VALUES (#{customerId}, nextval('order_no_seq'), 'NEW', #{total}, CURRENT_DATE)
+  </insert>
+
+</mapper>

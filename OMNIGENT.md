@@ -341,3 +341,9 @@ keys and Mermaid node IDs stay in English. See [`rules/output-conventions.md`](r
 Standalone database investigation uses `architect:investigate-db-design` for DDL/design documents
 and `architect:investigate-db-live` for authorized catalog/statistics connections. Load the selected
 skill and its common database-investigation contract; these are not automatic pipeline phases.
+
+SQL migration to ScalarDB is `architect:design-sql-migration` (inventory, conversion and one route per
+statement in a validated manifest), `architect:implement-sql-migration` (a generated module behind an offline
+gate) and `architect:verify-sql-migration` (golden checks and differential tests, explicit invocation only).
+They share `skills/common/sql-migration/` and `rules/sql-migration.md`; they are extension-tier skills, not
+pipeline phases.

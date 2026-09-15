@@ -1,0 +1,44 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.scalar.migrate'
+version = '0.1.0'
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(17) }
+}
+
+repositories { mavenCentral() }
+
+// Versions resolved from Maven Central on 2026-09-15 and confirmed with the user; the decision table is in
+// ../PROVENANCE.md. ScalarDB Core brings the backend JDBC drivers (PostgreSQL, Oracle, MariaDB, ...) at runtime.
+ext { scalardbVersion = '3.19.1' }
+
+dependencies {
+    // ScalarDB Core (Apache 2): transactional CRUD API, used by CoreFetcher and load (no license required)
+    implementation "com.scalar-labs:scalardb:${scalardbVersion}"
+    // ScalarDB SQL JDBC driver + Cluster client SDK: used by JdbcFetcher and sql (requires ScalarDB Cluster, licensed)
+    implementation "com.scalar-labs:scalardb-sql-jdbc:${scalardbVersion}"
+    implementation "com.scalar-labs:scalardb-cluster-java-client-sdk:${scalardbVersion}"
+    // Residual engine: pure-Java in-memory SQL with Oracle / PostgreSQL / MySQL compatibility modes
+    implementation 'com.h2database:h2:2.5.250'
+    implementation 'com.google.code.gson:gson:2.14.0'
+    // SLF4J provider for ScalarDB's logging (slf4j-api 2.0.18 is what the runtime classpath resolves): warnings and
+    // errors to stderr, configured in src/main/resources/simplelogger.properties
+    runtimeOnly 'org.slf4j:slf4j-simple:2.0.18'
+
+    testImplementation platform('org.junit:junit-bom:5.14.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test { useJUnitPlatform() }
+
+application {
+    mainClass = 'com.scalar.migrate.runtime.Runner'
+    applicationName = 'residual-runner'
+    // Oracle-style TO_CHAR('DAY'/'MON') depends on the JVM locale; Oracle's default NLS_DATE_LANGUAGE is AMERICAN
+    applicationDefaultJvmArgs = ['-Duser.language=en', '-Duser.country=US']
+}

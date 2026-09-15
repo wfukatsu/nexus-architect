@@ -3,6 +3,10 @@ pyyaml>=6.0
 markdown>=3.4
 pymdown-extensions>=9.0
 
+# SQL migration converter (skills/common/sql-migration) — exact pin: the vendored converter's rules
+# are asserted against this sqlglot release, and a newer parser can reclassify statements.
+sqlglot==30.18.0
+
 # Knowledge graph (Phase C - optional)
 # ryugraph>=0.3.0
 # networkx>=3.0

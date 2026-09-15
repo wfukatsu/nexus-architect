@@ -114,3 +114,17 @@ product が意図的に**供給しない**もの — つまりヒアリングで
 `/architect:investigate-db-design` にはDDLまたはテキスト設計資料、製品、正確なスキーマ名、資料の基準時点を渡します。既知なら版も指定します。
 `/architect:investigate-db-live` には調査を許可された接続プロファイル、対象環境・製品・期待する版・スキーマを渡します。秘密情報はチャットに貼らず、環境変数参照またはWalletを使います。
 両スキルともコードベースやScalarDB移行先は不要です。出力は実行ごとに分け、`analyze-data-model` の任意入力として利用できます。
+
+## ScalarDB への SQL 移行
+
+`/architect:design-sql-migration` には棚卸しの対象が必要です。アプリケーションのソースルート（MyBatis のマッパー、JDBC や
+Spring JDBC のコード、JPA のリポジトリ）、SQL スクリプト、`investigate-db-design` の実行結果のいずれかを用意します。
+推定行数には `investigate-db-live` の実行結果を、存在すれば `design-scalardb` と `select-scalardb-edition` のレポートも
+加えます。無い場合は、ScalarDB のエディション（ScalarDB SQL は Enterprise Premium が必要）、ScalarDB の背後のストレージ、
+namespace を答えられるようにしておきます。動的 SQL の組み立て方と、アプリ側で書き直すときに移行元の意味をどう保つかの
+確認を求められます。固定版の SQLGlot 変換器のために `requirements.txt` をインストールします。
+`/architect:implement-sql-migration` には、その実行で検証済みのマニフェスト、マニフェストが引用するソースファイル、
+生成するクラスの Java パッケージ、Java 17 と Gradle が必要です。
+`/architect:verify-sql-migration` には、**本番以外**（使い捨て・テスト・ステージングの複製）で検証を許可された移行元 DB を
+環境変数参照の接続プロファイルで用意し、差分テストには同じデータを持つ ScalarDB を用意します。ScalarDB SQL の文を
+比べる場合に限り、ScalarDB Cluster とライセンスが必要です。
