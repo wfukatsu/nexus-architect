@@ -210,6 +210,29 @@ class UnextractedCallTests(unittest.TestCase):
         self.assertEqual(result["summary"]["unextracted"], 2)
 
 
+class JavaBindTests(unittest.TestCase):
+    """Bind markers in Java SQL are listed like MyBatis #{} binds, so later steps know a statement needs values."""
+
+    def test_named_and_positional_parameters_become_binds(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "Repo.java").write_text(textwrap.dedent('''\
+                interface Repo {
+                  @Query(value = "SELECT id FROM t WHERE region = :region AND note <> ':not_a_bind' AND n::text = '1'", nativeQuery = true)
+                  List<Row> byRegion(@Param("region") String region);
+                }
+                class Dao {
+                  void run(Connection conn) throws SQLException {
+                    conn.prepareStatement("SELECT id FROM t WHERE a = ? AND b = ?");
+                  }
+                }
+                '''))
+            result = inventory.build(source="postgres", app_roots=[root], project_dir=root)
+        binds = {s["origin"]["locator"]: s["binds"] for s in result["statements"]}
+        self.assertEqual(binds["Repo#byRegion"], ["region"])
+        self.assertEqual(binds["Dao#run"], ["?", "?"])
+
+
 class SqlFileAndDatabaseTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

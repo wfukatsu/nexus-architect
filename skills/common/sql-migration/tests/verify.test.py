@@ -140,6 +140,29 @@ class ProfileTests(unittest.TestCase):
             common.source_config(self.profile(password="literal"))
 
 
+class RuntimeLocationTests(unittest.TestCase):
+    """The runtime is built into the project, not into a plugin directory that may be read-only or shared."""
+
+    def test_the_project_build_is_preferred_to_the_plugin_build(self):
+        with tempfile.TemporaryDirectory() as d:
+            project = Path(d)
+            self.assertEqual(common.runner_path(project), common.RUNNER)
+            self.assertEqual(common.runtime_lib(project), common.RUNTIME_LIB)
+            install = project / "work/sql-migration/runtime-java/build/install/residual-runner"
+            (install / "bin").mkdir(parents=True)
+            (install / "lib").mkdir()
+            (install / "bin/residual-runner").write_text("#!/bin/sh\n")
+            self.assertEqual(common.runner_path(project), install / "bin/residual-runner")
+            self.assertEqual(common.runtime_lib(project), install / "lib")
+
+    def test_golden_check_uses_that_runtime_on_the_classpath(self):
+        with tempfile.TemporaryDirectory() as d:
+            lib = Path(d) / "lib"
+            calls = []
+            golden.check("SQM-001", Path(d) / "module", "com.example", java=lambda cmd: calls.append(cmd) or 0, runtime_lib=lib)
+            self.assertIn(str(lib / "*"), calls[0][calls[0].index("-cp") + 1])
+
+
 class DifftestTests(Project):
     def test_a_plan_matching_the_source_is_verified(self):
         source = FakeSource({"NVL": (["s"], [["A"], ["B"]])})
