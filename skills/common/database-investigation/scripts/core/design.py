@@ -155,7 +155,13 @@ class Reader:
         raise ValueError("unclosed group")
 
     def names(self):
-        return [Reader(g, self.fold).ident() for g in groups(self.group())]
+        names = []
+        for group in groups(self.group()):
+            item = Reader(group, self.fold)
+            names.append(item.ident())
+            if item.i != len(item.t):
+                raise ValueError("expression or ordering requires source review")
+        return names
 
 
 def groups(tokens):

@@ -27,6 +27,10 @@ def validate(inv):
     for obj in inv["objects"]:
         if obj["schema"] != inv["schema"]:
             raise ValueError("object outside requested scope")
+        for child in obj.get("columns", []) + obj.get("constraints", []):
+            refs = child.get("evidence_ids", obj["evidence_ids"])
+            if not refs or not set(refs) <= set(evidence):
+                raise ValueError("missing nested evidence reference")
 
 
 def safe(value):
