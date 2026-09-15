@@ -19,6 +19,8 @@ def error_status(error):
     if code in {"42P01", "42703"}:
         return "unsupported"
     arg = error.args[0] if error.args else None
+    if getattr(arg, "full_code", None) in {"DPY-4024", "DPI-1067"}:
+        return "timeout"
     number = getattr(arg, "code", arg if isinstance(arg, int) else None)
     if number in {1031, 1044, 1045, 1142, 1227}:
         return "permission_denied"
