@@ -12,12 +12,21 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from core.registry import load_adapter
-from core.connection import connection_config, Port
+from core.connection import connection_config, Port, verify_probe
 from core.design import parse_design
 from core.output import validate
 
 
 class ContractTests(unittest.TestCase):
+    def test_probe_accepts_packaging_suffix_but_rejects_wrong_release(self):
+        class Probe:
+            def query(self, *args):
+                return [{"product":"PostgreSQL", "version":"18.6 (Debian build)", "catalog":"app"}]
+        spec={"id":"postgresql","probe":"SELECT version", "min_major":14}
+        self.assertEqual(verify_probe(spec,Probe(),"18.6","app")["version"], "18.6 (Debian build)")
+        with self.assertRaises(ValueError):
+            verify_probe(spec,Probe(),"18.5","app")
+
     def test_fourth_adapter_loads_without_modifying_core(self):
         import adapters
         with tempfile.TemporaryDirectory() as d:
