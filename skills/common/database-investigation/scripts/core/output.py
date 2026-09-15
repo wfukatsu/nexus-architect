@@ -4,6 +4,7 @@ import json
 import re
 
 STATUSES = {"ok", "empty", "permission_denied", "unsupported", "disabled", "timeout", "error", "not_collected"}
+TABLES_PER_DIAGRAM = 40
 
 
 def validate(inv):
@@ -67,9 +68,9 @@ def write_reports(inv, folder, language):
     tables = [o for o in inv["objects"] if o["kind"] == "table"]
     aliases = {o["id"]: "T" + str(i) for i, o in enumerate(tables)}
     names = {(o["schema"], o["name"]): o for o in tables}
-    for offset in range(0, len(tables), 40):
-        page = tables[offset:offset + 40]
-        er += f"## {offset // 40 + 1}\n\n```mermaid\nerDiagram\n"
+    for offset in range(0, len(tables), TABLES_PER_DIAGRAM):
+        page = tables[offset:offset + TABLES_PER_DIAGRAM]
+        er += f"## {offset // TABLES_PER_DIAGRAM + 1}\n\n```mermaid\nerDiagram\n"
         for o in page:
             er += f'    {aliases[o["id"]]} {{\n'
             for i, col in enumerate(o["columns"]):
