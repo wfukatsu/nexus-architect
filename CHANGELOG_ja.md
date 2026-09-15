@@ -7,6 +7,21 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+### Fixed
+- **golden 検証の差分表示が Oracle を前提にしなくなった。** `GoldenCheck` は、golden データを取った DB に関係なく、
+  差分を `oracle=` / `java=` と表示していた。今後は `expected=` / `actual=` と表示する。要約行には `golden.json` に
+  記録した移行元を示す（例: `PASS 3 rows (expected from postgres)`）。`golden.py capture` は、マニフェストの移行元方言を
+  記録する。元リポジトリの修正（wfukatsu/sql-migration#5）は、nexus 側のパラメータ拡張に合わせて手作業で統合した。
+  `GoldenCheck.rowKey` の NUL 区切りをエスケープ表記に直したので、ソースファイルは再びテキストとして扱える。
+
+### Changed
+- パラメータを受ける読み取りの golden 検証について、次の文書を更新した。
+  - `references/app-side-notes.md`: `run(tables, params)`、移行元ごとの NULL の並び、差分の表示
+  - アーキテクト入力要件: 具体化の確認と、ビルド済みモジュール
+  - `samples/sql-migration-shop/README.md`: 検証済みの具体化
+
 ## [0.41.1] - 2026-09-15
 
 ### Fixed

@@ -35,5 +35,20 @@ Converted with `--source postgres`, `--edition enterprise_premium`, `--storage j
 | monthly report (`batch/monthly-report.sql`) | PLANNED | `plan` | Aggregation over a join whose `ON` does not cover the `orders` key |
 | stock correction (`batch/monthly-report.sql`) | ERROR (`RMW`) | `app_side` (`rmw`) | `qty = qty - 1` reads before it writes |
 
-Verification: the monthly report is the one plan without bind parameters, so a differential test compares it
-directly; statements with bind parameters are proven by golden or unit tests.
+## Verification
+
+The monthly report is the one plan without bind parameters, so a differential test compares it directly against
+ScalarDB (Core API). Statements with bind parameters are proven by golden checks or unit tests.
+
+The application-side reads cannot run on the source database as written, so each golden check captures a rendering
+the user confirmed. These renderings, with `db/seed.sql` loaded into PostgreSQL 18.6, were verified:
+
+| Statement | Rendering | Values | Expected rows |
+|---|---|---|---|
+| `CustomerRepository#vipCustomers` | `SELECT customer_id, name, region, vip FROM customers WHERE vip = TRUE` | — | 2 (customers 1 and 4) |
+| `OrderDao#sortedOrderNumbers` | `SELECT order_no FROM orders ORDER BY total` | `column=total` | 8, ordered; order 106 (NULL total) last |
+| `OrderMapper#search` | `SELECT customer_id, order_no FROM orders WHERE status = :status AND total >= :minTotal` | `status=PAID`, `minTotal=5000` | 2 (orders 104 and 108) |
+
+Other renderings remain unproven until they are captured: another sort column, or `search` with only one `<if>`
+branch. The same applies to the application-side writes (the sequence, the insert and the stock correction), which
+golden checks do not cover.

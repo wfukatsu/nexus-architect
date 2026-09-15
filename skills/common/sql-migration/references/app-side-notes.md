@@ -49,9 +49,17 @@ Capturing needs the source database once; every later check runs without any dat
 
 - The implementation class implements `com.scalar.migrate.appside.AppSideQuery`: tables keyed by
   lower-case table name, rows by lower-case column name.
+- A read that takes parameters (binds, or a `${...}` substitution) overrides `run(tables, params)`. The generated
+  skeleton already declares it, with the parameter names in its Javadoc. The check passes the `params` recorded in
+  `golden.json` from the rendering the user confirmed. A value without a SQL marker, such as the column of
+  `ORDER BY ${column}`, arrives the same way; check it against the table's columns instead of trusting it.
 - `ordered` in `golden.json` follows whether the top-level query has `ORDER BY`. Rows with equal
-  `ORDER BY` values have no defined order even in Oracle, so suspect that first when a diff appears.
+  `ORDER BY` values have no defined order in the source database either, so suspect that first when a diff appears.
+  NULL placement follows the source: PostgreSQL and Oracle sort NULLs last for `ASC`, MySQL first.
 - Numbers compare with `BigDecimal.compareTo` (`2.50` equals `2.5`). An Oracle `DATE` comes back as a
   date-time, so a `LocalDate` is treated as that day at 00:00.
+- A failing check lists the differences as `expected=` (the golden data) and `actual=` (the implementation). The
+  summary line names the source database recorded in `golden.json`, for example
+  `FAIL 8 diff(s) (ordered, expected from postgres)`. The diffs print row values, so keep that output out of reports.
 
 The commands are in references/operations.md and in `/architect:verify-sql-migration`.
