@@ -1,0 +1,31 @@
+-- Test data for verification. Loaded into a disposable source database, and the same rows into ScalarDB.
+INSERT INTO customers VALUES (1, 'Alice', 'EAST', TRUE);
+INSERT INTO customers VALUES (2, 'Bob', 'WEST', FALSE);
+INSERT INTO customers VALUES (3, 'Carol', 'EAST', FALSE);
+INSERT INTO customers VALUES (4, 'Dave', NULL, TRUE);
+
+INSERT INTO orders VALUES (1, 101, 'SHIPPED', 5200, DATE '2026-06-01');
+INSERT INTO orders VALUES (1, 102, 'NEW', 1800, DATE '2026-06-15');
+INSERT INTO orders VALUES (2, 103, 'CANCELLED', 900, DATE '2026-06-20');
+INSERT INTO orders VALUES (2, 104, 'PAID', 12000, DATE '2026-07-02');
+INSERT INTO orders VALUES (3, 105, 'PAID', 3300, DATE '2026-07-10');
+INSERT INTO orders VALUES (3, 106, 'NEW', NULL, DATE '2026-07-11');
+INSERT INTO orders VALUES (4, 107, 'SHIPPED', 450, DATE '2026-08-01');
+INSERT INTO orders VALUES (4, 108, 'PAID', 7700, DATE '2026-08-15');
+
+INSERT INTO order_items VALUES (101, 1, 10, 2, 2000);
+INSERT INTO order_items VALUES (101, 2, 11, 1, 1200);
+INSERT INTO order_items VALUES (102, 1, 12, 3, 600);
+INSERT INTO order_items VALUES (103, 1, 10, 1, 900);
+INSERT INTO order_items VALUES (104, 1, 13, 4, 3000);
+INSERT INTO order_items VALUES (105, 1, 11, 1, 1200);
+INSERT INTO order_items VALUES (105, 2, 12, 7, 300);
+INSERT INTO order_items VALUES (107, 1, 14, 1, 450);
+INSERT INTO order_items VALUES (108, 1, 13, 2, 3000);
+INSERT INTO order_items VALUES (108, 2, 10, 1, 1700);
+
+INSERT INTO stock VALUES (10, 50);
+INSERT INTO stock VALUES (11, 5);
+INSERT INTO stock VALUES (12, 0);
+INSERT INTO stock VALUES (13, 12);
+INSERT INTO stock VALUES (14, 3);
