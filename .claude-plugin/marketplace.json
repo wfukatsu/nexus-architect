@@ -42,6 +42,8 @@
         "./skills/pipeline",
         "./skills/init-output",
         "./skills/investigate",
+        "./skills/investigate-db-design",
+        "./skills/investigate-db-live",
         "./skills/investigate-security",
         "./skills/analyze",
         "./skills/analyze-data-model",

@@ -1,9 +1,9 @@
 # Nexus Architect
 
-System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as four plugins with 110 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
+System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as four plugins with 112 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
 
 - **product** (28 skills) — Product direction: validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
-- **architect** (67 skills) — Legacy refactoring, greenfield design, database migration, consulting deliverables
+- **architect** (69 skills) — Legacy refactoring, greenfield design, database investigation and migration, consulting deliverables
 - **scalardb** (11 skills) — ScalarDB application development toolkit
 
 ## Installation
@@ -148,13 +148,13 @@ Claude Code continues to use the plugin metadata and slash commands unchanged. S
 
 ## Commands
 
-**110 slash commands across four plugins.** The full catalogue — every command with its model, its
+**112 slash commands across four plugins.** The full catalogue — every command with its model, its
 prerequisites and its complete flag signature — lives in one place:
 
 > **[docs/skill-reference.md](docs/skill-reference.md)** · [日本語](docs/skill-reference_ja.md)
 
 It is the single source of truth; this table is the map of which group does what, and the counts
-partition all 110.
+partition all 112.
 
 | Group | Start here | What it does | n |
 |-------|-----------|--------------|---|
@@ -166,7 +166,7 @@ partition all 110.
 | **Database Migration** | `/architect:migrate-database` | Oracle / MySQL / PostgreSQL → ScalarDB: schema extraction, analysis, SP/trigger conversion — see [Database Migration Guide](docs/database-migration.md) | 4 |
 | **ScalarDB Development** `/scalardb:*` | `/scalardb:build-app` | Schema modeling, configuration, scaffolding, CRUD/JDBC patterns, exception handling, code review, migration advice — see [ScalarDB Development Guide](docs/scalardb-development.md) | 11 |
 | **Multi-Cloud Infrastructure** `/infra:*` | `/infra:start` | Terraform / Kubernetes / Helm / Kustomize / Argo CD / GitLab CI / Cosign / Vault / ESO / Prometheus / Kyverno across AWS-Azure-GCP × local-test-staging-production, grounded in the vendored `okf-k8s-tf` bundle — see [Multi-Cloud Infrastructure Guide](docs/infrastructure.md) | 4 |
-| **Status & utility** | `/architect:report-status` | One terminal dashboard (`tools/nexus-status.sh`) whose `Tab` cycles four views — Product, Architect, Code Generation, Backlog Delivery — plus `render-mermaid` and `update-knowledge`. Recorded spend: `/architect:report-token-cost` | 3 |
+| **Status & utility** | `/architect:report-status` | One terminal dashboard (`tools/nexus-status.sh`) whose `Tab` cycles four views — Product, Architect, Code Generation, Backlog Delivery — plus `render-mermaid` and `update-knowledge`. Recorded spend: `/architect:report-token-cost`; standalone database investigation from design documents or live catalogs | 5 |
 
 ## Workflows
 

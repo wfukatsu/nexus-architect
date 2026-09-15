@@ -22,7 +22,7 @@ Use `/product:start` to design product direction, `/architect:start` for interac
 
 ## Repository Mechanics
 
-This repo is not an application — it is a **Claude Code plugin marketplace** whose product is a corpus of ~120 skill instruction files (110 registered as slash commands, plus the nested migration sub-skills below). There is no compile/build step and no application to run; "developing" here means editing skills, rules, and hooks.
+This repo is not an application — it is a **Claude Code plugin marketplace** whose product is a corpus of ~120 skill instruction files (112 registered as slash commands, plus the nested migration sub-skills below). There is no compile/build step and no application to run; "developing" here means editing skills, rules, and hooks.
 
 **Packaging.** `.claude-plugin/marketplace.json` defines four plugins (`architect`, `scalardb`, `product`, `infra`), each with its own version, and lists the skill directories it ships. Skills physically live in a flat `skills/` tree (product and infra skills are nested under `skills/product/` and `skills/infra/`); a plugin "owns" a skill only by listing its path in `marketplace.json`. **Adding a skill requires two edits: create `skills/<name>/SKILL.md` AND register its path in the plugin's `skills` array in `marketplace.json`.** An unregistered SKILL.md will not surface as a slash command.
 
@@ -72,8 +72,9 @@ contract that runs only when someone remembers is not enforced at all.
 | `tools/lib/adr_records.test.py` | The Architecture Decision Record contract of `rules/architecture-decision-records.md`: `ADR-###` id equal to the file-name number and unique, the four statuses, a non-empty `upstream` of traceability ids, supersession chains that close on records marked `superseded`, the four fixed body headings, and `index.md` equal to the set of records |
 | `samples/ec-monolith/reference-set.test.py` | The committed reference DDD document set (`samples/ec-monolith/expected-reports/`): staged as a project it passes all four manifest validators and both output hooks, every artifact path `docs/ddd-coverage.md` cites for these techniques is realised, and no file sits at a path the table does not cite |
 | `samples/legacy-ui-shop/reference-set.test.py` | The committed UI reference set (`samples/legacy-ui-shop/expected-reports/`): what `analyze-ui` and `evaluate-ux` produced on the runnable JSP + jQuery sample, staged as a project — the three UI validators pass with the inventory's sources resolved against the sample's code, both output hooks pass, the evaluation's metrics equal a recomputation, and every defect in the sample's answer key (`planted-defects.json`) is visible: in the inventory or its metrics for view-layer logic, UI-only role guards and client-only validation, and as a finding at the right screen with an acceptable criterion for each UX category |
+| `skills/common/database-investigation/tests/*.test.py` | The database investigation contract of `contract.md`, offline: DDL reading per dialect including the dump-tool shapes (pg_dump, mysqldump inline keys, DBMS_METADATA), nullability left unknown when parsing stops, statement status as the most severe outcome with policy withholding kept apart from coverage gaps, schema case mismatch reported, live collection statuses and truncation through a fake port, the probe rejecting compatible products, registry SQL bound and scoped, a fourth adapter loading without core edits, and CLI exit codes and report frontmatter. `tests/integration.py` is the explicit real-engine run against the disposable containers, not discovered by the runner |
 | `tools/nexus-status.test.sh` | The dashboard's CLI contract on scratch projects: project resolution, 0/1/2 exit codes, the four addressable views, every output mode, `--group`/`--phase`/`--epic` narrowing `--json` too, unknown filters failing as usage, cross-view agreement, refresh poll |
-| `tools/docs_consistency.test.py` | The documentation split itself: both catalogues describing all 110 registered commands, the signature block matching each SKILL.md (no flag invented by prose, none dropped, none re-spelled, every flag a skill documents about itself offered, and — for the skills that wrap a shell tool — no flag that tool's parser would reject), the grouped tables in CLAUDE.md/README summing to the registry, the extension-tier and codegen prose equal to `EXTENSION_PHASES`/`CODEGEN_PHASES`, AGENTS.md knowing every skill, the catalogue pointer staying un-`@`-imported, no flag mentioned anywhere without belonging to a documented surface, the Japanese catalogue keeping row order plus each row's model tier / flags / tool references, and `docs/ddd-coverage.md` naming only registered commands and declared artifact paths |
+| `tools/docs_consistency.test.py` | The documentation split itself: both catalogues describing all 112 registered commands, the signature block matching each SKILL.md (no flag invented by prose, none dropped, none re-spelled, every flag a skill documents about itself offered, and — for the skills that wrap a shell tool — no flag that tool's parser would reject), the grouped tables in CLAUDE.md/README summing to the registry, the extension-tier and codegen prose equal to `EXTENSION_PHASES`/`CODEGEN_PHASES`, AGENTS.md knowing every skill, the catalogue pointer staying un-`@`-imported, no flag mentioned anywhere without belonging to a documented surface, the Japanese catalogue keeping row order plus each row's model tier / flags / tool references, and `docs/ddd-coverage.md` naming only registered commands and declared artifact paths |
 | `tools/lib/status_tui.test.py` | The curses shell's interaction contract without a terminal: `c` copies rather than opens, the action-menu/help behaviour with and without `--exec`, an empty tree naming its filter, `q` as the only quit key |
 | `tools/build_report.test.py` | The consolidated HTML report's rendering contract on a scratch project: one article per source document with unique ids, a Mermaid fence escaped exactly once and round-tripping unchanged, inter-report links rewritten to in-page anchors, `.feature` files as Gherkin, manifest JSON never rendered, the canonical section ids identical in both languages while every UI string switches, a project whose review has not run still rendering, and a non-project refused with exit 1 |
 
@@ -97,11 +98,11 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 
 ## Command Reference
 
-**110 slash commands across four plugins.** The catalogue — every command with its model, its
+**112 slash commands across four plugins.** The catalogue — every command with its model, its
 prerequisites and its full flag signature — is `docs/skill-reference.md` (`_ja` for Japanese), read
 on demand with the Read tool and deliberately **not** `@`-imported, since an always-loaded catalogue
 is the cost this section exists to avoid. Do not duplicate it here: this table is the map of *which
-group does what*, so you know where to look, and the counts below are a partition of all 110.
+group does what*, so you know where to look, and the counts below are a partition of all 112.
 
 | Group | Entry point | What it does | n |
 |-------|-------------|--------------|---|
@@ -113,7 +114,7 @@ group does what*, so you know where to look, and the counts below are a partitio
 | **Database Migration** | `/architect:migrate-database` | Oracle / MySQL / PostgreSQL → ScalarDB: schema extraction, analysis, SP/trigger conversion (the router delegates to nested sub-skills that are not slash commands) | 4 |
 | **ScalarDB Development** `/scalardb:*` | `/scalardb:build-app` | Schema modeling, configuration, scaffolding, CRUD/JDBC patterns, exception handling, code review, migration advice | 11 |
 | **Multi-Cloud Infrastructure** `/infra:*` | `/infra:start` | Terraform / Kubernetes / Helm / Kustomize / Argo CD / GitLab CI / Cosign / Vault / ESO / Prometheus / Kyverno across AWS-Azure-GCP x local-test-staging-production, grounded in the vendored `okf-k8s-tf` bundle. Skills are namespaced under `skills/infra/`, rules under `rules/infra/` | 4 |
-| **Status & utility** | `/architect:report-status` | One dashboard (`tools/nexus-status.sh`) whose `Tab` cycles four views — Product, Architect, Code Generation, Backlog Delivery — plus `render-mermaid` and `update-knowledge`. Recorded spend is `/architect:report-token-cost` | 3 |
+| **Status & utility** | `/architect:report-status` | One dashboard (`tools/nexus-status.sh`) whose `Tab` cycles four views — Product, Architect, Code Generation, Backlog Delivery — plus `render-mermaid` and `update-knowledge`. Recorded spend is `/architect:report-token-cost`. Standalone database investigation is `investigate-db-design` (DDL/design documents) and `investigate-db-live` (catalogs and statistics) | 5 |
 
 Two things this table deliberately does not tell you, because the machine-readable source does:
 which phases `/architect:pipeline` actually runs (the manifest) and which phases the dashboard files
@@ -152,7 +153,7 @@ invocation chains in README §Code Generation & Delivery and docs/getting-starte
 The extension tier is **not** everything outside the manifest. Three further groups sit
 outside it and outside the pipeline, each documented in its own section above rather than
 here: the orchestration and setup skills (`start`, `pipeline`, `init-output`), the status
-and utility skills (`report-status`, `render-mermaid`, `update-knowledge`), and the two
+and utility skills (`report-status`, `render-mermaid`, `update-knowledge`, `investigate-db-design`, `investigate-db-live`), and the two
 skill groups that are pipelines in their own right —
 **Backlog Delivery** (`deliver-backlog`, `export-backlog`, `implement-backlog`,
 `review-issue`, `merge-issue`, `capture-followup`, `report-backlog-status`) and **Database Migration**
@@ -249,6 +250,7 @@ do not load ScalarDB rules for non-ScalarDB work.
 | Open Questions protocol | rules/open-questions.md | Any point where a skill would write `TBD` — how to ask the user with AskUserQuestion (free text via the appended "Other"), what never to ask, and how to record what stays open |
 | Token pricing & usage tracking | rules/token-pricing.md | Estimating run cost, or reading the `work/token-usage.json` ledger recorded during execution |
 | API contract fidelity | rules/api-contract-fidelity.md | Designing an API surface, generating API-layer code or contract tests, or verifying code against the contract — OpenAPI as the single contract, the `operationId` binding, the contract map, the drift protocol, the contract test stack |
+| Database investigation | rules/database-investigation.md | Design-document and live catalog/statistics investigation, scoped adapters, evidence, partial coverage and credential handling |
 | API error standard | rules/api-error-standard.md | Designing error responses, generating an exception handler, or reviewing either — RFC 9457 Problem Details, the problem type registry, and the ScalarDB exception to HTTP mapping (incl. the `UnknownTransactionStatusException` branch) |
 | API security checks | rules/api-security-checks.md | Reviewing an API design or API-layer code — OWASP API Security Top 10 (2023) as concrete checks, plus tenant-isolation and transaction-boundary security |
 | API style selection | rules/api-style-selection.md | Choosing REST / GraphQL / hybrid / gRPC / AsyncAPI per API surface — the per-surface decision unit, the evidence it rests on, and `reports/03_design/api-style-decisions.json` as the canonical machine-readable contract (the `.md` is a generated view; the database product never derives the style) |

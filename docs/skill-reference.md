@@ -29,6 +29,8 @@ For the inputs you should prepare before running each pipeline, see the
 |---------|-------|-------------|
 | `/architect:investigate` | sonnet | Tech stack, structure, debt, DDD readiness survey |
 | `/architect:investigate-security` | sonnet | OWASP Top 10, access control assessment |
+| `/architect:investigate-db-design` | sonnet | Offline DDL/design investigation through product adapters, with evidence and ER diagrams |
+| `/architect:investigate-db-live` | sonnet | Scoped Oracle/PostgreSQL/MySQL catalog and existing-statistics investigation |
 
 ## Analysis
 
@@ -256,6 +258,8 @@ path by their router, so they are not slash commands and have no signature here.
 /architect:define-requirements [target_path] [--input=<file|dir>] [--auto] [--no-scalardb]
 /architect:investigate [target_path]
 /architect:investigate-security [target_path]
+/architect:investigate-db-design [input_path] [--product=<id>] [--schema=<name>] [--target-id=<id>] [--version=<version>] [--lang=ja|en]
+/architect:investigate-db-live [--profile=<path>] [--lang=ja|en]
 /architect:analyze [target_path]
 /architect:analyze-data-model [target_path]
 /architect:analyze-ui [target_path] [--ui-root=<path>] [--auto]

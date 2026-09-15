@@ -1,0 +1,63 @@
+{
+  "fold": "upper",
+  "min_major": 19,
+  "probe": "SELECT PRODUCT AS \"product\", VERSION_FULL AS \"version\", SYS_CONTEXT('USERENV','CON_NAME') AS \"catalog\" FROM PRODUCT_COMPONENT_VERSION WHERE PRODUCT LIKE 'Oracle%Database%'",
+  "queries": [
+    {
+      "id": "tables",
+      "kind": "table",
+      "sql": "SELECT OWNER AS \"schema\",TABLE_NAME AS \"name\" FROM ALL_TABLES WHERE OWNER=:scope ORDER BY TABLE_NAME"
+    },
+    {
+      "id": "columns",
+      "kind": "column",
+      "sql": "SELECT OWNER AS \"schema\",TABLE_NAME AS \"name\",COLUMN_NAME AS \"column_name\",CASE WHEN DATA_TYPE IN ('VARCHAR2','CHAR','NVARCHAR2','NCHAR') THEN DATA_TYPE || '(' || CHAR_LENGTH || CASE CHAR_USED WHEN 'C' THEN ' CHAR' ELSE ' BYTE' END || ')' WHEN DATA_TYPE='NUMBER' AND DATA_PRECISION IS NOT NULL THEN DATA_TYPE || '(' || DATA_PRECISION || ',' || NVL(DATA_SCALE,0) || ')' ELSE DATA_TYPE END AS \"data_type\",COLUMN_ID AS \"ordinal\",NULLABLE AS \"nullable\" FROM ALL_TAB_COLUMNS WHERE OWNER=:scope AND TABLE_NAME IN (SELECT TABLE_NAME FROM ALL_TABLES t WHERE t.OWNER=ALL_TAB_COLUMNS.OWNER) ORDER BY TABLE_NAME,COLUMN_ID"
+    },
+    {
+      "id": "constraints",
+      "kind": "constraint",
+      "sql": "SELECT c.OWNER AS \"schema\",c.TABLE_NAME AS \"name\",c.CONSTRAINT_NAME AS \"constraint_name\",CASE c.CONSTRAINT_TYPE WHEN 'P' THEN 'primary_key' WHEN 'R' THEN 'foreign_key' WHEN 'U' THEN 'unique' WHEN 'C' THEN 'check' END AS \"constraint_kind\",k.COLUMN_NAME AS \"column_name\",rc.OWNER AS \"ref_schema\",rc.TABLE_NAME AS \"ref_table\",rk.COLUMN_NAME AS \"ref_column\" FROM ALL_CONSTRAINTS c LEFT JOIN ALL_CONS_COLUMNS k ON k.OWNER=c.OWNER AND k.CONSTRAINT_NAME=c.CONSTRAINT_NAME LEFT JOIN ALL_CONSTRAINTS rc ON rc.OWNER=c.R_OWNER AND rc.CONSTRAINT_NAME=c.R_CONSTRAINT_NAME LEFT JOIN ALL_CONS_COLUMNS rk ON rk.OWNER=rc.OWNER AND rk.CONSTRAINT_NAME=rc.CONSTRAINT_NAME AND rk.POSITION=k.POSITION WHERE c.OWNER=:scope AND c.CONSTRAINT_TYPE IN ('P','R','U','C') AND NOT (c.CONSTRAINT_TYPE='C' AND REGEXP_LIKE(c.SEARCH_CONDITION_VC,'^\"[^\"]+\" IS NOT NULL$')) ORDER BY c.TABLE_NAME,c.CONSTRAINT_NAME,k.POSITION"
+    },
+    {
+      "id": "indexes",
+      "kind": "index",
+      "sql": "SELECT i.OWNER AS \"schema\",i.INDEX_NAME AS \"name\",i.TABLE_NAME AS \"table_name\",c.COLUMN_NAME AS \"column_name\",CASE i.UNIQUENESS WHEN 'UNIQUE' THEN 1 ELSE 0 END AS \"is_unique\" FROM ALL_INDEXES i LEFT JOIN ALL_IND_COLUMNS c ON c.INDEX_OWNER=i.OWNER AND c.INDEX_NAME=i.INDEX_NAME WHERE i.OWNER=:scope ORDER BY i.INDEX_NAME,c.COLUMN_POSITION"
+    },
+    {
+      "id": "views",
+      "kind": "view",
+      "sql": "SELECT OWNER AS \"schema\",VIEW_NAME AS \"name\" FROM ALL_VIEWS WHERE OWNER=:scope ORDER BY VIEW_NAME"
+    },
+    {
+      "id": "routines",
+      "kind": "function",
+      "sql": "SELECT LOWER(OBJECT_TYPE) AS \"object_kind\",OWNER AS \"schema\",OBJECT_NAME AS \"name\" FROM ALL_OBJECTS WHERE OWNER=:scope AND OBJECT_TYPE IN ('FUNCTION','PROCEDURE','PACKAGE') ORDER BY OBJECT_NAME"
+    },
+    {
+      "id": "triggers",
+      "kind": "trigger",
+      "sql": "SELECT OWNER AS \"schema\",TRIGGER_NAME AS \"name\" FROM ALL_TRIGGERS WHERE OWNER=:scope ORDER BY TRIGGER_NAME"
+    },
+    {
+      "id": "rows",
+      "kind": "statistic",
+      "sql": "SELECT OWNER AS \"schema\",TABLE_NAME AS \"name\",NUM_ROWS AS \"value\",TO_CHAR(LAST_ANALYZED,'YYYY-MM-DD\"T\"HH24:MI:SS') AS \"updated_at\" FROM ALL_TAB_STATISTICS WHERE OWNER=:scope AND OBJECT_TYPE='TABLE'",
+      "metric": "rows",
+      "semantics": "estimate",
+      "unit": "rows",
+      "granularity": "table"
+    },
+    {
+      "id": "bytes",
+      "kind": "statistic",
+      "sql": "SELECT USER AS \"schema\",SEGMENT_NAME AS \"name\",SUM(BYTES) AS \"value\" FROM USER_SEGMENTS WHERE USER=:scope GROUP BY SEGMENT_NAME",
+      "metric": "segment_bytes",
+      "semantics": "measured",
+      "unit": "bytes",
+      "granularity": "segment",
+      "empty_reason": "owner-only USER_SEGMENTS: requested owner may differ from connected user, or own segments are absent"
+    }
+  ],
+  "id": "oracle",
+  "compatible_markers": []
+}

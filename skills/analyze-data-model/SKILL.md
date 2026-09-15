@@ -27,6 +27,14 @@ Perform a comprehensive analysis of the target system's data layer and generate 
 | File | Required/Recommended | Source |
 |------|---------------------|--------|
 | reports/01_analysis/ | Recommended | /architect:analyze |
+| Explicitly selected `reports/01_analysis/database-investigation/<target-id>/<mode>/<run-id>/` | Optional | /architect:investigate-db-design or /architect:investigate-db-live |
+
+When a database investigation run is supplied, read its `inventory.json`,
+`collection-summary.json` and review report. Preserve file/query evidence, native identifiers,
+partial coverage and the difference between design declarations and live observations. Do not
+silently select the latest run, combine baselines, infer missing statistics or replace unavailable
+data with zero. Database-only analysis may use this input without the broader codebase analysis;
+the existing pipeline prerequisites are unchanged.
 
 ## Output
 

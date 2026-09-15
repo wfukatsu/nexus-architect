@@ -29,6 +29,8 @@
 |---------|-------|------|
 | `/architect:investigate` | sonnet | 技術スタック、構造、技術的負債、DDD準備度調査 |
 | `/architect:investigate-security` | sonnet | OWASP Top 10、アクセス制御評価 |
+| `/architect:investigate-db-design` | sonnet | DDL・設計資料からのDB調査。製品別アダプタ、出典、ER図 |
+| `/architect:investigate-db-live` | sonnet | Oracle/PostgreSQL/MySQLのディクショナリと既存統計の調査 |
 
 ## 分析
 
@@ -256,6 +258,8 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 /architect:define-requirements [target_path] [--input=<file|dir>] [--auto] [--no-scalardb]
 /architect:investigate [target_path]
 /architect:investigate-security [target_path]
+/architect:investigate-db-design [input_path] [--product=<id>] [--schema=<name>] [--target-id=<id>] [--version=<version>] [--lang=ja|en]
+/architect:investigate-db-live [--profile=<path>] [--lang=ja|en]
 /architect:analyze [target_path]
 /architect:analyze-data-model [target_path]
 /architect:analyze-ui [target_path] [--ui-root=<path>] [--auto]

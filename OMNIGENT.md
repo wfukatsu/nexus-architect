@@ -337,3 +337,7 @@ human review rather than becoming a note on it. See
 Configurable per project in `work/pipeline-progress.json` (`options.output_language`:
 `en` default, `ja` supported). Report prose uses the configured language; YAML frontmatter
 keys and Mermaid node IDs stay in English. See [`rules/output-conventions.md`](rules/output-conventions.md).
+
+Standalone database investigation uses `architect:investigate-db-design` for DDL/design documents
+and `architect:investigate-db-live` for authorized catalog/statistics connections. Load the selected
+skill and its common database-investigation contract; these are not automatic pipeline phases.
