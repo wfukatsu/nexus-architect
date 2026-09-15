@@ -104,6 +104,8 @@ def test(product, runtime, initialize):
     for table in tables:
         expected=next(o for o in declared["objects"] if o["kind"]=="table" and o["name"]==table["name"])
         assert [(c["name"],c["nullable"]) for c in table["columns"]]==[(c["name"],c["nullable"]) for c in expected["columns"]]
+        # Both directions: the catalog must not add constraints the DDL never declared (Oracle NOT NULL).
+        assert sorted(c["kind"] for c in table["constraints"])==sorted(c["kind"] for c in expected["constraints"]), table["name"]+" constraint kinds differ from the declared design"
         for constraint in expected["constraints"]:
             actual=next(c for c in table["constraints"] if c["kind"]==constraint["kind"])
             assert actual["columns"]==constraint["columns"]

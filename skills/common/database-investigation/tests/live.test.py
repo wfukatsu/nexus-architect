@@ -66,6 +66,11 @@ class LiveTests(unittest.TestCase):
         self.assertEqual(result["statistics"][0]["semantics"], "estimate")
         self.assertIsNone(result["statistics"][0]["updated_at"])
 
+    def test_row_granularity_distinguishes_partition_statistics(self):
+        port = FakePort({"rows": [{"schema": "app", "name": "t", "value": 1}, {"schema": "app", "name": "t_2026", "value": 1, "granularity": "partition"}]})
+        result = collect(self.adapter(), port, "app", lambda: "now")
+        self.assertEqual([s["granularity"] for s in result["statistics"]], ["table", "partition"])
+
     def test_timeout_and_unsupported_do_not_hide_failure(self):
         port = FakePort({"tables": TimeoutError(), "columns": NotImplementedError()})
         result = collect(self.adapter(), port, "app", lambda: "now")

@@ -35,6 +35,31 @@ class ContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             verify_probe(spec,Probe(),"18.5","app")
 
+    def test_probe_rejects_compatible_products_declared_by_the_adapter(self):
+        spec = load_adapter("postgresql")[0]
+        for row in ({"product": "PostgreSQL 15.4 on aarch64", "version": "15.4", "catalog": "app", "compatible_product": "aurora_version"},
+                    {"product": "PostgreSQL 15.2-YB-2.25.0.0-b0 on x86_64", "version": "15.2-YB-2.25.0.0-b0", "catalog": "app", "compatible_product": None}):
+            class Probe:
+                def query(self, *args, row=row):
+                    return [row]
+            with self.subTest(row=row["product"]), self.assertRaises(ValueError):
+                verify_probe(spec, Probe(), "15", "app")
+
+    def test_probe_major_version_comes_from_the_numeric_release(self):
+        class Probe:
+            def query(self, *args):
+                return [{"product": "PostgreSQL", "version": "17beta1", "catalog": "app", "compatible_product": None}]
+        self.assertEqual(verify_probe({"id": "postgresql", "probe": "SELECT", "min_major": 14}, Probe(), "17", "app")["version"], "17beta1")
+
+    def test_catalog_queries_exclude_duplicates_of_declared_structure(self):
+        oracle = next(q for q in load_adapter("oracle")[0]["queries"] if q["id"] == "constraints")["sql"]
+        self.assertIn("IS NOT NULL", oracle, "Oracle NOT NULL constraints must not be reported as CHECK constraints")
+        pg = {q["id"]: q["sql"] for q in load_adapter("postgresql")[0]["queries"]}
+        for query in ("tables", "columns", "constraints", "indexes", "triggers"):
+            self.assertIn("relispartition", pg[query], query + " must not list partition children as tables")
+        for query in ("rows", "bytes", "index_scans"):
+            self.assertIn("AS granularity", pg[query], query + " must label partition-level statistics")
+
     def test_fourth_adapter_loads_without_modifying_core(self):
         import adapters
         with tempfile.TemporaryDirectory() as d:
