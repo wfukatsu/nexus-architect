@@ -77,17 +77,18 @@ def _java(cmd):
     return subprocess.run(cmd).returncode
 
 
-def check(sid, generated_dir, package, java=None):
+def check(sid, generated_dir, package, java=None, runtime_lib=None):
     """Run GoldenCheck on the generated query class: exit 0 -> pass, 1 -> fail, anything else -> error."""
     generated = Path(generated_dir)
     stem = sid.replace("-", "").capitalize()
-    classpath = os.pathsep.join([str(common.RUNTIME_LIB / "*"), str(generated / "build/classes/java/main")])
+    lib = Path(runtime_lib) if runtime_lib else common.RUNTIME_LIB
+    classpath = os.pathsep.join([str(lib / "*"), str(generated / "build/classes/java/main")])
     cmd = ["java", "-Duser.language=en", "-Duser.country=US", "-cp", classpath, MAIN,
            str(golden_path(generated, sid)), f"{package}.appside.{stem}Query"]
     if java is None:
         if not golden_path(generated, sid).is_file():
             return {"id": sid, "method": "golden", "outcome": "skipped", "reason": "golden results not captured"}
-        if not common.RUNTIME_LIB.is_dir():
+        if not lib.is_dir():
             return {"id": sid, "method": "golden", "outcome": "error", "reason": "runtime not installed (gradle installDist)"}
     code = (java or _java)(cmd)
     outcome = {0: "pass", 1: "fail"}.get(code, "error")
@@ -128,7 +129,7 @@ def main(argv=None):
             finally:
                 source.close()
             return 0
-        results = [check(sid, args.out, args.package) for sid in args.id]
+        results = [check(sid, args.out, args.package, runtime_lib=common.runtime_lib(project)) for sid in args.id]
     except Exception as exc:  # noqa: BLE001 — never print driver messages: they can carry credentials or values
         print(f"golden {args.command} failed: {type(exc).__name__}: {exc if isinstance(exc, (ValueError, KeyError)) else ''}",
               file=sys.stderr)

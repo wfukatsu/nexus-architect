@@ -44,6 +44,8 @@ SQL_START = re.compile(r"^\s*(?:\(\s*)*(?:SELECT|WITH|INSERT|UPDATE|DELETE|MERGE
                        r"TRUNCATE|CALL|EXEC|EXECUTE|BEGIN|DECLARE)\b|^\s*\{\s*(?:\?\s*=\s*)?call\b", re.I)
 JPQL_START = re.compile(r"^\s*(?:SELECT|UPDATE|DELETE)\b", re.I)
 STRING_LITERAL = re.compile(r"'(?:''|[^'])*'")
+# `?`, or `:name` that is not the second colon of a PostgreSQL `::type` cast
+BIND_MARKER = re.compile(r"\?|(?<![:\w]):([A-Za-z_]\w*)")
 
 # Methods whose first argument is SQL: JDBC, Spring JdbcTemplate / NamedParameterJdbcTemplate, JPA native queries.
 SQL_METHODS = {"prepareStatement", "prepareCall", "executeQuery", "executeUpdate", "executeLargeUpdate", "execute",
@@ -116,6 +118,11 @@ def _statement(origin: dict, text: str, *, key: str, language: str = "sql", reas
         "text_sha256": _sha(text),
     }
     return stmt, text
+
+
+def java_binds(text: str) -> list[str]:
+    """Bind markers of a Java-side statement, in order: `?` as "?", `:name` as its name. Literals are ignored."""
+    return [m.group(1) or "?" for m in BIND_MARKER.finditer(STRING_LITERAL.sub("''", text))]
 
 
 def _occurrence(seen: dict, *parts) -> str:
@@ -329,7 +336,7 @@ def _from_java(path: Path, rel: str, raw: bytes, unextracted: list | None = None
         origin = {"kind": "app_code", "path": rel, "sha256": digest, "locator": loc,
                   "lines": [tokens[start][2], tokens[min(end, len(tokens) - 1)][2]]}
         out.append(_statement(origin, text.strip(), key=_occurrence(seen, loc, _collapse(mask(text))),
-                              language=language, reasons=reasons))
+                              language=language, reasons=reasons, binds=java_binds(text)))
 
     i = 0
     while i < len(tokens):

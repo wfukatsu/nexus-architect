@@ -108,7 +108,8 @@ def main(argv=None):
         config = common.source_config(json.loads(Path(args.profile).read_text(encoding="utf-8")))
         source = common.SourceDatabase(config)
         try:
-            results = run(manifest, inventory, project, source, common.ResidualRunner(args.scalardb_properties),
+            runner = common.ResidualRunner(args.scalardb_properties, binary=common.runner_path(project))
+            results = run(manifest, inventory, project, source, runner,
                           args.fetcher, args.out, args.id)
         finally:
             source.close()

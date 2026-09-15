@@ -19,9 +19,21 @@ SQL_MIGRATION = SCRIPTS.parent
 INVESTIGATION_CONNECTION = SQL_MIGRATION.parent / "database-investigation" / "scripts" / "core" / "connection.py"
 RUNNER = SQL_MIGRATION / "runtime-java" / "build" / "install" / "residual-runner" / "bin" / "residual-runner"
 RUNTIME_LIB = SQL_MIGRATION / "runtime-java" / "build" / "install" / "residual-runner" / "lib"
+PROJECT_INSTALL = Path("work") / "sql-migration" / "runtime-java" / "build" / "install" / "residual-runner"
 ENVIRONMENTS = ("local", "test", "staging")
 PRODUCTS = ("oracle", "postgresql", "mysql")
 QUERY_TIMEOUT_MS = 60_000
+
+
+def runner_path(project_dir):
+    """The residual runner built into the project (work/sql-migration/runtime-java), else the plugin's."""
+    built = Path(project_dir) / PROJECT_INSTALL / "bin" / "residual-runner"
+    return built if built.is_file() else RUNNER
+
+
+def runtime_lib(project_dir):
+    built = Path(project_dir) / PROJECT_INSTALL / "lib"
+    return built if built.is_dir() else RUNTIME_LIB
 
 
 def normalize(value):
