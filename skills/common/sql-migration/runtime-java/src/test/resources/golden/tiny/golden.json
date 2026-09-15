@@ -1,0 +1,19 @@
+{
+ "query": "SELECT id, name, amount, created FROM t ORDER BY id",
+ "ordered": true,
+ "tables": {
+  "t": [
+   {"id": {"$dec": "2"}, "name": "b", "amount": null, "created": {"$date": "2026-01-02"}},
+   {"id": {"$dec": "1"}, "name": "a", "amount": {"$dec": "1.50"}, "created": {"$ts": "2026-01-01T10:30:00"}},
+   {"id": 3, "name": "𠮷", "amount": {"$dec": "-3.125"}, "created": {"$ts": "2026-01-03T00:00:00"}}
+  ]
+ },
+ "expected": {
+  "columns": ["id", "name", "amount", "created"],
+  "rows": [
+   [{"$dec": "1"}, "a", {"$dec": "1.5"}, {"$ts": "2026-01-01T10:30:00"}],
+   [{"$dec": "2"}, "b", null, {"$ts": "2026-01-02T00:00:00"}],
+   [{"$dec": "3"}, "𠮷", {"$dec": "-3.125"}, {"$ts": "2026-01-03T00:00:00"}]
+  ]
+ }
+}
