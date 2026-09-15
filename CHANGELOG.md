@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.41.1] - 2026-09-15
+
+### Fixed
+- **Golden verification of JPQL, dynamic and parameterised reads.** `/architect:verify-sql-migration`
+  captured golden results by running the inventory text as written, so a JPQL statement, dynamic SQL
+  (`${column}`) or a statement with bind parameters failed on the source database. None of the
+  sample's application-side reads could be proven. `golden.py capture` now refuses such a statement
+  and accepts a rendering the user confirmed: `--query`, one concrete SELECT in the source dialect
+  checked with sqlglot, and `--param NAME=VALUE` values for its `:name` markers. Only the markers the
+  query uses are bound, through the driver's placeholder style. `golden.json` records the rendering
+  and the parameters. A verified rendering proves that variant only.
+- **Parameters reach the application-side query.** `AppSideQuery` gains `run(tables, params)`, a
+  default method delegating to `run(tables)`, and `GoldenCheck` passes golden.json's `params`. This
+  extends the vendored runtime locally, as recorded in `PROVENANCE.md`.
+  `/architect:implement-sql-migration` generates the two-argument skeleton for a read that has binds
+  or `${...}` substitutions.
+- `skills/common/sql-migration/references/operations.md` documented `golden.py` flags that never
+  existed (`--setup`, `--tables`, `--golden`, `--impl`); it now shows the real capture and check
+  commands.
+
+### Verified
+- On a disposable PostgreSQL 18.6 container, golden checks verified the sample's SQM-010 (JPQL
+  rendered as SQL), SQM-012 (`${column}` = a nullable column, ordered) and SQM-015 (both dynamic
+  branches with bound values). A mutation that sorts NULLs first failed the check.
+
 ## [0.41.0] - 2026-09-15
 
 ### Added

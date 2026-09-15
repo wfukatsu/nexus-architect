@@ -7,6 +7,37 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.41.1] - 2026-09-15
+
+### Fixed
+- **JPQL・動的 SQL・バインド変数付きの読み取りを golden で検証できるようにした。**
+  `/architect:verify-sql-migration` はインベントリの本文をそのまま実行して golden を取得していた。そのため、次の文は
+  移行元 DB で失敗し、サンプルのアプリ側の読み取りを 1 文も証明できなかった。
+  - JPQL の文
+  - 動的 SQL（`${column}`）
+  - バインド変数付きの文
+
+  `golden.py capture` はこうした文を拒否し、代わりに利用者が確認した具体化を受け付ける。具体化は次の 2 つで指定する。
+  - `--query`: 移行元の方言で書いた具体的な SELECT 1 文。sqlglot で検査する。
+  - `--param NAME=VALUE`: `:name` マーカーに渡す値。
+
+  クエリが実際に使うマーカーだけを、ドライバのプレースホルダ形式でバインドする。`golden.json` には具体化とパラメータを
+  記録する。verified になっても、証明されるのはその 1 通りだけである。
+- **アプリ側のクエリにパラメータを渡せるようにした。** `AppSideQuery` に `run(tables, params)` を加えた。これは
+  `run(tables)` に委譲する default メソッドで、`GoldenCheck` が golden.json の `params` を渡す。複製したランタイムを
+  nexus 側で拡張したもので、`PROVENANCE.md` に記録した。`/architect:implement-sql-migration` は、バインド変数か
+  `${...}` を含む読み取りに 2 引数の雛形を生成する。
+- `skills/common/sql-migration/references/operations.md` が、`golden.py` に存在しない引数（`--setup`、`--tables`、
+  `--golden`、`--impl`）を案内していた。実際の取得と検査のコマンドに直した。
+
+### Verified
+- 使い捨ての PostgreSQL 18.6 コンテナで、サンプルの次の 3 文が golden 検証で verified になった。
+  - SQM-010: JPQL を SQL に具体化
+  - SQM-012: `${column}` に NULL を含む列を指定。順序付きで比較
+  - SQM-015: 動的な分岐を両方通し、値をバインド
+
+  NULL を先頭に並べる誤った実装では、検査が失敗した。
+
 ## [0.41.0] - 2026-09-15
 
 ### Added
