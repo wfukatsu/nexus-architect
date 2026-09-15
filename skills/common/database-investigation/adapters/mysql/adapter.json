@@ -66,5 +66,7 @@
       "sql": "SELECT OBJECT_SCHEMA AS `schema`,CONCAT(OBJECT_NAME,'.',INDEX_NAME) AS name,COUNT_READ AS value,(@@performance_schema AND EXISTS (SELECT 1 FROM performance_schema.setup_instruments WHERE NAME='wait/io/table/sql/handler' AND ENABLED='YES')) AS enabled FROM performance_schema.table_io_waits_summary_by_index_usage WHERE OBJECT_SCHEMA=%s AND INDEX_NAME IS NOT NULL ORDER BY OBJECT_NAME,INDEX_NAME"
     }
   ],
-  "id": "mysql"
+  "id": "mysql",
+  "index_scope": "table",
+  "inline_indexes": true
 }

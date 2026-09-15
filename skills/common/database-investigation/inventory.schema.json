@@ -207,6 +207,24 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "on_delete": {
+                "enum": [
+                  "cascade",
+                  "restrict",
+                  "set null",
+                  "set default",
+                  "no action"
+                ]
+              },
+              "on_update": {
+                "enum": [
+                  "cascade",
+                  "restrict",
+                  "set null",
+                  "set default",
+                  "no action"
+                ]
               }
             }
           }
@@ -250,6 +268,9 @@
         },
         "evidence_ids": {
           "$ref": "#/$defs/refs"
+        },
+        "granularity": {
+          "type": "string"
         }
       }
     },
@@ -287,6 +308,22 @@
         },
         "evidence_ids": {
           "$ref": "#/$defs/refs"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "withheld": {
+          "description": "Content omitted by policy (never a coverage gap): the statement or query was otherwise read.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "default_expression",
+              "check_expression",
+              "comment_text",
+              "definition"
+            ]
+          }
         }
       }
     },
