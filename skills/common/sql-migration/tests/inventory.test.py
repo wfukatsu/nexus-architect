@@ -171,6 +171,45 @@ class AppCodeTests(unittest.TestCase):
         self.assertEqual(by_locator(again, "OrderMapper#added")["id"], f"SQM-{len(ids) + 1:03d}")
 
 
+class UnextractedCallTests(unittest.TestCase):
+    """What static reading cannot resolve is counted, so absence from the inventory is never silent."""
+
+    def extract(self, java):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "Dao.java").write_text(java)
+            return inventory.build(source="postgres", app_roots=[root], project_dir=root)
+
+    def test_constant_built_from_a_variable_stays_a_dynamic_statement(self):
+        result = self.extract(textwrap.dedent('''\
+            class Dao {
+              List<Row> sorted(Connection conn, String column) throws SQLException {
+                String sql = "SELECT id FROM t ORDER BY " + column;
+                return rows(conn.prepareStatement(sql));
+              }
+            }
+            '''))
+        self.assertEqual([(s["sql"], s["dynamic_reasons"]) for s in result["statements"]],
+                         [("SELECT id FROM t ORDER BY ${column}", ["java_concatenation"])])
+        self.assertEqual(result["unextracted"], [])
+
+    def test_sql_passed_in_from_elsewhere_is_counted_not_guessed(self):
+        result = self.extract(textwrap.dedent('''\
+            class Dao {
+              int run(Connection conn, JdbcTemplate jdbcTemplate, ExecutorService executor, String sql) throws Exception {
+                conn.prepareStatement(sql);
+                jdbcTemplate.update(buildUpdate());
+                executor.execute(() -> work());
+                return list.update(sql);
+              }
+            }
+            '''))
+        self.assertEqual(result["statements"], [])
+        self.assertEqual([(u["method"], u["locator"], u["lines"]) for u in result["unextracted"]],
+                         [("prepareStatement", "Dao#run", [3, 3]), ("update", "Dao#run", [4, 4])])
+        self.assertEqual(result["summary"]["unextracted"], 2)
+
+
 class SqlFileAndDatabaseTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
