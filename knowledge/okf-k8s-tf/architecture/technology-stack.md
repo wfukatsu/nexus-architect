@@ -4,9 +4,9 @@ title: AIDD インフラ技術スタック
 description: 対象2リポジトリの実装から抽出した技術、役割、調査範囲。
 tags: [aidd, inventory, infrastructure, kubernetes, terraform]
 generated: { by: codex/gpt-5, at: "2026-08-19T00:00:00+09:00" }
-verified: { by: "process:repository-inspection", at: "2026-08-19T00:00:00+09:00" }
+verified: { by: "process:official-document-cross-check", at: "2026-09-28T00:00:00+09:00" }
 status: stable
-stale_after: 2026-11-19
+stale_after: 2026-12-28
 sources:
   - id: infrastructure-repo
     resource: "https://gitlab.com/scalar-labs/ai-driven-devops/ai-devops-project-template/aidd-infrastructure"
@@ -72,3 +72,25 @@ Kong Gateway Operator/Konnect、Gateway API、cert-manager、trust-manager、Key
 - 「対象実装」: 調査した2リポジトリで確認できた事実。
 - 「設計指針」: 公式ドキュメントを根拠とする推奨事項。
 - 「確認事項」: 適用前に環境依存の判断が必要な項目。
+
+# 確認事項
+
+上表の version は調査スナップショット（2026-08-19）での固定値であり、そのまま事実として残す。2026-09-28 時点の各公開 release との差は次のとおりで、上げるかどうか・いつ上げるかは platform の判断である（`knowledge/okf-k8s-tf-upstream/REPORT.md`）。
+
+| 対象 | 固定値 | 最新 stable | 差 | 備考 |
+|---|---:|---:|---|---|
+| Terraform | 1.14.8 | 1.16.4 | minor | [Terraform](/foundation/terraform.md) の確認事項 |
+| Kubernetes | 1.35 系 | 1.37.1 | minor | 1.35 は EOL 2027-02-28。[Kubernetes](/foundation/kubernetes.md) の確認事項 |
+| Docker | 27 | 29.8.1 | major | 27 は 2025-05-03 に EOL |
+| Cosign | 2.6.1 | 3.1.3 | major | v3 で新 bundle 形式・trusted root・signing config が既定になり、v4 で旧機能は削除予定。[Docker と Cosign](/delivery/docker-cosign.md) の確認事項 |
+| AWS Provider | 5.94.1 | 6.66.0 | major | |
+| AzureRM Provider | 4.78.0 | 5.7.0 | major | |
+| AzureAD Provider | 3.9.0 | 3.10.0 | minor | |
+| Google Provider | 6.44.0 | 8.4.0 | major（2 つ） | |
+| Helm Provider | 2.17.0 | 3.3.0 | major | |
+| Kubernetes Provider | 2.36.0 | 3.2.1 | major | |
+| Vault Provider | 4.8.0 | 5.12.0 | major | |
+| kubectl Provider | 1.14.0 | 1.19.0 | minor | |
+
+- major 差の Provider は、各 Provider の upgrade guide で破壊的変更を確認し、Terraform 本体を含めた upgrade 順序と root module ごとの MR 単位を決める。
+- Kyverno の version はスナップショットの記述から特定できない。v1.20 で ClusterPolicy が removal されるため、[Kyverno](/security/kyverno.md) の確認事項を先に扱う。

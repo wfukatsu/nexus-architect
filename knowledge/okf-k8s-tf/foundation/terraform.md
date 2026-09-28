@@ -5,9 +5,9 @@ description: AIDD のマルチクラウド IaC に必要な state、module、pro
 resource: "https://developer.hashicorp.com/terraform/docs"
 tags: [terraform, iac, state, modules, security]
 generated: { by: codex/gpt-5, at: "2026-08-19T00:00:00+09:00" }
-verified: { by: "process:official-document-cross-check", at: "2026-08-19T00:00:00+09:00" }
+verified: { by: "process:official-document-cross-check", at: "2026-09-28T00:00:00+09:00" }
 status: stable
-stale_after: 2026-11-19
+stale_after: 2026-12-28
 sources:
   - { id: tf-state, resource: "https://developer.hashicorp.com/terraform/language/state", title: Terraform state, author: "team:hashicorp" }
   - { id: tf-locking, resource: "https://developer.hashicorp.com/terraform/language/state/locking", title: State locking, author: "team:hashicorp" }
@@ -83,3 +83,8 @@ terraform init -backend=false
 terraform validate
 terraform plan -detailed-exitcode
 ```
+
+# 確認事項
+
+- 対象実装は Terraform 1.14.8 に固定している。2026-09-28 時点の最新 stable は 1.16.4（minor 2 つ差）。上げる場合は「変更と復旧」の単位（lock file 更新、`plan`、非推奨警告、state migration、rollback 可否）で 1.15、1.16 の release notes を確認し、root module ごとに upgrade MR にする。
+- Provider も major を含めて遅れている（[技術スタック](/architecture/technology-stack.md)の確認事項）。Terraform 本体と Provider の upgrade 順序を決める。
