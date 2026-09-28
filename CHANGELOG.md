@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.42.0] - 2026-09-28
+
+### Added
+- **The k8s-tf bundle (`knowledge/okf-k8s-tf/`) is kept current from its public upstream.** Its
+  origin repository is gone, so its upstream is now the official documentation each document cites.
+  - `tools/refresh-okf-k8s-tf.py` collects every cited public page (49) and 29 release feeds.
+    - The page text is held locally in the git-ignored `knowledge/okf-k8s-tf-upstream/pages/`.
+    - `state.json` and `REPORT.md` record per page a content hash, per technology the latest
+      stable release beside the version the bundle states, and the documents awaiting
+      re-verification (`pending`).
+    - The two private repositories behind the observed tier are never fetched.
+  - `.github/workflows/refresh-okf-k8s-tf.yml` runs it every Monday 23:00 JST with no model and no
+    API key. It rewrites only a redirected source that moved to a new address, and opens one pull
+    request when anything moved.
+  - `/architect:revise-knowledge` (opus, run on demand) re-verifies the pending documents against
+    the fresh pages. It revises design guidance, version and lifecycle notes and open questions,
+    and never the observed tier. 116 commands.
+  - `tools/lib/okf_upstream.test.py` guards the collector offline (81 checks).
+- A document is listed for re-verification when:
+  - a cited page changed after `verified.at`;
+  - a cited page redirects to a different page;
+  - a stated version fell a level further behind (patch / minor / major);
+  - a stated cycle reached end of life;
+  - `stale_after` passed.
+  Re-verifying moves `verified.at`, which clears it.
+
+### Changed
+- **The first re-verification of the k8s-tf bundle.** No observed-implementation statement changed.
+  - `security/kyverno.md`: legacy policies are officially deprecated in v1.19 (Aug 2026) and
+    removed in v1.20 (**Nov 2026, estimated**), including Policy, CleanupPolicy and the legacy
+    PolicyException. `stale_after` is now 2026-11-01.
+  - `foundation/kubernetes.md`: the removed security overview page is replaced by
+    *Cloud Native Security and Kubernetes*.
+  - `delivery/docker-cosign.md`, `foundation/terraform.md` and `architecture/technology-stack.md`
+    list, as open questions, how far the stated versions are behind the latest stable releases.
+    These include Docker 27 (EOL), Cosign 2.6.1 (v3 changes its defaults) and 6 Terraform
+    providers a major or more behind.
+- `/architect:update-knowledge --latest --bundle=k8s-tf` runs the collector instead of cloning.
+- `rules/okf-k8s-tf-bundle.md` names the two paths by which the bundle changes: the weekly
+  workflow and the skill.
+- `stale_after` dates are no longer pinned in the rule.
+
 ## [0.41.2] - 2026-09-15
 
 ### Fixed
