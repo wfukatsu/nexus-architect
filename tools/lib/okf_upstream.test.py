@@ -320,7 +320,34 @@ try:
     p4, r4, e4 = U.collect(b, feed, FakeFetcher(api=reg, fail={"https://a.example/doc"}), T4)
     s4 = U.merge(s3, p4, r4, e4, T4)
     check("an unreachable page is reported, not raised", [e["target"] for e in e4] == ["https://a.example/doc"], e4)
-    check("an unreachable page keeps its previous entry", s4["pages"]["https://a.example/doc"] == s3["pages"]["https://a.example/doc"])
+    kept = {k: v for k, v in s4["pages"]["https://a.example/doc"].items() if k not in ("failing_since", "last_error")}
+    check("an unreachable page keeps its previous entry", kept == s3["pages"]["https://a.example/doc"])
+    check("and records since when it fails, and why",
+          s4["pages"]["https://a.example/doc"].get("failing_since") == T4
+          and "unreachable" in s4["pages"]["https://a.example/doc"].get("last_error", ""), s4["pages"]["https://a.example/doc"])
+    s4b = U.merge(s4, *U.collect(b, feed, FakeFetcher(api=reg, fail={"https://a.example/doc"}), T5), T5)
+    check("a second failure keeps the first failure's date", s4b["pages"]["https://a.example/doc"].get("failing_since") == T4)
+    with open(x, "w") as fh:
+        fh.write((DOC % "2027-01-01").replace("2026-08-19T00", "2026-10-30T00"))
+    check("a page failing for less than a week is not yet a reason",
+          not any("unreachable" in w for w in U.pending_documents(b, s4b, "2026-10-04").get("foundation/x.md", [])))
+    check("a page failing for a week or more lists its documents, whatever verified.at says",
+          "page unreachable since 2026-09-28: https://a.example/doc (<urlopen error unreachable>)"
+          in U.pending_documents(b, s4b, "2026-10-05").get("foundation/x.md", []),
+          U.pending_documents(b, s4b, "2026-10-05"))
+    with open(x, "w") as fh:
+        fh.write(DOC % "2027-01-01")
+    s4c = U.merge(s4b, *U.collect(b, feed, FakeFetcher(api=reg), T5), T5)
+    check("a page that answers again drops its failure record",
+          "failing_since" not in s4c["pages"]["https://a.example/doc"] and "last_error" not in s4c["pages"]["https://a.example/doc"])
+    s0 = U.merge(U.load_state(os.path.join(tmp, "none.json")),
+                 *U.collect(b, feed, FakeFetcher(api=reg, fail={"https://a.example/doc"}), T1), T1)
+    check("a newly cited page that never answered is recorded, not dropped",
+          s0["pages"].get("https://a.example/doc", {}).get("failing_since") == T1
+          and s0["pages"]["https://a.example/doc"].get("cited_by") == ["foundation/x.md"], s0["pages"].get("https://a.example/doc"))
+    rep4 = U.render_report(dict(s4b, pending={}), U.diff(s4, s4b), e4, {})
+    check("the report says since when a page has been failing",
+          "`https://a.example/doc` — <urlopen error unreachable> (failing since 2026-09-28)" in rep4, rep4)
 
     s5 = U.merge(s3, p4, r4, [], T5, cited={"https://b.example/doc"})
     check("a page the bundle no longer cites is dropped", list(s5["pages"]) == ["https://b.example/doc"], list(s5["pages"]))

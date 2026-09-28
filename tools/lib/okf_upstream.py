@@ -29,6 +29,7 @@ weekly workflow runs. Revising a document's prose is judgement, and belongs to t
 Network access goes through the `Fetcher` protocol so the suite can run offline.
 """
 
+import datetime
 import hashlib
 import html
 import http.client
@@ -409,7 +410,8 @@ def collect(bundle, feeds, fetcher, now, pages_dir=None):
         # HTTPException: a truncated body (IncompleteRead) is not an OSError. LookupError: a
         # charset the server names but Python does not know. Either is one page's problem.
         except (urllib.error.URLError, OSError, ValueError, LookupError, http.client.HTTPException) as e:
-            errors.append({"kind": "page", "target": url, "error": str(e)[:200]})
+            errors.append({"kind": "page", "target": url, "error": str(e)[:200],
+                           "title": meta["title"], "source_ids": meta["ids"], "cited_by": meta["cited_by"]})
             continue
         entry = {"title": title or meta["title"], "source_ids": meta["ids"], "cited_by": meta["cited_by"],
                  "sha256": digest(text), "chars": len(text), "outline": outline(text)}
@@ -451,18 +453,30 @@ def merge(prev, pages, releases, errors, now, cited=None):
     bundle no longer cites (`cited` given) are dropped.
     """
     failed = {e["target"] for e in errors}
+    page_errors = {e["target"]: e for e in errors if e.get("kind") == "page"}
     # On the first recorded state nothing is known about when a page last changed, so `changed_at`
     # stays null rather than claiming "today" — which would put every document up for
     # re-verification on a change nobody observed.
     first = now if (prev.get("pages") or prev.get("releases")) else None
     out = {"schema_version": SCHEMA_VERSION, "checked_at": now, "pages": {}, "releases": {}}
-    for url in sorted(set(pages) | ({u for u in prev.get("pages", {}) if u in failed})):
+    for url in sorted(set(pages) | set(page_errors)):
         if cited is not None and url not in cited:
             continue
         old = prev.get("pages", {}).get(url)
         new = pages.get(url)
         if new is None:
-            out["pages"][url] = old
+            # Keep what was last seen, and since when the page stopped answering: one failed week
+            # is the network, a page failing for a week or more is a reason to re-verify
+            # (`pending_documents`). A page that never answered is recorded too — dropping it would
+            # hide a source that was cited wrongly from the start.
+            err = page_errors[url]
+            kept = dict(old) if old else {
+                "title": err.get("title", ""), "source_ids": err.get("source_ids", []),
+                "cited_by": err.get("cited_by", []), "sha256": None, "chars": 0, "outline": [],
+                "changed_at": None}
+            kept["failing_since"] = (old or {}).get("failing_since") or now
+            kept["last_error"] = err["error"]
+            out["pages"][url] = kept
             continue
         same = old and old.get("sha256") == new["sha256"]
         new["changed_at"] = old.get("changed_at") if same else (now if old else first)
@@ -529,6 +543,13 @@ def _date(value):
     return m.group(0) if m else ""
 
 
+UNREACHABLE_AFTER_DAYS = 7   # one weekly run failing is the network; two in a row are the page
+
+
+def _days_before(day, n):
+    return (datetime.date.fromisoformat(day) - datetime.timedelta(days=n)).isoformat()
+
+
 def pending_documents(bundle, state, today):
     """Documents awaiting re-verification, as {relative path: [reason, ...]}.
 
@@ -544,6 +565,9 @@ def pending_documents(bundle, state, today):
     * a page it cites redirects to a different page (`same_page` false) — typically a removed page
       sent to its section index. That is left to judgement, and stays listed until the source is
       replaced, whatever `verified.at` says;
+    * a page it cites has failed to answer for UNREACHABLE_AFTER_DAYS or more (a removed page, a
+      moved site). Like a redirect, it stays listed until the page answers again or the source is
+      replaced;
     * the stated cycle of a version it states reached end of life after it was verified;
     * its `stale_after` has passed.
     """
@@ -561,6 +585,9 @@ def pending_documents(bundle, state, today):
                 why.append("page changed %s: %s" % (changed, url))
             if page.get("moved_to") and not same_page(url, page["moved_to"]):
                 why.append("page redirected to a different page: %s -> %s" % (url, page["moved_to"]))
+            failing = _date(page.get("failing_since"))
+            if failing and failing <= _days_before(today, UNREACHABLE_AFTER_DAYS):
+                why.append("page unreachable since %s: %s (%s)" % (failing, url, page.get("last_error", "")))
         for name, rel_ in state.get("releases", {}).items():
             r = rel_ or {}
             if rel not in r.get("cited_by", []):
@@ -706,7 +733,10 @@ def render_report(state, delta, errors, private, applied=()):
     if errors:
         L += ["## Could not be checked this run", "",
               "The previous state is kept for these; they are retried next run.", ""]
-        L += ["- %s `%s` — %s" % (e["kind"], e["target"], e["error"]) for e in errors]
+        for e in errors:
+            since = (state["pages"].get(e["target"]) or {}).get("failing_since") if e["kind"] == "page" else None
+            L.append("- %s `%s` — %s%s" % (e["kind"], e["target"], e["error"],
+                                           " (failing since %s)" % _date(since) if since else ""))
         L.append("")
     L += ["## Not fetched by design", ""]
     L += ["- %s — private; cited by %s" % (u, ", ".join("`%s`" % r for r in rels)) for u, rels in private.items()]

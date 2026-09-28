@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+### Fixed
+- **A cited page that stops answering is no longer silent.** The k8s-tf upstream collector kept an
+  unreachable page's previous entry indefinitely, so a removed page (HTTP 404) never put the
+  documents citing it up for re-verification. The state now records `failing_since` and
+  `last_error`. A page failing for a week or more (two weekly runs in a row) lists its documents
+  until it answers again or the source is replaced. A newly cited page that never answered is
+  recorded rather than dropped, and the report shows since when each page has been failing.
+
 ## [0.42.0] - 2026-09-28
 
 ### Added

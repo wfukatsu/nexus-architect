@@ -81,8 +81,9 @@ Read @rules/okf-k8s-tf-bundle.md §1, §4 and §6 before editing.
    so rather than revising from stale text.
 
 2. **Fix the scope.** Read `pending` in `state.json` — each document with the reasons it is listed
-   (a cited page changed, a cited page redirected to a different page, a stated version fell a
-   level further behind or its stated cycle reached end of life, `stale_after` passed).
+   (a cited page changed, a cited page redirected to a different page or has not answered for a
+   week, a stated version fell a level further behind or its stated cycle reached end of life,
+   `stale_after` passed).
    With `--doc`, keep only those documents; a `--doc` that is not pending is still re-verified,
    because the user asked. An empty scope ends the run: say "nothing awaits re-verification".
    With `--dry-run`, print the scope with its reasons and stop — nothing is written.
@@ -103,10 +104,12 @@ Read @rules/okf-k8s-tf-bundle.md §1, §4 and §6 before editing.
       observed statement as it is, and add or update the matching 確認事項 entry — the latest
       stable release, how far behind (patch / minor / major), EOL when `REPORT.md` shows it.
    5. A cited page that no longer exists — including one listed as *redirected to a different
-      page*, which is how sites answer for a removed page: find its successor on the same official
+      page*, which is how sites answer for a removed page, and one listed as *unreachable* (its
+      `last_error` in `state.json` says whether it is gone — HTTP 404/410 — or the site is down;
+      a site that is down is reported, not replaced): find its successor on the same official
       site (the redirect target when it covers the claims, not merely because it is the target),
       or drop the source and every claim that rested only on it. Replacing the source's
-      `resource` is what clears a redirect reason; moving `verified.at` alone does not. A new
+      `resource` (or the page answering again) is what clears a redirect or unreachable reason; moving `verified.at` alone does not. A new
       source only when a revision needs one, in the same `{ id, resource, title, author }` form —
       and only a page whose text holds still: every cited page is hashed weekly, so a page carrying
       live counters (a GitHub release page shows stars, forks and "commits since") would list its
