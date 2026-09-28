@@ -7,6 +7,48 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.42.0] - 2026-09-28
+
+### Added
+- **k8s-tf バンドル（`knowledge/okf-k8s-tf/`）を公開 upstream から最新に保つようにした。** 元リポジトリは
+  削除済みのため、各文書が出典に挙げている公式ドキュメントを upstream とした。
+  - `tools/refresh-okf-k8s-tf.py` は、出典の公開ページ 49 件と、リリース情報 29 件を収集する。
+    - ページ本文は、git 管理外の `knowledge/okf-k8s-tf-upstream/pages/` に保持する。
+    - `state.json` と `REPORT.md` には次を記録する。
+      - ページごとの内容のハッシュ
+      - 技術ごとの最新 stable とバンドル記載バージョンの差
+      - 再確認待ちの文書（`pending`）
+    - 対象実装の出所である非公開リポジトリ 2 つは取得しない。
+  - `.github/workflows/refresh-okf-k8s-tf.yml` は、これを毎週月曜 23:00 JST に実行する。モデルも API キーも
+    使わない。
+    - 書き換えるのは、同じページの移転によるリダイレクトの出典 URL だけ。
+    - 変化があれば PR を 1 件作る。
+  - `/architect:revise-knowledge`（opus、手動実行）は、再確認待ちの文書を最新のページと照合し、次を改訂する。
+    対象実装は書き換えない。コマンド数は 116 になった。
+    - 設計指針
+    - バージョンやライフサイクルの記述
+    - 確認事項
+  - `tools/lib/okf_upstream.test.py` は、収集処理をオフラインで検証する（81 チェック）。
+- 文書を再確認待ちにする条件は次のとおり。再確認で `verified.at` が進むと一覧から外れる。
+  - 出典ページが `verified.at` より後に変わった
+  - 出典ページが別ページへリダイレクトされた
+  - 記載バージョンとの差の段階（patch / minor / major）が進んだ
+  - 記載バージョンの系統が EOL を迎えた
+  - `stale_after` を過ぎた
+
+### Changed
+- **k8s-tf バンドルを初めて再確認した。** 対象実装の記述は変えていない。
+  - `security/kyverno.md`: 従来型の policy は v1.19（2026年8月）で正式に非推奨になり、v1.20（**2026年11月見込み**）で
+    削除される。削除の対象には Policy、CleanupPolicy、従来の PolicyException も含む。`stale_after` は 2026-11-01 にした。
+  - `foundation/kubernetes.md`: 削除された security overview ページを、Cloud Native Security and Kubernetes に
+    差し替えた。
+  - `delivery/docker-cosign.md`、`foundation/terraform.md`、`architecture/technology-stack.md`: 最新 stable との差を
+    確認事項に加えた。対象は、Docker 27（EOL 済み）、Cosign 2.6.1（v3 で既定の動作が変わった）、1 major 以上遅れた
+    Terraform Provider 6 件など。
+- `/architect:update-knowledge --latest --bundle=k8s-tf` は、clone ではなく収集処理を実行するようにした。
+- `rules/okf-k8s-tf-bundle.md` に、バンドルを変える経路が週次ワークフローとスキルの 2 つであることを明記した。
+- `stale_after` の日付をルールに固定して書くのをやめた。
+
 ## [0.41.2] - 2026-09-15
 
 ### Fixed
