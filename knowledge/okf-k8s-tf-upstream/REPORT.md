@@ -1,7 +1,7 @@
 ---
 title: "okf-k8s-tf upstream report"
 schema_version: 1
-generated_at: "2026-09-28T07:09:01Z"
+generated_at: "2026-09-28T20:23:31Z"
 generator: tools/refresh-okf-k8s-tf.py
 ---
 
@@ -13,23 +13,27 @@ Observed-implementation statements (対象実装) are facts about a private snap
 
 ## Awaiting re-verification
 
-None.
+Cumulative: a document leaves this list when it is re-verified
+(`/architect:revise-knowledge`, which moves its `verified.at`).
+
+| Document | Why |
+|---|---|
+| `delivery/gitlab-cicd.md` | page changed 2026-09-28: https://docs.gitlab.com/ci/yaml/ |
 
 ## Pages
 
 Checked 49 public pages.
 
-### Newly cited
+### Content changed
 
-- https://blog.sigstore.dev/cosign-3-0-available/ — cited by `delivery/docker-cosign.md`
-- https://kubernetes.io/docs/concepts/security/cloud-native-security/ — cited by `foundation/kubernetes.md`
+- https://docs.gitlab.com/ci/yaml/ — cited by `delivery/gitlab-cicd.md`
 
 ## Releases
 
 | Technology | Bundle states | Latest stable | Released | Behind | Source |
 |---|---|---|---|---|---|
 | Alertmanager | — | 0.34.1 | 2026-09-17 | — | https://github.com/prometheus/alertmanager/releases |
-| Alloy | — | 1.20.0 | 2026-09-25 | — | https://github.com/grafana/alloy/releases |
+| Alloy | — | **1.20.1** | 2026-09-28 | — | https://github.com/grafana/alloy/releases |
 | Argo CD | — | 3.5.3 | 2026-09-14 | — | https://github.com/argoproj/argo-cd/releases |
 | Argo CD Image Updater | — | 1.3.0 | 2026-08-13 | — | https://github.com/argoproj-labs/argocd-image-updater/releases |
 | Beyla | — | 3.36.0 | 2026-09-16 | — | https://github.com/grafana/beyla/releases |
@@ -60,7 +64,9 @@ Checked 49 public pages.
 
 Bold = changed since the previous run. *Behind* compares the version the bundle states
 with the latest stable release; the stated version is an observation of the snapshot, so a
-gap is a question for the platform, not an error in the bundle.
+gap is a question for the platform, not an error in the bundle. Rows with no stated version
+are context: a new release there alone is not recorded, so they are as fresh as the last run
+that recorded something else.
 
 ## Not fetched by design
 
