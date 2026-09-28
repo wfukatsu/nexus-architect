@@ -1,0 +1,1759 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-09-28T06:00:00Z",
+  "pages": {
+    "https://argo-cd.readthedocs.io/": {
+      "title": "Argo CD - Declarative GitOps CD for Kubernetes",
+      "source_ids": [
+        "resource"
+      ],
+      "cited_by": [
+        "delivery/argocd.md"
+      ],
+      "sha256": "sha256:c7b3f065aa431fc89f742bae2fa230c268d1e662cb88e40187f4a961509b0dc0",
+      "chars": 3768,
+      "outline": [
+        "# Overview¶",
+        "## What Is Argo CD?¶",
+        "## Why Argo CD?¶",
+        "## Getting Started¶",
+        "### Quick Start¶",
+        "## How it works¶",
+        "## Architecture¶",
+        "## Features¶",
+        "## Development Status¶",
+        "## Adoption¶"
+      ],
+      "moved_to": "https://argo-cd.readthedocs.io/en/stable/",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/": {
+      "title": "Declarative Setup - Argo CD - Declarative GitOps CD for Kubernetes",
+      "source_ids": [
+        "argocd-declarative"
+      ],
+      "cited_by": [
+        "delivery/argocd.md"
+      ],
+      "sha256": "sha256:53d53e2c9511c5291a8a72811c020ea770ee2bef8e61191c1c2dcf79b6415cf9",
+      "chars": 64140,
+      "outline": [
+        "# Declarative Setup¶",
+        "## Quick Reference¶",
+        "### Atomic configuration¶",
+        "### Multiple configuration objects¶",
+        "## Applications¶",
+        "### App of Apps¶",
+        "## Projects¶",
+        "## Repositories¶",
+        "### Repository Credentials¶",
+        "### Repositories using self-signed TLS certificates (or are signed by custom CA)¶",
+        "### SSH known host public keys¶",
+        "### Configure repositories with proxy¶",
+        "## Clusters¶",
+        "# Basic authentication settings",
+        "# Bearer authentication settings",
+        "# IAM authentication configuration",
+        "# Configure external command to supply client credentials",
+        "# See https://godoc.org/k8s.io/client-go/tools/clientcmd/api#ExecConfig",
+        "# Proxy URL for the kubernetes client to use when connecting to the cluster api server",
+        "# Transport layer security configuration settings",
+        "# Disable automatic compression for requests to the cluster",
+        "### Skipping Cluster Reconciliation¶",
+        "### EKS¶",
+        "# For each cluster being added to Argo CD",
+        "### GKE¶",
+        "### AKS¶",
+        "## Helm¶",
+        "## Resource Exclusion/Inclusion¶",
+        "## Mask sensitive Annotations on Secrets¶",
+        "## Auto respect RBAC for controller¶",
+        "## Resource Custom Labels¶",
+        "## Labels on Application Events¶",
+        "## SSO & RBAC¶",
+        "## Manage Argo CD Using Argo CD¶",
+        "# additional resources like ingress rules, cluster and repository secrets.",
+        "# changes to config maps",
+        "### Server-Side Apply Requirement¶"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://argo-cd.readthedocs.io/en/stable/operator-manual/security/": {
+      "title": "Overview - Argo CD - Declarative GitOps CD for Kubernetes",
+      "source_ids": [
+        "argocd-security"
+      ],
+      "cited_by": [
+        "delivery/argocd.md"
+      ],
+      "sha256": "sha256:77137c17c8b3de0b2adc381ca458716111f26408cc9b60381bcc4a107199b59b",
+      "chars": 15043,
+      "outline": [
+        "# Security¶",
+        "## Authentication¶",
+        "## Authorization¶",
+        "## TLS¶",
+        "## Git & Helm Repositories¶",
+        "### Unauthorized Deployments¶",
+        "### Tool command invocation¶",
+        "### Remote bases and helm chart dependencies¶",
+        "## Sensitive Information¶",
+        "### Secrets¶",
+        "### External Cluster Credentials¶",
+        "# run using a kubeconfig for the externally managed cluster",
+        "# run using a kubeconfig for the externally managed cluster",
+        "## Cluster RBAC¶",
+        "# run using a kubeconfig for the externally managed cluster",
+        "# run using a kubeconfig to the cluster Argo CD is running in",
+        "## Auditing¶",
+        "## WebHook Payloads¶",
+        "## Logging¶",
+        "### Security field¶",
+        "### API Logs¶",
+        "### Standard Application log fields¶",
+        "## ApplicationSets¶",
+        "## Limiting Directory App Memory Usage¶"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync/": {
+      "title": "Automated Sync Policy - Argo CD - Declarative GitOps CD for Kubernetes",
+      "source_ids": [
+        "argocd-auto-sync"
+      ],
+      "cited_by": [
+        "delivery/argocd.md"
+      ],
+      "sha256": "sha256:37236a1c1cf919765dd80af55eadb81a835f909eebe7f15e5bdc88230a912418",
+      "chars": 5671,
+      "outline": [
+        "# Automated Sync Policy¶",
+        "## Temporarily toggling auto-sync for applications managed by ApplicationSets¶",
+        "## Automatic Pruning¶",
+        "## Automatic Pruning with Allow-Empty (v1.8)¶",
+        "## Automatic Self-Healing¶",
+        "## Automatic Retry with a limit¶",
+        "## Automatic Retry Refresh on new revisions¶",
+        "## Automated Sync Semantics¶"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/": {
+      "title": "Sync Phases and Waves - Argo CD - Declarative GitOps CD for Kubernetes",
+      "source_ids": [
+        "argocd-sync-waves"
+      ],
+      "cited_by": [
+        "delivery/argocd.md"
+      ],
+      "sha256": "sha256:06aac72bdbc30584a4b3c05825e7184eb92ffef2c4136a35a7df14f97b002f5d",
+      "chars": 11339,
+      "outline": [
+        "# Sync Phases and Waves¶",
+        "## How phases work?¶",
+        "## Hook lifecycle and cleanup¶",
+        "## PreDelete and PostDelete Hooks¶",
+        "### PreDelete Hooks¶",
+        "### PostDelete Hooks¶",
+        "## How sync waves work?¶",
+        "## Combining Sync waves and hooks¶",
+        "## How Do I Configure Phases?¶",
+        "## How Do I Configure Waves?¶",
+        "## Examples¶",
+        "### Send message to Slack when sync completes¶",
+        "### Initialize or migrate a database¶",
+        "### Work around ArgoCD sync failure¶"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://developer.hashicorp.com/terraform/docs": {
+      "title": "Terraform overview | Terraform | HashiCorp Developer",
+      "source_ids": [
+        "resource"
+      ],
+      "cited_by": [
+        "foundation/terraform.md"
+      ],
+      "sha256": "sha256:4359b4142267a339dc5390fbfa62ccc69a102684c5d6328d3c548457ad2f7344",
+      "chars": 1221,
+      "outline": [
+        "## Introduction",
+        "## Manage Infrastructure",
+        "## Collaborate",
+        "## Develop and Share"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://developer.hashicorp.com/terraform/language/files/dependency-lock": {
+      "title": "Dependency Lock File (.terraform.lock.hcl) - Configuration Language | Terraform | HashiCorp Developer",
+      "source_ids": [
+        "tf-dependency-lock"
+      ],
+      "cited_by": [
+        "foundation/terraform.md"
+      ],
+      "sha256": "sha256:7eb7379845046d79d02aa49a64c984bfe53d26552275db45cf8a5cb128f7517a",
+      "chars": 19838,
+      "outline": [
+        "# Dependency Lock File",
+        "## Lock File Location",
+        "## Dependency Installation Behavior",
+        "### Checksum verification",
+        "## Understanding Lock File Changes",
+        "### Dependency on a new provider",
+        "### New version of an existing provider",
+        "### New provider package checksums",
+        "### Providers that are no longer required"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://developer.hashicorp.com/terraform/language/modules/develop": {
+      "title": "Creating Modules | Terraform | HashiCorp Developer",
+      "source_ids": [
+        "tf-modules"
+      ],
+      "cited_by": [
+        "foundation/terraform.md"
+      ],
+      "sha256": "sha256:235aaa131136122715378c5ab5f5b72881740302837dec65439c2ef11be1e423",
+      "chars": 3733,
+      "outline": [
+        "# Creating Modules",
+        "## Module structure",
+        "## When to write a module",
+        "### No-Code Provisioning in HCP Terraform",
+        "## Refactoring module resources"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://developer.hashicorp.com/terraform/language/state": {
+      "title": "State | Terraform | HashiCorp Developer",
+      "source_ids": [
+        "tf-state"
+      ],
+      "cited_by": [
+        "foundation/terraform.md"
+      ],
+      "sha256": "sha256:0b5c1f1c161563c9fe246b3410bdaf39ae760fc2fdfc07e25be42d3bcee2b10c",
+      "chars": 4295,
+      "outline": [
+        "# State",
+        "## Storing State",
+        "## Inspection and Modification",
+        "## Format"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://developer.hashicorp.com/terraform/language/state/locking": {
+      "title": "State: Locking | Terraform | HashiCorp Developer",
+      "source_ids": [
+        "tf-locking"
+      ],
+      "cited_by": [
+        "foundation/terraform.md"
+      ],
+      "sha256": "sha256:9bd65c63e9a2426705ce281be78b68af694d91e5294e06f0686853260d2e53fb",
+      "chars": 1380,
+      "outline": [
+        "# State Locking",
+        "## Force Unlock"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://developer.hashicorp.com/terraform/language/style": {
+      "title": "Style Guide - Configuration Language | Terraform | HashiCorp Developer",
+      "source_ids": [
+        "terraform-style",
+        "tf-style"
+      ],
+      "cited_by": [
+        "architecture/design-build-checklist.md",
+        "foundation/terraform.md"
+      ],
+      "sha256": "sha256:6798eaa74d16bfab6d59dea51aaea5fb40c546ad8cf36f3cd72513b2c6fd53ff",
+      "chars": 30328,
+      "outline": [
+        "# Style Guide",
+        "## Code style",
+        "## Code formatting",
+        "## Code validation",
+        "## File names",
+        "## Linting and static code analysis",
+        "## Comments",
+        "# Each tunnel is responsible for encrypting and decrypting traffic exiting",
+        "# and leaving its associated gateway.",
+        "## Resource naming",
+        "## Resource order",
+        "## Variables",
+        "## Outputs",
+        "## Local values",
+        "## Provider aliasing",
+        "## Dynamic resource count",
+        "## .gitignore",
+        "## Workflow style",
+        "## Version pinning",
+        "## Module repository names",
+        "## Module structure",
+        "## Local modules",
+        "## Repository structure",
+        "## Branching strategy",
+        "## Multiple environments",
+        "## State sharing",
+        "## Secrets management",
+        "## Integration and unit testing",
+        "## Policy",
+        "## Next steps"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://developer.hashicorp.com/vault/docs": {
+      "title": "Vault product documentation | Vault | HashiCorp Developer",
+      "source_ids": [
+        "resource"
+      ],
+      "cited_by": [
+        "secrets/vault.md"
+      ],
+      "sha256": "sha256:7bbf7a14de3c8cd7abcae9b6fdaf235c9469bc166a4ad577d3a4db1484a44ec7",
+      "chars": 1071,
+      "outline": [
+        "## Use Vault with agentic AI",
+        "## Run Vault on the HashiCorp Cloud Platform",
+        "## Why use Vault?",
+        "## Work with Vault"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://developer.hashicorp.com/vault/docs/concepts/ha": {
+      "title": "High Availability | Vault | HashiCorp Developer",
+      "source_ids": [
+        "vault-ha"
+      ],
+      "cited_by": [
+        "secrets/vault.md"
+      ],
+      "sha256": "sha256:cb39bd7f54641ad3f52ced391d29d5f45e6511ab505e366c71a7e4b289026d29",
+      "chars": 8000,
+      "outline": [
+        "# High availability mode (HA)",
+        "## Server-to-Server communication",
+        "## Request forwarding",
+        "## Client redirection",
+        "### Direct access",
+        "### Behind load balancers",
+        "### Per-Node cluster listener addresses",
+        "### Per-Node cluster address",
+        "## Storage support"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://developer.hashicorp.com/vault/docs/concepts/policies": {
+      "title": "Policies | Vault | HashiCorp Developer",
+      "source_ids": [
+        "vault-policies"
+      ],
+      "cited_by": [
+        "secrets/vault.md"
+      ],
+      "sha256": "sha256:bfa202cc91df2335eef8523573758f989be99766e995696160a9623054c853df",
+      "chars": 34870,
+      "outline": [
+        "# Policies",
+        "## Policy-authorization workflow",
+        "## Policy syntax",
+        "# This section grants all access on \"secret/*\". further restrictions can be",
+        "# applied to this broad policy, as shown below.",
+        "# Even though we allowed secret/*, this line explicitly denies",
+        "# secret/super-secret. this takes precedence.",
+        "# Policies can also specify allowed, disallowed, and required parameters. here",
+        "# the key \"secret/restricted\" can only contain \"foo\" (any value) and \"bar\" (one",
+        "# of \"zip\" or \"zap\").",
+        "# Permit reading only \"secret/foo\". an attached token cannot read \"secret/food\"",
+        "# or \"secret/foo/bar\".",
+        "# Permit reading everything under \"secret/bar\". an attached token could read",
+        "# \"secret/bar/zip\", \"secret/bar/zip/zap\", but not \"secret/bars/zip\".",
+        "# Permit reading everything prefixed with \"zip-\". an attached token could read",
+        "# \"secret/zip-zap\" or \"secret/zip-zap/zong\", but not \"secret/zip/zap",
+        "# Permit reading the \"teamb\" path under any top-level path under secret/",
+        "# Permit reading secret/foo/bar/teamb, secret/bar/foo/teamb, etc.",
+        "## Priority matching",
+        "### Capabilities",
+        "## Templated policies",
+        "### Parameters",
+        "### Examples",
+        "# In the example below, the group ID maps a group and the path",
+        "## Fine-grained control",
+        "### Parameter constraints",
+        "# This requires the user to create \"secret/profile\" with a parameter/key named",
+        "# \"name\" and \"id\" where kv v1 is enabled at \"secret/\".",
+        "# This allows the user to update the password parameter value set on any",
+        "# users configured for userpass auth method. The password value can be",
+        "# anything. However, the user cannot update other parameter values such as",
+        "# token_ttl.",
+        "# This allows the user to create or update an encryption key for transit",
+        "# secrets engine enabled at \"transit/\". When you do, you can set the",
+        "# \"auto_rotate_period\" parameter value so that the key gets rotated.",
+        "# However, the rotation period must be \"8h\", \"24h\", or \"5d\". Any other value",
+        "# will result in an error.",
+        "# When kv v1 secrets engine is enabled at \"secret/\", this allows the user to",
+        "# create \"secret/foo\" with a parameter named \"bar\". The parameter \"bar\" can",
+        "# only contain the values \"zip\" or \"zap\", but any other parameters may be",
+        "# created with any value.",
+        "# This allows the user to update the userpass auth method's user",
+        "# configurations (e.g., \"password\") but cannot update the \"token_policies\"",
+        "# and \"policies\" parameter values.",
+        "# This allows the user to create or update token roles. However, the",
+        "# \"allowed_policies\" parameter value cannot be \"admin\", but the user can",
+        "# assign any other policies to the parameter.",
+        "# This allows the user to create or update an encryption key for transit",
+        "# secrets engine enabled at \"transit/\". However, the user cannot set any of",
+        "# the configuration parameters. As a result, the created key will have all",
+        "# parameters set to default values.",
+        "# Only allow a parameter named \"bar\" with a value starting with \"foo-*\".",
+        "# The \"no_store\" parameter cannot be false",
+        "# Succeeds because \"no_store=false\" isn't present in the parameters",
+        "# This allows the user to create, update, or patch \"secret/foo\" with a parameter",
+        "# named \"bar\". the values passed to parameter \"bar\" must start with \"baz/\"",
+        "# so values like \"baz/quux\" are fine. however, values like",
+        "# \"baz/quux,wibble,wobble,wubble\" would also be accepted. the API that",
+        "# underlies \"secret/foo\" might allow comma delimited values for the \"bar\"",
+        "# parameter, and if it did, specifying a value like",
+        "# \"baz/quux,wibble,wobble,wubble\" would result in 4 different values getting",
+        "# passed along. seeing values like \"wibble\" or \"wobble\" getting passed to",
+        "# \"secret/foo\" might surprise someone that expected the allowed_parameters",
+        "# constraint to only allow values starting with \"baz/\".",
+        "### Required response wrapping TTLs",
+        "# This effectively makes response wrapping mandatory for this path by setting min_wrapping_ttl to 1 second.",
+        "# This also sets this path's wrapped response maximum allowed TTL to 90 seconds.",
+        "## Built-in policies",
+        "### Default policy",
+        "### Root policy",
+        "## Managing policies",
+        "### Listing policies",
+        "### Creating policies",
+        "### Updating policies",
+        "### Deleting policies",
+        "## Associating policies",
+        "## Root protected API endpoints",
+        "### Tokens",
+        "## UI policy requirements",
+        "## Tutorial"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://developer.hashicorp.com/vault/docs/concepts/production-hardening": {
+      "title": "Production hardening | Vault | HashiCorp Developer",
+      "source_ids": [
+        "vault-hardening"
+      ],
+      "cited_by": [
+        "secrets/vault.md"
+      ],
+      "sha256": "sha256:828b628151faa160fc39f2324a955d993a186cbb33d14d2cbdd2b1af913b6833",
+      "chars": 13040,
+      "outline": [
+        "# Production hardening",
+        "## Baseline recommendations",
+        "## Extended recommendations"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://developer.hashicorp.com/vault/docs/deploy/kubernetes": {
+      "title": "Run Vault on Kubernetes | Vault | HashiCorp Developer",
+      "source_ids": [
+        "vault-k8s"
+      ],
+      "cited_by": [
+        "secrets/vault.md"
+      ],
+      "sha256": "sha256:4b394c1f625ee0f2416e339f6476ce6eb31bc9f5b8120bd22de7d078ba530f15",
+      "chars": 3256,
+      "outline": [
+        "# Run Vault on Kubernetes",
+        "## Use cases",
+        "## Supported kubernetes versions",
+        "## Getting started with Vault and Kubernetes",
+        "### Installation guides",
+        "### Consume secrets in Kubernetes",
+        "### Documentation"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://docs.docker.com/build/building/best-practices/": {
+      "title": "Building best practices | Docker Docs",
+      "source_ids": [
+        "docker-build"
+      ],
+      "cited_by": [
+        "delivery/docker-cosign.md"
+      ],
+      "sha256": "sha256:3ee0bf4070ad7b779f540a3ee3c0d81f759688a80bfbc0baebcee1e91eadfafe",
+      "chars": 29011,
+      "outline": [
+        "# Building best practices",
+        "## Use multi-stage builds",
+        "### Create reusable stages",
+        "## Choose the right base image",
+        "## Rebuild your images often",
+        "### Use --pull to get fresh base images",
+        "# syntax=docker/dockerfile:1",
+        "### Use --no-cache for clean builds",
+        "## Exclude with .dockerignore",
+        "## Create ephemeral containers",
+        "## Don't install unnecessary packages",
+        "## Decouple applications",
+        "## Sort multi-line arguments",
+        "## Leverage build cache",
+        "## Pin base image versions",
+        "# syntax=docker/dockerfile:1",
+        "# syntax=docker/dockerfile:1",
+        "## Build and test your images in CI",
+        "## Dockerfile instructions",
+        "### FROM",
+        "### LABEL",
+        "# Set one or more individual labels",
+        "# Set multiple labels on one line",
+        "# Set multiple labels at once, using line-continuation characters to break long lines",
+        "### RUN",
+        "# syntax=docker/dockerfile:1",
+        "# syntax=docker/dockerfile:1",
+        "### CMD",
+        "### EXPOSE",
+        "### ENV",
+        "# syntax=docker/dockerfile:1",
+        "# syntax=docker/dockerfile:1",
+        "### ADD or COPY",
+        "# syntax=docker/dockerfile:1",
+        "# Retrieve .NET Runtime",
+        "### ENTRYPOINT",
+        "### VOLUME",
+        "### USER",
+        "### WORKDIR",
+        "### ONBUILD"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://docs.gitlab.com/ci/": {
+      "title": "Get started with GitLab CI/CD | GitLab Docs",
+      "source_ids": [
+        "resource"
+      ],
+      "cited_by": [
+        "delivery/gitlab-cicd.md"
+      ],
+      "sha256": "sha256:5075357d0b29025dc2345a128c7dc1d60b569c35488fda23a95b8701721a7dbd",
+      "chars": 5282,
+      "outline": [
+        "# Get started with GitLab CI/CD",
+        "## Step 1: Configure your pipeline",
+        "## Step 2: Find or create runners",
+        "## Step 3: Use CI/CD variables and expressions",
+        "### CI/CD variables",
+        "### CI/CD expressions",
+        "## Step 4: Use CI/CD components"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://docs.gitlab.com/ci/components/": {
+      "title": "CI/CD components | GitLab Docstanuki-verifiedpartner-verifiedcheck-sm",
+      "source_ids": [
+        "gitlab-components"
+      ],
+      "cited_by": [
+        "architecture/design-build-checklist.md",
+        "delivery/gitlab-cicd.md"
+      ],
+      "sha256": "sha256:7830c71f010ceb2548e670802471726ac95e15455774e414e2eb6f004dd9a3d2",
+      "chars": 38667,
+      "outline": [
+        "# CI/CD components",
+        "## Component project",
+        "### Create a component project",
+        "### Directory structure",
+        "## Use a component",
+        "### Component versions",
+        "### Use component context in components",
+        "### Component spec section",
+        "## Write a component",
+        "### Manage dependencies",
+        "### Write a clear README.md",
+        "### Test the component",
+        "# Check if `component job of my-component` is added.",
+        "# This example job could also test that the included component works as expected.",
+        "# You can inspect data generated by the component, use GitLab API endpoints, or third-party tools.",
+        "# If the pipeline is for a new tag with a semantic version, and all previous jobs succeed,",
+        "# create the release.",
+        "### Avoid hard-coding instance or project-specific values",
+        "### Do not assume API resources are always public",
+        "### Avoid using global keywords",
+        "# Not recommended",
+        "### Replace hardcoded values with inputs",
+        "### Replace custom CI/CD variables with inputs",
+        "## CI/CD Catalog",
+        "### View the CI/CD Catalog",
+        "### View CI/CD Catalog project analytics",
+        "### View component usage details",
+        "### Publish a component project",
+        "### Unpublish a component project",
+        "### Verified component creators",
+        "## Convert a CI/CD template to a component",
+        "## Use a GitLab.com component on GitLab Self-Managed",
+        "## CI/CD component security best practices",
+        "### For component users",
+        "### For component maintainers",
+        "## Troubleshooting",
+        "### content not found message",
+        "### Error: Build component error: Spec must be a valid json schema"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://docs.gitlab.com/ci/docker/docker_in_docker/": {
+      "title": "Use Docker-in-Docker | GitLab Docs",
+      "source_ids": [
+        "gitlab-dind"
+      ],
+      "cited_by": [
+        "delivery/gitlab-cicd.md"
+      ],
+      "sha256": "sha256:a69559d41e56b27b4d12d757227c34c457ca77dc6b97145846f38483d34a6aeb",
+      "chars": 12334,
+      "outline": [
+        "# Use Docker-in-Docker",
+        "## Use with Docker executor",
+        "### Docker-in-Docker with TLS enabled in the Docker executor (recommended)",
+        "### Docker-in-Docker with TLS disabled in the Docker executor",
+        "### Use a Unix socket on a shared volume between Docker-in-Docker and build container",
+        "### Docker-in-Docker with proxy enabled in the Docker executor",
+        "## Use with Kubernetes executor",
+        "### Docker-in-Docker with TLS enabled in Kubernetes (recommended)",
+        "### Docker-in-Docker with TLS disabled in Kubernetes",
+        "## Known issues with Docker-in-Docker"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://docs.gitlab.com/ci/secrets/id_token_authentication/": {
+      "title": "OpenID Connect (OIDC) Authentication Using ID Tokens | GitLab Docs",
+      "source_ids": [
+        "gitlab-oidc"
+      ],
+      "cited_by": [
+        "delivery/gitlab-cicd.md"
+      ],
+      "sha256": "sha256:d4b1e7b255029b172710f5691c979496ae807f2149c6283f09dfce456beba05e",
+      "chars": 13097,
+      "outline": [
+        "# OpenID Connect (OIDC) Authentication Using ID Tokens",
+        "## Configure ID tokens in a CI/CD job",
+        "## Token payload",
+        "### Use ID token claims in cloud trust policies",
+        "## Troubleshooting",
+        "### 400: missing token status code",
+        "### GitLab::Ci::Jwt::NoSigningKeyError",
+        "### 401: unauthorized status code",
+        "### Error: ID token issuance is disabled"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://docs.gitlab.com/ci/yaml/": {
+      "title": "CI/CD YAML syntax reference | GitLab Docsstatus_warningstatus_runningstatus_manualplay",
+      "source_ids": [
+        "gitlab-yaml"
+      ],
+      "cited_by": [
+        "delivery/gitlab-cicd.md"
+      ],
+      "sha256": "sha256:551e8b4a6c597f17a4e4c6add00e48b0cdec0c0661976b6db4156b1e2d0c0260",
+      "chars": 206198,
+      "outline": [
+        "# CI/CD YAML syntax reference",
+        "## Keywords",
+        "## Global keywords",
+        "### default",
+        "### include",
+        "# File sourced from the GitLab template collection",
+        "### stages",
+        "### workflow",
+        "## Header keywords",
+        "### spec",
+        "# The pipeline configuration would follow...",
+        "# The pipeline configuration would follow...",
+        "# The pipeline configuration would follow...",
+        "# The pipeline configuration would follow...",
+        "# The pipeline configuration would follow...",
+        "## Job keywords",
+        "### after_script",
+        "### allow_failure",
+        "### artifacts",
+        "### before_script",
+        "### cache",
+        "### coverage",
+        "### dast_configuration",
+        "### dependencies",
+        "### environment",
+        "### extends",
+        "### hooks",
+        "### identity",
+        "### id_tokens",
+        "### image",
+        "### inputs",
+        "### inherit",
+        "### interruptible",
+        "### needs",
+        "### pages",
+        "### parallel",
+        "### release",
+        "### resource_group",
+        "### retry",
+        "### rules",
+        "### run",
+        "### script",
+        "### secrets",
+        "### services",
+        "### stage",
+        "### tags",
+        "### timeout",
+        "### trigger",
+        "# Default behavior:",
+        "# - VAR is passed to the child",
+        "# - MYVAR is not passed to the child",
+        "# Forward pipeline variables:",
+        "# - VAR is passed to the child",
+        "# - MYVAR is passed to the child",
+        "# Do not forward YAML variables:",
+        "# - VAR is not passed to the child",
+        "# - MYVAR is not passed to the child",
+        "### when",
+        "### start_in",
+        "## variables",
+        "### Job variables",
+        "### Default variables",
+        "### variables:expand"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://docs.sigstore.dev/cosign/signing/overview/": {
+      "title": "Overview - SigstoreExpandCollapseExpandCollapse",
+      "source_ids": [
+        "cosign-overview"
+      ],
+      "cited_by": [
+        "delivery/docker-cosign.md"
+      ],
+      "sha256": "sha256:cdd1b6cbce01b57d41c5c5a91a1bfc173cb47cde78ff673c38cd0fe38cd84f75",
+      "chars": 6296,
+      "outline": [
+        "# Overview",
+        "## Root of Trust #",
+        "## Identity Tokens #",
+        "### Logging in to identity issuers #",
+        "### The signing, witnessing, and verifying process #",
+        "### On Google Cloud Platform #",
+        "## Custom infrastructure #",
+        "### Custom roots of trust #"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://docs.sigstore.dev/cosign/verifying/verify/": {
+      "title": "Verifying Signatures - SigstoreExpandCollapseExpandCollapse",
+      "source_ids": [
+        "cosign-verify"
+      ],
+      "cited_by": [
+        "delivery/docker-cosign.md"
+      ],
+      "sha256": "sha256:313d061063f88e75c6ea232016a34caf313fb6aa2bce0ed834caa74b640d51b4",
+      "chars": 10347,
+      "outline": [
+        "# Verifying Signatures",
+        "## Keyless verification using OpenID Connect #",
+        "## Verify multiple images #",
+        "## Local verifications #",
+        "## Verify image with user-provided trusted chain #",
+        "## Verify an image on the transparency log #",
+        "## Verify attestation #",
+        "## Verify annotations #",
+        "# This works",
+        "# This works too",
+        "# This doesn't work",
+        "## Download the signatures to verify with another tool #",
+        "## Retrieving a public key #",
+        "### Verifyng KMS signatures #",
+        "### Retrieve the public key from a private key or KMS #",
+        "# Retrieve from Google Cloud KMS",
+        "# Retrieve from HashiCorp Vault",
+        "## Custom Components #",
+        "### Custom Root Cert #",
+        "## New bundle format coming soon #",
+        "## Experimental Features #",
+        "### Verify a signature was added to the transparency log #"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://external-secrets.io/latest/": {
+      "title": "Introduction - External Secrets Operator",
+      "source_ids": [
+        "resource"
+      ],
+      "cited_by": [
+        "secrets/external-secrets.md"
+      ],
+      "sha256": "sha256:6b734abf49869b658f6e93f5905eec150a3f846de03946d7640209047c57b3d4",
+      "chars": 1764,
+      "outline": [
+        "# Sponsored by",
+        "# Introduction",
+        "### What is the goal of External Secrets Operator?",
+        "### Where to get started",
+        "### How to get involved",
+        "### Special thanks"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://external-secrets.io/latest/api/externalsecret/": {
+      "title": "ExternalSecret - External Secrets Operator",
+      "source_ids": [
+        "eso-api"
+      ],
+      "cited_by": [
+        "secrets/external-secrets.md"
+      ],
+      "sha256": "sha256:d54b86aeb5d920c65b923878dd612187344b8162a1960aad202a7777f8516fd2",
+      "chars": 14829,
+      "outline": [
+        "# ExternalSecret",
+        "## Template",
+        "## Update behavior with 3 different refresh policies",
+        "### CreatedOnce",
+        "### Periodic",
+        "### OnChange",
+        "## Manual Refresh",
+        "## SyncWindows",
+        "### Example: allow syncs only during business hours (Mon-Fri 09:00-17:00 UTC)",
+        "### Example: block syncs during a Saturday maintenance window (02:00-04:00 UTC)",
+        "### Multiple windows",
+        "### Interaction with refreshInterval",
+        "## Features",
+        "## Example"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://external-secrets.io/latest/guides/ownership-deletion-policy/": {
+      "title": "Lifecycle: ownership & deletion - External Secrets Operator",
+      "source_ids": [
+        "eso-lifecycle"
+      ],
+      "cited_by": [
+        "secrets/external-secrets.md"
+      ],
+      "sha256": "sha256:a7d28c9060b17550afcf214463e34996750f62d351064d2620c74368d630ec80",
+      "chars": 9330,
+      "outline": [
+        "# Lifecycle",
+        "## Refresh Policy",
+        "### Periodic (default)",
+        "### OnChange",
+        "### CreatedOnce",
+        "## Creation Policy",
+        "### Owner (default)",
+        "### Orphan",
+        "### Merge",
+        "### CreateOrMerge",
+        "### None",
+        "## Immutable target",
+        "## Deletion Policy",
+        "### Retain (default)",
+        "### Delete",
+        "### Merge",
+        "## Behavior matrix"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://external-secrets.io/latest/guides/security-best-practices/": {
+      "title": "Security Best Practices - External Secrets Operator",
+      "source_ids": [
+        "eso-security"
+      ],
+      "cited_by": [
+        "secrets/external-secrets.md"
+      ],
+      "sha256": "sha256:aa24f33a6447100bbd4576db501b6f3156845b4058756c75a8e42200292375de",
+      "chars": 22837,
+      "outline": [
+        "# Security Best Practices",
+        "## Security Functions and Features",
+        "### 1. Namespace Isolation",
+        "### 2. Configure ClusterSecretStore match conditions",
+        "### 3. Selectively Disable Reconciliation of Resources",
+        "### 4. Implement Namespace-Scoped Installation",
+        "# If set to true, create scoped RBAC roles under the scoped namespace",
+        "# and implicitly disable cluster stores and cluster external secrets",
+        "# Specify the namespace where external secrets should be reconciled",
+        "### 5. Restrict Webhook TLS Ciphers",
+        "### 6. Harden the Helm Chart",
+        "## Pod Security",
+        "## Role-Based Access Control (RBAC)",
+        "### Scoping ServiceAccount Token Creation",
+        "## Network Traffic and Security",
+        "### Outbound Traffic Restrictions",
+        "### Inbound Traffic Restrictions",
+        "## Policy Engine Best Practices",
+        "## Regular Patches",
+        "## Verify Artefacts",
+        "### Verify Container Images",
+        "# Retrieve Image Signature",
+        "# verify signature",
+        "# ...",
+        "### Verifying Provenance",
+        "### Fetching SBOM"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://grafana.com/docs/grafana/latest/administration/provisioning/": {
+      "title": "Provision Grafana | Grafana documentation",
+      "source_ids": [
+        "grafana-provisioning"
+      ],
+      "cited_by": [
+        "operations/observability.md"
+      ],
+      "sha256": "sha256:52084938e00ad5fd16bf056e9a6e38d2a85040357ddd8ec454c1218d935ec29f",
+      "chars": 27085,
+      "outline": [
+        "# Provision Grafana",
+        "## Configuration file",
+        "### Configuration file locations",
+        "## Use environment variables",
+        "### Use of the special character $",
+        "## Data sources",
+        "### Run multiple Grafana instances",
+        "### Example data source configuration file",
+        "# Configuration file version",
+        "# List of data sources to delete from the database.",
+        "# Mark provisioned data sources for deletion if they are no longer in a provisioning file.",
+        "# It takes no effect if data sources are already listed in the deleteDatasources section.",
+        "# List of data sources to insert/update depending on what's",
+        "# available in the database.",
+        "## Plugins",
+        "### Example plugin configuration file",
+        "## Dashboards",
+        "### Example dashboard configuration file",
+        "### Reusable dashboard URLs",
+        "### Provision folders structure from filesystem to Grafana",
+        "## Alerting",
+        "### Supported settings",
+        "## Grafana Enterprise",
+        "## Configuration management tools",
+        "## Was this page helpful?",
+        "## Related resources from Grafana Labs"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://grafana.com/docs/loki/latest/get-started/labels/bp-labels/": {
+      "title": "Label best practices | Grafana Loki documentation",
+      "source_ids": [
+        "loki-labels"
+      ],
+      "cited_by": [
+        "operations/observability.md"
+      ],
+      "sha256": "sha256:ebd2209b1e7c60bd3cd8535eaa6c5d000f9c7c3df752cf9a44414d39c3407857",
+      "chars": 7113,
+      "outline": [
+        "# Label best practices",
+        "## Static labels are good",
+        "## Use dynamic labels sparingly",
+        "## Label values must always be bounded",
+        "## Be aware of dynamic labels applied by clients",
+        "## Was this page helpful?",
+        "## Related resources from Grafana Labs"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://helm.sh/docs/": {
+      "title": "Docs Home | Helm",
+      "source_ids": [
+        "resource"
+      ],
+      "cited_by": [
+        "foundation/helm.md"
+      ],
+      "sha256": "sha256:598a9cb6c02358092d72921fbcb6d80672b681f6f0b97a794e81526a7eb18a67",
+      "chars": 838,
+      "outline": [
+        "## 📄️Docs Home",
+        "## 📄️Helm 4 Overview",
+        "## 📄️Full Changelog",
+        "## 🗃Introduction",
+        "## 🗃How-to",
+        "## 🗃Topics",
+        "## 🗃Best Practices",
+        "## 🗃Chart Template Guide",
+        "## 🗃Plugins",
+        "## 🗃Helm Commands",
+        "## 🗃Go SDK",
+        "## 📄️Glossary"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://helm.sh/docs/chart_best_practices/": {
+      "title": "Best Practices | Helm",
+      "source_ids": [
+        "helm-best-practices"
+      ],
+      "cited_by": [
+        "foundation/helm.md"
+      ],
+      "sha256": "sha256:123e5731e59dfa3eaf4c1e9277b83a9efc79633b53a94e09d9f499068287b667",
+      "chars": 1027,
+      "outline": [
+        "## 📄️General Conventions",
+        "## 📄️Values",
+        "## 📄️Templates",
+        "## 📄️Dependencies",
+        "## 📄️Labels and Annotations",
+        "## 📄️Pods and PodTemplates",
+        "## 📄️Custom Resource Definitions",
+        "## 📄️Role-Based Access Control"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://helm.sh/docs/intro/introduction/": {
+      "title": "Introduction to Helm | Helm",
+      "source_ids": [
+        "helm-intro"
+      ],
+      "cited_by": [
+        "foundation/helm.md"
+      ],
+      "sha256": "sha256:4d19b5ec9053598d91e822d8927be5c8f6e6032e77c9d335f190c52734eb149d",
+      "chars": 5365,
+      "outline": [
+        "## What can Helm do?​",
+        "## Who is Helm For?​",
+        "## Key Components​",
+        "### Chart​",
+        "### Repository​",
+        "### Release​",
+        "## Architecture​",
+        "## Next Steps​"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://helm.sh/docs/intro/using_helm/": {
+      "title": "Using Helm | Helm",
+      "source_ids": [
+        "helm-use"
+      ],
+      "cited_by": [
+        "foundation/helm.md"
+      ],
+      "sha256": "sha256:d7d1b0c1252e60768a9b04ddc59ecf8647ae161dfd5a0f758c91a3948fc42b94",
+      "chars": 18316,
+      "outline": [
+        "## 'helm search': Finding Charts​",
+        "## 'helm install': Installing a Package​",
+        "### Customizing the Chart Before Installing​",
+        "## Global Docker image parameters",
+        "## Please, note that this will override the image parameters, including dependencies, configured to use the global value",
+        "## Current available global Docker image parameters: imageRegistry and imagePullSecrets",
+        "# global:",
+        "## Bitnami WordPress image version",
+        "## ref: https://hub.docker.com/r/bitnami/wordpress/tags/",
+        "### More Installation Methods​",
+        "## 'helm upgrade' and 'helm rollback': Upgrading a Release, and Recovering on Failure​",
+        "## Helpful Options for Install/Upgrade/Rollback​",
+        "## 'helm uninstall': Uninstalling a Release​",
+        "## 'helm repo': Working with Repositories​",
+        "## Creating Your Own Charts​",
+        "## Conclusion​"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://helm.sh/docs/topics/charts_hooks/": {
+      "title": "Chart Hooks | Helm",
+      "source_ids": [
+        "helm-hooks"
+      ],
+      "cited_by": [
+        "foundation/helm.md"
+      ],
+      "sha256": "sha256:b6302624c15685141771c7bcbdb9c195938a903cbc22f9eb8454ee02a7c41f69",
+      "chars": 8416,
+      "outline": [
+        "## The Available Hooks​",
+        "## Hooks and the Release Lifecycle​",
+        "### Hook resources are not managed with corresponding releases​",
+        "## Writing a Hook​",
+        "### Hook deletion policies​"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://kubernetes.io/docs/": {
+      "title": "Kubernetes Documentation | Kubernetes",
+      "source_ids": [
+        "resource"
+      ],
+      "cited_by": [
+        "foundation/kubernetes.md"
+      ],
+      "sha256": "sha256:be717003587648b2586ceba5cd5bd0de5d862e132f79ba2b12d2de0c5fcba7ad",
+      "chars": 2095,
+      "outline": [
+        "## Understand Kubernetes",
+        "## Try Kubernetes",
+        "## Set up a K8s cluster",
+        "## Learn how to use Kubernetes",
+        "## Look up reference information",
+        "## Contribute to Kubernetes",
+        "## Training",
+        "## Download Kubernetes",
+        "## About the documentation"
+      ],
+      "moved_to": "https://kubernetes.io/docs/home/",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://kubernetes.io/docs/concepts/security/overview/": {
+      "title": "Security | Kubernetes",
+      "source_ids": [
+        "k8s-security"
+      ],
+      "cited_by": [
+        "foundation/kubernetes.md"
+      ],
+      "sha256": "sha256:acfe1f4e112ab962124a0e6ee9e0d700af039a40c9b1b571e4431f8be36e56d8",
+      "chars": 6209,
+      "outline": [
+        "# Security",
+        "## Kubernetes security mechanisms",
+        "### Control plane protection",
+        "### Secrets",
+        "### Workload protection",
+        "### Admission control",
+        "### Auditing",
+        "## Cloud provider security",
+        "## Policies",
+        "## What's next",
+        "## Feedback"
+      ],
+      "moved_to": "https://kubernetes.io/docs/concepts/security/",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://kubernetes.io/docs/concepts/workloads/": {
+      "title": "Workloads | Kubernetes",
+      "source_ids": [
+        "k8s-workloads"
+      ],
+      "cited_by": [
+        "foundation/kubernetes.md"
+      ],
+      "sha256": "sha256:402ede8bf8e3c9108afe2f653e8d9cec6c306fa295ad911d9e21d3c41a9ef10a",
+      "chars": 5262,
+      "outline": [
+        "# Workloads",
+        "## Workload placement",
+        "## What's next",
+        "## Feedback"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://kubernetes.io/docs/setup/production-environment/": {
+      "title": "Production environment | Kubernetes",
+      "source_ids": [
+        "kubernetes-prod",
+        "k8s-prod"
+      ],
+      "cited_by": [
+        "architecture/design-build-checklist.md",
+        "foundation/kubernetes.md"
+      ],
+      "sha256": "sha256:7a8ca2386bc38552764ef75f54e7fc6d4ff172656891bc781257a779d3748fd7",
+      "chars": 15489,
+      "outline": [
+        "# Production environment",
+        "## Production considerations",
+        "## Production cluster setup",
+        "### Production control plane",
+        "### Production worker nodes",
+        "## Production user management",
+        "## Set limits on workload resources",
+        "## What's next",
+        "## Feedback"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/": {
+      "title": "Declarative Management of Kubernetes Objects Using Kustomize | Kubernetes",
+      "source_ids": [
+        "kustomize-docs",
+        "resource"
+      ],
+      "cited_by": [
+        "foundation/kustomize.md"
+      ],
+      "sha256": "sha256:2016780df6c574550b5469d470629ee770860dde092275f56b4bc5dbec190d73",
+      "chars": 23167,
+      "outline": [
+        "# Declarative Management of Kubernetes Objects Using Kustomize",
+        "## Before you begin",
+        "## Overview of Kustomize",
+        "### Generating Resources",
+        "# Create a application.properties file",
+        "# Create a .env file",
+        "# Create an application.properties file",
+        "# Create a password.txt file",
+        "# Create a password.txt file",
+        "### Setting cross-cutting fields",
+        "# Create a deployment.yaml",
+        "### Composing and Customizing Resources",
+        "# Create a deployment.yaml file",
+        "# Create a service.yaml file",
+        "# Create a kustomization.yaml composing them",
+        "# Create a deployment.yaml file",
+        "# Create a patch increase_replicas.yaml",
+        "# Create another patch set_memory.yaml",
+        "# Create a deployment.yaml file",
+        "# Create a json patch",
+        "# Create a kustomization.yaml",
+        "# Create a deployment.yaml file (quoting the here doc delimiter)",
+        "# Create a service.yaml file",
+        "## Bases and Overlays",
+        "# Create a directory to hold the base",
+        "# Create a base/deployment.yaml",
+        "# Create a base/service.yaml file",
+        "# Create a base/kustomization.yaml",
+        "## How to apply/view/delete objects using Kustomize",
+        "# Create a deployment.yaml file",
+        "# Create a kustomization.yaml",
+        "## Kustomize Feature List",
+        "## What's next",
+        "## Feedback"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://kubernetes.io/releases/version-skew-policy/": {
+      "title": "Version Skew Policy | Kubernetes",
+      "source_ids": [
+        "k8s-version-skew"
+      ],
+      "cited_by": [
+        "foundation/kubernetes.md"
+      ],
+      "sha256": "sha256:014363e3d872662c48586e348b138e279cae9a284d8b220552b73735139fcd72",
+      "chars": 8839,
+      "outline": [
+        "# Version Skew Policy",
+        "## Supported versions",
+        "## Supported version skew",
+        "### kube-apiserver",
+        "### kubelet",
+        "### kube-proxy",
+        "### kube-controller-manager, kube-scheduler, and cloud-controller-manager",
+        "### kubectl",
+        "## Supported component upgrade order",
+        "### kube-apiserver",
+        "### kube-controller-manager, kube-scheduler, and cloud-controller-manager",
+        "### kubelet",
+        "### kube-proxy",
+        "## Feedback"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://kyverno.io/docs/": {
+      "title": "Introduction | Kyverno",
+      "source_ids": [
+        "resource"
+      ],
+      "cited_by": [
+        "security/kyverno.md"
+      ],
+      "sha256": "sha256:d5fce385bb794e28d576214469cd577ac6d306b9f1807f92eb3e43b46db940dd",
+      "chars": 2131,
+      "outline": [
+        "# Introduction",
+        "## What is Policy Management?",
+        "## Why is Policy Management necessary?",
+        "## About Kyverno"
+      ],
+      "moved_to": "https://kyverno.io/docs/introduction/",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://kyverno.io/docs/guides/reports/": {
+      "title": "Policy Reports | Kyverno",
+      "source_ids": [
+        "kyverno-reports"
+      ],
+      "cited_by": [
+        "security/kyverno.md"
+      ],
+      "sha256": "sha256:cb8803dfbd5a6ff144c2b3badb1454740da6a8614a2d9996be6e11c110a370dd",
+      "chars": 29072,
+      "outline": [
+        "# Policy Reports",
+        "# ...",
+        "## Report result logic",
+        "### Scenarios for Skip results",
+        "## Viewing report summaries",
+        "## Viewing policy violations",
+        "## Report internals",
+        "## Background Scans",
+        "## Example: Trigger a PolicyReport",
+        "## OpenReports",
+        "### Enabling OpenReports",
+        "### Example: Enforcing an ‘app’ Label",
+        "## ValidatingAdmissionPolicy Reports",
+        "### Example: Trigger a PolicyReport"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://kyverno.io/docs/policy-types/cluster-policy/validate/": {
+      "title": "Validate Rules | Kyverno",
+      "source_ids": [
+        "kyverno-validate"
+      ],
+      "cited_by": [
+        "security/kyverno.md"
+      ],
+      "sha256": "sha256:52521312c087f7dcf77c1cb16b3e3cb33c73795365194b7f7b5ce0cabae40eaa",
+      "chars": 83509,
+      "outline": [
+        "# Validate Rules",
+        "## Basic Validations",
+        "# The `ClusterPolicy` kind applies to the entire cluster.",
+        "# The `spec` defines properties of the policy.",
+        "## Failure Action",
+        "## Failure Action Overrides",
+        "## Patterns",
+        "### Wildcards",
+        "### Operators",
+        "### Anchors",
+        "### anyPattern",
+        "## Deny rules",
+        "### Deny DELETE requests based on labels",
+        "### Block changes to a custom resource",
+        "### Prevent changing NetworkPolicy resources",
+        "## foreach",
+        "### Nested foreach",
+        "## Manifest Validation",
+        "## Pod Security",
+        "### Exemptions",
+        "### PSA Interoperability",
+        "## Common Expression Language (CEL)",
+        "### Parameter Resources",
+        "### CEL Preconditions",
+        "### CEL Variables",
+        "## ValidatingAdmissionPolicies",
+        "## Kyverno JSON Assertion"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://kyverno.io/docs/policy-types/overview/": {
+      "title": "Overview | Kyverno",
+      "source_ids": [
+        "kyverno-overview"
+      ],
+      "cited_by": [
+        "security/kyverno.md"
+      ],
+      "sha256": "sha256:4a3b2d549f518e3da2b12aad749fb5c0a6f84c4e9f4d4051e44e0475b768a28b",
+      "chars": 4415,
+      "outline": [
+        "# Overview",
+        "## Policy Types",
+        "## Supporting Resource Types",
+        "## Deprecated API Versions",
+        "## Deprecation Schedule for Legacy Types"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://prometheus.io/docs/practices/alerting/": {
+      "title": "Alerting | Prometheus",
+      "source_ids": [
+        "prometheus-alerting"
+      ],
+      "cited_by": [
+        "operations/observability.md"
+      ],
+      "sha256": "sha256:13ff75ecd4ad33790a2c5fe87521d1801e3423b5afd688f5ee978a8bac34744d",
+      "chars": 3230,
+      "outline": [
+        "# Alerting",
+        "## Naming",
+        "## What to alert on",
+        "### Online serving systems",
+        "### Offline processing",
+        "### Batch jobs",
+        "### Capacity",
+        "### Metamonitoring"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://prometheus.io/docs/practices/naming/": {
+      "title": "Metric and label naming | Prometheus",
+      "source_ids": [
+        "prometheus-naming"
+      ],
+      "cited_by": [
+        "operations/observability.md"
+      ],
+      "sha256": "sha256:2ec3ecf6c9234f0631f66da201ed77e6edcd1350e0f0f489c92c9309bf9cfd34",
+      "chars": 6877,
+      "outline": [
+        "# Metric and label naming",
+        "## Metric names",
+        "### Why include unit and type suffixes in metric names?",
+        "## Labels",
+        "## Base Units"
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "https://prometheus.io/docs/practices/rules/": {
+      "title": "Recording rules | Prometheus",
+      "source_ids": [
+        "prometheus-rules"
+      ],
+      "cited_by": [
+        "operations/observability.md"
+      ],
+      "sha256": "sha256:e5d01efc684182a8bf1b5257ccf40f5cef0faba379116802954f413e7caa9b8f",
+      "chars": 4715,
+      "outline": [
+        "# Recording rules",
+        "## Naming",
+        "## Aggregation",
+        "## Examples",
+        "# Aggregate up numerator and denominator, then divide to get path-level ratio.",
+        "# No labels left from instrumentation or distinguishing instances,",
+        "# so we use 'job' as the level.",
+        "# Aggregate up numerator and denominator, then divide."
+      ],
+      "changed_at": "2026-09-28T06:00:00Z"
+    }
+  },
+  "releases": {
+    "Alertmanager": {
+      "latest": "0.34.1",
+      "released": "2026-09-17",
+      "source": "https://github.com/prometheus/alertmanager/releases",
+      "bundle_states": "",
+      "cited_by": [
+        "operations/observability.md"
+      ],
+      "drift": "",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "Alloy": {
+      "latest": "1.20.0",
+      "released": "2026-09-25",
+      "source": "https://github.com/grafana/alloy/releases",
+      "bundle_states": "",
+      "cited_by": [
+        "operations/observability.md"
+      ],
+      "drift": "",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "Argo CD": {
+      "latest": "3.5.3",
+      "released": "2026-09-14",
+      "source": "https://github.com/argoproj/argo-cd/releases",
+      "bundle_states": "",
+      "cited_by": [
+        "delivery/argocd.md"
+      ],
+      "drift": "",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "Argo CD Image Updater": {
+      "latest": "1.3.0",
+      "released": "2026-08-13",
+      "source": "https://github.com/argoproj-labs/argocd-image-updater/releases",
+      "bundle_states": "",
+      "cited_by": [
+        "delivery/argocd.md"
+      ],
+      "drift": "",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "Beyla": {
+      "latest": "3.36.0",
+      "released": "2026-09-16",
+      "source": "https://github.com/grafana/beyla/releases",
+      "bundle_states": "",
+      "cited_by": [
+        "operations/observability.md"
+      ],
+      "drift": "",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "Cosign": {
+      "latest": "3.1.3",
+      "released": "2026-08-06",
+      "source": "https://github.com/sigstore/cosign/releases",
+      "bundle_states": "2.6.1",
+      "cited_by": [
+        "architecture/technology-stack.md",
+        "delivery/docker-cosign.md"
+      ],
+      "drift": "major",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "Docker Engine": {
+      "latest": "29.8.1",
+      "released": "2026-09-15",
+      "source": "https://endoflife.date/docker-engine",
+      "eol": "2025-05-03",
+      "bundle_states": "27",
+      "cited_by": [
+        "architecture/technology-stack.md",
+        "delivery/docker-cosign.md"
+      ],
+      "drift": "major",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "External Secrets Operator": {
+      "latest": "2.11.0",
+      "released": "2026-09-18",
+      "source": "https://github.com/external-secrets/external-secrets/releases",
+      "bundle_states": "",
+      "cited_by": [
+        "secrets/external-secrets.md"
+      ],
+      "drift": "",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "GitLab Runner": {
+      "latest": "19.4.1",
+      "released": "2026-09-24",
+      "source": "https://gitlab.com/gitlab-org/gitlab-runner/-/releases",
+      "bundle_states": "",
+      "cited_by": [
+        "delivery/gitlab-cicd.md"
+      ],
+      "drift": "",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "Grafana": {
+      "latest": "13.2.2",
+      "released": "2026-09-15",
+      "source": "https://github.com/grafana/grafana/releases",
+      "bundle_states": "",
+      "cited_by": [
+        "operations/observability.md"
+      ],
+      "drift": "",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "Helm": {
+      "latest": "4.3.0",
+      "released": "2026-09-09",
+      "source": "https://github.com/helm/helm/releases",
+      "bundle_states": "",
+      "cited_by": [
+        "foundation/helm.md"
+      ],
+      "drift": "",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "Kubernetes": {
+      "latest": "1.37.1",
+      "released": "2026-09-23",
+      "source": "https://endoflife.date/kubernetes",
+      "eol": "2027-02-28",
+      "bundle_states": "1.35",
+      "cited_by": [
+        "architecture/technology-stack.md",
+        "foundation/kubernetes.md"
+      ],
+      "drift": "minor",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "Kustomize": {
+      "latest": "5.8.1",
+      "released": "2026-02-09",
+      "source": "https://github.com/kubernetes-sigs/kustomize/releases",
+      "bundle_states": "",
+      "cited_by": [
+        "foundation/kustomize.md"
+      ],
+      "drift": "",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "Kyverno": {
+      "latest": "1.19.1",
+      "released": "2026-09-10",
+      "source": "https://github.com/kyverno/kyverno/releases",
+      "bundle_states": "1.18",
+      "cited_by": [
+        "security/kyverno.md"
+      ],
+      "drift": "minor",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "Loki": {
+      "latest": "3.7.8",
+      "released": "2026-09-17",
+      "source": "https://github.com/grafana/loki/releases",
+      "bundle_states": "",
+      "cited_by": [
+        "operations/observability.md"
+      ],
+      "drift": "",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "OpenCost": {
+      "latest": "1.121.3",
+      "released": "2026-09-16",
+      "source": "https://github.com/opencost/opencost/releases",
+      "bundle_states": "",
+      "cited_by": [
+        "operations/observability.md"
+      ],
+      "drift": "",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "Prometheus": {
+      "latest": "3.15.0",
+      "released": "2026-09-25",
+      "source": "https://github.com/prometheus/prometheus/releases",
+      "bundle_states": "",
+      "cited_by": [
+        "operations/observability.md"
+      ],
+      "drift": "",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "Pyrra": {
+      "latest": "0.10.2",
+      "released": "2026-09-18",
+      "source": "https://github.com/pyrra-dev/pyrra/releases",
+      "bundle_states": "",
+      "cited_by": [
+        "operations/observability.md"
+      ],
+      "drift": "",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "Tempo": {
+      "latest": "3.0.3",
+      "released": "2026-08-13",
+      "source": "https://github.com/grafana/tempo/releases",
+      "bundle_states": "",
+      "cited_by": [
+        "operations/observability.md"
+      ],
+      "drift": "",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "Terraform": {
+      "latest": "1.16.4",
+      "released": "2026-09-23",
+      "source": "https://github.com/hashicorp/terraform/releases",
+      "bundle_states": "1.14.8",
+      "cited_by": [
+        "architecture/technology-stack.md",
+        "foundation/terraform.md"
+      ],
+      "drift": "minor",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "Vault": {
+      "latest": "2.1.1",
+      "released": "2026-09-16",
+      "source": "https://github.com/hashicorp/vault/releases",
+      "bundle_states": "",
+      "cited_by": [
+        "secrets/vault.md"
+      ],
+      "drift": "",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "provider: aws": {
+      "latest": "6.66.0",
+      "released": "2026-09-21",
+      "source": "https://registry.terraform.io/providers/hashicorp/aws",
+      "bundle_states": "5.94.1",
+      "cited_by": [
+        "architecture/technology-stack.md"
+      ],
+      "drift": "major",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "provider: azuread": {
+      "latest": "3.10.0",
+      "released": "2026-09-24",
+      "source": "https://registry.terraform.io/providers/hashicorp/azuread",
+      "bundle_states": "3.9.0",
+      "cited_by": [
+        "architecture/technology-stack.md"
+      ],
+      "drift": "minor",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "provider: azurerm": {
+      "latest": "5.7.0",
+      "released": "2026-09-24",
+      "source": "https://registry.terraform.io/providers/hashicorp/azurerm",
+      "bundle_states": "4.78.0",
+      "cited_by": [
+        "architecture/technology-stack.md"
+      ],
+      "drift": "major",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "provider: google": {
+      "latest": "8.4.0",
+      "released": "2026-09-22",
+      "source": "https://registry.terraform.io/providers/hashicorp/google",
+      "bundle_states": "6.44.0",
+      "cited_by": [
+        "architecture/technology-stack.md"
+      ],
+      "drift": "major",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "provider: helm": {
+      "latest": "3.3.0",
+      "released": "2026-09-02",
+      "source": "https://registry.terraform.io/providers/hashicorp/helm",
+      "bundle_states": "2.17.0",
+      "cited_by": [
+        "architecture/technology-stack.md"
+      ],
+      "drift": "major",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "provider: kubectl": {
+      "latest": "1.19.0",
+      "released": "2025-01-10",
+      "source": "https://registry.terraform.io/providers/gavinbunney/kubectl",
+      "bundle_states": "1.14.0",
+      "cited_by": [
+        "architecture/technology-stack.md"
+      ],
+      "drift": "minor",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "provider: kubernetes": {
+      "latest": "3.2.1",
+      "released": "2026-07-01",
+      "source": "https://registry.terraform.io/providers/hashicorp/kubernetes",
+      "bundle_states": "2.36.0",
+      "cited_by": [
+        "architecture/technology-stack.md"
+      ],
+      "drift": "major",
+      "changed_at": "2026-09-28T06:00:00Z"
+    },
+    "provider: vault": {
+      "latest": "5.12.0",
+      "released": "2026-09-17",
+      "source": "https://registry.terraform.io/providers/hashicorp/vault",
+      "bundle_states": "4.8.0",
+      "cited_by": [
+        "architecture/technology-stack.md"
+      ],
+      "drift": "major",
+      "changed_at": "2026-09-28T06:00:00Z"
+    }
+  }
+}

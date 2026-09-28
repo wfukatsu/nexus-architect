@@ -17,7 +17,12 @@
 #
 #   --bundle=k8s-tf               Kubernetes / Terraform / GitOps platform docs.
 #                                 VENDORED into knowledge/okf-k8s-tf — its origin repository was
-#                                 deleted, so there is no remote and `update` cannot fetch.
+#                                 deleted, so there is no git remote to pull. Its upstream is the
+#                                 public documentation it cites: `update` collects that
+#                                 (tools/refresh-okf-k8s-tf.py) into knowledge/okf-k8s-tf-upstream/
+#                                 and reports which documents to re-verify. It never rewrites the
+#                                 bundle — that is a reviewed change (…-upstream/REVISE.md), made
+#                                 weekly by .github/workflows/refresh-okf-k8s-tf.yml.
 #                                 Resolution order: rules/okf-k8s-tf-bundle.md
 #                                 See knowledge/OKF-K8S-TF-PROVENANCE.md for why.
 #
@@ -36,6 +41,7 @@ CACHE_DIR="${OKF_CACHE_DIR:-$HOME/.cache/nexus-architect/okf-scalardb-scalardl}"
 K8S_OVERRIDE="${NEXUS_OKF_K8S_TF:-${INFRA_DESIGN_OKF:-}}"
 K8S_VENDORED="$PLUGIN_ROOT/knowledge/okf-k8s-tf"
 K8S_CACHE="${OKF_K8S_CACHE_DIR:-$HOME/.cache/nexus-architect/okf-k8s-tf}"
+K8S_UPSTREAM="$ROOT/knowledge/okf-k8s-tf-upstream"
 
 BUNDLE="scalardb"
 MODE=""
@@ -149,30 +155,40 @@ k8s_ensure() {
     return 0
   fi
   echo "okf-bundle(k8s-tf): NOT available." >&2
-  echo "  This bundle is vendored at knowledge/okf-k8s-tf and has no remote to fetch from" >&2
+  echo "  This bundle is vendored at knowledge/okf-k8s-tf and has no git remote to clone from" >&2
   echo "  (see knowledge/OKF-K8S-TF-PROVENANCE.md). Restore it from this repository, or point" >&2
   echo "  NEXUS_OKF_K8S_TF at a copy." >&2
   return 1
 }
 
+# Collect the public upstream (the official pages the bundle cites, and release feeds) into
+# knowledge/okf-k8s-tf-upstream/. The page text lands in its git-ignored pages/ directory — the
+# locally held copy. The bundle documents are not touched: revising them is a reviewed change.
 k8s_update() {
   local dir; dir="$(k8s_resolve)" || { k8s_ensure; return 1; }
-  echo "okf-bundle(k8s-tf): vendored — there is no remote to update from."
-  echo "  Origin repository was deleted; the copy at $dir is the source of record."
-  echo "  See knowledge/OKF-K8S-TF-PROVENANCE.md."
+  echo "okf-bundle(k8s-tf): collecting the public upstream of $dir ..."
+  NEXUS_OKF_K8S_TF="$dir" python3 "$ROOT/tools/refresh-okf-k8s-tf.py" || return 1
+  echo "  report:  $K8S_UPSTREAM/REPORT.md"
+  echo "  pages:   $K8S_UPSTREAM/pages/ (local only, git-ignored)"
+  echo "  revise:  follow $K8S_UPSTREAM/REVISE.md — or let the weekly workflow do it"
   return 0
 }
 
 k8s_status() {
   local dir
   if ! dir="$(k8s_resolve)"; then k8s_ensure; return 1; fi
-  echo "bundle:        k8s-tf (vendored — no remote)"
+  echo "bundle:        k8s-tf (vendored; upstream = the public docs it cites)"
   echo "resolved:      $dir"
   echo "okf_version:   $(grep -m1 '^okf_version:' "$dir/index.md" | sed 's/okf_version: *//; s/"//g')"
   echo "documents:     $(find "$dir" -name '*.md' -not -path '*/.git/*' | wc -l | tr -d ' ')"
   local earliest
   earliest="$(grep -rh '^stale_after:' "$dir" | sed 's/stale_after: *//; s/"//g' | sort | head -1)"
   echo "stale_after:   earliest ${earliest:-none} (a document past its date is re-verified, not quoted as current)"
+  if [ -f "$K8S_UPSTREAM/state.json" ]; then
+    echo "upstream:      checked $(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("checked_at","?"))' "$K8S_UPSTREAM/state.json") (knowledge/okf-k8s-tf-upstream/REPORT.md)"
+  else
+    echo "upstream:      never checked (run: tools/update-okf-bundle.sh update --bundle=k8s-tf)"
+  fi
   echo "sections:"
   local idx
   for idx in "$dir"/*/index.md; do

@@ -4,14 +4,16 @@
 Four of them, each written because the prose can drift away from the thing it describes:
 
 1. The bundle resolution order in rules/okf-k8s-tf-bundle.md is what
-   tools/update-okf-bundle.sh actually implements. The rule is what a skill follows when it
-   resolves by hand; the script is what it follows when it shells out. If they disagree, one of
-   the two paths silently reads a different bundle.
+   tools/update-okf-bundle.sh actually implements, and its update path collects the public
+   upstream rather than cloning a remote the bundle does not have. The rule is what a skill
+   follows when it resolves by hand; the script is what it follows when it shells out. If they
+   disagree, one of the two paths silently reads a different bundle.
 2. Every bundle document the rule's topic map points at exists. The map is the only index a
    skill uses to decide what to open, and a row naming a file that is not there reads as
    "the bundle does not cover this".
-3. Every bundle document carries a parseable `stale_after`. The freshness rule is unenforceable
-   without it, and a missing one makes a stale document look current.
+3. Every bundle document carries a parseable `stale_after`, later than its `verified` date. The
+   freshness rule is unenforceable without it, and a missing one makes a stale document look
+   current. The dates move with the weekly refresh, so the rule itself must not pin them.
 4. Each skill's declared model matches the Model Policy table in the router, and each template
    the skills name exists and carries the frontmatter block the output-conventions rule requires.
 
@@ -71,11 +73,14 @@ check("step 3 is the cache",
       ".cache" in rule_order[2] and script_order[2] == "K8S_CACHE",
       (rule_order[2:], script_order[2:]))
 
-# The bundle has no remote; a script that grew a fetch path would contradict the rule and the
-# provenance note without anything else noticing.
-check("the k8s-tf update path does not fetch",
-      "git clone" not in SCRIPT.split("k8s_update() {", 1)[1].split("\n}", 1)[0])
-check("the rule says there is no remote", "There is no remote" in RULE)
+# The bundle has no origin repository; its upstream is the public documentation it cites. The
+# update path must collect that and nothing else — a git clone would mean it grew a remote the
+# rule and the provenance note deny, and a path to the private repositories would publish them.
+k8s_update = SCRIPT.split("k8s_update() {", 1)[1].split("\n}", 1)[0]
+check("the k8s-tf update path does not clone", "git clone" not in k8s_update)
+check("the k8s-tf update path runs the upstream collector", "refresh-okf-k8s-tf.py" in k8s_update)
+check("the rule says there is no origin repository", "There is no origin repository to pull" in RULE)
+check("the rule names the upstream the collector reads", "knowledge/okf-k8s-tf-upstream/" in RULE)
 
 # ------------------------------------------------------------------ topic map
 
@@ -108,13 +113,17 @@ for rel in sorted(present):
     (dates.append((rel, hit.group(1))) if hit else undated.append(rel))
 check("every bundle document carries a parseable stale_after", not undated, undated)
 
-# The rule states Kyverno's date is the earliest, and the reason. If another document ever became
-# the earliest, the rule's table would be quietly wrong.
-if dates:
-    earliest = min(d for _, d in dates)
-    owners = sorted(rel for rel, d in dates if d == earliest)
-    check("the rule names the earliest stale_after", earliest in RULE, earliest)
-    check("kyverno is the earliest-expiring document", owners == ["security/kyverno.md"], owners)
+# The dates move with every weekly refresh, so the rule must not pin them — a date written into
+# the rule would be quietly wrong a week later. What must hold instead: a document is never due
+# for re-verification before it was verified.
+check("the rule pins no stale_after date in a table", not re.search(r"\| *20\d\d-\d\d-\d\d *\|", RULE))
+backwards = []
+for rel, date in dates:
+    front = read("knowledge", "okf-k8s-tf", *rel.split("/")).split("---", 2)[1]
+    hit = re.search(r"^verified:.*\bat:\s*[\"']?(\d{4}-\d{2}-\d{2})", front, re.M)
+    if hit and date <= hit.group(1):
+        backwards.append((rel, hit.group(1), date))
+check("every stale_after falls after the document's verified date", not backwards, backwards)
 
 # ------------------------------------------------------------- skills & models
 

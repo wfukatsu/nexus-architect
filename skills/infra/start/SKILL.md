@@ -58,7 +58,7 @@ request whose whole point is the triage itself. Answer those here.
 ## Step 1 — Resolve the bundle
 
 Run `${CLAUDE_PLUGIN_ROOT}/tools/update-okf-bundle.sh status --bundle=k8s-tf` and take the
-resolved path as `$OKF`. The resolution order, the reason there is no remote, and what to do when
+resolved path as `$OKF`. The resolution order, where its upstream comes from, and what to do when
 it cannot be found are all in @rules/okf-k8s-tf-bundle.md §1.
 
 **If the bundle cannot be resolved, do not answer from memory.** It is the primary source for

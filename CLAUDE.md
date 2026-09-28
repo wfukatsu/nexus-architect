@@ -51,11 +51,16 @@ without editing the runner or CI. `.github/workflows/contracts.yml` runs the sam
 push and pull request: per `rules/ai-code-quality-gate.md` the CI half is the enforced one, and a
 contract that runs only when someone remembers is not enforced at all.
 
+One workflow is not a gate: `.github/workflows/refresh-okf-k8s-tf.yml` refreshes the vendored
+k8s-tf bundle from the public documentation it cites every Monday 23:00 JST and proposes the
+result as a pull request (see `knowledge/okf-k8s-tf-upstream/REVISE.md`).
+
 | Suite | Guards |
 |-------|--------|
 | `hooks/*.sh <file>` (file-path CLI mode) | The two output validators themselves: frontmatter present, Mermaid parses |
 | `tools/omnigent/load-skill.test.sh` | The omnigent loader's skill resolution |
-| `skills/infra/infra-contract.test.py` | The `/infra:*` contract: the bundle resolution order in the rule matching `update-okf-bundle.sh`, every document the topic map names existing (and every document being reachable from it), `stale_after` present and parseable on all 23, the four skills' models matching the router's Model Policy table, and each named template carrying the frontmatter block |
+| `skills/infra/infra-contract.test.py` | The `/infra:*` contract: the bundle resolution order in the rule matching `update-okf-bundle.sh` (whose k8s-tf update path collects the public upstream, never clones), every document the topic map names existing (and every document being reachable from it), `stale_after` present, parseable and later than `verified` on all 23 with no date pinned in the rule, the four skills' models matching the router's Model Policy table, and each named template carrying the frontmatter block |
+| `tools/lib/okf_upstream.test.py` | The k8s-tf bundle's upstream collector, offline: every public page the bundle cites watched and no private `gitlab.com/scalar-labs/` source ever fetched, release feeds well-formed and stating only versions their documents state, page chrome not counted as a change while an edited paragraph is, prereleases skipped, an unreachable source keeping its previous entry, a quiet week byte-identical, the baseline run not a flood of re-verifications, the committed `state.json` covering exactly the cited pages with no page text, and `pages/` git-ignored |
 | `skills/generate-docs/marker-mechanics.test.py` | The `<!-- nexus:begin:<section> -->` ownership-marker contract that skill states in prose (no argument = embedded fixture; or pass a real README) |
 | `skills/implement-backlog/output-location.test.sh` | The Output Location interlock against a scratch repo: git-ignore gate, working-branch commit, empty-commit detection |
 | `skills/capture-followup/followup-contract.test.py` | The follow-up ID/manifest contract: `F`-index allocation, disjointness from positional IDs, `origin` node shape, default-parent resolution |

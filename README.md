@@ -409,13 +409,24 @@ Kubernetes, Helm, Kustomize, Argo CD, GitLab CI/CD, Docker + Cosign, Vault, Exte
 Prometheus/Grafana and Kyverno.
 
 It differs from the ScalarDB bundle in one way that matters: **it is vendored, not a submodule**,
-because its origin repository was deleted. There is no remote to update from, and the copy in
-`knowledge/okf-k8s-tf/` is the source of record
-([`knowledge/OKF-K8S-TF-PROVENANCE.md`](knowledge/OKF-K8S-TF-PROVENANCE.md)).
+because its origin repository was deleted
+([`knowledge/OKF-K8S-TF-PROVENANCE.md`](knowledge/OKF-K8S-TF-PROVENANCE.md)). Its upstream is
+the public documentation it cites: `update` collects every cited official page and the release
+feed of every technology it names into `knowledge/okf-k8s-tf-upstream/` — the page text held
+locally (git-ignored), what moved recorded in `state.json` and `REPORT.md`. The two private
+repositories behind its observed-implementation tier are never fetched.
 
 ```bash
-tools/update-okf-bundle.sh status --bundle=k8s-tf   # resolved path, OKF version, documents, earliest stale_after
+tools/update-okf-bundle.sh status --bundle=k8s-tf   # resolved path, OKF version, documents, earliest stale_after, last upstream check
+tools/update-okf-bundle.sh update --bundle=k8s-tf   # collect the public upstream now
 ```
+
+`.github/workflows/refresh-okf-k8s-tf.yml` does this **every Monday at 23:00 JST**. When a cited
+page or release moved, Claude re-verifies the affected documents against the fresh pages
+(following [`knowledge/okf-k8s-tf-upstream/REVISE.md`](knowledge/okf-k8s-tf-upstream/REVISE.md))
+and the result arrives as one pull request to review — the observed tier is never rewritten from
+public sources. The revision step needs an `ANTHROPIC_API_KEY` repository secret; without it the
+pull request carries the collected state alone.
 
 Skills follow [`rules/okf-k8s-tf-bundle.md`](rules/okf-k8s-tf-bundle.md): fix the environment and
 cloud before reading anything; keep the bundle's three tiers apart in the output — observed

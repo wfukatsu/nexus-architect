@@ -265,8 +265,10 @@ release's docs and cite each concept's `resource` URL. See
 
 Any infrastructure design, implementation, or review decision must be grounded in the OKF bundle
 at `knowledge/okf-k8s-tf/` (`tools/update-okf-bundle.sh status --bundle=k8s-tf`). Unlike the
-ScalarDB bundle it is **vendored, not a submodule** — its origin repository was deleted, so there
-is no remote and `update` cannot fetch.
+ScalarDB bundle it is **vendored, not a submodule** — its origin repository was deleted. `update`
+collects its public upstream (the official pages it cites, and release feeds) into
+`knowledge/okf-k8s-tf-upstream/` and reports the documents to re-verify; it never rewrites the
+bundle, which changes only through the weekly reviewed refresh.
 
 Fix the target environment (`local` / `test` / `staging` / `production`) and cloud before reading
 anything. Keep the bundle's three tiers apart in the output: observed implementation is fact,

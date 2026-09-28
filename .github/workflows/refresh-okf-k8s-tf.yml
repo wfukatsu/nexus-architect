@@ -1,0 +1,141 @@
+name: refresh-okf-k8s-tf
+
+# Weekly refresh of the k8s-tf OKF bundle (knowledge/okf-k8s-tf/) from its public upstream.
+#
+# 1. Collect — tools/refresh-okf-k8s-tf.py fetches every official page the bundle cites and every
+#    release feed in knowledge/okf-k8s-tf-upstream/sources.yaml, and records what moved in
+#    state.json + REPORT.md. The two private repositories the observed tier came from are never
+#    fetched (this repository is public).
+# 2. Revise — when something moved and an ANTHROPIC_API_KEY secret is set, Claude re-verifies the
+#    affected bundle documents against the fresh pages, following
+#    knowledge/okf-k8s-tf-upstream/REVISE.md. Without the secret this step is skipped and the pull
+#    request carries the collected state alone, for a person to act on.
+# 3. Propose — one pull request on the bot/okf-k8s-tf-refresh branch, updated in place each week
+#    until merged. Nothing reaches main unreviewed.
+#
+# Needs: Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests".
+
+on:
+  schedule:
+    # Every Monday 23:00 JST (= Monday 14:00 UTC). GitHub may start a scheduled run late under load.
+    - cron: "0 14 * * 1"
+  workflow_dispatch:
+    inputs:
+      revise:
+        description: "Run the Claude revision step when sources moved (needs ANTHROPIC_API_KEY)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: refresh-okf-k8s-tf
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install the Python dependencies
+        run: python3 -m pip install --quiet -r requirements.txt
+
+      - name: Collect the public upstream
+        id: collect
+        env:
+          GITHUB_TOKEN: ${{ github.token }}   # raises the GitHub releases API rate limit
+        run: |
+          # The previous run's revision summary belongs to a merged pull request, not this one.
+          rm -f knowledge/okf-k8s-tf-upstream/REVISION.md
+          python3 tools/refresh-okf-k8s-tf.py \
+            --now="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --github-output="$GITHUB_OUTPUT"
+          if [ -f knowledge/okf-k8s-tf-upstream/REPORT.md ]; then
+            cat knowledge/okf-k8s-tf-upstream/REPORT.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Decide whether to revise
+        id: gate
+        env:
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+          CHANGED: ${{ steps.collect.outputs.changed }}
+          AFFECTED: ${{ steps.collect.outputs.affected }}
+          STALE: ${{ steps.collect.outputs.stale }}
+          WANTED: ${{ github.event_name == 'schedule' || inputs.revise }}
+        run: |
+          # Documents past stale_after are re-verified even in a week where no page moved.
+          run=false
+          if [ "$WANTED" = "true" ] && [ "$HAS_KEY" = "true" ] \
+             && { [ "${AFFECTED:-0}" -gt 0 ] || [ "${STALE:-0}" -gt 0 ]; }; then
+            run=true
+          fi
+          echo "revise=$run" >> "$GITHUB_OUTPUT"
+          echo "changed=$CHANGED affected=$AFFECTED stale=$STALE has_key=$HAS_KEY -> revise=$run"
+
+      - name: Revise the affected bundle documents
+        if: steps.gate.outputs.revise == 'true'
+        # A failed revision must not lose the week's collected state: the verify step below still
+        # gates what the reviser did write, and the pull request says the revision is missing.
+        continue-on-error: true
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ github.token }}
+          prompt: |
+            Follow knowledge/okf-k8s-tf-upstream/REVISE.md exactly. Today's run date is the
+            `generated_at` date in knowledge/okf-k8s-tf-upstream/REPORT.md.
+          claude_args: >-
+            --model claude-opus-5-5
+            --max-turns 120
+            --allowedTools "Read,Edit,Write,Glob,Grep,WebFetch,Bash(python3 skills/infra/infra-contract.test.py),Bash(python3 tools/lib/okf_upstream.test.py)"
+
+      - name: Verify the bundle contracts
+        run: |
+          python3 skills/infra/infra-contract.test.py
+          python3 tools/lib/okf_upstream.test.py
+
+      - name: Compose the pull request body
+        id: body
+        run: |
+          {
+            echo "Weekly refresh of \`knowledge/okf-k8s-tf/\` from its public upstream."
+            echo
+            if [ -f knowledge/okf-k8s-tf-upstream/REVISION.md ]; then
+              echo "## Revision"; echo
+              cat knowledge/okf-k8s-tf-upstream/REVISION.md
+            else
+              echo "> No revision was made this run (no \`ANTHROPIC_API_KEY\` secret, revision disabled, or the"
+              echo "> Claude step failed — see the run log)."
+              echo "> The bundle documents listed in REPORT.md need re-verifying by hand —"
+              echo "> see \`knowledge/okf-k8s-tf-upstream/REVISE.md\`."
+            fi
+            echo
+            echo "## Upstream report"; echo
+            echo "See [\`knowledge/okf-k8s-tf-upstream/REPORT.md\`](knowledge/okf-k8s-tf-upstream/REPORT.md) in this branch."
+            echo
+            echo "🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+          } > "$RUNNER_TEMP/pr-body.md"
+
+      - name: Open or update the pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          branch: bot/okf-k8s-tf-refresh
+          delete-branch: true
+          title: "knowledge(okf-k8s-tf): weekly upstream refresh"
+          commit-message: "knowledge(okf-k8s-tf): weekly upstream refresh"
+          body-path: ${{ runner.temp }}/pr-body.md
+          # Only these paths: the extracted page text under pages/ is git-ignored anyway, and a
+          # reviser that strayed outside the bundle must not have that reach the pull request.
+          add-paths: |
+            knowledge/okf-k8s-tf/**
+            knowledge/okf-k8s-tf-upstream/state.json
+            knowledge/okf-k8s-tf-upstream/REPORT.md
+            knowledge/okf-k8s-tf-upstream/REVISION.md

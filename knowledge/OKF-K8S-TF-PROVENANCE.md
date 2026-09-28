@@ -12,8 +12,26 @@ disappear resolves to nothing on the next clone. Since `@rules/okf-k8s-tf-bundle
 bundle as the *primary source* for `/infra:*` — not a convenience cache — losing it would leave
 those skills with no grounds to answer from.
 
-There is therefore **no upstream to update from**. `tools/update-okf-bundle.sh --bundle=k8s-tf`
-reports the vendored state; it never fetches.
+There is therefore **no origin repository to update from**.
+
+## Where updates come from instead (since 2026-09-28)
+
+The bundle's design-guidance tier (設計指針) was written from public official documentation, and
+every document names those pages in its frontmatter `sources`. That documentation is the bundle's
+upstream now:
+
+| Piece | Role |
+|-------|------|
+| `tools/refresh-okf-k8s-tf.py` (`tools/update-okf-bundle.sh update --bundle=k8s-tf`) | Fetches every cited public page and every release feed in `knowledge/okf-k8s-tf-upstream/sources.yaml` from the internet |
+| `knowledge/okf-k8s-tf-upstream/pages/` | The extracted page text, held locally. **Git-ignored**: it is third-party documentation under mixed licences, and this repository is public |
+| `knowledge/okf-k8s-tf-upstream/state.json`, `REPORT.md` | Committed: per page a content hash and outline, per technology the latest stable release, and what moved since the previous run |
+| `knowledge/okf-k8s-tf-upstream/REVISE.md` | How the bundle is revised from that — the only path by which bundle documents change |
+| `.github/workflows/refresh-okf-k8s-tf.yml` | Every Monday 23:00 JST: collect, let Claude revise the affected documents per `REVISE.md`, open one pull request |
+
+The observed-implementation tier (対象実装) is **not** part of that upstream. It describes the two
+private repositories below at fixed commits; those repositories are never fetched by this
+repository (it is public), so nothing here can revise that tier. A version the snapshot pinned
+stays as observed, and a newer release is recorded as an open question, not substituted.
 
 ## Chain of custody
 
