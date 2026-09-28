@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checked_at": "2026-09-28T07:09:01Z",
+  "checked_at": "2026-09-28T20:23:31Z",
   "pages": {
     "https://argo-cd.readthedocs.io/en/stable/": {
       "title": "Argo CD - Declarative GitOps CD for Kubernetes",
@@ -674,8 +674,8 @@
       "cited_by": [
         "delivery/gitlab-cicd.md"
       ],
-      "sha256": "sha256:551e8b4a6c597f17a4e4c6add00e48b0cdec0c0661976b6db4156b1e2d0c0260",
-      "chars": 206198,
+      "sha256": "sha256:c3be484736a88f161958464a2dabcb703c1db6f33d3516e977be9e172ce1b063",
+      "chars": 206823,
       "outline": [
         "# CI/CD YAML syntax reference",
         "## Keywords",
@@ -741,7 +741,7 @@
         "### Default variables",
         "### variables:expand"
       ],
-      "changed_at": null
+      "changed_at": "2026-09-28T20:23:31Z"
     },
     "https://docs.sigstore.dev/cosign/signing/overview/": {
       "title": "Overview - SigstoreExpandCollapseExpandCollapse",
@@ -1456,15 +1456,15 @@
       "drift_changed_at": null
     },
     "Alloy": {
-      "latest": "1.20.0",
-      "released": "2026-09-25",
+      "latest": "1.20.1",
+      "released": "2026-09-28",
       "source": "https://github.com/grafana/alloy/releases",
       "bundle_states": "",
       "cited_by": [
         "operations/observability.md"
       ],
       "drift": "",
-      "changed_at": null,
+      "changed_at": "2026-09-28T20:23:31Z",
       "drift_changed_at": null
     },
     "Argo CD": {
@@ -1798,6 +1798,10 @@
       "drift_changed_at": "2026-09-28T06:00:00Z"
     }
   },
-  "pending": {},
+  "pending": {
+    "delivery/gitlab-cicd.md": [
+      "page changed 2026-09-28: https://docs.gitlab.com/ci/yaml/"
+    ]
+  },
   "pending_as_of": "2026-09-28"
 }
