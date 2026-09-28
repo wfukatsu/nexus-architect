@@ -7,13 +7,18 @@ name: refresh-okf-k8s-tf
 #    release feed in knowledge/okf-k8s-tf-upstream/sources.yaml, and records what moved in
 #    state.json + REPORT.md. The two private repositories the observed tier came from are never
 #    fetched (this repository is public).
-# 2. Apply what needs no judgement — a cited page that redirected gets its frontmatter `resource`
-#    rewritten to the final URL (--apply-redirects), noted in the bundle's log.md.
+# 2. Apply what needs no judgement — a cited page that redirected to the same page moved (same
+#    path elsewhere, or a path extending it) gets its frontmatter `resource` rewritten to the final
+#    URL (--apply-redirects), noted in the bundle's log.md. A redirect to a different page — how a
+#    site answers for a removed one — is not applied; its documents are listed instead.
 # 3. List what does — the documents awaiting re-verification (a cited page changed, a stated
 #    version fell further behind, stale_after passed) go into state.json `pending` and REPORT.md.
 #    Revising their prose is judgement: /architect:revise-knowledge, run by a person on demand.
 # 4. Propose — one pull request on bot/okf-k8s-tf-refresh, updated in place each week until merged.
-#    A quiet week changes nothing and opens nothing.
+#    A quiet week changes nothing and opens nothing. The branch is rebuilt from main on every run
+#    (create-pull-request force-pushes), so revisions go on their own branch, never on this one.
+#    A pull request opened with GITHUB_TOKEN triggers no other workflow: contracts.yml does not
+#    run on it, which is why the two bundle suites run here.
 #
 # Needs: Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests".
 
@@ -69,9 +74,10 @@ jobs:
             echo "Weekly refresh of \`knowledge/okf-k8s-tf/\` from its public upstream (no model involved)."
             echo
             if [ "${PENDING:-0}" -gt 0 ]; then
-              echo "**$PENDING document(s) await re-verification.** To revise them, check out this branch, run"
-              echo "\`/architect:revise-knowledge\` in Claude Code (it re-collects the page text, which is not"
-              echo "committed), and push to this branch."
+              echo "**$PENDING document(s) await re-verification.** Merge this pull request first, then run"
+              echo "\`/architect:revise-knowledge\` in Claude Code on a new branch from \`main\` and open that as"
+              echo "its own pull request. Do not push to this branch: the next weekly run rebuilds it from"
+              echo "\`main\` and force-pushes, discarding any commit it did not make."
             else
               echo "No document awaits re-verification."
             fi

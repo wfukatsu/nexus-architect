@@ -25,7 +25,7 @@ upstream now:
 | `tools/refresh-okf-k8s-tf.py` (`tools/update-okf-bundle.sh update --bundle=k8s-tf`) | Fetches every cited public page and every release feed in `knowledge/okf-k8s-tf-upstream/sources.yaml` from the internet |
 | `knowledge/okf-k8s-tf-upstream/pages/` | The extracted page text, held locally. **Git-ignored**: it is third-party documentation under mixed licences, and this repository is public |
 | `knowledge/okf-k8s-tf-upstream/state.json`, `REPORT.md` | Committed: per page a content hash and outline, per technology the latest stable release, and what moved since the previous run |
-| `.github/workflows/refresh-okf-k8s-tf.yml` | Every Monday 23:00 JST, no model: collect, rewrite redirected source URLs, list the documents awaiting re-verification (`state.json` `pending`), open one pull request |
+| `.github/workflows/refresh-okf-k8s-tf.yml` | Every Monday 23:00 JST, no model: collect, rewrite the URLs of sources that moved (a redirect to a different page is listed, not applied), list the documents awaiting re-verification (`state.json` `pending`), open one pull request |
 | `/architect:revise-knowledge` (`skills/revise-knowledge/SKILL.md`) | On demand, Claude: re-verify the pending documents against the fresh pages and revise the guidance that fell behind — the only path by which bundle prose changes |
 
 The observed-implementation tier (対象実装) is **not** part of that upstream. It describes the two

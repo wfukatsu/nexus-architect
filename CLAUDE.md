@@ -52,8 +52,8 @@ push and pull request: per `rules/ai-code-quality-gate.md` the CI half is the en
 contract that runs only when someone remembers is not enforced at all.
 
 One workflow is not a gate: `.github/workflows/refresh-okf-k8s-tf.yml` collects the vendored
-k8s-tf bundle's public upstream every Monday 23:00 JST with no model involved — redirected source
-URLs rewritten, documents awaiting re-verification listed — and proposes the result as a pull
+k8s-tf bundle's public upstream every Monday 23:00 JST with no model involved — sources that moved
+to a new address rewritten, documents awaiting re-verification listed — and proposes the result as a pull
 request. Revising those documents is judgement, and is `/architect:revise-knowledge`, run on demand.
 
 | Suite | Guards |

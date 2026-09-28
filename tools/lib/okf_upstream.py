@@ -31,6 +31,7 @@ Network access goes through the `Fetcher` protocol so the suite can run offline.
 
 import hashlib
 import html
+import http.client
 import json
 import os
 import re
@@ -262,12 +263,36 @@ def load_feeds(path):
 _PRE = re.compile(r"(alpha|beta|rc|pre|dev|snapshot|nightly|canary)", re.I)
 
 
+_VERSION = re.compile(r"\d+(?:\.\d+){0,3}")
+
+
 def _version(tag):
     return re.sub(r"^(?:[a-z-]+/)?v?", "", tag.strip())
 
 
 def _stable(tag):
     return not _PRE.search(tag)
+
+
+def _highest(candidates):
+    """The highest version among (version, released) pairs listed newest-published first.
+
+    Release lists are ordered by publication, not by version: a project patching several lines
+    publishes 1.18.6 after 1.19.1, and taking the first entry would make "latest" go backwards.
+    On equal versions the first (most recently published) wins. A tag that is not a version once
+    its prefix is stripped (`untagged-ce74…`, `helm-chart-2.11.0`) is not a candidate: its digits
+    would otherwise be read as a version number and win.
+    """
+    best = None
+    for version, released in candidates:
+        if not _VERSION.fullmatch(version):
+            continue
+        key = tuple(_parts(version) + [0, 0, 0])[:3]
+        if best is None or key > best[0]:
+            best = (key, version, released)
+    if best is None:
+        raise LookupError("no stable release in the last 30")
+    return best[1], best[2]
 
 
 def resolve_feed(feed, fetcher):
@@ -277,22 +302,22 @@ def resolve_feed(feed, fetcher):
         url = "https://api.github.com/repos/%s/releases?per_page=30" % feed["github"]
         rels = json.loads(fetcher.get(url, api=True).body)
         prefix = feed.get("tag_prefix", "")
-        for r in rels:
-            tag = r.get("tag_name", "")
-            if r.get("draft") or r.get("prerelease") or not _stable(tag) or not tag.startswith(prefix):
-                continue
-            return {"latest": _version(tag[len(prefix):]), "released": (r.get("published_at") or "")[:10],
-                    "source": "https://github.com/%s/releases" % feed["github"]}
-        raise LookupError("no stable release in the last 30")
+        latest, released = _highest(
+            (_version(r.get("tag_name", "")[len(prefix):]), (r.get("published_at") or "")[:10])
+            for r in rels
+            if not (r.get("draft") or r.get("prerelease")) and _stable(r.get("tag_name", ""))
+            and r.get("tag_name", "").startswith(prefix))
+        return {"latest": latest, "released": released,
+                "source": "https://github.com/%s/releases" % feed["github"]}
     if kind == "gitlab":
         proj = urllib.parse.quote(feed["gitlab"], safe="")
         url = "https://gitlab.com/api/v4/projects/%s/releases?per_page=30" % proj
-        for r in json.loads(fetcher.get(url, api=True).body):
-            tag = r.get("tag_name", "")
-            if _stable(tag) and not r.get("upcoming_release"):
-                return {"latest": _version(tag), "released": (r.get("released_at") or "")[:10],
-                        "source": "https://gitlab.com/%s/-/releases" % feed["gitlab"]}
-        raise LookupError("no stable release in the last 30")
+        latest, released = _highest(
+            (_version(r.get("tag_name", "")), (r.get("released_at") or "")[:10])
+            for r in json.loads(fetcher.get(url, api=True).body)
+            if _stable(r.get("tag_name", "")) and not r.get("upcoming_release"))
+        return {"latest": latest, "released": released,
+                "source": "https://gitlab.com/%s/-/releases" % feed["gitlab"]}
     if kind == "terraform-provider":
         url = "https://registry.terraform.io/v1/providers/%s" % feed["terraform-provider"]
         data = json.loads(fetcher.get(url, api=True).body)
@@ -381,7 +406,9 @@ def collect(bundle, feeds, fetcher, now, pages_dir=None):
             title, text = extract(resp.body)
             if not text.strip():
                 raise ValueError("no content extracted")
-        except (urllib.error.URLError, OSError, ValueError) as e:
+        # HTTPException: a truncated body (IncompleteRead) is not an OSError. LookupError: a
+        # charset the server names but Python does not know. Either is one page's problem.
+        except (urllib.error.URLError, OSError, ValueError, LookupError, http.client.HTTPException) as e:
             errors.append({"kind": "page", "target": url, "error": str(e)[:200]})
             continue
         entry = {"title": title or meta["title"], "source_ids": meta["ids"], "cited_by": meta["cited_by"],
@@ -398,7 +425,8 @@ def collect(bundle, feeds, fetcher, now, pages_dir=None):
     for feed in feeds:
         try:
             got = resolve_feed(feed, fetcher)
-        except (urllib.error.URLError, OSError, ValueError, KeyError, LookupError, IndexError) as e:
+        except (urllib.error.URLError, OSError, ValueError, KeyError, LookupError, IndexError,
+                http.client.HTTPException) as e:
             errors.append({"kind": "release", "target": feed["name"], "error": str(e)[:200]})
             continue
         stated = str(feed.get("bundle_states", ""))
@@ -449,11 +477,13 @@ def merge(prev, pages, releases, errors, now, cited=None):
         new["changed_at"] = old.get("changed_at") if same else (now if old else first)
         # When the gap to the stated version last changed level ("" / patch / minor / major). A new
         # patch on an already-major gap is not news for the document; crossing into a new major is.
-        # On a first observation the gap's start is unknown: the latest release date stands in.
+        # A gap seen for the first time is dated now: when it began is unknown, and dating it by
+        # the latest release would hide every gap opened by an earlier release — a major that
+        # shipped before the document was verified is not thereby one the document knows about.
         if old and old.get("drift", "") == new["drift"]:
             new["drift_changed_at"] = old.get("drift_changed_at")
         else:
-            new["drift_changed_at"] = (now if old else new.get("released")) if new["drift"] else None
+            new["drift_changed_at"] = now if new["drift"] else None
         out["releases"][name] = new
     return out
 
@@ -476,7 +506,9 @@ def diff(prev, new):
 
 
 def content_equal(a, b):
-    strip = lambda s: {k: v for k, v in s.items() if k != "checked_at"}
+    # checked_at and pending_as_of are dates of the run, not findings: a run that found nothing
+    # new is not a change, so a quiet week writes nothing.
+    strip = lambda s: {k: v for k, v in s.items() if k not in ("checked_at", "pending_as_of")}
     return strip(a) == strip(b)
 
 
@@ -509,6 +541,10 @@ def pending_documents(bundle, state, today):
     * the gap between a version it states and the latest release changed level (patch / minor /
       major) after it was verified — a further patch on the same gap is not news (a feed without
       `bundle_states` is context, not a claim the document makes);
+    * a page it cites redirects to a different page (`same_page` false) — typically a removed page
+      sent to its section index. That is left to judgement, and stays listed until the source is
+      replaced, whatever `verified.at` says;
+    * the stated cycle of a version it states reached end of life after it was verified;
     * its `stale_after` has passed.
     """
     docs = bundle_documents(bundle)
@@ -517,15 +553,25 @@ def pending_documents(bundle, state, today):
         verified = _date((fm.get("verified") or {}).get("at") if isinstance(fm.get("verified"), dict) else "")
         why = []
         for url, page in state.get("pages", {}).items():
-            changed = _date((page or {}).get("changed_at"))
-            if changed and rel in page.get("cited_by", []) and changed > verified:
+            page = page or {}
+            if rel not in page.get("cited_by", []):
+                continue
+            changed = _date(page.get("changed_at"))
+            if changed and changed > verified:
                 why.append("page changed %s: %s" % (changed, url))
+            if page.get("moved_to") and not same_page(url, page["moved_to"]):
+                why.append("page redirected to a different page: %s -> %s" % (url, page["moved_to"]))
         for name, rel_ in state.get("releases", {}).items():
             r = rel_ or {}
+            if rel not in r.get("cited_by", []):
+                continue
             since = _date(r.get("drift_changed_at"))
-            if rel in r.get("cited_by", []) and r.get("drift") and since > verified:
+            if r.get("drift") and since > verified:
                 why.append("release %s %s: %s behind stated %s since %s"
                            % (name, r["latest"], r["drift"], r["bundle_states"], since))
+            eol = _date(r.get("eol"))
+            if eol and verified < eol <= today:
+                why.append("release %s: stated %s reached end of life %s" % (name, r["bundle_states"], eol))
         stale = _date(fm.get("stale_after"))
         if stale and stale < today:
             why.append("past stale_after %s" % stale)
@@ -534,29 +580,56 @@ def pending_documents(bundle, state, today):
     return out
 
 
+def same_page(old, new):
+    """Whether a redirect from `old` to `new` still lands on the page that was cited.
+
+    Same path on another scheme or host, a trailing slash, or a path that extends the old one
+    (`/docs/` -> `/docs/home/`, `/` -> `/en/stable/`) is the same page moved. Anything else — above
+    all a path *above* the old one (`/security/overview/` -> `/security/`) — is how sites answer
+    for a page they removed, and whether the claims resting on it survive is judgement.
+    """
+    o, n = urllib.parse.urlsplit(old), urllib.parse.urlsplit(new)
+    op, np_ = o.path.rstrip("/"), n.path.rstrip("/")
+    if op == np_:
+        return True
+    return o.netloc == n.netloc and np_.startswith(op + "/")
+
+
 def apply_redirects(bundle, state):
-    """Rewrite each redirected source's `resource` to its final URL, in the bundle frontmatter.
+    """Rewrite each same-page redirect's `resource` to its final URL, in the bundle frontmatter.
 
     The one bundle edit that needs no judgement: the site itself says where the page lives now, and
     the source keeps its `id`, so every `[id]` citation in the body still resolves. Only the
     frontmatter is touched, and only an exact quoted match. The state entry is re-keyed to the new
-    URL so the next run sees no change. Returns [(document, old url, new url), ...].
+    URL so the next run sees no change. A redirect to a different page (`same_page`), or one some
+    citing document does not carry as an exact quoted match, is left in the state as `moved_to`
+    and not applied — re-keying without rewriting every citation would make the next run
+    fetch the old URL again and see it as new. Returns [(document, old url, new url), ...].
     """
     applied = []
     for url in [u for u, p in state.get("pages", {}).items() if (p or {}).get("moved_to")]:
-        entry = state["pages"].pop(url)
-        new = entry.pop("moved_to")
-        for rel in entry.get("cited_by", []):
+        new = state["pages"][url]["moved_to"]
+        if not same_page(url, new):
+            continue
+        quoted = '"%s"' % url
+        rewrites = []
+        for rel in state["pages"][url].get("cited_by", []):
             path = os.path.join(bundle, *rel.split("/"))
             with open(path, encoding="utf-8") as fh:
                 body = fh.read()
-            _, front, rest = body.split("---", 2)
-            quoted = '"%s"' % url
-            if quoted not in front:
-                continue
-            with open(path, "w", encoding="utf-8") as fh:
-                fh.write("---" + front.replace(quoted, '"%s"' % new) + "---" + rest)
-            applied.append((rel, url, new))
+            parts = body.split("---", 2)
+            if len(parts) < 3 or quoted not in parts[1]:
+                break
+            rewrites.append((rel, path, parts))
+        else:
+            for rel, path, (_, front, rest) in rewrites:
+                with open(path, "w", encoding="utf-8") as fh:
+                    fh.write("---" + front.replace(quoted, '"%s"' % new) + "---" + rest)
+                applied.append((rel, url, new))
+            entry = state["pages"].pop(url)
+            entry.pop("moved_to")
+        if url in state["pages"]:
+            continue
         other = state["pages"].get(new)
         if other:
             other["cited_by"] = sorted(set(other.get("cited_by", [])) | set(entry.get("cited_by", [])))
@@ -603,7 +676,7 @@ def render_report(state, delta, errors, private, applied=()):
         L += ["- `%s`: %s → %s" % a for a in applied]
     L += ["", "## Pages", "",
           "Checked %d public pages." % len(state["pages"]), ""]
-    for key, label in (("changed", "Content changed"), ("moved", "Redirected to a new URL"),
+    for key, label in (("changed", "Content changed"), ("moved", "Redirected, not applied"),
                        ("added", "Newly cited"), ("removed", "No longer cited")):
         # A redirect that was applied is listed once, under "Redirects applied"; its state entry
         # now lives under the new URL. Only redirects left unapplied are listed here.

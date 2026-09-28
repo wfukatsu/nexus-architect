@@ -422,9 +422,9 @@ tools/update-okf-bundle.sh update --bundle=k8s-tf   # collect the public upstrea
 ```
 
 `.github/workflows/refresh-okf-k8s-tf.yml` does this **every Monday at 23:00 JST**, with no model
-involved: it collects, rewrites the `resource` of any cited page that redirected, lists the
-documents awaiting re-verification (a cited page changed, a stated version fell further behind,
-`stale_after` passed), and opens one pull request when anything moved. Revising those documents'
+involved: it collects, rewrites the `resource` of any cited page that moved to a new address (a redirect to a different page is listed instead), lists the
+documents awaiting re-verification (a cited page changed or redirected to a different page, a stated version fell further behind
+or reached end of life, `stale_after` passed), and opens one pull request when anything moved. Revising those documents'
 prose is judgement, so it is a skill run on demand — `/architect:revise-knowledge`, which collects
 first, re-verifies each pending document against the fresh pages, and never rewrites the observed
 tier from public sources.

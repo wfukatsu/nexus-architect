@@ -20,11 +20,11 @@ Cumulative: a document leaves this list when it is re-verified
 
 | Document | Why |
 |---|---|
-| `architecture/technology-stack.md` | release Docker Engine 29.8.1: major behind stated 27 since 2026-09-15<br>release Kubernetes 1.37.1: minor behind stated 1.35 since 2026-09-23<br>release Terraform 1.16.4: minor behind stated 1.14.8 since 2026-09-23<br>release provider: aws 6.66.0: major behind stated 5.94.1 since 2026-09-21<br>release provider: azuread 3.10.0: minor behind stated 3.9.0 since 2026-09-24<br>release provider: azurerm 5.7.0: major behind stated 4.78.0 since 2026-09-24<br>release provider: google 8.4.0: major behind stated 6.44.0 since 2026-09-22<br>release provider: helm 3.3.0: major behind stated 2.17.0 since 2026-09-02<br>release provider: vault 5.12.0: major behind stated 4.8.0 since 2026-09-17 |
-| `delivery/docker-cosign.md` | release Docker Engine 29.8.1: major behind stated 27 since 2026-09-15 |
-| `foundation/kubernetes.md` | release Kubernetes 1.37.1: minor behind stated 1.35 since 2026-09-23 |
-| `foundation/terraform.md` | release Terraform 1.16.4: minor behind stated 1.14.8 since 2026-09-23 |
-| `security/kyverno.md` | release Kyverno 1.19.1: minor behind stated 1.18 since 2026-09-10 |
+| `architecture/technology-stack.md` | release Cosign 3.1.3: major behind stated 2.6.1 since 2026-09-28<br>release Docker Engine 29.8.1: major behind stated 27 since 2026-09-28<br>release Kubernetes 1.37.1: minor behind stated 1.35 since 2026-09-28<br>release Terraform 1.16.4: minor behind stated 1.14.8 since 2026-09-28<br>release provider: aws 6.66.0: major behind stated 5.94.1 since 2026-09-28<br>release provider: azuread 3.10.0: minor behind stated 3.9.0 since 2026-09-28<br>release provider: azurerm 5.7.0: major behind stated 4.78.0 since 2026-09-28<br>release provider: google 8.4.0: major behind stated 6.44.0 since 2026-09-28<br>release provider: helm 3.3.0: major behind stated 2.17.0 since 2026-09-28<br>release provider: kubectl 1.19.0: minor behind stated 1.14.0 since 2026-09-28<br>release provider: kubernetes 3.2.1: major behind stated 2.36.0 since 2026-09-28<br>release provider: vault 5.12.0: major behind stated 4.8.0 since 2026-09-28 |
+| `delivery/docker-cosign.md` | release Cosign 3.1.3: major behind stated 2.6.1 since 2026-09-28<br>release Docker Engine 29.8.1: major behind stated 27 since 2026-09-28 |
+| `foundation/kubernetes.md` | page redirected to a different page: https://kubernetes.io/docs/concepts/security/overview/ -> https://kubernetes.io/docs/concepts/security/<br>release Kubernetes 1.37.1: minor behind stated 1.35 since 2026-09-28 |
+| `foundation/terraform.md` | release Terraform 1.16.4: minor behind stated 1.14.8 since 2026-09-28 |
+| `security/kyverno.md` | release Kyverno 1.19.1: minor behind stated 1.18 since 2026-09-28 |
 
 ## Redirects applied
 
@@ -32,12 +32,15 @@ Rewritten in the documents' frontmatter `resource` (the source `id` is unchanged
 
 - `delivery/argocd.md`: https://argo-cd.readthedocs.io/ → https://argo-cd.readthedocs.io/en/stable/
 - `foundation/kubernetes.md`: https://kubernetes.io/docs/ → https://kubernetes.io/docs/home/
-- `foundation/kubernetes.md`: https://kubernetes.io/docs/concepts/security/overview/ → https://kubernetes.io/docs/concepts/security/
 - `security/kyverno.md`: https://kyverno.io/docs/ → https://kyverno.io/docs/introduction/
 
 ## Pages
 
 Checked 48 public pages.
+
+### Redirected, not applied
+
+- https://kubernetes.io/docs/concepts/security/overview/ → https://kubernetes.io/docs/concepts/security/ — cited by `foundation/kubernetes.md`
 
 ## Releases
 

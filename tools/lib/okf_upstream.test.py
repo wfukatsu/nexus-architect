@@ -152,10 +152,32 @@ api = {"https://api.github.com/repos/o/r/releases?per_page=30": [
     {"tag_name": "helm-chart-9.9.9", "prerelease": False, "published_at": "2026-09-18T00:00:00Z"},
     {"tag_name": "v1.8.2", "prerelease": False, "published_at": "2026-09-01T00:00:00Z"}]}
 got = U.resolve_feed(gh, FakeFetcher(api=api))
-check("without tag_prefix a monorepo's other tags win — which is why the option exists",
-      got["latest"] == "helm-chart-9.9.9", got)
+check("a tag that is not a version is never taken for one",
+      got["latest"] == "1.8.2", got)
+junk = {"https://api.github.com/repos/o/r/releases?per_page=30": [
+    {"tag_name": "untagged-ce745838f1ebd9f128d4", "published_at": "2026-08-26T00:00:00Z"},
+    {"tag_name": "v1.20.0", "published_at": "2026-08-20T00:00:00Z"}]}
+got = U.resolve_feed(gh, FakeFetcher(api=junk))
+check("an untagged release's digits are not read as a version", got["latest"] == "1.20.0", got)
+mono = {"https://api.github.com/repos/o/r/releases?per_page=30": [
+    {"tag_name": "api/v0.21.0", "published_at": "2026-09-02T00:00:00Z"},
+    {"tag_name": "kustomize/v5.8.1", "published_at": "2026-09-01T00:00:00Z"}]}
+check("tag_prefix picks one component of a monorepo tagging several",
+      U.resolve_feed(dict(gh, tag_prefix="kustomize/"), FakeFetcher(api=mono))["latest"] == "5.8.1")
 got = U.resolve_feed(dict(gh, tag_prefix="v"), FakeFetcher(api=api))
 check("prereleases and -beta tags are skipped", got["latest"] == "1.8.2" and got["released"] == "2026-09-01", got)
+lines = {"https://api.github.com/repos/o/r/releases?per_page=30": [
+    {"tag_name": "v1.18.6", "published_at": "2026-09-20T00:00:00Z"},
+    {"tag_name": "v1.19.1", "published_at": "2026-09-10T00:00:00Z"},
+    {"tag_name": "v1.9.9", "published_at": "2026-09-05T00:00:00Z"}]}
+got = U.resolve_feed(gh, FakeFetcher(api=lines))
+check("a patch to an older line published last does not make latest go backwards",
+      got["latest"] == "1.19.1" and got["released"] == "2026-09-10", got)
+gl = {"kind": "gitlab", "gitlab": "g/p", "name": "G"}
+got = U.resolve_feed(gl, FakeFetcher(api={"https://gitlab.com/api/v4/projects/g%2Fp/releases?per_page=30": [
+    {"tag_name": "v18.2.7", "released_at": "2026-09-24T00:00:00Z"},
+    {"tag_name": "v18.4.1", "released_at": "2026-09-23T00:00:00Z"}]}))
+check("the same holds for GitLab releases", got["latest"] == "18.4.1", got)
 eol = {"kind": "endoflife", "endoflife": "k", "name": "K", "bundle_states": "1.35"}
 got = U.resolve_feed(eol, FakeFetcher(api={"https://endoflife.date/api/k.json": [
     {"cycle": "1.37", "latest": "1.37.1", "latestReleaseDate": "2026-09-23"},
@@ -197,13 +219,26 @@ try:
     check("the first state is a baseline", d1["baseline"] and not d1["added"])
     check("a baseline page has no observed change date", s1["pages"]["https://a.example/doc"]["changed_at"] is None)
     check("so the baseline puts nothing up for re-verification", U.pending_documents(b, s1, "2026-09-07") == {})
+    gap = {"Old": {"latest": "3.1.3", "released": "2026-08-06", "drift": "major", "bundle_states": "2.6.1",
+                   "cited_by": ["foundation/x.md"]}}
+    sg = U.merge(U.load_state(os.path.join(tmp, "none.json")), {}, gap, [], T1)
+    check("a gap seen for the first time is dated now, not by a release older than the verification",
+          sg["releases"]["Old"]["drift_changed_at"] == T1
+          and any(w.startswith("release Old 3.1.3: major behind") for w in U.pending_documents(b, sg, "2026-09-07").get("foundation/x.md", [])),
+          sg["releases"]["Old"])
+    eol = {"pages": {}, "releases": {"K": {"latest": "1.37.1", "drift": "", "bundle_states": "1.35",
+                                           "eol": "2026-09-01", "cited_by": ["foundation/x.md"]}}}
+    check("a stated cycle reaching end of life after verification lists the document",
+          U.pending_documents(b, eol, "2026-09-07").get("foundation/x.md") == ["release K: stated 1.35 reached end of life 2026-09-01"],
+          U.pending_documents(b, eol, "2026-09-07"))
+    check("an end of life still ahead does not", U.pending_documents(b, eol, "2026-08-31") == {})
 
     p2, r2, e2 = U.collect(b, feed, FakeFetcher(api=reg), T2)
     s2 = U.merge(s1, p2, r2, e2, T2)
     check("an unchanged week differs only in checked_at", U.content_equal(s1, s2) and s1["checked_at"] != s2["checked_at"])
 
     moved = FakeFetcher(pages={"https://a.example/doc": page("<p>edited</p>"),
-                               "https://b.example/doc": (page("<p>default</p>"), "https://b.example/new")},
+                               "https://b.example/doc": (page("<p>default</p>"), "https://b.example/doc/v2/")},
                         api={"https://registry.terraform.io/v1/providers/n/t": {"version": "2.1.0", "published_at": "2026-09-01"}})
     p3, r3, e3 = U.collect(b, feed, moved, T3)
     s3 = U.merge(s2, p3, r3, e3, T3)
@@ -243,19 +278,42 @@ try:
     with open(x) as fh:
         after = fh.read()
     check("the redirect is applied to the citing document",
-          applied == [("foundation/x.md", "https://b.example/doc", "https://b.example/new")], applied)
-    check("the frontmatter resource now names the final URL", 'resource: "https://b.example/new"' in after)
+          applied == [("foundation/x.md", "https://b.example/doc", "https://b.example/doc/v2/")], applied)
+    check("the frontmatter resource now names the final URL", 'resource: "https://b.example/doc/v2/"' in after)
     check("the source id and the body are untouched",
           "{ id: b," in after and "Body cites [b] at https://b.example/doc and must not change." in after)
     check("the state is re-keyed to the new URL",
-          "https://b.example/new" in s3r["pages"] and "https://b.example/doc" not in s3r["pages"]
-          and "moved_to" not in s3r["pages"]["https://b.example/new"])
+          "https://b.example/doc/v2/" in s3r["pages"] and "https://b.example/doc" not in s3r["pages"]
+          and "moved_to" not in s3r["pages"]["https://b.example/doc/v2/"])
     check("the bundle now cites exactly what the state records", set(U.page_sources(b)) == set(s3r["pages"]))
     U.log_redirects(b, applied, "2026-09-21")
     with open(os.path.join(b, "log.md")) as fh:
         log = fh.read()
-    check("the rewrite is noted in the bundle's log", "## 2026-09-21（自動）" in log and "https://b.example/new" in log, log)
+    check("the rewrite is noted in the bundle's log", "## 2026-09-21（自動）" in log and "https://b.example/doc/v2/" in log, log)
     check("a second pass finds nothing to apply", U.apply_redirects(b, s3r) == [])
+    check("a path extending the old one is the same page",
+          U.same_page("https://kubernetes.io/docs/", "https://kubernetes.io/docs/home/")
+          and U.same_page("https://argo-cd.readthedocs.io/", "https://argo-cd.readthedocs.io/en/stable/")
+          and U.same_page("http://a.example/x", "https://b.example/x/"))
+    check("a path above the old one is not — a removed page sent to its section",
+          not U.same_page("https://kubernetes.io/docs/concepts/security/overview/", "https://kubernetes.io/docs/concepts/security/"))
+    up_ = json.loads(json.dumps(s3r))
+    up_["pages"]["https://a.example/doc"]["moved_to"] = "https://a.example/"
+    with open(x) as fh:
+        before = fh.read()
+    check("a redirect to a different page is not applied",
+          U.apply_redirects(b, up_) == [] and "moved_to" in up_["pages"]["https://a.example/doc"])
+    with open(x) as fh:
+        check("and the document is left as it was", fh.read() == before)
+    check("it is listed for re-verification instead, whatever verified.at says",
+          "page redirected to a different page: https://a.example/doc -> https://a.example/"
+          in U.pending_documents(b, up_, "2026-09-21").get("foundation/x.md", []),
+          U.pending_documents(b, up_, "2026-09-21"))
+    partial = json.loads(json.dumps(s3r))
+    partial["pages"]["https://a.example/doc"]["moved_to"] = "https://a.example/doc/v3/"
+    partial["pages"]["https://a.example/doc"]["cited_by"] = ["foundation/x.md", "log.md"]
+    check("a redirect some citing document cannot take is applied nowhere, and the state keeps the old key",
+          U.apply_redirects(b, partial) == [] and "https://a.example/doc" in partial["pages"])
     with open(x, "w") as fh:
         fh.write(DOC % "2027-01-01")
 
@@ -274,7 +332,7 @@ try:
     check("the report starts with frontmatter", rep.startswith("---\n") and "schema_version: 1" in rep)
     check("the report lists the document awaiting re-verification, with why",
           "| `foundation/x.md` | page changed" in rep, rep)
-    check("the report lists the redirect applied", "## Redirects applied" in rep and "https://b.example/new" in rep)
+    check("the report lists the redirect applied", "## Redirects applied" in rep and "https://b.example/doc/v2/" in rep)
     check("the report marks the bumped release", "**2.1.0**" in rep)
     check("the report lists what could not be checked", "## Could not be checked this run" in rep)
     check("the report lists the private source as skipped by design",
@@ -293,8 +351,9 @@ check("every cited public page has a recorded state", not missing, missing)
 extra = sorted(set(state.get("pages", {})) - set(cited))
 check("the state records no page the bundle does not cite", not extra, extra)
 check("state.json holds no page text", all("text" not in (e or {}) for e in state.get("pages", {}).values()))
-check("the recorded pending list is what the bundle and state give today",
-      state.get("pending") == U.pending_documents(BUNDLE, state, str(state.get("checked_at", ""))[:10]),
+check("the recorded pending list is what the bundle and state give on the date it was computed for",
+      state.get("pending") == U.pending_documents(
+          BUNDLE, state, str(state.get("pending_as_of") or state.get("checked_at", ""))[:10]),
       state.get("pending"))
 check("every feed has a recorded state", set(names) <= set(state.get("releases", {})),
       sorted(set(names) - set(state.get("releases", {}))))

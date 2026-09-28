@@ -60,7 +60,7 @@ paths only, each landing as a reviewed change and each appending to `$OKF/log.md
 
 | Path | Runs | Changes |
 |------|------|---------|
-| `.github/workflows/refresh-okf-k8s-tf.yml` | Every Monday 23:00 JST, **no model** | Only what needs no judgement: a redirected source's `resource` rewritten to the final URL |
+| `.github/workflows/refresh-okf-k8s-tf.yml` | Every Monday 23:00 JST, **no model** | Only what needs no judgement: the `resource` of a source that redirected to the same page moved, rewritten to the final URL. A redirect to a different page (a removed page sent to its section) is listed for re-verification, not applied |
 | `/architect:revise-knowledge` | On demand, Claude | The prose of the pending documents: design guidance, version and lifecycle notes, open questions, `verified` / `stale_after` — never the observed tier |
 
 ## 2. Pin the target before reading anything else

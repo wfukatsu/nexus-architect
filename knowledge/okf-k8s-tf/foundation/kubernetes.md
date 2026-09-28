@@ -11,7 +11,7 @@ stale_after: 2026-11-19
 sources:
   - { id: k8s-workloads, resource: "https://kubernetes.io/docs/concepts/workloads/", title: Workloads, author: "team:kubernetes" }
   - { id: k8s-prod, resource: "https://kubernetes.io/docs/setup/production-environment/", title: Production environment, author: "team:kubernetes" }
-  - { id: k8s-security, resource: "https://kubernetes.io/docs/concepts/security/", title: Cloud native security overview, author: "team:kubernetes" }
+  - { id: k8s-security, resource: "https://kubernetes.io/docs/concepts/security/overview/", title: Cloud native security overview, author: "team:kubernetes" }
   - { id: k8s-version-skew, resource: "https://kubernetes.io/releases/version-skew-policy/", title: Version skew policy, author: "team:kubernetes" }
   - { id: infrastructure-repo, resource: "https://gitlab.com/scalar-labs/ai-driven-devops/ai-devops-project-template/aidd-infrastructure", title: aidd-infrastructure }
 ---

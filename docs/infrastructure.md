@@ -43,7 +43,7 @@ Its upstream is the public documentation it cites, and that is kept current from
 | Collect now | `tools/update-okf-bundle.sh update --bundle=k8s-tf` (= `/architect:update-knowledge --latest --bundle=k8s-tf`) fetches every cited official page and every release feed in `knowledge/okf-k8s-tf-upstream/sources.yaml` |
 | Locally held copy | `knowledge/okf-k8s-tf-upstream/pages/` — the extracted text of each page. Git-ignored: third-party documentation is not republished from this public repository |
 | What moved | `knowledge/okf-k8s-tf-upstream/REPORT.md` (documents awaiting re-verification and why, redirects, latest release vs the version the bundle states) and `state.json` |
-| Weekly refresh (no model) | `.github/workflows/refresh-okf-k8s-tf.yml`, **every Monday 23:00 JST**: collect → rewrite redirected source URLs → list the documents awaiting re-verification → one pull request to review, when anything moved |
+| Weekly refresh (no model) | `.github/workflows/refresh-okf-k8s-tf.yml`, **every Monday 23:00 JST**: collect → rewrite the URLs of sources that moved (same page, new address) → list the documents awaiting re-verification → one pull request to review, when anything moved |
 | Revise (Claude) | `/architect:revise-knowledge` — on demand. Collects, then re-verifies each pending document against the fresh pages and revises the guidance that fell behind; `--dry-run` lists what it would do |
 
 The two private repositories the observed tier was read from are never fetched, so that tier is

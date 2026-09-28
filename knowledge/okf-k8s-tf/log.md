@@ -13,5 +13,4 @@
 - 出典ページのリダイレクトに合わせて `resource` を移転先 URL に更新（本文・出典 ID は変更なし）。
   - `delivery/argocd.md`: https://argo-cd.readthedocs.io/ → https://argo-cd.readthedocs.io/en/stable/
   - `foundation/kubernetes.md`: https://kubernetes.io/docs/ → https://kubernetes.io/docs/home/
-  - `foundation/kubernetes.md`: https://kubernetes.io/docs/concepts/security/overview/ → https://kubernetes.io/docs/concepts/security/
   - `security/kyverno.md`: https://kyverno.io/docs/ → https://kyverno.io/docs/introduction/

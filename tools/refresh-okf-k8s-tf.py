@@ -94,6 +94,7 @@ def main(argv):
     delta = up.diff(prev, state)
     applied = up.apply_redirects(BUNDLE, state) if redirects else []
     state["pending"] = up.pending_documents(BUNDLE, state, today)
+    state["pending_as_of"] = today   # the date `pending` was computed for (stale_after, EOL)
     changed = not up.content_equal(prev, state)
 
     for key in ("changed", "moved", "added", "removed", "bumped"):
@@ -131,15 +132,20 @@ def recompute(state_path, today):
         return 1
     state = json.loads(json.dumps(prev))
     state["pending"] = up.pending_documents(BUNDLE, state, today)
+    state["pending_as_of"] = today
     delta = up.diff(state, state)
     print("okf-upstream: %d document(s) awaiting re-verification (offline recompute)" % len(state["pending"]))
     if state != prev:
+        # pending_as_of is written even when the list is unchanged: the list is only reproducible
+        # for the date it was computed on, and the suite recomputes it for that date.
         with open(state_path, "w", encoding="utf-8") as fh:
             json.dump(state, fh, indent=2, ensure_ascii=False)
             fh.write("\n")
+        print("okf-upstream: wrote state.json")
+    if state["pending"] != prev.get("pending"):
         with open(os.path.join(UPSTREAM, "REPORT.md"), "w", encoding="utf-8") as fh:
             fh.write(up.render_report(state, delta, [], up.private_sources(BUNDLE)))
-        print("okf-upstream: wrote state.json and REPORT.md")
+        print("okf-upstream: wrote REPORT.md")
     return 0
 
 
