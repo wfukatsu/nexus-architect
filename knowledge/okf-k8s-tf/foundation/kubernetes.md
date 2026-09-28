@@ -5,13 +5,13 @@ description: managed Kubernetes 上で安全で可用性のあるワークロー
 resource: "https://kubernetes.io/docs/home/"
 tags: [kubernetes, workloads, networking, security, operations]
 generated: { by: codex/gpt-5, at: "2026-08-19T00:00:00+09:00" }
-verified: { by: "process:official-document-cross-check", at: "2026-08-19T00:00:00+09:00" }
+verified: { by: "process:official-document-cross-check", at: "2026-09-28T00:00:00+09:00" }
 status: stable
-stale_after: 2026-11-19
+stale_after: 2026-12-28
 sources:
   - { id: k8s-workloads, resource: "https://kubernetes.io/docs/concepts/workloads/", title: Workloads, author: "team:kubernetes" }
   - { id: k8s-prod, resource: "https://kubernetes.io/docs/setup/production-environment/", title: Production environment, author: "team:kubernetes" }
-  - { id: k8s-security, resource: "https://kubernetes.io/docs/concepts/security/overview/", title: Cloud native security overview, author: "team:kubernetes" }
+  - { id: k8s-security, resource: "https://kubernetes.io/docs/concepts/security/cloud-native-security/", title: Cloud Native Security and Kubernetes, author: "team:kubernetes" }
   - { id: k8s-version-skew, resource: "https://kubernetes.io/releases/version-skew-policy/", title: Version skew policy, author: "team:kubernetes" }
   - { id: infrastructure-repo, resource: "https://gitlab.com/scalar-labs/ai-driven-devops/ai-devops-project-template/aidd-infrastructure", title: aidd-infrastructure }
 ---
@@ -55,7 +55,7 @@ Pod を直接運用せず、Deployment、StatefulSet、DaemonSet、Job 等の co
 
 # Security
 
-Kubernetes の security は cloud、cluster、container、code の複数層で考える。[k8s-security]
+Kubernetes の security は Develop、Distribute、Deploy、Runtime の lifecycle phase ごとに考え、Runtime は access（API 保護）、compute、storage に分けて対策する。[k8s-security]
 
 - Pod Security Standards を基準に non-root、capability drop、seccomp、read-only filesystem を適用する。
 - admission policy は [Kyverno](/security/kyverno.md) で Audit から Enforce へ段階導入する。
@@ -75,3 +75,8 @@ Kubernetes の security は cloud、cluster、container、code の複数層で�
 - API server、scheduler、node、CNI、DNS、storage、admission webhook の health を監視する。
 - workload は availability、latency、error、saturation を SLI として持つ。
 - Events は短期診断、metrics/logs/traces は長期分析として保持設計を分ける。
+
+# 確認事項
+
+- 対象実装は Kubernetes 1.35 系である。2026-09-28 時点の最新 stable は 1.37.1（minor 2 つ差）。Kubernetes project は直近 3 minor の release branch を保守するため、1.35 は保守対象の最古の系統であり、EOL は 2027-02-28（endoflife.date）。[k8s-version-skew]
+  - EKS、AKS、GKE それぞれの 1.35 標準サポート終了日と、1.36/1.37 への upgrade 計画（kubectl、Provider、add-on、CRD/chart の互換を含む）を決める。

@@ -4,13 +4,14 @@ title: Docker と Cosign のサプライチェーン設計
 description: 再現性のあるコンテナ build と OIDC keyless signing、検証、admission を結ぶ知識。
 tags: [docker, cosign, sigstore, containers, supply-chain]
 generated: { by: codex/gpt-5, at: "2026-08-19T00:00:00+09:00" }
-verified: { by: "process:official-document-cross-check", at: "2026-08-19T00:00:00+09:00" }
+verified: { by: "process:official-document-cross-check", at: "2026-09-28T00:00:00+09:00" }
 status: stable
-stale_after: 2026-11-19
+stale_after: 2026-12-28
 sources:
   - { id: docker-build, resource: "https://docs.docker.com/build/building/best-practices/", title: Building best practices, author: "team:docker" }
   - { id: cosign-overview, resource: "https://docs.sigstore.dev/cosign/signing/overview/", title: Keyless signing overview, author: "team:sigstore" }
   - { id: cosign-verify, resource: "https://docs.sigstore.dev/cosign/verifying/verify/", title: Verifying signatures, author: "team:sigstore" }
+  - { id: cosign-v3, resource: "https://blog.sigstore.dev/cosign-3-0-available/", title: Cosign v3 is now available, author: "team:sigstore" }
   - { id: ci-repo, resource: "https://gitlab.com/scalar-labs/ai-driven-devops/ai-devops-project-template/aidd-ci-templates", title: aidd-ci-templates }
 ---
 
@@ -57,6 +58,12 @@ Cosign keyless signing は OIDC identity に ephemeral key と短期証明書を
 
 # 現状への改善候補
 
-- build image の `docker:27` を patch/digest 固定する。
+- build image の `docker:27` はサポート終了済みの系統であるため（確認事項）、サポート中の系統へ上げたうえで patch/digest 固定する。
 - build 直後に digest を artifact 化し、tag からの再解決を避ける。
 - SBOM と build provenance/attestation を同じ digest に関連付ける。
+
+# 確認事項
+
+- 対象実装の Docker 27 は 2025-05-03 に EOL となった系統である（endoflife.date、2026-09-28 時点の最新は 29.8.1）。build image と DinD service を上げる先の系統と、GitLab Runner 側の互換を決める。
+- 対象実装の Cosign 2.6.1 は 1 major 遅れている（2026-09-28 時点の最新 stable は 3.1.3）。Cosign v3 は v2.6 系で opt-in だった機能を既定で有効にした release である。署名済み material を offline 検証の情報とともに 1 つにまとめる新 bundle 形式（`--new-bundle-format`）、verification material をまとめ key rotation に client 更新なしで追随する `--trusted-root`、transparency log shard の rotation に追随する `--use-signing-config` が既定になり、旧動作はフラグで選べる。v4 では旧機能の削除が予定されている。[cosign-v3]
+  - v3 へ上げる場合、既定の bundle 形式と trust root・signing config の取得方法が変わるため、Kyverno の image verification と CI 内 verify が新しい形式を検証できるかを test cluster で確認してから切り替える。旧動作に留める場合はそのフラグを固定値として記録し、v4 での削除までに移行する。

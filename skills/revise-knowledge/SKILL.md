@@ -63,6 +63,7 @@ Read @rules/okf-k8s-tf-bundle.md §1, §4 and §6 before editing.
 |-------|----------|-------|
 | `knowledge/okf-k8s-tf/` | Required | The bundle. `tools/update-okf-bundle.sh status --bundle=k8s-tf` resolves it |
 | Network | Required unless `--no-collect` | The collector fetches the cited pages and release feeds |
+| `GITHUB_TOKEN` | Recommended | Over twenty feeds are GitHub releases, and the unauthenticated API allows 60 requests an hour — two runs. Without a token a second run finds them rate-limited (kept at their previous entry, and listed under "Could not be checked"). Locally: `GITHUB_TOKEN=$(gh auth token)`. The token is sent to `api.github.com` only |
 | `knowledge/okf-k8s-tf-upstream/state.json` | Required with `--no-collect` | The recorded state, including `pending` — the list this skill works through |
 | `knowledge/okf-k8s-tf-upstream/pages/` | Required with `--no-collect` | The locally held page text (git-ignored); a collection run writes it |
 
@@ -106,7 +107,11 @@ Read @rules/okf-k8s-tf-bundle.md §1, §4 and §6 before editing.
       site (the redirect target when it covers the claims, not merely because it is the target),
       or drop the source and every claim that rested only on it. Replacing the source's
       `resource` is what clears a redirect reason; moving `verified.at` alone does not. A new
-      source only when a revision needs one, in the same `{ id, resource, title, author }` form.
+      source only when a revision needs one, in the same `{ id, resource, title, author }` form —
+      and only a page whose text holds still: every cited page is hashed weekly, so a page carrying
+      live counters (a GitHub release page shows stars, forks and "commits since") would list its
+      documents every week. Prefer the project's documentation or announcement post, and run the
+      collector twice to confirm the second run reports no change.
    6. Frontmatter of the re-verified document, revised or not:
       - `verified: { by: "process:official-document-cross-check", at: "<today>T00:00:00+09:00" }`
       - `stale_after:` today plus three months — or earlier, when a removal or EOL the document
