@@ -42,13 +42,13 @@ Its upstream is the public documentation it cites, and that is kept current from
 |------|-----|
 | Collect now | `tools/update-okf-bundle.sh update --bundle=k8s-tf` (= `/architect:update-knowledge --latest --bundle=k8s-tf`) fetches every cited official page and every release feed in `knowledge/okf-k8s-tf-upstream/sources.yaml` |
 | Locally held copy | `knowledge/okf-k8s-tf-upstream/pages/` — the extracted text of each page. Git-ignored: third-party documentation is not republished from this public repository |
-| What moved | `knowledge/okf-k8s-tf-upstream/REPORT.md` (documents to re-verify, redirects, latest release vs the version the bundle states) and `state.json` |
-| Weekly refresh | `.github/workflows/refresh-okf-k8s-tf.yml`, **every Monday 23:00 JST**: collect → Claude revises the affected documents per [`REVISE.md`](../knowledge/okf-k8s-tf-upstream/REVISE.md) → one pull request to review |
+| What moved | `knowledge/okf-k8s-tf-upstream/REPORT.md` (documents awaiting re-verification and why, redirects, latest release vs the version the bundle states) and `state.json` |
+| Weekly refresh (no model) | `.github/workflows/refresh-okf-k8s-tf.yml`, **every Monday 23:00 JST**: collect → rewrite redirected source URLs → list the documents awaiting re-verification → one pull request to review, when anything moved |
+| Revise (Claude) | `/architect:revise-knowledge` — on demand. Collects, then re-verifies each pending document against the fresh pages and revises the guidance that fell behind; `--dry-run` lists what it would do |
 
 The two private repositories the observed tier was read from are never fetched, so that tier is
-never revised from public sources. The revision step needs an `ANTHROPIC_API_KEY` repository
-secret and "Allow GitHub Actions to create and approve pull requests" enabled; without the secret
-the pull request carries the collected state for a person to act on.
+never revised from public sources. The weekly workflow needs "Allow GitHub Actions to create and
+approve pull requests" enabled (Settings → Actions → General); it needs no API key.
 
 To point the skills at a different copy, set `NEXUS_OKF_K8S_TF` to its root.
 

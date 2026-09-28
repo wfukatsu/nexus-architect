@@ -2,7 +2,7 @@
   "schema_version": 1,
   "checked_at": "2026-09-28T06:00:00Z",
   "pages": {
-    "https://argo-cd.readthedocs.io/": {
+    "https://argo-cd.readthedocs.io/en/stable/": {
       "title": "Argo CD - Declarative GitOps CD for Kubernetes",
       "source_ids": [
         "resource"
@@ -24,8 +24,7 @@
         "## Development Status¶",
         "## Adoption¶"
       ],
-      "moved_to": "https://argo-cd.readthedocs.io/en/stable/",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/": {
       "title": "Declarative Setup - Argo CD - Declarative GitOps CD for Kubernetes",
@@ -76,7 +75,7 @@
         "# changes to config maps",
         "### Server-Side Apply Requirement¶"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://argo-cd.readthedocs.io/en/stable/operator-manual/security/": {
       "title": "Overview - Argo CD - Declarative GitOps CD for Kubernetes",
@@ -114,7 +113,7 @@
         "## ApplicationSets¶",
         "## Limiting Directory App Memory Usage¶"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync/": {
       "title": "Automated Sync Policy - Argo CD - Declarative GitOps CD for Kubernetes",
@@ -136,7 +135,7 @@
         "## Automatic Retry Refresh on new revisions¶",
         "## Automated Sync Semantics¶"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/": {
       "title": "Sync Phases and Waves - Argo CD - Declarative GitOps CD for Kubernetes",
@@ -164,7 +163,7 @@
         "### Initialize or migrate a database¶",
         "### Work around ArgoCD sync failure¶"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://developer.hashicorp.com/terraform/docs": {
       "title": "Terraform overview | Terraform | HashiCorp Developer",
@@ -182,7 +181,7 @@
         "## Collaborate",
         "## Develop and Share"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://developer.hashicorp.com/terraform/language/files/dependency-lock": {
       "title": "Dependency Lock File (.terraform.lock.hcl) - Configuration Language | Terraform | HashiCorp Developer",
@@ -205,7 +204,7 @@
         "### New provider package checksums",
         "### Providers that are no longer required"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://developer.hashicorp.com/terraform/language/modules/develop": {
       "title": "Creating Modules | Terraform | HashiCorp Developer",
@@ -224,7 +223,7 @@
         "### No-Code Provisioning in HCP Terraform",
         "## Refactoring module resources"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://developer.hashicorp.com/terraform/language/state": {
       "title": "State | Terraform | HashiCorp Developer",
@@ -242,7 +241,7 @@
         "## Inspection and Modification",
         "## Format"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://developer.hashicorp.com/terraform/language/state/locking": {
       "title": "State: Locking | Terraform | HashiCorp Developer",
@@ -258,7 +257,7 @@
         "# State Locking",
         "## Force Unlock"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://developer.hashicorp.com/terraform/language/style": {
       "title": "Style Guide - Configuration Language | Terraform | HashiCorp Developer",
@@ -304,7 +303,7 @@
         "## Policy",
         "## Next steps"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://developer.hashicorp.com/vault/docs": {
       "title": "Vault product documentation | Vault | HashiCorp Developer",
@@ -322,7 +321,7 @@
         "## Why use Vault?",
         "## Work with Vault"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://developer.hashicorp.com/vault/docs/concepts/ha": {
       "title": "High Availability | Vault | HashiCorp Developer",
@@ -345,7 +344,7 @@
         "### Per-Node cluster address",
         "## Storage support"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://developer.hashicorp.com/vault/docs/concepts/policies": {
       "title": "Policies | Vault | HashiCorp Developer",
@@ -439,7 +438,7 @@
         "## UI policy requirements",
         "## Tutorial"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://developer.hashicorp.com/vault/docs/concepts/production-hardening": {
       "title": "Production hardening | Vault | HashiCorp Developer",
@@ -456,7 +455,7 @@
         "## Baseline recommendations",
         "## Extended recommendations"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://developer.hashicorp.com/vault/docs/deploy/kubernetes": {
       "title": "Run Vault on Kubernetes | Vault | HashiCorp Developer",
@@ -477,7 +476,7 @@
         "### Consume secrets in Kubernetes",
         "### Documentation"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://docs.docker.com/build/building/best-practices/": {
       "title": "Building best practices | Docker Docs",
@@ -531,7 +530,7 @@
         "### WORKDIR",
         "### ONBUILD"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://docs.gitlab.com/ci/": {
       "title": "Get started with GitLab CI/CD | GitLab Docs",
@@ -552,7 +551,7 @@
         "### CI/CD expressions",
         "## Step 4: Use CI/CD components"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://docs.gitlab.com/ci/components/": {
       "title": "CI/CD components | GitLab Docstanuki-verifiedpartner-verifiedcheck-sm",
@@ -605,7 +604,7 @@
         "### content not found message",
         "### Error: Build component error: Spec must be a valid json schema"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://docs.gitlab.com/ci/docker/docker_in_docker/": {
       "title": "Use Docker-in-Docker | GitLab Docs",
@@ -629,7 +628,7 @@
         "### Docker-in-Docker with TLS disabled in Kubernetes",
         "## Known issues with Docker-in-Docker"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://docs.gitlab.com/ci/secrets/id_token_authentication/": {
       "title": "OpenID Connect (OIDC) Authentication Using ID Tokens | GitLab Docs",
@@ -652,7 +651,7 @@
         "### 401: unauthorized status code",
         "### Error: ID token issuance is disabled"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://docs.gitlab.com/ci/yaml/": {
       "title": "CI/CD YAML syntax reference | GitLab Docsstatus_warningstatus_runningstatus_manualplay",
@@ -729,7 +728,7 @@
         "### Default variables",
         "### variables:expand"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://docs.sigstore.dev/cosign/signing/overview/": {
       "title": "Overview - SigstoreExpandCollapseExpandCollapse",
@@ -751,7 +750,7 @@
         "## Custom infrastructure #",
         "### Custom roots of trust #"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://docs.sigstore.dev/cosign/verifying/verify/": {
       "title": "Verifying Signatures - SigstoreExpandCollapseExpandCollapse",
@@ -787,7 +786,7 @@
         "## Experimental Features #",
         "### Verify a signature was added to the transparency log #"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://external-secrets.io/latest/": {
       "title": "Introduction - External Secrets Operator",
@@ -807,7 +806,7 @@
         "### How to get involved",
         "### Special thanks"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://external-secrets.io/latest/api/externalsecret/": {
       "title": "ExternalSecret - External Secrets Operator",
@@ -835,7 +834,7 @@
         "## Features",
         "## Example"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://external-secrets.io/latest/guides/ownership-deletion-policy/": {
       "title": "Lifecycle: ownership & deletion - External Secrets Operator",
@@ -866,7 +865,7 @@
         "### Merge",
         "## Behavior matrix"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://external-secrets.io/latest/guides/security-best-practices/": {
       "title": "Security Best Practices - External Secrets Operator",
@@ -906,7 +905,7 @@
         "### Verifying Provenance",
         "### Fetching SBOM"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://grafana.com/docs/grafana/latest/administration/provisioning/": {
       "title": "Provision Grafana | Grafana documentation",
@@ -946,7 +945,7 @@
         "## Was this page helpful?",
         "## Related resources from Grafana Labs"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://grafana.com/docs/loki/latest/get-started/labels/bp-labels/": {
       "title": "Label best practices | Grafana Loki documentation",
@@ -967,7 +966,7 @@
         "## Was this page helpful?",
         "## Related resources from Grafana Labs"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://helm.sh/docs/": {
       "title": "Docs Home | Helm",
@@ -993,7 +992,7 @@
         "## 🗃Go SDK",
         "## 📄️Glossary"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://helm.sh/docs/chart_best_practices/": {
       "title": "Best Practices | Helm",
@@ -1015,7 +1014,7 @@
         "## 📄️Custom Resource Definitions",
         "## 📄️Role-Based Access Control"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://helm.sh/docs/intro/introduction/": {
       "title": "Introduction to Helm | Helm",
@@ -1037,7 +1036,7 @@
         "## Architecture​",
         "## Next Steps​"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://helm.sh/docs/intro/using_helm/": {
       "title": "Using Helm | Helm",
@@ -1067,7 +1066,7 @@
         "## Creating Your Own Charts​",
         "## Conclusion​"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://helm.sh/docs/topics/charts_hooks/": {
       "title": "Chart Hooks | Helm",
@@ -1086,33 +1085,9 @@
         "## Writing a Hook​",
         "### Hook deletion policies​"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
-    "https://kubernetes.io/docs/": {
-      "title": "Kubernetes Documentation | Kubernetes",
-      "source_ids": [
-        "resource"
-      ],
-      "cited_by": [
-        "foundation/kubernetes.md"
-      ],
-      "sha256": "sha256:be717003587648b2586ceba5cd5bd0de5d862e132f79ba2b12d2de0c5fcba7ad",
-      "chars": 2095,
-      "outline": [
-        "## Understand Kubernetes",
-        "## Try Kubernetes",
-        "## Set up a K8s cluster",
-        "## Learn how to use Kubernetes",
-        "## Look up reference information",
-        "## Contribute to Kubernetes",
-        "## Training",
-        "## Download Kubernetes",
-        "## About the documentation"
-      ],
-      "moved_to": "https://kubernetes.io/docs/home/",
-      "changed_at": "2026-09-28T06:00:00Z"
-    },
-    "https://kubernetes.io/docs/concepts/security/overview/": {
+    "https://kubernetes.io/docs/concepts/security/": {
       "title": "Security | Kubernetes",
       "source_ids": [
         "k8s-security"
@@ -1135,8 +1110,7 @@
         "## What's next",
         "## Feedback"
       ],
-      "moved_to": "https://kubernetes.io/docs/concepts/security/",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://kubernetes.io/docs/concepts/workloads/": {
       "title": "Workloads | Kubernetes",
@@ -1154,7 +1128,30 @@
         "## What's next",
         "## Feedback"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
+    },
+    "https://kubernetes.io/docs/home/": {
+      "title": "Kubernetes Documentation | Kubernetes",
+      "source_ids": [
+        "resource"
+      ],
+      "cited_by": [
+        "foundation/kubernetes.md"
+      ],
+      "sha256": "sha256:be717003587648b2586ceba5cd5bd0de5d862e132f79ba2b12d2de0c5fcba7ad",
+      "chars": 2095,
+      "outline": [
+        "## Understand Kubernetes",
+        "## Try Kubernetes",
+        "## Set up a K8s cluster",
+        "## Learn how to use Kubernetes",
+        "## Look up reference information",
+        "## Contribute to Kubernetes",
+        "## Training",
+        "## Download Kubernetes",
+        "## About the documentation"
+      ],
+      "changed_at": null
     },
     "https://kubernetes.io/docs/setup/production-environment/": {
       "title": "Production environment | Kubernetes",
@@ -1179,7 +1176,7 @@
         "## What's next",
         "## Feedback"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/": {
       "title": "Declarative Management of Kubernetes Objects Using Kustomize | Kubernetes",
@@ -1228,7 +1225,7 @@
         "## What's next",
         "## Feedback"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://kubernetes.io/releases/version-skew-policy/": {
       "title": "Version Skew Policy | Kubernetes",
@@ -1256,26 +1253,7 @@
         "### kube-proxy",
         "## Feedback"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
-    },
-    "https://kyverno.io/docs/": {
-      "title": "Introduction | Kyverno",
-      "source_ids": [
-        "resource"
-      ],
-      "cited_by": [
-        "security/kyverno.md"
-      ],
-      "sha256": "sha256:d5fce385bb794e28d576214469cd577ac6d306b9f1807f92eb3e43b46db940dd",
-      "chars": 2131,
-      "outline": [
-        "# Introduction",
-        "## What is Policy Management?",
-        "## Why is Policy Management necessary?",
-        "## About Kyverno"
-      ],
-      "moved_to": "https://kyverno.io/docs/introduction/",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://kyverno.io/docs/guides/reports/": {
       "title": "Policy Reports | Kyverno",
@@ -1303,7 +1281,25 @@
         "## ValidatingAdmissionPolicy Reports",
         "### Example: Trigger a PolicyReport"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
+    },
+    "https://kyverno.io/docs/introduction/": {
+      "title": "Introduction | Kyverno",
+      "source_ids": [
+        "resource"
+      ],
+      "cited_by": [
+        "security/kyverno.md"
+      ],
+      "sha256": "sha256:d5fce385bb794e28d576214469cd577ac6d306b9f1807f92eb3e43b46db940dd",
+      "chars": 2131,
+      "outline": [
+        "# Introduction",
+        "## What is Policy Management?",
+        "## Why is Policy Management necessary?",
+        "## About Kyverno"
+      ],
+      "changed_at": null
     },
     "https://kyverno.io/docs/policy-types/cluster-policy/validate/": {
       "title": "Validate Rules | Kyverno",
@@ -1344,7 +1340,7 @@
         "## ValidatingAdmissionPolicies",
         "## Kyverno JSON Assertion"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://kyverno.io/docs/policy-types/overview/": {
       "title": "Overview | Kyverno",
@@ -1363,7 +1359,7 @@
         "## Deprecated API Versions",
         "## Deprecation Schedule for Legacy Types"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://prometheus.io/docs/practices/alerting/": {
       "title": "Alerting | Prometheus",
@@ -1385,7 +1381,7 @@
         "### Capacity",
         "### Metamonitoring"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://prometheus.io/docs/practices/naming/": {
       "title": "Metric and label naming | Prometheus",
@@ -1404,7 +1400,7 @@
         "## Labels",
         "## Base Units"
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     },
     "https://prometheus.io/docs/practices/rules/": {
       "title": "Recording rules | Prometheus",
@@ -1426,7 +1422,7 @@
         "# so we use 'job' as the level.",
         "# Aggregate up numerator and denominator, then divide."
       ],
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null
     }
   },
   "releases": {
@@ -1439,7 +1435,8 @@
         "operations/observability.md"
       ],
       "drift": "",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": null
     },
     "Alloy": {
       "latest": "1.20.0",
@@ -1450,7 +1447,8 @@
         "operations/observability.md"
       ],
       "drift": "",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": null
     },
     "Argo CD": {
       "latest": "3.5.3",
@@ -1461,7 +1459,8 @@
         "delivery/argocd.md"
       ],
       "drift": "",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": null
     },
     "Argo CD Image Updater": {
       "latest": "1.3.0",
@@ -1472,7 +1471,8 @@
         "delivery/argocd.md"
       ],
       "drift": "",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": null
     },
     "Beyla": {
       "latest": "3.36.0",
@@ -1483,7 +1483,8 @@
         "operations/observability.md"
       ],
       "drift": "",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": null
     },
     "Cosign": {
       "latest": "3.1.3",
@@ -1495,7 +1496,8 @@
         "delivery/docker-cosign.md"
       ],
       "drift": "major",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": "2026-08-06"
     },
     "Docker Engine": {
       "latest": "29.8.1",
@@ -1508,7 +1510,8 @@
         "delivery/docker-cosign.md"
       ],
       "drift": "major",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": "2026-09-15"
     },
     "External Secrets Operator": {
       "latest": "2.11.0",
@@ -1519,7 +1522,8 @@
         "secrets/external-secrets.md"
       ],
       "drift": "",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": null
     },
     "GitLab Runner": {
       "latest": "19.4.1",
@@ -1530,7 +1534,8 @@
         "delivery/gitlab-cicd.md"
       ],
       "drift": "",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": null
     },
     "Grafana": {
       "latest": "13.2.2",
@@ -1541,7 +1546,8 @@
         "operations/observability.md"
       ],
       "drift": "",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": null
     },
     "Helm": {
       "latest": "4.3.0",
@@ -1552,7 +1558,8 @@
         "foundation/helm.md"
       ],
       "drift": "",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": null
     },
     "Kubernetes": {
       "latest": "1.37.1",
@@ -1565,7 +1572,8 @@
         "foundation/kubernetes.md"
       ],
       "drift": "minor",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": "2026-09-23"
     },
     "Kustomize": {
       "latest": "5.8.1",
@@ -1576,7 +1584,8 @@
         "foundation/kustomize.md"
       ],
       "drift": "",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": null
     },
     "Kyverno": {
       "latest": "1.19.1",
@@ -1587,7 +1596,8 @@
         "security/kyverno.md"
       ],
       "drift": "minor",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": "2026-09-10"
     },
     "Loki": {
       "latest": "3.7.8",
@@ -1598,7 +1608,8 @@
         "operations/observability.md"
       ],
       "drift": "",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": null
     },
     "OpenCost": {
       "latest": "1.121.3",
@@ -1609,7 +1620,8 @@
         "operations/observability.md"
       ],
       "drift": "",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": null
     },
     "Prometheus": {
       "latest": "3.15.0",
@@ -1620,7 +1632,8 @@
         "operations/observability.md"
       ],
       "drift": "",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": null
     },
     "Pyrra": {
       "latest": "0.10.2",
@@ -1631,7 +1644,8 @@
         "operations/observability.md"
       ],
       "drift": "",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": null
     },
     "Tempo": {
       "latest": "3.0.3",
@@ -1642,7 +1656,8 @@
         "operations/observability.md"
       ],
       "drift": "",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": null
     },
     "Terraform": {
       "latest": "1.16.4",
@@ -1654,7 +1669,8 @@
         "foundation/terraform.md"
       ],
       "drift": "minor",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": "2026-09-23"
     },
     "Vault": {
       "latest": "2.1.1",
@@ -1665,7 +1681,8 @@
         "secrets/vault.md"
       ],
       "drift": "",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": null
     },
     "provider: aws": {
       "latest": "6.66.0",
@@ -1676,7 +1693,8 @@
         "architecture/technology-stack.md"
       ],
       "drift": "major",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": "2026-09-21"
     },
     "provider: azuread": {
       "latest": "3.10.0",
@@ -1687,7 +1705,8 @@
         "architecture/technology-stack.md"
       ],
       "drift": "minor",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": "2026-09-24"
     },
     "provider: azurerm": {
       "latest": "5.7.0",
@@ -1698,7 +1717,8 @@
         "architecture/technology-stack.md"
       ],
       "drift": "major",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": "2026-09-24"
     },
     "provider: google": {
       "latest": "8.4.0",
@@ -1709,7 +1729,8 @@
         "architecture/technology-stack.md"
       ],
       "drift": "major",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": "2026-09-22"
     },
     "provider: helm": {
       "latest": "3.3.0",
@@ -1720,7 +1741,8 @@
         "architecture/technology-stack.md"
       ],
       "drift": "major",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": "2026-09-02"
     },
     "provider: kubectl": {
       "latest": "1.19.0",
@@ -1731,7 +1753,8 @@
         "architecture/technology-stack.md"
       ],
       "drift": "minor",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": "2025-01-10"
     },
     "provider: kubernetes": {
       "latest": "3.2.1",
@@ -1742,7 +1765,8 @@
         "architecture/technology-stack.md"
       ],
       "drift": "major",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": "2026-07-01"
     },
     "provider: vault": {
       "latest": "5.12.0",
@@ -1753,7 +1777,33 @@
         "architecture/technology-stack.md"
       ],
       "drift": "major",
-      "changed_at": "2026-09-28T06:00:00Z"
+      "changed_at": null,
+      "drift_changed_at": "2026-09-17"
     }
+  },
+  "pending": {
+    "architecture/technology-stack.md": [
+      "release Docker Engine 29.8.1: major behind stated 27 since 2026-09-15",
+      "release Kubernetes 1.37.1: minor behind stated 1.35 since 2026-09-23",
+      "release Terraform 1.16.4: minor behind stated 1.14.8 since 2026-09-23",
+      "release provider: aws 6.66.0: major behind stated 5.94.1 since 2026-09-21",
+      "release provider: azuread 3.10.0: minor behind stated 3.9.0 since 2026-09-24",
+      "release provider: azurerm 5.7.0: major behind stated 4.78.0 since 2026-09-24",
+      "release provider: google 8.4.0: major behind stated 6.44.0 since 2026-09-22",
+      "release provider: helm 3.3.0: major behind stated 2.17.0 since 2026-09-02",
+      "release provider: vault 5.12.0: major behind stated 4.8.0 since 2026-09-17"
+    ],
+    "delivery/docker-cosign.md": [
+      "release Docker Engine 29.8.1: major behind stated 27 since 2026-09-15"
+    ],
+    "foundation/kubernetes.md": [
+      "release Kubernetes 1.37.1: minor behind stated 1.35 since 2026-09-23"
+    ],
+    "foundation/terraform.md": [
+      "release Terraform 1.16.4: minor behind stated 1.14.8 since 2026-09-23"
+    ],
+    "security/kyverno.md": [
+      "release Kyverno 1.19.1: minor behind stated 1.18 since 2026-09-10"
+    ]
   }
 }

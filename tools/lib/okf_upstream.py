@@ -18,7 +18,13 @@ the bundle names a version for, and reports the difference against the last reco
 
 Page text is held locally but never committed: it is third-party documentation under a mix of
 licences, and this repository is public. The committed state is enough to say *what* changed; the
-text is what a reviser (tools/refresh-okf-k8s-tf.py, the weekly workflow) reads to say *how*.
+text is what the reviser — `/architect:revise-knowledge`, a Claude skill run on demand — reads to
+say *how*.
+
+Everything here is deterministic and needs no model: collecting, diffing, the list of documents
+awaiting re-verification, and the one bundle edit that takes no judgement (a cited page that
+redirected gets its `resource` rewritten to the final URL, `apply_redirects`). That is what the
+weekly workflow runs. Revising a document's prose is judgement, and belongs to the skill.
 
 Network access goes through the `Fetcher` protocol so the suite can run offline.
 """
@@ -417,6 +423,10 @@ def merge(prev, pages, releases, errors, now, cited=None):
     bundle no longer cites (`cited` given) are dropped.
     """
     failed = {e["target"] for e in errors}
+    # On the first recorded state nothing is known about when a page last changed, so `changed_at`
+    # stays null rather than claiming "today" — which would put every document up for
+    # re-verification on a change nobody observed.
+    first = now if (prev.get("pages") or prev.get("releases")) else None
     out = {"schema_version": SCHEMA_VERSION, "checked_at": now, "pages": {}, "releases": {}}
     for url in sorted(set(pages) | ({u for u in prev.get("pages", {}) if u in failed})):
         if cited is not None and url not in cited:
@@ -427,7 +437,7 @@ def merge(prev, pages, releases, errors, now, cited=None):
             out["pages"][url] = old
             continue
         same = old and old.get("sha256") == new["sha256"]
-        new["changed_at"] = old.get("changed_at", now) if same else now
+        new["changed_at"] = old.get("changed_at") if same else (now if old else first)
         out["pages"][url] = new
     for name in sorted(set(releases) | ({n for n in prev.get("releases", {}) if n in failed})):
         old = prev.get("releases", {}).get(name)
@@ -436,7 +446,14 @@ def merge(prev, pages, releases, errors, now, cited=None):
             out["releases"][name] = old
             continue
         same = old and old.get("latest") == new["latest"]
-        new["changed_at"] = old.get("changed_at", now) if same else now
+        new["changed_at"] = old.get("changed_at") if same else (now if old else first)
+        # When the gap to the stated version last changed level ("" / patch / minor / major). A new
+        # patch on an already-major gap is not news for the document; crossing into a new major is.
+        # On a first observation the gap's start is unknown: the latest release date stands in.
+        if old and old.get("drift", "") == new["drift"]:
+            new["drift_changed_at"] = old.get("drift_changed_at")
+        else:
+            new["drift_changed_at"] = (now if old else new.get("released")) if new["drift"] else None
         out["releases"][name] = new
     return out
 
@@ -475,7 +492,93 @@ def affected_documents(state, delta):
     return dict(sorted(docs.items()))
 
 
-def render_report(state, delta, errors, private, stale):
+def _date(value):
+    m = re.search(r"\d{4}-\d{2}-\d{2}", str(value or ""))
+    return m.group(0) if m else ""
+
+
+def pending_documents(bundle, state, today):
+    """Documents awaiting re-verification, as {relative path: [reason, ...]}.
+
+    Cumulative, not per run: a document stays listed until its `verified.at` passes the change
+    that listed it — which is what `/architect:revise-knowledge` moves when it re-verifies one. So
+    a week that saw nothing new still shows last week's unfinished work. A document is listed when
+
+    * a page it cites changed after it was verified (baseline pages, `changed_at: null`, never
+      count — nobody observed them change);
+    * the gap between a version it states and the latest release changed level (patch / minor /
+      major) after it was verified — a further patch on the same gap is not news (a feed without
+      `bundle_states` is context, not a claim the document makes);
+    * its `stale_after` has passed.
+    """
+    docs = bundle_documents(bundle)
+    out = {}
+    for rel, fm in docs.items():
+        verified = _date((fm.get("verified") or {}).get("at") if isinstance(fm.get("verified"), dict) else "")
+        why = []
+        for url, page in state.get("pages", {}).items():
+            changed = _date((page or {}).get("changed_at"))
+            if changed and rel in page.get("cited_by", []) and changed > verified:
+                why.append("page changed %s: %s" % (changed, url))
+        for name, rel_ in state.get("releases", {}).items():
+            r = rel_ or {}
+            since = _date(r.get("drift_changed_at"))
+            if rel in r.get("cited_by", []) and r.get("drift") and since > verified:
+                why.append("release %s %s: %s behind stated %s since %s"
+                           % (name, r["latest"], r["drift"], r["bundle_states"], since))
+        stale = _date(fm.get("stale_after"))
+        if stale and stale < today:
+            why.append("past stale_after %s" % stale)
+        if why:
+            out[rel] = sorted(why)
+    return out
+
+
+def apply_redirects(bundle, state):
+    """Rewrite each redirected source's `resource` to its final URL, in the bundle frontmatter.
+
+    The one bundle edit that needs no judgement: the site itself says where the page lives now, and
+    the source keeps its `id`, so every `[id]` citation in the body still resolves. Only the
+    frontmatter is touched, and only an exact quoted match. The state entry is re-keyed to the new
+    URL so the next run sees no change. Returns [(document, old url, new url), ...].
+    """
+    applied = []
+    for url in [u for u, p in state.get("pages", {}).items() if (p or {}).get("moved_to")]:
+        entry = state["pages"].pop(url)
+        new = entry.pop("moved_to")
+        for rel in entry.get("cited_by", []):
+            path = os.path.join(bundle, *rel.split("/"))
+            with open(path, encoding="utf-8") as fh:
+                body = fh.read()
+            _, front, rest = body.split("---", 2)
+            quoted = '"%s"' % url
+            if quoted not in front:
+                continue
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write("---" + front.replace(quoted, '"%s"' % new) + "---" + rest)
+            applied.append((rel, url, new))
+        other = state["pages"].get(new)
+        if other:
+            other["cited_by"] = sorted(set(other.get("cited_by", [])) | set(entry.get("cited_by", [])))
+            other["source_ids"] = sorted(set(other.get("source_ids", [])) | set(entry.get("source_ids", [])))
+        else:
+            state["pages"][new] = entry
+    state["pages"] = dict(sorted(state["pages"].items()))
+    return applied
+
+
+def log_redirects(bundle, applied, today):
+    """Append the redirect rewrites to the bundle's own log.md, in its language."""
+    if not applied:
+        return
+    lines = ["", "## %s（自動）" % today, "",
+             "- 出典ページのリダイレクトに合わせて `resource` を移転先 URL に更新（本文・出典 ID は変更なし）。"]
+    lines += ["  - `%s`: %s → %s" % a for a in applied]
+    with open(os.path.join(bundle, "log.md"), "a", encoding="utf-8") as fh:
+        fh.write("\n".join(lines) + "\n")
+
+
+def render_report(state, delta, errors, private, applied=()):
     """REPORT.md — the run's findings, written for the reviewer of the weekly pull request."""
     L = ["---", 'title: "okf-k8s-tf upstream report"', "schema_version: 1",
          'generated_at: "%s"' % state["checked_at"], "generator: tools/refresh-okf-k8s-tf.py", "---", "",
@@ -483,25 +586,34 @@ def render_report(state, delta, errors, private, stale):
          "What moved in the public sources of `knowledge/okf-k8s-tf/` since the previous recorded state.",
          "Observed-implementation statements (対象実装) are facts about a private snapshot and are",
          "**not** revised from these sources — only design guidance (設計指針), versions and freshness.", ""]
-    affected = affected_documents(state, delta)
-    L += ["## Bundle documents to re-verify", ""]
+    pending = state.get("pending") or {}
+    L += ["## Awaiting re-verification", ""]
     if delta.get("baseline"):
-        L += ["Baseline run — the first recorded state. Later runs report against it.", ""]
-    if affected:
-        L += ["| Document | Because of |", "|---|---|"]
-        L += ["| `%s` | %s |" % (rel, "<br>".join(sorted(set(why)))) for rel, why in affected.items()]
+        L += ["Baseline run — the first recorded state. Page changes are reported from the next run.", ""]
+    if pending:
+        L += ["Cumulative: a document leaves this list when it is re-verified",
+              "(`/architect:revise-knowledge`, which moves its `verified.at`).", "",
+              "| Document | Why |", "|---|---|"]
+        L += ["| `%s` | %s |" % (rel, "<br>".join(why)) for rel, why in pending.items()]
     else:
-        L.append("None — no cited page or tracked release moved.")
+        L.append("None.")
+    if applied:
+        L += ["", "## Redirects applied", "",
+              "Rewritten in the documents' frontmatter `resource` (the source `id` is unchanged):", ""]
+        L += ["- `%s`: %s → %s" % a for a in applied]
     L += ["", "## Pages", "",
           "Checked %d public pages." % len(state["pages"]), ""]
     for key, label in (("changed", "Content changed"), ("moved", "Redirected to a new URL"),
                        ("added", "Newly cited"), ("removed", "No longer cited")):
-        if delta[key]:
+        # A redirect that was applied is listed once, under "Redirects applied"; its state entry
+        # now lives under the new URL. Only redirects left unapplied are listed here.
+        urls = [u for u in delta[key] if u in state["pages"]]
+        if urls:
             L.append("### %s" % label)
             L.append("")
-            for u in delta[key]:
+            for u in urls:
                 e = state["pages"].get(u) or {}
-                extra = " → %s" % e["moved_to"] if key == "moved" else ""
+                extra = " → %s" % e.get("moved_to", "") if key == "moved" else ""
                 cited = ", ".join("`%s`" % c for c in e.get("cited_by", []))
                 L.append("- %s%s%s" % (u, extra, (" — cited by " + cited) if cited else ""))
             L.append("")
@@ -518,10 +630,6 @@ def render_report(state, delta, errors, private, stale):
     L += ["", "Bold = changed since the previous run. *Behind* compares the version the bundle states",
           "with the latest stable release; the stated version is an observation of the snapshot, so a",
           "gap is a question for the platform, not an error in the bundle.", ""]
-    if stale:
-        L += ["## Past `stale_after`", ""]
-        L += ["- `%s` — %s" % (rel, date) for rel, date in stale]
-        L.append("")
     if errors:
         L += ["## Could not be checked this run", "",
               "The previous state is kept for these; they are retried next run.", ""]
@@ -530,12 +638,3 @@ def render_report(state, delta, errors, private, stale):
     L += ["## Not fetched by design", ""]
     L += ["- %s — private; cited by %s" % (u, ", ".join("`%s`" % r for r in rels)) for u, rels in private.items()]
     return "\n".join(L) + "\n"
-
-
-def stale_documents(bundle, today):
-    out = []
-    for rel, fm in bundle_documents(bundle).items():
-        date = str(fm.get("stale_after") or "")
-        if date and date < today:
-            out.append((rel, date))
-    return out

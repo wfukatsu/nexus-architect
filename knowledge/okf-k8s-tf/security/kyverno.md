@@ -2,7 +2,7 @@
 type: Technology Guide
 title: Kyverno の Policy as Code 設計
 description: Kubernetes admission、image verification、policy report を安全に段階導入する知識。
-resource: "https://kyverno.io/docs/"
+resource: "https://kyverno.io/docs/introduction/"
 tags: [kyverno, kubernetes, policy, admission, cosign]
 generated: { by: codex/gpt-5, at: "2026-08-19T00:00:00+09:00" }
 verified: { by: "process:official-document-cross-check", at: "2026-08-19T00:00:00+09:00" }

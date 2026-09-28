@@ -40,12 +40,12 @@ sections:
 |------|------|
 | 今すぐ収集 | `tools/update-okf-bundle.sh update --bundle=k8s-tf`（= `/architect:update-knowledge --latest --bundle=k8s-tf`）。出典の公式ページすべてと、`knowledge/okf-k8s-tf-upstream/sources.yaml` のリリースフィードを取得します |
 | ローカルの保持先 | `knowledge/okf-k8s-tf-upstream/pages/` — 各ページから抽出した本文。git の管理対象外です（第三者のドキュメントを公開リポジトリから再配布しないため） |
-| 変化の記録 | `knowledge/okf-k8s-tf-upstream/REPORT.md`（再検証が必要な文書、リダイレクト、最新リリースとバンドル記載バージョンの差）と `state.json` |
-| 週次の更新 | `.github/workflows/refresh-okf-k8s-tf.yml` が **毎週月曜 23:00 JST** に、収集 → [`REVISE.md`](../knowledge/okf-k8s-tf-upstream/REVISE.md) に従い Claude が該当文書を改訂 → レビュー用の PR 1 件、の順に実行します |
+| 変化の記録 | `knowledge/okf-k8s-tf-upstream/REPORT.md`（再確認待ちの文書とその理由、リダイレクト、最新リリースとバンドル記載バージョンの差）と `state.json` |
+| 週次の更新（モデル不使用） | `.github/workflows/refresh-okf-k8s-tf.yml` が **毎週月曜 23:00 JST** に、収集 → リダイレクトした出典 URL の書き換え → 再確認待ちの文書の算出 → 変化があればレビュー用の PR 1 件、の順に実行します |
+| 改訂（Claude） | `/architect:revise-knowledge` を必要なときに実行します。収集したうえで、再確認待ちの各文書を最新ページと照合し、古くなった設計指針を改訂します。`--dry-run` で対象だけを確認できます |
 
 「対象実装」を調べた非公開の 2 リポジトリは取得しません。そのため、この層を公開情報から書き換えることはありません。
-改訂ステップには、リポジトリの Secret `ANTHROPIC_API_KEY` と、「Allow GitHub Actions to create and approve pull requests」の有効化が必要です。
-Secret がない場合、PR には収集結果だけが入り、改訂は人が行います。
+週次ワークフローには API キーは不要です。「Allow GitHub Actions to create and approve pull requests」（Settings → Actions → General）の有効化だけが必要です。
 
 別のコピーを参照させたい場合は、そのルートを `NEXUS_OKF_K8S_TF` に設定してください。
 

@@ -20,9 +20,8 @@
 #                                 deleted, so there is no git remote to pull. Its upstream is the
 #                                 public documentation it cites: `update` collects that
 #                                 (tools/refresh-okf-k8s-tf.py) into knowledge/okf-k8s-tf-upstream/
-#                                 and reports which documents to re-verify. It never rewrites the
-#                                 bundle — that is a reviewed change (…-upstream/REVISE.md), made
-#                                 weekly by .github/workflows/refresh-okf-k8s-tf.yml.
+#                                 and reports which documents await re-verification. It never
+#                                 rewrites the bundle — revising is /architect:revise-knowledge.
 #                                 Resolution order: rules/okf-k8s-tf-bundle.md
 #                                 See knowledge/OKF-K8S-TF-PROVENANCE.md for why.
 #
@@ -170,7 +169,7 @@ k8s_update() {
   NEXUS_OKF_K8S_TF="$dir" python3 "$ROOT/tools/refresh-okf-k8s-tf.py" || return 1
   echo "  report:  $K8S_UPSTREAM/REPORT.md"
   echo "  pages:   $K8S_UPSTREAM/pages/ (local only, git-ignored)"
-  echo "  revise:  follow $K8S_UPSTREAM/REVISE.md — or let the weekly workflow do it"
+  echo "  revise:  /architect:revise-knowledge (Claude) re-verifies the documents awaiting it"
   return 0
 }
 

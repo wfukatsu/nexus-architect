@@ -47,15 +47,21 @@ fetched — nothing public can revise that tier.
 
 | Path | Holds |
 |------|-------|
-| `knowledge/okf-k8s-tf-upstream/REPORT.md` | The last run's findings: documents to re-verify, redirected pages, the latest stable release of each technology beside the version the bundle states |
+| `knowledge/okf-k8s-tf-upstream/REPORT.md` | The last run's findings: documents awaiting re-verification and why, redirected pages, the latest stable release of each technology beside the version the bundle states |
+| `knowledge/okf-k8s-tf-upstream/state.json` | The same, machine-readable; `pending` is the list of documents awaiting re-verification |
 | `knowledge/okf-k8s-tf-upstream/pages/` | The locally held text of every cited page — read it before a WebFetch |
-| `knowledge/okf-k8s-tf-upstream/REVISE.md` | How the bundle is revised from the above |
+
+A document on the pending list is still citable, as dated evidence: say it awaits re-verification
+and why, exactly as for a passed `stale_after` (§6).
 
 **Never edit `$OKF` during a skill run.** A correction belongs in the citing skill or in a
-report's "OKF addendum candidates" section, stated as a correction. The bundle changes only
-through the refresh path — `.github/workflows/refresh-okf-k8s-tf.yml` every Monday 23:00 JST, or
-the same procedure by hand — which follows `REVISE.md`, appends to `$OKF/log.md`, and lands as a
-reviewed pull request.
+report's "OKF addendum candidates" section, stated as a correction. The bundle changes by two
+paths only, each landing as a reviewed change and each appending to `$OKF/log.md`:
+
+| Path | Runs | Changes |
+|------|------|---------|
+| `.github/workflows/refresh-okf-k8s-tf.yml` | Every Monday 23:00 JST, **no model** | Only what needs no judgement: a redirected source's `resource` rewritten to the final URL |
+| `/architect:revise-knowledge` | On demand, Claude | The prose of the pending documents: design guidance, version and lifecycle notes, open questions, `verified` / `stale_after` — never the observed tier |
 
 ## 2. Pin the target before reading anything else
 

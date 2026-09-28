@@ -98,6 +98,7 @@
         "./skills/report-token-cost",
         "./skills/report-status",
         "./skills/update-knowledge",
+        "./skills/revise-knowledge",
         "./skills/export-backlog",
         "./skills/deliver-backlog",
         "./skills/implement-backlog",

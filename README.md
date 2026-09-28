@@ -1,6 +1,6 @@
 # Nexus Architect
 
-System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as four plugins with 115 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
+System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as four plugins with 116 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
 
 - **product** (28 skills) — Product direction: validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
 - **architect** (69 skills) — Legacy refactoring, greenfield design, database investigation and migration, consulting deliverables
@@ -148,13 +148,13 @@ Claude Code continues to use the plugin metadata and slash commands unchanged. S
 
 ## Commands
 
-**115 slash commands across four plugins.** The full catalogue — every command with its model, its
+**116 slash commands across four plugins.** The full catalogue — every command with its model, its
 prerequisites and its complete flag signature — lives in one place:
 
 > **[docs/skill-reference.md](docs/skill-reference.md)** · [日本語](docs/skill-reference_ja.md)
 
 It is the single source of truth; this table is the map of which group does what, and the counts
-partition all 115.
+partition all 116.
 
 | Group | Start here | What it does | n |
 |-------|-----------|--------------|---|
@@ -166,7 +166,7 @@ partition all 115.
 | **Database Migration** | `/architect:migrate-database` | Oracle / MySQL / PostgreSQL → ScalarDB: schema extraction, analysis, SP/trigger conversion — see [Database Migration Guide](docs/database-migration.md) | 4 |
 | **ScalarDB Development** `/scalardb:*` | `/scalardb:build-app` | Schema modeling, configuration, scaffolding, CRUD/JDBC patterns, exception handling, code review, migration advice — see [ScalarDB Development Guide](docs/scalardb-development.md) | 11 |
 | **Multi-Cloud Infrastructure** `/infra:*` | `/infra:start` | Terraform / Kubernetes / Helm / Kustomize / Argo CD / GitLab CI / Cosign / Vault / ESO / Prometheus / Kyverno across AWS-Azure-GCP × local-test-staging-production, grounded in the vendored `okf-k8s-tf` bundle — see [Multi-Cloud Infrastructure Guide](docs/infrastructure.md) | 4 |
-| **Status & utility** | `/architect:report-status` | One terminal dashboard (`tools/nexus-status.sh`) whose `Tab` cycles four views — Product, Architect, Code Generation, Backlog Delivery — plus `render-mermaid` and `update-knowledge`. Recorded spend: `/architect:report-token-cost`; standalone database investigation from design documents or live catalogs | 5 |
+| **Status & utility** | `/architect:report-status` | One terminal dashboard (`tools/nexus-status.sh`) whose `Tab` cycles four views — Product, Architect, Code Generation, Backlog Delivery — plus `render-mermaid`, `update-knowledge` and `revise-knowledge`. Recorded spend: `/architect:report-token-cost`; standalone database investigation from design documents or live catalogs | 6 |
 
 ## Workflows
 
@@ -421,12 +421,13 @@ tools/update-okf-bundle.sh status --bundle=k8s-tf   # resolved path, OKF version
 tools/update-okf-bundle.sh update --bundle=k8s-tf   # collect the public upstream now
 ```
 
-`.github/workflows/refresh-okf-k8s-tf.yml` does this **every Monday at 23:00 JST**. When a cited
-page or release moved, Claude re-verifies the affected documents against the fresh pages
-(following [`knowledge/okf-k8s-tf-upstream/REVISE.md`](knowledge/okf-k8s-tf-upstream/REVISE.md))
-and the result arrives as one pull request to review — the observed tier is never rewritten from
-public sources. The revision step needs an `ANTHROPIC_API_KEY` repository secret; without it the
-pull request carries the collected state alone.
+`.github/workflows/refresh-okf-k8s-tf.yml` does this **every Monday at 23:00 JST**, with no model
+involved: it collects, rewrites the `resource` of any cited page that redirected, lists the
+documents awaiting re-verification (a cited page changed, a stated version fell further behind,
+`stale_after` passed), and opens one pull request when anything moved. Revising those documents'
+prose is judgement, so it is a skill run on demand — `/architect:revise-knowledge`, which collects
+first, re-verifies each pending document against the fresh pages, and never rewrites the observed
+tier from public sources.
 
 Skills follow [`rules/okf-k8s-tf-bundle.md`](rules/okf-k8s-tf-bundle.md): fix the environment and
 cloud before reading anything; keep the bundle's three tiers apart in the output — observed

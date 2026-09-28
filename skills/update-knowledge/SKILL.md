@@ -28,10 +28,10 @@ decisions in version-pinned documentation rather than model memory.
 That difference is the one thing to get right when reporting: `--latest` on `k8s-tf` does **not**
 rewrite the bundle. It collects the public upstream — the text of every cited official page, held
 locally in the git-ignored `knowledge/okf-k8s-tf-upstream/pages/`, and the latest release of every
-technology — and writes what moved to `knowledge/okf-k8s-tf-upstream/REPORT.md`. Revising the
-documents from that is a reviewed change (`knowledge/okf-k8s-tf-upstream/REVISE.md`), made weekly
-by `.github/workflows/refresh-okf-k8s-tf.yml`. The user should learn from the output which
-documents now need re-verifying, rather than assume the bundle was refreshed. See
+technology — and writes what moved, and which documents await re-verification, to
+`knowledge/okf-k8s-tf-upstream/REPORT.md`. Revising the documents is `/architect:revise-knowledge`.
+The user should learn from the output which documents now await re-verification, rather than
+assume the bundle was refreshed. See
 `knowledge/OKF-K8S-TF-PROVENANCE.md`.
 
 ## Execution
@@ -52,7 +52,7 @@ After running, report to the user:
 3. For `k8s-tf`: the earliest `stale_after` from `status` — a document past that date is
    re-verified against official documentation before being quoted as current. After `--latest`,
    also the "Bundle documents to re-verify" table and any release the bundle is behind on, from
-   `knowledge/okf-k8s-tf-upstream/REPORT.md`
+   `knowledge/okf-k8s-tf-upstream/REPORT.md`, and that `/architect:revise-knowledge` revises them
 4. When `--latest` moved the submodule pointer: remind that the change is a modification in the
    parent repository — commit it to pin the new bundle state, or leave it uncommitted to discard
 
@@ -62,13 +62,10 @@ After running, report to the user:
   ScalarDB/ScalarDL skills will fall back to online docs labeled as not version-pinned
 - Never edit files under `knowledge/okf-scalardb-scalardl/` — the bundle is generated upstream;
   changes belong in the OKF-ScalarDB-ScalarDL repository
-- Never edit files under `knowledge/okf-k8s-tf/` from this skill — it only collects; revision
-  follows `knowledge/okf-k8s-tf-upstream/REVISE.md` and lands as a reviewed pull request
+- Never edit files under `knowledge/okf-k8s-tf/` from this skill — it only collects; revision is
+  `/architect:revise-knowledge`
 - `--latest --bundle=k8s-tf` exit 1: over half the cited pages were unreachable — report a network
   problem, not a documentation change; nothing was recorded
-- Never edit files under `knowledge/okf-k8s-tf/` either. It is vendored *because* its upstream is
-  gone; editing it silently turns a citable source into local prose. A correction belongs in the
-  citing skill or rule, stated as a correction
 
 ## Related Skills
 
