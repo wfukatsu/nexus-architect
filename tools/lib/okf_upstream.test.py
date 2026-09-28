@@ -236,6 +236,21 @@ try:
     p2, r2, e2 = U.collect(b, feed, FakeFetcher(api=reg), T2)
     s2 = U.merge(s1, p2, r2, e2, T2)
     check("an unchanged week differs only in checked_at", U.content_equal(s1, s2) and s1["checked_at"] != s2["checked_at"])
+    ctx = json.loads(json.dumps(s2))
+    ctx["releases"]["Ctx"] = {"latest": "1.0.0", "released": "2026-09-01", "bundle_states": "", "drift": "",
+                              "cited_by": [], "changed_at": None, "drift_changed_at": None}
+    ctx2 = json.loads(json.dumps(ctx))
+    ctx2["releases"]["Ctx"].update(latest="1.0.1", released="2026-09-10", changed_at=T3)
+    check("a new release of a feed stating no version is not a change — it would open a pull request every week",
+          U.content_equal(ctx, ctx2))
+    check("a feed added or removed is", not U.content_equal(s2, ctx))
+    stated = json.loads(json.dumps(s2))
+    stated["releases"]["Tool"]["latest"] = "1.0.1"
+    check("a new release of a feed stating a version is", not U.content_equal(s2, stated))
+    failing = json.loads(json.dumps(s2))
+    failing["pages"]["https://a.example/doc"]["failing_since"] = T3
+    check("a page starting to fail is — its first failure date must be recorded to count the week",
+          not U.content_equal(s2, failing))
 
     moved = FakeFetcher(pages={"https://a.example/doc": page("<p>edited</p>"),
                                "https://b.example/doc": (page("<p>default</p>"), "https://b.example/doc/v2/")},

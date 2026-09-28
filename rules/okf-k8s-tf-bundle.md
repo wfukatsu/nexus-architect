@@ -52,7 +52,9 @@ fetched — nothing public can revise that tier.
 | `knowledge/okf-k8s-tf-upstream/pages/` | The locally held text of every cited page — read it before a WebFetch |
 
 A document on the pending list is still citable, as dated evidence: say it awaits re-verification
-and why, exactly as for a passed `stale_after` (§6).
+and why, exactly as for a passed `stale_after` (§6). `status` prints both lists — past
+`stale_after` and awaiting re-verification — as the freshness list `/infra:start` passes to the
+mode skills.
 
 **Never edit `$OKF` during a skill run.** A correction belongs in the citing skill or in a
 report's "OKF addendum candidates" section, stated as a correction. The bundle changes by two

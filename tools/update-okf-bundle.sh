@@ -40,7 +40,7 @@ CACHE_DIR="${OKF_CACHE_DIR:-$HOME/.cache/nexus-architect/okf-scalardb-scalardl}"
 K8S_OVERRIDE="${NEXUS_OKF_K8S_TF:-${INFRA_DESIGN_OKF:-}}"
 K8S_VENDORED="$PLUGIN_ROOT/knowledge/okf-k8s-tf"
 K8S_CACHE="${OKF_K8S_CACHE_DIR:-$HOME/.cache/nexus-architect/okf-k8s-tf}"
-K8S_UPSTREAM="$ROOT/knowledge/okf-k8s-tf-upstream"
+K8S_UPSTREAM="${NEXUS_OKF_K8S_TF_UPSTREAM:-$ROOT/knowledge/okf-k8s-tf-upstream}"
 
 BUNDLE="scalardb"
 MODE=""
@@ -188,6 +188,36 @@ k8s_status() {
   else
     echo "upstream:      never checked (run: tools/update-okf-bundle.sh update --bundle=k8s-tf)"
   fi
+  # The freshness list: what a skill citing the bundle must caveat. Past stale_after is computed
+  # for today; awaiting re-verification is the list the last refresh recorded, with its date.
+  python3 - "$dir" "$K8S_UPSTREAM/state.json" <<'PY'
+import datetime, json, os, re, sys
+bundle, state_path = sys.argv[1], sys.argv[2]
+today = datetime.date.today().isoformat()
+stale = []
+for base, _, files in os.walk(bundle):
+    for f in sorted(files):
+        if not f.endswith(".md"):
+            continue
+        path = os.path.join(base, f)
+        with open(path, encoding="utf-8") as fh:
+            head = fh.read().split("---", 2)
+        hit = re.search(r"^stale_after:\s*[\"']?(\d{4}-\d{2}-\d{2})", head[1], re.M) if len(head) > 2 else None
+        if hit and hit.group(1) < today:
+            stale.append((os.path.relpath(path, bundle).replace(os.sep, "/"), hit.group(1)))
+print("past stale_after: %s" % (len(stale) or "none"))
+for rel, date in sorted(stale):
+    print("  %s (stale_after %s)" % (rel, date))
+if os.path.isfile(state_path):
+    with open(state_path, encoding="utf-8") as fh:
+        state = json.load(fh)
+    pending = state.get("pending") or {}
+    as_of = state.get("pending_as_of") or str(state.get("checked_at", "?"))[:10]
+    print("awaiting re-verification: %s (as of %s; /architect:revise-knowledge re-verifies)"
+          % (len(pending) or "none", as_of))
+    for rel, why in sorted(pending.items()):
+        print("  %s: %s" % (rel, "; ".join(why)))
+PY
   echo "sections:"
   local idx
   for idx in "$dir"/*/index.md; do

@@ -37,8 +37,14 @@ that were actually run and their results.
 | The agreed design document | **Required** | /infra:design, or the user |
 | The target repository | **Required** | Read its real structure before writing |
 
-When invoked from `/infra:start`, environment, cloud, target path and `$OKF` arrive already
-settled. **Do not re-ask them.**
+When invoked from `/infra:start`, environment, cloud, target path, `$OKF` and the freshness list
+arrive already settled. **Do not re-ask them.**
+
+The freshness list names the bundle documents past `stale_after` or awaiting re-verification
+(from `tools/update-okf-bundle.sh status --bundle=k8s-tf` when invoked directly). A version, API
+version, flag or chart value taken from a listed document is resolved from its registry or
+official page rather than copied (@rules/dependency-versions.md), and the implementation notes
+say the document awaits re-verification and why.
 
 ## Step 0 — Fix the environment before writing anything
 

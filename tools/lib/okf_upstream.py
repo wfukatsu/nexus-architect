@@ -520,10 +520,23 @@ def diff(prev, new):
 
 
 def content_equal(a, b):
-    # checked_at and pending_as_of are dates of the run, not findings: a run that found nothing
-    # new is not a change, so a quiet week writes nothing.
-    strip = lambda s: {k: v for k, v in s.items() if k not in ("checked_at", "pending_as_of")}
-    return strip(a) == strip(b)
+    """Whether two states hold the same findings — what decides a write, and a pull request.
+
+    Left out: the run's dates (checked_at, pending_as_of), and the values of the feeds that state
+    no version. Those are context for the report's release table; no document is listed because
+    of them, and with a dozen projects releasing weekly they would open a pull request nearly
+    every Monday. Their latest values ride along with the next change that matters. The set of
+    feeds still counts, so a feed added to sources.yaml is recorded on the next run.
+    Everything else counts, including a page starting to fail: `failing_since` must reach the
+    committed state, or a page failing every week would look newly failing each time.
+    """
+    def significant(s):
+        out = {k: v for k, v in s.items() if k not in ("checked_at", "pending_as_of", "releases")}
+        rel = s.get("releases") or {}
+        out["releases"] = {n: r for n, r in rel.items() if (r or {}).get("bundle_states")}
+        out["context_feeds"] = sorted(n for n, r in rel.items() if not (r or {}).get("bundle_states"))
+        return out
+    return significant(a) == significant(b)
 
 
 def affected_documents(state, delta):
@@ -729,7 +742,9 @@ def render_report(state, delta, errors, private, applied=()):
             name, r.get("bundle_states") or "—", eol, mark, r.get("released", ""), r.get("drift") or "—", r["source"]))
     L += ["", "Bold = changed since the previous run. *Behind* compares the version the bundle states",
           "with the latest stable release; the stated version is an observation of the snapshot, so a",
-          "gap is a question for the platform, not an error in the bundle.", ""]
+          "gap is a question for the platform, not an error in the bundle. Rows with no stated version",
+          "are context: a new release there alone is not recorded, so they are as fresh as the last run",
+          "that recorded something else.", ""]
     if errors:
         L += ["## Could not be checked this run", "",
               "The previous state is kept for these; they are retried next run.", ""]
