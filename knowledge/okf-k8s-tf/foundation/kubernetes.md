@@ -2,7 +2,7 @@
 type: Technology Guide
 title: Kubernetes の設計・構築・運用
 description: managed Kubernetes 上で安全で可用性のあるワークロードと共通基盤を設計する知識。
-resource: "https://kubernetes.io/docs/"
+resource: "https://kubernetes.io/docs/home/"
 tags: [kubernetes, workloads, networking, security, operations]
 generated: { by: codex/gpt-5, at: "2026-08-19T00:00:00+09:00" }
 verified: { by: "process:official-document-cross-check", at: "2026-08-19T00:00:00+09:00" }

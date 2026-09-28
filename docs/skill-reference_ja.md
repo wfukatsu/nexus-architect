@@ -146,7 +146,8 @@
 | コマンド | モデル | 説明 |
 |---------|-------|------|
 | `/architect:init-output` | haiku | 出力ディレクトリの初期化 |
-| `/architect:update-knowledge` | haiku | OKF ナレッジバンドルの取得・更新（`tools/update-okf-bundle.sh` をラップ。フラグなし=存在保証、`--latest`=最新を取得、`--status`=解決パス・コミット・収録バージョンを表示、`--bundle=scalardb\|k8s-tf`=対象バンドルの選択。`scalardb` はバージョン固定の ScalarDB/ScalarDL/ScalarDB Saga バンドル、`k8s-tf` はリモートを持たない同梱の Kubernetes/Terraform 基盤バンドル） |
+| `/architect:update-knowledge` | haiku | OKF ナレッジバンドルの取得・更新（`tools/update-okf-bundle.sh` をラップ。フラグなし=存在保証、`--latest`=最新を取得、`--status`=解決パス・コミット・収録バージョンを表示、`--bundle=scalardb\|k8s-tf`=対象バンドルの選択。`scalardb` はバージョン固定の ScalarDB/ScalarDL/ScalarDB Saga バンドル、`k8s-tf` は同梱の Kubernetes/Terraform 基盤バンドルで、`--latest` は公開されている上流を `knowledge/okf-k8s-tf-upstream/` に収集し、再確認待ちの文書を列挙する） |
+| `/architect:revise-knowledge` | opus | 再確認待ちの k8s-tf バンドル文書を公開されている上流と照合し、古くなった設計指針を改訂する（モデルを使わない週次更新 `.github/workflows/refresh-okf-k8s-tf.yml` が行わない判断の工程）。`--no-collect` を付けない限り先に収集する。`--doc=<path>` で対象を絞る（複数指定可）。`--dry-run` は対象と理由の表示のみ。対象実装の層は書き換えない |
 
 ## ScalarDB開発
 
@@ -333,6 +334,7 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 /architect:report-token-cost [--once] [--follow] [--session=ID] [--since=7d] [--breakdown=tokens|cost] [--ascii] [--ambiguous-width=2] [--md] [--json] [--lang=ja|en]
 /architect:report-status [--once] [--view=product|architect|codegen|backlog] [--group=core|extension] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]
 /architect:update-knowledge [--latest] [--status] [--bundle=<name>]
+/architect:revise-knowledge [--no-collect] [--doc=<path>] [--dry-run]
 /product:report [--auto] [--lang=ja|en]
 /product:report-status [--once] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]
 

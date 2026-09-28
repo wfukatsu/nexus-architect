@@ -7,3 +7,10 @@
 - `aidd-ci-templates` の commit `44139cad79c8d8255ef81b0109e5b10f119b1612` を調査。
 - Terraform、Kubernetes、Helm、Kustomize、Argo CD、GitLab CI/CD、Docker、Cosign、Vault、External Secrets Operator、Prometheus/Grafana、Kyverno の公式資料を整理。
 
+
+## 2026-09-28（自動）
+
+- 出典ページのリダイレクトに合わせて `resource` を移転先 URL に更新（本文・出典 ID は変更なし）。
+  - `delivery/argocd.md`: https://argo-cd.readthedocs.io/ → https://argo-cd.readthedocs.io/en/stable/
+  - `foundation/kubernetes.md`: https://kubernetes.io/docs/ → https://kubernetes.io/docs/home/
+  - `security/kyverno.md`: https://kyverno.io/docs/ → https://kyverno.io/docs/introduction/

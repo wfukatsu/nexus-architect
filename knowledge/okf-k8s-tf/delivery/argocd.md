@@ -2,7 +2,7 @@
 type: Technology Guide
 title: Argo CD の GitOps 設計・運用
 description: staging 環境を app-of-apps で安全に同期するための設計知識。
-resource: "https://argo-cd.readthedocs.io/"
+resource: "https://argo-cd.readthedocs.io/en/stable/"
 tags: [argocd, gitops, kubernetes, deployment]
 generated: { by: codex/gpt-5, at: "2026-08-19T00:00:00+09:00" }
 verified: { by: "process:official-document-cross-check", at: "2026-08-19T00:00:00+09:00" }

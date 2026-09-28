@@ -15,25 +15,37 @@ architect パイプラインのフェーズではなく独立したプラグイ�
 
 ## セットアップ
 
-バンドルはリポジトリに同梱されているため、取得作業はありません。解決先を確認します。
+バンドルはリポジトリに同梱されているため、初回利用前の取得作業はありません。解決先を確認します。
 
 ```bash
 tools/update-okf-bundle.sh status --bundle=k8s-tf
 ```
 
 ```
-bundle:        k8s-tf (vendored — no remote)
+bundle:        k8s-tf (vendored; upstream = the public docs it cites)
 resolved:      .../knowledge/okf-k8s-tf
 okf_version:   0.2
 documents:     23
 stale_after:   earliest 2026-10-19 (a document past its date is re-verified, not quoted as current)
+upstream:      checked 2026-09-28T06:00:00Z (knowledge/okf-k8s-tf-upstream/REPORT.md)
 sections:
   architecture  delivery  foundation  operations  secrets  security
 ```
 
-**リモートはありません。** 取得元リポジトリが削除されたため submodule ではなく実体を同梱して
-います。`--latest` は取得を試みず、その事実を報告します。詳細は
-[`knowledge/OKF-K8S-TF-PROVENANCE.md`](../knowledge/OKF-K8S-TF-PROVENANCE.md)。
+**取得元リポジトリはありません。** 削除されたため、submodule ではなく実体を同梱しています
+（[`knowledge/OKF-K8S-TF-PROVENANCE.md`](../knowledge/OKF-K8S-TF-PROVENANCE.md)）。
+バンドルの上流は、バンドルが出典として挙げている公開ドキュメントです。これをインターネットから集めて最新に保ちます。
+
+| 項目 | 方法 |
+|------|------|
+| 今すぐ収集 | `tools/update-okf-bundle.sh update --bundle=k8s-tf`（= `/architect:update-knowledge --latest --bundle=k8s-tf`）。出典の公式ページすべてと、`knowledge/okf-k8s-tf-upstream/sources.yaml` のリリースフィードを取得します |
+| ローカルの保持先 | `knowledge/okf-k8s-tf-upstream/pages/` — 各ページから抽出した本文。git の管理対象外です（第三者のドキュメントを公開リポジトリから再配布しないため） |
+| 変化の記録 | `knowledge/okf-k8s-tf-upstream/REPORT.md`（再確認待ちの文書とその理由、リダイレクト、最新リリースとバンドル記載バージョンの差）と `state.json` |
+| 週次の更新（モデル不使用） | `.github/workflows/refresh-okf-k8s-tf.yml` が **毎週月曜 23:00 JST** に、収集 → 移転した出典 URL の書き換え（別ページへのリダイレクトは書き換えず再確認待ちにする） → 再確認待ちの文書の算出 → 変化があればレビュー用の PR 1 件、の順に実行します |
+| 改訂（Claude） | `/architect:revise-knowledge` を必要なときに実行します。収集したうえで、再確認待ちの各文書を最新ページと照合し、古くなった設計指針を改訂します。`--dry-run` で対象だけを確認できます |
+
+「対象実装」を調べた非公開の 2 リポジトリは取得しません。そのため、この層を公開情報から書き換えることはありません。
+週次ワークフローには API キーは不要です。「Allow GitHub Actions to create and approve pull requests」（Settings → Actions → General）の有効化だけが必要です。
 
 別のコピーを参照させたい場合は、そのルートを `NEXUS_OKF_K8S_TF` に設定してください。
 

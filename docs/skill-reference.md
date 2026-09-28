@@ -147,7 +147,8 @@ merges).
 | Command | Model | Description |
 |---------|-------|-------------|
 | `/architect:init-output` | haiku | Initialize output directories |
-| `/architect:update-knowledge` | haiku | Fetch or update an OKF knowledge bundle (wraps `tools/update-okf-bundle.sh`; no flag = ensure present, `--latest` = pull newest, `--status` = show resolved path/commits/versions, `--bundle=scalardb\|k8s-tf` selects which — `scalardb` is the version-pinned ScalarDB/ScalarDL/ScalarDB Saga bundle, `k8s-tf` the vendored Kubernetes/Terraform platform bundle that has no remote) |
+| `/architect:update-knowledge` | haiku | Fetch or update an OKF knowledge bundle (wraps `tools/update-okf-bundle.sh`; no flag = ensure present, `--latest` = pull newest, `--status` = show resolved path/commits/versions, `--bundle=scalardb\|k8s-tf` selects which — `scalardb` is the version-pinned ScalarDB/ScalarDL/ScalarDB Saga bundle, `k8s-tf` the vendored Kubernetes/Terraform platform bundle, whose `--latest` collects its public upstream into `knowledge/okf-k8s-tf-upstream/` and lists the documents awaiting re-verification) |
+| `/architect:revise-knowledge` | opus | Re-verify the k8s-tf bundle documents awaiting it against their public upstream and revise the design guidance that fell behind — the judgement step the model-free weekly refresh (`.github/workflows/refresh-okf-k8s-tf.yml`) leaves out. Collects first unless `--no-collect`; `--doc=<path>` limits the scope (repeatable); `--dry-run` lists the scope and reasons only. Never rewrites the observed-implementation tier |
 
 ## ScalarDB Development
 
@@ -333,6 +334,7 @@ path by their router, so they are not slash commands and have no signature here.
 /architect:report-token-cost [--once] [--follow] [--session=ID] [--since=7d] [--breakdown=tokens|cost] [--ascii] [--ambiguous-width=2] [--md] [--json] [--lang=ja|en]
 /architect:report-status [--once] [--view=product|architect|codegen|backlog] [--group=core|extension] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]
 /architect:update-knowledge [--latest] [--status] [--bundle=<name>]
+/architect:revise-knowledge [--no-collect] [--doc=<path>] [--dry-run]
 /product:report [--auto] [--lang=ja|en]
 /product:report-status [--once] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]
 

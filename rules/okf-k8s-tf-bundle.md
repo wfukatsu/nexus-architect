@@ -32,15 +32,36 @@ order and use the first hit:
 
 Call the resolved root `$OKF` and read `$OKF/index.md` first.
 
-**There is no remote.** The origin repository was deleted on 2026-08-19, which is why the bundle
-is vendored rather than a submodule (`knowledge/OKF-K8S-TF-PROVENANCE.md`). `--latest` reports
-that fact; it does not fetch. If the bundle cannot be resolved at all, **do not answer from
-memory** — say the primary source is unavailable and stop, exactly as the ScalarDB rule requires.
+**There is no origin repository to pull.** It was deleted on 2026-08-19, which is why the bundle
+is vendored rather than a submodule (`knowledge/OKF-K8S-TF-PROVENANCE.md`). If the bundle cannot
+be resolved at all, **do not answer from memory** — say the primary source is unavailable and
+stop, exactly as the ScalarDB rule requires.
 
-**Never edit `$OKF`.** A correction belongs in the citing skill or in a report's "OKF addendum
-candidates" section, stated as a correction. Editing a vendored source with no upstream turns a
-citable document into local prose that nothing can verify. If the user explicitly asks for an
-update, append to `$OKF/log.md` in the same change.
+**Its upstream is the public documentation it cites.** Every document's frontmatter `sources`
+names the official pages its design guidance rests on; those, plus the release feeds in
+`knowledge/okf-k8s-tf-upstream/sources.yaml`, are collected from the internet by
+`tools/refresh-okf-k8s-tf.py` (`--latest` runs it). The page text is held locally in the
+git-ignored `knowledge/okf-k8s-tf-upstream/pages/`; what moved is recorded in `state.json` and
+`REPORT.md` beside it. The two private repositories behind the observed tier (§4) are never
+fetched — nothing public can revise that tier.
+
+| Path | Holds |
+|------|-------|
+| `knowledge/okf-k8s-tf-upstream/REPORT.md` | The last run's findings: documents awaiting re-verification and why, redirected pages, the latest stable release of each technology beside the version the bundle states |
+| `knowledge/okf-k8s-tf-upstream/state.json` | The same, machine-readable; `pending` is the list of documents awaiting re-verification |
+| `knowledge/okf-k8s-tf-upstream/pages/` | The locally held text of every cited page — read it before a WebFetch |
+
+A document on the pending list is still citable, as dated evidence: say it awaits re-verification
+and why, exactly as for a passed `stale_after` (§6).
+
+**Never edit `$OKF` during a skill run.** A correction belongs in the citing skill or in a
+report's "OKF addendum candidates" section, stated as a correction. The bundle changes by two
+paths only, each landing as a reviewed change and each appending to `$OKF/log.md`:
+
+| Path | Runs | Changes |
+|------|------|---------|
+| `.github/workflows/refresh-okf-k8s-tf.yml` | Every Monday 23:00 JST, **no model** | Only what needs no judgement: the `resource` of a source that redirected to the same page moved, rewritten to the final URL. A redirect to a different page (a removed page sent to its section) is listed for re-verification, not applied |
+| `/architect:revise-knowledge` | On demand, Claude | The prose of the pending documents: design guidance, version and lifecycle notes, open questions, `verified` / `stale_after` — never the observed tier |
 
 ## 2. Pin the target before reading anything else
 
@@ -114,22 +135,22 @@ Detail, and the four things the bundle does say about production: @rules/infra/e
 
 ## 6. Freshness
 
-Every document carries `stale_after` in its frontmatter.
-
-| Document | `stale_after` |
-|----------|---------------|
-| `security/kyverno.md` | 2026-10-19 |
-| all others | 2026-11-19 |
+Every document carries `stale_after` (and `verified.at`) in its frontmatter; `status` prints the
+earliest. The dates move: each weekly refresh re-verifies the documents whose sources changed or
+whose date has passed, and resets their `stale_after`. Read the date from the document, never
+from memory or from this rule.
 
 When citing a document whose date has passed, **say so explicitly** — "this statement is past its
-`stale_after: YYYY-MM-DD` and needs re-checking against official documentation" — and WebFetch the
-official source when the claim matters. Kyverno's date is shorter on purpose: v1.20 plans to
-remove `kyverno.io/v1 ClusterPolicy`, so after that date the actual release state must be checked
-rather than assumed.
+`stale_after: YYYY-MM-DD` and needs re-checking against official documentation" — and check the
+locally held page (`knowledge/okf-k8s-tf-upstream/pages/`), or WebFetch the official source, when
+the claim matters. A document that warns of a coming removal carries an earlier date on purpose —
+Kyverno, because v1.20 plans to remove `kyverno.io/v1 ClusterPolicy` — so the actual release state
+is checked rather than assumed.
 
-Since the bundle has no upstream, `stale_after` will pass for the whole bundle on 2026-11-19 and
-stay passed. That is not a reason to stop citing it — it is a reason to cite it as *dated
-evidence* and to verify anything version-specific against the vendor.
+For anything version-specific, `knowledge/okf-k8s-tf-upstream/REPORT.md` gives the latest stable
+release beside the version the bundle states. A gap there is not an error in the bundle: the
+stated version is an observation of the snapshot (§4), and the gap is an open question for the
+platform.
 
 ## 7. Citation form
 

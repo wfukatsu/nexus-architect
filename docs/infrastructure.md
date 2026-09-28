@@ -16,25 +16,39 @@ It is a separate plugin, not a phase of the architect pipeline. Nothing runs it 
 
 ## Setup
 
-The bundle ships with the repository — there is nothing to fetch. Confirm it resolves:
+The bundle ships with the repository — nothing needs fetching before first use. Confirm it
+resolves:
 
 ```bash
 tools/update-okf-bundle.sh status --bundle=k8s-tf
 ```
 
 ```
-bundle:        k8s-tf (vendored — no remote)
+bundle:        k8s-tf (vendored; upstream = the public docs it cites)
 resolved:      .../knowledge/okf-k8s-tf
 okf_version:   0.2
 documents:     23
 stale_after:   earliest 2026-10-19 (a document past its date is re-verified, not quoted as current)
+upstream:      checked 2026-09-28T06:00:00Z (knowledge/okf-k8s-tf-upstream/REPORT.md)
 sections:
   architecture  delivery  foundation  operations  secrets  security
 ```
 
-**There is no remote.** The bundle's origin repository was deleted, which is why it is vendored
-rather than a submodule; `--latest` reports that rather than fetching. See
-[`knowledge/OKF-K8S-TF-PROVENANCE.md`](../knowledge/OKF-K8S-TF-PROVENANCE.md).
+**There is no origin repository to pull** — it was deleted, which is why the bundle is vendored
+rather than a submodule ([`knowledge/OKF-K8S-TF-PROVENANCE.md`](../knowledge/OKF-K8S-TF-PROVENANCE.md)).
+Its upstream is the public documentation it cites, and that is kept current from the internet:
+
+| What | How |
+|------|-----|
+| Collect now | `tools/update-okf-bundle.sh update --bundle=k8s-tf` (= `/architect:update-knowledge --latest --bundle=k8s-tf`) fetches every cited official page and every release feed in `knowledge/okf-k8s-tf-upstream/sources.yaml` |
+| Locally held copy | `knowledge/okf-k8s-tf-upstream/pages/` — the extracted text of each page. Git-ignored: third-party documentation is not republished from this public repository |
+| What moved | `knowledge/okf-k8s-tf-upstream/REPORT.md` (documents awaiting re-verification and why, redirects, latest release vs the version the bundle states) and `state.json` |
+| Weekly refresh (no model) | `.github/workflows/refresh-okf-k8s-tf.yml`, **every Monday 23:00 JST**: collect → rewrite the URLs of sources that moved (same page, new address) → list the documents awaiting re-verification → one pull request to review, when anything moved |
+| Revise (Claude) | `/architect:revise-knowledge` — on demand. Collects, then re-verifies each pending document against the fresh pages and revises the guidance that fell behind; `--dry-run` lists what it would do |
+
+The two private repositories the observed tier was read from are never fetched, so that tier is
+never revised from public sources. The weekly workflow needs "Allow GitHub Actions to create and
+approve pull requests" enabled (Settings → Actions → General); it needs no API key.
 
 To point the skills at a different copy, set `NEXUS_OKF_K8S_TF` to its root.
 

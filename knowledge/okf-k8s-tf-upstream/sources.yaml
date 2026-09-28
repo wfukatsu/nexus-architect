@@ -1,0 +1,130 @@
+# Release feeds watched for the k8s-tf OKF bundle (knowledge/okf-k8s-tf/).
+#
+# The documentation pages are NOT listed here: they are read from each bundle document's
+# frontmatter `sources`, so a page the bundle cites is watched without being registered twice.
+# This file lists what frontmatter cannot say — where each technology publishes its releases,
+# and which version the bundle states for it.
+#
+# One feed per entry, exactly one of:
+#   github: <owner>/<repo>               GitHub releases (drafts, prereleases and -rc/-beta tags skipped)
+#   gitlab: <group>/<project>            public GitLab project releases
+#   terraform-provider: <ns>/<name>      registry.terraform.io latest provider version
+#   endoflife: <product>                 endoflife.date — newest cycle, and EOL of the stated cycle
+# Optional:
+#   bundle_states  the version the bundle states (compared for drift). It must appear verbatim in
+#                  every document under cited_by — tools/lib/okf_upstream.test.py checks that.
+#   cited_by       the bundle documents that state or depend on it; they are listed for
+#                  re-verification when the feed moves
+#   tag_prefix     only tags with this prefix count (monorepos tagging several components)
+#
+# Scope: public feeds only. The private repositories the observed tier was read from are never
+# fetched (tools/lib/okf_upstream.py PRIVATE_PREFIXES).
+
+releases:
+  # ---- core stack (architecture/technology-stack.md, 中核スタック)
+  - name: Terraform
+    github: hashicorp/terraform
+    bundle_states: "1.14.8"
+    cited_by: [architecture/technology-stack.md, foundation/terraform.md]
+  - name: Kubernetes
+    endoflife: kubernetes
+    bundle_states: "1.35"
+    cited_by: [architecture/technology-stack.md, foundation/kubernetes.md]
+  - name: Helm
+    github: helm/helm
+    cited_by: [foundation/helm.md]
+  - name: Kustomize
+    github: kubernetes-sigs/kustomize
+    tag_prefix: "kustomize/"
+    cited_by: [foundation/kustomize.md]
+  - name: Argo CD
+    github: argoproj/argo-cd
+    cited_by: [delivery/argocd.md]
+  - name: Argo CD Image Updater
+    github: argoproj-labs/argocd-image-updater
+    cited_by: [delivery/argocd.md]
+  - name: GitLab Runner
+    gitlab: gitlab-org/gitlab-runner
+    cited_by: [delivery/gitlab-cicd.md]
+  - name: Docker Engine
+    endoflife: docker-engine
+    bundle_states: "27"
+    cited_by: [architecture/technology-stack.md, delivery/docker-cosign.md]
+  - name: Cosign
+    github: sigstore/cosign
+    bundle_states: "2.6.1"
+    cited_by: [architecture/technology-stack.md, delivery/docker-cosign.md]
+  - name: Vault
+    github: hashicorp/vault
+    cited_by: [secrets/vault.md]
+  - name: External Secrets Operator
+    github: external-secrets/external-secrets
+    tag_prefix: "v"   # the repository also tags helm-chart-* releases
+    cited_by: [secrets/external-secrets.md]
+  - name: Prometheus
+    github: prometheus/prometheus
+    cited_by: [operations/observability.md]
+  - name: Alertmanager
+    github: prometheus/alertmanager
+    cited_by: [operations/observability.md]
+  - name: Grafana
+    github: grafana/grafana
+    cited_by: [operations/observability.md]
+  - name: Loki
+    github: grafana/loki
+    cited_by: [operations/observability.md]
+  - name: Tempo
+    github: grafana/tempo
+    cited_by: [operations/observability.md]
+  - name: Alloy
+    github: grafana/alloy
+    cited_by: [operations/observability.md]
+  - name: Beyla
+    github: grafana/beyla
+    cited_by: [operations/observability.md]
+  - name: Pyrra
+    github: pyrra-dev/pyrra
+    cited_by: [operations/observability.md]
+  - name: OpenCost
+    github: opencost/opencost
+    cited_by: [operations/observability.md]
+  # Kyverno carries the bundle's shortest stale_after: v1.20 is planned to remove
+  # kyverno.io/v1 ClusterPolicy (security/kyverno.md, 重要な非推奨情報).
+  - name: Kyverno
+    github: kyverno/kyverno
+    bundle_states: "1.18"
+    cited_by: [security/kyverno.md]
+
+  # ---- Terraform providers (architecture/technology-stack.md, Terraform Provider)
+  - name: "provider: aws"
+    terraform-provider: hashicorp/aws
+    bundle_states: "5.94.1"
+    cited_by: [architecture/technology-stack.md]
+  - name: "provider: azurerm"
+    terraform-provider: hashicorp/azurerm
+    bundle_states: "4.78.0"
+    cited_by: [architecture/technology-stack.md]
+  - name: "provider: azuread"
+    terraform-provider: hashicorp/azuread
+    bundle_states: "3.9.0"
+    cited_by: [architecture/technology-stack.md]
+  - name: "provider: google"
+    terraform-provider: hashicorp/google
+    bundle_states: "6.44.0"
+    cited_by: [architecture/technology-stack.md]
+  - name: "provider: helm"
+    terraform-provider: hashicorp/helm
+    bundle_states: "2.17.0"
+    cited_by: [architecture/technology-stack.md]
+  - name: "provider: kubernetes"
+    terraform-provider: hashicorp/kubernetes
+    bundle_states: "2.36.0"
+    cited_by: [architecture/technology-stack.md]
+  - name: "provider: vault"
+    terraform-provider: hashicorp/vault
+    bundle_states: "4.8.0"
+    cited_by: [architecture/technology-stack.md]
+  - name: "provider: kubectl"
+    terraform-provider: gavinbunney/kubectl
+    bundle_states: "1.14.0"
+    cited_by: [architecture/technology-stack.md]

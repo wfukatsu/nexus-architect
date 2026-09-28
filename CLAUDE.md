@@ -22,7 +22,7 @@ Use `/product:start` to design product direction, `/architect:start` for interac
 
 ## Repository Mechanics
 
-This repo is not an application — it is a **Claude Code plugin marketplace** whose product is a corpus of ~120 skill instruction files (115 registered as slash commands, plus the nested migration sub-skills below). There is no compile/build step and no application to run; "developing" here means editing skills, rules, and hooks.
+This repo is not an application — it is a **Claude Code plugin marketplace** whose product is a corpus of ~120 skill instruction files (116 registered as slash commands, plus the nested migration sub-skills below). There is no compile/build step and no application to run; "developing" here means editing skills, rules, and hooks.
 
 **Packaging.** `.claude-plugin/marketplace.json` defines four plugins (`architect`, `scalardb`, `product`, `infra`), each with its own version, and lists the skill directories it ships. Skills physically live in a flat `skills/` tree (product and infra skills are nested under `skills/product/` and `skills/infra/`); a plugin "owns" a skill only by listing its path in `marketplace.json`. **Adding a skill requires two edits: create `skills/<name>/SKILL.md` AND register its path in the plugin's `skills` array in `marketplace.json`.** An unregistered SKILL.md will not surface as a slash command.
 
@@ -51,11 +51,17 @@ without editing the runner or CI. `.github/workflows/contracts.yml` runs the sam
 push and pull request: per `rules/ai-code-quality-gate.md` the CI half is the enforced one, and a
 contract that runs only when someone remembers is not enforced at all.
 
+One workflow is not a gate: `.github/workflows/refresh-okf-k8s-tf.yml` collects the vendored
+k8s-tf bundle's public upstream every Monday 23:00 JST with no model involved — sources that moved
+to a new address rewritten, documents awaiting re-verification listed — and proposes the result as a pull
+request. Revising those documents is judgement, and is `/architect:revise-knowledge`, run on demand.
+
 | Suite | Guards |
 |-------|--------|
 | `hooks/*.sh <file>` (file-path CLI mode) | The two output validators themselves: frontmatter present, Mermaid parses |
 | `tools/omnigent/load-skill.test.sh` | The omnigent loader's skill resolution |
-| `skills/infra/infra-contract.test.py` | The `/infra:*` contract: the bundle resolution order in the rule matching `update-okf-bundle.sh`, every document the topic map names existing (and every document being reachable from it), `stale_after` present and parseable on all 23, the four skills' models matching the router's Model Policy table, and each named template carrying the frontmatter block |
+| `skills/infra/infra-contract.test.py` | The `/infra:*` contract: the bundle resolution order in the rule matching `update-okf-bundle.sh` (whose k8s-tf update path collects the public upstream, never clones), every document the topic map names existing (and every document being reachable from it), `stale_after` present, parseable and later than `verified` on all 23 with no date pinned in the rule, the four skills' models matching the router's Model Policy table, and each named template carrying the frontmatter block |
+| `tools/lib/okf_upstream.test.py` | The k8s-tf bundle's upstream collector, offline: every public page the bundle cites watched and no private `gitlab.com/scalar-labs/` source ever fetched, release feeds well-formed and stating only versions their documents state, page chrome not counted as a change while an edited paragraph is, prereleases skipped, an unreachable source keeping its previous entry, a quiet week byte-identical, the baseline run not a flood of re-verifications, the committed `state.json` covering exactly the cited pages with no page text, and `pages/` git-ignored |
 | `skills/generate-docs/marker-mechanics.test.py` | The `<!-- nexus:begin:<section> -->` ownership-marker contract that skill states in prose (no argument = embedded fixture; or pass a real README) |
 | `skills/implement-backlog/output-location.test.sh` | The Output Location interlock against a scratch repo: git-ignore gate, working-branch commit, empty-commit detection |
 | `skills/capture-followup/followup-contract.test.py` | The follow-up ID/manifest contract: `F`-index allocation, disjointness from positional IDs, `origin` node shape, default-parent resolution |
@@ -76,7 +82,7 @@ contract that runs only when someone remembers is not enforced at all.
 | `skills/common/sql-migration/tests/*.test.py` | The vendored converter and the SQL migration tooling: the ported upstream converter / decomposer / app-side / DML-fixture suites (the equivalence of the translated copy, see `PROVENANCE.md`), the SQL inventory (MyBatis, JDBC, JPA, SQL files, investigation runs, dynamic SQL flagged, unextracted calls counted, no stored literal), converting an inventory into verdicts and a draft manifest, generating the migration module behind its offline gate, and verification (comparison without values, production refused, differential test, golden capture and check, recording that never overstates). Without `sqlglot` installed they print SKIP locally; CI installs it and fails instead. The vendored runtime's Java tests run on demand with `gradle test` in `runtime-java/` |
 | `tools/lib/sql_migration_manifest.test.py` | The SQL migration contract of `rules/sql-migration.md`: every inventoried statement decided exactly once, routes bound to converter status, DDL, JPQL and the edition, dynamic SQL on an automatic route only with the user's confirmation, per-route payloads (application-side pattern and semantics, redesign proposal, retirement evidence, plan row limit), keys against `schema.json`, evidence lines that still exist, verification states with method and evidence, upstream IDs in the traceability graph, hostile shapes reported rather than crashed on |
 | `tools/nexus-status.test.sh` | The dashboard's CLI contract on scratch projects: project resolution, 0/1/2 exit codes, the four addressable views, every output mode, `--group`/`--phase`/`--epic` narrowing `--json` too, unknown filters failing as usage, cross-view agreement, refresh poll |
-| `tools/docs_consistency.test.py` | The documentation split itself: both catalogues describing all 115 registered commands, the signature block matching each SKILL.md (no flag invented by prose, none dropped, none re-spelled, every flag a skill documents about itself offered, and — for the skills that wrap a shell tool — no flag that tool's parser would reject), the grouped tables in CLAUDE.md/README summing to the registry, the extension-tier and codegen prose equal to `EXTENSION_PHASES`/`CODEGEN_PHASES`, AGENTS.md knowing every skill, the catalogue pointer staying un-`@`-imported, no flag mentioned anywhere without belonging to a documented surface, the Japanese catalogue keeping row order plus each row's model tier / flags / tool references, and `docs/ddd-coverage.md` naming only registered commands and declared artifact paths |
+| `tools/docs_consistency.test.py` | The documentation split itself: both catalogues describing all 116 registered commands, the signature block matching each SKILL.md (no flag invented by prose, none dropped, none re-spelled, every flag a skill documents about itself offered, and — for the skills that wrap a shell tool — no flag that tool's parser would reject), the grouped tables in CLAUDE.md/README summing to the registry, the extension-tier and codegen prose equal to `EXTENSION_PHASES`/`CODEGEN_PHASES`, AGENTS.md knowing every skill, the catalogue pointer staying un-`@`-imported, no flag mentioned anywhere without belonging to a documented surface, the Japanese catalogue keeping row order plus each row's model tier / flags / tool references, and `docs/ddd-coverage.md` naming only registered commands and declared artifact paths |
 | `tools/lib/status_tui.test.py` | The curses shell's interaction contract without a terminal: `c` copies rather than opens, the action-menu/help behaviour with and without `--exec`, an empty tree naming its filter, `q` as the only quit key |
 | `tools/build_report.test.py` | The consolidated HTML report's rendering contract on a scratch project: one article per source document with unique ids, a Mermaid fence escaped exactly once and round-tripping unchanged, inter-report links rewritten to in-page anchors, `.feature` files as Gherkin, manifest JSON never rendered, the canonical section ids identical in both languages while every UI string switches, a project whose review has not run still rendering, and a non-project refused with exit 1 |
 
@@ -100,11 +106,11 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 
 ## Command Reference
 
-**115 slash commands across four plugins.** The catalogue — every command with its model, its
+**116 slash commands across four plugins.** The catalogue — every command with its model, its
 prerequisites and its full flag signature — is `docs/skill-reference.md` (`_ja` for Japanese), read
 on demand with the Read tool and deliberately **not** `@`-imported, since an always-loaded catalogue
 is the cost this section exists to avoid. Do not duplicate it here: this table is the map of *which
-group does what*, so you know where to look, and the counts below are a partition of all 115.
+group does what*, so you know where to look, and the counts below are a partition of all 116.
 
 | Group | Entry point | What it does | n |
 |-------|-------------|--------------|---|
@@ -116,7 +122,7 @@ group does what*, so you know where to look, and the counts below are a partitio
 | **Database Migration** | `/architect:migrate-database` | Oracle / MySQL / PostgreSQL → ScalarDB: schema extraction, analysis, SP/trigger conversion (the router delegates to nested sub-skills that are not slash commands) | 4 |
 | **ScalarDB Development** `/scalardb:*` | `/scalardb:build-app` | Schema modeling, configuration, scaffolding, CRUD/JDBC patterns, exception handling, code review, migration advice | 11 |
 | **Multi-Cloud Infrastructure** `/infra:*` | `/infra:start` | Terraform / Kubernetes / Helm / Kustomize / Argo CD / GitLab CI / Cosign / Vault / ESO / Prometheus / Kyverno across AWS-Azure-GCP x local-test-staging-production, grounded in the vendored `okf-k8s-tf` bundle. Skills are namespaced under `skills/infra/`, rules under `rules/infra/` | 4 |
-| **Status & utility** | `/architect:report-status` | One dashboard (`tools/nexus-status.sh`) whose `Tab` cycles four views — Product, Architect, Code Generation, Backlog Delivery — plus `render-mermaid` and `update-knowledge`. Recorded spend is `/architect:report-token-cost`. Standalone database investigation is `investigate-db-design` (DDL/design documents) and `investigate-db-live` (catalogs and statistics) | 5 |
+| **Status & utility** | `/architect:report-status` | One dashboard (`tools/nexus-status.sh`) whose `Tab` cycles four views — Product, Architect, Code Generation, Backlog Delivery — plus `render-mermaid`, `update-knowledge` and `revise-knowledge` (Claude re-verifies the k8s-tf bundle documents the weekly refresh listed). Recorded spend is `/architect:report-token-cost`. Standalone database investigation is `investigate-db-design` (DDL/design documents) and `investigate-db-live` (catalogs and statistics) | 6 |
 
 Two things this table deliberately does not tell you, because the machine-readable source does:
 which phases `/architect:pipeline` actually runs (the manifest) and which phases the dashboard files
@@ -155,7 +161,7 @@ invocation chains in README §Code Generation & Delivery and docs/getting-starte
 The extension tier is **not** everything outside the manifest. Three further groups sit
 outside it and outside the pipeline, each documented in its own section above rather than
 here: the orchestration and setup skills (`start`, `pipeline`, `init-output`), the status
-and utility skills (`report-status`, `render-mermaid`, `update-knowledge`, `investigate-db-design`, `investigate-db-live`), and the two
+and utility skills (`report-status`, `render-mermaid`, `update-knowledge`, `revise-knowledge`, `investigate-db-design`, `investigate-db-live`), and the two
 skill groups that are pipelines in their own right —
 **Backlog Delivery** (`deliver-backlog`, `export-backlog`, `implement-backlog`,
 `review-issue`, `merge-issue`, `capture-followup`, `report-backlog-status`) and **Database Migration**

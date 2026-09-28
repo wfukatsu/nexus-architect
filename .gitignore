@@ -41,3 +41,7 @@ reports.prev/
 
 # Knowledge graph (graphify, regenerated per session)
 graphify-out/
+
+# k8s-tf bundle upstream: extracted page text is held locally, never committed — third-party
+# documentation under mixed licences, and this repository is public (tools/lib/okf_upstream.py)
+knowledge/okf-k8s-tf-upstream/pages/
