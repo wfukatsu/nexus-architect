@@ -20,9 +20,13 @@ Four of them, each written because the prose can drift away from the thing it de
 Usage: python3 skills/infra/infra-contract.test.py     (exit 1 on failure)
 """
 
+import json
 import os
 import re
+import shutil
+import subprocess
 import sys
+import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BUNDLE = os.path.join(ROOT, "knowledge", "okf-k8s-tf")
@@ -124,6 +128,46 @@ for rel, date in dates:
     if hit and date <= hit.group(1):
         backwards.append((rel, hit.group(1), date))
 check("every stale_after falls after the document's verified date", not backwards, backwards)
+
+# The weekly refresh computes which documents await re-verification; that list is worth nothing
+# unless it reaches the skills that cite the bundle. `status` prints it, the router carries it
+# downstream as the freshness list, and every mode skill cites a listed document with its caveat.
+print("The freshness list reaches the skills that cite the bundle")
+
+tmp = tempfile.mkdtemp()
+try:
+    bundle, upstream = os.path.join(tmp, "bundle"), os.path.join(tmp, "upstream")
+    shutil.copytree(BUNDLE, bundle)
+    helm = os.path.join(bundle, "foundation", "helm.md")
+    with open(helm, encoding="utf-8") as fh:
+        body = fh.read()
+    with open(helm, "w", encoding="utf-8") as fh:
+        fh.write(re.sub(r"^stale_after:.*$", "stale_after: 2000-01-01", body, count=1, flags=re.M))
+    os.makedirs(upstream)
+    with open(os.path.join(upstream, "state.json"), "w", encoding="utf-8") as fh:
+        json.dump({"checked_at": "2026-09-28T14:00:00Z", "pending_as_of": "2026-09-28", "pages": {}, "releases": {},
+                   "pending": {"security/kyverno.md": ["release Kyverno 1.20.0: minor behind stated 1.18 since 2026-11-10",
+                                                      "past stale_after 2026-11-01"]}}, fh)
+    run = subprocess.run(["bash", os.path.join(ROOT, "tools", "update-okf-bundle.sh"), "status", "--bundle=k8s-tf"],
+                         env=dict(os.environ, NEXUS_OKF_K8S_TF=bundle, NEXUS_OKF_K8S_TF_UPSTREAM=upstream),
+                         capture_output=True, text=True)
+    out = run.stdout
+    check("status runs against an overridden bundle and upstream", run.returncode == 0, run.stderr)
+    check("status lists a document past its stale_after, with the date",
+          re.search(r"^  foundation/helm\.md \(stale_after 2000-01-01\)$", out, re.M), out)
+    check("status lists each document awaiting re-verification, with its reasons",
+          re.search(r"^  security/kyverno\.md: release Kyverno 1\.20\.0: .*; past stale_after 2026-11-01$", out, re.M), out)
+    check("status says as of when the list was computed", "awaiting re-verification: 1 (as of 2026-09-28" in out, out)
+finally:
+    shutil.rmtree(tmp)
+
+check("the router settles the freshness list and passes it downstream",
+      "freshness list" in ROUTER and "awaiting re-verification" in ROUTER
+      and re.search(r"## Step 5.*freshness list", ROUTER, re.S))
+for mode in ("design", "implement", "review"):
+    text = read("skills", "infra", mode, "SKILL.md")
+    check("/infra:%s receives the freshness list and cites a listed document with its caveat" % mode,
+          "freshness list" in text and "awaits re-verification" in text)
 
 # ------------------------------------------------------------- skills & models
 

@@ -37,8 +37,14 @@ open questions rather than guessed at.
 | The review target (repository / MR diff / design document, with revision) | **Required** | The user |
 | Previous round's review report | Recommended | `$OUT/reviews/review-<target>-r<n-1>.md` |
 
-When invoked from `/infra:start`, environment, cloud, target path and `$OKF` arrive already
-settled. **Do not re-ask them.**
+When invoked from `/infra:start`, environment, cloud, target path, `$OKF` and the freshness list
+arrive already settled. **Do not re-ask them.**
+
+The freshness list names the bundle documents past `stale_after` or awaiting re-verification
+(from `tools/update-okf-bundle.sh status --bundle=k8s-tf` when invoked directly). A finding
+grounded in a listed document says the document awaits re-verification and why, so it is not
+read as settled — and when the finding turns on what the document says about a version or a
+deprecation, check the official source before assigning its severity.
 
 ## Steps
 

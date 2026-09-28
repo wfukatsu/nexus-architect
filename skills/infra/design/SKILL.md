@@ -48,9 +48,15 @@ A configuration a team can build from, in which:
 | reports/08_infrastructure/{security,observability,disaster-recovery}-design.md | Recommended | The corresponding `/architect:design-*` skills — policy this design implements |
 | The target repository | Recommended | Read it when it exists; the code is the fact and the bundle is the standard |
 
-When invoked from `/infra:start`, environment, cloud, target path and `$OKF` arrive already
-settled. **Do not re-ask them** — confirm only what is missing. When invoked directly, run
+When invoked from `/infra:start`, environment, cloud, target path, `$OKF` and the freshness list
+arrive already settled. **Do not re-ask them** — confirm only what is missing. When invoked directly, run
 @rules/okf-k8s-tf-bundle.md §1–2 first (resolve, freshness, environment, cloud).
+
+The freshness list names the bundle documents past `stale_after` or awaiting re-verification
+(from `tools/update-okf-bundle.sh status --bundle=k8s-tf` when invoked directly). A design claim
+resting on a listed document says the document awaits re-verification and why, and a decision
+that depends on such a claim is also listed in the design's open questions — it may move when
+the document is revised.
 
 ## Step 1 — Turn requirements into numbers
 

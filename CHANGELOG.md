@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+### Fixed
+- **A cited page that stops answering is no longer silent.** The k8s-tf upstream collector kept an
+  unreachable page's previous entry indefinitely, so a removed page (HTTP 404) never put the
+  documents citing it up for re-verification. The state now records `failing_since` and
+  `last_error`. A page failing for a week or more (two weekly runs in a row) lists its documents
+  until it answers again or the source is replaced. A newly cited page that never answered is
+  recorded rather than dropped, and the report shows since when each page has been failing.
+
+### Changed
+- **The weekly k8s-tf refresh no longer opens a pull request for context-only releases.** 16 of
+  the 29 release feeds state no version the bundle makes; they only fill the report's release
+  table. A new release there alone (three did in the week to 2026-09-28) made the state "change"
+  and opened a pull request nearly every Monday, with nothing for a reviewer to do. Such weeks now
+  count as quiet; those rows are refreshed with the next change that matters. A feed added or
+  removed, a stated feed moving, and a page starting to fail still count.
+- **`/infra:*` now carries the bundle's freshness list.** The weekly refresh listed documents
+  awaiting re-verification, but `/infra:start` checked only `stale_after`, so a design or review
+  could cite a document the refresh had flagged without saying so.
+  - `tools/update-okf-bundle.sh status --bundle=k8s-tf` prints the freshness list: documents past
+    `stale_after` and documents awaiting re-verification with their reasons, dated.
+  - The router passes the list to `/infra:design`, `/infra:implement` and `/infra:review`.
+  - Each mode skill says when a claim rests on a listed document, and why. Design also lists the
+    decision as an open question. Implement resolves versions from the registry, not the
+    document. Review checks the official source before assigning a severity.
+  - `skills/infra/infra-contract.test.py` guards this (45 checks).
+
 ## [0.42.0] - 2026-09-28
 
 ### Added

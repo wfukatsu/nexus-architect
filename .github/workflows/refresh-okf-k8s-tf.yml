@@ -15,7 +15,9 @@ name: refresh-okf-k8s-tf
 #    version fell further behind, stale_after passed) go into state.json `pending` and REPORT.md.
 #    Revising their prose is judgement: /architect:revise-knowledge, run by a person on demand.
 # 4. Propose — one pull request on bot/okf-k8s-tf-refresh, updated in place each week until merged.
-#    A quiet week changes nothing and opens nothing. The branch is rebuilt from main on every run
+#    A quiet week changes nothing and opens nothing — and a week in which only a feed stating no
+#    version released counts as quiet: those rows are context, and would otherwise open a pull
+#    request nearly every Monday. The branch is rebuilt from main on every run
 #    (create-pull-request force-pushes), so revisions go on their own branch, never on this one.
 #    A pull request opened with GITHUB_TOKEN triggers no other workflow: contracts.yml does not
 #    run on it, which is why the two bundle suites run here.

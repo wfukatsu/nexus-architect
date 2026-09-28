@@ -22,7 +22,8 @@ that is sized for it.
 
 Four things are settled and passed downstream, so the mode skill never re-asks them:
 
-1. The resolved bundle root `$OKF`, and which of its documents are past `stale_after`
+1. The resolved bundle root `$OKF`, and its **freshness list**: the documents past `stale_after` and
+   those awaiting re-verification, each with its reason
 2. The **target environment(s)** — `local` / `test` / `staging` / `production`
 3. The **target cloud(s)** — AWS / Azure / GCP, and which environments exist in each
 4. The **mode** — design, implement or review — and the target path
@@ -66,9 +67,19 @@ this skill, not a convenience.
 
 ## Step 2 — Check freshness
 
-Each document carries `stale_after`. When quoting one whose date has passed, say so and re-verify
-against official documentation (@rules/okf-k8s-tf-bundle.md §6). `security/kyverno.md` expires
-earlier than the rest, because Kyverno v1.20 plans to remove `kyverno.io/v1 ClusterPolicy`.
+The same `status` output ends with the **freshness list**, in two parts:
+
+- `past stale_after` — computed for today from each document's frontmatter.
+- `awaiting re-verification` — the list the weekly upstream refresh recorded, with the reasons:
+  a cited page changed, redirected to a different page or stopped answering, a stated version fell
+  further behind or reached end of life. It is dated (`as of`); a list older than the latest
+  Monday means the refresh has not run since.
+
+Carry both parts forward unchanged as the freshness list. A listed document is still citable,
+as dated evidence: every claim resting on it says it awaits re-verification and why, and when the
+claim matters, check the locally held page (`knowledge/okf-k8s-tf-upstream/pages/`) or the
+official source (@rules/okf-k8s-tf-bundle.md §1, §6). Revising the document is not this skill's
+job — tell the user `/architect:revise-knowledge` does it.
 
 ## Step 3 — Fix the environment
 
@@ -97,14 +108,16 @@ must not be left implicit.
 ## Step 5 — Route
 
 Pick the mode from Decision Criteria and invoke the corresponding skill, passing environment,
-cloud, target path and `$OKF`.
+cloud, target path, `$OKF` and the freshness list.
 
 ## Non-Negotiable Rules
 
 These bind the mode skills too.
 
 1. **Cite the bundle for anything it covers.** Never write from memory. Attach
-   `[foundation/terraform.md]`-style sources to each claim (@rules/okf-k8s-tf-bundle.md §7).
+   `[foundation/terraform.md]`-style sources to each claim (@rules/okf-k8s-tf-bundle.md §7). A
+   claim resting on a document on the freshness list says the document awaits re-verification,
+   and why.
 2. **Say "outside the bundle's scope" when it is.** Then WebFetch official documentation, or
    leave it as an open question. Do not assert.
 3. **Keep fact, guidance and open question separate.** The bundle itself distinguishes observed
