@@ -57,6 +57,21 @@ In a Claude Code session, type any command to confirm:
 
 If the skills are recognized, the installation is successful.
 
+### If you have many skills installed
+
+Typing a command always works. What can degrade is Claude choosing a skill from a request in your
+own words: Claude Code lists every skill's description in a budget of 1% of the context window, and
+past it the least-used skills are listed by name only. On a machine with about 300 skills from
+other plugins, 54 of this toolkit's 95 listed skills had lost their description — every
+`/scalardb:*` and `/infra:*` skill among them (measured with `/skill-doctor`, Claude Code v2.1.294).
+
+Run `/skill-doctor` to see it: a `context` of `< 20` is a skill listed by name only. Then either
+disable plugins you do not use in `/plugin`, or raise the budget in your settings:
+
+```json
+{ "skillListingBudgetFraction": 0.02 }
+```
+
 ### Using with Codex
 
 Codex can use the same skill files without installing Claude Code plugins.
