@@ -15,6 +15,21 @@ So every call names its tier. `{phase_model}` in the patterns below is the calli
 skill states a different one and why. `skills/common/subagent-model.test.py` fails a call that
 omits it.
 
+## A phase run by an orchestrator is a sub-agent
+
+The same measurement has a second consequence. A skill's own `model` takes effect only when the
+user types its command; invoked by another skill in the same turn it runs on the invoking skill's
+model. An orchestrator that ran its phases inline would therefore run all of them on its own tier.
+`/architect:pipeline` instead starts each phase in a sub-agent with the manifest's `model` on the
+call, and that sub-agent invokes the phase's skill (`skills/pipeline/SKILL.md` § Phase Execution).
+Measured on v2.1.294: a `sonnet` orchestrator, a phase sub-agent called with `model: "opus"`
+invoking a skill whose frontmatter said `haiku`, and that skill's own sub-agent called with
+`model: "haiku"` ran on sonnet, opus and haiku respectively.
+
+Sub-agents nest up to three layers below the main conversation, so a phase run this way can still
+use the patterns below. It cannot ask the user — `AskUserQuestion` is withheld from every
+sub-agent — which is why only the automated orchestrator does this for every phase.
+
 ## Pattern 1: Codebase Exploration
 
 Used for surveying the structure of large codebases.
