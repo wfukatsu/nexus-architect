@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """The eval cases stay loadable, offline.
 
-`claude plugin eval` runs on demand and costs money, so a case broken by a renamed skill would go
-unnoticed until someone next paid for a run. This checks what can be checked without a model.
+The evals run on demand and cost money (tools/eval-plugin.sh), so a case broken by a renamed skill
+would go unnoticed until someone next paid for a run. This checks what can be checked without a model.
 """
 import re
 import sys
@@ -30,8 +30,15 @@ def frontmatter(path):
     return (head, body) if sep else (None, text)
 
 
+import json
+
+with open(ROOT / ".claude-plugin" / "marketplace.json", encoding="utf-8") as fh:
+    OWNED = {entry["name"]: {Path(skill).as_posix().removeprefix("./") for skill in entry["skills"]}
+             for entry in json.load(fh)["plugins"]}
+
 cases = sorted(p.parent for p in EVALS.rglob("prompt.md") if "results" not in p.parts)
 check(cases, "no eval case found under evals/")
+covered = set()
 
 for case in cases:
     rel = case.relative_to(ROOT)
@@ -39,10 +46,13 @@ for case in cases:
     check(head is not None, f"{rel}/prompt.md has no frontmatter")
     check(body.strip() and "TODO" not in body, f"{rel}/prompt.md has no prompt")
 
-    # A path target finds no plugin here on its own (no plugin.json), and then nothing loads.
-    plugins = re.search(r'^plugins:\s*\["([^"]+)"\]', head or "", re.M)
-    check(plugins and (case / plugins.group(1)).resolve() == ROOT,
-          f"{rel}/prompt.md: `plugins` must point at the repository root")
+    # tools/eval-plugin.sh runs a plugin's cases by tag; a case with no plugin tag never runs.
+    tags = re.search(r"^tags:\s*\[(.*)\]", head or "", re.M)
+    plugins = [t.strip() for t in (tags.group(1).split(",") if tags else []) if t.strip() in OWNED]
+    check(len(plugins) == 1, f"{rel}/prompt.md: tag exactly one plugin, found {plugins}")
+    covered.update(plugins)
+    # The runner stages the plugin; a path written here would point the case somewhere else.
+    check(not re.search(r"^plugins:", head or "", re.M), f"{rel}/prompt.md sets `plugins`")
 
     # The prompt is a user's request: it must not name the command it is meant to reach.
     check(not re.search(r"/(architect|scalardb|product|infra):", body),
@@ -55,11 +65,18 @@ for case in cases:
         check(ghead and re.search(r"^type:\s*\S+", ghead, re.M), f"{grader.relative_to(ROOT)} has no type")
         if grader.name != "skill-fired.md":
             continue
-        named = re.search(r'\)\?([a-z0-9-]+)"\'\s*$', ghead or "", re.M)
-        check(named, f"{grader.relative_to(ROOT)}: input_match names no skill")
+        named = re.search(r'"([a-z]+):([a-z0-9-]+)(?:\(\?:([a-z0-9|-]+)\))?"\'\s*$', ghead or "", re.M)
+        check(named, f"{grader.relative_to(ROOT)}: input_match names no `<plugin>:<skill>`")
         if named:
-            check((ROOT / "skills" / named.group(1) / "SKILL.md").is_file(),
-                  f"{grader.relative_to(ROOT)}: skills/{named.group(1)}/SKILL.md does not exist")
+            plugin, stem, alternatives = named.groups()
+            check(plugins == [plugin], f"{grader.relative_to(ROOT)}: expects {plugin}:, the case is tagged {plugins}")
+            registered = {path.rsplit("/", 1)[-1] for path in OWNED.get(plugin, ())}
+            # `migrate-(?:database|oracle)` — any of several skills is a right answer.
+            for skill in ([stem + a for a in alternatives.split("|")] if alternatives else [stem]):
+                check(skill in registered,
+                      f"{grader.relative_to(ROOT)}: {plugin} registers no skill named {skill}")
+
+check(covered == set(OWNED), f"no case for: {sorted(set(OWNED) - covered)}")
 
 if failures:
     print(f"FAIL: {len(failures)} of {checks} checks")

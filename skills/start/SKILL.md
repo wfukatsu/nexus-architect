@@ -1,7 +1,8 @@
 ---
 description: |
-  Interactively start system analysis and design. Assesses project context and determines the
-  optimal path.
+  Interactively start system analysis and design: refactoring a legacy application into services,
+  or designing a new system from requirements. Assesses project context and determines the path.
+  To move an existing database to ScalarDB, use migrate-database instead.
 argument-hint: '[target_path]'
 model: inherit
 ---

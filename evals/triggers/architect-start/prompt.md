@@ -1,7 +1,6 @@
 ---
 description: A legacy-refactoring request in the user's words reaches the architect entry point.
-tags: [trigger]
-plugins: ["../../.."]
+tags: [trigger, architect]
 max_turns: 10
 allowed_tools: [Skill, Read, Glob, Grep, AskUserQuestion]
 ---

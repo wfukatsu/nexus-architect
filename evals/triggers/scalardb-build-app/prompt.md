@@ -1,7 +1,6 @@
 ---
 description: A request to build a ScalarDB application from nothing reaches the ScalarDB entry point.
-tags: [trigger]
-plugins: ["../../.."]
+tags: [trigger, scalardb]
 max_turns: 10
 allowed_tools: [Skill, Read, Glob, Grep, AskUserQuestion]
 ---
