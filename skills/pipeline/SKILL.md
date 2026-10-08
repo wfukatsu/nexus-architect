@@ -134,6 +134,25 @@ the limit: issue the first three calls in one message, wait for all three, then 
 three. The evaluation group is three phases and is unaffected. A phase that is refused a call
 anyway does that part itself and says so in its output — record it under `warnings`.
 
+**When the run is short of budget, say what was left out.** A run started with a spending cap
+(the `claude` command's maximum-budget option) can come close to it before the last phases. Finishing with a cheaper method —
+telling a review phase to score its dimensions itself instead of spawning independent reviewers —
+is allowed, and is better than stopping with the report unwritten: a run that ends tells the user
+what is weak, a run that stops tells them nothing. What is not allowed is doing it quietly. Each
+time a phase is told to do less than its skill describes:
+
+- say so in that phase's prompt in so many words, and have it state in its output what it did not
+  delegate;
+- add an entry to `warnings` in `work/pipeline-progress.json` naming the phases and what was
+  dropped (for a review: that its dimensions were not scored independently);
+- repeat it in the final message to the user, with the command that redoes those phases at full
+  method — `--rerun-from=<first affected phase>` without the cap, or with a higher one.
+
+Never drop a phase, its declared outputs or its validators for cost; only how the phase divides its
+own work. Measured on v2.1.294: under a 30 USD cap the orchestrator did this unprompted for the
+second half of the review group, and recorded it — this section makes that the rule rather than
+its judgement.
+
 Never end your turn while a phase is `in_progress`. Where the harness places a sub-agent in the
 background regardless (an interactive session does), wait for its completion notification, confirm
 the phase's declared outputs exist — resume the sub-agent if they do not — and continue from there;
