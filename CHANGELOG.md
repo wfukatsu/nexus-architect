@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.43.1] - 2026-10-08
+
+### Fixed
+- **A request to move a database to ScalarDB reached `/architect:start` about half the time.** The
+  behavioural evals showed it: for "we run two legacy systems on Oracle and MySQL — move them to
+  ScalarDB", Claude chose the general orchestrator in roughly half the runs, because both
+  descriptions answered to "legacy". `start` now says what it is for and points database migration
+  at `migrate-database`, whose description leads with moving an existing database. 18 of 18 runs
+  reach the right skill after the change.
+
+### Added
+- **An eval case for every plugin, run against the plugin as installed.** `claude plugin eval`
+  cannot load a plugin defined only as a marketplace entry — pointed at this repository it loads
+  one plugin with the wrong prefix and no product or infra skill, pointed at an installed plugin it
+  loads none. `tools/eval-plugin.sh <architect|scalardb|product|infra>` stages the plugin as
+  Claude Code builds it at install time and runs its cases, with skills invoked as
+  `<plugin>:<skill>`. `product-start` and `infra-start` join the four existing cases.
+- **README: what to do when many skills are installed.** Measured with `/skill-doctor` on a machine
+  with about 300 skills: 54 of this toolkit's 95 listed skills were listed by name only, their
+  description dropped by the listing budget — shortening the descriptions in 0.43.0 keeps the
+  toolkit within the budget on its own, not alongside everything else. The README says how to see
+  it and how to raise the budget.
+
 ## [0.43.0] - 2026-10-08
 
 An audit against the current Claude Code documentation (v2.1.293–294), and what it found. Several
