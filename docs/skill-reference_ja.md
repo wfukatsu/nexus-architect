@@ -14,7 +14,7 @@
 
 | コマンド | モデル | 説明 |
 |---------|-------|------|
-| `/architect:start` | sonnet | インタラクティブにシステム分析と設計を開始 |
+| `/architect:start` | inherit | インタラクティブにシステム分析と設計を開始 |
 | `/architect:pipeline` | sonnet | 自動パイプライン実行（--resume-from、--rerun-from、--skip-{phase}、--no-scalardb、--lang） |
 
 ## 要件定義
@@ -207,7 +207,7 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 
 | コマンド | モデル | フェーズ | 説明 |
 |---------|-------|---------|------|
-| `/product:start` | sonnet | オーケストレーション | プロダクト方向性設計を対話的に開始。依存順でパイプラインを実行し、最もリスクの高い前提でゲートする。UI モックの後に選択式の `generate-frontend` ステップ（React + Storybook 生成）を提示する（`--auto`、`--profile`、`--frontend`/`--no-frontend`、`--lang`） |
+| `/product:start` | inherit | オーケストレーション | プロダクト方向性設計を対話的に開始。依存順でパイプラインを実行し、最もリスクの高い前提でゲートする。UI モックの後に選択式の `generate-frontend` ステップ（React + Storybook 生成）を提示する（`--auto`、`--profile`、`--frontend`/`--no-frontend`、`--lang`） |
 | `/product:init-output` | sonnet | オーケストレーション | プロダクト出力ツリー、`work/pipeline-progress.json`、`work/traceability.json` を初期化 |
 | `/product:define-vision` | opus | 1. プロダクトコア | プロダクトコア（Vision/Mission/Values）を Product Vision Board と PR-FAQ として定義 |
 | `/product:name-product` | opus | 1. プロダクトコア | プロダクトをアクロニムとして命名 — 各文字が英単語の頭文字になる短く発音可能なアルファベット名を作り、名前自体が Vision/ポジショニングに根ざした価値フレーズに展開される。候補を絞り込み 1 案を推奨（任意・`full` に含む） |

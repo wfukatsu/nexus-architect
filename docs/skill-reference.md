@@ -14,7 +14,7 @@ For the inputs you should prepare before running each pipeline, see the
 
 | Command | Model | Description |
 |---------|-------|-------------|
-| `/architect:start` | sonnet | Interactively start system analysis and design |
+| `/architect:start` | inherit | Interactively start system analysis and design |
 | `/architect:pipeline` | sonnet | Automated pipeline execution (--resume-from, --rerun-from, --skip-{phase}, --no-scalardb, --lang) |
 
 ## Requirements
@@ -207,7 +207,7 @@ Phase order and the `mvp`/`core-only`/`ux-to-spec`/`full` profiles are defined i
 
 | Command | Model | Phase | Description |
 |---------|-------|-------|-------------|
-| `/product:start` | sonnet | Orchestration | Interactively start product-direction design; runs the pipeline in dependency order, gating on the riskiest assumptions; offers a selectable `generate-frontend` step after the mocks (`--auto`, `--profile`, `--frontend`/`--no-frontend`, `--lang`) |
+| `/product:start` | inherit | Orchestration | Interactively start product-direction design; runs the pipeline in dependency order, gating on the riskiest assumptions; offers a selectable `generate-frontend` step after the mocks (`--auto`, `--profile`, `--frontend`/`--no-frontend`, `--lang`) |
 | `/product:init-output` | sonnet | Orchestration | Initialize the product output tree, `work/pipeline-progress.json`, and `work/traceability.json` |
 | `/product:define-vision` | opus | 1. Product Core | Define product core (Vision/Mission/Values) as a Product Vision Board plus PR-FAQ |
 | `/product:name-product` | opus | 1. Product Core | Name the product as an acronym — a short pronounceable Latin-letter name whose every letter is the initial of an English word, expanding into a value phrase grounded in vision/positioning; shortlists candidates, recommends one (optional; in `full`) |
