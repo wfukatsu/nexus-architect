@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.44.1] - 2026-10-09
+
+### Fixed
+- **The Oracle AQ guide showed a trigger being split, which the skill says not to do.** The AQ
+  migration skill and the prompt that loads it say one original trigger becomes one replacement
+  trigger on the same event. The reference guide the same sub-agent reads converted
+  `UPDATE OF job_id, department_id` into two column-specific triggers and said to consider
+  splitting. Its example is now one trigger on the original event, calling the enqueue procedure
+  once with the old and new value of each column.
+- **Three reasons added in 0.43.3 said more than their sources do.** The instructions are
+  unchanged; the text explaining them is corrected. ScalarDB SQL was said to be unable to run
+  complex JOINs: it runs them, partition by partition, and lacks subqueries and window functions.
+  A poison message rolled back was said to be redelivered again and again: it is redelivered until
+  `max_retries` is spent, then moved to the exception queue. The reason given for not splitting an
+  AQ trigger was an inference and is removed.
+
 ## [0.44.0] - 2026-10-09
 
 ### Added
