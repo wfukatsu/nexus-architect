@@ -1,7 +1,6 @@
 ---
-description: A database migration request that spans two engines reaches the migration router.
-tags: [trigger]
-plugins: ["../../.."]
+description: A database migration request reaches the migration router or the skill for the engine it names.
+tags: [trigger, architect]
 max_turns: 10
 allowed_tools: [Skill, Read, Glob, Grep, AskUserQuestion]
 ---

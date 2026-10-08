@@ -1,8 +1,8 @@
 ---
 description: |
-  Unified database migration router. Analyzes Oracle, MySQL, or PostgreSQL schemas and generates
-  ScalarDB migration documentation, Java code, and AQ integration. Routes to database-specific
-  workflows.
+  Move an existing Oracle, MySQL or PostgreSQL database to ScalarDB: schema analysis, migration
+  documentation, stored procedure and trigger conversion to Java, AQ integration. Use for any
+  database-to-ScalarDB migration; routes to the engine-specific workflow.
 model: sonnet
 ---
 # Command: migrate-database (Unified Migration Entry Point)
