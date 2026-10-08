@@ -25,7 +25,7 @@ graph LR
     DDD --> INT
     INT --> RED[redesign<br/>再設計]
     RED --> MS[design-microservices]
-    MS --> REV["並列レビュー ×5"]
+    MS --> REV["並列レビュー ×6"]
     REV --> SYN[review-synthesizer] --> REP[report]
 ```
 
@@ -340,8 +340,13 @@ analyze スキルが用語辞書を導く流れ。**1つの文書から抜き出
 
 ### 8.2 フックの自己修正ループ
 
-`hooks/hooks.json` は Write / Edit / MultiEdit の **PostToolUse** に
-`validate-frontmatter.sh` と `validate-mermaid.sh` を張る。検証内容は
+`hooks/hooks.json` は Write / Edit の **PostToolUse** に
+`validate-frontmatter.sh` と `validate-mermaid.sh` を張る。Mermaid の検証は、書き込み先を問わず
+すべての Markdown に効く。フロントマターの検証は `reports/` 配下だけが対象で、しかも
+パイプラインのプロジェクト（そのファイルか上位に `work/pipeline-progress.json` がある）の中でしか
+働かない。プラグインは利用者単位で有効になり、`reports/` はよくあるディレクトリ名だからである。
+4 つのプラグインはそれぞれ同じフックを登録するが、1 回のツール呼び出しにつき 1 つだけが
+実際に検証する（`hooks/claim.sh`）。検証内容は
 「先頭が `---` で始まる / 閉じ `---` がある / YAML としてパースできる /
 必須キー `title` `schema_version` `skill` を持つ」「Mermaid ブロックがパースできる」。
 
@@ -354,9 +359,10 @@ analyze スキルが用語辞書を導く流れ。**1つの文書から抜き出
 発火し、`work/token-usage.json` にトークン消費を追記する。これが
 `/architect:estimate-token-cost` の事前見積りを実測で較正する台帳になる。
 
-### 8.3 設計レビュー: 5視点 × 3次元の二重並列
+### 8.3 設計レビュー: 6視点 × 次元の二重並列
 
-設計フェーズの成果物は、独立した5視点が並列にレビューする。視点と重み・実行条件は
+設計フェーズの成果物は、独立した6視点がレビューする（データ層の視点は、ScalarDB を使うかどうかで
+どちらか一方が走る）。視点と重み・実行条件は
 `skills/review-registry.json` に宣言されている:
 
 | 視点 | 重み | ID | 条件 | モデル |
@@ -364,6 +370,7 @@ analyze スキルが用語辞書を導く流れ。**1つの文書から抜き出
 | consistency（整合性） | 0.15 | CON- | 常時 | sonnet |
 | scalardb | 0.25 | SDB- | scalardb_enabled | sonnet |
 | data-integrity | 0.25 | DIN- | scalardb_disabled | sonnet |
+| api-security（API セキュリティ） | 0.22 | ASEC- | 常時 | **opus** |
 | operations（運用） | 0.20 | OPS- | 常時 | sonnet |
 | risk（リスク） | 0.25 | RSK- | 常時 | **opus** |
 | business | 0.15 | BIZ- | 常時 | sonnet |
@@ -374,6 +381,23 @@ review-consistency は「構造的整合 0.35 / トレーサビリティ 0.35 / 
 severity、location、recommendation 付き JSON）を返す。視点スコアは
 `0.35×A + 0.35×B + 0.30×C` の加重式で算術合成される。評価と同じ
 「独立採点 → JSON 回収 → 式で合成」の型が、レビューでは二重の並列で適用されている。
+次元の数は視点によって 3 つまたは 4 つである。
+
+`/architect:pipeline` のもとでは、この二重の並列に実行上の制約が 3 つかかる
+（`skills/pipeline/SKILL.md` § Phase Execution。いずれも Claude Code v2.1.294 での実測に基づく）。
+
+- **各フェーズは、マニフェストの `model` を指定したサブエージェントとして動く。** スキルの `model` が
+  効くのは、利用者がそのコマンドを直接入力したときだけで、別のスキルから呼ばれたときには効かない。
+  表の「モデル」の列は、オーケストレーターが呼び出し時に渡すことで実現している。
+- **並列グループは 3 フェーズずつ起動する。** Claude Code が同時に動かすサブエージェントは 20 個までで、
+  フェーズが起動する次元ごとのレビュアーも数に入る。6 視点を同時に起動すると合計が 27 個になり、
+  一部の起動が拒否される。そのため、レビューは 3 視点ずつ 2 回に分かれる。
+- **フェーズも、その中のレビュアーも、フォアグラウンドで動く。** 非対話の実行では、バックグラウンドに
+  回ったサブエージェントが、結果を書く前に打ち切られるためである。
+
+費用の上限つきで実行し、上限が近づいた場合、オーケストレーターはレビューの視点に、次元を自分で
+採点させることがある。その場合は、独立採点でなかった視点が `work/pipeline-progress.json` の
+`warnings` と最終報告に記録される。
 
 ### 8.4 統合と品質ゲート — 合否はモデルの裁量ではない
 
@@ -395,10 +419,10 @@ review-synthesizer は全視点の JSON を突合して統合する:
 
 | 仕組み | 内容 |
 |--------|------|
-| **フック検証** | `hooks/hooks.json` の PostToolUse フックが `reports/` への全書き込みを検証 — YAML フロントマター必須、Mermaid 構文はパース検証。失敗は exit 2 でエージェントに差し戻され自己修正される |
+| **フック検証** | `hooks/hooks.json` の PostToolUse フックが、パイプラインのプロジェクトの `reports/` への全書き込みを検証 — YAML フロントマター必須、Mermaid 構文はパース検証。失敗は exit 2 でエージェントに差し戻され自己修正される |
 | **トレーサビリティ** | 全出力ファイルのフロントマターに `skill` / `phase` / `input_files` を記録 — どの解析がどの入力から生まれたか追跡可能 |
 | **式による採点** | スコアは `rules/evaluation-frameworks.md` の定義式でのみ算出。「印象で総合点をつける」ことを構造的に禁止 |
-| **モデル階層** | 判断の重さでモデルを使い分け — opus（analyze、redesign、リスクレビュー）、sonnet（investigate、各評価）、haiku（テンプレート生成） |
+| **モデル階層** | 判断の重さでモデルを使い分け — opus（analyze、redesign、各設計フェーズ、リスクレビュー、API セキュリティレビュー）、sonnet（investigate、各評価、その他のレビュー）、haiku（レポート生成）。パイプラインは、各フェーズをマニフェストのモデルを指定したサブエージェントとして実行する（8.3 節） |
 | **バージョン固定知識** | ScalarDB 関連の判断は OKF ナレッジバンドル（バージョンピン留めされた公式ドキュメント）に根拠づけ、モデル記憶からの回答を禁止 |
 | **多視点レビュー** | 設計成果物は6つの独立レビュー（整合性 / ScalarDB or データ整合性 / API セキュリティ / 運用 / リスク / ビジネス）を並列実行し、review-synthesizer が統合・品質ゲート判定 |
 

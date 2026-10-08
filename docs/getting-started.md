@@ -129,6 +129,26 @@ See the [architect Input Requirements](architect-input-requirements.md) for the 
 /architect:pipeline ./path/to/project --resume-from=design-microservices
 ```
 
+#### Running the pipeline from a script or CI
+
+`/architect:pipeline` also runs non-interactively (`claude -p "/architect:pipeline ./path/to/project"`).
+Four things differ from running it in a session:
+
+- **No phase can ask you anything.** Each phase runs as a sub-agent, and what it would have asked is
+  recorded in `work/context.md` § Open Questions as `unasked`, with the options it would have
+  offered. Answer them later with `/architect:start`, which re-asks them interactively.
+- **You grant the permissions.** The run writes under `reports/` and `work/` and executes the
+  toolkit's validator scripts; allow file edits and shell commands when you start it. The
+  pre-approvals some commands carry for their own script apply when you type the command, not here.
+- **A spending cap can thin the last phases.** Close to the cap, the pipeline may have a review
+  phase score its dimensions itself instead of spawning independent reviewers. It finishes rather
+  than stopping, names the affected phases under `warnings` in `work/pipeline-progress.json` and in
+  its final message, and gives the command that redoes them without the cap.
+- **A failed quality gate is a result, not an error.** The pipeline runs to the end and writes the
+  report either way; the verdict and the findings are in `reports/review/review-synthesis.md`.
+
+On the bundled `samples/ec-monolith`, one full run took about 45 minutes (measured once, on Claude Code v2.1.294).
+
 ### 4. Running Reviews
 
 ```bash
