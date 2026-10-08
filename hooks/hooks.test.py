@@ -8,10 +8,14 @@ Two things here are otherwise only observable in a live session:
   one tool's calls), the recorder in the background after a tool call and waiting at Stop;
 * that the copies of a hook the four plugins each register do the work once per tool call.
 
+It also holds the frontmatter validator to pipeline projects (issue #60): inert where there is no
+work/pipeline-progress.json at or above the file, while the Mermaid validator acts anywhere.
+
 Exit 1 on failure.
 """
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -72,8 +76,12 @@ print("One copy per tool call")
 with tempfile.TemporaryDirectory() as tmp:
     env = dict(os.environ, TMPDIR=os.path.join(tmp, "t"))
     os.makedirs(env["TMPDIR"])
-    reports = os.path.join(tmp, "reports")
+    site = os.path.join(tmp, "site")        # a pipeline project: the frontmatter validator acts here
+    reports = os.path.join(site, "reports")
     os.makedirs(reports)
+    os.makedirs(os.path.join(site, "work"))
+    with open(os.path.join(site, "work", "pipeline-progress.json"), "w") as fh:
+        json.dump({"phases": {}}, fh)
     bad = os.path.join(reports, "bad.md")
     with open(bad, "w", encoding="utf-8") as fh:
         fh.write("no frontmatter\n\n```mermaid\nnot-a-diagram\n```\n")
@@ -96,7 +104,35 @@ with tempfile.TemporaryDirectory() as tmp:
         check("%s: without an id every copy runs" % script, codes == [2, 2], codes)
     check("an id cannot leave the marker directory",
           fire("validate-frontmatter.sh", "../../x").returncode == 2
-          and sorted(os.listdir(tmp)) == ["reports", "t"], os.listdir(tmp))
+          and sorted(os.listdir(tmp)) == ["site", "t"], os.listdir(tmp))
+
+    # Outside a pipeline project (issue #60): `reports/` is a common directory name and the plugins
+    # are enabled per user, so the frontmatter validator must not act on someone else's reports.
+    other = os.path.join(tmp, "other", "reports", "deep")
+    os.makedirs(other)
+    stray = os.path.join(other, "bad.md")
+    shutil.copy(bad, stray)
+    outside = {"tool_input": {"file_path": stray}, "cwd": os.path.join(tmp, "other")}
+    check("outside a pipeline project the frontmatter validator is inert",
+          fire("validate-frontmatter.sh", "toolu_O", extra=outside).returncode == 0)
+    check("... and the Mermaid validator still checks the diagram",
+          fire("validate-mermaid.sh", "toolu_O", extra=outside).returncode == 2)
+    cli = subprocess.run(["bash", os.path.join(HERE, "validate-frontmatter.sh"), stray],
+                         capture_output=True, text=True)
+    check("... and a file named on the command line is validated wherever it is",
+          cli.returncode == 1, cli.returncode)
+    nested = os.path.join(reports, "before", "x")
+    os.makedirs(nested)
+    shutil.copy(bad, os.path.join(nested, "bad.md"))
+    check("a report nested below reports/ finds its project",
+          fire("validate-frontmatter.sh", "toolu_N", extra={
+              "tool_input": {"file_path": os.path.join(nested, "bad.md")}}).returncode == 2)
+    check("a relative path is resolved against the session's cwd",
+          fire("validate-frontmatter.sh", "toolu_R", extra={
+              "tool_input": {"file_path": "reports/bad.md"}, "cwd": site}).returncode == 2
+          and fire("validate-frontmatter.sh", "toolu_R2", extra={
+              "tool_input": {"file_path": "reports/deep/bad.md"},
+              "cwd": os.path.join(tmp, "other")}).returncode == 0)
 
     blocked = os.path.join(tmp, "blocked")
     with open(blocked, "w") as fh:          # a file where the directory would go: mkdir -p fails

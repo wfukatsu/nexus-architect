@@ -3,6 +3,7 @@
 # Blocking: in hook mode, errors go to stderr and the script exits 2 so
 # Claude Code feeds them back to the model for self-correction.
 # In CLI mode (file paths as arguments), failures exit 1.
+# Hook mode acts only inside a pipeline project (see in_pipeline_project below).
 
 validate_file() {
   FILE_PATH="$1"
@@ -84,6 +85,24 @@ FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
 # Only run for Write/Edit tools when invoked as a Claude Code hook
 case "$TOOL_NAME" in Write|Edit) ;; *) exit 0 ;; esac
+
+# Inert outside a pipeline project, as record_token_usage.py is. The plugins are enabled per user,
+# not per repository, and `reports/` is a common directory name: without this an unrelated project
+# gets a blocking error for every Markdown file it writes there. A pipeline project is one with
+# work/pipeline-progress.json at or above the file (init-output creates it); a relative path is
+# resolved against the session's cwd. CLI mode above is unconditional — you named the file.
+in_pipeline_project() {
+  local dir
+  dir=$(dirname "$1")
+  while [ -n "$dir" ] && [ "$dir" != "/" ] && [ "$dir" != "." ]; do
+    [ -f "$dir/work/pipeline-progress.json" ] && return 0
+    dir=$(dirname "$dir")
+  done
+  return 1
+}
+SESSION_CWD=$(echo "$INPUT" | jq -r '.cwd // empty')
+case "$FILE_PATH" in /*|"") ;; *) FILE_PATH="${SESSION_CWD:-$PWD}/$FILE_PATH" ;; esac
+in_pipeline_project "$FILE_PATH" || exit 0
 
 # One enabled plugin's copy per tool call (see claim.sh).
 . "$(dirname "$0")/claim.sh"
