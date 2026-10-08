@@ -18,7 +18,7 @@ You are generating ScalarDB migration documentation from an Oracle schema report
 7. Write the migration analysis to: <OUTPUT_DIR>/scalardb_migration_analysis.md
 8. Write the migration steps to: <OUTPUT_DIR>/scalardb_migration_steps.md
 
-The migration analysis MUST follow the strategy defined in Section 1 of the template. Consider all database aspects: views (full SQL analysis), complex queries inside stored procedures, database usage patterns, whether ScalarDB Analytics is needed, JOIN limitations, and aggregate function requirements.
+The migration analysis follows the strategy defined in Section 1 of the template. Consider all database aspects: views (full SQL analysis), complex queries inside stored procedures, database usage patterns, whether ScalarDB Analytics is needed, JOIN limitations, and aggregate function requirements.
 9. Record end time and compute duration using Bash: `END_SECS=$(date +%s) && echo $((END_SECS - START_SECS))`
 
 After completion, report back with EXACTLY this format:

@@ -101,7 +101,7 @@ Generate all of these:
 - Use `PreparedStatement` with parameter binding (never string concatenation)
 - Use try-with-resources for Connection, PreparedStatement, and ResultSet
 - Always call `conn.commit()` even for read-only transactions
-- Handle error code 301 (`UnknownTransactionStatusException`) separately — do NOT rollback
+- Handle error code 301 (`UnknownTransactionStatusException`) separately — do not roll back: the commit may have succeeded
 - Call `conn.rollback()` in catch blocks for non-301 errors
 - Quote SQL reserved words with double quotes (`"timestamp"`, `"order"`)
 - Qualify all table names with namespace (`namespace.table`)

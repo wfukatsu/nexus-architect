@@ -28,7 +28,7 @@ statement by `/architect:design-sql-migration` → `/architect:implement-sql-mig
 
 ## Execution Instructions
 
-You MUST follow these steps exactly in order. Do NOT skip any step.
+Follow these steps in order, without skipping either: the first decides which database-specific skill the second delegates to.
 
 ---
 
@@ -101,7 +101,7 @@ The delegated command handles the entire workflow autonomously:
 
 Error cascading applies: if any subagent fails, later subagents are not spawned.
 
-Do NOT perform any additional steps after invoking the skill — the delegated command produces the final output.
+Perform no further steps after invoking the skill: the delegated command produces the final output, and anything added here would repeat or contradict it.
 
 ---
 

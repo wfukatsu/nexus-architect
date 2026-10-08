@@ -56,7 +56,7 @@ consumer is analytical rather than transactional.
 
 ### Saga design checklist (mandatory when any process uses a saga)
 
-Every saga in `scalardb-transaction.md` MUST specify all five of the following — each was a
+Every saga in `scalardb-transaction.md` specifies all five of the following — each was a
 blocker-or-major finding the first time it was left implicit:
 
 1. **Durable start**: the saga state row is committed **in the same transaction** as the business

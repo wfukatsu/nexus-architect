@@ -28,10 +28,10 @@ You are generating ScalarDB Java application code from Oracle PL/SQL stored proc
 - Use the ORACLE_SCHEMA or ORACLE_USER value as-is for the ScalarDB namespace. Use table and column names exactly as they appear in raw_schema_data.json — do not convert to lowercase.
 - Every generated Java class must use the ScalarDB Java Transaction API exclusively (no JDBC)
 - Follow the exception handling patterns from the migration strategy guide
-- ScalarDB 3.17+ has native DATE type. Do NOT map Oracle DATE to BIGINT (epoch millis). Use ScalarDB DATE type with Key.ofDate() and java.time.LocalDate.
+- ScalarDB 3.17+ has native DATE type. Do not map Oracle DATE to BIGINT (epoch millis). Use ScalarDB DATE type with Key.ofDate() and java.time.LocalDate.
 - The SP migration report should contain only information unique to SP/trigger conversion. Do not duplicate content from scalardb_migration_analysis.md.
 - PascalCase the Oracle object names for Java class names (e.g., CALCULATE_ORDER_TOTAL → CalculateOrderTotalService)
-- **Target Java 17**: Use Java 17 language features where they improve clarity — `var` for local type inference, records for result/value objects, `instanceof` pattern matching, switch expressions, text blocks (`"""`), `List.of()` / `Map.of()`, and `String.formatted()`. Do NOT use preview features or Java 21+ features.
+- **Target Java 17**: Use Java 17 language features where they improve clarity — `var` for local type inference, records for result/value objects, `instanceof` pattern matching, switch expressions, text blocks (`"""`), `List.of()` / `Map.of()`, and `String.formatted()`. Do not use preview features or Java 21+ features — the generated code has to compile on Java 17.
 
 After completion, report back with EXACTLY this format:
 - STATUS: SUCCESS or FAILURE

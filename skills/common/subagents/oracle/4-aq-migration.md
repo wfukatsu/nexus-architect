@@ -40,19 +40,19 @@ You are generating Oracle AQ setup SQL and Java consumer code from Oracle PL/SQL
 - If the `plsql` section has no triggers or stored procedures that perform DML, report STATUS: SUCCESS with 0 conversions
 - Use the schema report to determine correct Key types (Key.ofText, Key.ofInt, Key.ofBigInt, etc.) based on actual column data types
 - Use the ORACLE_SCHEMA or ORACLE_USER value as-is for the ScalarDB namespace. Use table and column names exactly as they appear in raw_schema_data.json — do not convert to lowercase.
-- Consumer Java classes MUST use the ScalarDB Java Transaction API exclusively (no JDBC)
+- Consumer Java classes use the ScalarDB Java Transaction API exclusively (no JDBC)
 - Use Upsert (recommended) for idempotent consumer writes — but note this is not mandatory
-- Generated consumer code MUST use the ExceptionClassifier to determine whether to rollback (retriable) or commit (non-retriable poison message removal) the AQ session. Follow the classification rules in aq-exception-handling-strategy.md.
-- The ScalarDbWriter MUST NOT call tx.abort() on UnknownTransactionStatusException — the TX may have committed successfully
-- Do NOT split a single Oracle trigger into multiple AQ triggers. If the original trigger fires on UPDATE OF job_id, department_id (combined), create ONE replacement AQ trigger that fires on the same event. Keep the trigger design aligned with the original structure.
-- Triggers MUST contain NO business logic — they only call enqueue SPs with :OLD/:NEW values
-- All enqueue SPs MUST use `visibility := DBMS_AQ.ON_COMMIT`
+- Generated consumer code uses the ExceptionClassifier to determine whether to rollback (retriable) or commit (non-retriable poison message removal) the AQ session. Follow the classification rules in aq-exception-handling-strategy.md.
+- The ScalarDbWriter does not call tx.abort() on UnknownTransactionStatusException — the TX may have committed successfully
+- Do not split a single Oracle trigger into multiple AQ triggers: one update touching several columns would then enqueue several messages for what was one event. If the original trigger fires on UPDATE OF job_id, department_id (combined), create ONE replacement AQ trigger that fires on the same event. Keep the trigger design aligned with the original structure.
+- Triggers contain no business logic — they only call enqueue SPs with :OLD/:NEW values
+- All enqueue SPs use `visibility := DBMS_AQ.ON_COMMIT`
 - Include the `operation_type` field in every payload type as the last attribute
 - PascalCase Oracle object names for Java class names
-- **Target Java 17**: Use Java 17 language features where they improve clarity — `var`, records, `instanceof` pattern matching, switch expressions, text blocks, `List.of()`, `String.formatted()`. Do NOT use preview features or Java 21+ features.
+- **Target Java 17**: Use Java 17 language features where they improve clarity — `var`, records, `instanceof` pattern matching, switch expressions, text blocks, `List.of()`, `String.formatted()`. Do not use preview features or Java 21+ features — the generated code has to compile on Java 17.
 - Include required dependency information in the report: `aqapi.jar` (from `$ORACLE_HOME/rdbms/jlib/`), `javax.jms-api-2.0.1.jar`, `ojdbc11`, `scalardb`
 - Document in the report that the database must be imported into ScalarDB first before the consumer can work
-- ALL Java files listed in the Generated File Index MUST actually be written to disk. Verify that every file referenced in the report exists in generated-java/.
+- Write every Java file listed in the Generated File Index to disk. Verify that every file referenced in the report exists in generated-java/.
 
 After completion, report back with EXACTLY this format:
 - STATUS: SUCCESS or FAILURE

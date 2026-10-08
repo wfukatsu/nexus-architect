@@ -60,7 +60,7 @@ The skill produces the following outputs:
 
 ### Table and Column Names — Use Exact Names from `raw_schema_data.json`
 
-**Do NOT normalize table names or column names to lowercase or uppercase.**
+**Do not normalize table names or column names to lowercase or uppercase.**
 
 PostgreSQL's behavior depends on how the object was created:
 - **Unquoted identifiers** (e.g., `CREATE TABLE accounts`) → PostgreSQL folds them to `accounts` (lowercase)
@@ -311,7 +311,7 @@ ScalarDB SQL has significant differences from traditional RDBMS SQL. These must 
 
 ## ScalarDB Analytics (REQUIRED for Complex Queries)
 
-> **When to Use**: If your PostgreSQL schema uses complex JOINs, subqueries, window functions, or analytical queries, you **MUST** plan for ScalarDB Analytics deployment.
+> **When to Use**: If your PostgreSQL schema uses complex JOINs, subqueries, window functions, or analytical queries, plan for ScalarDB Analytics deployment — ScalarDB SQL cannot run them (see the limitations above).
 
 ### Decision Matrix
 

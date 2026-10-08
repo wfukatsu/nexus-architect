@@ -133,7 +133,7 @@ When analyzing each MySQL routine, identify which of these feature categories it
 
 ### Target Java Version: 17
 
-All generated Java files MUST target **Java 17**. Use these Java 17 language features where appropriate:
+All generated Java files target **Java 17**. Use these Java 17 language features where appropriate:
 
 | Feature | When to Use |
 |---------|------------|
@@ -146,7 +146,7 @@ All generated Java files MUST target **Java 17**. Use these Java 17 language fea
 | `String.formatted()` | Inline string formatting (prefer over `String.format()`) |
 | Sealed interfaces | Model closed hierarchies of result types (optional, for complex SPs) |
 
-**Do NOT use** preview features or anything requiring Java 21+.
+**Do not use** preview features or anything requiring Java 21+: the generated code has to compile on Java 17.
 
 ### File Naming
 
@@ -159,7 +159,7 @@ All generated Java files MUST target **Java 17**. Use these Java 17 language fea
 
 ### Class Structure
 
-Each generated `.java` file MUST contain:
+Each generated `.java` file contains:
 
 ```java
 package com.example.scalardb.migration;
@@ -208,7 +208,7 @@ Use the schema report to determine correct key types:
 
 ### Error Handling Pattern
 
-Every generated method MUST include proper ScalarDB exception handling:
+Every generated method includes proper ScalarDB exception handling:
 
 ```java
 try {

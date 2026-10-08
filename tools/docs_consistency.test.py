@@ -556,6 +556,37 @@ rules = sorted(f for f in os.listdir(os.path.join(ROOT, "rules")) if f.endswith(
 missing = [r for r in rules if "rules/" + r not in CLAUDE]
 check("every top-level rules/*.md is listed in CLAUDE.md", not missing, missing)
 
+# ------------------------------------------------------- emphatic directives
+
+print("Instructions are stated, not shouted")
+
+# A capitalised MUST or "Do NOT" adds nothing a current model needs and hides whether the
+# instruction has a reason; the reason is what lets it be applied to a case the text did not
+# foresee (issue #56). Code fences are exempt (comments in generated-code examples), and so is the
+# frontmatter, whose description is matched on by the model and changes only with an eval.
+import subprocess as _sp
+prose = [f for f in _sp.run(["git", "ls-files", "skills"], cwd=ROOT, capture_output=True,
+                            text=True).stdout.split()
+         if f.endswith("/SKILL.md") or f.startswith("skills/common/subagents/")]
+shouted = []
+for rel in prose:
+    fenced = False
+    front = None
+    for number, line in enumerate(read(rel).splitlines(), 1):
+        if number == 1 and line.strip() == "---":
+            front = True
+            continue
+        if front:
+            front = line.strip() != "---"
+            continue
+        if line.lstrip().startswith("```"):
+            fenced = not fenced
+            continue
+        if not fenced and re.search(r"\bMUST\b|\b[Dd][Oo] NOT\b", line):
+            shouted.append("%s:%d" % (rel, number))
+check("no skill or sub-agent prompt uses MUST / Do NOT in prose (%d files)" % len(prose),
+      prose and not shouted, shouted)
+
 print()
 print("%d check(s), %d failure(s)" % (checks, failures))
 sys.exit(1 if failures else 0)
