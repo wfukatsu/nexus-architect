@@ -39,7 +39,7 @@ Gain a comprehensive understanding of the target system and generate the followi
 - **Serena MCP** — AST analysis via `get_symbols_overview`, `find_symbol` (preferred)
 - **Glob/Grep** — File pattern search, keyword search within code
 - **Read** — Reading configuration files and dependency definition files
-- **Task(Explore)** — Parallel investigation of large codebases
+- **Agent(Explore)** — Parallel investigation of large codebases
 
 ## Execution
 

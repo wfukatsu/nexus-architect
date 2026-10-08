@@ -120,11 +120,11 @@ note or accept equivalent prose elsewhere.
 
 ### Step 2: Spawn three parallel dimension reviewers
 
-In a **single message**, issue all three Task() calls simultaneously so they run in parallel.
+In a **single message**, issue all three Agent() calls simultaneously so they run in parallel.
 
 **Task A — Authorization and Tenant Isolation (ASEC-1xx)**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "opus",
   description: "API authorization and tenant isolation dimension review",
@@ -189,7 +189,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 
 **Task B — Data Exposure and Input Handling (ASEC-2xx)**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "opus",
   description: "API data exposure and input handling dimension review",
@@ -250,7 +250,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 
 **Task C — Resource, Flow, and Configuration Controls (ASEC-3xx)**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "opus",
   description: "API resource, flow and configuration controls dimension review",

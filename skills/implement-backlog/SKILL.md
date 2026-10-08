@@ -112,7 +112,7 @@ target is `doing`.
 ## Sub-Agent Execution & Model Assignment
 
 This skill runs as a **thin orchestrator (sonnet)** that delegates the heavy steps to sub-agents
-(Agent/Task tool; see @skills/common/sub-agent-patterns.md), each pinned to the cheapest model tier
+(Agent tool; see @skills/common/sub-agent-patterns.md), each pinned to the cheapest model tier
 that can do the job. Two rules keep token cost minimal:
 
 - **Context protection** — the orchestrator never bulk-reads design reports, sibling Issues, or

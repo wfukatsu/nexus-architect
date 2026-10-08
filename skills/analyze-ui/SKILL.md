@@ -83,7 +83,7 @@ base name) — the directory `/architect:investigate` writes to.
   `find_symbol` / `find_referencing_symbols` for handler → service → entity and for where a request
   parameter is validated server-side. Without Serena, Grep and Read do the same on a small codebase.
 - **Glob/Grep/Read** — templates, routes, includes, resource bundles, style and script files
-- **Task (general-purpose)** — batched per-screen extraction (Step 4)
+- **Agent (general-purpose)** — batched per-screen extraction (Step 4)
 - `tools/lib/ui_inventory.py` — validates the inventory (Step 8)
 - `tools/lib/ui_metrics.py` — the navigation, task and consistency figures (Step 9)
 - `tools/lib/ui_views.py` — renders the four views from the inventory (Step 9)
@@ -141,12 +141,12 @@ redirects and the filters to decide where an action lands and which guards prote
 
 ### Step 4: Extract each screen (parallel batches)
 
-Split the screens into batches of about ten and, **in a single message**, issue one `Task()` per
+Split the screens into batches of about ten and, **in a single message**, issue one `Agent()` per
 batch. Each sub-agent writes its batch to a file and replies with a short summary, so no reply
 carries a whole UI:
 
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "UI extraction batch <N>",

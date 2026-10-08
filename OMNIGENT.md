@@ -112,10 +112,10 @@ Skill bodies mention Claude Code tools. Interpret them as Omnigent tools:
 | `LS`               | `sys_os_shell`  | `ls`                                     |
 | `WebFetch` / `WebSearch` | (orchestrator web capability) | when network is approved      |
 
-## `Task(...)` Blocks → Sequential Bodies or Orchestrator Dispatch
+## `Agent(...)` Blocks → Sequential Bodies or Orchestrator Dispatch
 
 Several skills (notably the 6-perspective parallel reviews and the migration routers)
-spawn Claude sub-agents via `Task(...)`. Under Omnigent, for each `Task` prompt body:
+spawn Claude sub-agents via `Agent(...)` (spelled `Task(...)` before Claude Code renamed the tool). Under Omnigent, for each `Agent` prompt body:
 
 - **Default (sequential):** run each prompt body one after another in the same worker
   and have the orchestrator aggregate the results.
@@ -124,7 +124,7 @@ spawn Claude sub-agents via `Task(...)`. Under Omnigent, for each `Task` prompt 
   `sys_session_send`), not by a plain worker.
 
 > **Note:** `sys_call_async` dispatches a registered local **Python tool**, not an
-> agent/sub-agent session — do **not** use it to run `Task(...)` prompt bodies.
+> agent/sub-agent session — do **not** use it to run `Agent(...)` prompt bodies.
 
 Either way, the **orchestrator** computes any composite scores *after* collecting all
 results — individual sub-agents only return their own findings (e.g. each review writes
@@ -195,7 +195,7 @@ analysis themselves. To run a pipeline under Omnigent:
    `skills/product/common/skill-dependencies.yaml` (the product pipeline). Each entry
    lists `depends_on`, `parallel_with`, `conditions`, `outputs`, and `model`.
 2. Execute phases in dependency order; run `parallel_with` groups concurrently (see the
-   `Task` dispatch section). Honor `conditions` (e.g. `scalardb_enabled` selects
+   `Agent` dispatch section). Honor `conditions` (e.g. `scalardb_enabled` selects
    `review-scalardb`; `scalardb_disabled` selects `review-data-integrity`).
 3. Track progress in `work/pipeline-progress.json` (plain data — not a Claude construct).
    It also holds `options.output_language` (`en` default, `ja` supported) and

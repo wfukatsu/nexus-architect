@@ -42,12 +42,12 @@ Record the full list of found file paths — these will be passed to all sub-age
 
 ### Step 2: Spawn Three Parallel Layer Evaluators
 
-In a **single message**, issue all three Task() calls simultaneously so they run in parallel.
+In a **single message**, issue all three Agent() calls simultaneously so they run in parallel.
 Each evaluator assesses its specific DDD layer independently.
 
 **Task A — Strategic Design Layer (criteria 1-3)**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "DDD strategic design layer evaluation",
@@ -102,7 +102,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 
 **Task B — Tactical Design Layer (criteria 4-9)**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "DDD tactical design layer evaluation",
@@ -181,7 +181,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 
 **Task C — Architecture Layer (criteria 10-12)**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "DDD architecture layer evaluation",

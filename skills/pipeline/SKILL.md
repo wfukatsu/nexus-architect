@@ -73,7 +73,7 @@ part of the automated run.
 Every phase of the manifest runs in its own sub-agent, on the manifest's `model` for that phase:
 
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "{phase_model}",
   description: "{phase}",

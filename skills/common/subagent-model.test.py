@@ -68,6 +68,15 @@ for path in sorted(skills):
         elif not tier or found.group(1) != tier.group(1):
             wrong.append("%s:%d names %s, the skill is %s" % (
                 rel, line, found.group(1), tier.group(1) if tier else "undeclared"))
+# The tool is `Agent`; `Task` is the name it had before Claude Code v2.1.63 and survives only as an
+# alias. One spelling, so that a reader does not have to wonder whether they are two tools.
+old_name = []
+for path in sorted(skills) + [os.path.join(ROOT, "skills", "common", "sub-agent-patterns.md")]:
+    with open(path, encoding="utf-8") as fh:
+        for number, line in enumerate(fh, 1):
+            if re.search(r"\bTask\(|`Task` tool|\bTask tool\b", line):
+                old_name.append("%s:%d" % (os.path.relpath(path, ROOT), number))
+check("no skill spells the sub-agent tool `Task`", not old_name, old_name)
 check("the corpus spells out sub-agent calls (found %d)" % calls, calls > 0)
 check("every call names a model", not missing, missing)
 check("the model is the calling skill's own tier", not wrong, wrong)

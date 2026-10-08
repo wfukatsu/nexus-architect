@@ -1,6 +1,6 @@
 # Sub-Agent Pattern Library
 
-Eight reusable patterns for sub-agents invoked via the Task tool during skill execution.
+Eight reusable patterns for sub-agents invoked via the Agent tool during skill execution.
 
 ## Always pass `model`
 
@@ -35,7 +35,7 @@ sub-agent — which is why only the automated orchestrator does this for every p
 Used for surveying the structure of large codebases.
 
 ```
-Task(subagent_type="Explore",
+Agent(subagent_type="Explore",
   model="{phase_model}",
   prompt="Explore the package structure of {target_path},
     and compile a list of major modules and their dependencies in JSON format.",
@@ -47,7 +47,7 @@ Task(subagent_type="Explore",
 Summarize previous phase outputs via a sub-agent to protect the context window.
 
 ```
-Task(subagent_type="Explore",
+Agent(subagent_type="Explore",
   model="{phase_model}",
   prompt="Read the following files and extract the information needed for {current_skill}:
     Required: reports/02_evaluation/mmi-overview.md
@@ -61,7 +61,7 @@ Task(subagent_type="Explore",
 Detection and evaluation of microservice patterns.
 
 ```
-Task(subagent_type="general-purpose",
+Agent(subagent_type="general-purpose",
   model="{phase_model}",
   prompt="Analyze the architecture patterns of the target system:
     - Communication patterns (synchronous/asynchronous)
@@ -75,7 +75,7 @@ Task(subagent_type="general-purpose",
 Code synthesis from design specifications.
 
 ```
-Task(subagent_type="general-purpose",
+Agent(subagent_type="general-purpose",
   model="{phase_model}",
   prompt="Generate Spring Boot + ScalarDB code based on the following design specification:
     - Entities: {entities}
@@ -89,7 +89,7 @@ Task(subagent_type="general-purpose",
 Automatic identification of domain models.
 
 ```
-Task(subagent_type="Explore",
+Agent(subagent_type="Explore",
   model="{phase_model}",
   prompt="Extract domain entities from {target_path}:
     - Class names, attributes, and relationships
@@ -103,7 +103,7 @@ Task(subagent_type="Explore",
 Cross-cutting comparison of multiple documents.
 
 ```
-Task(subagent_type="general-purpose",
+Agent(subagent_type="general-purpose",
   model="{phase_model}",
   prompt="Perform a comparative analysis of the following two design proposals:
     - Proposal A: {file_a}
@@ -117,7 +117,7 @@ Task(subagent_type="general-purpose",
 Consolidate multiple analysis results into a single report.
 
 ```
-Task(subagent_type="general-purpose",
+Agent(subagent_type="general-purpose",
   model="{phase_model}",
   prompt="Consolidate the following analysis results into an integrated report:
     {file_list}
@@ -130,7 +130,7 @@ Task(subagent_type="general-purpose",
 Feasibility verification of a design.
 
 ```
-Task(subagent_type="general-purpose",
+Agent(subagent_type="general-purpose",
   model="{phase_model}",
   prompt="Verify whether the following design satisfies the constraint conditions:
     Design: {design_file}

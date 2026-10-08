@@ -124,7 +124,7 @@ repeated cycles do not drift. The whole marker contract above is asserted as beh
 
 ## Sub-Agent Execution & Model Assignment
 
-A **thin orchestrator (sonnet)** delegating to sub-agents (Agent/Task tool; see
+A **thin orchestrator (sonnet)** delegating to sub-agents (Agent tool; see
 @skills/common/sub-agent-patterns.md). The orchestrator holds the inventory digest and the page
 plan — never full source files or full report bodies.
 

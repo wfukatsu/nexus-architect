@@ -151,7 +151,7 @@ When reviewing, consult these reference documents:
 
 ## How to Use
 
-This agent should be invoked with a Task tool call like:
+This agent should be invoked with a Agent tool call like:
 
 ```
 Review the ScalarDB application code in [path] for correctness.

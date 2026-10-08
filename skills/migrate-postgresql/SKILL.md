@@ -304,15 +304,15 @@ mkdir -p <OUTPUT_DIR>
 
 ### STEP 7: Subagent 0 — Connection Test via API (Bash)
 
-Spawn a **Bash** subagent using the `Task` tool to test the PostgreSQL database connection via the external API.
+Spawn a **Bash** subagent using the `Agent` tool to test the PostgreSQL database connection via the external API.
 
 1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/postgresql/0-test-connection.md`
 2. Substitute the runtime variables: replace `<POSTGRES_HOST>`, `<POSTGRES_PORT>`, `<POSTGRES_DATABASE>`, `<POSTGRES_USER>`, `<POSTGRES_PASSWORD>`, and `<OUTPUT_DIR>` with the actual values from Steps 4-5
-3. Call the Task tool with `subagent_type: "Bash"`, `model: "sonnet"`, `description: "Test PostgreSQL connection"`, and the substituted prompt
+3. Call the Agent tool with `subagent_type: "Bash"`, `model: "sonnet"`, `description: "Test PostgreSQL connection"`, and the substituted prompt
 
 **After the subagent completes:**
 - Extract `DURATION_SECONDS` from the subagent's response → store as `S0_DURATION`
-- Extract `total_tokens` from the `<usage>` block in the Task result (if present) → store as `S0_TOKENS`
+- Extract `total_tokens` from the `<usage>` block in the Agent result (if present) → store as `S0_TOKENS`
 
 **Check the subagent result:**
 - If STATUS is **FAILURE** → Display the error to the user with resolution hints (check host/port/database name, verify credentials, check `pg_hba.conf` allows connections, ensure PostgreSQL server is running). **STOP HERE — do NOT proceed to Step 8, 9, or 10.**
@@ -322,15 +322,15 @@ Spawn a **Bash** subagent using the `Task` tool to test the PostgreSQL database 
 
 ### STEP 8: Subagent 1 — Schema Extraction (Bash)
 
-Spawn a **Bash** subagent using the `Task` tool to run the Python extractor script.
+Spawn a **Bash** subagent using the `Agent` tool to run the Python extractor script.
 
 1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/postgresql/1-extract-schema.md`
 2. Substitute the runtime variables as documented in the template (replace `<INCLUDE_SOURCE_FLAG>` based on POSTGRES_INCLUDE_PLPGSQL_SOURCE from Step 4)
-3. Call the Task tool with `subagent_type: "Bash"`, `model: "sonnet"`, `description: "Extract PostgreSQL schema"`, and the substituted prompt
+3. Call the Agent tool with `subagent_type: "Bash"`, `model: "sonnet"`, `description: "Extract PostgreSQL schema"`, and the substituted prompt
 
 **After the subagent completes:**
 - Extract `DURATION_SECONDS` from the subagent's response → store as `S1_DURATION`
-- Extract `total_tokens` from the `<usage>` block in the Task result (if present) → store as `S1_TOKENS`
+- Extract `total_tokens` from the `<usage>` block in the Agent result (if present) → store as `S1_TOKENS`
 
 **Check the subagent result:**
 - If STATUS is **FAILURE** → Display the error to the user with resolution hints (check host/port, verify credentials, ensure PostgreSQL server is running). **STOP HERE — do NOT proceed to Step 9 or Step 10.**
@@ -340,15 +340,15 @@ Spawn a **Bash** subagent using the `Task` tool to run the Python extractor scri
 
 ### STEP 9: Subagent 2 — Schema Report Generation (general-purpose)
 
-Spawn a **general-purpose** subagent using the `Task` tool to generate the schema report from the extracted JSON.
+Spawn a **general-purpose** subagent using the `Agent` tool to generate the schema report from the extracted JSON.
 
 1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/postgresql/2-generate-report.md`
 2. Substitute the runtime variables as documented in the template (replace all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4)
-3. Call the Task tool with `subagent_type: "general-purpose"`, `model: "sonnet"`, `description: "Generate PostgreSQL schema report"`, and the substituted prompt
+3. Call the Agent tool with `subagent_type: "general-purpose"`, `model: "sonnet"`, `description: "Generate PostgreSQL schema report"`, and the substituted prompt
 
 **After the subagent completes:**
 - Extract `DURATION_SECONDS` from the subagent's response → store as `S2_DURATION`
-- Extract `total_tokens` from the `<usage>` block in the Task result (if present) → store as `S2_TOKENS`
+- Extract `total_tokens` from the `<usage>` block in the Agent result (if present) → store as `S2_TOKENS`
 
 **Check the subagent result:**
 - If STATUS is **FAILURE** → Display the error to the user. Note that `raw_schema_data.json` is still available for manual inspection. **STOP HERE — do NOT proceed to Step 10.**
@@ -358,7 +358,7 @@ Spawn a **general-purpose** subagent using the `Task` tool to generate the schem
 
 ### STEP 10: Subagents 3 & 4 — Migration Analysis + SP & Trigger Migration (Parallel)
 
-**Both subagents run simultaneously** in a single message — send both `Task` tool calls together in one response. They share the same inputs (`postgresql_schema_report.md` and `raw_schema_data.json`) and have no dependency on each other's output.
+**Both subagents run simultaneously** in a single message — send both `Agent` tool calls together in one response. They share the same inputs (`postgresql_schema_report.md` and `raw_schema_data.json`) and have no dependency on each other's output.
 
 **Preparation:**
 1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/postgresql/3-migration-analysis.md`
@@ -367,8 +367,8 @@ Spawn a **general-purpose** subagent using the `Task` tool to generate the schem
    - Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
 
 **Spawn both in one message:**
-- Task call A: `subagent_type: "general-purpose"`, `model: "sonnet"`, `description: "Generate PostgreSQL migration docs"`, substituted prompt from `3-migration-analysis.md`
-- Task call B: `subagent_type: "general-purpose"`, `model: "sonnet"`, `description: "Generate SP & trigger migration code"`, substituted prompt from `4-sp-trigger-migration.md`
+- Agent call A: `subagent_type: "general-purpose"`, `model: "sonnet"`, `description: "Generate PostgreSQL migration docs"`, substituted prompt from `3-migration-analysis.md`
+- Agent call B: `subagent_type: "general-purpose"`, `model: "sonnet"`, `description: "Generate SP & trigger migration code"`, substituted prompt from `4-sp-trigger-migration.md`
 
 **After both subagents complete:**
 - From Subagent 3 result: extract `DURATION_SECONDS` → store as `S3_DURATION`; extract `total_tokens` from `<usage>` block → store as `S3_TOKENS`
@@ -497,9 +497,9 @@ Step 11 ◄───────────────────────
 | 3 | 10 ┐ | General-purpose | Generate migration analysis + steps from schema report + reference docs | Complexity score + findings + DURATION_SECONDS |
 | 4 | 10 ┘ | General-purpose | Generate Java code from PL/pgSQL + SP & trigger migration report | Files generated + complexity + DURATION_SECONDS |
 
-**Parallelism:** Subagents 3 and 4 are spawned simultaneously in Step 10 (single message, two Task calls). Both read from `postgresql_schema_report.md` and `raw_schema_data.json`; neither depends on the other.
+**Parallelism:** Subagents 3 and 4 are spawned simultaneously in Step 10 (single message, two Agent calls). Both read from `postgresql_schema_report.md` and `raw_schema_data.json`; neither depends on the other.
 
-**Metrics tracking:** After each Task call, extract `total_tokens` and `duration_ms` from the `<usage>` block in the result, and `DURATION_SECONDS` from the subagent's self-reported output. Use these to populate the Step 11 summary table.
+**Metrics tracking:** After each Agent call, extract `total_tokens` and `duration_ms` from the `<usage>` block in the result, and `DURATION_SECONDS` from the subagent's self-reported output. Use these to populate the Step 11 summary table.
 
 The SKILL.md files are **read directly by subagents** as instruction documents (the Skill tool is not invoked).
 
