@@ -7,6 +7,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.43.0] - 2026-10-08
+
+An audit against the current Claude Code documentation (v2.1.293–294), and what it found. Several
+of these change behaviour — read **Changed** before upgrading.
+
+### Fixed
+- **Each hook ran once per enabled plugin.** The four plugins share one source directory, so
+  Claude Code registered `hooks/hooks.json` four times: one file written was validated four times
+  and returned four identical errors to the model. A marker keyed on the tool call's id now lets
+  one copy do the work (`hooks/claim.sh`); with no id, or nowhere to write the marker, every copy
+  runs as before.
+- **The model a skill is assigned is now the model it runs on.** Measured, the per-skill `model`
+  took effect only when the user typed that skill's command. A phase run by an orchestrator ran on
+  the orchestrator's sonnet, and a sub-agent ran on the user's default — the ledger of real runs
+  showed no phase on its assigned lower tier, and the opus phases under an orchestrator on sonnet.
+  - Every sub-agent call a skill spells out (54 in 15 skills) names its `model`.
+  - `/architect:pipeline` runs every phase as a sub-agent on the manifest's model.
+  - `/architect:start` and `/product:start` declare `model: inherit`; see **Changed**.
+- **Skill descriptions were being dropped from the listing.** The 116 descriptions totalled 45,384
+  characters against a listing budget of 1% of the context window. They now total 23,573 (longest
+  298); the invocation signature moved to `argument-hint` and a `**Usage:**` line in the body.
+- **`user_invocable: true` was not a key Claude Code reads** (the key is `user-invocable`, and it
+  only opts out). Removed from all skills.
+- **`@rules/…` paths in a skill body are not imports.** Each skill that cites one now opens by
+  saying the path is relative to `${CLAUDE_PLUGIN_ROOT}`, not to the project being worked on.
+- **Hook matchers named tools that no longer exist** (`MultiEdit`, `Task`). They now name `Write`,
+  `Edit` and `Agent`.
+
+### Changed
+- **`/architect:pipeline` no longer asks the user anything.** A phase in a sub-agent cannot; what
+  it would have asked is recorded `unasked` in `work/context.md` § Open Questions with the options
+  it would have offered. `/architect:start` is the orchestrator for a run that should stop and ask.
+- **`/architect:start` and `/product:start` run on the session's model**, not on sonnet.
+  Dialogue-driven phases run inline on it — the orchestrators suggest `/model opus` when the
+  session is smaller. `/architect:start` sends every other phase to a sub-agent on its manifest
+  model and then asks the user what that phase could not; `/product:start --auto` does the same
+  for all of its phases. A sonnet or haiku session therefore runs the opus-assigned phases on
+  opus, which costs more than before.
+- **The frontmatter validator acts only in a pipeline project** — one with
+  `work/pipeline-progress.json` at or above the written file. The plugins are enabled per user,
+  and an unrelated repository with a `reports/` directory was getting a blocking error for every
+  Markdown file written there. The Mermaid validator still checks any Markdown file, and both
+  scripts still validate whatever file they are given on the command line.
+- **`investigate-db-design`, `investigate-db-live` and `revise-knowledge` are reached only as
+  `/architect:<name>`.** They carried a `name` in their frontmatter, which on a plugin skill also
+  registers the bare command; with eight names shared between plugins that alias cannot be given
+  to every skill, so no skill has it.
+- **The token-usage recorder runs in the background** after a tool call, and the frontmatter
+  validator is started only for files under `reports/`.
+
+### Added
+- **CI validates against Claude Code itself**: `claude plugin validate --strict` over the manifest
+  and `skills/`, with a pinned version.
+- **Behavioural evals** (`evals/`, `claude plugin eval`): does a request in a user's own words
+  reach the right entry point. On demand, not in CI — a run needs a credential and costs money.
+- **Four contract suites**: `hooks/hooks.test.py`, `skills/common/subagent-model.test.py`,
+  `evals/evals.test.py`, and a frontmatter section in `tools/docs_consistency.test.py` (only keys
+  Claude Code reads, description length and listing total, no `name`).
+
 ## [0.42.1] - 2026-09-28
 
 ### Fixed
