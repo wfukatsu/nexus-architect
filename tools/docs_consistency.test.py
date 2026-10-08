@@ -392,6 +392,25 @@ for doc_name, doc in (("CLAUDE.md", CLAUDE), ("README.md", README)):
 # would re-add the catalogue this split exists to keep out.
 check("CLAUDE.md does not @-import the catalogue", "@docs/skill-reference.md" not in CLAUDE)
 
+# Nor anything else. Seven such paths once made every session load 66 KB it mostly did not need,
+# under a heading saying rules are read on demand (issue #54). A path in backticks is not an
+# import; the notation itself (`@rules/...`) is described in backticks and is not one either.
+imports = re.findall(r"(?<![`\w])@(?:skills|rules|docs|templates|tools)/[\w/.-]+", CLAUDE)
+check("CLAUDE.md @-imports no repository file", not imports, imports)
+
+# The per-suite reference left CLAUDE.md for docs/test-suites.md, and the runner discovers suites
+# by itself — so nothing but this check would notice a suite the table does not name.
+import fnmatch
+import subprocess
+SUITES_DOC = read("docs/test-suites.md")
+tracked = subprocess.run(["git", "ls-files", "*.test.py", "*.test.sh"], cwd=ROOT,
+                         capture_output=True, text=True).stdout.split()
+rows = re.findall(r"^\| `([^`]+?)`", SUITES_DOC, re.M)
+unlisted = [s for s in tracked if not any(fnmatch.fnmatch(s, row.split(" ")[0]) for row in rows)]
+check("docs/test-suites.md names every suite the runner discovers (%d)" % len(tracked),
+      tracked and not unlisted, unlisted)
+check("CLAUDE.md points at the per-suite reference", "docs/test-suites.md" in CLAUDE)
+
 # --------------------------------------------------------- tier enumeration
 
 print("CLAUDE.md tier prose matches the code that renders it")
