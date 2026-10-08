@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.43.2] - 2026-10-09
+
+### Fixed
+- **A pipeline run from a script or CI could lose phases.** Found by running the real
+  `/architect:pipeline` to the end on `samples/ec-monolith` under `claude -p`. Since 0.43.0 every
+  phase is a sub-agent, and in a non-interactive run two things went wrong. Phase calls issued
+  together were launched in the background, and a background sub-agent still running ten minutes
+  after the turn ends is stopped — a `design-api` phase was cut off mid-run. One level down, four
+  of six review phases launched their own sub-agents in the background, ended without waiting, and
+  returned with nothing written; the orchestrator had to resume them. `/architect:pipeline`,
+  `/architect:start` and `/product:start` now pass `run_in_background: false` on every phase call
+  and tell the phase to do the same for its own sub-agents and not to finish until they have
+  returned. Interactive sessions were not affected.
+
+### Changed
+- **Skills call the sub-agent tool `Agent`.** Claude Code renamed `Task` to `Agent` in v2.1.63 and
+  keeps the old name only as an alias. 26 skills, the shared pattern library and the Codex and
+  omnigent entry documents use the current name; a test rejects the old one. No behaviour change.
+- **Developing this repository loads a third of the context it did.** `CLAUDE.md` said rules are
+  read on demand and then `@`-imported eight files in passing: about 120 KB per session, now about
+  39 KB. The imports are plain paths, and the per-suite table is `docs/test-suites.md`. A new test
+  suite gets its row there; a test fails one the table does not name. This affects contributors,
+  not plugin users.
+
+### Verified
+- **The model assignment of 0.43.0, on a full run.** All 24 phases ran on the model the manifest
+  assigns — `report` on haiku, the judgement phases on opus, the rest on sonnet — with the session
+  itself on sonnet; the review phases' own sub-agents ran at their parent's tier; hooks reported
+  once per tool call.
+
 ## [0.43.1] - 2026-10-08
 
 ### Fixed
