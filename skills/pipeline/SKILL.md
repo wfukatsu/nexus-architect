@@ -36,8 +36,8 @@ part of the automated run.
 3. **Product handoff detection** — glob the same set `define-requirements` ingests: `reports/00_core/`, `reports/01_ux/`, `reports/02_spec/`, `reports/03_domain/`, `reports/04_quality/` and `work/traceability.json`. Keep the two sets identical — a run that stopped early (`--profile=mvp` writes only `reports/00_core/`) is still a handoff. Match **files**, not directories: `/product:init-output` creates `reports/01_ux/domain-stories/` and `reports/02_spec/ui-mocks/` empty, so a directory test passes on any initialized product project. If product artifacts exist, run `define-requirements` first with them as inputs (the product→architect handoff, @docs/design.md §1); it auto-detects and carries product IDs forward. Otherwise run the standard greenfield/legacy entry.
 4. Execute each phase **as a sub-agent**, never inline, and verify its output before proceeding to
    the next — see Phase Execution below for the call and for why
-5. Start the phases of a `parallel_with` group in one message, one sub-agent each, and wait for all
-   of them before the next phase
+5. Start the phases of a `parallel_with` group in one message, one sub-agent each, **in the
+   foreground**, and continue only when all of them have returned (see Phase Execution)
 6. Enable or disable conditional skills based on the `conditions` field: ScalarDB/data-layer from
    `scalardb_enabled`, and `design-graphql` directly from GraphQL/hybrid surfaces in canonical
    `reports/03_design/api-style-decisions.json`. Before that artifact exists, a legacy
@@ -76,6 +76,7 @@ Every phase of the manifest runs in its own sub-agent, on the manifest's `model`
 Agent(
   subagent_type: "general-purpose",
   model: "{phase_model}",
+  run_in_background: false,
   description: "{phase}",
   prompt: "Run the phase `{phase}` of the nexus-architect pipeline.
            Project directory: {project_dir} — every `reports/`, `work/` and `generated/` path is
@@ -86,6 +87,8 @@ Agent(
            do what @rules/open-questions.md §5 says for an unasked question: record it in the
            store with status `unasked`, its question text and the options you would have offered,
            write `TBD (OQ-###)` at the placeholder, and continue.
+           Where the skill has you spawn sub-agents of your own, pass `run_in_background: false`
+           on each and do not finish until they have returned and the phase's outputs are written.
            Do not write this phase's entry in work/pipeline-progress.json — the orchestrator does.
            Reply with: the files you wrote, a two-line summary of what the phase concluded, and
            the `OQ-` IDs you recorded. If the phase could not complete, say so and why."
@@ -104,6 +107,25 @@ is assigned — the opus phases (`analyze`, `redesign`, every `design-*`, `revie
 call (measured: @skills/common/sub-agent-patterns.md § Always pass `model`), and a phase run this
 way may still spawn the sub-agents its own skill describes. It also keeps each phase's working
 context out of this one, which is what lets a long run finish.
+
+**Run every phase sub-agent in the foreground**, by passing `run_in_background: false` on the call —
+on every call of a parallel group too, which is several foreground calls in one message that return
+together. The pipeline needs each result before it can take its next step, and saying nothing is
+not enough. Measured on v2.1.294 in a non-interactive run (`claude -p`, CI):
+
+- with the parameter absent, the six review phases issued in one message were all launched in the
+  background, and a background sub-agent still running ten minutes after the turn ends is stopped —
+  that is how a `design-api` phase was cut off mid-run with nothing after it started;
+- the same happens one level down: four of six review phases launched their own sub-agents in the
+  background, finished their turn without waiting, and returned with no output written. Hence the
+  sentence in the prompt above telling the phase to keep its own sub-agents in the foreground;
+- with `run_in_background: false` on each call, two parallel phases and the two sub-agents each of
+  them spawned all ran in the foreground.
+
+Never end your turn while a phase is `in_progress`. Where the harness places a sub-agent in the
+background regardless (an interactive session does), wait for its completion notification, confirm
+the phase's declared outputs exist — resume the sub-agent if they do not — and continue from there;
+do not report the pipeline as finished or paused in between.
 
 What stays with the orchestrator, inline: reading the manifest, `/architect:init-output`, the
 handoff detection of step 3, deciding which phases run (steps 6–7), every write to
