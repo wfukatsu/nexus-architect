@@ -1,5 +1,4 @@
 ---
-name: revise-knowledge
 description: |
   Re-verify the vendored Kubernetes/Terraform OKF bundle (knowledge/okf-k8s-tf) against its public
   upstream and revise the documents that fell behind — the judgement step the weekly refresh leaves
