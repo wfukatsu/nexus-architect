@@ -83,7 +83,11 @@ TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty')
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
 # Only run for Write/Edit tools when invoked as a Claude Code hook
-case "$TOOL_NAME" in Write|Edit|MultiEdit) ;; *) exit 0 ;; esac
+case "$TOOL_NAME" in Write|Edit) ;; *) exit 0 ;; esac
+
+# One enabled plugin's copy per tool call (see claim.sh).
+. "$(dirname "$0")/claim.sh"
+claim_once "validate-frontmatter" "$(echo "$INPUT" | jq -r '.tool_use_id // empty')" || exit 0
 
 # Exit 2 so Claude Code treats this as blocking feedback (stderr is fed
 # back to the model); exit 1 would only be shown to the user.

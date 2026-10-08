@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Nexus Architect token-usage recorder.
 
-A fail-safe Claude Code hook (PostToolUse on Write|Edit|MultiEdit|Task|Agent,
-plus Stop / SubagentStop). It reads the session transcript *incrementally*
+A fail-safe Claude Code hook (PostToolUse on Write|Edit|Agent, in the background,
+plus Stop / SubagentStop, which wait). It reads the session transcript *incrementally*
 (byte-offset per transcript file), sums billed tokens per model from newly
 appended assistant turns, and attributes each delta to a pipeline phase:
 
@@ -313,6 +313,36 @@ class Lock:
         return False
 
 
+def claim_once(tool_use_id):
+    """True for exactly one of the copies of this hook that fire for one tool call.
+
+    Each enabled nexus-architect plugin loads its own copy of hooks/hooks.json, so one tool call
+    starts this script up to four times in parallel (hooks/claim.sh has the full reason and is
+    the shell half of the same protocol). Stop / SubagentStop carry no tool_use_id and are not
+    claimed: every copy runs, and the byte offsets make all but the first a no-op.
+    """
+    key = "".join(ch for ch in (tool_use_id or "") if ch.isalnum() or ch in "_-")
+    if not key:
+        return True
+    base = os.path.join(os.environ.get("TMPDIR") or "/tmp", "nexus-architect-hooks")
+    try:
+        os.makedirs(base, exist_ok=True)
+        os.mkdir(os.path.join(base, "record_token_usage-" + key))
+    except FileExistsError:
+        return False
+    except OSError:
+        return True
+    cutoff = time.time() - 3600
+    try:
+        for name in os.listdir(base):
+            path = os.path.join(base, name)
+            if os.path.getmtime(path) < cutoff:
+                os.rmdir(path)
+    except OSError:
+        pass
+    return True
+
+
 def main():
     raw = sys.stdin.read()
     try:
@@ -335,6 +365,11 @@ def main():
 
     pricing = find_pricing()
     if not pricing:
+        return
+
+    # Claimed only here, past the checks that keep the hook inert, so a project that is not a
+    # pipeline project never gets a marker written for it.
+    if not claim_once(ev.get("tool_use_id")):
         return
 
     ledger_path = os.path.join(work, "token-usage.json")
