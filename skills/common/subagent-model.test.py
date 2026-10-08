@@ -147,6 +147,14 @@ for manifest in ("skills/common/skill-dependencies.yaml", "skills/product/common
                     unwritable.append("%s:%d %s" % (manifest, number, path))
 check("no manifest output has a name a sub-agent is refused when writing", not unwritable, unwritable)
 
+# Under a spending cap the orchestrator may have a phase do less than its skill describes, but not
+# quietly: the pipeline skill has to say where that is recorded.
+with open(os.path.join(ROOT, "skills", "pipeline", "SKILL.md"), encoding="utf-8") as fh:
+    pipeline_text = fh.read()
+check("the pipeline says a cheaper method under a budget cap is recorded and reported",
+      "short of budget" in pipeline_text and "`warnings`" in pipeline_text
+      and "final message to the user" in pipeline_text and "Never drop a phase" in pipeline_text)
+
 print()
 print("%d check(s), %d failure(s)" % (checks, failures))
 sys.exit(1 if failures else 0)
