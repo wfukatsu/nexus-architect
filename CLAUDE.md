@@ -55,6 +55,17 @@ without editing the runner or CI. `.github/workflows/contracts.yml` runs the sam
 push and pull request: per `rules/ai-code-quality-gate.md` the CI half is the enforced one, and a
 contract that runs only when someone remembers is not enforced at all.
 
+The same workflow then runs `claude plugin validate . --strict` and `claude plugin validate skills
+--strict` with a pinned Claude Code version: what the runtime itself accepts of the manifest and of
+the SKILL.md files directly under `skills/`. It does not reach `skills/product/` or `skills/infra/`,
+and it does not flag unknown frontmatter keys — the suites below own those.
+
+**Behavioural evals are separate and on demand.** `evals/` holds `claude plugin eval` cases that ask
+what the suites cannot: given a request in a user's words, is the right entry-point skill chosen.
+They need a credential and cost money per run, so they are not in CI — run
+`claude plugin eval . --ablation none` when a `description` changes (`evals/README.md`, including
+why a path target loads only the architect and scalardb skills).
+
 One workflow is not a gate: `.github/workflows/refresh-okf-k8s-tf.yml` collects the vendored
 k8s-tf bundle's public upstream every Monday 23:00 JST with no model involved — sources that moved
 to a new address rewritten, documents awaiting re-verification listed — and proposes the result as a pull
@@ -66,6 +77,7 @@ request. Revising those documents is judgement, and is `/architect:revise-knowle
 | `hooks/hooks.test.py` | What `hooks.json` asks for and the once-per-tool-call guard: matchers naming only tools that exist, the frontmatter validator filtered to `reports/` per tool, no validator in the background, the recorder in the background after a tool call and waiting at Stop, four copies of one call reporting once while the next call is validated again, every copy running when there is no id or nowhere to write a marker, and no marker written outside a pipeline project |
 | `tools/omnigent/load-skill.test.sh` | The omnigent loader's skill resolution |
 | `skills/common/subagent-model.test.py` | The explicit-model rule for sub-agents: every `subagent_type` a skill names carries a `model` on the same call, equal to that skill's own tier, and the shared pattern library spells it `{phase_model}` |
+| `evals/evals.test.py` | The eval cases staying loadable without a model: each has a prompt that names no slash command and points `plugins` at the repository root, at least one typed grader, and a `skill-fired` grader naming a skill that exists |
 | `skills/infra/infra-contract.test.py` | The `/infra:*` contract: the bundle resolution order in the rule matching `update-okf-bundle.sh` (whose k8s-tf update path collects the public upstream, never clones), `status` printing the freshness list (past `stale_after`, awaiting re-verification with reasons) that the router passes to all three mode skills, every document the topic map names existing (and every document being reachable from it), `stale_after` present, parseable and later than `verified` on all 23 with no date pinned in the rule, the four skills' models matching the router's Model Policy table, and each named template carrying the frontmatter block |
 | `tools/lib/okf_upstream.test.py` | The k8s-tf bundle's upstream collector, offline: every public page the bundle cites watched and no private `gitlab.com/scalar-labs/` source ever fetched, release feeds well-formed and stating only versions their documents state, page chrome not counted as a change while an edited paragraph is, prereleases skipped, an unreachable source keeping its previous entry and, after a week of failing, listing its documents for re-verification, a quiet week byte-identical (a new release of a feed stating no version included — else a pull request nearly every week), the baseline run not a flood of re-verifications, the committed `state.json` covering exactly the cited pages with no page text, and `pages/` git-ignored |
 | `skills/generate-docs/marker-mechanics.test.py` | The `<!-- nexus:begin:<section> -->` ownership-marker contract that skill states in prose (no argument = embedded fixture; or pass a real README) |
