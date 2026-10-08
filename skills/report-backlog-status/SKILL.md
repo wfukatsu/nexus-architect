@@ -4,6 +4,9 @@ description: |
   (todo/doing/review/done/blocked) and its Implemented / Reviewed / Merged stages — on the terminal,
   live or as a one-shot render.
 argument-hint: '[--once] [--no-sync] [--exec] [--epic=<id>] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]'
+allowed-tools:
+  - Bash(${CLAUDE_PLUGIN_ROOT}/tools/backlog-status.sh *)
+  - 'Bash("${CLAUDE_PLUGIN_ROOT}/tools/backlog-status.sh" *)'
 model: haiku
 disable-model-invocation: true
 ---

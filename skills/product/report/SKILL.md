@@ -4,6 +4,9 @@ description: |
   with a mandatory "Key Assumptions & Validation Status" section — gate verdict, open assumptions,
   every TBD, and Open Questions — before any design content.
 argument-hint: '[--auto] [--lang=ja|en]'
+allowed-tools:
+  - Bash(python3 ${CLAUDE_PLUGIN_ROOT}/tools/build-report.py *)
+  - 'Bash(python3 "${CLAUDE_PLUGIN_ROOT}/tools/build-report.py" *)'
 model: sonnet
 ---
 

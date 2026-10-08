@@ -4,6 +4,9 @@ description: |
   what is running now, and the validation gate's verdict — on the terminal, live or as a one-shot
   render.
 argument-hint: '[--once] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]'
+allowed-tools:
+  - Bash(${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh *)
+  - 'Bash("${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh" *)'
 model: haiku
 disable-model-invocation: true
 ---

@@ -4,6 +4,9 @@ description: |
   staging / production: resolves the OKF k8s/tf bundle, fixes environment and cloud, then routes to
   design, implement or review. Use for any infrastructure request that does not yet name a mode.
 argument-hint: '[target] [--env=<env>] [--cloud=<cloud>]'
+allowed-tools:
+  - Bash(${CLAUDE_PLUGIN_ROOT}/tools/update-okf-bundle.sh *)
+  - 'Bash("${CLAUDE_PLUGIN_ROOT}/tools/update-okf-bundle.sh" *)'
 model: sonnet
 ---
 
