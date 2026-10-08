@@ -1,13 +1,16 @@
 ---
 description: |
-  Analyze the user interface of an existing system: every screen with what it asks for (inputs, validation), what it shows (outputs, messages), what it lets a user do (actions, transitions) and who may see it; the UI components; the features and user tasks the screens expose; business logic embedded in the view layer; and the design tokens the UI actually uses.
-  /architect:analyze-ui [target_path] [--ui-root=<path>] [--auto] to invoke.
-  Optional phase after investigate and before analyze; skipped when the system has no UI layer.
+  Analyze the user interface of an existing system: screens with their inputs, outputs, actions and
+  access; UI components; features and user tasks; business logic embedded in the view layer; and the
+  design tokens in use. Optional phase after investigate, skipped when there is no UI layer.
+argument-hint: '[target_path] [--ui-root=<path>] [--auto]'
 model: sonnet
-user_invocable: true
 ---
 
 # Existing UI Analysis
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

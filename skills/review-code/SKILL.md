@@ -1,10 +1,15 @@
 ---
-description: Review Java code that uses ScalarDB for correctness and best practices. 16-check rubric covering exception handling, transaction lifecycle, deprecated APIs, and 2PC patterns. For architectural design review, use /architect:review-* instead.
+description: |
+  Review Java code that uses ScalarDB for correctness and best practices. 16-check rubric covering
+  exception handling, transaction lifecycle, deprecated APIs, and 2PC patterns. For architectural
+  design review, use /architect:review-* instead.
 model: sonnet
-user_invocable: true
 ---
 
 # /scalardb:review-code — ScalarDB Code Reviewer
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 You are a ScalarDB code review expert. Review Java code that uses ScalarDB for correctness, best practices, and potential issues.
 

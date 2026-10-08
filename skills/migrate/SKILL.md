@@ -1,10 +1,14 @@
 ---
-description: ScalarDB interface migration advisor. Guides Core<->Cluster, CRUD<->JDBC, and 1PC<->2PC migrations. For migrating from another database, use /architect:migrate-database instead.
+description: |
+  ScalarDB interface migration advisor. Guides Core<->Cluster, CRUD<->JDBC, and 1PC<->2PC
+  migrations. For migrating from another database, use /architect:migrate-database instead.
 model: sonnet
-user_invocable: true
 ---
 
 # /scalardb:migrate — ScalarDB Migration Advisor
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 You are a ScalarDB migration advisor. Help users migrate between interface combinations.
 

@@ -1,24 +1,25 @@
 ---
 description: |
-  Show where the architect pipeline stands — every phase's status
-  (pending/in_progress/completed/failed/skipped, plus stale when an upstream phase
-  changed after it finished), how many of its declared outputs exist, whether it is
-  running right now, and what it has cost — on the terminal, live or as a one-shot
+  Show where the architect pipeline stands — each phase's status, staleness, declared outputs
+  present, what is running now, and what it has cost — on the terminal, live or as a one-shot
   render.
-  /architect:report-status [--once] [--view=product|architect|codegen|backlog] [--group=core|extension] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en] to invoke.
-  Wraps ${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh, which on a terminal defaults to a
-  live dashboard polling work/pipeline-progress.json every 10s, with an action menu that
-  generates the next slash command per phase, an `a` key that asks Claude about the
-  selected phase, and a Tab key that cycles the dashboard's other views — Product (the
-  product pipeline), Code Generation and Backlog Delivery. The live mode runs in the
-  user's own terminal, so pass --once for an in-session render.
-  Only runs when explicitly invoked.
+argument-hint: '[--once] [--view=product|architect|codegen|backlog] [--group=core|extension] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]'
 model: haiku
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Pipeline Status Dashboard
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:report-status [--once] [--view=product|architect|codegen|backlog] [--group=core|extension] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]`
+
+Wraps ${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh, which on a terminal defaults to a live dashboard
+polling work/pipeline-progress.json every 10s, with an action menu that generates the next slash
+command per phase, an `a` key that asks Claude about the selected phase, and a Tab key that cycles
+the dashboard's other views — Product (the product pipeline), Code Generation and Backlog Delivery.
+The live mode runs in the user's own terminal, so pass --once for an in-session render.
 
 ## Desired Outcome
 

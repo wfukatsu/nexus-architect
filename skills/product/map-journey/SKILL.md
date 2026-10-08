@@ -2,12 +2,15 @@
 description: |
   Map each primary persona's customer journey as a stages × layers grid — touchpoints, actions,
   verbatim emotions, pains, opportunities — with Moments of Truth flagged, yielding a prioritized
-  opportunity list. /product:map-journey [--auto] [--lang=ja|en].
+  opportunity list.
+argument-hint: '[--auto] [--lang=ja|en]'
 model: sonnet
-user_invocable: true
 ---
 
 # Customer Journey Maps
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

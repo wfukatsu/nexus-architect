@@ -1,9 +1,8 @@
 ---
 description: |
-  Oracle to ScalarDB migration. Schema extraction, migration analysis, AQ integration,
-  and SP/trigger to Java conversion. /architect:migrate-oracle to start.
+  Oracle to ScalarDB migration. Schema extraction, migration analysis, AQ integration, and
+  SP/trigger to Java conversion.
 model: sonnet
-user_invocable: true
 ---
 
 Orchestrates the complete Oracle to ScalarDB migration workflow through an interactive chat interface. Collects database connection parameters from the user via questions, updates the configuration file, then runs the analysis and migration skills.

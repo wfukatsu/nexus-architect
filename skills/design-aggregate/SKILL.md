@@ -1,17 +1,16 @@
 ---
 description: |
-  Design the tactical model of each bounded context — aggregates with their root, interior
-  entities, value objects, invariants, commands, domain events, factory, specifications and
-  repository interface — as the unit a transaction writes, through facilitated dialogue, and
-  the Domain Event Catalog (the context map's Published Language) derived from their events.
-  /architect:design-aggregate [--aggregate=<name>] [--context=<name>] [--auto] [--lang=en|ja] to invoke.
-  Recommended prerequisite: redesign output. Feeds design-state-machine, design-scalardb /
-  design-data-layer, design-api, design-implementation, generate-test-specs and the reviews.
+  Design the tactical model of each bounded context through facilitated dialogue — aggregates with
+  root, entities, value objects, invariants, commands and domain events — plus the Domain Event
+  Catalog. Use after redesign, before design-state-machine and the data-layer and API design.
+argument-hint: '[--aggregate=<name>] [--context=<name>] [--auto] [--lang=en|ja]'
 model: opus
-user_invocable: true
 ---
 
 # Aggregate Design
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

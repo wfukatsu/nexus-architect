@@ -1,13 +1,10 @@
 ---
 description: |
-  Prove the SQL migration on data and record what was proven: golden checks that compare application-side
-  implementations with results captured once from an authorized source database, and differential tests that run
-  plan and ScalarDB SQL routes against the source database and ScalarDB side by side — then write each statement's
-  verification state (verified / failed / skipped with its reason) back into the migration manifest.
-  /architect:verify-sql-migration [target_path] [--mode=golden|difftest|all] [--id=<SQM-###>] [--source-profile=<path>] [--scalardb-properties=<path>] [--fetcher=core|jdbc] [--out=<path>] [--auto] [--lang=en|ja] to invoke.
-  Extension tier; requires implement-sql-migration. Never connects to a production database.
+  Prove the SQL migration on data — golden checks against results captured from an authorized source
+  database, and differential tests against ScalarDB — and write each statement's verification state
+  into the manifest. Use after implement-sql-migration. Never connects to production.
+argument-hint: '[target_path] [--mode=golden|difftest|all] [--id=<SQM-###>] [--source-profile=<path>] [--scalardb-properties=<path>] [--fetcher=core|jdbc] [--out=<path>] [--auto] [--lang=en|ja]'
 model: sonnet
-user_invocable: true
 disable-model-invocation: true
 ---
 

@@ -1,14 +1,18 @@
 ---
 description: |
-  Define the product core — Vision / Mission / Values — through dialogue, as a Product Vision
-  Board plus an Amazon-style PR-FAQ. Research market/competitors as needed and feed it back.
-  /product:define-vision [target] [--input=<file|dir>] [--auto] [--lang=ja|en] [--no-research].
-  Entry point of the product pipeline.
+  Define the product core — Vision / Mission / Values — through dialogue, as a Product Vision Board
+  plus an Amazon-style PR-FAQ. Research market/competitors as needed and feed it back. Entry point
+  of the product pipeline.
+argument-hint: '[target] [--input=<file|dir>] [--auto] [--lang=ja|en] [--no-research]'
 model: opus
-user_invocable: true
 ---
 
 # Vision / Mission / Values
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/product:define-vision [target] [--input=<file|dir>] [--auto] [--lang=ja|en] [--no-research]`
 
 ## Desired Outcome
 

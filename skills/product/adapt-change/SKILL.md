@@ -3,12 +3,14 @@ description: |
   Re-propagation engine for change. Takes a change, computes the affected scope from
   work/traceability.json (downstream transitive closure → opus judgment → human confirm), re-runs
   ONLY the affected skills, and checks coherence. Minimal re-run, reversible.
-  /product:adapt-change --change="<text>" [--type=constraint|market|competitor|tech|regulation] [--auto] [--lang=ja|en].
+argument-hint: '--change="<text>" [--type=constraint|market|competitor|tech|regulation] [--auto] [--lang=ja|en]'
 model: opus
-user_invocable: true
 ---
 
 # Adapt to Change (Re-propagation Engine)
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

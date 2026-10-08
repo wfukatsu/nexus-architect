@@ -2,12 +2,15 @@
 description: |
   Turn SLOs into measurable non-functional requirements — availability, latency (p95/p99),
   throughput, error rate, durability, RPO/RTO — each traced to the SLO it derives from. Bridges to
-  nexus-architect. /product:define-nfr [--auto] [--lang=ja|en].
+  nexus-architect.
+argument-hint: '[--auto] [--lang=ja|en]'
 model: sonnet
-user_invocable: true
 ---
 
 # Non-Functional Requirements
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

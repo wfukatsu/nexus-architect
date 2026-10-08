@@ -1,13 +1,16 @@
 ---
 description: |
-  Design the logical API surface in three API-Led layers — System APIs (CRUD over entities),
-  Process APIs (business-flow orchestration), Experience APIs (per-channel) — maximizing reuse, with
-  a dependency graph and per-API OpenAPI sketches. /product:design-api [--auto] [--lang=ja|en].
+  Design the logical API surface in three API-Led layers — System APIs (CRUD over entities), Process
+  APIs (business-flow orchestration), Experience APIs (per-channel) — maximizing reuse, with a
+  dependency graph and per-API OpenAPI sketches.
+argument-hint: '[--auto] [--lang=ja|en]'
 model: opus
-user_invocable: true
 ---
 
 # API Design (API-Led)
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

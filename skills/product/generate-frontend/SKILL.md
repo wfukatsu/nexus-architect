@@ -1,17 +1,16 @@
 ---
 description: |
-  Turn the navigable UI mocks into a runnable React frontend — decompose the screens against the
-  active design system using Atomic Design (tokens -> atoms -> molecules -> organisms -> templates ->
-  pages), generate TypeScript React components styled by the design tokens (CSS Modules + CSS
-  variables), wire the story flow with react-router, and register every component in Storybook with a
-  story per variant/state. Emits a self-contained, installable scaffold under generated/frontend/.
-  /product:generate-frontend [--design-system=<name>] [--out=<path>]
-  [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--auto] [--lang=ja|en] to invoke.
+  Turn the navigable UI mocks into a runnable React + TypeScript frontend under generated/frontend/
+  — Atomic Design components styled by the design tokens, react-router flow, and a Storybook story
+  per variant. Use after generate-ui-mock and design-system.
+argument-hint: '[--design-system=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--auto] [--lang=ja|en]'
 model: sonnet
-user_invocable: true
 ---
 
 # Frontend Code Generation (React + Storybook)
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

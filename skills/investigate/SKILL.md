@@ -1,13 +1,17 @@
 ---
 description: |
-  Comprehensive investigation of the target system covering technology stack, codebase structure, technical debt, and DDD readiness.
-  /architect:investigate [target_path] to invoke.
-  Used as the first step in legacy system analysis.
+  Comprehensive investigation of the target system covering technology stack, codebase structure,
+  technical debt, and DDD readiness. Used as the first step in legacy system analysis.
+argument-hint: '[target_path]'
 model: sonnet
-user_invocable: true
 ---
 
 # System Investigation
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:investigate [target_path]`
 
 ## Desired Outcome
 

@@ -1,12 +1,13 @@
 ---
 description: |
   Render Mermaid diagrams to PNG/SVG/PDF and fix syntax errors.
-  Invoked via /architect:render-mermaid [target_path].
+argument-hint: '[target_path]'
 model: haiku
-user_invocable: true
 ---
 
 # Mermaid Rendering and Repair
+
+**Usage:** `/architect:render-mermaid [target_path]`
 
 ## Desired Outcome
 

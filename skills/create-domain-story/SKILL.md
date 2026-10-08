@@ -1,13 +1,18 @@
 ---
 description: |
   Create domain stories using Domain Storytelling technique to visualize business processes.
-  /architect:create-domain-story [--domain=<name>] [--mode=story|event-storming] [--auto] to invoke.
-  Recommended prerequisite: redesign output. Supports interactive facilitation or auto-generation mode.
+  Recommended prerequisite: redesign output. Supports interactive facilitation or auto-generation
+  mode.
+argument-hint: '[--domain=<name>] [--mode=story|event-storming] [--auto]'
 model: opus
-user_invocable: true
 ---
 
 # Domain Story Creation
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:create-domain-story [--domain=<name>] [--mode=story|event-storming] [--auto]`
 
 ## Desired Outcome
 

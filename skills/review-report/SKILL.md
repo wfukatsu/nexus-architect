@@ -1,13 +1,14 @@
 ---
 description: |
-  Review the quality of the generated HTML report (full-report.html).
-  Checks completeness, score accuracy, Mermaid syntax, language consistency, and structural integrity.
-  Invoked via /architect:review-report.
+  Review the quality of the generated HTML report (full-report.html). Checks completeness, score
+  accuracy, Mermaid syntax, language consistency, and structural integrity.
 model: sonnet
-user_invocable: true
 ---
 
 # Report Quality Review
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

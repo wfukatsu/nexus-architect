@@ -2,13 +2,15 @@
 description: |
   Extract the riskiest assumptions the strategy depends on, attach the cheapest test and a
   kill/pivot threshold to each, and return a Go/No-Go verdict. The validation gate that connects
-  document generation to hypothesis testing.
-  /product:validate-assumptions [--auto] [--lang=ja|en]. Rerunnable as evidence arrives.
+  document generation to hypothesis testing. Rerunnable as evidence arrives.
+argument-hint: '[--auto] [--lang=ja|en]'
 model: opus
-user_invocable: true
 ---
 
 # Validate Assumptions (Gate)
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

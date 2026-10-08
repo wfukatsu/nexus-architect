@@ -1,9 +1,8 @@
 ---
 description: |
-  Review operational readiness: monitoring, disaster recovery, security posture, and deployment safety.
-  Used as one perspective within the parallel review system.
+  Review operational readiness: monitoring, disaster recovery, security posture, and deployment
+  safety. Used as one perspective within the parallel review system.
 model: sonnet
-user_invocable: true
 ---
 
 # Operational Readiness Review

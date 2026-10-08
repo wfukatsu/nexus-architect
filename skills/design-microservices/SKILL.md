@@ -1,12 +1,14 @@
 ---
 description: |
-  Design target microservices architecture and transformation plan.
-  /architect:design-microservices to invoke. Requires redesign output as a prerequisite.
+  Design target microservices architecture and transformation plan. Requires redesign output as a
+  prerequisite.
 model: opus
-user_invocable: true
 ---
 
 # Microservices Design
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

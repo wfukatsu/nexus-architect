@@ -2,15 +2,20 @@
 description: |
   Fetch or update an OKF knowledge bundle — ScalarDB/ScalarDL, or the vendored Kubernetes/Terraform
   platform bundle.
-  /architect:update-knowledge [--latest] [--status] [--bundle=<name>] to invoke.
-  Run with no flag to make the bundle available locally (first fetch); --latest pulls the
-  newest bundle from remote; --status reports the resolved path, commits, and bundled versions;
-  --bundle selects which bundle (scalardb, the default, or k8s-tf).
+argument-hint: '[--latest] [--status] [--bundle=<name>]'
 model: haiku
-user_invocable: true
 ---
 
 # Knowledge Bundle Update
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:update-knowledge [--latest] [--status] [--bundle=<name>]`
+
+Run with no flag to make the bundle available locally (first fetch); --latest pulls the newest
+bundle from remote; --status reports the resolved path, commits, and bundled versions; --bundle
+selects which bundle (scalardb, the default, or k8s-tf).
 
 ## Desired Outcome
 

@@ -1,13 +1,19 @@
 ---
 description: |
-  Initialize the product-direction output tree, pipeline progress file, and the
-  traceability graph used by adapt-change.
-  /product:init-output [project_name]. Use --reset to reinitialize.
+  Initialize the product-direction output tree, pipeline progress file, and the traceability graph
+  used by adapt-change.
+argument-hint: '[project_name]'
 model: sonnet
-user_invocable: true
 ---
 
 # Output Initialization
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/product:init-output [project_name]`
+
+Use --reset to reinitialize.
 
 ## Expected Outcome
 

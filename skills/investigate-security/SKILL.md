@@ -1,12 +1,13 @@
 ---
 description: |
   Evaluate security posture including OWASP Top 10, access control, and zero-trust readiness.
-  /architect:investigate-security [target_path] to invoke.
+argument-hint: '[target_path]'
 model: sonnet
-user_invocable: true
 ---
 
 # Security Analysis
+
+**Usage:** `/architect:investigate-security [target_path]`
 
 ## Desired Outcome
 

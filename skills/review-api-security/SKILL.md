@@ -1,15 +1,18 @@
 ---
 description: |
-  Review the API surface against OWASP API Security Top 10 — object- and function-level authorization,
-  data exposure, injection, resource controls, tenant isolation, and transaction-boundary security.
-  Runs as one perspective within the parallel design review, and with --mode=code against the
+  Review the API surface against OWASP API Security Top 10, tenant isolation and
+  transaction-boundary security. Runs as one perspective of the parallel design review, or against
   implemented source as the security stage of the quality gate.
-  /architect:review-api-security [--mode=design|code] [--source-root=<path>] [--scope=changed|service|repo].
+argument-hint: '[--mode=design|code] [--source-root=<path>] [--scope=changed|service|repo]'
 model: opus
-user_invocable: true
 ---
 
 # API Security Review
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:review-api-security [--mode=design|code] [--source-root=<path>] [--scope=changed|service|repo]`
 
 ## Expected Outcome
 

@@ -1,21 +1,23 @@
 ---
 description: |
-  Capture follow-up work discovered during backlog delivery — deferred tasks, out-of-scope
-  findings, doc drift, split-off scope, waived acceptance criteria — into a reviewable local
-  queue, then register the approved entries as tracker Issues linked to the in-flight
-  Sub-Epic / Epic and appended to backlog-manifest.json, so deferred work enters the
-  /architect:deliver-backlog loop as status::todo instead of dying in prose.
-  /architect:capture-followup [title] [--parent=<local_id|#iid>] [--from=<file|issue-ref>] [--queue-only] [--flush] [--dry-run] [--auto] [--lang=en|ja].
-  With a title/--from, appends to the queue (and offers a flush); --queue-only stops after the
-  append (the form the feeder skills use mid-run); --flush (or no args with a non-empty queue)
-  reviews the queue and creates the Issues after an approval gate. Only runs when explicitly
-  invoked.
+  Capture follow-up work discovered during backlog delivery — deferred tasks, out-of-scope findings,
+  doc drift, waived acceptance criteria — into a reviewable queue, then register approved entries as
+  tracker Issues under the in-flight Epic so they enter the /architect:deliver-backlog loop.
+argument-hint: '[title] [--parent=<local_id|#iid>] [--from=<file|issue-ref>] [--queue-only] [--flush] [--dry-run] [--auto] [--lang=en|ja]'
 model: sonnet
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Follow-up Capture (Deferred Work → Backlog)
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:capture-followup [title] [--parent=<local_id|#iid>] [--from=<file|issue-ref>] [--queue-only] [--flush] [--dry-run] [--auto] [--lang=en|ja]`
+
+With a title/--from, appends to the queue (and offers a flush); --queue-only stops after the append
+(the form the feeder skills use mid-run); --flush (or no args with a non-empty queue) reviews the
+queue and creates the Issues after an approval gate.
 
 ## Desired Outcome
 

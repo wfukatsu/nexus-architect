@@ -154,13 +154,10 @@ check("no signature flag is absent from its SKILL.md", not invented, invented)
 mismatched = []
 for cmd, sig in sorted(EN_SIGS.items()):
     front = read(os.path.join(skill_dir[cmd], "SKILL.md")).split("---", 2)[1]
-    # Frontmatter signatures wrap across lines, so flatten before slicing — reading only the
-    # first physical line would report a truncated flag set as a mismatch.
-    flat = " ".join(front.split())
-    at = flat.find(cmd + " [")
-    if at < 0:
+    hint = re.search(r"^argument-hint:\s*'(.*)'\s*$", front, re.M)
+    if not hint:
         continue
-    declared = flag_tokens(flat[at:at + 400].split(" to invoke")[0])
+    declared = flag_tokens(hint.group(1))
     if declared and declared != flag_tokens(sig):
         mismatched.append("%s: skill %s vs catalogue %s" % (
             cmd, sorted(declared), sorted(flag_tokens(sig))))
@@ -446,6 +443,82 @@ check("the Japanese coverage table lists the same commands",
       sorted(set(re.findall(r"`(/[a-z]+:[a-z-]+)", COVERAGE)) ^ set(re.findall(r"`(/[a-z]+:[a-z-]+)", COVERAGE_JA))))
 check("the Japanese coverage table has the same number of rows",
       len(re.findall(r"^\| [^|-]", COVERAGE, re.M)) == len(re.findall(r"^\| [^|-]", COVERAGE_JA, re.M)))
+
+# ------------------------------------------------------- frontmatter the loader reads
+
+print("Skill frontmatter is what Claude Code reads")
+
+# https://code.claude.com/docs/en/skills#frontmatter-reference. A key outside this set is dropped
+# at load time without an error — `user_invocable` (underscore) sat on 116 skills doing nothing.
+KNOWN_KEYS = {
+    "name", "description", "when_to_use", "argument-hint", "arguments",
+    "disable-model-invocation", "user-invocable", "allowed-tools", "disallowed-tools", "model",
+    "effort", "context", "agent", "background", "hooks", "paths", "shell", "metadata", "license",
+    "compatibility",
+}
+# The listing of names + descriptions is capped at 1% of the context window; over the cap the
+# least-used skills lose their description, and with it what the model matches a request on.
+DESC_MAX = 300
+LISTING_MAX = 24000
+ANCHOR = "Shared files: a path written"
+AT_REF = r"@((?:rules|skills|templates|docs)/[A-Za-z0-9_./-]*[A-Za-z0-9])"
+
+
+def split_skill(path):
+    _, front, body = read(path).split("---", 2)
+    return front, body
+
+
+def description_of(front):
+    m = re.search(r"^description:[ \t]*(.*?)(?=^[A-Za-z_-]+:|\Z)", front, re.S | re.M)
+    return " ".join(re.sub(r"^[|>][+-]?\s*\n", "", m.group(1)).split()) if m else ""
+
+
+all_skill_files = []
+for dirpath, _dirs, files in os.walk(os.path.join(ROOT, "skills")):
+    if "SKILL.md" in files and os.sep + "build" + os.sep not in dirpath:
+        all_skill_files.append(os.path.relpath(os.path.join(dirpath, "SKILL.md"), ROOT))
+
+unknown_keys = []
+for path in sorted(all_skill_files):
+    front, _ = split_skill(path)
+    extra = set(re.findall(r"^([A-Za-z_-]+):", front, re.M)) - KNOWN_KEYS
+    if extra:
+        unknown_keys.append("%s: %s" % (path, sorted(extra)))
+check("no SKILL.md carries a frontmatter key Claude Code does not read", not unknown_keys,
+      unknown_keys)
+
+too_long, in_description, usage_drift, listing = [], [], [], 0
+for cmd in CMDS:
+    front, body = split_skill(os.path.join(skill_dir[cmd], "SKILL.md"))
+    desc = description_of(front)
+    listing += len(desc)
+    if not desc or len(desc) > DESC_MAX:
+        too_long.append("%s: %d" % (cmd, len(desc)))
+    if re.search(r"(^|\s)--[a-z]", desc) or cmd + " [" in desc:
+        in_description.append(cmd)
+    hint = re.search(r"^argument-hint:\s*'(.*)'\s*$", front, re.M)
+    if hint and hint.group(1) and "%s %s" % (cmd, hint.group(1)) not in body:
+        usage_drift.append(cmd)
+check("every description is present and at most %d characters" % DESC_MAX, not too_long, too_long)
+check("no description carries flags or an invocation signature", not in_description,
+      in_description)
+check("the descriptions together stay under %d characters (now %d)" % (LISTING_MAX, listing),
+      listing <= LISTING_MAX)
+# `argument-hint` is shown at autocomplete and is not part of the skill's content, so the body
+# has to state the same signature for the model to know its own flags.
+check("a skill's argument-hint is also stated in its body", not usage_drift, usage_drift)
+
+unanchored, dangling = [], []
+for path in sorted(all_skill_files):
+    _, body = split_skill(path)
+    refs = set(re.findall(AT_REF, body))
+    if refs and ANCHOR not in body:
+        unanchored.append(path)
+    dangling += ["%s: @%s" % (path, r) for r in sorted(refs)
+                 if not os.path.exists(os.path.join(ROOT, r))]
+check("every SKILL.md using @-paths anchors them to the plugin root", not unanchored, unanchored)
+check("every @-path a SKILL.md cites exists", not dangling, dangling)
 
 # ------------------------------------------------------------- rules index
 

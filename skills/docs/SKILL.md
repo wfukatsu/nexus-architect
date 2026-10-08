@@ -1,10 +1,16 @@
 ---
-description: Search ScalarDB / ScalarDL documentation for specific topics. Answers from the version-pinned OKF knowledge bundle first, falling back to the official online docs. Use when a ScalarDB/ScalarDL question needs an authoritative or version-specific answer that the local rules/references do not cover.
+description: |
+  Search ScalarDB / ScalarDL documentation for specific topics. Answers from the version-pinned OKF
+  knowledge bundle first, falling back to the official online docs. Use when a ScalarDB/ScalarDL
+  question needs an authoritative or version-specific answer that the local rules/references do not
+  cover.
 model: sonnet
-user_invocable: true
 ---
 
 # /scalardb:docs — ScalarDB / ScalarDL Documentation Search
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Instructions
 

@@ -1,23 +1,23 @@
 ---
 description: |
-  Show backlog delivery progress as an Epic -> Sub-Epic -> Issue tree — each item's
-  delivery status (todo/doing/review/done/blocked) and its Implemented / Reviewed /
-  Merged stages — on the terminal, live or as a one-shot render.
-  /architect:report-backlog-status [--once] [--no-sync] [--exec] [--epic=<id>] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en] to invoke.
-  Wraps ${CLAUDE_PLUGIN_ROOT}/tools/backlog-status.sh (the backlog view of
-  tools/nexus-status.sh), which on a terminal defaults to a live dashboard polling
-  backlog-manifest.json every 10s, with an action menu that generates the next slash
-  command per item (copy to clipboard, or run via claude with --exec), an `a` key that
-  asks Claude about the selected item, and a Tab key that cycles the dashboard's other
-  views — Product, Architect (the two pipelines' phase progress) and Code Generation. The
-  live mode runs in the user's own terminal, so pass --once for an in-session render.
-  Only runs when explicitly invoked.
+  Show backlog delivery progress as an Epic → Sub-Epic → Issue tree — each item's status
+  (todo/doing/review/done/blocked) and its Implemented / Reviewed / Merged stages — on the terminal,
+  live or as a one-shot render.
+argument-hint: '[--once] [--no-sync] [--exec] [--epic=<id>] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]'
 model: haiku
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Backlog Status Dashboard
+
+**Usage:** `/architect:report-backlog-status [--once] [--no-sync] [--exec] [--epic=<id>] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]`
+
+Wraps ${CLAUDE_PLUGIN_ROOT}/tools/backlog-status.sh (the backlog view of tools/nexus-status.sh),
+which on a terminal defaults to a live dashboard polling backlog-manifest.json every 10s, with an
+action menu that generates the next slash command per item (copy to clipboard, or run via claude
+with --exec), an `a` key that asks Claude about the selected item, and a Tab key that cycles the
+dashboard's other views — Product, Architect (the two pipelines' phase progress) and Code
+Generation. The live mode runs in the user's own terminal, so pass --once for an in-session render.
 
 ## Desired Outcome
 

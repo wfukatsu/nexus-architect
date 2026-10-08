@@ -1,9 +1,7 @@
 ---
 description: |
   Domain classification, bounded context mapping, and business structure identification.
-  /architect:map-domains to invoke.
 model: opus
-user_invocable: true
 ---
 
 # Domain Mapping

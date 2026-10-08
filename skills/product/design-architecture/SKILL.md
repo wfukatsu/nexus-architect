@@ -1,16 +1,16 @@
 ---
 description: |
-  Synthesize bounded contexts, API layers, the data model and NFRs into a runtime architecture
-  (Mermaid container view + critical-path sequence + deployment/scaling view), then assess the
-  fitness of a standing platform-technology checklist — Kong (API Gateway), ScalarDB, ScalarDB
-  Analytics, ScalarDB Saga, ScalarDL — and emit an Adopt/Conditional/Reject decision with rationale
-  for each.
-  /product:design-architecture [--auto] [--lang=ja|en].
+  Synthesize bounded contexts, API layers, the data model and NFRs into a runtime architecture, then
+  assess Kong, ScalarDB, ScalarDB Analytics, ScalarDB Saga and ScalarDL with an
+  Adopt/Conditional/Reject decision each. Use after map-domains, design-api and define-nfr.
+argument-hint: '[--auto] [--lang=ja|en]'
 model: opus
-user_invocable: true
 ---
 
 # System Architecture & Technology Fitness
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

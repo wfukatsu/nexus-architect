@@ -1,15 +1,16 @@
 ---
 description: |
-  Create persona-anchored domain stories (Domain Storytelling) — actors come from personas (PER-),
-  activities from job stories (JOB-) ordered by the journey (JNY-), work items from the things they
-  handle. Each story is the chosen happy-path flow for a persona pursuing a key job, and becomes the
-  axis the UI mocks render. Runs after journey, before UI mocks.
-  /product:create-domain-story [--persona=<PER>] [--job=<JOB>] [--domain=<CTX>] [--mode=story|event-storming] [--auto] [--lang=ja|en].
+  Create persona-anchored domain stories (Domain Storytelling): actors from personas, activities
+  from job stories ordered by the journey — the happy-path flow the UI mocks render. Use after
+  map-journey, before generate-ui-mock.
+argument-hint: '[--persona=<PER>] [--job=<JOB>] [--domain=<CTX>] [--mode=story|event-storming] [--auto] [--lang=ja|en]'
 model: opus
-user_invocable: true
 ---
 
 # Persona-Anchored Domain Story
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

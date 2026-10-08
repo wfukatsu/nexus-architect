@@ -1,17 +1,20 @@
 ---
 description: |
-  Define system requirements through document intake and interactive elicitation.
-  Classifies functional/non-functional requirements, analyzes data and transaction
-  requirements, and assesses Scalar product applicability (ScalarDB / ScalarDB Saga).
-  /architect:define-requirements [target_path] [--input=<file|dir>] [--auto] [--no-scalardb] to invoke.
-  Entry point for the greenfield design path. Can also run standalone or after
-  /architect:investigate on the legacy path. Accepts additional input documents
-  (RFP, meeting notes, existing design docs) via --input.
+  Define system requirements through document intake and interactive elicitation: functional and
+  non-functional requirements, data and transaction requirements, and ScalarDB / ScalarDB Saga
+  applicability. Entry point of the greenfield path; also ingests product pipeline output.
+argument-hint: '[target_path] [--input=<file|dir>] [--auto] [--no-scalardb]'
 model: opus
-user_invocable: true
 ---
 
 # Requirements Definition
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:define-requirements [target_path] [--input=<file|dir>] [--auto] [--no-scalardb]`
+
+Accepts additional input documents (RFP, meeting notes, existing design docs) via --input.
 
 ## Desired Outcome
 

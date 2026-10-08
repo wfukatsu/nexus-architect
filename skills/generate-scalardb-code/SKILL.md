@@ -1,12 +1,14 @@
 ---
 description: |
-  Generate Spring Boot + ScalarDB Java code from design specifications.
-  Invoked via /architect:generate-scalardb-code. Dedicated to projects using ScalarDB.
+  Generate Spring Boot + ScalarDB Java code from design specifications. Dedicated to projects using
+  ScalarDB.
 model: opus
-user_invocable: true
 ---
 
 # ScalarDB Code Generation
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

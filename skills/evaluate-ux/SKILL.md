@@ -1,13 +1,16 @@
 ---
 description: |
-  Evaluate the user experience of an existing UI from its inventory: Nielsen's heuristics, WCAG 2.2 accessibility, task efficiency and input burden, consistency, and navigation, as a UX index (UXI) with source-cited findings. Static expert review by default; --base-url adds runtime evidence from the rendered pages.
-  /architect:evaluate-ux [--base-url=<url>] [--storage-state=<path>] [--confirm-versions|--no-confirm-versions] [--auto] to invoke.
-  Requires analyze-ui output. Optional evaluation phase; can run in parallel with evaluate-mmi and evaluate-ddd.
+  Evaluate the UX of an existing UI from its inventory — Nielsen's heuristics, WCAG 2.2, task
+  efficiency, consistency, navigation — as a UX index with source-cited findings; optionally adds
+  runtime evidence from rendered pages. Requires analyze-ui output.
+argument-hint: '[--base-url=<url>] [--storage-state=<path>] [--confirm-versions|--no-confirm-versions] [--auto]'
 model: sonnet
-user_invocable: true
 ---
 
 # UX Evaluation
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

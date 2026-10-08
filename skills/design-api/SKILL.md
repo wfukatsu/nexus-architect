@@ -1,14 +1,16 @@
 ---
 description: |
-  Generate REST/GraphQL/gRPC/AsyncAPI specifications as the project's single, verifiable API contract —
-  named schemas, every status code declared, RFC 9457 error responses, and per-operation authorization,
-  idempotency and timeout obligations.
-  /architect:design-api to invoke. Requires design-microservices output as a prerequisite.
+  Generate REST/GraphQL/gRPC/AsyncAPI specifications as the project's single, verifiable API
+  contract — named schemas, every status code declared, RFC 9457 error responses, and per-operation
+  authorization, idempotency and timeout obligations. Requires design-microservices output as a
+  prerequisite.
 model: opus
-user_invocable: true
 ---
 
 # API Design
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

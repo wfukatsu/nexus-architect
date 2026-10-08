@@ -1,13 +1,14 @@
 ---
 description: |
-  Interactive selection of the optimal ScalarDB edition (Community/Enterprise Standard/Premium,
-  plus the separately contracted Enterprise Option add-ons), deployment mode, and cluster topology.
-  /architect:select-scalardb-edition to invoke.
+  Interactive selection of the optimal ScalarDB edition (Community/Enterprise Standard/Premium, plus
+  the separately contracted Enterprise Option add-ons), deployment mode, and cluster topology.
 model: sonnet
-user_invocable: true
 ---
 
 # ScalarDB Edition Selection
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

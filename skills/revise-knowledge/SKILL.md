@@ -2,17 +2,22 @@
 name: revise-knowledge
 description: |
   Re-verify the vendored Kubernetes/Terraform OKF bundle (knowledge/okf-k8s-tf) against its public
-  upstream and revise the documents that fell behind — the judgement step the weekly refresh
-  leaves to a model.
-  /architect:revise-knowledge [--no-collect] [--doc=<path>] [--dry-run] to invoke.
-  Collects the upstream first (tools/refresh-okf-k8s-tf.py) unless --no-collect; --doc limits the
-  run to one bundle document (repeatable); --dry-run lists what would be re-verified and why.
+  upstream and revise the documents that fell behind — the judgement step the weekly refresh leaves
+  to a model.
+argument-hint: '[--no-collect] [--doc=<path>] [--dry-run]'
 model: opus
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Revise the k8s-tf Knowledge Bundle
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:revise-knowledge [--no-collect] [--doc=<path>] [--dry-run]`
+
+Collects the upstream first (tools/refresh-okf-k8s-tf.py) unless --no-collect; --doc limits the run
+to one bundle document (repeatable); --dry-run lists what would be re-verified and why.
 
 ## Desired Outcome
 

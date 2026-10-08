@@ -1,13 +1,18 @@
 ---
 description: |
-  Estimate the token usage and USD cost of running the architect pipeline on a codebase.
-  /architect:estimate-token-cost [target_path]. Combines an a-priori model (from
-  lines-of-code) with measured actuals recorded in work/token-usage.json when present.
+  Estimate the token usage and USD cost of running the architect pipeline on a codebase. Combines an
+  a-priori model (from lines-of-code) with measured actuals recorded in work/token-usage.json when
+  present.
+argument-hint: '[target_path]'
 model: sonnet
-user_invocable: true
 ---
 
 # Token Cost Estimation
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:estimate-token-cost [target_path]`
 
 ## Desired Outcome
 

@@ -2,12 +2,15 @@
 description: |
   Turn the product vision into a measurable shape — one North Star Metric plus 3–5 input metrics
   with targets and guardrails — that anchors downstream prioritization (RICE Impact, scope,
-  positioning). /product:define-success-metrics [--auto] [--lang=ja|en].
+  positioning).
+argument-hint: '[--auto] [--lang=ja|en]'
 model: opus
-user_invocable: true
 ---
 
 # Success Metrics / North Star
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

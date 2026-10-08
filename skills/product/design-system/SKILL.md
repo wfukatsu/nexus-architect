@@ -1,15 +1,16 @@
 ---
 description: |
-  Build or incorporate a design system — DTCG design tokens (color/type/spacing/radius/elevation),
-  a component inventory, and usage guidelines — managed separately from a single pipeline run so it
-  can be reused, versioned, and swapped. Build from positioning/personas, or --import an existing
-  system (Tailwind / DTCG / Figma Tokens / CSS theme). Feeds generate-ui-mock at lo or mid fidelity.
-  /product:design-system [--name=<id>] [--import=<path>] [--fidelity=lo|mid] [--auto] [--lang=ja|en].
+  Build a design system — DTCG design tokens, a component inventory and usage guidelines — from
+  positioning and personas, or import an existing one (Tailwind / DTCG / Figma Tokens / CSS theme).
+  Reusable across runs; feeds generate-ui-mock.
+argument-hint: '[--name=<id>] [--import=<path>] [--fidelity=lo|mid] [--auto] [--lang=ja|en]'
 model: opus
-user_invocable: true
 ---
 
 # Design System
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

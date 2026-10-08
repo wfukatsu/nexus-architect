@@ -1,13 +1,17 @@
 ---
 description: |
-  Extract ubiquitous language, actor-role-permission matrix, and domain-code mapping.
-  /architect:analyze [target_path] to invoke.
-  Requires investigate output as a prerequisite.
+  Extract ubiquitous language, actor-role-permission matrix, and domain-code mapping. Requires
+  investigate output as a prerequisite.
+argument-hint: '[target_path]'
 model: opus
-user_invocable: true
 ---
 
 # System Analysis
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:analyze [target_path]`
 
 ## Desired Outcome
 

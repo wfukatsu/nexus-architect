@@ -1,15 +1,21 @@
 ---
 description: |
-  Define implementation specifications for the API layer (controller/DTO/validation), domain services,
-  repository interfaces, value objects, and exception mapping.
-  /architect:design-implementation [--layering=ddd|clean] to invoke. Used after the design phase
-  is complete. `--layering=clean` switches the application layer to Clean Architecture vocabulary
-  (Use Case / Interactor / Presenter); the default keeps DDD application services.
+  Define implementation specifications for the API layer (controller/DTO/validation), domain
+  services, repository interfaces, value objects, and exception mapping. Used after the design phase
+  is complete.
+argument-hint: '[--layering=ddd|clean]'
 model: opus
-user_invocable: true
 ---
 
 # Implementation Design
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:design-implementation [--layering=ddd|clean]`
+
+`--layering=clean` switches the application layer to Clean Architecture vocabulary (Use Case /
+Interactor / Presenter); the default keeps DDD application services.
 
 ## Desired Outcome
 

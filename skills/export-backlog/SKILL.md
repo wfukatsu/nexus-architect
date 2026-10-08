@@ -1,17 +1,19 @@
 ---
 description: |
-  Turn the generated reports into a work-item backlog on GitLab or GitHub:
-  Epics (What / Why), Sub-Epics (What / Key Results), and Issues (How).
-  /architect:export-backlog [--target=gitlab|github] [--project=<path>|--repo=<owner/name>] [--group=<gitlab-group>] [--dry-run] [--update] [--lang=en|ja].
-  Synthesizes a review-first plan from reports/, gates on explicit approval, then creates the
-  hierarchy via glab / gh. Run after the design (and optionally review) phase, or after the
-  product pipeline. Only runs when explicitly invoked.
+  Turn the generated reports into a work-item backlog on GitLab or GitHub — Epics, Sub-Epics and
+  Issues — after a review-first plan the user approves. Use after the design (and optionally review)
+  phase, or after the product pipeline.
+argument-hint: '[--target=gitlab|github] [--project=<path>|--repo=<owner/name>] [--group=<gitlab-group>] [--dry-run] [--update] [--lang=en|ja]'
 model: opus
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Backlog Export (Reports → GitLab / GitHub)
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:export-backlog [--target=gitlab|github] [--project=<path>|--repo=<owner/name>] [--group=<gitlab-group>] [--dry-run] [--update] [--lang=en|ja]`
 
 ## Desired Outcome
 

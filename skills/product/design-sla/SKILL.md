@@ -1,12 +1,15 @@
 ---
 description: |
   Set service-level targets from customer expectations — per-service SLI/SLO/SLA with error budgets
-  and criticality tiers, where SLO = SLA − buffer. /product:design-sla [--auto] [--lang=ja|en].
+  and criticality tiers, where SLO = SLA − buffer.
+argument-hint: '[--auto] [--lang=ja|en]'
 model: sonnet
-user_invocable: true
 ---
 
 # SLA Design
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

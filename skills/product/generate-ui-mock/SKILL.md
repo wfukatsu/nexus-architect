@@ -1,16 +1,16 @@
 ---
 description: |
-  Generate UI mocks for the key screens, driven by the domain stories — each story's numbered
-  activities become the screen-by-screen interaction sequence, wired into a clickable prototype that
-  steps through the story's flow — and styled by the active design system (DTCG tokens injected per
-  screen), after briefly exploring 2–3 solution approaches per priority job and selecting one with
-  rationale. Self-contained, navigable HTML per screen, at lo or mid fidelity.
-  /product:generate-ui-mock [--fidelity=lo|mid] [--auto] [--lang=ja|en].
+  Generate navigable HTML UI mocks for the key screens, driven by the domain stories and styled by
+  the active design system, at lo or mid fidelity, after comparing 2–3 solution approaches per
+  priority job. Use after create-domain-story and design-system.
+argument-hint: '[--fidelity=lo|mid] [--auto] [--lang=ja|en]'
 model: sonnet
-user_invocable: true
 ---
 
 # UI Mocks
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

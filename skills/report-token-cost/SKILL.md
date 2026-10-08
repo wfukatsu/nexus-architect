@@ -1,21 +1,26 @@
 ---
 description: |
-  Report the actual token cost the agent recorded while running, straight from the ledger.
-  /architect:report-token-cost [--once] [--follow] [--session=ID] [--since=7d] [--breakdown=tokens|cost] [--ascii] [--ambiguous-width=2] [--md] [--json] [--lang=ja|en] to invoke.
-  Renders work/token-usage.json + work/token-usage.jsonl on the terminal — totals, per-phase
-  and per-model cost (in / out / cache-read / cache-write columns), daily timeline, per-session
-  cost with session names, and recent events. On a terminal it defaults to an interactive
-  two-pane dashboard (select a phase/model/session/day/event above, read its detail — for a
-  session, its transcript log — below) that re-checks the ledger every 10s; --follow streams
-  events instead, and --session=ID prints one session with its log non-interactively. Reports
-  measured actuals only; use /architect:estimate-token-cost for a-priori estimates of a run
-  that has not happened yet.
+  Report the actual token cost recorded while the agent ran, from the work/token-usage ledger:
+  totals, per-phase and per-model cost, daily timeline, per-session cost. Measured actuals only; use
+  /architect:estimate-token-cost for a run that has not happened yet.
+argument-hint: '[--once] [--follow] [--session=ID] [--since=7d] [--breakdown=tokens|cost] [--ascii] [--ambiguous-width=2] [--md] [--json] [--lang=ja|en]'
 model: haiku
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Token Cost Report (recorded actuals)
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:report-token-cost [--once] [--follow] [--session=ID] [--since=7d] [--breakdown=tokens|cost] [--ascii] [--ambiguous-width=2] [--md] [--json] [--lang=ja|en]`
+
+Renders work/token-usage.json + work/token-usage.jsonl on the terminal — totals, per-phase and
+per-model cost (in / out / cache-read / cache-write columns), daily timeline, per-session cost with
+session names, and recent events. On a terminal it defaults to an interactive two-pane dashboard
+(select a phase/model/session/day/event above, read its detail — for a session, its transcript log —
+below) that re-checks the ledger every 10s; --follow streams events instead, and --session=ID prints
+one session with its log non-interactively.
 
 ## Desired Outcome
 

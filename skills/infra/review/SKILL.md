@@ -1,16 +1,19 @@
 ---
 description: |
-  Review existing infrastructure code or a design document against the OKF k8s/tf bundle and
-  return severity-ranked findings. Checks ownership overlap, image digest continuity and secret
-  exposure first, and always includes a multi-cloud and an environment-parity section.
-  /infra:review [target] [--env=<env>] [--cloud=<cloud>] [--round=<n>] to invoke.
-  Use for "review this infrastructure", "IaC review", "look at this Terraform". For reviewing a
-  GitLab MR as a review write-up, use gitlab-review.
+  Review existing infrastructure code or a design document against the OKF k8s/tf bundle and return
+  severity-ranked findings: ownership overlap, image digest continuity, secret exposure, multi-cloud
+  and environment parity. Use for "review this infrastructure", "IaC review", "look at this
+  Terraform".
+argument-hint: '[target] [--env=<env>] [--cloud=<cloud>] [--round=<n>]'
 model: opus
-user_invocable: true
 ---
 
 # Infrastructure Review
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/infra:review [target] [--env=<env>] [--cloud=<cloud>] [--round=<n>]`
 
 ## Desired Outcome
 

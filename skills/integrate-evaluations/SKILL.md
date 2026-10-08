@@ -1,12 +1,14 @@
 ---
 description: |
-  Merge MMI and DDD evaluation results — and the UX evaluation when it exists — into a unified improvement plan.
-  /architect:integrate-evaluations to invoke.
+  Merge MMI and DDD evaluation results — and the UX evaluation when it exists — into a unified
+  improvement plan.
 model: sonnet
-user_invocable: true
 ---
 
 # Evaluation Integration
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

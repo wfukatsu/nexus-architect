@@ -84,7 +84,7 @@ root as the plugin root:
   `${CLAUDE_PLUGIN_ROOT}` in a skill body with the absolute root before emitting it, so a
   worker that uses the loader never sees the raw token. If a worker reads a `SKILL.md`
   directly (without the loader), it must perform this substitution itself.
-- `@rules/...`, `@templates/...`, `@skills/...` → resolve as repository-relative paths.
+- `@rules/...`, `@templates/...`, `@skills/...`, `@docs/...` → resolve as repository-relative paths. Each SKILL.md that uses them says so in its `Shared files:` line, where the loader has already expanded `${CLAUDE_PLUGIN_ROOT}` to the repository root.
 
 Runtime output directories (repository-relative):
 

@@ -1,12 +1,13 @@
 ---
 description: |
   Design monitoring, distributed tracing, log aggregation, and alerting.
-  Invoked via /architect:design-observability.
 model: sonnet
-user_invocable: true
 ---
 
 # Observability Design
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

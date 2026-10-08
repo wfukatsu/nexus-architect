@@ -1,9 +1,8 @@
 ---
 description: |
-  Review data integrity, transaction safety, and schema design quality independent of ScalarDB.
-  For projects not using ScalarDB. Used as one perspective within the parallel review system.
+  Review data integrity, transaction safety, and schema design quality independent of ScalarDB. For
+  projects not using ScalarDB. Used as one perspective within the parallel review system.
 model: sonnet
-user_invocable: true
 ---
 
 # Data Integrity Review

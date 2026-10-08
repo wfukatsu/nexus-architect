@@ -1,9 +1,8 @@
 ---
 description: |
-  Estimate cloud infrastructure, ScalarDB licensing, and operational costs.
-  Invoked via /estimate-cost. Also integrates sizing estimates.
+  Estimate cloud infrastructure, ScalarDB licensing and operational costs, including sizing
+  estimates.
 model: sonnet
-user_invocable: true
 ---
 
 # Cost Estimation

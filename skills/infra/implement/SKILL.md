@@ -1,16 +1,19 @@
 ---
 description: |
-  Write Terraform, Kubernetes manifests, Helm values, Kustomize overlays and CI definitions from
-  an agreed infrastructure design, into a real infrastructure repository. Enforces pinned
-  versions, single ownership, digest continuity and no secret exposure.
-  /infra:implement [target] [--env=<env>] [--cloud=<cloud>] [--auto] to invoke.
-  Use for "write the Terraform", "create the manifests", "implement the CI". For IaC scaffolding
-  emitted into generated/ as a pipeline codegen step, use /architect:generate-infra-code instead.
+  Write Terraform, Kubernetes manifests, Helm and Kustomize and CI definitions from an agreed
+  infrastructure design into a real infrastructure repository. Use for "write the Terraform",
+  "create the manifests", "implement the CI". For scaffolding into generated/, use
+  /architect:generate-infra-code.
+argument-hint: '[target] [--env=<env>] [--cloud=<cloud>] [--auto]'
 model: sonnet
-user_invocable: true
 ---
 
 # Infrastructure Implementation
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/infra:implement [target] [--env=<env>] [--cloud=<cloud>] [--auto]`
 
 ## Desired Outcome
 

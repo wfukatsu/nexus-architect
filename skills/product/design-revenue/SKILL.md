@@ -2,13 +2,18 @@
 description: |
   Design the revenue/business model and a recomputable benefit-evaluation template — Lean
   Canvas/BMC, a chosen revenue model, unit-economics formulas (LTV/CAC, payback, ROI/NPV), and
-  falsifiable value hypotheses. Price and CAC are sent to validate-assumptions, not computed as fact.
-  /product:design-revenue [--input=<file|dir>] [--auto] [--lang=ja|en].
+  falsifiable value hypotheses. Price and CAC are sent to validate-assumptions, not computed as
+  fact.
+argument-hint: '[--input=<file|dir>] [--auto] [--lang=ja|en]'
 model: opus
-user_invocable: true
 ---
 
 # Revenue Model & Benefit Evaluation
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/product:design-revenue [--input=<file|dir>] [--auto] [--lang=ja|en]`
 
 ## Desired Outcome
 

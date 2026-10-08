@@ -1,10 +1,14 @@
 ---
-description: Generate a complete ScalarDB starter project for any of the 6 interface combinations. Produces build.gradle, config, schema, service class, docker-compose, and README.
+description: |
+  Generate a complete ScalarDB starter project for any of the 6 interface combinations. Produces
+  build.gradle, config, schema, service class, docker-compose, and README.
 model: sonnet
-user_invocable: true
 ---
 
 # /scalardb:scaffold — ScalarDB Application Scaffolding
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Instructions
 
