@@ -7,6 +7,31 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.44.2] - 2026-10-09
+
+### Changed
+- **GitLab CI/CD の設計指針: 信頼ポリシーは、パスだけに頼らない。**
+  - 同梱の Kubernetes/Terraform バンドルの `delivery/gitlab-cicd.md` を、GitLab の ID トークンの公式ドキュメントと
+    照合し、2 点を追記した。
+  - パス系のクレーム（`sub`・`project_path`）には、クラウド側が対応していれば `project_id` と `namespace_id` を
+    併用する。ID は、グループやプロジェクトの改名の影響を受けないためである。
+  - マージリクエストのパイプラインでは、`project_id`・`project_path`・`ref` はソース側のプロジェクトの値になる。
+    ジョブを実行するプロジェクトは、`job_project_id`・`job_project_path`（GitLab 18.4 以降）で識別する。
+  - `foundation/helm.md` は、Using Helm の Helm 4.3.0 版と照合し、変更なしとした。再検証待ちの文書は 0 件である。
+- **費用が足りなくなったパイプラインは、何を省いたかを報告する。**
+  - 費用の上限つきで実行した場合、オーケストレーターは、レポートを書かずに止まるかわりに、安い方法で最後まで
+    走ってよい。たとえばレビューのフェーズが、独立したレビュアーを起動せず、観点を自分で採点する。
+  - `/architect:pipeline` に、そのときの決まりを明記した。対象のフェーズを `work/pipeline-progress.json` の
+    `warnings` と最終報告に書き、本来の方法でやり直すコマンドを添える。
+  - フェーズ、宣言された出力、検証スクリプトは、費用を理由に省かない。
+
+### Verified
+- **0.44.0 を、最初から最後まで通して実行した。**
+  - `samples/ec-monolith` に対する `/architect:pipeline` を、非対話で 1 回実行した。
+  - 23 フェーズすべてが、割り当てどおりのモデルで動いた。バックグラウンドに回った呼び出しはなかった。
+  - 並列グループは 3 フェーズ以下で、同時実行数の上限による拒否はなかった。
+  - `reports/review/quality-review.md` は、それを作るフェーズ自身が書いた。
+
 ## [0.44.1] - 2026-10-09
 
 ### Fixed

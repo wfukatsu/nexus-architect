@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.44.2] - 2026-10-09
+
+### Changed
+- **GitLab CI/CD guidance: trust policies should not rest on paths alone.** The vendored
+  Kubernetes/Terraform bundle's `delivery/gitlab-cicd.md` was re-verified against GitLab's ID token
+  documentation and gains two points. Pair path-based claims (`sub`, `project_path`) with
+  `project_id` and `namespace_id` where the cloud provider supports them, because IDs survive a
+  group or project rename. And in a merge request pipeline `project_id`, `project_path` and `ref`
+  are the source project's; the project running the job is `job_project_id` / `job_project_path`
+  (GitLab 18.4 and later). `foundation/helm.md` was re-verified against the Helm 4.3.0 edition of
+  Using Helm and is unchanged. No document awaits re-verification.
+- **A pipeline short of budget says what it left out.** Under a spending cap the orchestrator may
+  finish with a cheaper method — a review phase scoring its dimensions itself instead of spawning
+  independent reviewers — rather than stop with the report unwritten. `/architect:pipeline` now
+  states what goes with that: the affected phases are named under `warnings` in
+  `work/pipeline-progress.json` and in the final message, with the command that redoes them at
+  full method. No phase, declared output or validator is dropped for cost.
+
+### Verified
+- **0.44.0 on a full run, start to finish.** `/architect:pipeline` on `samples/ec-monolith` in one
+  non-interactive run: 23 of 23 phases on their assigned model, no call sent to the background, no
+  parallel group over three phases, no call refused for the concurrency limit, and
+  `reports/review/quality-review.md` written by its own phase.
+
 ## [0.44.1] - 2026-10-09
 
 ### Fixed
