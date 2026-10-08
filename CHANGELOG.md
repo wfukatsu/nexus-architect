@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.43.3] - 2026-10-09
+
+### Fixed
+- **Six parallel reviews asked for more sub-agents than Claude Code runs at once.** Claude Code
+  runs at most 20 sub-agents at a time and counts the ones a phase spawns; the six review phases
+  spawn three or four reviewers each, 27 in all. Seven calls were refused, and four reviews scored
+  some dimensions themselves instead of independently. `/architect:pipeline`, `/architect:start`
+  and `/product:start` now start at most three phases of a parallel group at a time, and a phase
+  that is refused a call anyway does that part itself and says so. The review group takes longer.
+- **The report's quality review could not be written by the phase that produces it.** Claude Code
+  refuses a sub-agent's write of a Markdown file whose name starts with `report`, `summary` or
+  `findings`, and every pipeline phase is a sub-agent. `review-report` wrote
+  `reports/review/report-quality-review.md`, so the orchestrator saved it from the returned text on
+  every run.
+
+### Changed
+- **`review-report` writes `reports/review/quality-review.md`.** The consolidated report still
+  renders a project that has the file under its old name, `report-quality-review.md`.
+- **Instructions in the migration skills give their reason instead of capitals.** About 70 lines,
+  such as "You MUST follow these steps exactly in order. Do NOT skip any step.", are plain
+  statements with the reason — each step produces what a later one reads. No instruction is removed.
+- **The three migration routers are under 500 lines.** `migrate-oracle`, `migrate-mysql` and
+  `migrate-postgresql` hand the `databases.env` template and the final summary format to reference
+  files that the step using them reads. Every step, question and stop condition stays in the body.
+
+### Verified
+- **The 0.43.2 fix, on the real review group.** No phase and none of its reviewers went to the
+  background, none returned before its output was written, and the orchestrator resumed nothing.
+
 ## [0.43.2] - 2026-10-09
 
 ### Fixed
