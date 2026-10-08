@@ -162,7 +162,7 @@ These become ArchUnit rules in `generate-contract-tests` and are checked at stag
 
 ## Repository Exception Strategy (specify it — do not leave it to codegen)
 
-`repository-interfaces-spec.md` MUST state one exception-propagation strategy for the whole
+`repository-interfaces-spec.md` states one exception-propagation strategy for the whole
 project, because "technology-independent interfaces" and "single-point retry classification"
 pull in opposite directions and every code generator otherwise invents its own bridge:
 

@@ -60,7 +60,7 @@ The skill produces the following outputs:
 
 ### Table and Column Names — Use Exact Names from `raw_mysql_schema_data.json`
 
-**Do NOT normalize table names or column names to lowercase or uppercase.**
+**Do not normalize table names or column names to lowercase or uppercase.**
 
 MySQL's case sensitivity depends on the platform and configuration (`lower_case_table_names` setting). On Linux it is case-sensitive by default; on Windows it is not. The actual stored names vary per database instance. The `raw_mysql_schema_data.json` is extracted directly from the MySQL information schema and always reflects the exact stored name for that specific instance.
 
@@ -231,7 +231,7 @@ Using templates, generate:
 
 ## ScalarDB Analytics (REQUIRED for Complex Queries)
 
-> **When to Use**: If your MySQL schema uses complex JOINs, subqueries, window functions, or analytical queries, you **MUST** plan for ScalarDB Analytics deployment.
+> **When to Use**: If your MySQL schema uses complex JOINs, subqueries, window functions, or analytical queries, plan for ScalarDB Analytics deployment — ScalarDB SQL cannot run them (see the limitations above).
 
 ### Decision Matrix
 

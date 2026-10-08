@@ -31,7 +31,7 @@ You are generating ScalarDB Java application code from PostgreSQL PL/pgSQL funct
 - PascalCase the PostgreSQL object names for Java class names (e.g., calculate_order_total → CalculateOrderTotalService)
 - PostgreSQL does not have packages — generate files for functions, procedures, trigger functions, and triggers
 - Trigger functions are separate entities (functions returning TRIGGER type) — generate a service class for each
-- **Target Java 17**: Use Java 17 language features where they improve clarity — `var` for local type inference, records for result/value objects, `instanceof` pattern matching, switch expressions, text blocks (`"""`), `List.of()` / `Map.of()`, and `String.formatted()`. Do NOT use preview features or Java 21+ features.
+- **Target Java 17**: Use Java 17 language features where they improve clarity — `var` for local type inference, records for result/value objects, `instanceof` pattern matching, switch expressions, text blocks (`"""`), `List.of()` / `Map.of()`, and `String.formatted()`. Do not use preview features or Java 21+ features — the generated code has to compile on Java 17.
 
 After completion, report back with EXACTLY this format:
 - STATUS: SUCCESS or FAILURE

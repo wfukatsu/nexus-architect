@@ -11,7 +11,7 @@ Orchestrates the complete Oracle to ScalarDB migration workflow through an inter
 
 ## Execution Instructions
 
-You MUST follow these steps exactly in order. Do NOT skip any step.
+Follow these steps in order, without skipping any: each step produces what a later one reads — the plugin root, the configuration, the connection check, the extracted schema — and a step that fails stops the ones after it.
 
 ---
 
@@ -61,7 +61,7 @@ Build the questions based on CONFIG_EXISTS:
 
 **If CONFIG_EXISTS = true:** Include "Keep current" options with actual values in descriptions (e.g., `"Keep current"` with description `"Keep: 98.130.78.220"`).
 
-**If CONFIG_EXISTS = false:** Replace "Keep current" options with additional useful defaults instead. Do NOT offer "Keep current" since there is nothing to keep.
+**If CONFIG_EXISTS = false:** Replace "Keep current" options with additional useful defaults instead. Do not offer "Keep current", since there is nothing to keep.
 
 Use the `AskUserQuestion` tool:
 
@@ -276,7 +276,7 @@ Use the **Edit** tool to update `.claude/configuration/databases.env` with the c
 1. Set `ACTIVE_DATABASE=oracle`
 2. Update `OUTPUT_DIR` if changed
 3. Update all `ORACLE_*` parameters with the mapped values from Step 4
-4. Do NOT modify the PostgreSQL or MySQL sections
+4. Leave the PostgreSQL and MySQL sections as they are — the file holds every database's configuration, and those belong to other migrations
 
 **After writing/updating, display a confirmation summary to the user:**
 
@@ -323,7 +323,7 @@ Spawn a **Bash** subagent using the `Agent` tool to test the database connection
 - Extract `DURATION_SECONDS` from the subagent's response → store as `S0_DURATION`
 - Extract `total_tokens` from the `<usage>` block in the Agent result (if present) → store as `S0_TOKENS`
 - If STATUS is **SUCCESS** → Display the Oracle version banner to the user. Proceed to Step 8.
-- If STATUS is **FAILURE** → Display the error message with the appropriate resolution hint and **STOP HERE — do NOT proceed to Step 8 or any later step.**
+- If STATUS is **FAILURE** → Display the error message with the appropriate resolution hint and **Stop here — do not proceed to Step 8 or any later step.**
   - `ORA-12541` → Oracle listener not running or wrong host/port
   - `ORA-12514` → Wrong service name or SID
   - `ORA-01017` → Wrong username or password
@@ -342,7 +342,7 @@ Spawn a **Bash** subagent using the `Agent` tool to run the Python extractor scr
 **Check the subagent result:**
 - Extract `DURATION_SECONDS` from the subagent's response → store as `S1_DURATION`
 - Extract `total_tokens` from the `<usage>` block in the Agent result (if present) → store as `S1_TOKENS`
-- If STATUS is **FAILURE** → Display the error to the user with resolution hints (check host/port/service, verify credentials, ensure Oracle listener is running). **STOP HERE — do NOT proceed to Step 9 or Step 10.**
+- If STATUS is **FAILURE** → Display the error to the user with resolution hints (check host/port/service, verify credentials, ensure Oracle listener is running). **Stop here — do not proceed to Step 9 or Step 10.**
 - If STATUS is **SUCCESS** → Note the OUTPUT_FILE path and proceed to Step 9.
 
 ---
@@ -358,7 +358,7 @@ Spawn a **general-purpose** subagent using the `Agent` tool to generate the sche
 **Check the subagent result:**
 - Extract `DURATION_SECONDS` from the subagent's response → store as `S2_DURATION`
 - Extract `total_tokens` from the `<usage>` block in the Agent result (if present) → store as `S2_TOKENS`
-- If STATUS is **FAILURE** → Display the error to the user. Note that `raw_schema_data.json` is still available for manual inspection. **STOP HERE — do NOT proceed to Step 10.**
+- If STATUS is **FAILURE** → Display the error to the user. Note that `raw_schema_data.json` is still available for manual inspection. **Stop here — do not proceed to Step 10.**
 - If STATUS is **SUCCESS** → Note the summary and proceed to Step 10.
 
 ---

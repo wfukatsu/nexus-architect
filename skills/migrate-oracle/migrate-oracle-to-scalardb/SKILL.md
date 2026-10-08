@@ -60,7 +60,7 @@ The skill produces the following outputs:
 
 ### Table and Column Names — Use Exact Names from `raw_schema_data.json`
 
-**Do NOT normalize table names or column names to lowercase or uppercase.**
+**Do not normalize table names or column names to lowercase or uppercase.**
 
 Oracle's behavior depends on how the object was created:
 - **Unquoted identifiers** (e.g., `CREATE TABLE employees`) → Oracle stores them as `EMPLOYEES`
@@ -255,7 +255,7 @@ ScalarDB SQL has significant differences from traditional RDBMS SQL. These must 
 
 ## ScalarDB Analytics (REQUIRED for Complex Queries)
 
-> **When to Use**: If your Oracle schema uses complex JOINs, subqueries, window functions, or analytical queries, you **MUST** plan for ScalarDB Analytics deployment.
+> **When to Use**: If your Oracle schema uses complex JOINs, subqueries, window functions, or analytical queries, plan for ScalarDB Analytics deployment — ScalarDB SQL cannot run them (see the limitations above).
 
 ### Decision Matrix
 
@@ -301,7 +301,7 @@ Start with ScalarDB Core. Add Cluster only if a SQL interface is specifically ne
 
 ### Oracle AQ Decision
 
-**If the Oracle database contains triggers or stored procedures that perform DML on other tables, Oracle AQ MUST be used.** This is a design decision, not optional. The goal is to preserve existing database behavior unchanged while routing writes through ScalarDB.
+**If the Oracle database contains triggers or stored procedures that perform DML on other tables, use Oracle AQ.** This is a design decision already taken, not an option to weigh. The goal is to preserve existing database behavior unchanged while routing writes through ScalarDB.
 
 ### Mandatory References
 

@@ -137,7 +137,7 @@ When analyzing each PL/SQL object, identify which of these feature categories it
 
 ### Target Java Version: 17
 
-All generated Java files MUST target **Java 17**. Use these Java 17 language features where appropriate:
+All generated Java files target **Java 17**. Use these Java 17 language features where appropriate:
 
 | Feature | When to Use |
 |---------|------------|
@@ -150,7 +150,7 @@ All generated Java files MUST target **Java 17**. Use these Java 17 language fea
 | `String.formatted()` | Inline string formatting (prefer over `String.format()`) |
 | Sealed interfaces | Model closed hierarchies of result types (optional, for complex SPs) |
 
-**Do NOT use** preview features or anything requiring Java 21+.
+**Do not use** preview features or anything requiring Java 21+: the generated code has to compile on Java 17.
 
 ### File Naming
 
@@ -163,7 +163,7 @@ All generated Java files MUST target **Java 17**. Use these Java 17 language fea
 
 ### Class Structure
 
-Each generated `.java` file MUST contain:
+Each generated `.java` file contains:
 
 ```java
 package com.example.scalardb.migration;
@@ -214,11 +214,11 @@ Use the schema report to determine correct key types:
 | DATE | `Key.ofDate("col", localDateValue)` — use `java.time.LocalDate` (ScalarDB 3.17+ native DATE) |
 | TIMESTAMP | `Key.ofTimestamp("col", localDateTimeValue)` — use `java.time.LocalDateTime` (ScalarDB 3.17+ native TIMESTAMP) |
 
-> **Important:** ScalarDB 3.17+ supports native DATE and TIMESTAMP types. Do NOT map Oracle DATE to BIGINT (epoch millis) — that mapping is incorrect. Use `Key.ofDate()` with `java.time.LocalDate` for DATE columns and `Key.ofTimestamp()` with `java.time.LocalDateTime` for TIMESTAMP columns.
+> **Important:** ScalarDB 3.17+ supports native DATE and TIMESTAMP types. Do not map Oracle DATE to BIGINT (epoch millis) — that mapping is incorrect. Use `Key.ofDate()` with `java.time.LocalDate` for DATE columns and `Key.ofTimestamp()` with `java.time.LocalDateTime` for TIMESTAMP columns.
 
 ### Error Handling Pattern
 
-Every generated method MUST include proper ScalarDB exception handling:
+Every generated method includes proper ScalarDB exception handling:
 
 ```java
 try {

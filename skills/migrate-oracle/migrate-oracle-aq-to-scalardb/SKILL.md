@@ -109,7 +109,7 @@ Analyze each trigger and stored procedure to determine if it should be converted
 1. **If a trigger has NO business logic** (just calls an SP): The trigger calls the enqueue SP with appropriate parameters. The business logic lives in the consumer.
 2. **If a trigger HAS business logic**: Extract the logic. The trigger calls an enqueue SP passing all needed data (OLD/NEW values). The consumer Java code implements the business logic.
 3. **Original triggers are DISABLED** — new triggers replace them.
-4. **Preserve the original trigger structure** — do NOT split a single trigger into multiple triggers. If the original trigger fires on multiple events (e.g., `UPDATE OF job_id, department_id`), the AQ replacement MUST be a single trigger with the same event specification. The replacement trigger should call the enqueue SP once, passing all relevant OLD/NEW values.
+4. **Preserve the original trigger structure** — do not split a single trigger into multiple triggers. If the original trigger fires on multiple events (e.g., `UPDATE OF job_id, department_id`), the AQ replacement is a single trigger with the same event specification: split per column, one update touching both columns would enqueue two messages for what the original handled as one event. The replacement trigger should call the enqueue SP once, passing all relevant OLD/NEW values.
 
 ### Stored procedure conversion rules
 
@@ -211,7 +211,7 @@ END SP_ENQUEUE_<operation_name>;
 
 ### 5. Modified Triggers
 
-**IMPORTANT:** Preserve the original trigger structure. Do NOT split a single trigger into multiple triggers. If the original trigger fires on `UPDATE OF col1, col2`, the replacement trigger MUST use the same event specification as a single trigger.
+Preserve the original trigger structure: do not split a single trigger into multiple triggers. If the original trigger fires on `UPDATE OF col1, col2`, the replacement trigger uses the same event specification as a single trigger, so that one update still produces one message.
 
 ```sql
 -- Disable original trigger
@@ -234,7 +234,7 @@ END TRG_AQ_<descriptive_name>;
 
 ### SQL File Structure
 
-The generated `aq_setup.sql` MUST be organized in this order:
+The generated `aq_setup.sql` is organized in this order:
 
 ```sql
 -- =============================================================================
@@ -259,9 +259,9 @@ The generated `aq_setup.sql` MUST be organized in this order:
 
 ### Target Java Version: 17
 
-All generated Java files MUST target **Java 17**. Use Java 17 features where appropriate: `var`, records, `instanceof` pattern matching, switch expressions, text blocks, `List.of()`, `String.formatted()`.
+All generated Java files target **Java 17**. Use Java 17 features where appropriate: `var`, records, `instanceof` pattern matching, switch expressions, text blocks, `List.of()`, `String.formatted()`.
 
-**Do NOT use** preview features or anything requiring Java 21+.
+**Do not use** preview features or anything requiring Java 21+: the generated code has to compile on Java 17.
 
 ### Required Dependencies (document in report)
 
@@ -286,7 +286,7 @@ The following JAR files are required for AQ consumer functionality:
   - Example: `job_history_change_t` → `JobHistoryChangeMessage.java`
 - **Helper**: `AqStructHolder.java` (always this name)
 
-**IMPORTANT:** ALL files listed in the Output Contract MUST actually be written to disk. The Generated File Index in the report MUST match the actual files in `generated-java/`. Do not reference files that were not written.
+Write every file listed in the Output Contract to disk, and make the Generated File Index in the report match the actual files in `generated-java/`. A report that references a file that was never written sends its reader looking for code that does not exist.
 
 ### AqStructHolder (generate once)
 
@@ -477,7 +477,7 @@ Use the schema report to determine correct key types:
 
 ### Error Handling Pattern
 
-**CRITICAL:** The generated consumer code MUST classify exceptions to determine whether the AQ session should be rolled back (retriable) or committed (non-retriable / poison message removal). Refer to `aq-exception-handling-strategy.md` for the full classification taxonomy.
+The generated consumer code classifies exceptions to determine whether the AQ session should be rolled back (retriable) or committed (non-retriable / poison message removal). The classification is what the consumer's correctness rests on: a retriable failure committed loses the message, and a poison message rolled back is redelivered again and again. Refer to `aq-exception-handling-strategy.md` for the full classification taxonomy.
 
 #### Exception Classification Summary
 
@@ -489,7 +489,7 @@ Use the schema report to determine correct key types:
 
 #### Generated ExceptionClassifier Utility
 
-Generate an `ExceptionClassifier.java` file in `generated-java/` for every AQ migration. This utility classifies exceptions into the three verdicts above. The `instanceof` check order MUST go from most-specific to least-specific subclass due to the ScalarDB exception hierarchy:
+Generate an `ExceptionClassifier.java` file in `generated-java/` for every AQ migration. This utility classifies exceptions into the three verdicts above. The `instanceof` check order goes from most-specific to least-specific subclass, because of the ScalarDB exception hierarchy — a superclass checked first would catch its subclasses:
 
 ```
 TransactionException
@@ -542,7 +542,7 @@ public final class ExceptionClassifier {
 
 #### ScalarDbWriter — Preserve Exception Types
 
-The writer MUST NOT call `tx.abort()` on `UnknownTransactionStatusException` — the TX may have committed:
+The writer does not call `tx.abort()` on `UnknownTransactionStatusException` — the TX may have committed:
 
 ```java
 try {

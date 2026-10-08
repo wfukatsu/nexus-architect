@@ -261,7 +261,7 @@ public void executeWithRetry() throws SQLException, InterruptedException {
 - `RIGHT OUTER JOIN` must be the first join
 - WHERE must be in DNF (OR of ANDs) or CNF (AND of ORs)
 - `UPSERT` is a ScalarDB-specific SQL extension (not standard SQL)
-- For DATE/TIME/TIMESTAMP/TIMESTAMPTZ, use `setObject()`/`getObject()`, NOT legacy JDBC methods
+- For DATE/TIME/TIMESTAMP/TIMESTAMPTZ, use `setObject()`/`getObject()`, not the legacy JDBC methods
 
 ## Output Format
 

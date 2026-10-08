@@ -20,7 +20,7 @@ Rules:
 - Use the JSON field references indicated in each section
 - Skip sections entirely if no data exists (no empty tables, no "N/A")
 - Calculate summary metrics for the Executive Summary from actual data
-- This is a pure schema report — do NOT add migration commentary or compatibility assessments
+- This is a pure schema report — do not add migration commentary or compatibility assessments
 
 After completion, report back with EXACTLY this format:
 - STATUS: SUCCESS or FAILURE

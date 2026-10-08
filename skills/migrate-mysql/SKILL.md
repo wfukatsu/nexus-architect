@@ -11,7 +11,7 @@ Orchestrates the complete MySQL to ScalarDB migration workflow through an intera
 
 ## Execution Instructions
 
-You MUST follow these steps exactly in order. Do NOT skip any step.
+Follow these steps in order, without skipping any: each step produces what a later one reads — the plugin root, the configuration, the connection check, the extracted schema — and a step that fails stops the ones after it.
 
 ---
 
@@ -61,7 +61,7 @@ Build the questions based on CONFIG_EXISTS:
 
 **If CONFIG_EXISTS = true:** Include "Keep current" options with actual values in descriptions (e.g., `"Keep current"` with description `"Keep: localhost"`).
 
-**If CONFIG_EXISTS = false:** Replace "Keep current" options with additional useful defaults instead. Do NOT offer "Keep current" since there is nothing to keep.
+**If CONFIG_EXISTS = false:** Replace "Keep current" options with additional useful defaults instead. Do not offer "Keep current", since there is nothing to keep.
 
 Use the `AskUserQuestion` tool:
 
@@ -274,7 +274,7 @@ Use the **Edit** tool to update `.claude/configuration/databases.env` with the c
 1. Set `ACTIVE_DATABASE=mysql`
 2. Update `OUTPUT_DIR` if changed
 3. Update all `MYSQL_*` parameters with the mapped values from Step 4
-4. Do NOT modify the PostgreSQL or Oracle sections
+4. Leave the PostgreSQL and Oracle sections as they are — the file holds every database's configuration, and those belong to other migrations
 
 **After writing/updating, display a confirmation summary to the user:**
 
@@ -315,7 +315,7 @@ Spawn a **Bash** subagent using the `Agent` tool to test the MySQL database conn
 - Extract `total_tokens` from the `<usage>` block in the Agent result (if present) → store as `S0_TOKENS`
 
 **Check the subagent result:**
-- If STATUS is **FAILURE** → Display the error to the user with resolution hints (check host/port/database name, verify credentials, ensure MySQL server is running and accepting connections). **STOP HERE — do NOT proceed to Step 8, 9, or 10.**
+- If STATUS is **FAILURE** → Display the error to the user with resolution hints (check host/port/database name, verify credentials, ensure MySQL server is running and accepting connections). **Stop here — do not proceed to Step 8, 9, or 10.**
 - If STATUS is **SUCCESS** → Note the database product and version, then proceed to Step 8.
 
 ---
@@ -333,7 +333,7 @@ Spawn a **Bash** subagent using the `Agent` tool to run the Python extractor scr
 - Extract `total_tokens` from the `<usage>` block in the Agent result (if present) → store as `S1_TOKENS`
 
 **Check the subagent result:**
-- If STATUS is **FAILURE** → Display the error to the user with resolution hints (check host/port, verify credentials, ensure MySQL server is running). **STOP HERE — do NOT proceed to Step 9 or Step 10.**
+- If STATUS is **FAILURE** → Display the error to the user with resolution hints (check host/port, verify credentials, ensure MySQL server is running). **Stop here — do not proceed to Step 9 or Step 10.**
 - If STATUS is **SUCCESS** → Note the OUTPUT_FILE path and proceed to Step 9.
 
 ---
@@ -351,7 +351,7 @@ Spawn a **general-purpose** subagent using the `Agent` tool to generate the sche
 - Extract `total_tokens` from the `<usage>` block in the Agent result (if present) → store as `S2_TOKENS`
 
 **Check the subagent result:**
-- If STATUS is **FAILURE** → Display the error to the user. Note that `raw_mysql_schema_data.json` is still available for manual inspection. **STOP HERE — do NOT proceed to Step 10.**
+- If STATUS is **FAILURE** → Display the error to the user. Note that `raw_mysql_schema_data.json` is still available for manual inspection. **Stop here — do not proceed to Step 10.**
 - If STATUS is **SUCCESS** → Note the summary and proceed to Step 10.
 
 ---
@@ -376,7 +376,7 @@ Spawn a **general-purpose** subagent using the `Agent` tool to generate the sche
 - Compute parallel wall-clock: `S34_WALL = max(S3_DURATION, S4_DURATION)`
 
 **Error cascading rules:**
-- Subagent 2 (Step 9) **failed** → **do NOT spawn either Subagent 3 or 4** (both need mysql_schema_report.md)
+- Subagent 2 (Step 9) **failed** → **do not spawn either Subagent 3 or 4** (both need mysql_schema_report.md)
 - Subagent 3 **fails** while Subagent 4 **succeeds** → capture both results, report Subagent 3 error, proceed with Subagent 4 output
 - Subagent 4 **fails** while Subagent 3 **succeeds** → capture both results, report Subagent 4 error, proceed with Subagent 3 output
 - Both fail → display both errors; all prior outputs (schema report, raw JSON) remain on disk

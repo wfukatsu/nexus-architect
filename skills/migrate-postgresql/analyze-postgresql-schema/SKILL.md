@@ -53,8 +53,8 @@ Claude reads the JSON and generates the Markdown report following the template i
 - Use the JSON field references indicated in each section
 - **Skip sections entirely** if no data exists (no empty tables, no "N/A")
 - Calculate summary metrics for the Executive Summary from actual data
-- **DO NOT add migration commentary** - This skill only extracts and documents
-- **DO NOT mark types as "supported" or "not supported"** - That is the job of the `migrate-postgresql-to-scalardb` skill
+- **Do not add migration commentary** - This skill only extracts and documents
+- **Do not mark types as "supported" or "not supported"** - That is the job of the `migrate-postgresql-to-scalardb` skill
 
 > **Important**: This skill is purely for **extraction and documentation**. All migration analysis, compatibility judgments, and type mapping decisions are handled by the separate `migrate-postgresql-to-scalardb` skill.
 

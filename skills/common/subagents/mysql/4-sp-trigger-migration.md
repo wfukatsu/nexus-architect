@@ -30,7 +30,7 @@ You are generating ScalarDB Java application code from MySQL stored procedures, 
 - Follow the exception handling patterns from the migration strategy guide
 - PascalCase the MySQL object names for Java class names (e.g., calculate_order_total → CalculateOrderTotalService)
 - MySQL does not have packages — only generate files for procedures, functions, and triggers
-- **Target Java 17**: Use Java 17 language features where they improve clarity — `var` for local type inference, records for result/value objects, `instanceof` pattern matching, switch expressions, text blocks (`"""`), `List.of()` / `Map.of()`, and `String.formatted()`. Do NOT use preview features or Java 21+ features.
+- **Target Java 17**: Use Java 17 language features where they improve clarity — `var` for local type inference, records for result/value objects, `instanceof` pattern matching, switch expressions, text blocks (`"""`), `List.of()` / `Map.of()`, and `String.formatted()`. Do not use preview features or Java 21+ features — the generated code has to compile on Java 17.
 
 After completion, report back with EXACTLY this format:
 - STATUS: SUCCESS or FAILURE
