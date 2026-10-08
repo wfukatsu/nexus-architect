@@ -191,7 +191,7 @@ on a smaller model, and suggest `/model opus` — do not push a design dialogue 
 the `design-*` phases get opus and `report` gets haiku whatever the session is on:
 
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "{phase_model}",
   description: "{phase}",

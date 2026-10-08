@@ -94,11 +94,11 @@ the document's Open Items already records the missing ADR with an owner.
 
 ### Step 2: Spawn Three Parallel Dimension Reviewers
 
-In a **single message**, issue all three Task() calls simultaneously so they run in parallel:
+In a **single message**, issue all three Agent() calls simultaneously so they run in parallel:
 
 **Task A — Structural Coherence (CON-1xx)**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "Structural coherence dimension review",
@@ -149,7 +149,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 
 **Task B — Traceability (CON-2xx)**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "Traceability dimension review",
@@ -204,7 +204,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 
 **Task C — Terminology Consistency (CON-3xx)**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "Terminology consistency dimension review",

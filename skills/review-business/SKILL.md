@@ -41,11 +41,11 @@ Record the full list of found file paths — these will be passed to sub-agents.
 
 ### Step 2: Spawn Four Parallel Dimension Reviewers
 
-In a **single message**, issue all four Task() calls simultaneously so they run in parallel:
+In a **single message**, issue all four Agent() calls simultaneously so they run in parallel:
 
 **Task A — Requirements Traceability (BIZ-1xx)**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "Requirements traceability dimension review",
@@ -86,7 +86,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 
 **Task B — NFR Quantification (BIZ-2xx)**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "NFR quantification dimension review",
@@ -127,7 +127,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 
 **Task C — Stakeholder Alignment (BIZ-3xx)**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "Stakeholder alignment dimension review",
@@ -168,7 +168,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 
 **Task D — ROI and Feasibility (BIZ-4xx)**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "ROI and feasibility dimension review",

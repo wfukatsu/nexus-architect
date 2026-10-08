@@ -48,7 +48,7 @@ Codex では Claude Code の tool 参照を次のように読み替えます。
 | `Glob`, `Grep`, `LS` | `rg --files`, `rg`, `find`, `ls` を使う |
 | `WebFetch`, `WebSearch` | Codex の web access、Context7、または承認済み `curl` を使う |
 | `AskUserQuestion` | 番号付き選択肢をチャットで提示し、回答を待つ |
-| `Task`, `Subagent` | ユーザーが明示的に sub-agent 利用を依頼しない限り、Codex のメインスレッドで実行する |
+| `Agent`（旧称 `Task`）、`Subagent` | ユーザーが明示的に sub-agent 利用を依頼しない限り、Codex のメインスレッドで実行する |
 | `Skill` | 参照された `SKILL.md` を開いて従う |
 
 ## 実行時パス

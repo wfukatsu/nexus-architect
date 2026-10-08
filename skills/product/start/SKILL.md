@@ -109,7 +109,7 @@ suggest `/model opus` — do not push strategy and judgment through on less.
 nothing ties a phase to this conversation, and the tier the manifest assigns can be honoured:
 
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "{phase_model}",
   description: "{phase}",

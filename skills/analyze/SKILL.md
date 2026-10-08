@@ -53,7 +53,7 @@ The existing UI is evidence the backend alone does not give (@rules/ui-analysis.
 - **Serena MCP** — Symbol relationship analysis via `find_symbol`, `find_referencing_symbols` (preferred)
 - **Glob/Grep** — Search for domain terms within code
 - **Read** — Extract domain knowledge from documentation, comments, and test cases
-- **Task(Explore)** — Parallel entity extraction across large codebases
+- **Agent(Explore)** — Parallel entity extraction across large codebases
 
 ## Output
 

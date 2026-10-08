@@ -148,8 +148,8 @@ Path mapping:
   your CWD equals it. (CLAUDE_PLUGIN_ROOT placeholders are already expanded in the
   body below.)
 
-Task(...) blocks:
-  DEFAULT: run each Task prompt body SEQUENTIALLY in this worker and have the
+Agent(...) blocks (Task(...) in older skills):
+  DEFAULT: run each Agent prompt body SEQUENTIALLY in this worker and have the
   orchestrator aggregate the results. (sys_call_async dispatches a registered
   local Python tool, NOT an agent/sub-agent session — do not use it for this.)
   Genuine PARALLEL sub-agent execution is an orchestrator capability via the

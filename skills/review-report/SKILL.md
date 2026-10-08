@@ -99,12 +99,12 @@ Extract and record:
 
 ### Step 2: Spawn Parallel Dimension Reviewers
 
-Issue all five Task() calls in a **single message** so they run in parallel.
+Issue all five Agent() calls in a **single message** so they run in parallel.
 Pass the extracted reference data inline in each prompt (do not ask sub-agents to re-read pipeline-progress.json).
 
 **Task A — Completeness**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "Report completeness check",
@@ -149,7 +149,7 @@ Return ONLY this JSON (no markdown fences):
 
 **Task B — Score Accuracy**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "Report score accuracy check",
@@ -196,7 +196,7 @@ Return ONLY this JSON (no markdown fences):
 
 **Task C — Mermaid Syntax**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "Mermaid diagram syntax check",
@@ -240,7 +240,7 @@ Return ONLY this JSON (no markdown fences):
 
 **Task D — Language Consistency**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "Report language consistency check",
@@ -284,7 +284,7 @@ Return ONLY this JSON (no markdown fences):
 
 **Task E — Structural Integrity**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "Report structural integrity check",

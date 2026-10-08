@@ -22,7 +22,7 @@ keep in sync.
 ## Automatic per-phase recording
 
 The `record_token_usage.py` hook (wired in `hooks/hooks.json` as `PostToolUse` on
-`Write|Edit|MultiEdit|Task|Agent`, plus `Stop` and `SubagentStop`) runs during
+`Write|Edit|Agent`, plus `Stop` and `SubagentStop`) runs during
 execution:
 
 1. **Activates only inside an initialized project** (`work/pipeline-progress.json` must

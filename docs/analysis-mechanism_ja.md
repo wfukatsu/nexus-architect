@@ -65,7 +65,7 @@ graph LR
    テキスト検索ではなく言語サーバー相当の構造理解で、クラス・メソッド・参照関係を辿る。
 2. **Glob / Grep** — ファイルパターン探索、ドメイン用語や設定キーの横断検索。
 3. **Read** — 設定ファイル・依存定義（build.gradle 等）・テストコードの精読。
-4. **Task（サブエージェント）** — 大規模コードベースでの並列探索。
+4. **Agent（サブエージェント）** — 大規模コードベースでの並列探索。
    メインのコンテキストウィンドウを守るため、探索・要約をサブエージェントに委譲する
    （パターン集: `skills/common/sub-agent-patterns.md` — 構造調査、前フェーズ出力の取り込み、
    エンティティ抽出、制約充足検証など8パターン）。
@@ -184,7 +184,7 @@ grep と違い参照はスコープ解決されるため、同名の別シンボ
 - スコアの合成は LLM に任せず、オーケストレーターが `rules/evaluation-frameworks.md` の
   定義式で算術的に行う（LLM が判断するのは個別基準の1–5点まで）。
 - 軸・層ごとに独立サブエージェントへ分けるのは、他の軸の印象に採点が引きずられる
-  **ハロー効果を避ける**ため。「In a **single message**, issue all four Task() calls
+  **ハロー効果を避ける**ため。「In a **single message**, issue all four Agent() calls
   simultaneously」という指示が並列独立性を担保する。
 
 ### 7.3 設計書: テンプレート突合とギャップ駆動の解釈
@@ -317,7 +317,7 @@ analyze スキルが用語辞書を導く流れ。**1つの文書から抜き出
 | "Read all analysis documents using the Read tool" + FILE_LIST（evaluate-*） | 評価対象を文書化された証拠に限定（2段階評価） |
 | "Return ONLY this JSON" + score / rationale スキーマ（evaluate-*） | 採点の構造化回収と根拠の強制 |
 | "do not estimate the final score independently"（investigate） | 総合点を定義式のみに限定 |
-| "In a single message, issue all four Task() calls"（evaluate-mmi） | 並列独立採点によるハロー効果の回避 |
+| "In a single message, issue all four Agent() calls"（evaluate-mmi） | 並列独立採点によるハロー効果の回避 |
 | "Never fabricate requirements … record it as TBD"（define-requirements） | 設計書にない要件の捏造禁止 |
 
 ## 8. さらに深く — オーケストレーション・フック・レビューの内部
@@ -350,7 +350,7 @@ analyze スキルが用語辞書を導く流れ。**1つの文書から抜き出
 再書き込みも同じフックで再検証されるので、**通るまでループする自動矯正**になる
 （同じスクリプトは CLI から引数付きで呼ぶと exit 1 の手動検証ツールとして動く）。
 
-もう1系統、`record_token_usage.py` が Write / Edit / Task / Agent / Stop / SubagentStop で
+もう1系統、`record_token_usage.py` が Write / Edit / Agent / Stop / SubagentStop で
 発火し、`work/token-usage.json` にトークン消費を追記する。これが
 `/architect:estimate-token-cost` の事前見積りを実測で較正する台帳になる。
 

@@ -41,7 +41,7 @@ Many skill files mention Claude Code tools. In Codex, interpret them as follows:
 - `LS`: use `ls`
 - `WebFetch` / `WebSearch`: use Codex web access, Context7, or `curl` when network access is approved
 - `AskUserQuestion` / `Question`: present numbered choices in chat, add an explicit "or type your own answer" line (Codex has no harness-appended "Other"), and wait for the user's reply
-- `Task` / `Subagent`: run the steps in the main Codex thread unless the user explicitly asks for sub-agents
+- `Agent` (`Task` in older skills) / `Subagent`: run the steps in the main Codex thread unless the user explicitly asks for sub-agents
 - `Parallel`: use parallel shell reads where useful; keep code-writing steps coordinated
 - `TodoWrite` / `TodoRead`: use local todo files only if the task requires persistent todos
 - `Skill`: open the referenced `SKILL.md` and follow it

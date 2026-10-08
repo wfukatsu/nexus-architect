@@ -48,7 +48,7 @@ Codex interprets Claude Code tool references as local operations:
 | `Glob`, `Grep`, `LS` | Use `rg --files`, `rg`, `find`, or `ls` |
 | `WebFetch`, `WebSearch` | Use Codex web access, Context7, or approved `curl` |
 | `AskUserQuestion` | Show numbered choices in chat and wait for a reply |
-| `Task`, `Subagent` | Run in the main Codex thread unless the user explicitly asks for sub-agents |
+| `Agent` (formerly `Task`), `Subagent` | Run in the main Codex thread unless the user explicitly asks for sub-agents |
 | `Skill` | Open the referenced `SKILL.md` and follow it |
 
 ## Runtime Paths

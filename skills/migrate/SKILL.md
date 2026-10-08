@@ -200,7 +200,7 @@ Consult these reference documents:
 
 ## How to Use
 
-This agent should be invoked with a Task tool call like:
+This agent should be invoked with a Agent tool call like:
 
 ```
 Advise on migrating from [current combination] to [target combination].

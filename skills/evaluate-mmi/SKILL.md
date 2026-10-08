@@ -48,12 +48,12 @@ Record the full list of found file paths — these will be passed to all sub-age
 
 ### Step 3: Spawn Four Parallel Axis Evaluators
 
-In a **single message**, issue all four Task() calls simultaneously so they run in parallel.
+In a **single message**, issue all four Agent() calls simultaneously so they run in parallel.
 Each evaluator scores ALL identified modules on its specific axis.
 
 **Task A — Cohesion Axis**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "MMI cohesion axis evaluation for all modules",
@@ -95,7 +95,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 
 **Task B — Coupling Axis**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "MMI coupling axis evaluation for all modules",
@@ -137,7 +137,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 
 **Task C — Independence Axis**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "MMI independence axis evaluation for all modules",
@@ -179,7 +179,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 
 **Task D — Reusability Axis**
 ```
-Task(
+Agent(
   subagent_type: "general-purpose",
   model: "sonnet",
   description: "MMI reusability axis evaluation for all modules",

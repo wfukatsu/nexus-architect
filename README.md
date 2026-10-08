@@ -113,7 +113,7 @@ When a skill asks to use Claude tools, Codex follows these mappings:
 | `Write`, `Edit`, `MultiEdit` | Edit files with `apply_patch` |
 | `Bash` | Run shell commands |
 | `AskUserQuestion` | Present numbered choices in chat, add an "or type your own answer" line, and wait for the reply |
-| `Task`, `Subagent` | Run in the main Codex thread unless the user explicitly asks for sub-agents |
+| `Agent` (formerly `Task`), `Subagent` | Run in the main Codex thread unless the user explicitly asks for sub-agents |
 | `WebFetch`, `WebSearch` | Use Codex web access, Context7, or approved `curl` |
 
 After editing generated reports or Mermaid diagrams in Codex, run the hooks manually when relevant:
