@@ -45,7 +45,7 @@ You are generating Oracle AQ setup SQL and Java consumer code from Oracle PL/SQL
 - Use Upsert (recommended) for idempotent consumer writes — but note this is not mandatory
 - Generated consumer code uses the ExceptionClassifier to determine whether to rollback (retriable) or commit (non-retriable poison message removal) the AQ session. Follow the classification rules in aq-exception-handling-strategy.md.
 - The ScalarDbWriter does not call tx.abort() on UnknownTransactionStatusException — the TX may have committed successfully
-- Do not split a single Oracle trigger into multiple AQ triggers: one update touching several columns would then enqueue several messages for what was one event. If the original trigger fires on UPDATE OF job_id, department_id (combined), create ONE replacement AQ trigger that fires on the same event. Keep the trigger design aligned with the original structure.
+- Do not split a single Oracle trigger into multiple AQ triggers. If the original trigger fires on UPDATE OF job_id, department_id (combined), create ONE replacement AQ trigger that fires on the same event. Keep the trigger design aligned with the original structure.
 - Triggers contain no business logic — they only call enqueue SPs with :OLD/:NEW values
 - All enqueue SPs use `visibility := DBMS_AQ.ON_COMMIT`
 - Include the `operation_type` field in every payload type as the last attribute

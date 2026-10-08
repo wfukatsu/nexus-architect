@@ -109,7 +109,7 @@ Analyze each trigger and stored procedure to determine if it should be converted
 1. **If a trigger has NO business logic** (just calls an SP): The trigger calls the enqueue SP with appropriate parameters. The business logic lives in the consumer.
 2. **If a trigger HAS business logic**: Extract the logic. The trigger calls an enqueue SP passing all needed data (OLD/NEW values). The consumer Java code implements the business logic.
 3. **Original triggers are DISABLED** — new triggers replace them.
-4. **Preserve the original trigger structure** — do not split a single trigger into multiple triggers. If the original trigger fires on multiple events (e.g., `UPDATE OF job_id, department_id`), the AQ replacement is a single trigger with the same event specification: split per column, one update touching both columns would enqueue two messages for what the original handled as one event. The replacement trigger should call the enqueue SP once, passing all relevant OLD/NEW values.
+4. **Preserve the original trigger structure** — do not split a single trigger into multiple triggers. If the original trigger fires on multiple events (e.g., `UPDATE OF job_id, department_id`), the AQ replacement is a single trigger with the same event specification. The replacement trigger should call the enqueue SP once, passing all relevant OLD/NEW values.
 
 ### Stored procedure conversion rules
 
@@ -211,7 +211,7 @@ END SP_ENQUEUE_<operation_name>;
 
 ### 5. Modified Triggers
 
-Preserve the original trigger structure: do not split a single trigger into multiple triggers. If the original trigger fires on `UPDATE OF col1, col2`, the replacement trigger uses the same event specification as a single trigger, so that one update still produces one message.
+Preserve the original trigger structure: do not split a single trigger into multiple triggers. If the original trigger fires on `UPDATE OF col1, col2`, the replacement trigger uses the same event specification as a single trigger.
 
 ```sql
 -- Disable original trigger
@@ -333,7 +333,7 @@ Use the schema report to determine correct key types:
 
 ### Error Handling Pattern
 
-The generated consumer code classifies exceptions to determine whether the AQ session should be rolled back (retriable) or committed (non-retriable / poison message removal). The classification is what the consumer's correctness rests on: a retriable failure committed loses the message, and a poison message rolled back is redelivered again and again. Refer to `aq-exception-handling-strategy.md` for the full classification taxonomy.
+The generated consumer code classifies exceptions to determine whether the AQ session should be rolled back (retriable) or committed (non-retriable / poison message removal). The classification is what the consumer's correctness rests on: a retriable failure committed removes a message that would have succeeded on redelivery, and a poison message rolled back is redelivered until `max_retries` is spent before it reaches the exception queue. Refer to `aq-exception-handling-strategy.md` for the full classification taxonomy.
 
 #### Exception Classification Summary
 

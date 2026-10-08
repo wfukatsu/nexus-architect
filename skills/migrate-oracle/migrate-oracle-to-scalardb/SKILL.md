@@ -255,7 +255,7 @@ ScalarDB SQL has significant differences from traditional RDBMS SQL. These must 
 
 ## ScalarDB Analytics (REQUIRED for Complex Queries)
 
-> **When to Use**: If your Oracle schema uses complex JOINs, subqueries, window functions, or analytical queries, plan for ScalarDB Analytics deployment — ScalarDB SQL cannot run them (see the limitations above).
+> **When to Use**: If your Oracle schema uses complex JOINs, subqueries, window functions, or analytical queries, plan for ScalarDB Analytics deployment — ScalarDB SQL has no subqueries or window functions and resolves JOINs partition by partition (see the limitations above).
 
 ### Decision Matrix
 
