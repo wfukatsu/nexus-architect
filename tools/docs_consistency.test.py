@@ -593,18 +593,23 @@ print("Skills stay short enough to load whole")
 
 # A SKILL.md is loaded in full when the skill runs; the documented ceiling is 500 lines, past which
 # what a single step needs (a template, a display format, a code example) belongs in a reference
-# file that step reads (issue #55). The one name below is over it and not yet split — the set
-# only shrinks: a file that drops under the ceiling must leave it, and nothing may be added.
+# file that step reads (issue #55).
+#
+# One skill is kept whole on purpose. `design-aggregate` is a facilitated dialogue: its steps, the
+# questions it asks and the manifest shape the answers fill are read back and forth across the
+# whole session, not one step at a time, so there is no step to hand a reference file to — and it
+# is 79 lines over, not hundreds. The exemption is by name, it is dropped the moment the file is
+# under the ceiling, and it is not a precedent: a new long skill is split.
 MAX_SKILL_LINES = 500
-NOT_YET_SPLIT = {
+KEPT_WHOLE = {
     "skills/design-aggregate/SKILL.md",
 }
 skill_files = [f for f in prose if f.endswith("/SKILL.md")]
 long_ones = {f for f in skill_files if len(read(f).splitlines()) > MAX_SKILL_LINES}
 check("no SKILL.md is over %d lines (%d files)" % (MAX_SKILL_LINES, len(skill_files)),
-      skill_files and not (long_ones - NOT_YET_SPLIT), sorted(long_ones - NOT_YET_SPLIT))
+      skill_files and not (long_ones - KEPT_WHOLE), sorted(long_ones - KEPT_WHOLE))
 check("every exemption from the length ceiling is still over it",
-      not (NOT_YET_SPLIT - long_ones), sorted(NOT_YET_SPLIT - long_ones))
+      not (KEPT_WHOLE - long_ones), sorted(KEPT_WHOLE - long_ones))
 
 # What a skill hands to a reference file has to be there: a `${PLUGIN_ROOT}/...` path naming a file
 # (not a directory or a glob) is an instruction to read it.
