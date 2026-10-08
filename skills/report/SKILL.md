@@ -1,6 +1,9 @@
 ---
 description: |
   Compile all Markdown reports into a consolidated HTML report.
+allowed-tools:
+  - Bash(python3 ${CLAUDE_PLUGIN_ROOT}/tools/build-report.py *)
+  - 'Bash(python3 "${CLAUDE_PLUGIN_ROOT}/tools/build-report.py" *)'
 model: haiku
 ---
 

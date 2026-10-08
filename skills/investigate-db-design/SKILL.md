@@ -4,6 +4,9 @@ description: |
   connecting to a database. Oracle, PostgreSQL and MySQL adapters produce source-linked structure,
   declared relationships, design findings and an ER diagram.
 argument-hint: '[input_path] [--product=id] [--schema=name] [--target-id=id] [--version=version] [--lang=ja|en]'
+allowed-tools:
+  - Bash(python3 ${CLAUDE_PLUGIN_ROOT}/skills/common/database-investigation/scripts/investigate.py design *)
+  - 'Bash(python3 "${CLAUDE_PLUGIN_ROOT}/skills/common/database-investigation/scripts/investigate.py" design *)'
 model: sonnet
 ---
 

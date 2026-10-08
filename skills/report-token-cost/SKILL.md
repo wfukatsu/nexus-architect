@@ -4,6 +4,9 @@ description: |
   totals, per-phase and per-model cost, daily timeline, per-session cost. Measured actuals only; use
   /architect:estimate-token-cost for a run that has not happened yet.
 argument-hint: '[--once] [--follow] [--session=ID] [--since=7d] [--breakdown=tokens|cost] [--ascii] [--ambiguous-width=2] [--md] [--json] [--lang=ja|en]'
+allowed-tools:
+  - Bash(${CLAUDE_PLUGIN_ROOT}/tools/token-cost-report.sh *)
+  - 'Bash("${CLAUDE_PLUGIN_ROOT}/tools/token-cost-report.sh" *)'
 model: haiku
 disable-model-invocation: true
 ---

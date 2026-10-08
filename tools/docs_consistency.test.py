@@ -587,6 +587,49 @@ for rel in prose:
 check("no skill or sub-agent prompt uses MUST / Do NOT in prose (%d files)" % len(prose),
       prose and not shouted, shouted)
 
+# ------------------------------------------------------------ allowed-tools
+
+print("Pre-approved tools are one bundled script each")
+
+# `allowed-tools` lets a skill run a command without a permission prompt. Measured on v2.1.294:
+# `${CLAUDE_PLUGIN_ROOT}` expands in it; a path written in quotes is a different command from the
+# same path without them, hence the two spellings; and it holds when the user types the slash
+# command, not reliably when a model invokes the skill (0 of 3 in the main session, 3 of 5 inside a
+# sub-agent). So it is declared where a skill's whole job is one bundled script, and it names that
+# script — never a directory, never an interpreter with a free argument (issue #53).
+ENTRY = re.compile(r"^Bash\((python3 )?(\"?)\$\{CLAUDE_PLUGIN_ROOT\}/([\w./-]+\.(?:py|sh))\2( [a-z-]+)? \*\)$")
+bad_entries, declaring = [], 0
+for rel in prose:
+    if not rel.endswith("/SKILL.md"):
+        continue
+    text = read(rel)
+    front, _, body = text[4:].partition("\n---\n")
+    block = re.search(r"^allowed-tools:\n((?:  - .*\n?)+)", front + "\n", re.M)
+    if "allowed-tools" in front and not block:
+        bad_entries.append("%s: allowed-tools is not a YAML list" % rel)
+        continue
+    if not block:
+        continue
+    declaring += 1
+    entries = [e.strip()[2:].strip().strip("'") for e in block.group(1).splitlines() if e.strip()]
+    scripts = set()
+    for entry in entries:
+        m = ENTRY.match(entry)
+        if not m:
+            bad_entries.append("%s: %s is not one bundled script" % (rel, entry))
+            continue
+        scripts.add(m.group(3))
+        if not os.path.isfile(os.path.join(ROOT, m.group(3))):
+            bad_entries.append("%s: %s does not exist" % (rel, m.group(3)))
+        if "${CLAUDE_PLUGIN_ROOT}/" + m.group(3) not in body:
+            bad_entries.append("%s: the body never runs %s" % (rel, m.group(3)))
+    quoted = {ENTRY.match(e).group(3) for e in entries if ENTRY.match(e) and ENTRY.match(e).group(2)}
+    plain = {ENTRY.match(e).group(3) for e in entries if ENTRY.match(e) and not ENTRY.match(e).group(2)}
+    if quoted != plain:
+        bad_entries.append("%s: each script needs both spellings, quoted and unquoted" % rel)
+check("every allowed-tools entry names one bundled script the skill runs (%d skills)" % declaring,
+      declaring and not bad_entries, bad_entries)
+
 # ------------------------------------------------------------ skill length
 
 print("Skills stay short enough to load whole")

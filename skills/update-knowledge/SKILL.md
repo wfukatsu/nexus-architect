@@ -3,6 +3,9 @@ description: |
   Fetch or update an OKF knowledge bundle — ScalarDB/ScalarDL, or the vendored Kubernetes/Terraform
   platform bundle.
 argument-hint: '[--latest] [--status] [--bundle=<name>]'
+allowed-tools:
+  - Bash(${CLAUDE_PLUGIN_ROOT}/tools/update-okf-bundle.sh *)
+  - 'Bash("${CLAUDE_PLUGIN_ROOT}/tools/update-okf-bundle.sh" *)'
 model: haiku
 ---
 
