@@ -2,24 +2,41 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Write|Edit|MultiEdit",
+        "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-mermaid.sh"
-          },
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-frontmatter.sh"
           }
         ]
       },
       {
-        "matcher": "Write|Edit|MultiEdit|Task|Agent",
+        "matcher": "Write",
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/record_token_usage.py"
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-frontmatter.sh",
+            "if": "Write(**/reports/**)"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-frontmatter.sh",
+            "if": "Edit(**/reports/**)"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/record_token_usage.py",
+            "async": true
           }
         ]
       }
