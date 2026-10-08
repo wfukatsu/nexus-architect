@@ -3,7 +3,7 @@ description: |
   Interactively start product-direction design. Determines scope, runs the validation-driven
   pipeline in dependency order, and gates on the riskiest assumptions before deep design.
 argument-hint: '[target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--lang=ja|en]'
-model: sonnet
+model: inherit
 ---
 
 # Product Goal Orchestrator
@@ -93,6 +93,43 @@ before pinning them (see @rules/dependency-versions.md), and record it as
    Record the decision in `work/pipeline-progress.json`. It does not block downstream phases
    (`define-features` / `define-data-model` read the mocks, not the generated code).
 7. Skip phases whose prerequisites are absent (consumer treats a skipped/absent input as `TBD`).
+
+## Phase Execution
+
+A skill's own `model` takes effect only when the user types its command. Run from here with the
+Skill tool, a phase runs on whatever this conversation runs on — which is why this skill declares
+`model: inherit` rather than a tier of its own: it would otherwise pull every phase down to it.
+
+**Interactive run (no `--auto`): phases run inline, on the session's model.** Every product phase
+is a dialogue, and only the main conversation can ask the user. Seventeen of the manifest's phases
+are assigned opus: when the session is on a smaller model, say so once before the first phase and
+suggest `/model opus` — do not push strategy and judgment through on less.
+
+**`--auto`: each phase runs as a sub-agent on its manifest model.** Nobody is being asked, so
+nothing ties a phase to this conversation, and the tier the manifest assigns can be honoured:
+
+```
+Task(
+  subagent_type: "general-purpose",
+  model: "{phase_model}",
+  description: "{phase}",
+  prompt: "Run the phase `{phase}` of the nexus product pipeline.
+           Project directory: {project_dir} — every `reports/`, `work/`, `design-system/` and
+           `generated/` path is relative to it, not to the directory the skill file lives in.
+           Invoke the skill `product:{phase}` with the Skill tool, with these arguments:
+           {arguments} --auto, and follow it to completion.
+           You cannot ask the user: an unknown is recorded `unasked` with its question text and
+           the options you would have offered (@rules/open-questions.md §5).
+           Do not write this phase's entry in work/pipeline-progress.json — the orchestrator does.
+           Reply with: the files you wrote, a two-line summary of what the phase concluded, any
+           gate verdict, and the `OQ-` IDs you recorded. If the phase could not complete, say so
+           and why."
+)
+```
+
+`{phase_model}` is the phase's `model` in @skills/product/common/skill-dependencies.yaml, read at
+the moment of the call. The validation gate still decides here: read its verdict from
+`pipeline-progress.json` → `gates` after the `validate-assumptions` sub-agent returns.
 
 ## Iteration (not waterfall)
 

@@ -3,7 +3,7 @@ description: |
   Interactively start system analysis and design. Assesses project context and determines the
   optimal path.
 argument-hint: '[target_path]'
-model: sonnet
+model: inherit
 ---
 
 # Nexus Architect Orchestrator
@@ -146,7 +146,9 @@ rather than leaving the omission silent.
 1. Evaluate project context (read provided materials, inspect codebase, **run Product Handoff Detection**)
 2. Determine the path and relevant phases (product handoff → greenfield)
 3. Run `/architect:init-output` to initialize the output directory
-4. Execute skills in dependency order per `skill-dependencies.yaml`, recording each phase
+4. Execute skills in dependency order per `skill-dependencies.yaml` — a dialogue-driven phase
+   inline, every other phase as a sub-agent on its manifest model (see Phase Execution) —
+   recording each phase
    in `work/pipeline-progress.json` **twice**: `status: "in_progress"` with
    `plugin: "architect"` and `started_at` *before* invoking the skill, then `completed` /
    `failed` with `completed_at`, `outputs` and `summary` after it returns
@@ -169,6 +171,53 @@ After `design-api`, read canonical `reports/03_design/api-style-decisions.json`.
 `design-graphql` when any surface selects GraphQL/hybrid and mark it conditionally skipped only when
 the validated canonical document is REST-only. Invalid canonical JSON blocks progression; it is
 never a REST default. A skipped conditional dependency is satisfied for the review phases.
+
+## Phase Execution
+
+A skill's own `model` takes effect only when the user types its command. Run from here with the
+Skill tool, a phase runs on whatever this conversation runs on — which is why this skill declares
+`model: inherit` rather than a tier of its own: it would otherwise pull every inline phase down to
+it. Two ways of running a phase follow, and which one applies is read off the phase's signature.
+
+**Dialogue-driven phases run inline**, with the Skill tool, on the session's model. These are the
+phases whose `argument-hint` offers `--auto` — `define-requirements`, `analyze-ui`, `evaluate-ux`,
+`create-domain-story`, `design-aggregate`, `design-state-machine` — because a phase that can be
+told not to ask is a phase that otherwise does, and only the main conversation can ask the user.
+All but two of them are assigned opus: say so once, before the first of them, when the session is
+on a smaller model, and suggest `/model opus` — do not push a design dialogue through on less.
+
+**Every other phase runs as a sub-agent on its manifest model**, so that `analyze`, `redesign` and
+the `design-*` phases get opus and `report` gets haiku whatever the session is on:
+
+```
+Task(
+  subagent_type: "general-purpose",
+  model: "{phase_model}",
+  description: "{phase}",
+  prompt: "Run the phase `{phase}` of the nexus-architect pipeline.
+           Project directory: {project_dir} — every `reports/`, `work/` and `generated/` path is
+           relative to it, not to the directory the skill file lives in.
+           Invoke the skill `architect:{phase}` with the Skill tool, with these arguments:
+           {arguments}, and follow it to completion.
+           You cannot ask the user. Where the skill would ask, do what
+           @rules/open-questions.md §5 says for an unasked question: record it in the store with
+           status `unasked`, its question text and the options you would have offered, write
+           `TBD (OQ-###)` at the placeholder, and continue.
+           Do not write this phase's entry in work/pipeline-progress.json — the orchestrator does.
+           Reply with: the files you wrote, a two-line summary of what the phase concluded, and
+           the `OQ-` IDs you recorded. If the phase could not complete, say so and why."
+)
+```
+
+`{phase_model}` is the phase's `model` in @skills/common/skill-dependencies.yaml, read at the moment
+of the call. Phases the manifest marks `parallel_with` each other start in one message.
+
+**Then ask what the phase could not.** This run is interactive even where a phase was not: when a
+sub-agent returns `OQ-` IDs, put those questions to the user before the next phase starts — one
+`AskUserQuestion` batch, reusing the recorded options (@rules/open-questions.md §7). Update each
+entry in place in `work/context.md` § Open Questions, substitute the answer at every `TBD (OQ-###)`
+the phase wrote, and re-render any view that shows it. What the user defers stays `deferred` with
+its owner. A question left `unasked` at the end of an interactive run is a defect.
 
 ## Error Handling
 

@@ -36,7 +36,11 @@ MODEL_AFTER = re.compile(r'subagent_type\s*[:=]\s*"[A-Za-z-]+"`?,\s*`?model\s*[:
 
 # Skills that run other skills' phases. Their phase call takes its model from the manifest, so the
 # placeholder is right there and wrong anywhere else.
-ORCHESTRATORS = {os.path.join("skills", "pipeline", "SKILL.md")}
+ORCHESTRATORS = {os.path.join("skills", "pipeline", "SKILL.md"),
+                 os.path.join("skills", "start", "SKILL.md"),
+                 os.path.join("skills", "product", "start", "SKILL.md")}
+# The two that also run phases inline. A tier of their own would be the tier of every inline phase.
+INTERACTIVE = ORCHESTRATORS - {os.path.join("skills", "pipeline", "SKILL.md")}
 
 skills = []
 for dirpath, _dirs, files in os.walk(os.path.join(ROOT, "skills")):
@@ -75,9 +79,32 @@ for rel in sorted(ORCHESTRATORS):
         text = fh.read()
     check("%s runs its phases as sub-agents on the manifest's model" % rel, rel in phase_calls)
     check("%s tells the phase it cannot ask the user, and where an unasked question goes" % rel,
-          "cannot ask the user" in text and "open-questions.md" in text and "`unasked`" in text)
+          "cannot ask the user" in text.replace("You cannot", "you cannot")
+          and "open-questions.md" in text and "`unasked`" in text)
     check("%s keeps the progress registry to itself" % rel,
           "Do not write this phase's entry in work/pipeline-progress.json" in text)
+    if rel in INTERACTIVE:
+        check("%s declares `model: inherit`, so inline phases run on the session's model" % rel,
+              re.search(r"^model:\s*inherit\s*$", text.split("---", 2)[1], re.M))
+
+# Which architect phases are dialogue-driven is read off their signatures, and the orchestrator
+# names them: a phase added with `--auto` and not listed would silently run where it cannot ask.
+with open(os.path.join(ROOT, "skills", "common", "skill-dependencies.yaml"), encoding="utf-8") as fh:
+    phases = re.findall(r"^  ([a-z0-9-]+):\s*$", fh.read().split("\nphases:", 1)[1], re.M)
+dialogue = set()
+for phase in phases:
+    with open(os.path.join(ROOT, "skills", phase, "SKILL.md"), encoding="utf-8") as fh:
+        hint = re.search(r"^argument-hint:.*$", fh.read().split("---", 2)[1], re.M)
+    if hint and "--auto" in hint.group(0):
+        dialogue.add(phase)
+with open(os.path.join(ROOT, "skills", "start", "SKILL.md"), encoding="utf-8") as fh:
+    start = fh.read()
+listed = re.search(r"offers `--auto` — (.*?) — because", start, re.S)
+named = set(re.findall(r"`([a-z0-9-]+)`", listed.group(1))) if listed else set()
+check("skills/start/SKILL.md names exactly the phases whose signature offers --auto (%d)"
+      % len(dialogue), named == dialogue, sorted(named ^ dialogue))
+check("skills/start/SKILL.md asks the user what a sub-agent phase could not",
+      "Then ask what the phase could not" in start)
 
 print("The shared pattern library")
 
