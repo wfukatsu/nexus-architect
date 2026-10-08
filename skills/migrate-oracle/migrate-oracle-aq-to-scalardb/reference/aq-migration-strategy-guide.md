@@ -255,14 +255,14 @@ BEGIN
 END;
 ```
 
-**Converted triggers (after — no business logic, just call enqueue SPs):**
+**Converted trigger (after — no business logic, just calls the enqueue SP):**
 ```sql
 -- Disable original trigger
 ALTER TRIGGER HR.UPDATE_JOB_HISTORY DISABLE;
 
--- New trigger for job_id changes
+-- One replacement trigger, on the same event as the original
 CREATE OR REPLACE TRIGGER HR.TRG_AQ_JOB_CHANGE
-    AFTER UPDATE OF job_id ON HR.employees
+    AFTER UPDATE OF job_id, department_id ON HR.employees
     FOR EACH ROW
 BEGIN
     SP_ENQUEUE_CLOSE_HISTORY(
@@ -272,28 +272,10 @@ BEGIN
         p_old_job  => :OLD.job_id,
         p_new_job  => :NEW.job_id,
         p_old_dept => :OLD.department_id,
-        p_new_dept => :OLD.department_id,
+        p_new_dept => :NEW.department_id,
         p_salary   => :OLD.salary
     );
 END TRG_AQ_JOB_CHANGE;
-/
-
--- New trigger for department_id changes
-CREATE OR REPLACE TRIGGER HR.TRG_AQ_DEPT_CHANGE
-    AFTER UPDATE OF department_id ON HR.employees
-    FOR EACH ROW
-BEGIN
-    SP_ENQUEUE_OPEN_HISTORY(
-        p_emp_id   => :NEW.employee_id,
-        p_start_dt => SYSDATE,
-        p_end_dt   => SYSDATE + 365,
-        p_old_job  => :NEW.job_id,
-        p_new_job  => :NEW.job_id,
-        p_old_dept => :OLD.department_id,
-        p_new_dept => :NEW.department_id,
-        p_salary   => :NEW.salary
-    );
-END TRG_AQ_DEPT_CHANGE;
 /
 ```
 
@@ -301,7 +283,8 @@ END TRG_AQ_DEPT_CHANGE;
 - **Triggers contain NO business logic** — they only call the enqueue SP with `:OLD` and `:NEW` values
 - Name convention: `TRG_AQ_<DESCRIPTIVE_NAME>`
 - Original triggers are `DISABLE`d, not dropped (allows rollback)
-- If the original trigger fires on multiple columns (e.g., `UPDATE OF job_id, department_id`), consider splitting into separate column-specific triggers with distinct `operation_type` values
+- One original trigger becomes one replacement trigger with the same event specification: `UPDATE OF job_id, department_id` stays a single trigger and is not split per column. It calls the enqueue SP once, passing both the `:OLD` and the `:NEW` value of every column in the event, so the consumer can see which of them changed
+- A second `operation_type` (such as `OPEN_HISTORY` in the payload and consumer examples) comes from a second trigger or procedure in the original schema, never from splitting one
 - Use `:OLD.*` for values that represent the state before the change
 - Use `:NEW.*` for values that represent the state after the change
 
