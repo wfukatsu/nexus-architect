@@ -85,6 +85,11 @@ read each skill file in order and execute it before moving to the next phase.
 The `disable-model-invocation: true` frontmatter in that file is a Claude Code plugin hint; Codex
 does not interpret it, so treat the file as the orchestration specification described above.
 
+Its § Phase Execution has Claude Code start each phase in a sub-agent so that the phase runs on the
+model the manifest assigns. In Codex there is no per-phase model to select: run each phase in
+sequence as above, and keep the other half of that section — the pipeline is non-interactive, so a
+question a phase would ask is recorded `unasked` (`rules/open-questions.md` §5) rather than asked.
+
 ## Product → Architect Handoff
 
 `product` and `architect` are two pipelines with two manifests

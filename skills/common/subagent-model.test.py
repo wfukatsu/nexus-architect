@@ -8,7 +8,9 @@ The tier a phase is assigned therefore reaches its sub-agents only if each call 
 
 Checked: every `subagent_type` in a SKILL.md is followed, in the same call, by a `model` equal to
 that skill's own frontmatter `model`; the shared pattern library writes the placeholder
-`{phase_model}` on every pattern. Exit 1 on failure.
+`{phase_model}` on every pattern; and an orchestrator runs its phases as sub-agents on the
+manifest's model — the placeholder again, which only an orchestrator may write, since inline a
+phase would run on the orchestrator's own model whatever tier it is assigned. Exit 1 on failure.
 """
 import os
 import re
@@ -32,6 +34,10 @@ def check(label, condition, detail=""):
 # (`model: "x"` in a block or in backticks, `model="x"` in the pattern library).
 MODEL_AFTER = re.compile(r'subagent_type\s*[:=]\s*"[A-Za-z-]+"`?,\s*`?model\s*[:=]\s*"([^"]+)"')
 
+# Skills that run other skills' phases. Their phase call takes its model from the manifest, so the
+# placeholder is right there and wrong anywhere else.
+ORCHESTRATORS = {os.path.join("skills", "pipeline", "SKILL.md")}
+
 skills = []
 for dirpath, _dirs, files in os.walk(os.path.join(ROOT, "skills")):
     if "SKILL.md" in files:
@@ -39,7 +45,7 @@ for dirpath, _dirs, files in os.walk(os.path.join(ROOT, "skills")):
 
 print("Sub-agent calls in skills")
 
-missing, wrong, calls = [], [], 0
+missing, wrong, calls, phase_calls = [], [], 0, {}
 for path in sorted(skills):
     with open(path, encoding="utf-8") as fh:
         text = fh.read()
@@ -53,12 +59,25 @@ for path in sorted(skills):
         found = MODEL_AFTER.match(text, m.start())
         if not found:
             missing.append("%s:%d" % (rel, line))
+        elif found.group(1) == "{phase_model}" and rel in ORCHESTRATORS:
+            phase_calls.setdefault(rel, []).append(line)
         elif not tier or found.group(1) != tier.group(1):
             wrong.append("%s:%d names %s, the skill is %s" % (
                 rel, line, found.group(1), tier.group(1) if tier else "undeclared"))
 check("the corpus spells out sub-agent calls (found %d)" % calls, calls > 0)
 check("every call names a model", not missing, missing)
 check("the model is the calling skill's own tier", not wrong, wrong)
+
+print("Orchestrators")
+
+for rel in sorted(ORCHESTRATORS):
+    with open(os.path.join(ROOT, rel), encoding="utf-8") as fh:
+        text = fh.read()
+    check("%s runs its phases as sub-agents on the manifest's model" % rel, rel in phase_calls)
+    check("%s tells the phase it cannot ask the user, and where an unasked question goes" % rel,
+          "cannot ask the user" in text and "open-questions.md" in text and "`unasked`" in text)
+    check("%s keeps the progress registry to itself" % rel,
+          "Do not write this phase's entry in work/pipeline-progress.json" in text)
 
 print("The shared pattern library")
 

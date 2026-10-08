@@ -34,10 +34,10 @@ part of the automated run.
 1. Load the dependency graph from `skill-dependencies.yaml`
 2. Initialize output directories with `/architect:init-output`
 3. **Product handoff detection** — glob the same set `define-requirements` ingests: `reports/00_core/`, `reports/01_ux/`, `reports/02_spec/`, `reports/03_domain/`, `reports/04_quality/` and `work/traceability.json`. Keep the two sets identical — a run that stopped early (`--profile=mvp` writes only `reports/00_core/`) is still a handoff. Match **files**, not directories: `/product:init-output` creates `reports/01_ux/domain-stories/` and `reports/02_spec/ui-mocks/` empty, so a directory test passes on any initialized product project. If product artifacts exist, run `define-requirements` first with them as inputs (the product→architect handoff, @docs/design.md §1); it auto-detects and carries product IDs forward. Otherwise run the standard greenfield/legacy entry.
-4. Execute each skill and verify its output before proceeding to the next
-5. Execute skills with `parallel_with` in parallel via Task, passing each phase's manifest `model` as the
-   call's `model` — a sub-agent does not pick up the `model` of the skill it runs, and with none on the
-   call it runs on the user's sub-agent default (@skills/common/sub-agent-patterns.md § Always pass `model`)
+4. Execute each phase **as a sub-agent**, never inline, and verify its output before proceeding to
+   the next — see Phase Execution below for the call and for why
+5. Start the phases of a `parallel_with` group in one message, one sub-agent each, and wait for all
+   of them before the next phase
 6. Enable or disable conditional skills based on the `conditions` field: ScalarDB/data-layer from
    `scalardb_enabled`, and `design-graphql` directly from GraphQL/hybrid surfaces in canonical
    `reports/03_design/api-style-decisions.json`. Before that artifact exists, a legacy
@@ -67,6 +67,53 @@ part of the automated run.
    or reset an entry that is not this manifest's — including under `--rerun-from`
    (@skills/common/progress-registry.md § One Registry, Two Pipelines)
 9. Accumulate findings in `work/context.md` between phases
+
+## Phase Execution
+
+Every phase of the manifest runs in its own sub-agent, on the manifest's `model` for that phase:
+
+```
+Task(
+  subagent_type: "general-purpose",
+  model: "{phase_model}",
+  description: "{phase}",
+  prompt: "Run the phase `{phase}` of the nexus-architect pipeline.
+           Project directory: {project_dir} — every `reports/`, `work/` and `generated/` path is
+           relative to it, not to the directory the skill file lives in.
+           Invoke the skill `architect:{phase}` with the Skill tool, with these arguments:
+           {arguments}, and follow it to completion.
+           This is a non-interactive run and you cannot ask the user. Where the skill would ask,
+           do what @rules/open-questions.md §5 says for an unasked question: record it in the
+           store with status `unasked`, its question text and the options you would have offered,
+           write `TBD (OQ-###)` at the placeholder, and continue.
+           Do not write this phase's entry in work/pipeline-progress.json — the orchestrator does.
+           Reply with: the files you wrote, a two-line summary of what the phase concluded, and
+           the `OQ-` IDs you recorded. If the phase could not complete, say so and why."
+)
+```
+
+`{phase_model}` is the phase's `model` in @skills/common/skill-dependencies.yaml, read at the moment
+of the call — never a value remembered from this file. `{arguments}` are the target path and the
+options this run was given that the phase's own signature accepts, plus `--auto` for every phase
+whose signature offers it (step 7).
+
+Why a sub-agent and not the Skill tool directly: a skill's `model` takes effect only when the user
+types its command. Invoked from here it would run on this orchestrator's `sonnet`, whatever tier it
+is assigned — the opus phases (`analyze`, `redesign`, every `design-*`, `review-risk`,
+`review-api-security`) downgraded, `report` upgraded. A sub-agent runs on the `model` passed on the
+call (measured: @skills/common/sub-agent-patterns.md § Always pass `model`), and a phase run this
+way may still spawn the sub-agents its own skill describes. It also keeps each phase's working
+context out of this one, which is what lets a long run finish.
+
+What stays with the orchestrator, inline: reading the manifest, `/architect:init-output`, the
+handoff detection of step 3, deciding which phases run (steps 6–7), every write to
+`work/pipeline-progress.json` (step 8), and checking that the outputs a phase declared exist before
+the next phase starts. A phase whose sub-agent reports failure, or whose declared outputs are
+missing, is `failed`.
+
+The cost of this is that no phase can ask the user anything, which is what an automated run means:
+the questions are in `work/context.md` § Open Questions as `unasked` when it ends, and
+`/architect:start` is the orchestrator for a run that should stop and ask.
 
 ## Command-Line Options
 
@@ -123,7 +170,7 @@ Conforms to the schema defined in @skills/common/progress-registry.md.
 
 | Skill | Relationship |
 |-------|-------------|
-| /architect | Interactive version |
+| /architect:start | Interactive version — phases that ask the user run there, not here |
 | /architect:init-output | Initialization |
 | /architect:report | Final report |
 | /product:start | Upstream — product reports are detected at step 3 and handed off via define-requirements (@docs/design.md §1) |
