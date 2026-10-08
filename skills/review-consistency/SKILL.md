@@ -100,6 +100,7 @@ In a **single message**, issue all three Task() calls simultaneously so they run
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Structural coherence dimension review",
   prompt: """
 You are a technical reviewer evaluating design document STRUCTURAL COHERENCE.
@@ -150,6 +151,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Traceability dimension review",
   prompt: """
 You are a technical reviewer evaluating design document TRACEABILITY.
@@ -204,6 +206,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Terminology consistency dimension review",
   prompt: """
 You are a technical reviewer evaluating design document TERMINOLOGY CONSISTENCY.

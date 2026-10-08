@@ -39,6 +39,7 @@ In a **single message**, issue all four Task() calls simultaneously so they run 
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Monitoring and observability dimension review",
   prompt: """
 You are an SRE reviewing design documents for MONITORING AND OBSERVABILITY readiness.
@@ -80,6 +81,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Disaster recovery dimension review",
   prompt: """
 You are an SRE reviewing design documents for DISASTER RECOVERY readiness.
@@ -121,6 +123,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Security posture dimension review",
   prompt: """
 You are a security engineer reviewing design documents for SECURITY POSTURE.
@@ -162,6 +165,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Deployment safety dimension review",
   prompt: """
 You are an SRE reviewing design documents for DEPLOYMENT SAFETY.

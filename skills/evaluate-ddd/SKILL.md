@@ -49,6 +49,7 @@ Each evaluator assesses its specific DDD layer independently.
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "DDD strategic design layer evaluation",
   prompt: """
 You are a DDD expert evaluating the STRATEGIC DESIGN layer (30% of total DDD score).
@@ -103,6 +104,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "DDD tactical design layer evaluation",
   prompt: """
 You are a DDD expert evaluating the TACTICAL DESIGN layer (45% of total DDD score).
@@ -181,6 +183,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "DDD architecture layer evaluation",
   prompt: """
 You are a DDD expert evaluating the ARCHITECTURE layer (25% of total DDD score).

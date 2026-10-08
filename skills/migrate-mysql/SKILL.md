@@ -308,7 +308,7 @@ Spawn a **Bash** subagent using the `Task` tool to test the MySQL database conne
 
 1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/mysql/0-test-connection.md`
 2. Substitute the runtime variables: replace `<MYSQL_HOST>`, `<MYSQL_PORT>`, `<MYSQL_DATABASE>`, `<MYSQL_USER>`, `<MYSQL_PASSWORD>`, and `<OUTPUT_DIR>` with the actual values from Steps 4-5
-3. Call the Task tool with `subagent_type: "Bash"`, `description: "Test MySQL connection"`, and the substituted prompt
+3. Call the Task tool with `subagent_type: "Bash"`, `model: "sonnet"`, `description: "Test MySQL connection"`, and the substituted prompt
 
 **After the subagent completes:**
 - Extract `DURATION_SECONDS` from the subagent's response → store as `S0_DURATION`
@@ -326,7 +326,7 @@ Spawn a **Bash** subagent using the `Task` tool to run the Python extractor scri
 
 1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/mysql/1-extract-schema.md`
 2. Substitute the runtime variables as documented in the template (replace `<INCLUDE_SOURCE_FLAG>` based on MYSQL_INCLUDE_SOURCE from Step 4)
-3. Call the Task tool with `subagent_type: "Bash"`, `description: "Extract MySQL schema"`, and the substituted prompt
+3. Call the Task tool with `subagent_type: "Bash"`, `model: "sonnet"`, `description: "Extract MySQL schema"`, and the substituted prompt
 
 **After the subagent completes:**
 - Extract `DURATION_SECONDS` from the subagent's response → store as `S1_DURATION`
@@ -344,7 +344,7 @@ Spawn a **general-purpose** subagent using the `Task` tool to generate the schem
 
 1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/mysql/2-generate-report.md`
 2. Substitute the runtime variables as documented in the template (replace all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4)
-3. Call the Task tool with `subagent_type: "general-purpose"`, `description: "Generate MySQL schema report"`, and the substituted prompt
+3. Call the Task tool with `subagent_type: "general-purpose"`, `model: "sonnet"`, `description: "Generate MySQL schema report"`, and the substituted prompt
 
 **After the subagent completes:**
 - Extract `DURATION_SECONDS` from the subagent's response → store as `S2_DURATION`
@@ -367,8 +367,8 @@ Spawn a **general-purpose** subagent using the `Task` tool to generate the schem
    - Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
 
 **Spawn both in one message:**
-- Task call A: `subagent_type: "general-purpose"`, `description: "Generate MySQL migration docs"`, substituted prompt from `3-migration-analysis.md`
-- Task call B: `subagent_type: "general-purpose"`, `description: "Generate SP & trigger migration code"`, substituted prompt from `4-sp-trigger-migration.md`
+- Task call A: `subagent_type: "general-purpose"`, `model: "sonnet"`, `description: "Generate MySQL migration docs"`, substituted prompt from `3-migration-analysis.md`
+- Task call B: `subagent_type: "general-purpose"`, `model: "sonnet"`, `description: "Generate SP & trigger migration code"`, substituted prompt from `4-sp-trigger-migration.md`
 
 **After both subagents complete:**
 - From Subagent 3 result: extract `DURATION_SECONDS` → store as `S3_DURATION`; extract `total_tokens` from `<usage>` block → store as `S3_TOKENS`

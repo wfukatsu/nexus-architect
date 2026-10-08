@@ -61,6 +61,7 @@ In a **single message**, issue all three Task() calls simultaneously so they run
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Cross-service transaction mechanism dimension review",
   prompt: """
 You are a ScalarDB architect reviewing designs for the CROSS-SERVICE TRANSACTION MECHANISM.
@@ -118,6 +119,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "OCC contention analysis dimension review",
   prompt: """
 You are a ScalarDB architect reviewing designs for OCC CONTENTION ANALYSIS.
@@ -160,6 +162,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Schema and API compatibility dimension review",
   prompt: """
 You are a ScalarDB architect reviewing designs for SCHEMA AND API COMPATIBILITY.

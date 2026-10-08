@@ -2,12 +2,26 @@
 
 Eight reusable patterns for sub-agents invoked via the Task tool during skill execution.
 
+## Always pass `model`
+
+A sub-agent does not run on the model of the skill that spawned it, and it does not pick up the
+`model` of a skill it invokes: with no `model` on the call it runs on the sub-agent default, which
+depends on the user's settings. Measured on Claude Code v2.1.293, sub-agents spawned without a
+`model` ran on opus under a haiku session and under a sonnet session alike, while a call that
+passed `model: "haiku"` ran on haiku.
+
+So every call names its tier. `{phase_model}` in the patterns below is the calling skill's own
+`model` (`opus` | `sonnet` | `haiku`) — a phase's sub-agents run at the phase's tier unless the
+skill states a different one and why. `skills/common/subagent-model.test.py` fails a call that
+omits it.
+
 ## Pattern 1: Codebase Exploration
 
 Used for surveying the structure of large codebases.
 
 ```
 Task(subagent_type="Explore",
+  model="{phase_model}",
   prompt="Explore the package structure of {target_path},
     and compile a list of major modules and their dependencies in JSON format.",
   description="Codebase structure survey")
@@ -19,6 +33,7 @@ Summarize previous phase outputs via a sub-agent to protect the context window.
 
 ```
 Task(subagent_type="Explore",
+  model="{phase_model}",
   prompt="Read the following files and extract the information needed for {current_skill}:
     Required: reports/02_evaluation/mmi-overview.md
     Items to extract: 1. MMI scores by module 2. BC candidates 3. Key improvement areas
@@ -32,6 +47,7 @@ Detection and evaluation of microservice patterns.
 
 ```
 Task(subagent_type="general-purpose",
+  model="{phase_model}",
   prompt="Analyze the architecture patterns of the target system:
     - Communication patterns (synchronous/asynchronous)
     - Data ownership patterns
@@ -45,6 +61,7 @@ Code synthesis from design specifications.
 
 ```
 Task(subagent_type="general-purpose",
+  model="{phase_model}",
   prompt="Generate Spring Boot + ScalarDB code based on the following design specification:
     - Entities: {entities}
     - Repositories: {repositories}
@@ -58,6 +75,7 @@ Automatic identification of domain models.
 
 ```
 Task(subagent_type="Explore",
+  model="{phase_model}",
   prompt="Extract domain entities from {target_path}:
     - Class names, attributes, and relationships
     - Business rules (validations)
@@ -71,6 +89,7 @@ Cross-cutting comparison of multiple documents.
 
 ```
 Task(subagent_type="general-purpose",
+  model="{phase_model}",
   prompt="Perform a comparative analysis of the following two design proposals:
     - Proposal A: {file_a}
     - Proposal B: {file_b}
@@ -84,6 +103,7 @@ Consolidate multiple analysis results into a single report.
 
 ```
 Task(subagent_type="general-purpose",
+  model="{phase_model}",
   prompt="Consolidate the following analysis results into an integrated report:
     {file_list}
     Eliminate duplicates and organize by priority.",
@@ -96,6 +116,7 @@ Feasibility verification of a design.
 
 ```
 Task(subagent_type="general-purpose",
+  model="{phase_model}",
   prompt="Verify whether the following design satisfies the constraint conditions:
     Design: {design_file}
     Constraints: 2PC max 3 services, OCC conflict rate below 5%, latency under 100ms
