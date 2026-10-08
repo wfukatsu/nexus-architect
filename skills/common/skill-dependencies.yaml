@@ -326,5 +326,8 @@ phases:
     category: reporting
     depends_on: [report]
     outputs:
-      - reports/review/report-quality-review.md
+      # Not `report-quality-review.md`: Claude Code refuses a sub-agent's Write of a Markdown file whose
+      # name starts with `report`, `summary` or `findings` ("Subagents should return findings as text",
+      # measured on v2.1.294), and every pipeline phase runs as a sub-agent.
+      - reports/review/quality-review.md
     model: sonnet

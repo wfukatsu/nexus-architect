@@ -88,7 +88,7 @@ reports/
     │   └── review-business.json
     ├── review-synthesis.json
     ├── review-synthesis.md
-    └── report-quality-review.md   # review-report (runs after report)
+    └── quality-review.md          # review-report (runs after report)
 
 generated/                         # codegen skills (Phase B)
 └── {service}/

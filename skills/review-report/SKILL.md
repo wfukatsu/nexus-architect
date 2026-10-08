@@ -347,7 +347,7 @@ Verdict thresholds (scale: 1–5):
 
 ### Step 4: Write Output
 
-Write `reports/review/report-quality-review.md` with the following structure.
+Write `reports/review/quality-review.md` with the following structure. (The file was `report-quality-review.md` before 0.43.3; under that name a sub-agent cannot write it — Claude Code refuses a sub-agent's Write of a Markdown file whose name starts with `report`, `summary` or `findings` — and this phase runs as a sub-agent under the orchestrators.)
 The template below is in English; translate all headings and narrative text into the
 language configured in `work/pipeline-progress.json` (`options.output_language`).
 YAML frontmatter keys always remain in English.
@@ -393,7 +393,7 @@ input_files:
 
 Also update `work/pipeline-progress.json`:
 - Set `review-report.status` to `"completed"`
-- Set `review-report.outputs` to `["reports/review/report-quality-review.md"]`
+- Set `review-report.outputs` to `["reports/review/quality-review.md"]`
 - Write a one-sentence summary into `review-report.summary`
 
 ---
@@ -416,4 +416,4 @@ Write all output in the language configured in `work/pipeline-progress.json` (`o
 
 | File | Content |
 |------|---------|
-| `reports/review/report-quality-review.md` | Structured quality review with verdict and findings |
+| `reports/review/quality-review.md` | Structured quality review with verdict and findings |

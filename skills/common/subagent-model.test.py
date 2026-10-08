@@ -94,6 +94,10 @@ for rel in sorted(ORCHESTRATORS):
           "Do not write this phase's entry in work/pipeline-progress.json" in text)
     block = re.search(r"model: \"\{phase_model\}\",\n\s*run_in_background: false,", text)
     check("%s passes run_in_background: false on the phase call" % rel, block)
+    check("%s starts at most three phases of a parallel group at a time" % rel,
+          re.search(r"at most three phases", text))
+    check("%s tells the phase what to do when a sub-agent call is refused" % rel,
+          "concurrent sub-agent limit is reached, do not retry" in text)
     check("%s tells the phase to keep its own sub-agents in the foreground" % rel,
           "pass `run_in_background: false`" in text and "do not finish until they have returned" in text)
     if rel in INTERACTIVE:
@@ -127,6 +131,21 @@ starts = [m.start() for m in re.finditer(r"subagent_type", patterns)]
 bare = [patterns.count("\n", 0, s) + 1 for s in starts
         if (MODEL_AFTER.match(patterns, s) or [None, None])[1] != "{phase_model}"]
 check("every pattern passes {phase_model} (found %d)" % len(starts), starts and not bare, bare)
+
+# Every phase runs as a sub-agent under the orchestrators, and Claude Code refuses a sub-agent's
+# Write of a Markdown file whose name starts with `report`, `summary` or `findings` ("Subagents
+# should return findings as text" — measured on v2.1.294). A declared output with such a name is
+# one its own phase cannot write.
+unwritable = []
+for manifest in ("skills/common/skill-dependencies.yaml", "skills/product/common/skill-dependencies.yaml"):
+    with open(os.path.join(ROOT, manifest), encoding="utf-8") as fh:
+        for number, line in enumerate(fh, 1):
+            if line.lstrip().startswith("#"):
+                continue
+            for path in re.findall(r"[\w{}./-]+\.md", line):
+                if re.match(r"(report|summary|findings)", os.path.basename(path)):
+                    unwritable.append("%s:%d %s" % (manifest, number, path))
+check("no manifest output has a name a sub-agent is refused when writing", not unwritable, unwritable)
 
 print()
 print("%d check(s), %d failure(s)" % (checks, failures))

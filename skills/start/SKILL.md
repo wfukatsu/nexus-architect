@@ -207,6 +207,8 @@ Agent(
            `TBD (OQ-###)` at the placeholder, and continue.
            Where the skill has you spawn sub-agents of your own, pass `run_in_background: false`
            on each and do not finish until they have returned and the phase's outputs are written.
+           If a call is refused because the concurrent sub-agent limit is reached, do not retry:
+           do that part yourself and say in the output which parts were not delegated.
            Do not write this phase's entry in work/pipeline-progress.json — the orchestrator does.
            Reply with: the files you wrote, a two-line summary of what the phase concluded, and
            the `OQ-` IDs you recorded. If the phase could not complete, say so and why."
@@ -220,7 +222,9 @@ Keep these sub-agents in the foreground — `run_in_background: false` on every 
 parallel group included — and do not end the turn while one is running: the next step needs its
 result, a non-interactive run stops background work ten minutes after the turn ends, and a phase
 whose own sub-agents went to the background returns with nothing written
-(@skills/pipeline/SKILL.md § Phase Execution has the measurements).
+(@skills/pipeline/SKILL.md § Phase Execution has the measurements). Start at most three phases of a
+parallel group at a time: Claude Code runs 20 sub-agents at once, counting the ones each phase
+spawns, and refuses the calls beyond that.
 
 **Then ask what the phase could not.** This run is interactive even where a phase was not: when a
 sub-agent returns `OQ-` IDs, put those questions to the user before the next phase starts — one

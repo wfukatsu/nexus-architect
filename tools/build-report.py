@@ -810,7 +810,12 @@ class ReportBuilder:
             return None, []
         toc = []
         doc_htmls = []
-        for fname in ("review-synthesis.md", "report-quality-review.md"):
+        # The report's own quality review was `report-quality-review.md` before 0.43.3; a project
+        # reviewed then still has it under that name, and is rendered from it.
+        quality = "quality-review.md"
+        if not os.path.exists(os.path.join(base, quality)):
+            quality = "report-quality-review.md"
+        for fname in ("review-synthesis.md", quality):
             p = os.path.join(base, fname)
             if os.path.exists(p):
                 doc = self.render_markdown_file(p)

@@ -37,7 +37,8 @@ part of the automated run.
 4. Execute each phase **as a sub-agent**, never inline, and verify its output before proceeding to
    the next — see Phase Execution below for the call and for why
 5. Start the phases of a `parallel_with` group in one message, one sub-agent each, **in the
-   foreground**, and continue only when all of them have returned (see Phase Execution)
+   foreground** and **at most three phases at a time**, and continue only when all of them have
+   returned (see Phase Execution)
 6. Enable or disable conditional skills based on the `conditions` field: ScalarDB/data-layer from
    `scalardb_enabled`, and `design-graphql` directly from GraphQL/hybrid surfaces in canonical
    `reports/03_design/api-style-decisions.json`. Before that artifact exists, a legacy
@@ -89,6 +90,8 @@ Agent(
            write `TBD (OQ-###)` at the placeholder, and continue.
            Where the skill has you spawn sub-agents of your own, pass `run_in_background: false`
            on each and do not finish until they have returned and the phase's outputs are written.
+           If a call is refused because the concurrent sub-agent limit is reached, do not retry:
+           do that part yourself and say in the output which parts were not delegated.
            Do not write this phase's entry in work/pipeline-progress.json — the orchestrator does.
            Reply with: the files you wrote, a two-line summary of what the phase concluded, and
            the `OQ-` IDs you recorded. If the phase could not complete, say so and why."
@@ -121,6 +124,15 @@ not enough. Measured on v2.1.294 in a non-interactive run (`claude -p`, CI):
   sentence in the prompt above telling the phase to keep its own sub-agents in the foreground;
 - with `run_in_background: false` on each call, two parallel phases and the two sub-agents each of
   them spawned all ran in the foreground.
+
+**A parallel group goes out three phases at a time.** Claude Code runs at most 20 sub-agents at once
+(`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`) and counts the ones a phase spawns. The six review phases
+issued together spawn three or four reviewers each — 27 in all — and on v2.1.294 seven of those
+calls were refused ("Concurrent subagent limit reached … Do not retry"); four reviews then scored
+some dimensions themselves instead of independently. Three phases and their sub-agents stay under
+the limit: issue the first three calls in one message, wait for all three, then issue the next
+three. The evaluation group is three phases and is unaffected. A phase that is refused a call
+anyway does that part itself and says so in its output — record it under `warnings`.
 
 Never end your turn while a phase is `in_progress`. Where the harness places a sub-agent in the
 background regardless (an interactive session does), wait for its completion notification, confirm
