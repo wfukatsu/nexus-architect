@@ -488,6 +488,15 @@ for path in sorted(all_skill_files):
 check("no SKILL.md carries a frontmatter key Claude Code does not read", not unknown_keys,
       unknown_keys)
 
+# `name` is a key Claude Code reads, and that is the reason not to write it: on a plugin skill it
+# also registers the bare command (`/start` beside `/architect:start` — measured, v2.1.294), which
+# a skill named by its directory alone does not get. Eight names are shared between plugins
+# (`start` by three), so a bare alias would go to whichever plugin loaded first.
+named = [path for path in sorted(all_skill_files)
+         if re.search(r"^name:", split_skill(path)[0], re.M)]
+check("no SKILL.md states a `name` (the directory names the skill; `name` adds a bare alias)",
+      not named, named)
+
 too_long, in_description, usage_drift, listing = [], [], [], 0
 for cmd in CMDS:
     front, body = split_skill(os.path.join(skill_dir[cmd], "SKILL.md"))

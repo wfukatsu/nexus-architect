@@ -1,5 +1,4 @@
 ---
-name: investigate-db-live
 description: |
   Investigate an existing database by connecting to its catalogs and existing statistics. Oracle,
   PostgreSQL and MySQL adapters return scoped, source-linked structure and metrics, distinguishing

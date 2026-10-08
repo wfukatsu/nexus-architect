@@ -1,5 +1,4 @@
 ---
-name: investigate-db-design
 description: |
   Investigate an existing database from DDL, text schema exports, or design documents, without
   connecting to a database. Oracle, PostgreSQL and MySQL adapters produce source-linked structure,
