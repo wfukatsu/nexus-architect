@@ -30,6 +30,17 @@ Sub-agents nest up to three layers below the main conversation, so a phase run t
 use the patterns below. It cannot ask the user — `AskUserQuestion` is withheld from every
 sub-agent — which is why only the automated orchestrator does this for every phase.
 
+## When the result is needed, stay in the foreground
+
+A skill that spawns sub-agents and then merges what they return needs them back before it can
+finish. In an interactive session a background sub-agent's completion re-invokes the caller, so
+this takes care of itself. In a non-interactive run, and inside a sub-agent, it does not: calls
+issued together are launched in the background unless told otherwise, the caller's turn can end
+without them, and the caller returns with its output unwritten (measured on v2.1.294 — four of six
+review phases under `/architect:pipeline`). Pass `run_in_background: false` on each call there. The
+orchestrators say so in the prompt they give a phase, which is why the patterns below do not
+repeat it.
+
 ## Pattern 1: Codebase Exploration
 
 Used for surveying the structure of large codebases.

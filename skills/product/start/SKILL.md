@@ -112,6 +112,7 @@ nothing ties a phase to this conversation, and the tier the manifest assigns can
 Agent(
   subagent_type: "general-purpose",
   model: "{phase_model}",
+  run_in_background: false,
   description: "{phase}",
   prompt: "Run the phase `{phase}` of the nexus product pipeline.
            Project directory: {project_dir} — every `reports/`, `work/`, `design-system/` and
@@ -120,6 +121,8 @@ Agent(
            {arguments} --auto, and follow it to completion.
            You cannot ask the user: an unknown is recorded `unasked` with its question text and
            the options you would have offered (@rules/open-questions.md §5).
+           Where the skill has you spawn sub-agents of your own, pass `run_in_background: false`
+           on each and do not finish until they have returned and the phase's outputs are written.
            Do not write this phase's entry in work/pipeline-progress.json — the orchestrator does.
            Reply with: the files you wrote, a two-line summary of what the phase concluded, any
            gate verdict, and the `OQ-` IDs you recorded. If the phase could not complete, say so
@@ -130,6 +133,12 @@ Agent(
 `{phase_model}` is the phase's `model` in @skills/product/common/skill-dependencies.yaml, read at
 the moment of the call. The validation gate still decides here: read its verdict from
 `pipeline-progress.json` → `gates` after the `validate-assumptions` sub-agent returns.
+
+Keep these sub-agents in the foreground — `run_in_background: false` on every call, the calls of a
+parallel group included — and do not end the turn while one is running: the next step needs its
+result, a non-interactive run stops background work ten minutes after the turn ends, and a phase
+whose own sub-agents went to the background returns with nothing written
+(@skills/pipeline/SKILL.md § Phase Execution has the measurements).
 
 ## Iteration (not waterfall)
 

@@ -92,6 +92,10 @@ for rel in sorted(ORCHESTRATORS):
           and "open-questions.md" in text and "`unasked`" in text)
     check("%s keeps the progress registry to itself" % rel,
           "Do not write this phase's entry in work/pipeline-progress.json" in text)
+    block = re.search(r"model: \"\{phase_model\}\",\n\s*run_in_background: false,", text)
+    check("%s passes run_in_background: false on the phase call" % rel, block)
+    check("%s tells the phase to keep its own sub-agents in the foreground" % rel,
+          "pass `run_in_background: false`" in text and "do not finish until they have returned" in text)
     if rel in INTERACTIVE:
         check("%s declares `model: inherit`, so inline phases run on the session's model" % rel,
               re.search(r"^model:\s*inherit\s*$", text.split("---", 2)[1], re.M))
