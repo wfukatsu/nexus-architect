@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.44.0] - 2026-10-09
+
+### Added
+- **Nine commands run their own script without a permission prompt.** The status dashboards
+  (`report-status`, `product:report-status`, `report-backlog-status`, `report-token-cost`), the two
+  report builders (`report`, `product:report`), `update-knowledge`, `infra:start` and
+  `investigate-db-design` declare `allowed-tools` for the one bundled script each exists to run —
+  that script and nothing wider; `investigate-db-design` is allowed the `design` subcommand of the
+  investigator and not `live`. Measured on Claude Code v2.1.294, this holds when you type the
+  command. It does not hold reliably when a model invokes the skill, so a pipeline run from a
+  script still takes its permissions from whoever starts it. Skills that connect to a database,
+  generate code or fetch from the network keep asking.
+
+### Changed
+- **The Oracle AQ migration skill is under 500 lines.** Its three Java class templates and the
+  usage text the report carries are reference files that the sub-agent's prompt lists to read; the
+  `ExceptionClassifier` code, which the body repeated verbatim from the exception-handling
+  reference, is kept there only. Every exception rule stays in the body. With the three routers
+  split in 0.43.3, `design-aggregate` is the one skill over the ceiling, kept whole on purpose.
+
 ## [0.43.3] - 2026-10-09
 
 ### Fixed
