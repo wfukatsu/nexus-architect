@@ -47,6 +47,7 @@ In a **single message**, issue all four Task() calls simultaneously so they run 
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Requirements traceability dimension review",
   prompt: """
 You are a business analyst reviewing design documents for REQUIREMENTS TRACEABILITY.
@@ -87,6 +88,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "NFR quantification dimension review",
   prompt: """
 You are a business analyst reviewing design documents for NFR QUANTIFICATION.
@@ -127,6 +129,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Stakeholder alignment dimension review",
   prompt: """
 You are a business analyst reviewing design documents for STAKEHOLDER ALIGNMENT.
@@ -167,6 +170,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "ROI and feasibility dimension review",
   prompt: """
 You are a business analyst reviewing design documents for ROI AND FEASIBILITY.

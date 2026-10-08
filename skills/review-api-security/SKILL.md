@@ -126,6 +126,7 @@ In a **single message**, issue all three Task() calls simultaneously so they run
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "opus",
   description: "API authorization and tenant isolation dimension review",
   prompt: """
 You are an application security reviewer evaluating API AUTHORIZATION AND TENANT ISOLATION.
@@ -190,6 +191,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "opus",
   description: "API data exposure and input handling dimension review",
   prompt: """
 You are an application security reviewer evaluating API DATA EXPOSURE AND INPUT HANDLING.
@@ -250,6 +252,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "opus",
   description: "API resource, flow and configuration controls dimension review",
   prompt: """
 You are an application security reviewer evaluating API RESOURCE, FLOW AND CONFIGURATION CONTROLS.

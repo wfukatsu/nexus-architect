@@ -45,6 +45,7 @@ In a **single message**, issue all three Task() calls simultaneously so they run
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Transaction safety dimension review",
   prompt: """
 You are a database architect reviewing designs for TRANSACTION SAFETY.
@@ -85,6 +86,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Data consistency dimension review",
   prompt: """
 You are a database architect reviewing designs for DATA CONSISTENCY.
@@ -125,6 +127,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Schema design quality dimension review",
   prompt: """
 You are a database architect reviewing designs for SCHEMA DESIGN QUALITY.

@@ -308,7 +308,7 @@ Spawn a **Bash** subagent using the `Task` tool to test the PostgreSQL database 
 
 1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/postgresql/0-test-connection.md`
 2. Substitute the runtime variables: replace `<POSTGRES_HOST>`, `<POSTGRES_PORT>`, `<POSTGRES_DATABASE>`, `<POSTGRES_USER>`, `<POSTGRES_PASSWORD>`, and `<OUTPUT_DIR>` with the actual values from Steps 4-5
-3. Call the Task tool with `subagent_type: "Bash"`, `description: "Test PostgreSQL connection"`, and the substituted prompt
+3. Call the Task tool with `subagent_type: "Bash"`, `model: "sonnet"`, `description: "Test PostgreSQL connection"`, and the substituted prompt
 
 **After the subagent completes:**
 - Extract `DURATION_SECONDS` from the subagent's response → store as `S0_DURATION`
@@ -326,7 +326,7 @@ Spawn a **Bash** subagent using the `Task` tool to run the Python extractor scri
 
 1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/postgresql/1-extract-schema.md`
 2. Substitute the runtime variables as documented in the template (replace `<INCLUDE_SOURCE_FLAG>` based on POSTGRES_INCLUDE_PLPGSQL_SOURCE from Step 4)
-3. Call the Task tool with `subagent_type: "Bash"`, `description: "Extract PostgreSQL schema"`, and the substituted prompt
+3. Call the Task tool with `subagent_type: "Bash"`, `model: "sonnet"`, `description: "Extract PostgreSQL schema"`, and the substituted prompt
 
 **After the subagent completes:**
 - Extract `DURATION_SECONDS` from the subagent's response → store as `S1_DURATION`
@@ -344,7 +344,7 @@ Spawn a **general-purpose** subagent using the `Task` tool to generate the schem
 
 1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/postgresql/2-generate-report.md`
 2. Substitute the runtime variables as documented in the template (replace all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4)
-3. Call the Task tool with `subagent_type: "general-purpose"`, `description: "Generate PostgreSQL schema report"`, and the substituted prompt
+3. Call the Task tool with `subagent_type: "general-purpose"`, `model: "sonnet"`, `description: "Generate PostgreSQL schema report"`, and the substituted prompt
 
 **After the subagent completes:**
 - Extract `DURATION_SECONDS` from the subagent's response → store as `S2_DURATION`
@@ -367,8 +367,8 @@ Spawn a **general-purpose** subagent using the `Task` tool to generate the schem
    - Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
 
 **Spawn both in one message:**
-- Task call A: `subagent_type: "general-purpose"`, `description: "Generate PostgreSQL migration docs"`, substituted prompt from `3-migration-analysis.md`
-- Task call B: `subagent_type: "general-purpose"`, `description: "Generate SP & trigger migration code"`, substituted prompt from `4-sp-trigger-migration.md`
+- Task call A: `subagent_type: "general-purpose"`, `model: "sonnet"`, `description: "Generate PostgreSQL migration docs"`, substituted prompt from `3-migration-analysis.md`
+- Task call B: `subagent_type: "general-purpose"`, `model: "sonnet"`, `description: "Generate SP & trigger migration code"`, substituted prompt from `4-sp-trigger-migration.md`
 
 **After both subagents complete:**
 - From Subagent 3 result: extract `DURATION_SECONDS` → store as `S3_DURATION`; extract `total_tokens` from `<usage>` block → store as `S3_TOKENS`

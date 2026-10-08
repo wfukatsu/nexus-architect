@@ -106,6 +106,7 @@ Pass the extracted reference data inline in each prompt (do not ask sub-agents t
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Report completeness check",
   prompt: """
 You are reviewing whether reports/00_summary/full-report.html covers all pipeline phases.
@@ -150,6 +151,7 @@ Return ONLY this JSON (no markdown fences):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Report score accuracy check",
   prompt: """
 You are cross-checking numerical scores in the HTML report against authoritative sources.
@@ -196,6 +198,7 @@ Return ONLY this JSON (no markdown fences):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Mermaid diagram syntax check",
   prompt: """
 You are checking Mermaid diagram blocks in an HTML file for syntax errors.
@@ -239,6 +242,7 @@ Return ONLY this JSON (no markdown fences):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Report language consistency check",
   prompt: """
 You are checking that an HTML report is written in the correct language.
@@ -282,6 +286,7 @@ Return ONLY this JSON (no markdown fences):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "Report structural integrity check",
   prompt: """
 You are checking the structural integrity of an HTML report.

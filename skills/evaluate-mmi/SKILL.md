@@ -55,6 +55,7 @@ Each evaluator scores ALL identified modules on its specific axis.
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "MMI cohesion axis evaluation for all modules",
   prompt: """
 You are evaluating COHESION (functional coherence within a module) for each module in a software system.
@@ -96,6 +97,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "MMI coupling axis evaluation for all modules",
   prompt: """
 You are evaluating COUPLING (degree of inter-module dependencies) for each module in a software system.
@@ -137,6 +139,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "MMI independence axis evaluation for all modules",
   prompt: """
 You are evaluating INDEPENDENCE (ability to deploy and test in isolation) for each module in a software system.
@@ -178,6 +181,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "MMI reusability axis evaluation for all modules",
   prompt: """
 You are evaluating REUSABILITY (component reusability across contexts) for each module in a software system.

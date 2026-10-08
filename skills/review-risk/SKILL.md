@@ -55,6 +55,7 @@ In a **single message**, issue all four Task() calls simultaneously so they run 
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "opus",
   description: "Distributed system risks dimension review",
   prompt: """
 You are an adversarial distributed systems architect reviewing for DISTRIBUTED SYSTEM RISKS.
@@ -97,6 +98,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "opus",
   description: "Failure mode analysis dimension review",
   prompt: """
 You are an adversarial distributed systems architect reviewing FAILURE MODE ANALYSIS.
@@ -139,6 +141,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "opus",
   description: "Saga design adequacy dimension review",
   prompt: """
 You are an adversarial distributed systems architect reviewing SAGA DESIGN ADEQUACY.
@@ -180,6 +183,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "opus",
   description: "Data consistency risks dimension review",
   prompt: """
 You are an adversarial distributed systems architect reviewing DATA CONSISTENCY RISKS.

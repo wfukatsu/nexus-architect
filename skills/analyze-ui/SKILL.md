@@ -148,6 +148,7 @@ carries a whole UI:
 ```
 Task(
   subagent_type: "general-purpose",
+  model: "sonnet",
   description: "UI extraction batch <N>",
   prompt: """
 You are extracting screens of an existing web UI into JSON. Read the code; do not guess.

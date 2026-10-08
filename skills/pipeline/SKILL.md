@@ -35,7 +35,9 @@ part of the automated run.
 2. Initialize output directories with `/architect:init-output`
 3. **Product handoff detection** — glob the same set `define-requirements` ingests: `reports/00_core/`, `reports/01_ux/`, `reports/02_spec/`, `reports/03_domain/`, `reports/04_quality/` and `work/traceability.json`. Keep the two sets identical — a run that stopped early (`--profile=mvp` writes only `reports/00_core/`) is still a handoff. Match **files**, not directories: `/product:init-output` creates `reports/01_ux/domain-stories/` and `reports/02_spec/ui-mocks/` empty, so a directory test passes on any initialized product project. If product artifacts exist, run `define-requirements` first with them as inputs (the product→architect handoff, @docs/design.md §1); it auto-detects and carries product IDs forward. Otherwise run the standard greenfield/legacy entry.
 4. Execute each skill and verify its output before proceeding to the next
-5. Execute skills with `parallel_with` in parallel via Task
+5. Execute skills with `parallel_with` in parallel via Task, passing each phase's manifest `model` as the
+   call's `model` — a sub-agent does not pick up the `model` of the skill it runs, and with none on the
+   call it runs on the user's sub-agent default (@skills/common/sub-agent-patterns.md § Always pass `model`)
 6. Enable or disable conditional skills based on the `conditions` field: ScalarDB/data-layer from
    `scalardb_enabled`, and `design-graphql` directly from GraphQL/hybrid surfaces in canonical
    `reports/03_design/api-style-decisions.json`. Before that artifact exists, a legacy

@@ -168,7 +168,7 @@ Skip this step without `--base-url`, and always under `/architect:pipeline`.
 
 ### Step 5: Spawn five axis evaluators
 
-In a **single message**, issue five `Task()` calls (`subagent_type: "general-purpose"`, sonnet), one
+In a **single message**, issue five `Task()` calls (`subagent_type: "general-purpose"`, `model: "sonnet"`), one
 per axis of @rules/ux-evaluation.md §2. Each prompt carries:
 
 - the paths of the inventory, the token file, `work/ux-evaluation/metrics.json`, the baseline if any,

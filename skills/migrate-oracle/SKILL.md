@@ -317,7 +317,7 @@ Spawn a **Bash** subagent using the `Task` tool to test the database connection 
    - `<ORACLE_PASSWORD>` → the collected ORACLE_PASSWORD value
    - `<ORACLE_SQLPLUS_PATH>` → the collected ORACLE_SQLPLUS_PATH value (empty string if not set)
    - `<OUTPUT_DIR>` → the collected OUTPUT_DIR value
-3. Call the Task tool with `subagent_type: "Bash"`, `description: "Test Oracle DB connection"`, and the substituted prompt
+3. Call the Task tool with `subagent_type: "Bash"`, `model: "sonnet"`, `description: "Test Oracle DB connection"`, and the substituted prompt
 
 **Check the subagent result:**
 - Extract `DURATION_SECONDS` from the subagent's response → store as `S0_DURATION`
@@ -337,7 +337,7 @@ Spawn a **Bash** subagent using the `Task` tool to run the Python extractor scri
 
 1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/oracle/1-extract-schema.md`
 2. Substitute the runtime variables as documented in the template (replace `<INCLUDE_SOURCE_FLAG>` based on ORACLE_INCLUDE_PLSQL_SOURCE from Step 4)
-3. Call the Task tool with `subagent_type: "Bash"`, `description: "Extract Oracle schema"`, and the substituted prompt
+3. Call the Task tool with `subagent_type: "Bash"`, `model: "sonnet"`, `description: "Extract Oracle schema"`, and the substituted prompt
 
 **Check the subagent result:**
 - Extract `DURATION_SECONDS` from the subagent's response → store as `S1_DURATION`
@@ -353,7 +353,7 @@ Spawn a **general-purpose** subagent using the `Task` tool to generate the schem
 
 1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/oracle/2-generate-report.md`
 2. Substitute the runtime variables as documented in the template (replace all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4)
-3. Call the Task tool with `subagent_type: "general-purpose"`, `description: "Generate Oracle schema report"`, and the substituted prompt
+3. Call the Task tool with `subagent_type: "general-purpose"`, `model: "sonnet"`, `description: "Generate Oracle schema report"`, and the substituted prompt
 
 **Check the subagent result:**
 - Extract `DURATION_SECONDS` from the subagent's response → store as `S2_DURATION`
@@ -375,19 +375,19 @@ Record `S345_START` = current time.
 
 1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/oracle/3-migration-analysis.md`
 2. Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
-3. Call: `Task(subagent_type: "general-purpose", description: "Generate Oracle migration docs", prompt: <substituted>)`
+3. Call: `Task(subagent_type: "general-purpose", model: "sonnet", description: "Generate Oracle migration docs", prompt: <substituted>)`
 
 **Task B — Subagent 4: AQ Migration**
 
 1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/oracle/4-aq-migration.md`
 2. Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
-3. Call: `Task(subagent_type: "general-purpose", description: "Generate AQ setup SQL & consumer Java", prompt: <substituted>)`
+3. Call: `Task(subagent_type: "general-purpose", model: "sonnet", description: "Generate AQ setup SQL & consumer Java", prompt: <substituted>)`
 
 **Task C — Subagent 5: Stored Procedure & Trigger Migration**
 
 1. Read the prompt template at: `${PLUGIN_ROOT}/skills/common/subagents/oracle/5-sp-trigger-migration.md`
 2. Substitute all `<OUTPUT_DIR>` with the actual absolute output directory path from Step 4
-3. Call: `Task(subagent_type: "general-purpose", description: "Generate SP & trigger migration code", prompt: <substituted>)`
+3. Call: `Task(subagent_type: "general-purpose", model: "sonnet", description: "Generate SP & trigger migration code", prompt: <substituted>)`
 
 **Wait for all three Tasks to complete**, then:
 - From Subagent 3 result: extract `DURATION_SECONDS` → store as `S3_DURATION`; extract `total_tokens` from `<usage>` block → store as `S3_TOKENS`
