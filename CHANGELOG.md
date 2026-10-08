@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.44.3] - 2026-10-09
+
+### Added
+- **Getting started: running the pipeline from a script or CI.** What differs in a non-interactive
+  run was written down nowhere: no phase can ask, and what it would have asked is recorded
+  `unasked` for `/architect:start` to put to you later; you grant the permissions yourself; a
+  spending cap can thin the last phases, and the run says which; a failed quality gate is a result,
+  not an error. English and Japanese.
+
+### Fixed
+- **The mechanism guide described an earlier pipeline.** `docs/analysis-mechanism_ja.md` said five
+  review perspectives where there are six (the API security review was missing from its table),
+  said the hooks validate every write where the frontmatter check covers `reports/` inside a
+  pipeline project only, and listed model tiers without the design phases. It now also says how the
+  parallel reviews actually execute: phases as sub-agents on the manifest's model, three at a time,
+  in the foreground.
+
 ## [0.44.2] - 2026-10-09
 
 ### Changed
