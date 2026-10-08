@@ -5,9 +5,9 @@ description: Kubernetes 共通コンポーネントを chart と release で安�
 resource: "https://helm.sh/docs/"
 tags: [helm, kubernetes, charts, releases]
 generated: { by: codex/gpt-5, at: "2026-08-19T00:00:00+09:00" }
-verified: { by: "process:official-document-cross-check", at: "2026-08-19T00:00:00+09:00" }
+verified: { by: "process:official-document-cross-check", at: "2026-10-09T00:00:00+09:00" }
 status: stable
-stale_after: 2026-11-19
+stale_after: 2027-01-09
 sources:
   - { id: helm-intro, resource: "https://helm.sh/docs/intro/introduction/", title: Introduction to Helm, author: "team:helm" }
   - { id: helm-use, resource: "https://helm.sh/docs/intro/using_helm/", title: Using Helm, author: "team:helm" }

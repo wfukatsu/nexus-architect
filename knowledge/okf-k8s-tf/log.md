@@ -24,3 +24,10 @@
 - `delivery/docker-cosign.md`: Docker 27 の EOL と Cosign v3（新 bundle 形式・`--trusted-root`・`--use-signing-config` の既定化、v4 での旧機能削除予定）を確認事項に追加し、出典 `cosign-v3`（Sigstore Blog）を追加。改善候補の `docker:27` 固定をサポート中の系統への更新に改訂。
 - `foundation/terraform.md`: 1.14.8 と最新 1.16.4 の差を確認事項に追加（設計指針は変更なし）。
 - `architecture/technology-stack.md`: 固定 version と 2026-09-28 時点の最新 stable の差を確認事項の表として追加（固定値そのものは調査スナップショットの事実として維持）。`verified.by` は公開 release との照合を表す `process:official-document-cross-check` に変更。スナップショットの確認日は表のとおり 2026-08-19 のまま。
+
+## 2026-10-09
+
+公開 upstream との照合（`/architect:revise-knowledge`）。対象実装の記述は変更していない。
+
+- `delivery/gitlab-cicd.md`: 出典 `gitlab-oidc`（ID token authentication）の更新に合わせ、認証の設計指針に 2 点を追記。(1) trust policy は path 系の claim だけに依存せず、対応していれば `project_id`・`namespace_id` を併用する（rename の影響を受けないため）。(2) merge request pipeline では `project_id`・`project_path`・`ref` が source project 側の値になり、job を実行する project は `job_project_id`・`job_project_path`（GitLab 18.4 以降）で識別する。出典 `gitlab-yaml`（CI/CD YAML syntax）の更新は、本書の設計指針（`rules`、`allow_failure`、`include`、resource group 等）に影響なし。
+- `foundation/helm.md`: 変更なし（再確認のみ）。出典 `helm-use`（Using Helm、Helm 4.3.0 版）の更新後も、`helm get values`・`helm history`・`helm rollback` と revision の記述は本書の内容を支持する。
