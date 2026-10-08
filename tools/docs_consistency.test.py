@@ -593,12 +593,11 @@ print("Skills stay short enough to load whole")
 
 # A SKILL.md is loaded in full when the skill runs; the documented ceiling is 500 lines, past which
 # what a single step needs (a template, a display format, a code example) belongs in a reference
-# file that step reads (issue #55). The two names below are over it and not yet split — the set
+# file that step reads (issue #55). The one name below is over it and not yet split — the set
 # only shrinks: a file that drops under the ceiling must leave it, and nothing may be added.
 MAX_SKILL_LINES = 500
 NOT_YET_SPLIT = {
     "skills/design-aggregate/SKILL.md",
-    "skills/migrate-oracle/migrate-oracle-aq-to-scalardb/SKILL.md",
 }
 skill_files = [f for f in prose if f.endswith("/SKILL.md")]
 long_ones = {f for f in skill_files if len(read(f).splitlines()) > MAX_SKILL_LINES}
