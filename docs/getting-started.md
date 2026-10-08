@@ -147,7 +147,7 @@ Four things differ from running it in a session:
 - **A failed quality gate is a result, not an error.** The pipeline runs to the end and writes the
   report either way; the verdict and the findings are in `reports/review/review-synthesis.md`.
 
-On the bundled `samples/ec-monolith`, one full run took about 45 minutes (measured once, on Claude Code v2.1.294).
+On the bundled `samples/ec-monolith`, one full run took about 45 minutes (measured once, on Claude Code v2.1.294, under a spending cap that thinned the second half of the review; an uncapped run takes longer).
 
 ### 4. Running Reviews
 
