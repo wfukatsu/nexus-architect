@@ -1,12 +1,14 @@
 ---
 description: |
-  Unified database migration router. Analyzes Oracle, MySQL, or PostgreSQL schemas
-  and generates ScalarDB migration documentation, Java code, and AQ integration.
-  /architect:migrate-database to start. Routes to database-specific workflows.
+  Unified database migration router. Analyzes Oracle, MySQL, or PostgreSQL schemas and generates
+  ScalarDB migration documentation, Java code, and AQ integration. Routes to database-specific
+  workflows.
 model: sonnet
-user_invocable: true
 ---
 # Command: migrate-database (Unified Migration Entry Point)
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Purpose
 

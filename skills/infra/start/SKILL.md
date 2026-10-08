@@ -1,18 +1,18 @@
 ---
 description: |
-  Triage entry point for multi-cloud (AWS / Azure / GCP) x four-environment
-  (local / test / staging / production) infrastructure work: resolves the OKF k8s/tf knowledge
-  bundle, checks its freshness, fixes the target environment and cloud, then routes to the
-  design, implement or review skill.
-  /infra:start [target] [--env=<env>] [--cloud=<cloud>] to invoke.
-  Use for "design the infrastructure", "write the Terraform", "review this IaC" and anything
-  that does not yet name a mode. Not for application domain design (/architect:*), ScalarDB
-  data modeling (/scalardb:*), or GitLab MR review write-ups (gitlab-review).
+  Triage entry point for multi-cloud (AWS / Azure / GCP) infrastructure work across local / test /
+  staging / production: resolves the OKF k8s/tf bundle, fixes environment and cloud, then routes to
+  design, implement or review. Use for any infrastructure request that does not yet name a mode.
+argument-hint: '[target] [--env=<env>] [--cloud=<cloud>]'
 model: sonnet
-user_invocable: true
 ---
 
 # Infrastructure Triage and Routing
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/infra:start [target] [--env=<env>] [--cloud=<cloud>]`
 
 Ground every infrastructure decision in the OKF `okf-k8s-tf` bundle
 (@rules/okf-k8s-tf-bundle.md) rather than in model memory, and hand the real work to the skill

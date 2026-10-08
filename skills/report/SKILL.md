@@ -1,12 +1,13 @@
 ---
 description: |
   Compile all Markdown reports into a consolidated HTML report.
-  Invoked via /architect:report.
 model: haiku
-user_invocable: true
 ---
 
 # Report Compilation
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

@@ -1,13 +1,15 @@
 ---
 description: |
-  Redesign bounded contexts, define aggregates, generate context maps, and open the
-  Architecture Decision Record log every later design skill appends to.
-  /architect:redesign to invoke. Requires integrate-evaluations output as a prerequisite.
+  Redesign bounded contexts, define aggregates, generate context maps, and open the Architecture
+  Decision Record log every later design skill appends to. Requires integrate-evaluations output as
+  a prerequisite.
 model: opus
-user_invocable: true
 ---
 
 # DDD Redesign
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

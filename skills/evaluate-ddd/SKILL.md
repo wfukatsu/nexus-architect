@@ -1,13 +1,17 @@
 ---
 description: |
-  Evaluate DDD principle conformance across 3 layers and 12 criteria.
-  /architect:evaluate-ddd [target_path] to invoke.
-  Requires analyze output as a prerequisite. Can run in parallel with evaluate-mmi.
+  Evaluate DDD principle conformance across 3 layers and 12 criteria. Requires analyze output as a
+  prerequisite. Can run in parallel with evaluate-mmi.
+argument-hint: '[target_path]'
 model: sonnet
-user_invocable: true
 ---
 
 # DDD Evaluation
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:evaluate-ddd [target_path]`
 
 ## Desired Outcome
 

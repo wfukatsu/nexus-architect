@@ -3,12 +3,16 @@ description: |
   Research the market and competitors in one pass — market sizing (TAM/SAM/SOM), trends,
   alternatives, a competitive matrix, and Kano classification — then recommend a differentiation
   (PoD) vs parity (PoP) strategy. Sources are always cited (name + URL).
-  /product:research-landscape [target] [--input=<file|dir>] [--auto] [--lang=ja|en] [--no-research].
+argument-hint: '[target] [--input=<file|dir>] [--auto] [--lang=ja|en] [--no-research]'
 model: opus
-user_invocable: true
 ---
 
 # Market & Competitive Landscape
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/product:research-landscape [target] [--input=<file|dir>] [--auto] [--lang=ja|en] [--no-research]`
 
 ## Desired Outcome
 

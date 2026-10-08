@@ -1,13 +1,14 @@
 ---
 description: |
-  Design HTAP analytics platform using ScalarDB Analytics with Apache Spark.
-  /architect:design-scalardb-analytics to invoke. ScalarDB Analytics is an Enterprise **Option**,
-  contracted separately — it is not included in Enterprise Premium.
+  Design HTAP analytics platform using ScalarDB Analytics with Apache Spark. ScalarDB Analytics is
+  an Enterprise **Option**, contracted separately — it is not included in Enterprise Premium.
 model: sonnet
-user_invocable: true
 ---
 
 # ScalarDB Analytics Design
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

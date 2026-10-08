@@ -1,18 +1,19 @@
 ---
 description: |
-  Turn the API contract into executable tests — OpenAPI request/response validation, GraphQlTester
-  schema/resolver validation, Problem Details
-  conformance, authorization and idempotency assertions, and ArchUnit layering rules — so contract
-  breaks fail a build instead of surviving a review.
-  /architect:generate-contract-tests [--service=<name>] [--out=<path>] [--stack=default|schemathesis|pact|archunit]
-  [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja] to invoke.
-  Runs after generate-api-code (or after an item is implemented by hand).
+  Turn the API contract into executable tests — OpenAPI or GraphQL validation, Problem Details
+  conformance, authorization and idempotency assertions, ArchUnit layering rules. Use after
+  generate-api-code, or after an item is implemented by hand.
+argument-hint: '[--service=<name>] [--out=<path>] [--stack=default|schemathesis|pact|archunit] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]'
 model: sonnet
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Contract Test Generation
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:generate-contract-tests [--service=<name>] [--out=<path>] [--stack=default|schemathesis|pact|archunit] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]`
 
 GraphQL surfaces use `GraphQlTester` and schema inspection rather than an OpenAPI validator. Select
 `ExecutionGraphQlServiceTester`, `WebGraphQlTester`, `HttpGraphQlTester`,

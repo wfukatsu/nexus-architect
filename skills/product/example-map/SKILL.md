@@ -1,16 +1,16 @@
 ---
 description: |
-  Run Example Mapping per feature — the business rules the feature must obey (RULE-), one concrete
-  example per rule on each side of its boundary (EX-), and the questions nobody could settle (OQ-)
-  — so acceptance tests, aggregate invariants and backlog acceptance criteria derive from agreed
-  cases instead of from the feature's name. Runs after define-features, before the data model,
-  the aggregates and the test specs.
-  /product:example-map [--feature=<FEAT>] [--auto] [--lang=ja|en].
+  Run Example Mapping per feature — business rules (RULE-), a concrete example on each side of every
+  rule's boundary (EX-), and open questions (OQ-). Use after define-features, before the data model,
+  aggregates and test specs.
+argument-hint: '[--feature=<FEAT>] [--auto] [--lang=ja|en]'
 model: opus
-user_invocable: true
 ---
 
 # Example Mapping
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

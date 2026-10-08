@@ -1,13 +1,14 @@
 ---
 description: |
-  Generic database design for non-ScalarDB projects.
-  /architect:design-data-layer to invoke. For projects not using ScalarDB.
-  Do NOT use for ScalarDB projects (use /architect:design-scalardb instead).
+  Generic database design for non-ScalarDB projects. For projects not using ScalarDB. Do NOT use for
+  ScalarDB projects (use /architect:design-scalardb instead).
 model: opus
-user_invocable: true
 ---
 
 # Data Layer Design
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

@@ -2,12 +2,15 @@
 description: |
   Consolidate all product artifacts into one self-contained HTML report (Mermaid inline) that leads
   with a mandatory "Key Assumptions & Validation Status" section — gate verdict, open assumptions,
-  every TBD, and Open Questions — before any design content. /product:report [--auto] [--lang=ja|en].
+  every TBD, and Open Questions — before any design content.
+argument-hint: '[--auto] [--lang=ja|en]'
 model: sonnet
-user_invocable: true
 ---
 
 # Consolidated Report
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

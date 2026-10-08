@@ -2,12 +2,16 @@
 description: |
   Interactively start product-direction design. Determines scope, runs the validation-driven
   pipeline in dependency order, and gates on the riskiest assumptions before deep design.
-  /product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--lang=ja|en].
+argument-hint: '[target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--lang=ja|en]'
 model: sonnet
-user_invocable: true
 ---
 
 # Product Goal Orchestrator
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--lang=ja|en]`
 
 ## Your Role
 

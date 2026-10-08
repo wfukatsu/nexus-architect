@@ -1,19 +1,19 @@
 ---
 description: |
-  Turn the Gherkin scenarios in reports/07_test-specs/bdd-scenarios/ into an executable acceptance
-  suite — Cucumber-JVM step definitions bound by RULE-/EX- tag, driven through the API or the
-  application service over the Fakes, and an acceptanceTest task the quality gate and the ATDD
-  outer loop run.
-  /architect:generate-acceptance-tests [--service=<name>] [--feature=<id>] [--driver=api|application] [--out=<path>]
-  [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja] to invoke.
-  Runs after generate-test-specs; before the first implement-backlog item of a service, so the
-  outer loop has something to be red.
+  Turn the Gherkin scenarios in reports/07_test-specs/bdd-scenarios/ into an executable Cucumber-JVM
+  acceptance suite with an acceptanceTest task. Use after generate-test-specs and before the first
+  implement-backlog item of a service.
+argument-hint: '[--service=<name>] [--feature=<id>] [--driver=api|application] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]'
 model: sonnet
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Acceptance Test Generation (Gherkin → executable)
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:generate-acceptance-tests [--service=<name>] [--feature=<id>] [--driver=api|application] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]`
 
 ## Desired Outcome
 

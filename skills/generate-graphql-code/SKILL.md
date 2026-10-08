@@ -1,16 +1,19 @@
 ---
 description: |
-  Generate a Spring for GraphQL API layer from approved SDL and resolver contracts: annotated
-  controllers, input/output DTOs, mappers, tenant context, authorization, batch loading, exception
-  resolution, query limits, observations and a field-coordinate contract map.
-  /architect:generate-graphql-code [--service=<name>] [--out=<path>]
-  [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja] to invoke.
+  Generate a Spring for GraphQL API layer from approved SDL and resolver contracts — controllers,
+  DTOs, mappers, authorization, batch loading, exception resolution, query limits — plus a
+  field-coordinate contract map. Use after design-graphql and design-implementation.
+argument-hint: '[--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]'
 model: opus
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Spring GraphQL Code Generation
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:generate-graphql-code [--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]`
 
 ## Desired Outcome
 

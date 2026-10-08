@@ -1,16 +1,16 @@
 ---
 description: |
-  Build state transition models for the aggregates that have a lifecycle — states, events,
-  guarded transitions, the full state x event matrix, and the concurrency/consistency class of
-  every transition — through facilitated dialogue.
-  /architect:design-state-machine [--aggregate=<name>] [--auto] [--lang=en|ja] to invoke.
-  Recommended prerequisite: redesign output. Feeds design-scalardb / design-data-layer,
-  design-api, generate-test-specs and the reviews.
+  Build state transition models for the aggregates that have a lifecycle — states, events, guarded
+  transitions, the state x event matrix and each transition's consistency class — through
+  facilitated dialogue. Use after redesign (and design-aggregate when it ran).
+argument-hint: '[--aggregate=<name>] [--auto] [--lang=en|ja]'
 model: opus
-user_invocable: true
 ---
 
 # State Transition Model Design
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

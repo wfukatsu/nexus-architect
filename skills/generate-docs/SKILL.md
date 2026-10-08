@@ -1,20 +1,21 @@
 ---
 description: |
-  Create and update the documentation for code that has been generated or implemented — the
-  README(s) and the docs/ pages — so the docs describe the code that actually exists. Runs after
-  the codegen skills (generate-scalardb-code, generate-infra-code, generate-frontend) and as the
-  documentation step of /architect:implement-backlog, where the doc changes land in the same
-  commit and PR/MR as the code.
-  /architect:generate-docs [target] [--scope=changed|service|repo] [--source-root=<path>] [--readme-only] [--issue=<id>] [--dry-run] [--auto] [--lang=en|ja].
-  Updates in place: regenerates only its own marked sections and never discards human-authored
-  prose. Runs as a thin sonnet orchestrator delegating inventory and page writing to sub-agents.
-  Only runs when explicitly invoked.
+  Create and update the README(s) and docs/ pages for code that was generated or implemented, in
+  place, regenerating only its own marked sections. Use after the codegen skills, and as the
+  documentation step of /architect:implement-backlog.
+argument-hint: '[target] [--scope=changed|service|repo] [--source-root=<path>] [--readme-only] [--issue=<id>] [--dry-run] [--auto] [--lang=en|ja]'
 model: sonnet
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Code Documentation (README + docs/)
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:generate-docs [target] [--scope=changed|service|repo] [--source-root=<path>] [--readme-only] [--issue=<id>] [--dry-run] [--auto] [--lang=en|ja]`
+
+Runs as a thin sonnet orchestrator delegating inventory and page writing to sub-agents.
 
 ## Desired Outcome
 

@@ -1,7 +1,9 @@
 ---
-description: Show ScalarDB CRUD operation patterns — builder syntax for Get, Scan, Insert, Upsert, Update, Delete with examples. Use when writing or reviewing code against the ScalarDB CRUD (transactional) API, or when the user asks how to express a read/write in ScalarDB without SQL.
+description: |
+  Show ScalarDB CRUD operation patterns — builder syntax for Get, Scan, Insert, Upsert, Update,
+  Delete with examples. Use when writing or reviewing code against the ScalarDB CRUD (transactional)
+  API, or when the user asks how to express a read/write in ScalarDB without SQL.
 model: sonnet
-user_invocable: true
 ---
 
 # /scalardb:crud-ops — ScalarDB CRUD Operations Guide

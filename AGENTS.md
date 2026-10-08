@@ -22,7 +22,7 @@ When the user invokes a Claude-style command in Codex, map it to the matching lo
 - `/infra:<name>` -> read and follow `skills/infra/<name>/SKILL.md` (infra skills are nested under `skills/infra/`; infra rules are nested under `rules/infra/`). `/infra:start` is the router: it resolves the bundle, checks freshness and fixes environment and cloud, then follow the mode skill it selects
 - `/architect:<name>` -> read and follow `skills/<name>/SKILL.md`
 - `/scalardb:<name>` -> read and follow `skills/<name>/SKILL.md`
-- `@rules/...`, `@templates/...`, and `@skills/...` -> resolve as repository-relative paths
+- `@rules/...`, `@templates/...`, `@skills/...` and `@docs/...` -> resolve as repository-relative paths (each SKILL.md that uses them says so in its `Shared files:` line; `${CLAUDE_PLUGIN_ROOT}` there is the repository root)
 
 If a referenced skill does not exist, explain that it is unavailable and choose the closest documented fallback.
 

@@ -1,13 +1,14 @@
 ---
 description: |
-  Design authentication, authorization, secrets management, network security, and the tenant isolation
-  model, mapped to OWASP API Security Top 10.
-  Invoked via /architect:design-security.
+  Design authentication, authorization, secrets management, network security, and the tenant
+  isolation model, mapped to OWASP API Security Top 10.
 model: sonnet
-user_invocable: true
 ---
 
 # Security Design
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

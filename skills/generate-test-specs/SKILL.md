@@ -1,12 +1,14 @@
 ---
 description: |
-  Generate BDD scenarios, contract test, unit test, property-based test, integration test, and performance test specifications.
-  Invoked via /architect:generate-test-specs. Requires output from design-implementation as a prerequisite.
+  Generate BDD scenarios, contract test, unit test, property-based test, integration test, and
+  performance test specifications. Requires output from design-implementation as a prerequisite.
 model: sonnet
-user_invocable: true
 ---
 
 # Test Specification Generation
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

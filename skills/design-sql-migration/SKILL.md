@@ -1,18 +1,16 @@
 ---
 description: |
-  Design the migration of an existing system's SQL to ScalarDB, statement by statement, from the analysis
-  results: inventory every statement in application code, SQL files and investigated database objects, run
-  the vendored SQLGlot converter with the schema, keys, storage and row estimates the analysis established,
-  and decide one route per statement (ScalarDB SQL, Core API, fetch-and-H2 plan, application code, redesign,
-  retire) in a validated manifest.
-  /architect:design-sql-migration [target_path] [--source=oracle|postgres|mysql] [--app-root=<path>] [--sql-file=<path>] [--db-run=<path>] [--live-run=<path>] [--edition=community|enterprise_standard|enterprise_premium] [--storage=jdbc|cassandra] [--namespace=<name>] [--auto] [--lang=en|ja] to invoke.
-  Extension tier; recommended after investigate-db-design / investigate-db-live and design-scalardb.
-  Feeds implement-sql-migration and verify-sql-migration.
+  Design the migration of an existing system's SQL to ScalarDB statement by statement: inventory
+  every statement, run the vendored converter, and decide one route per statement in a validated
+  manifest. Extension tier, after investigate-db-design / investigate-db-live and design-scalardb.
+argument-hint: '[target_path] [--source=oracle|postgres|mysql] [--app-root=<path>] [--sql-file=<path>] [--db-run=<path>] [--live-run=<path>] [--edition=community|enterprise_standard|enterprise_premium] [--storage=jdbc|cassandra] [--namespace=<name>] [--auto] [--lang=en|ja]'
 model: opus
-user_invocable: true
 ---
 
 # SQL Migration Design
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

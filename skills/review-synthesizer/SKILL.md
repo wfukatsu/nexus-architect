@@ -1,9 +1,8 @@
 ---
 description: |
-  Consolidate parallel review results. Deduplicate findings, classify priorities, and determine quality gate verdict.
-  Handles variable input of 2-6 perspectives.
+  Consolidate parallel review results. Deduplicate findings, classify priorities, and determine
+  quality gate verdict. Handles variable input of 2-6 perspectives.
 model: sonnet
-user_invocable: true
 ---
 
 # Review Synthesis

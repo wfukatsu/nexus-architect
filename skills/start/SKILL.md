@@ -1,12 +1,17 @@
 ---
 description: |
-  Interactively start system analysis and design. Assesses project context and determines the optimal path.
-  /architect:start [target_path].
+  Interactively start system analysis and design. Assesses project context and determines the
+  optimal path.
+argument-hint: '[target_path]'
 model: sonnet
-user_invocable: true
 ---
 
 # Nexus Architect Orchestrator
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:start [target_path]`
 
 ## Your Role
 

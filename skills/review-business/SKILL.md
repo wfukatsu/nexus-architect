@@ -1,9 +1,8 @@
 ---
 description: |
-  Review business requirements traceability, NFR quantification, and stakeholder alignment.
-  Used as one perspective within the parallel review system.
+  Review business requirements traceability, NFR quantification, and stakeholder alignment. Used as
+  one perspective within the parallel review system.
 model: sonnet
-user_invocable: true
 ---
 
 # Business Requirements Review

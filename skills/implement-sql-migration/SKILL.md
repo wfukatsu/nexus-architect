@@ -1,16 +1,16 @@
 ---
 description: |
-  Generate the code the SQL migration manifest decided: ScalarDB SQL statements, the ScalarDB schema, fetch-and-H2
-  execution plans with their executor, a Core API interface and application-side skeletons that carry the semantics
-  they must keep — into a self-contained Gradle module under generated/, behind an offline gate that refuses when
-  the manifest no longer matches the source or the converter.
-  /architect:implement-sql-migration [target_path] [--out=<path>] [--package=<java.package>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja] to invoke.
-  Extension tier; requires design-sql-migration. Followed by verify-sql-migration.
+  Generate the code the SQL migration manifest decided — ScalarDB SQL, schema, fetch-and-H2 plans,
+  Core API interface and application-side skeletons — as a Gradle module under generated/, behind an
+  offline gate. Use after design-sql-migration, before verify-sql-migration.
+argument-hint: '[target_path] [--out=<path>] [--package=<java.package>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja]'
 model: sonnet
-user_invocable: true
 ---
 
 # SQL Migration Implementation
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

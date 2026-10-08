@@ -1,16 +1,20 @@
 ---
 name: investigate-db-live
 description: |
-  Investigate an existing database by connecting to its catalogs and existing statistics.
-  Oracle, PostgreSQL and MySQL adapters return scoped, source-linked structure and metrics,
-  distinguishing unavailable data from empty results. Use
-  /architect:investigate-db-live [--profile=path] [--lang=ja|en].
+  Investigate an existing database by connecting to its catalogs and existing statistics. Oracle,
+  PostgreSQL and MySQL adapters return scoped, source-linked structure and metrics, distinguishing
+  unavailable data from empty results.
+argument-hint: '[--profile=path] [--lang=ja|en]'
 model: sonnet
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Investigate a Live Database
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:investigate-db-live [--profile=path] [--lang=ja|en]`
 
 ## Desired Outcome
 

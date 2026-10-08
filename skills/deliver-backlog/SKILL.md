@@ -1,18 +1,19 @@
 ---
 description: |
-  Orchestrate the implementation skill group over a backlog: drive each Issue under an Epic through
-  implement → review → (human approval) → merge, in order, until the Epic's Issues are done. Wraps
-  /architect:implement-backlog, /architect:review-issue, and /architect:merge-issue; sequences and
-  gates them, and resumes from progress recorded in backlog-manifest.json. Semi-autonomous — it
-  stops for the human gates (PR/MR approval, merge, blocker decisions) rather than merging on its own.
-  /architect:deliver-backlog [--epic=<id>] [--issue=<id>] [--from=implement|review|merge] [--auto] [--yes-merge] [--max-fix-rounds=N] [--export] [--dry-run] [--lang=en|ja].
-  Only runs when explicitly invoked. Requires a backlog from /architect:export-backlog.
+  Drive each Issue under an Epic through implement → review → human approval → merge, in order,
+  resuming from backlog-manifest.json and stopping at every human gate. Use to deliver a backlog
+  created by /architect:export-backlog.
+argument-hint: '[--epic=<id>] [--issue=<id>] [--from=implement|review|merge] [--auto] [--yes-merge] [--max-fix-rounds=N] [--export] [--dry-run] [--lang=en|ja]'
 model: sonnet
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Backlog Delivery Orchestrator
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:deliver-backlog [--epic=<id>] [--issue=<id>] [--from=implement|review|merge] [--auto] [--yes-merge] [--max-fix-rounds=N] [--export] [--dry-run] [--lang=en|ja]`
 
 ## Expected Outcome
 

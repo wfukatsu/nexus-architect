@@ -1,13 +1,14 @@
 ---
 description: |
-  Design ScalarDB schema, transaction boundaries, and storage backend.
-  /architect:design-scalardb to invoke. For ScalarDB projects only.
+  Design ScalarDB schema, transaction boundaries, and storage backend. For ScalarDB projects only.
   Do NOT use for projects not using ScalarDB (use /architect:design-data-layer instead).
 model: opus
-user_invocable: true
 ---
 
 # ScalarDB Design
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

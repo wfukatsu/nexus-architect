@@ -2,12 +2,15 @@
 description: |
   Extract and define features from the UI mocks — each screen action becomes a Command/feature,
   reconciled against scope and prioritized with MoSCoW, with every feature traced to a job, journey,
-  and success metric. Stops if the mocks are empty. /product:define-features [--auto] [--lang=ja|en].
+  and success metric. Stops if the mocks are empty.
+argument-hint: '[--auto] [--lang=ja|en]'
 model: sonnet
-user_invocable: true
 ---
 
 # Feature Definition
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

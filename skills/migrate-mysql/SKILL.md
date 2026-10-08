@@ -1,9 +1,8 @@
 ---
 description: |
-  MySQL to ScalarDB migration. Schema extraction, migration analysis,
-  and SP/trigger to Java conversion. /architect:migrate-mysql to start.
+  MySQL to ScalarDB migration. Schema extraction, migration analysis, and SP/trigger to Java
+  conversion.
 model: sonnet
-user_invocable: true
 ---
 
 Orchestrates the complete MySQL to ScalarDB migration workflow through an interactive chat interface. Collects database connection parameters from the user via questions, updates the configuration file, then runs the analysis and migration skills.

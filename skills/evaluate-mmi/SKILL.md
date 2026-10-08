@@ -1,13 +1,18 @@
 ---
 description: |
-  Qualitative evaluation of Modularity Maturity Index across 4 axes: cohesion, coupling, independence, reusability.
-  /architect:evaluate-mmi [target_path] to invoke.
-  Requires analyze output as a prerequisite. Can run in parallel with evaluate-ddd.
+  Qualitative evaluation of Modularity Maturity Index across 4 axes: cohesion, coupling,
+  independence, reusability. Requires analyze output as a prerequisite. Can run in parallel with
+  evaluate-ddd.
+argument-hint: '[target_path]'
 model: sonnet
-user_invocable: true
 ---
 
 # MMI Evaluation
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:evaluate-mmi [target_path]`
 
 ## Desired Outcome
 

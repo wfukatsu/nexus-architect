@@ -1,12 +1,13 @@
 ---
 description: |
   Design Kubernetes, IaC (Terraform), networking, and multi-environment configuration.
-  Invoked via /architect:design-infrastructure.
 model: opus
-user_invocable: true
 ---
 
 # Infrastructure Design
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

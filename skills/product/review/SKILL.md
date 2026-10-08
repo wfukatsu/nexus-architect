@@ -2,12 +2,15 @@
 description: |
   Review the accumulated product artifacts through four lenses — consistency, traceability,
   extensibility, and strategy — and return an actionable findings list (severity + location + fix).
-  Rerunnable, can run mid-pipeline. /product:review [--auto] [--lang=ja|en].
+  Rerunnable, can run mid-pipeline.
+argument-hint: '[--auto] [--lang=ja|en]'
 model: opus
-user_invocable: true
 ---
 
 # Multi-Lens Review
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

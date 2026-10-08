@@ -1,17 +1,19 @@
 ---
 description: |
-  Verify that the code that exists actually implements the design — API contract, transaction placement,
-  security controls, and requirement coverage — and report every divergence instead of smoothing it over.
-  Optionally runs the AI code quality gate.
-  /architect:verify-implementation [target_path] [--service=<name>] [--scope=changed|service|repo]
-  [--source-root=<path>] [--gate] [--item=<backlog-id>] [--auto] [--lang=en|ja] to invoke.
-  Runs after code generation or backlog implementation, and as the conformance stage of the quality gate.
+  Verify that existing code implements the design — API contract, transaction placement, security
+  controls, requirement coverage — and report every divergence; optionally runs the AI code quality
+  gate. Use after code generation or backlog implementation.
+argument-hint: '[target_path] [--service=<name>] [--scope=changed|service|repo] [--source-root=<path>] [--gate] [--item=<backlog-id>] [--auto] [--lang=en|ja]'
 model: opus
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Implementation Verification (Design ↕ Code)
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:verify-implementation [target_path] [--service=<name>] [--scope=changed|service|repo] [--source-root=<path>] [--gate] [--item=<backlog-id>] [--auto] [--lang=en|ja]`
 
 For GraphQL, apply @rules/graphql-contract-fidelity.md and
 @rules/graphql-security-checks.md. Inventory SDL field coordinates, annotated controller methods and

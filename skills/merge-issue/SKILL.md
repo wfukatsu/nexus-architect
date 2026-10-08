@@ -1,18 +1,19 @@
 ---
 description: |
-  Merge the Pull/Merge Request raised for a backlog Issue after the user has approved it, then roll
-  up status across the Issue, Sub-Epic, and Epic. Runs a preflight (PR/MR open, review verdict
-  Mergeable with no open blockers, required approvals present, CI green, no conflicts, base
-  up-to-date), gates the merge itself on explicit user confirmation, executes the merge via
-  glab / gh, closes the Issue, and updates the backlog manifest and progress comments.
-  /architect:merge-issue [item|mr|pr] [--strategy=merge|squash|rebase] [--delete-branch] [--yes-merge] [--dry-run] [--auto] [--lang=en|ja].
-  Only runs when explicitly invoked. Raise the PR/MR first with /architect:review-issue.
+  Merge the PR/MR raised for a backlog Issue after the user approved it — preflight (approvals, CI,
+  conflicts), explicit confirmation, merge via glab / gh — then close the Issue and roll status up
+  to Sub-Epic and Epic. Use after /architect:review-issue.
+argument-hint: '[item|mr|pr] [--strategy=merge|squash|rebase] [--delete-branch] [--yes-merge] [--dry-run] [--auto] [--lang=en|ja]'
 model: opus
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Backlog Issue Merge
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:merge-issue [item|mr|pr] [--strategy=merge|squash|rebase] [--delete-branch] [--yes-merge] [--dry-run] [--auto] [--lang=en|ja]`
 
 ## Desired Outcome
 

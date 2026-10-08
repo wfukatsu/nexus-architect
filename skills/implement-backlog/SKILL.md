@@ -1,22 +1,22 @@
 ---
 description: |
-  Implement a backlog item (Issue / Sub-Epic / Epic) created by /architect:export-backlog, keeping
-  everything consistent across the whole Epic. Reads the parent Epic and the sibling Sub-Epics /
-  Issues under the same Epic, cross-checks a shared engineering-context pack (architecture, coding
-  standards, ubiquitous language, NFR budgets), writes code into the target project's real source
-  tree (never the git-ignored generated/), updates the README/docs for the changed surface via
-  /architect:generate-docs, appends progress notes to the Epic / Sub-Epic / Issue, and runs a
-  lightweight + on-demand consistency review for whole-Epic optimization.
-  /architect:implement-backlog [item] [--epic=<id>] [--build-context] [--review-epic[=<id>]] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja].
-  With no item, picks the items flagged status::doing and confirms with the user before proceeding.
-  Runs as a thin orchestrator that delegates heavy steps to model-tiered sub-agents
-  (haiku/sonnet/opus) to minimize token cost. Only runs when explicitly invoked.
+  Implement a backlog item (Issue / Sub-Epic / Epic) created by /architect:export-backlog in the
+  project's real source tree, test-first, consistent with its parent Epic and sibling items, and
+  update the docs for the changed surface. With no item, picks the items flagged status::doing.
+argument-hint: '[item] [--epic=<id>] [--build-context] [--review-epic[=<id>]] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja]'
 model: sonnet
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Backlog Implementation (Epic-Consistent)
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:implement-backlog [item] [--epic=<id>] [--build-context] [--review-epic[=<id>]] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja]`
+
+Runs as a thin orchestrator that delegates heavy steps to model-tiered sub-agents
+(haiku/sonnet/opus) to minimize token cost.
 
 ## Desired Outcome
 

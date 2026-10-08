@@ -3,12 +3,14 @@ description: |
   Derive the data model from UI mocks and features in two passes — Pass 1 reads explicit entities
   from screens/forms/actions; Pass 2 uses a feature×entity CRUD matrix to surface implicit entities
   (joins, history, audit, state machines) with recorded rationale. Outputs a Mermaid ER diagram.
-  /product:define-data-model [--auto] [--lang=ja|en].
+argument-hint: '[--auto] [--lang=ja|en]'
 model: opus
-user_invocable: true
 ---
 
 # Data Model (2-pass)
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

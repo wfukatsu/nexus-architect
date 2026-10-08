@@ -2,12 +2,15 @@
 description: |
   Design positioning (Dunford 5-component canvas), the touchpoint × device × timing matrix, and the
   motivation/retention loop (Fogg + Hook + Kano delighter refresh) in one document. Claims customer
-  value, not features; avoids dark patterns. /product:design-positioning [--auto] [--lang=ja|en].
+  value, not features; avoids dark patterns.
+argument-hint: '[--auto] [--lang=ja|en]'
 model: opus
-user_invocable: true
 ---
 
 # Positioning & Engagement
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

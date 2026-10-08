@@ -1,24 +1,25 @@
 ---
 description: |
-  Show where the product pipeline stands — every phase's status
-  (pending/in_progress/completed/failed/skipped, plus stale when an upstream phase
-  changed after it finished), how many of its declared outputs exist, whether it is
-  running right now, and the validation gate's verdict — on the terminal, live or as a
-  one-shot render.
-  /product:report-status [--once] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en] to invoke.
-  Wraps ${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh, which on a terminal defaults to a
-  live dashboard polling work/pipeline-progress.json every 10s, with an action menu that
-  generates the next slash command per phase, an `a` key that asks Claude about the
-  selected phase, and a Tab key that cycles the dashboard's other views — Architect (the
-  architect pipeline), Code Generation and Backlog Delivery. The live mode runs in the
-  user's own terminal, so pass --once for an in-session render.
-  Only runs when explicitly invoked.
+  Show where the product pipeline stands — each phase's status, staleness, declared outputs present,
+  what is running now, and the validation gate's verdict — on the terminal, live or as a one-shot
+  render.
+argument-hint: '[--once] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]'
 model: haiku
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Product Pipeline Status Dashboard
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/product:report-status [--once] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]`
+
+Wraps ${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh, which on a terminal defaults to a live dashboard
+polling work/pipeline-progress.json every 10s, with an action menu that generates the next slash
+command per phase, an `a` key that asks Claude about the selected phase, and a Tab key that cycles
+the dashboard's other views — Architect (the architect pipeline), Code Generation and Backlog
+Delivery. The live mode runs in the user's own terminal, so pass --once for an in-session render.
 
 ## Desired Outcome
 

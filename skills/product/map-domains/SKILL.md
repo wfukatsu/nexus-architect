@@ -1,15 +1,16 @@
 ---
 description: |
-  Abstract features and entities into bounded contexts (DDD strategic design) — a Core/Supporting/
-  Generic domain map, a context map with relationships, and a ubiquitous language — sized to absorb
-  future features. Bridges to nexus-architect. Boundaries are derived from features and entities
-  by default, or found with the user in a Big Picture EventStorming walk (--mode=event-storming).
-  /product:map-domains [--mode=derive|event-storming] [--auto] [--lang=ja|en].
+  Abstract features and entities into bounded contexts (DDD strategic design): a
+  Core/Supporting/Generic domain map, a context map and a ubiquitous language. Boundaries are
+  derived, or found with the user in a Big Picture EventStorming walk. Bridges to nexus-architect.
+argument-hint: '[--mode=derive|event-storming] [--auto] [--lang=ja|en]'
 model: opus
-user_invocable: true
 ---
 
 # Domain Map & Bounded Contexts
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

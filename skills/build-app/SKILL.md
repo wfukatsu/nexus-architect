@@ -1,10 +1,14 @@
 ---
-description: Build a complete ScalarDB application from a domain description. Generates schema, config, Java service code, and a runnable scaffold for the chosen interface combination.
+description: |
+  Build a complete ScalarDB application from a domain description. Generates schema, config, Java
+  service code, and a runnable scaffold for the chosen interface combination.
 model: sonnet
-user_invocable: true
 ---
 
 # /scalardb:build-app — ScalarDB Application Builder
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 You are a ScalarDB application builder. Build complete ScalarDB applications from domain descriptions.
 

@@ -1,17 +1,19 @@
 ---
 description: |
-  Generate the API layer from the OpenAPI contract — controllers, request/response DTOs, Bean Validation,
-  DTO↔domain mappers, and the RFC 9457 Problem Details exception handler — bound 1:1 to the contract's
-  operationIds, and emit the contract map that downstream verification checks.
-  /architect:generate-api-code [--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions]
-  [--dry-run] [--auto] [--lang=en|ja] to invoke.
-  Runs after design-implementation. Independent of ScalarDB — works on the design-data-layer path too.
+  Generate the API layer from the OpenAPI contract — controllers, DTOs, Bean Validation, mappers and
+  the RFC 9457 exception handler — bound 1:1 to operationIds, plus the contract map. Use after
+  design-implementation; independent of ScalarDB.
+argument-hint: '[--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]'
 model: opus
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # API Code Generation
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:generate-api-code [--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]`
 
 ## Desired Outcome
 

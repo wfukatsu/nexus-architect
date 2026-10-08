@@ -186,7 +186,8 @@ for name in SKILLS:
     if declared and name in policy:
         check("%s model matches the router's table" % name, declared.group(1) == policy[name],
               "%s vs %s" % (declared.group(1), policy[name]))
-    check("%s is user-invocable" % name, "user_invocable: true" in front)
+    # A registered skill is a slash command unless it opts out; there is no key that opts in.
+    check("%s is user-invocable" % name, "user-invocable: false" not in front)
 
 print("Templates the skills name exist and carry the frontmatter block")
 

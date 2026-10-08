@@ -1,12 +1,14 @@
 ---
 description: |
-  Review ScalarDB-specific constraints (2PC scope, OCC contention, schema compatibility).
-  For ScalarDB-enabled projects only. Used as one perspective within the parallel review system.
+  Review ScalarDB-specific constraints (2PC scope, OCC contention, schema compatibility). For
+  ScalarDB-enabled projects only. Used as one perspective within the parallel review system.
 model: sonnet
-user_invocable: true
 ---
 
 # ScalarDB Constraint Review
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Knowledge Grounding
 

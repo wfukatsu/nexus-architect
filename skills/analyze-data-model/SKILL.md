@@ -1,13 +1,14 @@
 ---
 description: |
-  Comprehensive data layer analysis including entity/relationship analysis, DB design evaluation, and ER diagram generation.
-  /architect:analyze-data-model [target_path] to invoke.
-  Requires analyze output as a prerequisite.
+  Comprehensive data layer analysis including entity/relationship analysis, DB design evaluation,
+  and ER diagram generation. Requires analyze output as a prerequisite.
+argument-hint: '[target_path]'
 model: sonnet
-user_invocable: true
 ---
 
 # Data Model Analysis
+
+**Usage:** `/architect:analyze-data-model [target_path]`
 
 ## Desired Outcome
 

@@ -1,12 +1,14 @@
 ---
 description: |
-  Review design documents for structural coherence, traceability, and terminology consistency.
-  Used as one perspective within the parallel review system.
+  Review design documents for structural coherence, traceability, and terminology consistency. Used
+  as one perspective within the parallel review system.
 model: sonnet
-user_invocable: true
 ---
 
 # Consistency Review
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Expected Outcome
 

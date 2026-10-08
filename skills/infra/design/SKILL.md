@@ -1,17 +1,18 @@
 ---
 description: |
-  Design a multi-cloud, four-environment infrastructure configuration from requirements and emit
-  the design document, environment matrix and ADRs. Grounded in the OKF k8s/tf bundle; writes no
-  implementation code.
-  /infra:design [target] [--env=<env>] [--cloud=<cloud>] [--auto] to invoke.
-  Use for "design the infrastructure", "decide the configuration", "select the technology",
-  "compare the approaches". Implementation follows separately via /infra:implement, after the
-  design is agreed.
+  Design a multi-cloud, four-environment infrastructure configuration from requirements and emit the
+  design document, environment matrix and ADRs, with no implementation code. Use for "design the
+  infrastructure", "select the technology", "compare the approaches"; /infra:implement follows.
+argument-hint: '[target] [--env=<env>] [--cloud=<cloud>] [--auto]'
 model: opus
-user_invocable: true
 ---
 
 # Infrastructure Design
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/infra:design [target] [--env=<env>] [--cloud=<cloud>] [--auto]`
 
 ## Desired Outcome
 

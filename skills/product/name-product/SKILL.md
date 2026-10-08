@@ -3,12 +3,16 @@ description: |
   Name the product as an alphabetic acronym — a short, pronounceable Latin-letter name whose every
   letter is the initial of an English word, so the name itself expands into a phrase that states the
   product's value. Grounded in vision/values/positioning; shortlists candidates and recommends one.
-  /product:name-product [target] [--input=<file|dir>] [--count=N] [--style=acronym|initialism|hybrid] [--seed=<letters|word>] [--auto] [--lang=ja|en].
+argument-hint: '[target] [--input=<file|dir>] [--count=N] [--style=acronym|initialism|hybrid] [--seed=<letters|word>] [--auto] [--lang=ja|en]'
 model: opus
-user_invocable: true
 ---
 
 # Product Naming (Acronym / Backronym)
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/product:name-product [target] [--input=<file|dir>] [--count=N] [--style=acronym|initialism|hybrid] [--seed=<letters|word>] [--auto] [--lang=ja|en]`
 
 ## Desired Outcome
 

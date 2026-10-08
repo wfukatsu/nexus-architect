@@ -3,12 +3,16 @@ description: |
   Design a schema-first Spring for GraphQL API after /architect:design-api selects GraphQL or a
   hybrid surface. Produces SDL, resolver contracts, authorization, batching, query-governance and
   transport designs bound to application services and transaction boundaries.
-  /architect:design-graphql [--service=<name>] [--lang=en|ja] to invoke.
+argument-hint: '[--service=<name>] [--lang=en|ja]'
 model: opus
-user_invocable: true
 ---
 
 # Spring GraphQL Design
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:design-graphql [--service=<name>] [--lang=en|ja]`
 
 ## Desired Outcome
 

@@ -1,12 +1,18 @@
 ---
 description: |
   Initialize output directories and pipeline-progress.json.
-  /architect:init-output [project_name]. Use --reset to reinitialize.
+argument-hint: '[project_name]'
 model: haiku
-user_invocable: true
 ---
 
 # Output Initialization
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:init-output [project_name]`
+
+Use --reset to reinitialize.
 
 ## Expected Outcome
 

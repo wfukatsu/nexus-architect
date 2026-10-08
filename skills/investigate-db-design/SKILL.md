@@ -1,16 +1,19 @@
 ---
 name: investigate-db-design
 description: |
-  Investigate an existing database from DDL, text schema exports, or design documents,
-  without connecting to a database. Oracle, PostgreSQL and MySQL adapters produce
-  source-linked structure, declared relationships, design findings and an ER diagram.
-  Use /architect:investigate-db-design [input_path] [--product=id] [--schema=name]
-  [--target-id=id] [--version=version] [--lang=ja|en].
+  Investigate an existing database from DDL, text schema exports, or design documents, without
+  connecting to a database. Oracle, PostgreSQL and MySQL adapters produce source-linked structure,
+  declared relationships, design findings and an ER diagram.
+argument-hint: '[input_path] [--product=id] [--schema=name] [--target-id=id] [--version=version] [--lang=ja|en]'
 model: sonnet
-user_invocable: true
 ---
 
 # Investigate Database Design
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:investigate-db-design [input_path] [--product=id] [--schema=name] [--target-id=id] [--version=version] [--lang=ja|en]`
 
 ## Desired Outcome
 

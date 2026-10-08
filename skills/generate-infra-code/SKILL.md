@@ -1,12 +1,14 @@
 ---
 description: |
-  Generate Kubernetes manifests, Terraform modules, and Helm charts.
-  Invoked via /generate-infra-code.
+  Generate Kubernetes manifests, Terraform modules, Helm charts and the quality-gate CI workflow
+  into generated/. For merge-bound code in a real infrastructure repository, use /infra:implement.
 model: sonnet
-user_invocable: true
 ---
 
 # Infrastructure Code Generation
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
 ## Desired Outcome
 

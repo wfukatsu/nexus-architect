@@ -1,13 +1,17 @@
 ---
 description: |
-  Take in constraints, normalize them, and decide product scope — explicitly what the product
-  will and will not do — using MoSCoW and RICE, anchored to success metrics when available.
-  /product:define-scope [--constraints=<file|text>] [--input=<file|dir>] [--auto] [--lang=ja|en].
+  Take in constraints, normalize them, and decide product scope — explicitly what the product will
+  and will not do — using MoSCoW and RICE, anchored to success metrics when available.
+argument-hint: '[--constraints=<file|text>] [--input=<file|dir>] [--auto] [--lang=ja|en]'
 model: sonnet
-user_invocable: true
 ---
 
 # Constraints & Scope
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/product:define-scope [--constraints=<file|text>] [--input=<file|dir>] [--auto] [--lang=ja|en]`
 
 ## Desired Outcome
 

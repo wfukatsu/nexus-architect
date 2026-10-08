@@ -1,18 +1,19 @@
 ---
 description: |
-  Pin the current behaviour of a legacy system in executable characterization (golden master)
-  tests before it is refactored or strangled — the safety net the transformation plan's steps are
-  gated on. Records what the code does, not what it should do.
-  /architect:generate-characterization-tests [target_path] [--scope=module|service|repo] [--module=<name>]
-  [--out=<path>] [--seam=http|cli|function|db] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja] to invoke.
-  Runs on the legacy path after investigate (and analyze when it exists); before any
+  Pin the current behaviour of a legacy system in executable characterization (golden master) tests
+  before it is refactored or strangled. Use on the legacy path after investigate, before a
   transformation-plan step touches the module.
+argument-hint: '[target_path] [--scope=module|service|repo] [--module=<name>] [--out=<path>] [--seam=http|cli|function|db] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]'
 model: sonnet
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Characterization Test Generation
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:generate-characterization-tests [target_path] [--scope=module|service|repo] [--module=<name>] [--out=<path>] [--seam=http|cli|function|db] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]`
 
 ## Desired Outcome
 

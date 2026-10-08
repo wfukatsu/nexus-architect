@@ -1,19 +1,19 @@
 ---
 description: |
-  Review a backlog Issue's implementation for whole-Epic consistency, then drive it to a mergeable
-  Pull/Merge Request. Checks the Issue plus its parent Sub-Epic and Epic and the related Issues under
-  the same Epic; when blockers are found it spawns fix subagents and re-reviews until they clear;
-  if it fails to converge it stops, writes a decision request on the Issue, and asks the user. When
-  no blockers remain it opens a PR/MR linked to the Issue and hands off to the user for approval.
-  /architect:review-issue [item] [--epic=<id>] [--max-fix-rounds=N] [--base=<branch>] [--no-fix] [--dry-run] [--auto] [--lang=en|ja].
-  With no item, picks the status::doing / status::review items and confirms with the user.
-  Only runs when explicitly invoked. Merging is a separate step (/architect:merge-issue).
+  Review a backlog Issue's implementation for whole-Epic consistency, fix blockers and re-review
+  until they clear, then open a PR/MR linked to the Issue and hand off for approval. Use after
+  /architect:implement-backlog; merging is /architect:merge-issue.
+argument-hint: '[item] [--epic=<id>] [--max-fix-rounds=N] [--base=<branch>] [--no-fix] [--dry-run] [--auto] [--lang=en|ja]'
 model: opus
-user_invocable: true
 disable-model-invocation: true
 ---
 
 # Backlog Issue Review → PR/MR
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/architect:review-issue [item] [--epic=<id>] [--max-fix-rounds=N] [--base=<branch>] [--no-fix] [--dry-run] [--auto] [--lang=en|ja]`
 
 ## Desired Outcome
 

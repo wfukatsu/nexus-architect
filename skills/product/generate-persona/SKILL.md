@@ -3,12 +3,16 @@ description: |
   Generate Jobs-to-be-Done–anchored personas — job stories plus persona cards (context, pains,
   gains, JTBD, verbatim) — as a proto-persona scaffold that promotes to research-based as evidence
   arrives. Never fabricates demographics or quotes.
-  /product:generate-persona [--input=<file|dir>] [--auto] [--lang=ja|en].
+argument-hint: '[--input=<file|dir>] [--auto] [--lang=ja|en]'
 model: opus
-user_invocable: true
 ---
 
 # Personas (Jobs-to-be-Done)
+
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
+**Usage:** `/product:generate-persona [--input=<file|dir>] [--auto] [--lang=ja|en]`
 
 ## Desired Outcome
 
