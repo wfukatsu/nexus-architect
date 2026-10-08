@@ -34,6 +34,8 @@ The one deliberate exception is the **migration sub-skills**: `skills/migrate-{o
 - `model` — `opus` | `sonnet` | `haiku`, or `inherit` on the two interactive orchestrators (see Model Assignment).
 - `disable-model-invocation: true` — present on skills that should only run when explicitly called.
 
+A SKILL.md is loaded whole when the skill runs, so it stays under 500 lines: what one step alone needs — a file template, a display format, a long code example — goes in a `reference/` file beside it that the step says to read. What must not be skipped (the order of steps, stop conditions, exception rules) stays in the body. `tools/docs_consistency.test.py` enforces the ceiling.
+
 There is deliberately no `name`: the directory names the skill. On a plugin skill `name` additionally registers the bare command (`/start` beside `/architect:start` — measured on v2.1.294), and eight names are shared between plugins, `start` by three, so the alias would go to whichever plugin loaded first. The Agent Skills specification asks for the field; the Codex and omnigent runtimes resolve skills by path and do not need it. `tools/docs_consistency.test.py` rejects it.
 
 A registered skill is a slash command by default; there is no key to opt in (`user-invocable` exists only to opt *out* with `false`). `tools/docs_consistency.test.py` rejects any frontmatter key outside the set Claude Code documents — an unrecognised key is silently ignored at load time, which is how `user_invocable` survived on 116 skills while doing nothing.

@@ -196,76 +196,7 @@ Also set: `ACTIVE_DATABASE=postgresql`
 
 **If CONFIG_EXISTS = false (first run):**
 
-Use the **Write** tool to create `.claude/configuration/databases.env` with the complete template populated with collected values:
-
-```properties
-# =============================================================================
-# CONSOLIDATED DATABASE CONFIGURATION
-# =============================================================================
-# Single configuration file for all database migration skills
-# =============================================================================
-
-# ACTIVE DATABASE SELECTION
-ACTIVE_DATABASE=postgresql
-
-# SHARED OUTPUT CONFIGURATION (ABSOLUTE PATH REQUIRED)
-OUTPUT_DIR=<collected_output_dir>
-
-# ScalarDB target version — resolve the current stable release before setting this
-# (rules/dependency-versions.md: gh release list -R scalar-labs/scalardb, or
-#  repo1.maven.org/maven2/com/scalar-labs/scalardb/maven-metadata.xml)
-SCALARDB_TARGET_VERSION=<resolved-stable-version>
-
-# =============================================================================
-# POSTGRESQL CONFIGURATION
-# =============================================================================
-POSTGRES_HOST=<collected_host>
-POSTGRES_PORT=<collected_port>
-POSTGRES_DATABASE=<collected_database>
-POSTGRES_USER=<collected_user>
-POSTGRES_PASSWORD=<collected_password>
-POSTGRES_SCHEMA=<collected_schema>
-POSTGRES_REPORT_FILENAME=postgresql_schema_report.md
-POSTGRES_SCALARDB_NAMESPACE=<lowercase of collected_database or collected_schema>
-POSTGRES_INCLUDE_PLPGSQL_SOURCE=<collected_plpgsql_source>
-POSTGRES_PSQL_PATH=
-POSTGRES_CONNECTION_TIMEOUT=30
-POSTGRES_QUERY_TIMEOUT=300
-
-# =============================================================================
-# MYSQL CONFIGURATION (defaults - not yet configured)
-# =============================================================================
-MYSQL_HOST=localhost
-MYSQL_PORT=3306
-MYSQL_DATABASE=your_database
-MYSQL_USER=your_username
-MYSQL_PASSWORD=your_password
-MYSQL_REPORT_FILENAME=mysql_schema_report.md
-MYSQL_SCALARDB_NAMESPACE=
-MYSQL_INCLUDE_SOURCE=false
-MYSQL_CHARSET=utf8mb4
-MYSQL_CONNECTION_TIMEOUT=30
-
-# =============================================================================
-# ORACLE CONFIGURATION (defaults - not yet configured)
-# =============================================================================
-ORACLE_HOST=localhost
-ORACLE_PORT=1521
-ORACLE_SERVICE=ORCL
-ORACLE_USER=your_username
-ORACLE_PASSWORD=your_password
-ORACLE_SCHEMA=
-ORACLE_REPORT_FILENAME=oracle_schema_report.md
-ORACLE_SCALARDB_NAMESPACE=
-ORACLE_INCLUDE_PLSQL_SOURCE=false
-ORACLE_SQLPLUS_PATH=
-ORACLE_HOME=
-ORACLE_TNS_ADMIN=
-
-# =============================================================================
-# END OF CONFIGURATION
-# =============================================================================
-```
+Read `${PLUGIN_ROOT}/skills/migrate-postgresql/reference/databases-env-template.md` and use the **Write** tool to create `.claude/configuration/databases.env` from the template in it, with every `<...>` placeholder replaced by the collected value. The template is needed on this branch only — an existing file is edited, as described next.
 
 **If CONFIG_EXISTS = true (updating existing):**
 
@@ -387,72 +318,7 @@ Spawn a **general-purpose** subagent using the `Agent` tool to generate the sche
 
 ### STEP 11: Display Final Summary with Metrics
 
-Display the combined results from all five subagents, then a timing and token usage table.
-
-**Compute totals before rendering:**
-- `TOTAL_DURATION = S0_DURATION + S1_DURATION + S2_DURATION + S34_WALL`
-  *(Phases 3 & 4 ran in parallel, so only the longer one adds to wall-clock time)*
-- `TOTAL_TOKENS = S0_TOKENS + S1_TOKENS + S2_TOKENS + S3_TOKENS + S4_TOKENS`
-  *(If any token value is unavailable, mark it as "N/A" and omit it from the total)*
-
-Display to the user:
-
-```
-PostgreSQL to ScalarDB Migration — Complete
-
-Phase 0: Connection Test
-  - Connection method: Python psycopg2 (direct database connection)
-  - <Subagent 0 SUMMARY line (database product and version)>
-
-Phase 1: Schema Extraction
-  - Connected to PostgreSQL at <host>:<port>/<database>
-  - <Subagent 1 SUMMARY line>
-
-Phase 2: Schema Report
-  - Generated: postgresql_schema_report.md
-  - <Subagent 2 SUMMARY lines>
-
-Phase 3 + 4 (Parallel):
-  Migration Analysis:
-    - Generated: scalardb_migration_analysis.md
-    - Generated: scalardb_migration_steps.md
-    - Migration Complexity: <Subagent 3 COMPLEXITY_SCORE>
-    - <Subagent 3 SUMMARY lines>
-  SP & Trigger Migration:
-    - Generated: scalardb_sp_migration_report.md
-    - Java files: <OUTPUT_DIR>/generated-java/
-    - Files generated: <Subagent 4 FILES_GENERATED>
-    - <Subagent 4 SUMMARY lines>
-
-Output Directory: <OUTPUT_DIR>
-
-Next Steps:
-  1. Review scalardb_migration_analysis.md for compatibility details
-  2. Follow scalardb_migration_steps.md for implementation guide
-  3. Review generated-java/ for migrated stored procedure code
-  4. Review scalardb_sp_migration_report.md for SP & trigger migration details
-```
-
-Then display the metrics table:
-
-```
-Execution Summary
-─────────────────────────────────────────────────────────────────────
- Phase                          │ Subagent Type    │ Tokens  │ Time
-─────────────────────────────────────────────────────────────────────
- Phase 0: Connection Test       │ Bash             │ S0_TOK  │ S0s
- Phase 1: Schema Extraction     │ Bash             │ S1_TOK  │ S1s
- Phase 2: Schema Report         │ General-purpose  │ S2_TOK  │ S2s
- Phase 3: Migration Analysis  ┐ │ General-purpose  │ S3_TOK  │ S3s
- Phase 4: SP/Trigger Migration┘ │ General-purpose  │ S4_TOK  │ S4s
-               (parallel wall-clock)                       │ S34s
-─────────────────────────────────────────────────────────────────────
- TOTAL                          │ 5 subagents      │ TOT_TOK │ TOTs
-─────────────────────────────────────────────────────────────────────
-Note: Phases 3 & 4 ran in parallel. Total time reflects wall-clock
-      (sequential sum of Phases 0–2 plus the longer of Phases 3/4).
-      Token counts extracted from <usage> blocks; N/A if unavailable.
-```
+Read `${PLUGIN_ROOT}/skills/migrate-postgresql/reference/final-summary.md` and display what it specifies: the combined results of all subagents, then the timing and token usage table. The file also says how the totals are computed. Display both for a partial run as well (see Error Handling).
 
 ---
 
@@ -517,4 +383,6 @@ The SKILL.md files are **read directly by subagents** as instruction documents (
 - **SP & Trigger Migration Skill**: `${PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-sp-trigger-to-scalardb/SKILL.md`
 - **SP & Trigger Migration Reference**: `${PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-sp-trigger-to-scalardb/reference/migration-strategy-guide-sp-triggers-to-scalardb.md`
 - **SP & Trigger Migration Template**: `${PLUGIN_ROOT}/skills/migrate-postgresql/migrate-postgresql-sp-trigger-to-scalardb/templates/scalardb_sp_migration_report.md`
+- **Configuration template** (Step 5, first run): `${PLUGIN_ROOT}/skills/migrate-postgresql/reference/databases-env-template.md`
+- **Final summary format** (Step 11): `${PLUGIN_ROOT}/skills/migrate-postgresql/reference/final-summary.md`
 - **Config**: `.claude/configuration/databases.env`

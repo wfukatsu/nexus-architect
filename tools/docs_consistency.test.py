@@ -587,6 +587,35 @@ for rel in prose:
 check("no skill or sub-agent prompt uses MUST / Do NOT in prose (%d files)" % len(prose),
       prose and not shouted, shouted)
 
+# ------------------------------------------------------------ skill length
+
+print("Skills stay short enough to load whole")
+
+# A SKILL.md is loaded in full when the skill runs; the documented ceiling is 500 lines, past which
+# what a single step needs (a template, a display format, a code example) belongs in a reference
+# file that step reads (issue #55). The two names below are over it and not yet split — the set
+# only shrinks: a file that drops under the ceiling must leave it, and nothing may be added.
+MAX_SKILL_LINES = 500
+NOT_YET_SPLIT = {
+    "skills/design-aggregate/SKILL.md",
+    "skills/migrate-oracle/migrate-oracle-aq-to-scalardb/SKILL.md",
+}
+skill_files = [f for f in prose if f.endswith("/SKILL.md")]
+long_ones = {f for f in skill_files if len(read(f).splitlines()) > MAX_SKILL_LINES}
+check("no SKILL.md is over %d lines (%d files)" % (MAX_SKILL_LINES, len(skill_files)),
+      skill_files and not (long_ones - NOT_YET_SPLIT), sorted(long_ones - NOT_YET_SPLIT))
+check("every exemption from the length ceiling is still over it",
+      not (NOT_YET_SPLIT - long_ones), sorted(NOT_YET_SPLIT - long_ones))
+
+# What a skill hands to a reference file has to be there: a `${PLUGIN_ROOT}/...` path naming a file
+# (not a directory or a glob) is an instruction to read it.
+absent = []
+for rel in skill_files:
+    for path in set(re.findall(r"\$\{PLUGIN_ROOT\}/([\w./-]+\.(?:md|py|sh|json|yaml|sql|env))", read(rel))):
+        if not os.path.isfile(os.path.join(ROOT, path)):
+            absent.append("%s -> %s" % (rel, path))
+check("every ${PLUGIN_ROOT} file a skill points at exists", not absent, absent)
+
 print()
 print("%d check(s), %d failure(s)" % (checks, failures))
 sys.exit(1 if failures else 0)
