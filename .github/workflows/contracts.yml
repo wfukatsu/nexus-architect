@@ -41,6 +41,21 @@ jobs:
       - name: Run every contract suite
         run: bash tools/run-tests.sh -v
 
+      # What Claude Code itself accepts: the marketplace manifest, then the SKILL.md files directly
+      # under skills/. --strict turns the warnings the runtime tolerates into failures, which is the
+      # only place they would ever be seen. The skill pass is narrower than it sounds (measured on
+      # the pinned version): it does not descend into skills/product/ or skills/infra/ and cannot be
+      # pointed at them, and it rejects a SKILL.md with no frontmatter block but not an unknown key.
+      # Frontmatter keys across all four plugins are tools/docs_consistency.test.py's. Neither call
+      # needs a credential. The version is pinned so that a release tightening a check fails the
+      # pull request that bumps it, not an unrelated one.
+      - name: Validate against Claude Code
+        env:
+          CLAUDE_CODE_VERSION: 2.1.293
+        run: |
+          npx --yes "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" plugin validate . --strict
+          npx --yes "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" plugin validate skills --strict
+
       # The hooks validate files written under reports/ during a run. Their own CLI mode is what
       # the suites above exercise indirectly; running them here on a known-good file catches a
       # hook that has been broken outright.
