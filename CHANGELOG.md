@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.44.4] - 2026-10-09
+
+Both fixes come from one full interactive `/architect:start` run on `samples/ec-monolith`
+(Claude Code v2.1.295): 23 phases completed, every sub-agent on its manifest model, no question
+left `unasked`.
+
+### Fixed
+- **The report's executive summary could be built broken, with exit 0.** The run's first report
+  showed Python dicts in the perspective-score table, `?` for several counts and "0 open questions"
+  beside 52 recorded ones. `tools/build-report.py` reads `review-synthesis.json` and the Open
+  Questions store by name, and neither writer was told the names. `review-synthesizer` now states
+  the keys as a contract (`generated_at`, numeric `perspective_scores`, `gate_evaluation`, the
+  count breakdown); `init-output` and `rules/open-questions.md` give the store's header row
+  verbatim. The builder reads a store headed `OQ-###` as well as `ID`, shows an object-shaped score
+  as its number, counts a severity nobody found as 0, and names missing keys in a warning that
+  `/architect:report` passes on. The 0.44.0 full run had the same defect in part and it went
+  unnoticed.
+- **`/architect:start` and `/product:start --auto` said to keep phases in the foreground where an
+  interactive session cannot.** On v2.1.295 the Agent tool of an interactive main session has no
+  `run_in_background` parameter, and all 21 phase calls of the run were launched in the background.
+  Both skills now say what to do then: end the turn, know nothing about a phase until its
+  completion notice, resume without being asked.
+- **`/architect:start` could start a phase before the questions it depends on were answered.**
+  Three times in the run a dependent phase was launched first and the answers were patched into its
+  output afterwards. The order is now stated: ask, write the answers in, then start what depends on
+  the phase — the reviews' questions before `review-synthesizer`. Answers are substituted with the
+  Edit tool, so the output hooks check the file.
+
 ## [0.44.3] - 2026-10-09
 
 ### Added
