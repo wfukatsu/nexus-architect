@@ -100,6 +100,15 @@ for rel in sorted(ORCHESTRATORS):
           "concurrent sub-agent limit is reached, do not retry" in text)
     check("%s tells the phase to keep its own sub-agents in the foreground" % rel,
           "pass `run_in_background: false`" in text and "do not finish until they have returned" in text)
+    if rel != "skills/pipeline/SKILL.md":
+        check("%s says what to do when a phase is launched in the background" % rel,
+              "may run the phase in the background anyway" in text
+              and "end the turn" in text and "completion notice" in text
+              and "without waiting to be asked" in text)
+    if rel == "skills/start/SKILL.md":
+        check("%s puts a phase's questions before the phases that depend on it" % rel,
+              "only then start a phase that depends on the one that" in text
+              and "before\n`review-synthesizer` starts" in text)
     if rel in INTERACTIVE:
         check("%s declares `model: inherit`, so inline phases run on the session's model" % rel,
               re.search(r"^model:\s*inherit\s*$", text.split("---", 2)[1], re.M))
