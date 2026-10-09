@@ -111,6 +111,28 @@ this suite before and after (`rules/tdd-workflow.md` §5):
 No legacy system at hand? Use the bundled sample monolith at `samples/ec-monolith`
 as the target path to try the analysis workflow end to end.
 
+#### What a `/architect:start` session looks like
+
+`/architect:start` runs the same phases as `/architect:pipeline`, and asks you what the pipeline
+can only record as `unasked`. Three things are worth knowing before the first run:
+
+- **Most phases run in the background.** The six dialogue-driven phases (`define-requirements`,
+  `analyze-ui`, `evaluate-ux`, `create-domain-story`, `design-aggregate`, `design-state-machine`)
+  run in the conversation. Every other phase runs as a sub-agent on the model the manifest assigns
+  it, and an interactive session starts those in the background: the orchestrator says what is
+  running and ends its turn, and picks up by itself when the phase reports back. You do not need to
+  prompt it. `/architect:report-status` in a second terminal shows what is in flight.
+- **Questions come after the phase that raised them, and before what depends on it.** A sub-agent
+  cannot ask you, so the orchestrator asks on its behalf once the phase has finished, writes your
+  answers into the phase's documents, and only then starts the next dependent phase. Anything you
+  defer stays in `work/context.md` § Open Questions under its `OQ-` ID.
+- **Up to three phases run at once.** The evaluations and the six reviews are parallel groups; the
+  reviews go out three at a time.
+
+On the bundled `samples/ec-monolith`, one full run — 23 phases, 51 questions of which 28 were
+answered in the session and 23 deferred — took about three hours including the time spent answering
+(measured once, on Claude Code v2.1.295).
+
 See the [architect Input Requirements](architect-input-requirements.md) for the inputs you should prepare for the legacy and greenfield (`/architect:define-requirements`) paths.
 
 ### 3. Full Pipeline Execution
@@ -274,6 +296,12 @@ Consolidated HTML report:
 /architect:report
 # -> reports/00_summary/full-report.html
 ```
+
+The report opens with an executive summary built from `reports/review/review-synthesis.json` and
+the Open Questions store in `work/context.md`. When the synthesis lacks a field the summary reads,
+the build still succeeds and prints one `build-report: warning:` line naming the missing fields;
+the cells they feed show `?`. Re-run `/architect:review-synthesizer` and then `/architect:report`
+to fill them.
 
 Browse everything under `reports/` as a local documentation site — sidebar per phase, search,
 Mermaid rendered, the OpenAPI/AsyncAPI specs as an API reference (Blume, Node ≥ 22.12):

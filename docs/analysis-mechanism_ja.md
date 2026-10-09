@@ -395,6 +395,16 @@ severity、location、recommendation 付き JSON）を返す。視点スコア�
 - **フェーズも、その中のレビュアーも、フォアグラウンドで動く。** 非対話の実行では、バックグラウンドに
   回ったサブエージェントが、結果を書く前に打ち切られるためである。
 
+`/architect:start` では、3 つ目の制約が成り立たない。対話セッションの Agent ツールには、
+フォアグラウンドを指定する引数がなく、フェーズはバックグラウンドで起動される（Claude Code v2.1.295 で
+実測。通しの実行 1 回で、21 件のフェーズ呼び出しがすべてそうなった）。対話セッションでは、完了の通知が
+オーケストレーターを再開させるので、結果は失われない。その代わり、`skills/start/SKILL.md` が
+次の手順を定めている。
+
+- オーケストレーターは、実行中のフェーズを利用者に伝えてターンを終え、完了の通知で再開する。
+- フェーズが聞けなかった質問は、そのフェーズに依存するフェーズを起動する前に、利用者に尋ねる。
+  回答は Edit ツールで成果物に書き込む。シェルスクリプトで置き換えると、フックの検証を通らない。
+
 費用の上限つきで実行し、上限が近づいた場合、オーケストレーターはレビューの視点に、次元を自分で
 採点させることがある。その場合は、独立採点でなかった視点が `work/pipeline-progress.json` の
 `warnings` と最終報告に記録される。
@@ -411,6 +421,12 @@ review-synthesizer は全視点の JSON を突合して統合する:
    - **PASS**: 総合 3.5 以上・critical 0・major 3 以下・全視点 3.0 以上
    - **CONDITIONAL PASS**: 総合 2.5 以上・critical 2 以下（緩和策つき）・major 8 以下
    - **FAIL**: 上記未満
+
+統合結果は `review-synthesis.md` と `review-synthesis.json` の 2 つに書かれる。JSON のほうは、
+統合レポートのエグゼクティブサマリー（`tools/build-report.py`）が項目名で読む契約である。
+`generated_at`、数値の `perspective_scores`、`gate_evaluation` の `PASS` と `CONDITIONAL_PASS`、
+`findings_summary` の件数が決まった名前で入る（`skills/review-synthesizer/SKILL.md` § JSON Output）。
+項目が欠けていると、ビルドは警告を 1 行出し、対応する欄を `?` にする。
 
 閾値が設定ファイルに externalize されているため、**合否判定はモデルの裁量ではなく
 数値基準**であり、プロジェクト間で一貫する。

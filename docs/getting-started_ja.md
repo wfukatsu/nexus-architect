@@ -109,6 +109,29 @@ product スキルの全カタログは [スキルリファレンス](skill-refer
 手元にレガシーシステムがない場合は、同梱のサンプルモノリス `samples/ec-monolith` を
 ターゲットパスに指定すると、分析ワークフローを一通り試せます。
 
+#### `/architect:start` のセッションの進み方
+
+`/architect:start` は、`/architect:pipeline` と同じフェーズを実行します。パイプラインが `unasked` として
+記録するしかない項目を、利用者に質問する点が異なります。初めて実行する前に、次の 3 点を知っておくと
+迷いません。
+
+- **多くのフェーズは、バックグラウンドで動きます。** 対話で進める 6 フェーズ（`define-requirements`、
+  `analyze-ui`、`evaluate-ux`、`create-domain-story`、`design-aggregate`、`design-state-machine`）は、
+  会話の中で動きます。それ以外のフェーズは、マニフェストが指定するモデルのサブエージェントとして動きます。
+  対話セッションは、これをバックグラウンドで起動します。オーケストレーターは、実行中のフェーズを伝えて
+  ターンを終え、フェーズから報告が届くと自分で再開します。利用者が促す必要はありません。実行中のフェーズは、
+  別のターミナルで `/architect:report-status` を実行すると確認できます。
+- **質問は、そのフェーズが終わったあと、依存するフェーズが始まる前に届きます。** サブエージェントは
+  利用者に質問できません。そのため、フェーズが終わってからオーケストレーターが代わりに質問し、回答を
+  そのフェーズの文書に書き込みます。依存するフェーズを起動するのは、そのあとです。保留にした項目は、
+  `OQ-` の ID のまま `work/context.md` の Open Questions に残ります。
+- **同時に動くフェーズは 3 つまでです。** 評価と 6 つのレビューは並列グループです。レビューは 3 つずつ
+  起動します。
+
+同梱の `samples/ec-monolith` では、通しの実行に約 3 時間かかりました（Claude Code v2.1.295 で 1 回測定。
+回答にかけた時間を含みます）。この実行は 23 フェーズで、質問は 51 件でした。そのうち 28 件にセッション中に
+回答し、23 件を保留にしています。
+
 レガシー／グリーンフィールド（`/architect:define-requirements`）の各パスで用意すべきインプットは [architect インプット要件ガイド](architect-input-requirements_ja.md) を参照してください。
 
 ### 3. フルパイプライン実行
@@ -270,6 +293,11 @@ work/             # パイプライン状態
 /architect:report
 # -> reports/00_summary/full-report.html
 ```
+
+レポートの冒頭には、エグゼクティブサマリーが入ります。元になるのは、`reports/review/review-synthesis.json` と
+`work/context.md` の Open Questions です。サマリーが読む項目が統合結果に欠けていても、ビルドは成功します。
+その場合は、欠けている項目を示す `build-report: warning:` の行が 1 行出力され、対応する欄は `?` になります。
+`/architect:review-synthesizer` を実行し直してから `/architect:report` を実行すると、欄が埋まります。
 
 `reports/` 配下をまるごとローカルのドキュメントサイトとして閲覧できます — フェーズごとのサイドバー、
 全文検索、Mermaid 描画、OpenAPI/AsyncAPI 仕様の API リファレンス（Blume、Node 22.12 以上）：
