@@ -583,6 +583,75 @@ try:
     check("the missing OQ store is stated",
           "context.md</code> does not exist" in dg_summary)
 
+    # --------------------------------------------------------------- review synthesis
+    print("The executive summary reads the synthesis by the keys the synthesizer defines")
+
+    synthesis = {
+        "review_id": "r-1", "generated_at": "2026-10-09T12:00:00+09:00", "verdict": "FAIL",
+        "aggregate_score": 3.25,
+        "perspective_scores": {"consistency": 4.0, "operations": 2.4},
+        "gate_evaluation": {"PASS": {"met": False, "violations": ["major 48 > 3"]},
+                            "CONDITIONAL_PASS": {"met": False, "violations": ["major 48 > 8"]}},
+        "findings_summary": {"total": 152, "after_dedup": 122, "reported": 122, "active": 120,
+                             "resolved_by_revision": 2,
+                             "by_priority": {"P0": 0, "P1": 32, "P2": 16, "P3": 74},
+                             "by_severity": {"critical": 0, "major": 48, "minor": 64, "info": 10}},
+        "findings": [], "conditional_items": [],
+    }
+    sy_dir = os.path.join(tmp, "synthesis")
+    build_project(sy_dir, "en")
+    sy_json = os.path.join(sy_dir, "reports", "review", "review-synthesis.json")
+    write(sy_json, json.dumps(synthesis))
+    sy_out = os.path.join(tmp, "synthesis.html")
+    sy_proc = run(sy_dir, sy_out)
+    sy_summary = summary_of(open(sy_out, encoding="utf-8").read())
+    check("a synthesis in the contract shape builds without a warning",
+          sy_proc.returncode == 0 and "warning" not in sy_proc.stderr, sy_proc.stderr)
+    check("the verdict, its timestamp and both scores are shown",
+          ">FAIL<" in sy_summary and "2026-10-09T12:00:00+09:00" in sy_summary
+          and "4.00" in sy_summary and "2.40" in sy_summary)
+    check("the gate table carries the violations",
+          "major 48 &gt; 3" in sy_summary and "major 48 &gt; 8" in sy_summary)
+    check("no count is rendered as a question mark",
+          "?" not in re.sub(r"<[^>]+>", "", sy_summary), re.sub(r"<[^>]+>", "", sy_summary)[-400:])
+
+    # The shape a real run produced: an object per perspective, differently named counts, no
+    # gate evaluation, a severity left out because nothing had it.
+    loose = dict(synthesis, perspective_scores={"consistency": {"score": 4.0, "weight": 0.2},
+                                                "operations": {"score": 2.4, "weight": 0.1}},
+                 findings_summary={"total_raw": 152, "after_dedup": 122,
+                                   "by_priority": {"P1": 32},
+                                   "by_severity": {"major": 48, "minor": 64, "info": 10}})
+    del loose["gate_evaluation"], loose["generated_at"]
+    write(sy_json, json.dumps(loose))
+    lo_proc = run(sy_dir, sy_out)
+    lo_summary = summary_of(open(sy_out, encoding="utf-8").read())
+    check("an object-shaped perspective score is shown as its number, never as the object",
+          "4.00" in lo_summary and "2.40" in lo_summary and "weight" not in lo_summary)
+    check("a severity nobody found counts as zero", "critical 0 /" in lo_summary, lo_summary[-600:])
+    check("the build still succeeds and names what the synthesis lacks",
+          lo_proc.returncode == 0 and "warning" in lo_proc.stderr
+          and all(k in lo_proc.stderr for k in ("generated_at", "findings_summary.total",
+                                                "findings_summary.reported",
+                                                "gate_evaluation.PASS.met")), lo_proc.stderr)
+    check("the warning does not name a key that is present",
+          "after_dedup" not in lo_proc.stderr and "by_severity" not in lo_proc.stderr,
+          lo_proc.stderr)
+
+    # A store whose first column is headed with the rule's field name.
+    write(sy_json, json.dumps(synthesis))
+    write(os.path.join(sy_dir, "work", "context.md"),
+          "## Open Questions\n\n"
+          "| OQ-### | Question | Status | Answer | Options offered | Owner | Impact | Asked at |\n"
+          "|---|---|---|---|---|---|---|---|\n"
+          "| OQ-001 | Latency target? | deferred | | | product owner | | |\n"
+          "| OQ-002 | Isolation model? | answered | schema | | architect | | |\n"
+          "| OQ-003 | Retention? | answered | 7y | | architect | | |\n")
+    run(sy_dir, sy_out)
+    oq_summary = summary_of(open(sy_out, encoding="utf-8").read())
+    check("a store headed `OQ-###` is read like one headed `ID`",
+          "3 unique OQ- IDs" in oq_summary, re.sub(r"<[^>]+>", " ", oq_summary)[-300:])
+
     # ------------------------------------------------------------------ failure mode
     print("A directory that is not a project is refused, not half-rendered")
 

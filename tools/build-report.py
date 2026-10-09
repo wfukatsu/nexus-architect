@@ -553,6 +553,46 @@ def load_manifest_ranks(path=PRODUCT_MANIFEST):
     return ranks
 
 
+# The first header cell of the Open Questions store: `ID`, or the field name
+# rules/open-questions.md §6 gives it.
+OQ_ID_HEADERS = ("id", "oq-###")
+
+SEVERITIES = ("critical", "major", "minor", "info")
+
+
+def perspective_scores(synthesis):
+    """{perspective: score}. The contract is a number per perspective; a synthesizer that
+    wrote an object per perspective is read through its `score`, so the table shows the
+    number and never the object."""
+    scores = {}
+    for name, value in (synthesis.get("perspective_scores") or {}).items():
+        if isinstance(value, dict) and isinstance(value.get("score"), (int, float)):
+            value = value["score"]
+        scores[name] = value
+    return scores
+
+
+def synthesis_gaps(synthesis):
+    """The keys the executive summary reads and this synthesis does not carry in the shape
+    skills/review-synthesizer/SKILL.md § JSON Output defines. Empty when it is complete."""
+    gaps = []
+    if not synthesis.get("generated_at"):
+        gaps.append("generated_at")
+    if not perspective_scores(synthesis):
+        gaps.append("perspective_scores")
+    gaps += ["perspective_scores.%s (not a number)" % name
+             for name, value in perspective_scores(synthesis).items()
+             if not isinstance(value, (int, float))]
+    fsum = synthesis.get("findings_summary") or {}
+    gaps += ["findings_summary.%s" % key
+             for key in ("total", "after_dedup", "reported", "active", "resolved_by_revision",
+                         "by_priority", "by_severity") if key not in fsum]
+    gate = synthesis.get("gate_evaluation") or {}
+    gaps += ["gate_evaluation.%s.met" % key for key in ("PASS", "CONDITIONAL_PASS")
+             if not isinstance(gate.get(key), dict) or "met" not in gate[key]]
+    return gaps
+
+
 class ReportBuilder:
     layout = "architect"
     title_key = "report_title"
@@ -864,8 +904,9 @@ class ReportBuilder:
     def open_question_rows(self):
         """Latest row per OQ- id from the one store, work/context.md § Open Questions,
         header-driven so both the 4-column and the 8-column table shapes parse
-        (rules/open-questions.md §6). Any `| ID | …` line starts a new table. `None`
-        when the store does not exist."""
+        (rules/open-questions.md §6). Any `| ID | …` line starts a new table — and so
+        does `| OQ-### | …`, the rule's own name for that field, which a store seeded
+        from the field list carries. `None` when the store does not exist."""
         path = self.path("work", "context.md")
         if not os.path.exists(path):
             return None
@@ -874,8 +915,8 @@ class ReportBuilder:
             if not line.lstrip().startswith("|"):
                 continue
             cells = split_cells(line)
-            if cells and cells[0].lower() == "id":
-                header = [c.lower() for c in cells]
+            if cells and cells[0].strip("`").lower() in OQ_ID_HEADERS:
+                header = ["id"] + [c.lower() for c in cells[1:]]
                 continue
             if not header or not cells or not re.fullmatch(r"OQ-\d{3}", cells[0]):
                 continue
@@ -922,6 +963,9 @@ class ReportBuilder:
         fsum = synthesis.get("findings_summary", {}) or {}
         by_priority = fsum.get("by_priority", {}) or {}
         by_severity = fsum.get("by_severity", {}) or {}
+        if by_severity:
+            # A severity nobody found is a count of zero, not an unknown.
+            by_severity = dict({s: 0 for s in SEVERITIES}, **by_severity)
 
         verdict_class = ("fail" if verdict == "FAIL"
                          else "warn" if verdict == "CONDITIONAL_PASS" else "ok")
@@ -931,7 +975,7 @@ class ReportBuilder:
             '<tr><td><code>%s</code></td><td class="num">%s</td></tr>'
             % (html.escape(str(k)), "%.2f" % v if isinstance(v, (int, float))
                else html.escape(str(v)))
-            for k, v in sorted((synthesis.get("perspective_scores", {}) or {}).items(),
+            for k, v in sorted(perspective_scores(synthesis).items(),
                                key=lambda kv: -kv[1] if isinstance(kv[1], (int, float)) else 0))
 
         stat_grid = "".join(
@@ -1050,6 +1094,13 @@ class ReportBuilder:
                 synthesis = json.loads(read(synthesis_path))
             except Exception:
                 synthesis = None
+        if isinstance(synthesis, dict):
+            missing = synthesis_gaps(synthesis)
+            if missing:
+                sys.stderr.write(
+                    "build-report: warning: reports/review/review-synthesis.json lacks %s — "
+                    "the executive summary shows `?` or an empty cell there "
+                    "(skills/review-synthesizer/SKILL.md § JSON Output)\n" % ", ".join(missing))
         return self.summary_section(progress, synthesis, self.open_questions())
 
     def header_meta(self, progress, target_path, now):

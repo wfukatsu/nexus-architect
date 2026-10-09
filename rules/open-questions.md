@@ -136,6 +136,16 @@ One row per question:
 | Impact | Which downstream phases / IDs are blocked or are proceeding on an assumption |
 | Asked at | ISO8601, when it was put to the user |
 
+The store's table opens with exactly this header, and every row follows its column order:
+
+```
+| ID | Question | Status | Answer | Options offered | Owner | Impact | Asked at |
+```
+
+The first column is headed `ID`, not `OQ-###`: the report builder and the UI views find the table
+by that cell, and a store headed otherwise read as empty — a report whose summary said "0 open
+questions" beside 52 recorded ones.
+
 Rules:
 
 - A `TBD` written into an artifact **carries its question ID** — `TBD (OQ-012)` — so review and

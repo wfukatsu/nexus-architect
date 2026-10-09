@@ -174,8 +174,9 @@ def read_store(project_dir):
         if not line.lstrip().startswith("|"):
             continue
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
-        if cells and cells[0].lower() == "id":
-            header = [c.lower() for c in cells]
+        # `OQ-###` is the name rules/open-questions.md §6 gives the ID field.
+        if cells and cells[0].strip("`").lower() in ("id", "oq-###"):
+            header = ["id"] + [c.lower() for c in cells[1:]]
             continue
         if header and cells and re.fullmatch(r"OQ-\d{3,}", cells[0]):
             row = dict(zip(header, cells))

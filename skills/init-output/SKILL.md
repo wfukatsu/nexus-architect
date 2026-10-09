@@ -71,7 +71,16 @@ chose during the product run.
      that would claim the neighbour's work as this pipeline's.
 
 3. Create `work/context.md` **only if it is absent**, seeded with an empty `## Open Questions`
-   section in the @rules/open-questions.md §6 row shape. If it exists, leave its content in
+   section whose table has the @rules/open-questions.md §6 header, verbatim:
+
+   ```markdown
+   ## Open Questions
+
+   | ID | Question | Status | Answer | Options offered | Owner | Impact | Asked at |
+   |----|----------|--------|--------|-----------------|-------|--------|----------|
+   ```
+
+   If it exists, leave its content in
    place: phases append to it, and it is **the** Open Questions store for the whole project —
    both pipelines' questions live in this one file, so on the handoff path it already holds the
    entries `/architect:define-requirements` is about to read, re-ask and answer in place.

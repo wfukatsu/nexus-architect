@@ -55,6 +55,11 @@ Steps:
 2. **Record what it printed.** One line: the article count, the number of Mermaid blocks
    embedded, the byte size, whether Mermaid was inlined or left to the CDN, and the output
    path. Report those numbers to the user rather than re-describing the report's contents.
+   A line starting `build-report: warning:` names keys the review synthesis does not carry:
+   the report was written, but its executive summary has `?` or empty cells there. Pass the
+   line on as it is, and leave `review-synthesis.json` alone — its shape is
+   `/architect:review-synthesizer`'s to fix, and guessing a count here would put an invented
+   number in the summary.
 3. **Stamp the phase** in `work/pipeline-progress.json` per @skills/common/progress-registry.md
    — `in_progress` before the run, then `completed` with `outputs` and a one-line `summary`
    afterwards. Write `"plugin": "architect"`: `report` is defined by both manifests, so that
