@@ -136,13 +136,27 @@ Agent(
 the moment of the call. The validation gate still decides here: read its verdict from
 `pipeline-progress.json` → `gates` after the `validate-assumptions` sub-agent returns.
 
-Keep these sub-agents in the foreground — `run_in_background: false` on every call, the calls of a
-parallel group included — and do not end the turn while one is running: the next step needs its
-result, a non-interactive run stops background work ten minutes after the turn ends, and a phase
-whose own sub-agents went to the background returns with nothing written
-(@skills/pipeline/SKILL.md § Phase Execution has the measurements). Start at most three phases of a
-parallel group at a time: Claude Code runs 20 sub-agents at once, counting the ones each phase
-spawns, and refuses the calls beyond that.
+Keep these sub-agents in the foreground where the Agent tool lets you — `run_in_background: false`
+on every call, the calls of a parallel group included: the next step needs the result, a
+non-interactive run stops background work ten minutes after the turn ends, and a phase whose own
+sub-agents went to the background returns with nothing written (@skills/pipeline/SKILL.md § Phase
+Execution has the measurements). Start at most three phases of a parallel group at a time: Claude
+Code runs 20 sub-agents at once, counting the ones each phase spawns, and refuses the calls beyond
+that.
+
+**An interactive session may run the phase in the background anyway.** Measured on v2.1.295: the
+Agent tool of an interactive main session has no `run_in_background` parameter, and all 21 phase
+calls of a full run were launched in the background; a non-interactive session has the parameter.
+When a call comes back as launched rather than finished:
+
+- Tell the user which phases are running, and end the turn. The phase's completion re-invokes you;
+  the pipeline is neither finished nor paused in between, so say neither.
+- Know nothing about a phase until its completion notice arrives: no result, no summary, no
+  `completed` stamp before it.
+- On the notice, pick up where the phase leaves you — stamp it, read a gate verdict if it
+  was the gate, start what depends on it — without waiting to be asked.
+- A sub-agent that a phase spawned may report here too, long after its phase returned. Its content
+  is already in the phase's output: say so and change nothing.
 
 ## Iteration (not waterfall)
 

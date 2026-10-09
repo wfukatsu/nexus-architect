@@ -218,13 +218,27 @@ Agent(
 `{phase_model}` is the phase's `model` in @skills/common/skill-dependencies.yaml, read at the moment
 of the call. Phases the manifest marks `parallel_with` each other start in one message.
 
-Keep these sub-agents in the foreground — `run_in_background: false` on every call, the calls of a
-parallel group included — and do not end the turn while one is running: the next step needs its
-result, a non-interactive run stops background work ten minutes after the turn ends, and a phase
-whose own sub-agents went to the background returns with nothing written
-(@skills/pipeline/SKILL.md § Phase Execution has the measurements). Start at most three phases of a
-parallel group at a time: Claude Code runs 20 sub-agents at once, counting the ones each phase
-spawns, and refuses the calls beyond that.
+Keep these sub-agents in the foreground where the Agent tool lets you — `run_in_background: false`
+on every call, the calls of a parallel group included: the next step needs the result, a
+non-interactive run stops background work ten minutes after the turn ends, and a phase whose own
+sub-agents went to the background returns with nothing written (@skills/pipeline/SKILL.md § Phase
+Execution has the measurements). Start at most three phases of a parallel group at a time: Claude
+Code runs 20 sub-agents at once, counting the ones each phase spawns, and refuses the calls beyond
+that.
+
+**An interactive session may run the phase in the background anyway.** Measured on v2.1.295: the
+Agent tool of an interactive main session has no `run_in_background` parameter, and all 21 phase
+calls of a full run were launched in the background; a non-interactive session has the parameter.
+When a call comes back as launched rather than finished:
+
+- Tell the user which phases are running, and end the turn. The phase's completion re-invokes you;
+  the pipeline is neither finished nor paused in between, so say neither.
+- Know nothing about a phase until its completion notice arrives: no result, no summary, no
+  `completed` stamp before it.
+- On the notice, pick up where the phase leaves you — stamp it, ask what it could not (below), start
+  what depends on it — without waiting to be asked.
+- A sub-agent that a phase spawned may report here too, long after its phase returned. Its content
+  is already in the phase's output: say so and change nothing.
 
 **Then ask what the phase could not.** This run is interactive even where a phase was not: when a
 sub-agent returns `OQ-` IDs, put those questions to the user before the next phase starts — one
@@ -232,6 +246,15 @@ sub-agent returns `OQ-` IDs, put those questions to the user before the next pha
 entry in place in `work/context.md` § Open Questions, substitute the answer at every `TBD (OQ-###)`
 the phase wrote, and re-render any view that shows it. What the user defers stays `deferred` with
 its owner. A question left `unasked` at the end of an interactive run is a defect.
+
+The order is: ask, write the answers in, and only then start a phase that depends on the one that
+asked. A dependent launched while its questions are still open reads the placeholder, or the
+sentence the answer is about to replace, and the answer then has to be patched into its output
+afterwards. This holds for the last step too: the reviews' questions are settled before
+`review-synthesizer` starts. A phase that does not depend on the asking one may already be running.
+
+Substitute answers with the Edit tool, not a shell script: the output hooks check a Markdown file's
+frontmatter and Mermaid only when it is written through Write or Edit.
 
 ## Error Handling
 
