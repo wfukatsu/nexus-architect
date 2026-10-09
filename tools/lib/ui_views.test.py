@@ -24,12 +24,26 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, HERE)
 import ui_fixture  # noqa: E402
-from ui_views import VIEWS, render  # noqa: E402
+from ui_views import VIEWS, read_store, render  # noqa: E402
 
 TOOL = os.path.join(HERE, "ui_views.py")
 HOOKS = os.path.join(REPO, "hooks")
 PASSED = 0
 FAILED = 0
+
+
+def rule_named_store(root):
+    """The store as read after its first header cell is renamed to the field name
+    rules/open-questions.md §6 uses; the file is put back afterwards."""
+    path = os.path.join(root, "work", "context.md")
+    original = open(path, encoding="utf-8").read()
+    with open(path, "w", encoding="utf-8") as handle:
+        handle.write(original.replace("| ID |", "| OQ-### |", 1))
+    try:
+        return read_store(root)
+    finally:
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write(original)
 
 
 def check(label, condition, detail=""):
@@ -97,6 +111,9 @@ try:
     components, design = en["ui-components.md"], en["ui-design-system-extract.md"]
 
     print("the facts a reader looks for")
+    check("a store headed `OQ-###` is read like one headed `ID`",
+          bool(read_store(root)) and read_store(root) == rule_named_store(root),
+          rule_named_store(root))
     check("an input's validation shows where it runs", "min=1 @client" in catalog
           and "min=1 @server" in catalog)
     check("a redundant input is noted", "redundant: the logged-in user's e-mail" in catalog)

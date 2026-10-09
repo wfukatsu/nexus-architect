@@ -45,14 +45,39 @@ Determined based on thresholds in `${CLAUDE_PLUGIN_ROOT}/skills/review-registry.
 ```json
 {
   "review_id": "uuid",
+  "generated_at": "ISO8601",
   "verdict": "PASS|CONDITIONAL_PASS|FAIL",
   "aggregate_score": 3.8,
-  "perspective_scores": {},
-  "findings_summary": {"total": 0, "after_dedup": 0, "by_priority": {}, "by_severity": {}},
+  "perspective_scores": {"consistency": 4.0, "risk": 3.0},
+  "gate_evaluation": {
+    "PASS": {"met": false, "violations": ["major 5 > 3"]},
+    "CONDITIONAL_PASS": {"met": true, "violations": []}
+  },
+  "findings_summary": {
+    "total": 0, "after_dedup": 0, "reported": 0, "active": 0, "resolved_by_revision": 0,
+    "by_priority": {"P0": 0, "P1": 0, "P2": 0, "P3": 0},
+    "by_severity": {"critical": 0, "major": 0, "minor": 0, "info": 0}
+  },
   "findings": [{"id": "SYN-001", "priority": "P1", "source_ids": [], "perspectives": []}],
   "conditional_items": []
 }
 ```
+
+The keys above are a contract, because `/architect:report` builds the executive summary from this
+file with a script that reads them by name: a key that is absent or shaped differently renders as
+`?` or an empty cell, and the build still succeeds. Keep each one as shown:
+
+- `perspective_scores` maps each perspective to its score as a **number**. Weights, dimensions and
+  per-perspective finding counts go under a key of their own (for example `perspective_detail`).
+- `gate_evaluation` has the two entries `PASS` and `CONDITIONAL_PASS`, each with `met` and the
+  `violations` that kept it from being met (empty when it was).
+- `findings_summary` counts: `total` is every finding the individual reviews raised,
+  `after_dedup` what is left after Step 1, `reported` how many of those this synthesis lists,
+  `active` how many are still open, and `resolved_by_revision` how many a document revision
+  closed (Step 5); `reported` = `active` + `resolved_by_revision`. `by_priority` and `by_severity`
+  count the deduplicated findings and carry every key, zero included.
+
+Further keys are welcome; these are the ones not to rename.
 
 ### Markdown Output (`reports/review/review-synthesis.md`)
 
