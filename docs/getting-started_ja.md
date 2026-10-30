@@ -306,6 +306,21 @@ tools/docs-site.sh            # 同期 + dev サーバー起動。reports/ の�
 ```
 詳細は docs/docs-site_ja.md を参照。
 
+### 生成されたものを理解する
+
+レポート、レビュー結果、生成コードのどれについても解説を頼めます。まず成果物そのものを説明し、
+そのあとで用語の解説、関数のウォークスルー、使われているパターンの解説を提案します：
+```bash
+/architect:explain reports/review/                                   # 概要のあと、深掘りの選択肢
+/architect:explain reports/03_design/aggregates/aggregate-order.md --level=beginner
+/architect:explain src/main/java/.../OrderService.java --focus=code --save
+```
+すべての記述には、**事実**（`path:line` で引用）、**概念**（一般的な知識。典拠になるリポジトリの rule があれば併記）、
+**推測**（どのファイルにも書かれていない意図）のいずれかのラベルが付きます。設計とコードの食い違いは、
+確認を受け持つスキルの名前と一緒に事実として示し、良し悪しの判定はしません。
+`--save` を付けない限り、何も書き込みません。付けると `reports/explanations/` に保存します。
+このディレクトリは、product のレポートとドキュメントサイトには取り込まれ、architect のレポートには入りません。
+
 ## 8. ScalarDBアプリケーション開発
 
 ```bash

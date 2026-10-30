@@ -79,6 +79,8 @@ reports/
 │   ├── adr/adr-{NNN}-{slug}.md    # /infra:design
 │   └── reviews/                   # /infra:review
 │       └── review-{target}-r{n}.md
+├── explanations/                  # explain --save (optional; never read by another skill)
+│   └── {target}-{focus}.md
 └── review/                        # review-* agents
     ├── individual/
     │   ├── review-consistency.json

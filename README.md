@@ -155,6 +155,10 @@ Claude Code continues to use the plugin metadata and slash commands unchanged. S
 /architect:export-backlog --target=github --repo=<owner>/<name>
 /architect:deliver-backlog --epic=E1
 
+# Understand what was generated — and, on request, learn the terms and patterns it uses
+/architect:explain reports/03_design/aggregates/aggregate-order.md
+/architect:explain src/main/java/com/example/order/OrderService.java --focus=code --save
+
 # ScalarDB development
 /scalardb:scaffold
 /scalardb:model
@@ -308,6 +312,31 @@ a runnable React + Storybook scaffold under `generated/frontend/`.
 
 **D. ScalarDB only** — `/scalardb:build-app` or `/scalardb:scaffold` generate a working application
 without needing the report tree.
+
+### Understanding the Output
+
+`/architect:explain` explains any artifact the pipelines produced: an architect or product report,
+a review result, generated code, a UI mock or the frontend. The project's own source can be
+explained too. It is read-only and can be run at any point.
+
+- **Overview first.** It covers what the artifact is, which skill produced it from what, and how its
+  parts connect. It walks through one representative request or decision, gives the reasons
+  cited from the ADRs and reports, and lists the gaps found while reading. A gap between design and
+  code is stated as a fact, with the skill that checks it named; the explanation gives no review
+  verdict.
+- **Teaching on request.** Next it offers terms (the project's meaning beside the general one),
+  function walkthroughs (inputs, side effects, errors, transaction boundaries, the design element
+  realised) and patterns (architecture and implementation patterns, legacy shapes, product
+  frameworks). `--focus=terms|code|patterns|all` goes straight to one topic.
+  `--level=beginner|intermediate|expert` sets how much is defined; when the request already says
+  ("I'm new to DDD"), the level is taken from it.
+- **Grounded.** Every statement is labelled Fact, Concept or Inference and cited as `path:line`.
+  A pattern is named only when its signals are present. It is explained as the repository rule
+  that governs it states it (`skills/explain/reference/pattern-catalog.md`, kept honest by
+  `skills/explain/pattern-catalog.test.py`).
+- **Saved on request.** `--save` writes `reports/explanations/{target}-{focus}.md` with the usual
+  frontmatter. The architect report (`/architect:report`) leaves that directory out. The product
+  report and the documentation site include it, under *Other*.
 
 ### ScalarDB Application Development
 

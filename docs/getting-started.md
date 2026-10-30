@@ -310,6 +310,22 @@ tools/docs-site.sh            # sync + dev server, re-syncs as reports/ changes
 ```
 See docs/docs-site.md.
 
+### Understanding what was generated
+
+Ask for an explanation of any report, review result or generated code. It explains the artifact
+first, then offers to teach the terms, walk through functions and explain the patterns it uses:
+```bash
+/architect:explain reports/review/                                   # overview, then a menu
+/architect:explain reports/03_design/aggregates/aggregate-order.md --level=beginner
+/architect:explain src/main/java/.../OrderService.java --focus=code --save
+```
+Every statement is labelled **Fact** (cited as `path:line`), **Concept** (general knowledge, with
+the repository rule behind it when one exists) or **Inference** (intent no file states). Gaps
+between design and code are reported as facts with the skill that checks them; the explanation
+does not judge. Nothing is written unless you pass `--save`. That writes
+`reports/explanations/`, which the product report and the documentation site pick up and the
+architect report leaves out.
+
 ## 8. ScalarDB Application Development
 
 ```bash
