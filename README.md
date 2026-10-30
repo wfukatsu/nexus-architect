@@ -495,7 +495,7 @@ Supported: `en` (English, default), `ja` (Japanese).
 
 ### Documentation language policy
 
-All skill instructions (`SKILL.md`), rule files, and embedded prompts are written in **English**; `output_language` applies only to generated report artifacts. User guides under `docs/` are maintained as EN/JA pairs (`getting-started`, `product-input-requirements`, `architect-input-requirements`, `skill-reference`, `scalardb-development`, `database-migration`, `codex-usage`). Exceptions by design: `docs/design.md` (internal design spec, EN only) and the `docs/codex-*` audit records (point-in-time internal audits, JA only).
+All skill instructions (`SKILL.md`), rule files, and embedded prompts are written in **English**; `output_language` applies only to generated report artifacts. User guides under `docs/` are maintained as EN/JA pairs (`getting-started`, `product-input-requirements`, `architect-input-requirements`, `skill-reference`, `scalardb-development`, `database-migration`, `infrastructure`, `ddd-coverage`, `docs-site`, `codex-usage`). Exceptions by design: `docs/design.md` (internal design spec, EN only), `docs/test-suites.md` (contributor reference for the contract suites, EN only), `docs/analysis-mechanism_ja.md` (walkthrough of the analysis mechanism, JA only) and the `docs/codex-*` audit records (point-in-time internal audits, JA only). `CHANGELOG.md` and `CHANGELOG_ja.md` carry the same versions and the same section headings, which stay in English in both (`Added`, `Changed`, `Fixed`, …, as Keep a Changelog names them); the Japanese entries are written in the plain だ・である style.
 
 ## Output Structure
 
@@ -530,6 +530,7 @@ work/             # Pipeline state and intermediate files
 | [DDD Technique Coverage](docs/ddd-coverage.md) | Which DDD techniques are implemented, where, and how far |
 | [ScalarDB Development](docs/scalardb-development.md) | ScalarDB development guide |
 | [Multi-Cloud Infrastructure](docs/infrastructure.md) | Infrastructure design, implementation and review guide |
+| [Report Documentation Site](docs/docs-site.md) | Browsing a project's `reports/` as a local site |
 | [Database Migration](docs/database-migration.md) | Migration guide (Oracle/MySQL/PostgreSQL) |
 | [Codex Usage](docs/codex-usage.md) | Using the same skills from Codex |
 | [Changelog](CHANGELOG.md) | Release notes and version history |
@@ -541,6 +542,8 @@ Japanese translations:
 [Skill Reference (日本語)](docs/skill-reference_ja.md) |
 [ScalarDB Development (日本語)](docs/scalardb-development_ja.md) |
 [Multi-Cloud Infrastructure (日本語)](docs/infrastructure_ja.md) |
+[DDD Technique Coverage (日本語)](docs/ddd-coverage_ja.md) |
+[Report Documentation Site (日本語)](docs/docs-site_ja.md) |
 [Database Migration (日本語)](docs/database-migration_ja.md) |
 [Codex Usage (日本語)](docs/codex-usage_ja.md) |
 [Changelog (日本語)](CHANGELOG_ja.md)

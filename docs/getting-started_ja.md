@@ -208,11 +208,14 @@ product スキルの全カタログは [スキルリファレンス](skill-refer
 /architect:verify-implementation --gate
 ```
 
-ゲートのステージ 2 と 4 が足場に要求するもの（`rules/ai-code-quality-gate.md` §Test quality）:
-すべての集約不変条件に実行済みの jqwik プロパティがある。変更ファイルの行/分岐カバレッジが閾値を
-満たす。触れた `domain/` パッケージの PIT ミューテーションスコアが 80 % 以上で、不変条件の行に
-生存ミュータントがない。`integrationTest` が `TX-` シナリオ（OCC 競合、blind write、Saga 補償）を
-実 ScalarDB（インプロセス）に対して実行した。`acceptanceTest` が Gherkin シナリオを実行した。
+ゲートのステージ 2 と 4 は、足場に次のことを求めます（`rules/ai-code-quality-gate.md` §Test quality）:
+
+- すべての集約不変条件に、実行済みの jqwik プロパティがあること
+- 変更したファイルの行・分岐カバレッジが閾値を満たすこと
+- 触れた `domain/` パッケージの PIT ミューテーションスコアが 80 % 以上で、不変条件の行に生存ミュータントがないこと
+- `integrationTest` が `TX-` シナリオ（OCC 競合、blind write、Saga 補償）を実 ScalarDB（インプロセス）に対して実行したこと
+- `acceptanceTest` が Gherkin シナリオを実行したこと
+
 コマンドはすべてクリーンなビルド状態から実行します — 何も実行せず exit 0 を返す UP-TO-DATE の
 Gradle タスクは、ゲートが最も好む偽の合格です。
 

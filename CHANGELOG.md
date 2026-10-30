@@ -942,7 +942,7 @@ Catalog (the `ec-monolith` sample) surfaced in the skill itself.
   place; the idempotency key must be unique per event type (a `review-risk` finding the skill
   used to copy over); the catalog `.md` has a frontmatter template; completion criteria renumbered.
 
-
+## [0.33.0] - 2026-08-29
 
 The DDD document-set check of 2026-08-29 (issues #32–#35): the four gaps between "the toolkit
 covers every DDD technique" and "a reader can see the complete document set".

@@ -210,12 +210,16 @@ phases. Run them yourself afterwards, in this order:
 ```
 
 What the gate's stage 2 and stage 4 now hold the scaffold to (`rules/ai-code-quality-gate.md`
-§Test quality): every aggregate invariant has a jqwik property that ran; line/branch coverage of
-the changed files meets the thresholds; the touched `domain/` packages' PIT mutation score is
-≥ 80 % with no survivor on an invariant line; `integrationTest` ran the `TX-` scenarios (OCC
-conflict, blind write, saga compensation) against a real in-process ScalarDB; `acceptanceTest`
-ran the Gherkin scenarios. Every command runs from a clean build state — an UP-TO-DATE Gradle
-task that exits 0 having run nothing is the gate's favourite false pass.
+§Test quality):
+
+- every aggregate invariant has a jqwik property that ran
+- line/branch coverage of the changed files meets the thresholds
+- the touched `domain/` packages' PIT mutation score is ≥ 80 % with no survivor on an invariant line
+- `integrationTest` ran the `TX-` scenarios (OCC conflict, blind write, saga compensation) against a real in-process ScalarDB
+- `acceptanceTest` ran the Gherkin scenarios
+
+Every command runs from a clean build state — an UP-TO-DATE Gradle task that exits 0 having run
+nothing is the gate's favourite false pass.
 
 Each step needs only the reports produced by the step before it, so you can enter the chain partway
 if those reports already exist. Everything here lands under `generated/`, which is git-ignored and
