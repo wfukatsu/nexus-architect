@@ -7,6 +7,35 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.45.0] - 2026-10-30
+
+### Added
+- **`/architect:explain` を追加した。パイプラインが生成したものを解説し、その下にある考え方を教える。**
+  - 対象は architect と product のレポート、生成コード、UI モック、フロントエンド、プロジェクト自身のソース。読み取り専用。
+  - まず概要を示す。成果物が何か、product → architect → codegen の流れのどこに位置するか、部品のつながり、
+    代表的な処理の流れ、ADR やレポートから引用した設計判断の根拠。設計とコードの食い違いは事実として示し、
+    レビューの判定はしない。
+  - 求めに応じて深掘りする。用語（プロジェクトでの意味と一般的な意味）、関数のウォークスルー
+    （入出力・副作用・例外・トランザクション境界・実現している設計要素）、アーキテクチャパターン・実装パターン・
+    product のフレームワーク。
+  - すべての記述に「事実」「概念」「推測」のいずれかのラベルを付け、`path:line` で引用する。
+    パターンの名前は `skills/explain/reference/pattern-catalog.md` の検出シグナルがあるときだけ出し、
+    そのパターンを定めるリポジトリの rule に沿って説明する。
+  - `--level` は、依頼文に手がかりがあればそこから判断する（「DDD は初めて」→ `beginner`）。
+    `--save` で解説を `reports/explanations/` に保存する。ユーザーに質問できない場面では、明記した既定値で動く。
+  - コマンド数は 116 → 117。
+- 評価ケース `evals/triggers/explain` を追加した（3/3。`architect-start` も 3/3 のまま）。
+
+### Documentation
+- `docs/getting-started`（英語版・日本語版）に、`/architect:start` のセッションがどう進むかを書いた。
+  多くのフェーズはバックグラウンドで動き、セッションは自動で再開する。あるフェーズの質問は、
+  それに依存するフェーズが始まる前に聞く。`build-report` の警告が何を意味するかも示した。
+  `docs/analysis-mechanism_ja.md` は、エグゼクティブサマリーが読む契約として `review-synthesis.json` を挙げる。
+
+### Note
+- スキルの description の合計は、一覧の上限 24,000 文字のうち 23,996 文字になった。
+  次にスキルを追加するときは、ほかの description を削って余地を作る必要がある。
+
 ## [0.44.4] - 2026-10-09
 
 どちらの修正も、`samples/ec-monolith` に対する `/architect:start` の対話実行（Claude Code v2.1.295）で見つかった。
