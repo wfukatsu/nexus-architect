@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.45.1] - 2026-10-30
+
+### Fixed
+- **`/architect:explain` cited sources that do not cover the pattern.** Explaining `OrderService`
+  showed that nine governing-file citations in `skills/explain/reference/pattern-catalog.md`
+  named files that never mention the pattern. Every file existed, so nothing caught it, and the
+  skill would have presented general knowledge as this toolkit's rule. Layered and DTO mapping now
+  cite `design-implementation` (DTOs also `api-contract-fidelity`), API Gateway cites `design-api`,
+  and TAM / SAM / SOM cites `research-landscape`. Repository and God service drop the files that
+  never mention them. Transaction Script and the anemic domain model have no defining rule in this
+  toolkit, so their rows say `—` and name where the project records them instead. Strangler Fig
+  says which source pins behaviour and which only plans the stages.
+
+### Added
+- `skills/explain/pattern-catalog.test.py` checks that every governing file a catalogue row names
+  contains that pattern's vocabulary, and that every row has such an expectation. Reverting the
+  old rows makes it fail.
+
 ## [0.45.0] - 2026-10-30
 
 ### Added

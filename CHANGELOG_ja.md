@@ -7,6 +7,24 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.45.1] - 2026-10-30
+
+### Fixed
+- **`/architect:explain` が、パターンを扱っていない文書を典拠に挙げていた。**
+  - `OrderService` を解説した際に、`skills/explain/reference/pattern-catalog.md` の典拠のうち 9 件が、
+    そのパターンに一度も触れない文書を指していると分かった。ファイル自体は実在したため検出されず、
+    一般的な知識をこのツールキットの rule として示すおそれがあった。
+  - Layered と DTO の対応づけは `design-implementation`（DTO は `api-contract-fidelity` も）、
+    API Gateway は `design-api`、TAM / SAM / SOM は `research-landscape` を典拠にした。
+    Repository と God service からは、触れていない文書を外した。
+  - Transaction Script と貧血ドメインモデルは、このツールキットに定義する rule が無い。
+    典拠を `—` とし、代わりにプロジェクトのどの出力に記録されるかを示す。
+  - Strangler Fig は、挙動を固定する典拠と、段階の計画だけを立てる典拠を書き分けた。
+
+### Added
+- `skills/explain/pattern-catalog.test.py` を追加した。カタログの各行が挙げる典拠に、そのパターンの語が
+  実際に出てくることと、すべての行に期待値があることを確かめる。旧い行に戻すと失敗する。
+
 ## [0.45.0] - 2026-10-30
 
 ### Added
