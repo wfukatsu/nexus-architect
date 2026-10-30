@@ -22,7 +22,7 @@ Use `/product:start` to design product direction, `/architect:start` for interac
 
 ## Repository Mechanics
 
-This repo is not an application — it is a **Claude Code plugin marketplace** whose product is a corpus of ~120 skill instruction files (116 registered as slash commands, plus the nested migration sub-skills below). There is no compile/build step and no application to run; "developing" here means editing skills, rules, and hooks.
+This repo is not an application — it is a **Claude Code plugin marketplace** whose product is a corpus of ~120 skill instruction files (117 registered as slash commands, plus the nested migration sub-skills below). There is no compile/build step and no application to run; "developing" here means editing skills, rules, and hooks.
 
 **Packaging.** `.claude-plugin/marketplace.json` defines four plugins (`architect`, `scalardb`, `product`, `infra`), each with its own version, and lists the skill directories it ships. Skills physically live in a flat `skills/` tree (product and infra skills are nested under `skills/product/` and `skills/infra/`); a plugin "owns" a skill only by listing its path in `marketplace.json`. **Adding a skill requires two edits: create `skills/<name>/SKILL.md` AND register its path in the plugin's `skills` array in `marketplace.json`.** An unregistered SKILL.md will not surface as a slash command.
 
@@ -97,11 +97,11 @@ Supported: `en` (English, default), `ja` (Japanese). The `/architect:start` orch
 
 ## Command Reference
 
-**116 slash commands across four plugins.** The catalogue — every command with its model, its
+**117 slash commands across four plugins.** The catalogue — every command with its model, its
 prerequisites and its full flag signature — is `docs/skill-reference.md` (`_ja` for Japanese), read
 on demand with the Read tool and deliberately **not** `@`-imported, since an always-loaded catalogue
 is the cost this section exists to avoid. Do not duplicate it here: this table is the map of *which
-group does what*, so you know where to look, and the counts below are a partition of all 116.
+group does what*, so you know where to look, and the counts below are a partition of all 117.
 
 | Group | Entry point | What it does | n |
 |-------|-------------|--------------|---|
@@ -113,7 +113,7 @@ group does what*, so you know where to look, and the counts below are a partitio
 | **Database Migration** | `/architect:migrate-database` | Oracle / MySQL / PostgreSQL → ScalarDB: schema extraction, analysis, SP/trigger conversion (the router delegates to nested sub-skills that are not slash commands) | 4 |
 | **ScalarDB Development** `/scalardb:*` | `/scalardb:build-app` | Schema modeling, configuration, scaffolding, CRUD/JDBC patterns, exception handling, code review, migration advice | 11 |
 | **Multi-Cloud Infrastructure** `/infra:*` | `/infra:start` | Terraform / Kubernetes / Helm / Kustomize / Argo CD / GitLab CI / Cosign / Vault / ESO / Prometheus / Kyverno across AWS-Azure-GCP x local-test-staging-production, grounded in the vendored `okf-k8s-tf` bundle. Skills are namespaced under `skills/infra/`, rules under `rules/infra/` | 4 |
-| **Status & utility** | `/architect:report-status` | One dashboard (`tools/nexus-status.sh`) whose `Tab` cycles four views — Product, Architect, Code Generation, Backlog Delivery — plus `render-mermaid`, `update-knowledge` and `revise-knowledge` (Claude re-verifies the k8s-tf bundle documents the weekly refresh listed). Recorded spend is `/architect:report-token-cost`. Standalone database investigation is `investigate-db-design` (DDL/design documents) and `investigate-db-live` (catalogs and statistics) | 6 |
+| **Status & utility** | `/architect:report-status` | One dashboard (`tools/nexus-status.sh`) whose `Tab` cycles four views — Product, Architect, Code Generation, Backlog Delivery — plus `render-mermaid`, `update-knowledge` and `revise-knowledge` (Claude re-verifies the k8s-tf bundle documents the weekly refresh listed). Recorded spend is `/architect:report-token-cost`. Standalone database investigation is `investigate-db-design` (DDL/design documents) and `investigate-db-live` (catalogs and statistics). `explain` explains any generated artifact, architect or product, and teaches its terms, code and patterns on request | 7 |
 
 Two things this table deliberately does not tell you, because the machine-readable source does:
 which phases `/architect:pipeline` actually runs (the manifest) and which phases the dashboard files
@@ -152,7 +152,7 @@ invocation chains in README §Code Generation & Delivery and docs/getting-starte
 The extension tier is **not** everything outside the manifest. Three further groups sit
 outside it and outside the pipeline, each documented in its own section above rather than
 here: the orchestration and setup skills (`start`, `pipeline`, `init-output`), the status
-and utility skills (`report-status`, `render-mermaid`, `update-knowledge`, `revise-knowledge`, `investigate-db-design`, `investigate-db-live`), and the two
+and utility skills (`report-status`, `render-mermaid`, `update-knowledge`, `revise-knowledge`, `investigate-db-design`, `investigate-db-live`, `explain`), and the two
 skill groups that are pipelines in their own right —
 **Backlog Delivery** (`deliver-backlog`, `export-backlog`, `implement-backlog`,
 `review-issue`, `merge-issue`, `capture-followup`, `report-backlog-status`) and **Database Migration**
