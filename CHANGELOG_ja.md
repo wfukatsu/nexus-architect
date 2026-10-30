@@ -643,7 +643,7 @@ Nexus Architect の主な変更点を記録します。
 
 ## [0.37.2] - 2026-08-29
 
-### 変更
+### Changed
 - **ドキュメントを TDD ワークフローとテストスキルに合わせて最新化。** `docs/getting-started`（en/ja）に
   レガシーパスの特性テスト手順、ゲートのステージ 2・4 が足場に要求する内容、テスト駆動としての配送パス
   （walking-skeleton Issue、`test:` → `feat:` → `refactor:` の系列、Fake と注入される `Clock`、再現テスト
@@ -661,7 +661,7 @@ v0.37.0 のテストスキルを `ec-monolith` サンプルで初めて実走し
 束縛 — し、ゲートは正しい理由で FAIL を返した: 1 つの拒否スラグについて 3 つの設計成果物が食い違うため
 受入シナリオ 2 件が赤、加えて推移依存の CRITICAL CVE。以下の修正はサンプルではなくスキルに対するもの。
 
-### 修正
+### Fixed
 - **`generate-characterization-tests`。** テスト専用の環境置換（`docker-compose` の DB がない場合の H2
   プロファイル）はシステムの改変ではない — 許可し、境界を報告する。記録の仕組みを規定（`-Precord` モード、
   2 回実行、マスク導出スクリプト）。文字列内の非決定性は名前付きルールで観測時に正規化。壊れた外側シームは
@@ -691,7 +691,7 @@ v0.37.0 のテストスキルを `ec-monolith` サンプルで初めて実走し
 テスト駆動開発を前提にツールキットを再検証し、v0.36.0 のルールが宣言したまま接続されていなかった
 箇所と、ルールが届いていなかった領域を埋める。
 
-### 追加
+### Added
 - **トランザクションシナリオの統合スイート。** `generate-scalardb-code` が `TX-` ごとに `*IT` を
   生成する — happy path、OCC 競合、blind write、設計が使う場合の 2PC 失敗と Saga 補償、不確定
   コミット — SQLite バックエンドのインプロセス ScalarDB 上で、`integrationTest` タスク
@@ -715,7 +715,7 @@ v0.37.0 のテストスキルを `ec-monolith` サンプルで初めて実走し
   `generate-frontend` は composed stories 上の Vitest + Testing Library テスト、ページのルーティング
   テスト、Playwright のストーリーフロー smoke、`vitest.config.ts` の閾値を生成する。
 
-### 変更
+### Changed
 - **`review-issue` は修正の前に再現する。** 振る舞いのあるブロッカーはすべて `fix:` の前に失敗を
   示した `test: reproduce <blocker>` コミットを持つ。振る舞いのないブロッカーは理由を記す。
 - **`export-backlog` が walking skeleton を出す。** 新サービスごとに `walking-skeleton` Issue を 1 件、
@@ -732,7 +732,7 @@ DDD × TDD の観点でツールキットを評価して見つかったギャッ
 テストがコードを「駆動する」仕組みも、コードが誤っていればテストが落ちることを測る仕組みも、
 移行ステップがレガシーモジュールに触れる前にその挙動を固定する仕組みもなかった。
 
-### 追加
+### Added
 - **`rules/tdd-workflow.md`。** マージ対象のコードはユニットごとに Red → Green → Refactor の
   コミット列（失敗したテスト名を記した `test:`、`feat:`、テストを編集しない `refactor:`）として
   テストファーストで書き、ブランチ履歴から検証できる。ATDD の外側ループ（Gherkin シナリオ、なければ
@@ -760,7 +760,7 @@ DDD × TDD の観点でツールキットを評価して見つかったギャッ
 
 ## [0.35.1] - 2026-08-29
 
-### 修正
+### Fixed
 - **CI。** contracts ワークフローがスイート実行前に `requirements.txt` をインストールする。
   `tools/build_report.test.py` は `markdown` と `pyyaml` を必要とし、ローカルでは通るがランナーでは
   落ちていたため、v0.35.0 は CI が赤のままタグ付けされていた。
@@ -771,7 +771,7 @@ v0.34 以降にサンプルプロジェクトを通しで実行して（`design-
 `review-consistency` 再実行・`review-synthesizer`・`report`・`review-report`）見つかったことと、それに伴う
 ツールキット側の変更。
 
-### 追加
+### Added
 - **`tools/build-report.py`。** `/architect:report` は実行のたびに `full-report.html` を手書きし直さなくなった。
   統合 HTML レポートはツールが生成する — 元文書 1 件 = 1 article（安定した id）、`before/`・`01`〜`04`・
   `06_implementation`・`07_test-specs`（Gherkin `.feature` はコードとして）・`review/` のフェーズ節、
@@ -780,7 +780,7 @@ v0.34 以降にサンプルプロジェクトを通しで実行して（`design-
   `options.output_language` による二言語の UI 文言、ページ h1 は 1 つ・文書は h3・本文は h4 から。
   `tools/build_report.test.py` が描画契約を守る（35 検査）。report スキルの入力表に新設 2 ディレクトリを追加。
 
-### 修正
+### Fixed
 - **生成文書の本文 H1。** `design-aggregate`・`design-state-machine` のテンプレートと `api-style-decisions.md`
   の投影が、フロントマターの title を本文の `#` として繰り返していた（`rules/output-conventions.md` 違反。
   プロジェクトあたり 9 文書 — review-consistency CON-110）。テンプレートと `tools/lib/api_style_decisions.py`
@@ -792,7 +792,7 @@ v0.34 以降にサンプルプロジェクトを通しで実行して（`design-
 
 レポート一式に対する `tools/docs-site.sh` の初回実行で `blume validate` が出した 2 件の指摘。
 
-### 修正
+### Fixed
 - **ドキュメントサイト。** レポート内リンクの節番号アンカー（`scalardb-schema.md#9.5` —
   `rules/architecture-decision-records.md` が `upstream` に許す書き方）は Blume の見出しスラッグではなく、
   ADR の出典行すべてで壊れたリンクになっていた。数字のみのアンカーはページ先頭に解決する。ネストした
@@ -802,7 +802,7 @@ v0.34 以降にサンプルプロジェクトを通しで実行して（`design-
 
 ## [0.34.0] - 2026-08-29
 
-### 追加
+### Added
 - **レポートのドキュメントサイト。** `tools/docs-site.sh` が、プロジェクトの `reports/` ツリーを
   [Blume](https://useblume.dev)（Astro、Node 22.12 以上）によるローカルの検索可能なドキュメントサイトとして
   配信します。レポート 1 件 = 1 ページで Mermaid を描画、OpenAPI / AsyncAPI 仕様は Blume の API リファレンス
@@ -936,7 +936,7 @@ v0.34 以降にサンプルプロジェクトを通しで実行して（`design-
 `/architect:design-aggregate --auto` を初めて通しで走らせて（`ec-monolith` サンプル — `Order` /
 `StockItem` / `Reservation` / `Payment`、不変条件 15 件）見つかった、スキル側の 3 つの穴。
 
-### 修正
+### Fixed
 - **同一サービス内の 2 集約書き込みは `local` であり、そう宣言する。** `rules/aggregate-design.md`
   §4 は 2 集約を書くコマンドをすべて `distributed` か `saga` に分類していましたが、カウンタとそれが
   集計する明細行（`StockItem` + `Reservation`）は同一ストア上の 1 ACID トランザクションです。§4 は
@@ -952,7 +952,7 @@ v0.34 以降にサンプルプロジェクトを通しで実行して（`design-
 
 0.32.0 のレビューで見つかった 6 件 — いずれも契約の片側にだけ書かれた約束でした。
 
-### 修正
+### Fixed
 - `review-data-integrity` が Read Model / CQRS / Event Sourcing 表を読み、表にない集約を「未決」
   として指摘するように（`design-data-layer` が既にそう主張していた）。
 - `map-domains` が `Core` の全 `CTX-` の `upstream` に Domain Vision Statement の `VIS-` を書き、
@@ -968,7 +968,7 @@ v0.34 以降にサンプルプロジェクトを通しで実行して（`design-
 
 ## [0.32.0] - 2026-08-28
 
-### 追加
+### Added
 - **集約ごとの Read Model / CQRS / Event Sourcing 採否**（#27）。`design-scalardb` と
   `design-data-layer` が集約ごとに 1 行 — リードモデル、CQRS、イベントソーシング、理由、コスト — を
   記録し、既定は「どちらも採用しない」。`review-scalardb` は行が無い集約を「未決」と読みます。
@@ -999,7 +999,7 @@ DDD 手法カバレッジのレビューで見つかった、パイプライン*
 コンテキストとスキーマの間にある戦術モデル、フィーチャーとテストの間にある具体例、そして成果物が
 信頼できないときに境界を見つける協調的な探索です。
 
-### 追加
+### Added
 - **`/architect:design-aggregate`**（#24）。`redesign` と `design-state-machine` の間の新しい任意
   設計フェーズ。集約ごとに、ルート・内部エンティティ・値オブジェクト・両分岐の具体例を伴う不変条件・
   アクター/整合性クラス/発行イベントを持つコマンド・ファクトリ・仕様・ルートごとのリポジトリを、
@@ -1023,7 +1023,7 @@ DDD 手法カバレッジのレビューで見つかった、パイプライン*
   ものではありません — 同じ成果物、同じ `CTX-`/`STORY-` ID、二重の台帳なし。
   `rules/product/event-storming.md`。`--auto` では拒否されます。
 
-### 変更
+### Changed
 - 登録コマンド 106（従来 104）。architect コアパイプライン 27 フェーズ、product 28 スキル。
 - **実行されなかった任意の依存はブロックしない。** `design-state-machine` は `design-aggregate` に
   依存する（順序と無効化のため）ようになりましたが、`tools/lib/pipeline_status_data.py` は
@@ -1037,7 +1037,7 @@ DDD 手法カバレッジのレビューで見つかった、パイプライン*
 `/architect:design-state-machine` を初めて実案件相当（`ec-monolith` サンプルの `Order` 集約、
 7 ステージ通し）で走らせて見つかった、スキル側の 2 つの穴を埋めました。
 
-### 追加
+### Added
 - **生成イベントをモデル化。** 集約を生み出すコマンド（`place` / `open` / `register`）は、ガードと
   アクターを持つが `from` 状態を持たないイベントです。ガードが偽なら「集約が生まれない」のであって
   「取消済みになる」のではなく、既存の集約に届く唯一の経路は同一リクエストの再配信です。したがって
@@ -1054,7 +1054,7 @@ DDD 手法カバレッジのレビューで見つかった、パイプライン*
 0.30.0 を公開当日にレビューして見つかった4件の修正です。1件は実行時に必ず失敗するもので、
 残り3件は散文の主張とバリデータの実装との矛盾でした。
 
-### 修正
+### Fixed
 - **状態機械バリデータをプラグインルートから解決。** `design-state-machine` と `review-consistency`
   が `python3 tools/lib/state_machine_manifest.py` と呼んでいましたが、このパスは本リポジトリに
   しか存在せず、利用者がスキルを動かす場所にはありません。他のツール呼び出しスキルと同様に
@@ -1073,7 +1073,7 @@ DDD 手法カバレッジのレビューで見つかった、パイプライン*
   `--auto` もありません。optional は「失敗にせず省略可能」の意味で、`--auto` を取るのは
   `create-domain-story` と `design-state-machine` だけです。
 
-### 変更
+### Changed
 - manifest のフィールド契約に、バリデータとテンプレートが既に使っていた `states[].kind` と
   `matrix[].response` を記載。
 
@@ -1083,7 +1083,7 @@ DDD 手法カバレッジのレビューで見つかった、パイプライン*
 ライフサイクルを、状態遷移モデリングとして明示的に扱えるようにしました。
 **103 スラッシュコマンド → 104。**
 
-### 追加
+### Added
 - **`/architect:design-state-machine`（opus）— 状態遷移モデリング。** 散文の設計書が決して精密には
   述べない事柄を、対話で構築する任意の設計フェーズです。ライフサイクルを持つアグリゲートごとに、
   状態とその不変条件、状態間のイベントとガード付き遷移、そして**空欄のない状態×イベント行列**を
@@ -1104,7 +1104,7 @@ DDD 手法カバレッジのレビューで見つかった、パイプライン*
   ガード付き遷移は else 分岐を宣言、全遷移にアクターと整合性クラス、行列に未決セルなし・遷移と
   矛盾するセルなし。各テストケースは「読む分には筋が通っているが誤っている」モデルです。
 
-### 変更
+### Changed
 - **これまで暗黙に決めていたフェーズへモデルを供給。** `design-scalardb` と `design-data-layer` は
   状態カラム・その OCC 範囲・履歴の保存先・遷移ごとの整合性クラスを受け取り、`design-api` は
   遷移を操作に、`reject` セルを登録済み problem type に、`ignore` セルを冪等性契約に変換します。
@@ -1125,7 +1125,7 @@ DDD 手法カバレッジのレビューで見つかった、パイプライン*
 本リポジトリの規約に合わせて英語化し、契約テストに接続しています。
 コーパスは 99 スラッシュコマンドから 103 になりました。
 
-### 追加
+### Added
 - **`infra` プラグイン（4コマンド）。** `/infra:start`（sonnet）はトリアージです。知識バンドルを
   解決し、文書の鮮度を確認し、対象環境と対象クラウドを確定したうえで、`/infra:design`（opus）、
   `/infra:implement`（sonnet）、`/infra:review`（opus）へ委譲します。委譲時にこの4点は確定済み
@@ -1158,7 +1158,7 @@ DDD 手法カバレッジのレビューで見つかった、パイプライン*
 - **`docs/infrastructure.md`**（+ `_ja`）— 使い方ガイド。セットアップ、強制される4つの前提、
   実行の流れ、architect のインフラスキルとの境界。
 
-### 変更
+### Changed
 - **`tools/update-okf-bundle.sh` が `--bundle=scalardb|k8s-tf` を受け取ります。** 既定は
   `scalardb` で挙動は変わりません。`k8s-tf` は同梱バンドルを解決し、`update` は失敗でも
   無言の no-op でもなく「リモートがない」ことを報告します。更新できないバンドルは、
@@ -1182,7 +1182,7 @@ DDD 手法カバレッジのレビューで見つかった、パイプライン*
   `design-infrastructure`（論理と具体）、`generate-infra-code`（`generated/` と実在の
   インフラリポジトリ）、`review-operations`（設計書とコード）。
 
-### 備考
+### Notes
 - infra スキルはパイプライン**ではありません**。マニフェストを持たず、`/architect:pipeline` から
   実行されず、ステータスダッシュボードにも現れません。`work/pipeline-progress.json` に
   フェーズエントリを書きません。
@@ -1237,7 +1237,7 @@ DDD 手法カバレッジのレビューで見つかった、パイプライン*
 ながら整合を検査するものが何も無く、リポジトリの 10 本の契約スイートはどこでも自動実行されず、誰かが
 思い出したときだけ走っていました。両方を塞ぎます。
 
-### 追加
+### Added
 - **ようやく CI — `.github/workflows/contracts.yml`。** すべての契約スイートが push と pull request
   で実行されます。`rules/ai-code-quality-gate.md` は以前から「強制されるのは CI 側であり、チェック
   リストとしてしか存在しないゲートこそこの文書が排除しようとしている弱点だ」と述べており、リポジトリ
@@ -1259,7 +1259,7 @@ DDD 手法カバレッジのレビューで見つかった、パイプライン*
 - **`docs/skill-reference.md` / `_ja` に「呼び出しシグネチャ」節**を追加し、99 コマンド全部を収録。
   各 `SKILL.md` から抽出し、ラップ先ツールの引数パーサと突き合わせています。
 
-### 変更
+### Changed
 - **`CLAUDE.md` はカタログではなく地図に。** 2,634 語の Command Reference（`README.md` と
   `docs/skill-reference.md` が既に持っていた一覧の 3 つ目の写し）を、99 コマンドを分割する 8 行の
   グループ表とカタログへのポインタに置換。テストスイートを説明していた 651 語の 1 文はテーブルに。
@@ -1269,7 +1269,7 @@ DDD 手法カバレッジのレビューで見つかった、パイプライン*
 - **`README.md` の Commands** も同じグループ表とリンクに。カタログは 1 ファイル＋その翻訳 1 本に
   一本化され、重複した 3 つの一覧はなくなりました。
 
-### 修正
+### Fixed
 - **ナレッジバンドルの欠如を設計判断の誤りとして報告しなくなりました。**
   `tools/validate-api-style-decisions.py` は OKF 参照を `if okf_root:` で守っていましたが、これは
   submodule が取得済みかどうかに関係なくパス文字列が存在すれば真になります。`--recurse-submodules`
@@ -1296,7 +1296,7 @@ DDD 手法カバレッジのレビューで見つかった、パイプライン*
 
 ## [0.27.1] - 2026-08-12
 
-### 修正
+### Fixed
 - **GraphQL 設計の完了判定が、選択された全 surface を検証するようになりました。** 検証済みの設計
   manifest を唯一の完了証跡とし、GraphQL/hybrid の canonical surface との完全一致、surface ごとの
   一意で空でない SDL と必須設計成果物への参照、孤立スキーマがないことを要求します。複数サービスの
@@ -1317,7 +1317,7 @@ ScalarDB 3.19 上で一気通貫）から抽出したガードレールです。
 欠陥クラス — critical レビュー指摘 4 件・サービスごとのコード生成の場当たり対応・契約ギャップ 3 件 —
 を符号化したもので、次のプロジェクトではレビュー段階ではなく**設計段階で**止まります。
 
-### 追加
+### Added
 - **`tools/validate-cross-references.py` — 成果物横断の機械リント**を新設し、`design-api` と
   `design-scalardb` の完了条件に組み込みました。検査は 5 種: スキーマ文書のテーブル数宣言 vs 実際の
   定義数 / 手書きの操作総数 vs OpenAPI 実測 / OpenAPI で使用されているのにレジストリにない
@@ -1342,7 +1342,7 @@ ScalarDB 3.19 上で一気通貫）から抽出したガードレールです。
 - **`review-synthesizer` に Step 5「改訂伝播チェック」** — 文書改訂で解消された指摘は、撤回された
   主張を全成果物（OpenAPI YAML・`.graphqls` 含む）で grep して残骸ゼロを確認してはじめて解消扱い。
 
-### 修正
+### Fixed
 - **`rules/scalardb-2pc-patterns.md` が 3.19 に対して陳腐化しており、実際に誤設計を一度生みました
   （SDB-101）。**「Validate Is Conditional」を「Validate Is Version-Dependent」に書き換え: 3.19+ では
   `serializable_strategy` キーが存在せず、SERIALIZABLE なら `validate()` が必須。省略にはバージョン
@@ -1356,7 +1356,7 @@ ScalarDB 3.19 上で一気通貫）から抽出したガードレールです。
 
 ## [0.26.0] - 2026-08-11
 
-### 追加
+### Added
 - **Spring for GraphQL を第一級の API スタイルとして追加 — `/architect:design-graphql` と
   `/architect:generate-graphql-code`。** これまでパイプラインは仕様書に GraphQL と書くことはできても、
   それを**検証可能な契約**にする仕組みを持っていませんでした。REST には `operationId` の束縛・契約マップ・
@@ -1388,7 +1388,7 @@ ScalarDB 3.19 上で一気通貫）から抽出したガードレールです。
   extensions は相互排他の 2 パターン — 冪等キーで保護された mutation は同一キーでのリトライ、保護されて
   いない mutation は「リトライせず突合」。ScalarDB の生トランザクション ID は extensions に出しません。
 
-### 修正
+### Fixed
 - **Code Generation ビューが、プロジェクトが選んでいない API スタイルの生成器を提示していました。**
   REST-only プロジェクトで `design-graphql` は正しくスキップされますが、**スキップされた依存は充足扱い**の
   ため `generate-graphql-code` が実行可能になり、次コマンドとして提示されていました。GraphQL-only
@@ -1408,7 +1408,7 @@ ScalarDB 3.19 上で一気通貫）から抽出したガードレールです。
   なりました。GitLab / GitHub 側で状態が動いた項目が、エクスポート時のステータスのまま表示されることは
   なくなります。
 
-### 変更
+### Changed
 - `design-implementation`・`generate-test-specs`・`generate-contract-tests`・`generate-docs`・
   `review-api-security`・`verify-implementation`・`implement-backlog` が、REST の `operationId` と
   GraphQL のフィールド座標を並列のケースとして記述するようになり、品質ゲートの契約ステージと
@@ -1421,7 +1421,7 @@ ScalarDB 3.19 上で一気通貫）から抽出したガードレールです。
 
 ## [0.25.0] - 2026-08-09
 
-### 追加
+### Added
 - **`samples/scalardb-transaction-tests/` — ScalarDB トランザクションのルールを「実行できるテスト」として同梱。**
   本リポジトリのルール 4 件は、0.24.1〜0.24.3 にかけて**テストが落ちたから**書かれた／修正されたものです。
   そのテストはセッションと共に消える一時ディレクトリに置かれていました。ルールが ScalarDB の実挙動を
@@ -1439,7 +1439,7 @@ ScalarDB 3.19 上で一気通貫）から抽出したガードレールです。
   記録しました — 独立レビュアーがこれを読み、認可欠陥とトランザクション欠陥を正しく報告し、
   **書き込みがそもそもコミットできないことには気づかなかった**、という経緯です。
 
-### 変更
+### Changed
 - 元になった一時プロジェクトより意図的にスコープを絞りました。Spring・HTTP レイヤー・OpenAPI 契約は
   外してあります。いずれもトランザクションの検証には不要であり、**その不在自体が論点**です — 契約テスト層は
   レスポンスの「形」を検証するもので、構造上ここの挙動には一切到達できません。品質ゲートの stage 3 は
@@ -1449,7 +1449,7 @@ ScalarDB 3.19 上で一気通貫）から抽出したガードレールです。
 
 ## [0.24.3] - 2026-08-09
 
-### 修正
+### Fixed
 - **ScalarDB の API の罠 4 件 — 読むのではなく「実行して」見つけたもの。** 品質ゲートは stage 4 として
   統合テストを挙げ、「設計が要求するトランザクションシナリオ（OCC 競合、2PC 障害、Saga 補償）を含む」と
   規定しています。本リポジトリはこれまで一度もそれを実行していませんでした。今回実行しました — 実 ScalarDB
@@ -1477,7 +1477,7 @@ ScalarDB 3.19 上で一気通貫）から抽出したガードレールです。
   実行時に `DB-CORE-10021: The clustering key is not properly specified` で失敗します。複合クラスタリング
   キーは、宣言順に全カラムを載せた**1 つの `Key`** です。
 
-### 変更
+### Changed
 - `rules/ai-code-quality-gate.md` に、**stage 4 は stage 3 と 8 では代替できない**理由を明記しました。
   契約テストはレスポンスの「形」を証明し、適合レビューは「コードが設計どおりを述べているか」を証明します。
   どちらも実エンジンに対してトランザクションを実行しません。blind `Put` の欠陥がその実例です — 合法な
@@ -1485,7 +1485,7 @@ ScalarDB 3.19 上で一気通貫）から抽出したガードレールです。
 - `generate-test-specs` は、トランザクションシナリオを契約仕様ではなく**統合仕様**に配置するようになり、
   参加者ごとに manager が必要である旨も明記しました。生成される 2PC シナリオが空振りしないためです。
 
-### 確認できたこと
+### Verified
 通過したシナリオは、主張ではなく**実証**になりました。先に読んで後にコミットしたトランザクションが敗北し
 勝者の書き込みが残ること。並行 confirm がシリアライズされ、ちょうど 1 つだけ成功し、敗者は静かに二重適用
 せず綺麗に失敗すること。サービス側リトライが解消可能な競合を吸収すること。参加者の `prepare()` が競合すると
@@ -1498,7 +1498,7 @@ ScalarDB Saga（製品、3.19.0-alpha.1）そのものではありません。�
 
 ## [0.24.2] - 2026-08-09
 
-### 修正
+### Fixed
 - **独立レビュアーが検証層に見つけた 4 件の欠陥。** 0.24.1 の e2e 実行には構造的な弱点が 1 つありました。
   コードを生成したのと同じエージェントがそれを検証していたため、**判断を要する検査**（BOLA 検出、
   トランザクション適合）は実際には一度も試されていませんでした。実 Java 17 / Spring Boot サービスに対する
@@ -1530,7 +1530,7 @@ ScalarDB Saga（製品、3.19.0-alpha.1）そのものではありません。�
   `getUnknownTransactionId()` です。ScalarDB 3.19 では継承した `getTransactionId()` も同じ値を返すため、
   誤った方でもコンパイルが通りテストも通ります。習慣で使い回さず、pin したリリースに対して解決するようにしました。
 
-### 確認できたこと
+### Verified
 独立実行は、0.24.1 で修正済みの 2 件（実ルートが到達可能なのに unmapped を空と主張する契約マップ、
 メソッドセキュリティ未有効化で無効化された `@PreAuthorize`）を**再発見**しました。あれらがエージェントの
 自己採点による産物ではなかったことの裏付けです。違反を仕込んだ候補についても、仕込んだ内容を項目単位で
@@ -1539,7 +1539,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.24.1] - 2026-08-09
 
-### 修正
+### Fixed
 - **0.24.0 のパイプラインを初めて実際に通した結果、判明した 6 件の欠陥。** 0.24.0 は契約整合性チェーンを
   一度も実行しないまま出荷していました。Java 17 / Spring Boot 3.2.5 の実サービスに対し
   `design-api` → `design-implementation` → `generate-api-code` → `generate-contract-tests` →
@@ -1581,7 +1581,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   検査するようになりました。** `@PreAuthorize` はコンパイルが通り、制御のように読め、メソッドセキュリティが
   有効化されるまで何もしません。アノテーションとしてしか存在しない認可は finding として報告されます。
 
-### 確認できたこと
+### Verified
 同じ実行が、正しかった部分も裏づけています。RFC 9457 ハンドラは実 ScalarDB 3.19.0 に対してコンパイルが通り、
 `UnknownTransactionStatusException` 分岐は冪等キー保護 operation で 503 + `Retry-After` + `transaction_id`
 + `retry_after_ms` を返します（契約テストで assert・PASS）。非所有オーダーの 404（403 ではない）、レスポンス
@@ -1590,7 +1590,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.24.0] - 2026-08-09
 
-### 追加
+### Added
 - **OpenAPI ドキュメントが「レポート」から「強制力のある契約」になりました。** 本ツールキットは API 設計は
   十分に行える一方、そのコードが設計どおりかを判定する手段を持っていませんでした。`design-api` が OpenAPI を
   出力し、`generate-scalardb-code` が Entity・Repository・ドメインサービスを出力する — その間のレイヤーを
@@ -1635,7 +1635,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   アサーション。期待値は必ず仕様から取り、実装からは決して取りません。実装に合わせて書いたテストは実装が
   何をしても通ってしまうためです。
 
-### 変更
+### Changed
 - `design-api` を Contract Verifiability チェックリスト中心に全面改稿 — 名前付きスキーマ、全ステータスコードの
   宣言、制約はスキーマに記述、operation ごとの認可 / 冪等性 / タイムアウト。各項目は「それが無いと特定の下流
   チェックが不可能になる」から存在します。新規出力は `problem-types.md` と `operation-contracts.md`。
@@ -1657,7 +1657,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.23.3] - 2026-08-09
 
-### 変更
+### Changed
 - **ユーザー向けドキュメントが、コードが強制している内容のハンドオフを記述するようになった。**
   0.23.0〜0.23.2 で product→architect 境界は実際の不変条件を持つ契約になったが、`README.md` と
   getting-started は依然としてそれを 1 本の矢印としてしか示しておらず、読み手には `NFR-` ID が
@@ -1671,7 +1671,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.23.2] - 2026-08-09
 
-### 修正
+### Fixed
 - **`NFR-` ID が 2 つのスキルによって別々の要件に二重採番され得た。** `docs/design.md` §1.5 は
   architect 由来の `NFR-` ノードを作れと言うだけで採番元を書いておらず、product が既に `define-nfr` を
   実行済みであることを暗黙に前提していた。しかし常にそうとは限らない — `--profile=mvp` で止まった
@@ -1684,7 +1684,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.23.1] - 2026-08-09
 
-### 変更
+### Changed
 - **Open Questions ストアを 1 ファイルに統一し、architect の成果物はそのビューになった。** プロトコルは
   `work/context.md` § Open Questions と `reports/00_requirements/open-questions.md` の 2 つを
   ストアとして挙げていたが、どちらが正典かも、ID をどこから採番するかも書いていなかった。通常の
@@ -1698,7 +1698,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.23.0] - 2026-08-09
 
-### 追加
+### Added
 - **ID 接頭辞の名前空間が「記述」ではなく「宣言」になった。** 2 つの `skill-dependencies.yaml` の各
   phase に `id_prefix` を追加し、manifest を「どのスキルがどの接頭辞を発行するか」の正典にした。
   従来は各 SKILL.md の散文にしか存在せず、衝突も宣言漏れも検出できない状態で、実際に 3 つのスキルが
@@ -1714,7 +1714,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   エントリは、何と書いてあってもこの phase の状態ではない）、フィールドが無い場合のみ output の裏付けに
   フォールバックする。
 
-### 修正
+### Fixed
 - **ScalarDB を使わないプロジェクトが 3/4 出力のまま止まらなくなった。** architect manifest は
   `scalardb-applicability.md` を `define-requirements` の無条件 output に並べていたが、スキルは
   ScalarDB が関係する場合にのみこれを書く。そのため ScalarDB 不使用のプロジェクトでは出力バーが
@@ -1789,7 +1789,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   実行（`--profile=mvp` は `reports/00_core/` のみ出力）が、まさにそれを消費するスキルによって
   「product 成果物なし」と宣言され得た。両者の集合を一致させた。
 
-### 変更
+### Changed
 - **Open Question は「記録」ではなく「質問」するようになった。** `TBD` を書き得るすべての
   スキルが、新しい `rules/open-questions.md` の手順に従う。自身の入力で解決できない不明点は
   `AskUserQuestion` で利用者に問う — 文脈から導出した 2〜4 個の候補回答を、それぞれ「選ぶと
@@ -1832,7 +1832,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.22.1] - 2026-08-08
 
-### 修正
+### Fixed
 - **ステータスダッシュボードの `c` キーがコピーではなくブラウザを開いていた。** `c` は
   「選択行の既定コマンドをコピー」と説明されているが、完了行の既定アクションは open 系
   （マージ済み Issue なら `open URL`、完了フェーズなら `open output`）であり、シェルは
@@ -1877,7 +1877,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.22.0] - 2026-08-07
 
-### 変更
+### Changed
 - **ステータスダッシュボードのビューを 2 つから 4 つに分割した (プロダクト / アーキテクト /
   コード生成 / バックログ)。** 従来の「パイプライン」タブは product と architect のどちらを
   実行中かを*推測*し、その一方だけを表示していた。そのため両方を実行したプロジェクトでは
@@ -1907,7 +1907,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.21.2] - 2026-08-07
 
-### 修正
+### Fixed
 - **完了済みプロジェクトがパイプラインダッシュボード上で全て `pending` と表示されていた。**
   フェーズのステータスは進捗レジストリが無条件に優先していたが、そのレジストリは各 SKILL.md
   末尾の「`pipeline-progress.json` を更新する」という緩い手順で書かれるもので、実際には
@@ -1940,7 +1940,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   (product プロジェクトへの `--group=extension`) は理由付きで「表示するものがありません」と
   表示し、終了コードは 0 のまま。
 
-### 変更
+### Changed
 - **`--group` / `--phase` / `--epic` が `--json` にもツリーと同じように適用される。** 従来は
   黙って無視されていた。JSON には適用済みフィルタを記録する `filters` オブジェクトが付く
   (`summary` は従来どおりプロジェクト全体)。フィルタ適用時のテキスト出力の脚注 (stale・
@@ -1956,7 +1956,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   1/1 しか取り得なかった。各 SKILL.md が約束する内容を宣言するようにし、`report-token-cost`
   を 15 番目のメンバーとしてティアに加えた。
 
-### 追加
+### Added
 - **`tools/nexus-status.test.sh`** — 2 つのデータモジュールの上位にあたる CLI 契約の実行可能な
   検証: プロジェクト解決と終了コード 0/1/2、ビュー選択、全出力モード (`--md` の frontmatter と
   `--ascii` の純度を含む)、フィルタが `--json` に適用されること、不正なフィルタが使用法エラーに
@@ -1968,7 +1968,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.21.1] - 2026-08-07
 
-### 修正
+### Fixed
 - **`completed` は永続しない: `/architect:report-status` / `/product:report-status` が上流の変更で
   下流フェーズを無効化するようになった。** 従来は進捗レジストリの状態を最終的な答えとして読んでいた
   ため、前の工程を修正しても（再実行しても、出力レポートを手で直しても）下流のフェーズは `completed`
@@ -1986,7 +1986,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.21.0] - 2026-08-06
 
-### 追加
+### Added
 - **`/architect:report-status` / `/product:report-status`（新規スキル、haiku）: パイプライン進捗を
   バックログと同じダッシュボードでライブ表示。** バックログデリバリーにはライブ表示があったが、その
   手前の product / architect パイプラインには手段がなく、`work/pipeline-progress.json` を生の JSON で
@@ -2035,7 +2035,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   (`--ascii`/`--ambiguous-width` も同じ挙動)、導出契約は
   `tools/lib/backlog_status_data.test.py` が検証。
 
-### 変更
+### Changed
 - **チェックボックスの意味を「マージ済み」から「実装状態」に変更。** Epic/Sub-Epic の子タスクリストの
   ボックスは従来 `merge-issue` がマージ時にのみチェックしていたため、実装・テスト完了でレビュー待ちの
   Epic でも進捗 0% と表示されていた。チェックリスト契約を再定義し、**チェックボックス = 実装+テスト
@@ -2055,7 +2055,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   セクションを持たない本文を編集しようとするスキルが、ライブのトラッカー状態から初期化して
   先に追記する。`export-backlog --update` は本文同期時にセクションとチェック済みボックスを保持。
 
-### ドキュメント
+### Documentation
 - **`docs/analysis-mechanism_ja.md`（新規）: architect プラグインが既存コード・設計ドキュメントを
   どう解析しているか。** `skills/common/skill-dependencies.yaml` に従うパイプライン、2 つの入口
   （コードを読む `investigate`、RFP・議事録・既存設計書を読む `define-requirements`）、AST 優先の
@@ -2068,7 +2068,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.20.0] - 2026-08-05
 
-### 追加
+### Added
 - **`rules/scalardb-saga-patterns.md`（新規ルール）: ScalarDB Saga。** OKF ナレッジバンドルに
   ScalarDB Saga が 4 つ目の製品として追加されたことを受け、Saga オーケストレーションを
   「手作りのパターン」ではなく第一級の設計選択肢として扱えるようにしました。SAGA と TCC の
@@ -2087,7 +2087,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   ScalarDB / ScalarDB Analytics / ScalarDL と並んで毎回評価する対象とし、ScalarDB 採用に
   付随するのではなく「コンテキスト跨ぎで結果整合が要件」というシグナルで起動します。
 
-### 変更
+### Changed
 - **greenfield の適用判定ツリーで、結果整合の枝が ScalarDB Saga に接続されるようになりました。**
   `/architect:define-requirements` が実際に辿る `workflow/greenfield/01_requirements_analysis.md`
   Step 1.4 では、結果整合の枝が「ScalarDB 不要」で終端していました。これを「各ステップに補償が
@@ -2125,7 +2125,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.19.0] - 2026-08-04
 
-### 追加
+### Added
 - **`/architect:report-token-cost`（新スキル・haiku）: エージェントが実際に記録したコストを
   ターミナルに表示。** `/architect:estimate-token-cost` の対になるスキルで、あちらが LOC から
   事前に見積もるのに対し、こちらは `record_token_usage.py` フックが
@@ -2144,7 +2144,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   - 表示オプション: `--since`、`--breakdown=tokens|cost`、`--top=N`、`--lang`、
     `--currency=jpy --fx=RATE`、`--width`、`--color` / `--no-color`。
 
-### 修正
+### Fixed
 - **描画の単位を文字数ではなく端末の桁数に統一。** 罫線は 1 桁につき 1 文字を出力していたため、
   East Asian Ambiguous 文字を 2 桁で描画する端末では 100 桁の罫線が 200 桁になり、すべての
   区切り線が画面外にはみ出していました。棒グラフも同じ不具合でした。どちらも桁数で計算します。
@@ -2157,7 +2157,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 - スクロール位置の表示を表の内容の上ではなくヘッダー行と区切り行に配置。一覧ペインが行数以上に
   広がらないように修正。キー操作バーが右下セルに書き込んで毎フレーム描画に失敗していた問題を修正。
 
-### 変更
+### Changed
 - **Unicode の記号が正しく描画されない端末向けの描画オプションを追加。** `--ascii`
   （`--glyphs=ascii|unicode`）は棒グラフ・罫線・区切りを `# . - | ->` で描画します。これは
   **出力言語が `ja` のときの既定**になりました。日本語環境の端末は Ambiguous 幅を 2 桁で
@@ -2169,7 +2169,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.18.0] - 2026-07-28
 
-### 追加
+### Added
 - **ScalarDB / ScalarDL の実装判断を、バージョン固定の公式ドキュメントに基づかせるように。**
   [OKF-ScalarDB-ScalarDL](https://github.com/wfukatsu/OKF-ScalarDB-ScalarDL) バンドル —
   developers.scalar-labs.com の全ドキュメントを製品ごと・バージョンごとに分割したもの
@@ -2189,7 +2189,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
     取得（submodule のポインタが進むので、固定するにはコミットする）、`status` は解決パス・
     ローカル/リモートのコミット・収録バージョンを表示。
 
-### 変更
+### Changed
 - **3 プラグイン横断で 19 スキルがバンドルを参照するように。** `architect`: `design-scalardb`
   （Context7 はフォールバックに降格）、`design-scalardb-analytics`、`select-scalardb-edition`
   （エディション判定を frontmatter の `editions` / `feature_status` で検証）、
@@ -2207,7 +2207,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.17.7] - 2026-07-27
 
-### ドキュメント
+### Documentation
 - **コード生成と配送の呼び出し方を明文化。** コード生成スキルはカタログには載っていたが、
   使い方が書かれていなかった — `/architect:pipeline` の外にあること、どの順で連鎖するか、
   各スキルが何を前提とするかがどこにも書かれておらず、さらにバックログ配送のスキル群
@@ -2224,14 +2224,14 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   - `docs/skill-reference.md` / `_ja.md`: 実装の表に *前提* 列と手動拡張ティアの注記を追加し、
     スキルごとのモデルと役割を示す **バックログ配送** セクションを新設。
 
-### 修正
+### Fixed
 - `CLAUDE.md` に「手動拡張ティアは `/architect:start` 経由でも呼べる」と書かれていたが、これは誤り。
   `start` は `skill-dependencies.yaml` のフェーズしか実行せず、コード生成スキルを一切参照していない。
   記述を実態に合わせ、新しい呼び出し手順への参照を追加した。
 
 ## [0.17.6] - 2026-07-27
 
-### 追加
+### Added
 - **依存バージョンは pin する前に必ず調べる。確認するかどうかはユーザーが選べる**
   （`rules/dependency-versions.md` — 新しい共有契約）。従来のコード生成スキルは、モデルの記憶や
   本リポジトリ自身のスキル内サンプルからバージョン番号を書いていた。そしてそれはドリフトする —
@@ -2272,7 +2272,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   現行の選択肢が出たばかりのメジャーのみの場合、既存 pin が EOL の場合、ダウングレードなしに
   互換な組み合わせが存在しない場合、有償エディションや private レジストリが必要な場合。
 
-### 変更
+### Changed
 - バージョンを pin するすべてのスキルに contract を接続: `/architect:generate-scalardb-code`、
   `/architect:generate-infra-code`、`/architect:implement-backlog`（Step 5 — 一度解決した
   バージョンをサブエージェントに渡す。既存 lockfile は拘束的）、
@@ -2292,7 +2292,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.17.5] - 2026-07-27
 
-### 追加
+### Added
 - **Epic / Sub-Epic / Issue のチェックリストを進行に応じて更新するようになった**
   （`skills/common/backlog-checklists.md` — 新しい共有契約）。従来のバックログ系スキルは
   ステータスラベル・進捗コメント・manifest は更新していたが、トラッカー上のチェックボックスは
@@ -2312,7 +2312,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   判明した場合は理由を明記してチェックを外してよい / GitLab ネイティブ Epic・GitHub sub-issue
   経路では親がリンクを持ちタスクリストが存在しないためスキップ / `--dry-run` は本文を書き換えない。
 
-### 変更
+### Changed
 - **`/architect:export-backlog`** が両方のチェックリストを未チェックの `- [ ]` ボックスとして
   生成する（受入基準は 1 件 1 ボックス、子アイテムも 1 件 1 ボックス）。自身は何もチェックしない。
   Given/When/Then は 1 ボックスの *中* に収める — 散文として書かれた基準は下流のスキルが
@@ -2335,7 +2335,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.17.4] - 2026-07-26
 
-### 修正
+### Fixed
 - **`/architect:generate-docs` — v0.16.2〜v0.17.3 の全作業レビューで見つかった曖昧さ3件を解消。**
   いずれも検証済みの挙動を変えるものではなく、従来は導出可能だが暗黙だった点の明文化。
   - **単独起動時のモード判定を明記。** `--issue` なしで、かつ他スキルの一工程としてでもなく起動された
@@ -2359,7 +2359,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 （ステータス遷移・進捗コメント・PR 連携・マージ・クローズ・ロールアップ）を実作業項目ではなく使い捨て
 リポジトリに対して実行しました。
 
-### 修正
+### Fixed
 - **`/architect:merge-issue` — 親ノードの完了が manifest に届くようになった。** Step 4 の記述が
   "update the node"（単数）で、しかも Issue にしか存在しない `pr.merged` や merge SHA と併記されて
   いた。そのため Sub-Epic/Epic をトラッカー上で `status::done` にしても manifest には何も書き戻され
@@ -2388,7 +2388,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   による併存の選択肢を提示し、手で保守されるフロントエンドに育った時点で `generated/` の外へ移すべき
   ことを明記した。
 
-### 追加
+### Added
 - **`skills/implement-backlog/output-location.test.sh`** — Output Location インターロックを挙動として
   検証。`reports/`・`generated/`・`work/` を含む通常の `.gitignore` を持つスクラッチリポジトリを構築し、
   `check-ignore` が `generated/` 配下の source root を拒否して該当ルールを提示すること、ワークツリー内の
@@ -2396,7 +2396,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   Issue 参照付きで着地し意図したファイルを stage すること、git が無視するパスでは何も stage されず
   コミットが空コミットではなく拒否されることを確認する。11項目、失敗時 exit 1。
 
-### 変更
+### Changed
 - 両 CHANGELOG のリンク参照ブロックが陳腐化していた — `CHANGELOG.md` は `0.8.2` で止まり、タグ付き13
   バージョンが未リンクな上、作成されたことのないタグを指す壊れた `[0.7.0]` リンクが存在し、
   `CHANGELOG_ja.md` には参照が1件も無かった。両方に既存タグと1対1対応する参照を揃えた。
@@ -2404,7 +2404,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.17.2] - 2026-07-26
 
-### 修正
+### Fixed
 - **`/architect:generate-docs` — 領域の挿入と撤去が正確な逆操作になった。** 再実行テストにより、
   マーク付き領域の周辺空白が未定義であることが判明。撤去 → 再挿入で元のファイルが再現せず、
   サイクルを繰り返すたびに空白だけの差分ノイズが残っていた（レビュー可能であることが存在理由の
@@ -2414,7 +2414,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   EOF 隣接の両方について撤去 → 再挿入がバイト一致し、撤去/追加を5サイクル繰り返してもドリフト
   しない。
 
-### 追加
+### Added
 - **`skills/generate-docs/marker-mechanics.test.py` — オーナーシップマーカー契約を挙動として
   検証。** SKILL.md はマーカー規則を散文で記述しているため、後の編集が再実行安全性を静かに壊し
   得た。5つの性質にわたる17項目を検査 — その場更新でマーカー外の散文がバイト単位で不変かつ領域が
@@ -2423,14 +2423,14 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   しないこと。埋め込みフィクスチャで自己完結して動作し、パスを渡せば実 README も検査可能。
   失敗時は exit 1（`hooks/*.sh` の CLI 規約に準拠）。
 
-### 変更
+### Changed
 - CLAUDE.md の検証に関する記述に本テストを追加し、陳腐化していたプラグインバージョンの記載
   （`0.15.0`）を削除。3プラグインが同一バージョンを共有し一括で bump される旨に改め、リリース
   フローにタグ作成と GitHub Release の手順を追記。
 
 ## [0.17.1] - 2026-07-26
 
-### 修正
+### Fixed
 - **`/architect:generate-docs` — ドリフト所見の置き場と、生成セクションの撤去規則を追加。**
   実在の `/product:generate-frontend` スキャフォールドに対して本スキルを実行したところ、3つの
   欠落が判明した。
@@ -2454,7 +2454,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.17.0] - 2026-07-25
 
-### 追加
+### Added
 - **`/architect:generate-docs` — 生成・実装されたコードのドキュメント（`architect` プラグイン、新規
   スキル）。architect プラグインは 50 スキルに。** コード生成スキルと `implement-backlog` が
   コードを出力する一方で、それを説明する README や `docs/` を作る工程が存在しなかった。本スキルが
@@ -2478,7 +2478,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
     コードのインベントリ化・設計意図の抽出・検証は haiku、ページ執筆はページ単位の並列 sonnet、
     opus は判断が重い設計解説（2PC 境界、整合性モデル、障害・復旧セマンティクス）のみ。
 
-### 変更
+### Changed
 - **`/architect:implement-backlog` — 実装コードを記録する Step 5b を新設。** 実装（Step 5）と
   レビュー（Step 6）の間で `/architect:generate-docs --scope=changed --source-root=<resolved>
   --issue=<iid>` を実行し、ドキュメント変更を同じ作業ブランチにコミットする。これによりコードと
@@ -2494,7 +2494,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.16.2] - 2026-07-25
 
-### 修正
+### Fixed
 - **`/architect:implement-backlog` — マージ対象のコードを `generated/` ではなくソースツリーへ出力。**
   本スキルが生成するのは成果物であり、コードは `feature/<issue-id>-<slug>` にコミットされ、
   `/architect:review-issue` が PR/MR でレビューし、`/architect:merge-issue` がマージする。にもかかわらず
@@ -2517,7 +2517,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.16.1] - 2026-07-25
 
-### 変更
+### Changed
 - **`/architect:implement-backlog` — サブエージェントによるトークン最適化実行。** スキル本体を薄い
   **sonnet** オーケストレーター（従来は opus）とし、重い工程をモデルティア別サブエージェントへ委譲。
   新設の「Sub-Agent Execution & Model Assignment」セクションに割当を明文化: 共有コンテキストパックの
@@ -2532,7 +2532,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.16.0] - 2026-07-24
 
-### 追加
+### Added
 - **Backlog Delivery スキルファミリ（`architect` プラグイン、新規5スキル）** — 生成済みレポートを
   GitLab/GitHub 上のマージ済みコードまで届ける一連のワークフロー。**architect プラグインは 49 スキルに。**
   - `/architect:export-backlog` — product/architect のレポートから Epic（What/Why）→ Sub-Epic
@@ -2565,7 +2565,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.15.0] - 2026-07-15
 
-### 追加
+### Added
 - **`architect` プラグイン: `/architect:estimate-token-cost` スキル** — architect パイプラインを
   コードベースに対して実行した場合のトークン使用量と USD コストを見積もる。事前見積もりモデル
   （コード行数 → 取り込みトークン → キャッシュ調整後の課金入力、typical/low/high の3バンド）と、
@@ -2590,7 +2590,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.14.0] - 2026-07-13
 
-### 追加
+### Added
 - **インプット要件ガイド（`docs/product-input-requirements.md`・
   `docs/architect-input-requirements.md`、EN/JA）** — 各プラグインのパイプラインを実行する際に
   利用者が用意すべき情報をまとめたドキュメント（エントリーポイント、必須／推奨インプット、
@@ -2599,7 +2599,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.13.0] - 2026-07-07
 
-### 追加
+### Added
 - **`product` プラグイン: `/product:name-product` スキル** — プロダクトを**アルファベット・アクロニム**として
   命名する：各文字が英単語の頭文字になる短く発音可能なラテン文字名で、名前自体が価値フレーズに展開される。
   ビジョン/ポジショニングに根ざして候補を絞り込み、1 案を推奨する。任意実行（`full` プロファイルに含む）。
@@ -2609,11 +2609,11 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   `plugin:skill` 名をファイルパスに解決し、翻訳プリアンブルを出力し、`${CLAUDE_PLUGIN_ROOT}` を展開する。
   非侵襲（スキルファイルの変更なし）でテスト付き。
 
-### 変更
+### Changed
 - **`AGENTS.md` のモデル階層推奨を現行の product 26 スキルに同期**（16 opus / 10 sonnet）。各スキルの
   `model:` frontmatter と両依存マニフェストに一致。
 
-### 修正
+### Fixed
 - **入れ子 migrate サブスキルの陳腐化フラットパス（12 ファイル 30 箇所）** — 実行可能な `cd` ブロック、
   Related Skills、出力ツリー、抽出スクリプトのコメントが入れ子化前のパス
   （例: `skills/analyze-mysql-schema/...`。正しくは `skills/migrate-mysql/analyze-mysql-schema/...`）を
@@ -2636,12 +2636,12 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   時点スナップショット注記を追加。getting-started（EN/JA）に `samples/ec-monolith` の導線を追加。
   define-requirements の brainstorm ドキュメントの陳腐化した `research/` ファイル名を修正。
 
-### ドキュメント
+### Documentation
 - getting-started ガイド（EN/JA）に `/product:generate-frontend` を掲載。
 
 ## [0.12.0] - 2026-06-29
 
-### 追加
+### Added
 - **`product` プラグイン: `/product:generate-frontend` スキル** — ナビゲート可能な UI モックとアクティブな
   デザインシステムから、**実行可能な React + TypeScript フロントエンド**を `generated/frontend/` に生成する。
   画面を **Atomic Design** で分解し（デザイントークン → atoms → molecules → organisms → templates → pages）、
@@ -2653,7 +2653,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   `CMP-`/`TOK-`/`STORY-` への Upstream 参照付きで記録する。spec フェーズの `generate-ui-mock` の後に実行する。
   **product プラグインは 25 スキルに。**
 
-### 変更
+### Changed
 - **`product` プラグイン: `/product:start` が `generate-frontend` を選択式ステップとして提示**するようになりました。
   UI モックの後に、実行可能な React + Storybook フロントエンドを生成するか対話的に尋ね（インタラクティブ）、
   `--auto` ではプロファイルに従う（`ux-to-spec` / `full` に含まれる）。新フラグ `--frontend` / `--no-frontend` で
@@ -2662,7 +2662,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.11.0] - 2026-06-26
 
-### 変更
+### Changed
 - **`product` プラグイン: `/product:generate-ui-mock` がクリックで遷移できるナビゲート可能なプロトタイプを生成**
   するようになりました。これまでの画面が独立した単一 HTML ファイル群だった状態から、ドメインストーリーの
   番号付きアクティビティ順に画面を並べ、各画面の「フローを前進させるアクション」を次のアクティビティの画面への
@@ -2674,7 +2674,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.10.0] - 2026-06-24
 
-### 追加
+### Added
 - **`product` プラグイン: `/product:create-domain-story` スキル** — ペルソナ起点のドメインストーリーテリング。
   アクターはペルソナ（`PER-`）、アクティビティはジョブストーリー（`JOB-`）をジャーニー（`JNY-`）順に並べたもの、
   ワークアイテムは扱う対象から導出する。各ストーリーは「あるペルソナが主要ジョブを遂行する」ハッピーパスの
@@ -2690,7 +2690,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   `work/pipeline-progress.json` → `options.design_system` に記録する。新ルール
   `rules/product/design-system.md` を追加。**product プラグインは 24 スキルに。**
 
-### 変更
+### Changed
 - **`/product:generate-ui-mock` がストーリー駆動＋デザインシステム適用に** — 画面は各ペルソナ×ジョブの
   ドメインストーリーから導出し（1 アクティビティ ≒ 1 画面操作）、アクティブなデザインシステムでスタイリングする。
   各 self-contained 画面に `tokens.css` をインライン注入し、`--fidelity=lo`（トークンのみ）または
@@ -2701,7 +2701,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.9.0] - 2026-06-24
 
-### 追加
+### Added
 - **`product` プラグイン: `/product:design-architecture` スキル** — 境界づけられたコンテキスト・
   API レイヤー・データモデル・非機能要件を統合してランタイムの全体アーキテクチャを生成し（Mermaid の
   構成図 / クリティカルパス / デプロイ・スケーリングの 3 ビュー）、定型チェックリスト
@@ -2718,7 +2718,7 @@ critical 3 件が残っていました。** それこそが `verify-implementati
   **トレーサビリティ書き戻し**契約（`FEAT-→FR-` リンク、`NFR-` の verbatim 再利用、§1.5）、
   正典の**適応エンジン**仕様（§7）を定義。
 
-### 変更
+### Changed
 - **`/architect:define-requirements` が product 成果物を取り込む** — `reports/0*_*/` の product
   レポートを自動検出し、product の ID を引き継ぎ、`tech-stack-fitness.md` を ScalarDB 適用判定の
   prior として利用し、`FR-`/`NFR-` ノードを `work/traceability.json` へ書き戻す。
@@ -2730,10 +2730,10 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.8.2] - 2026-06-20
 
-### 変更
+### Changed
 - 3 プラグインのバージョンを 0.8.2 に更新。
 
-### ドキュメント
+### Documentation
 - これまで architect の 43 スキルのうち 41 件しか記載していなかった
   `create-domain-story`（設計）と `review-report`（レポート）を `README.md` および
   スキルリファレンス（en/ja）に追加。
@@ -2745,14 +2745,14 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.8.1] - 2026-06-20
 
-### 修正
+### Fixed
 - `product:` / `scalardb:` 名前空間のスキルが読み込まれないプラグイン名前空間の衝突を修正。
   マーケットプレイス マニフェストで各プラグインに明示的な `skills[]` 配列を持たせ、
   各プラグインが自身のコマンドのみを登録するようにした。
 
 ## [0.8.0] - 2026-06-20
 
-### 追加
+### Added
 - **`product` プラグイン**（21 スキル、14 ルール）— プロダクトビジョンから SLA/NFR までを
   対話的・検証駆動で進めるプロダクト方向性パイプライン。深い設計の前に最もリスクの高い前提を
   抽出・検証し、トレーサビリティグラフで変更を再伝播し、システム実装設計のために
@@ -2763,64 +2763,64 @@ critical 3 件が残っていました。** それこそが `verify-implementati
 
 ## [0.7.0] - 2026-06-11
 
-### 追加
+### Added
 - グリーンフィールドの起点となる `/architect:define-requirements` スキル：機能/非機能要件の
   分類、データ・トランザクション要件分析、ScalarDB 適用判断。`--input`・`--auto`・
   `--no-scalardb` をサポート。
 
 ## [0.6.2] - 2026-06-11
 
-### 追加
+### Added
 - ドメインストーリーテリング用の `/architect:create-domain-story` スキル
   （ドメインごとの業務プロセスを可視化）。
 - 生成された HTML レポートの品質をレビューする `/architect:review-report` スキル。
 - ツールキット検証用の `ec-monolith` サンプルプロジェクト。
 
-### 修正
+### Fixed
 - フック・スキル・マニフェスト全体のエージェント構成監査の指摘を解消。
 - Mermaid バリデータのブロック解析を修復し、ユビキタス言語の用語整合ルールを追加。
 - `investigate` スキルに計算手順と自己検証を追加。
 
 ## [0.6.1] - 2026-05-12
 
-### 追加
+### Added
 - レビュー・評価スキルでの並列サブエージェント実行。
 - スキーマレポート後の `migrate-oracle` SA3/SA4/SA5 ステージの並列化。
 
-### 修正
+### Fixed
 - 28 ファイルにわたる多視点レビューの修正。
 - 移行パイプライン全体のスキル呼び出しとネストされたサブスキルパスを修正。
 
 ## [0.6.0] - 2026-05-07
 
-### 追加
+### Added
 - Codex 互換レイヤー（`AGENTS.md`）：Claude Code プラグインをインストールせずに
   同じスキルファイルを Codex から利用可能に。
 
-### 修正
+### Fixed
 - `/architect:` プレフィックス登録を有効にするため、全 SKILL.md から `name` フィールドを削除。
 - スキル監査の指摘（マニフェスト命名、フロントマター、JDBC パターン）を解消。
 
 ## [0.5.0] - 2026-03-24
 
-### 変更
+### Changed
 - ScalarDB 開発スキルを独立した `scalardb` プラグインに分離。
 
 ## [0.4.0] - 2026-03-23
 
-### 追加
+### Added
 - データベース移行（Oracle / MySQL / PostgreSQL → ScalarDB）：スキーマ抽出、移行分析、
   ストアドプロシージャ/トリガーの Java 変換。
 
 ## [0.3.0] - 2026-03-23
 
-### 追加
+### Added
 - ScalarDB アプリケーション開発スキル（スキーマモデリング、設定、CRUD/JDBC パターン、
   スキャフォールド、コードレビュー、移行アドバイザリ）。
 
 ## [0.2.0]
 
-### 変更
+### Changed
 - リポジトリを Claude Code プラグイン互換の構成に再編。
 
 [0.22.0]: https://github.com/wfukatsu/nexus-architect/releases/tag/v0.22.0
