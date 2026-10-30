@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.45.0] - 2026-10-30
+
+### Added
+- **`/architect:explain` — explain what the pipelines generated, and teach what underlies it.**
+  A read-only skill for architect and product reports, generated code, UI mocks, the frontend or
+  the project's own source. It gives an overview first: what the artifact is, where it sits in the
+  product → architect → codegen chain, how its parts connect, one representative flow, the
+  decisions behind it cited from ADRs and reports, and design-versus-code gaps stated as facts with
+  no review verdict. On request it goes deeper:
+  - terms, with the project's meaning beside the general one;
+  - function walkthroughs, covering inputs, side effects, errors, transaction boundaries and the
+    design element realised;
+  - architecture and implementation patterns and product frameworks.
+
+  Every statement is labelled Fact, Concept or Inference and cited as `path:line`. A pattern is
+  named only when the signals in `skills/explain/reference/pattern-catalog.md` are present, and is
+  explained per the repository rule that governs it. `--level` is taken from the request when the
+  request states one ("I'm new to DDD" → `beginner`). `--save` keeps the explanation under
+  `reports/explanations/`. When the user cannot be asked, the skill falls back to stated defaults.
+  Commands: 116 → 117.
+- Eval case `evals/triggers/explain` (3/3; `architect-start` stays 3/3).
+
+### Documentation
+- `docs/getting-started` (en/ja) describes what a `/architect:start` session looks like: most
+  phases run in the background and the session resumes by itself, a phase's questions are asked
+  before its dependents start, and a `build-report` warning has a stated meaning.
+  `docs/analysis-mechanism_ja.md` names `review-synthesis.json` as the contract the executive
+  summary reads.
+
+### Note
+- The skill descriptions now total 23,996 of the 24,000-character listing budget. The next skill
+  added will need room made elsewhere.
+
 ## [0.44.4] - 2026-10-09
 
 Both fixes come from one full interactive `/architect:start` run on `samples/ec-monolith`
