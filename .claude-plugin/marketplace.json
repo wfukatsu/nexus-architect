@@ -99,6 +99,7 @@
         "./skills/report-status",
         "./skills/update-knowledge",
         "./skills/revise-knowledge",
+        "./skills/explain",
         "./skills/export-backlog",
         "./skills/deliver-backlog",
         "./skills/implement-backlog",

@@ -149,6 +149,7 @@ merges).
 | `/architect:init-output` | haiku | Initialize output directories |
 | `/architect:update-knowledge` | haiku | Fetch or update an OKF knowledge bundle (wraps `tools/update-okf-bundle.sh`; no flag = ensure present, `--latest` = pull newest, `--status` = show resolved path/commits/versions, `--bundle=scalardb\|k8s-tf` selects which — `scalardb` is the version-pinned ScalarDB/ScalarDL/ScalarDB Saga bundle, `k8s-tf` the vendored Kubernetes/Terraform platform bundle, whose `--latest` collects its public upstream into `knowledge/okf-k8s-tf-upstream/` and lists the documents awaiting re-verification) |
 | `/architect:revise-knowledge` | opus | Re-verify the k8s-tf bundle documents awaiting it against their public upstream and revise the design guidance that fell behind — the judgement step the model-free weekly refresh (`.github/workflows/refresh-okf-k8s-tf.yml`) leaves out. Collects first unless `--no-collect`; `--doc=<path>` limits the scope (repeatable); `--dry-run` lists the scope and reasons only. Never rewrites the observed-implementation tier |
+| `/architect:explain` | sonnet | Explain a generated artifact — architect or product report, generated code, UI mock, frontend — grounded in its files, separating fact, concept and inference; on request teaches its terms, walks through its functions, and explains the architecture and implementation patterns it applies, at `--level=beginner\|intermediate\|expert`. `--focus` goes straight to a topic; `--save` keeps the explanation under `reports/explanations/`. Read-only otherwise |
 
 ## ScalarDB Development
 
@@ -335,6 +336,7 @@ path by their router, so they are not slash commands and have no signature here.
 /architect:report-status [--once] [--view=product|architect|codegen|backlog] [--group=core|extension] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]
 /architect:update-knowledge [--latest] [--status] [--bundle=<name>]
 /architect:revise-knowledge [--no-collect] [--doc=<path>] [--dry-run]
+/architect:explain [target] [--focus=overview|terms|code|patterns|all] [--level=beginner|intermediate|expert] [--save] [--lang=en|ja]
 /product:report [--auto] [--lang=ja|en]
 /product:report-status [--once] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]
 
