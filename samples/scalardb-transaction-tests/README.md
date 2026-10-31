@@ -5,7 +5,7 @@ Executable evidence for the ScalarDB transaction rules this repository ships. Ev
 engine** — not described, not reviewed, executed.
 
 ```bash
-./gradlew integrationTest      # 25 tests, ~10s, no container and no external service
+./gradlew integrationTest      # 34 tests, ~30s, no container and no external service
 ```
 
 SQLite storage runs in-process, so there is nothing to start and nothing to clean up.
@@ -19,7 +19,8 @@ commit at all. Four rules in this repository were wrong or missing until these t
 | Test | What it establishes | Rule it backs |
 |------|--------------------|---------------|
 | `BlindWriteProbeIT` | A `Put` with no preceding `Get` is an INSERT; on an existing record it fails at `commit()`, not at `put()`, with a *conflict* error that no retry can clear | `scalardb-crud-patterns.md` § A `Put` with no preceding `Get` |
-| `TwoPhaseCommitIT` | `join(txId)` resolves within the manager it is called on, so two participants need two managers; and protocol misuse throws an **unchecked** `IllegalStateException` a `TransactionException` handler never sees | `scalardb-2pc-patterns.md` §§ One Manager Per Participant, Protocol Misuse Is Unchecked |
+| `MicroserviceTransactionIT` | The Microservice Transaction API runs the **same code** on a shared cluster (single-phase backing) and on separated clusters (two-phase backing): ending a branch commits nothing, a participant's failure rolls everything back, a stale write fails at `commit()` as `CommitConflictException`, and ending a branch twice is an **unchecked** `IllegalStateException` while `end(FAILURE)` is a no-op afterwards | `scalardb-2pc-patterns.md` § Microservice Transaction API Pattern |
+| `MicroserviceTransactionCoreProbeIT` | Core 3.20.0 ships the API's classes but its `TransactionFactory` refuses to create a `GlobalTransactionManager` (the production wiring is ScalarDB Cluster); `join()` / `resume()` and the whole `TwoPhaseCommitTransactionManager` interface are **absent** from the Core jar | `scalardb-2pc-patterns.md` option table, `scalardb-edition-profiles.md` § New in 3.20 |
 | `SagaCompensationIT` | A composite clustering key is one `Key` — `clusteringKey(...)` replaces rather than appends | `scalardb-crud-patterns.md` § Composite Clustering Keys Are ONE Key |
 | `OrderTransactionIT` | The idempotency replay path is an authorization path: without an ownership check in that branch, a same-tenant caller holding another customer's key reads back that order's outcome | `api-error-standard.md` § The replay path is an authorization path |
 
@@ -47,17 +48,29 @@ concurrent confirms serialize so exactly one succeeds and the loser fails cleanl
 silently double-applying; the service's own retry absorbs a conflict that clears, so no conflict
 reaches the caller.
 
-**2PC failure** (`TwoPhaseCommitIT`) — the happy path prepares every participant before any commits;
-a participant whose `prepare()` conflicts forces all participants to roll back, leaving no order
-committed against unreserved stock; commit-before-prepare is rejected; a partial prepare leaves
-nothing behind.
+**Microservice transaction** (`MicroserviceTransactionIT`) — order and inventory as two services on
+the Microservice Transaction API (`GlobalTransactionManager` / `BranchTransaction`), every scenario run
+once per topology with identical code: the orchestrator and the participant each end their branch and
+one `commit()` persists both writes; an out-of-stock participant ends `FAILURE`, the orchestrator rolls
+back and no order exists against unreserved stock; two `SUCCESS` ends followed by a rollback leave no
+trace; a competitor's committed write makes `commit()` fail as a conflict and the competitor's value
+stands; `end(SUCCESS)` twice is unchecked protocol misuse. `ScalarDbTestBackend` wires the shared
+topology as one single-phase manager and the separated topology as one coordinator with two
+participants (`TwoPhaseCommitFactory`, one participant ID each) — the public classes the engine's own
+integration suite uses, because Core's `TransactionFactory` does not hand the manager out
+(`MicroserviceTransactionCoreProbeIT`). What this proves is the API's semantics; the Transaction
+Coordinator node and its gRPC transport need a ScalarDB Cluster and stay unproven here.
+
+The application-driven two-phase commit interface this suite used to exercise (`TwoPhaseCommitIT`,
+`TwoPhaseCommitTransactionManager`) is absent from the Core 3.20.0 library; the probe asserts that
+absence, and the Microservice Transaction API tests replaced it.
 
 **Saga compensation** (`SagaCompensationIT`) — a later step's failure compensates the earlier ones in
 reverse; a compensation replayed under redelivery does not inflate stock; a step with no
 compensation leaks its effect, which is what a design review must catch.
 
 These exercise the saga **pattern** over ScalarDB local transactions. They are not ScalarDB Saga the
-product (3.19.0-alpha.1), which is not a dependency here.
+product (3.20.0, GA), which is not a dependency here.
 
 **Order operations** (`OrderTransactionIT`) — TX-001..TX-004 end to end, including tenant isolation,
 the 404-not-403 rule for a non-owned order, and the confidential field that must not reach the
@@ -79,11 +92,12 @@ src/main/java/com/example/orders/
   NonConformingOrderService.java implements it wrongly, on purpose
   Caller.java, OrderView.java, DraftOrderCommand.java, *Exception.java
 src/test/java/com/example/orders/
-  ScalarDbTestBackend.java       real ScalarDB over SQLite; two managers, for 2PC
+  ScalarDbTestBackend.java       real ScalarDB over SQLite; the two microservice topologies
   *IT.java                       the scenarios
 ```
 
 `ScalarDbTestBackend` is the reusable piece: it boots a real engine, creates the namespace, the
-coordinator tables and the order/inventory/idempotency/saga-log tables, and hands back both a
-`DistributedTransactionManager` and two `TwoPhaseCommitTransactionManager`s. Point it at a different
-schema to test another transaction design.
+coordinator tables and the order/inventory/idempotency/saga-log tables, and hands back a
+`DistributedTransactionManager` plus the two microservice topologies — `sharedCluster()` and
+`separatedClusters()`, each a pair of `GlobalTransactionManager`s for the orchestrating and the
+participating service. Point it at a different schema to test another transaction design.

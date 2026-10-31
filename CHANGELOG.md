@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.49.0] - 2026-10-31
+
+### Added
+- **Microservice Transaction API integration tests.** `samples/scalardb-transaction-tests` moves to
+  ScalarDB 3.20.0 and gains `MicroserviceTransactionIT`: order and inventory as two services on
+  `GlobalTransactionManager` / `BranchTransaction`, every scenario run with identical code on both
+  backings the API has — a single-phase manager (shared cluster) and one coordinator with two
+  participants (separated clusters, `TwoPhaseCommitFactory` with a participant ID each) — proving that
+  one `commit()` persists both branches, ending a branch commits nothing, a participant's `FAILURE`
+  plus rollback leaves nothing, a stale write fails at `commit()` as `CommitConflictException`, and a
+  second `end(SUCCESS)` is an unchecked `IllegalStateException`. `MicroserviceTransactionCoreProbeIT`
+  records the edition and version facts: Core's `TransactionFactory.getGlobalTransactionManager()`
+  throws `UnsupportedOperationException` (the production wiring is Cluster), and `join()` / `resume()`
+  and the whole `TwoPhaseCommitTransactionManager` interface are absent from the Core jar. 34 tests.
+
+### Changed
+- **The application-driven 2PC interface is absent from Core 3.20.0, not merely deprecated.** Compiling
+  the sample against `scalardb:3.20.0` fails on `TwoPhaseCommitTransactionManager`; `TwoPhaseCommitIT`
+  is removed with it. The option table of `rules/scalardb-2pc-patterns.md`, the "New in 3.20" and
+  feature tables of `scalardb-edition-profiles.md`, `interface-matrix.md`, `api-reference.md`, the 2PC
+  code-pattern headers and `generate-scalardb-code` now say "≤ 3.19 only" instead of "still shipped in
+  3.20", and the Microservice Transaction API section cites what the suite verified on 3.20.0 and what
+  it cannot (the Transaction Coordinator node and its gRPC transport need a Cluster).
+
 ## [0.48.0] - 2026-10-31
 
 ### Added

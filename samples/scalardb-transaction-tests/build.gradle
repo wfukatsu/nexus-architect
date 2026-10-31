@@ -11,8 +11,8 @@ repositories {
 }
 
 dependencies {
-    // Versions resolved from the registries per rules/dependency-versions.md, 2026-08-09.
-    implementation 'com.scalar-labs:scalardb:3.19.0'
+    // Versions resolved from the registries per rules/dependency-versions.md, 2026-08-09; ScalarDB moved to 3.20.0 on 2026-10-31.
+    implementation 'com.scalar-labs:scalardb:3.20.0'
     implementation 'org.slf4j:slf4j-simple:2.0.16'
 
     testImplementation platform('org.junit:junit-bom:5.11.4')

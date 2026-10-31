@@ -69,8 +69,9 @@ process. `BranchTransaction` CRUD throws `CrudException` / `CrudConflictExceptio
 
 ### TwoPhaseCommitTransactionManager — deprecated interface (3.19+)
 
-> The two-phase commit interface is **deprecated as of ScalarDB 3.19 and will be removed in a
-> future release** (docs site). Kept here for existing code; new code uses the section above.
+> The two-phase commit interface is **deprecated as of ScalarDB 3.19** (docs site) and **absent from the
+> Core 3.20.0 library** — `com.scalar.db.api.TwoPhaseCommitTransactionManager` does not exist there
+> (verified by compilation). Kept here for code on ≤ 3.19; new code uses the section above.
 
 ```java
 TwoPhaseCommitTransactionManager manager = factory.getTwoPhaseCommitTransactionManager();

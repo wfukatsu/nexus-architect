@@ -11,9 +11,9 @@ ScalarDB supports 6 interface combinations along three axes:
 | # | Name | Deployment | API | Transaction | Use Case |
 |---|------|-----------|-----|-------------|----------|
 | 1 | Core+CRUD+1PC | Core | CRUD | 1PC | Single-app, single-DB, development/testing. Multi-storage transactions from one app are 1PC too |
-| 2 | Core+CRUD+2PC | Core | CRUD | 2PC — **deprecated interface (3.19+)** | Existing code only; cross-storage from one app needs no 2PC |
+| 2 | Core+CRUD+2PC | Core | CRUD | 2PC — **deprecated 3.19, absent from Core 3.20.0** | Existing code on ≤ 3.19 only; cross-storage from one app needs no 2PC |
 | 3 | Cluster+CRUD+1PC | Cluster | CRUD | 1PC | Production with ScalarDB Cluster — **including multi-service transactions** via the Microservice Transaction API (3.19+) |
-| 4 | Cluster+CRUD+2PC | Cluster | CRUD | 2PC — **deprecated interface (3.19+)** | Existing multi-service code on the 2PC interface; ADR-recorded deviations |
+| 4 | Cluster+CRUD+2PC | Cluster | CRUD | 2PC — **deprecated interface (3.19)** | Existing multi-service code on the 2PC interface, ≤ 3.19; ADR-recorded deviations |
 | 5 | Cluster+JDBC+1PC | Cluster | JDBC/SQL | 1PC | Production with ScalarDB SQL — multi-service via the SQL `GLOBAL_TRANSACTION` mode (3.20+) |
 | 6 | Cluster+JDBC+2PC | Cluster | JDBC/SQL | 2PC — **deprecated mode (3.19+)**; `JOIN`/`SUSPEND`/`RESUME` removed in 3.20 | Existing multi-service SQL code |
 

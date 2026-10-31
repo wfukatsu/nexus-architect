@@ -7,6 +7,29 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.49.0] - 2026-10-31
+
+### Added
+- **Microservice Transaction API の統合テスト。** `samples/scalardb-transaction-tests` を ScalarDB 3.20.0 に
+  上げ、`MicroserviceTransactionIT` を追加。注文と在庫を 2 サービスとして `GlobalTransactionManager` /
+  `BranchTransaction` で駆動し、API の持つ 2 つのバッキング —— 単一フェーズのマネージャー 1 つ（共有クラスタ）
+  と、コーディネーター 1 つ + 参加者 2 つ（分離クラスタ。`TwoPhaseCommitFactory` に参加者 ID を 1 つずつ）——
+  に対して**同一のコード**で各シナリオを実行する。1 回の `commit()` で両ブランチの書き込みが永続化される、
+  ブランチの終了は何もコミットしない、参加者の `FAILURE` とロールバックで何も残らない、古い読みに基づく書き込みは
+  `commit()` で `CommitConflictException` になる、2 回目の `end(SUCCESS)` は非チェックの `IllegalStateException`、
+  を証明する。`MicroserviceTransactionCoreProbeIT` はエディションとバージョンの事実を記録する: Core の
+  `TransactionFactory.getGlobalTransactionManager()` は `UnsupportedOperationException` を投げる（本番の配線は
+  Cluster）、`join()` / `resume()` と `TwoPhaseCommitTransactionManager` インターフェイス全体が Core の jar に
+  存在しない。計 34 テスト。
+
+### Changed
+- **アプリケーション駆動の 2PC インターフェイスは Core 3.20.0 に存在しない（非推奨どころではない）。**
+  `scalardb:3.20.0` に対するサンプルのコンパイルは `TwoPhaseCommitTransactionManager` で失敗し、`TwoPhaseCommitIT`
+  はともに削除した。`rules/scalardb-2pc-patterns.md` の方式表、`scalardb-edition-profiles.md` の「New in 3.20」と
+  機能表、`interface-matrix.md`、`api-reference.md`、2PC コードパターンのヘッダー、`generate-scalardb-code` は
+  「3.20 でもまだ出荷」ではなく「3.19 以前のみ」と述べるようにし、Microservice Transaction API の節は 3.20.0 で
+  スイートが検証したことと検証できないこと（Transaction Coordinator ノードと gRPC 経路は Cluster が必要）を引用する。
+
 ## [0.48.0] - 2026-10-31
 
 ### Added
