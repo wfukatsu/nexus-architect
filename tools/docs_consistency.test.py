@@ -582,6 +582,19 @@ rules = sorted(f for f in os.listdir(os.path.join(ROOT, "rules")) if f.endswith(
 missing = [r for r in rules if "rules/" + r not in ENTRY]
 check("every top-level rules/*.md is listed in AGENTS.md", not missing, missing)
 
+# The ELI5 skill list (tools/lib/report_audience.py) names registered skills only; `infra-<name>`
+# is the `skill:` value the infra templates carry for skills/infra/<name>.
+sys.path.insert(0, os.path.join(ROOT, "tools", "lib"))
+import report_audience  # noqa: E402
+_reg = registered()
+_names = {os.path.basename(d) for dirs in _reg.values() for d in dirs}
+_infra = {os.path.basename(d) for d in _reg.get("infra", [])}
+unknown = sorted(s for s in report_audience.TECHNICAL_REPORT_SKILLS
+                 if s not in _names and not (s.startswith("infra-") and s[6:] in _infra))
+check("every skill in TECHNICAL_REPORT_SKILLS is registered", not unknown, unknown)
+check("rules/eli5-summary.md names the list's module rather than copying it",
+      "tools/lib/report_audience.py" in read("rules/eli5-summary.md"))
+
 # ------------------------------------------------------- emphatic directives
 
 print("Instructions are stated, not shouted")

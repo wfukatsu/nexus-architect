@@ -30,6 +30,10 @@ before pinning them (see @rules/dependency-versions.md), and record it as
 `options.confirm_versions` (`true` = ask, default; `false` = adopt the resolved stable set silently).
 `--confirm-versions` / `--no-confirm-versions` override it per run.
 
+Ask, in the same batch, which reports open with the plain-language **ELI5 section** of
+@rules/eli5-summary.md — the technical ones (data model, domain map, SLA, NFR, architecture; the
+default), every report, or none — and record it as `options.eli5` (`technical` / `all` / `off`).
+
 ## Workflow Selection
 
 - Pick a profile (or honor `--profile`): `mvp` (vision + scope + validate — the smallest useful

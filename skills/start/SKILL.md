@@ -33,6 +33,11 @@ Record the answer as `options.confirm_versions` (`true` = ask, `false` = adopt s
 `true` if the user has no preference; a per-run `--confirm-versions` / `--no-confirm-versions`
 overrides it.
 
+In the same batch, ask which reports open with the plain-language **ELI5 section** of
+@rules/eli5-summary.md — the reports written for engineers (default), every report, or none — and
+record it as `options.eli5` (`technical` / `all` / `off`). The frontmatter hook enforces the
+answer on every report write.
+
 ## Product Handoff Detection
 
 Before selecting a path, check whether the **product** plugin already ran in this project:

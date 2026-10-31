@@ -225,6 +225,7 @@ documents), `generated/` (code per service), `work/` (pipeline state, intermedia
 and frontmatter: `rules/output-conventions.md`. In brief:
 
 - **Output language** is per project — `work/pipeline-progress.json` `options.output_language`: `en` (default) or `ja`; `/architect:start` asks at initialization. It governs report prose only; frontmatter keys, Mermaid node IDs, skills and rules stay English.
+- **ELI5 section**: a report written for engineers opens with a plain-language `## ELI5` section; `options.eli5` (`technical` default / `all` / `off`), the skill list in `tools/lib/report_audience.py`, enforced by the frontmatter hook (`rules/eli5-summary.md`).
 - **Files**: kebab-case; every output carries YAML frontmatter with `schema_version`; every diagram is Mermaid (hook-validated); each step writes its file on completion (immediate output).
 - **Open Questions**: an unknown a skill cannot resolve from its inputs is **asked** — `AskUserQuestion` with derived candidate options, "Other" carrying what they cannot express — and only what the user defers, cannot answer in-session or was never asked (`--auto`) becomes a `TBD`, recorded with its `OQ-` ID, status and owner (`rules/open-questions.md`).
 - **Dependency versions**: any generated file that pins a version uses one **looked up** from its registry — never from memory or a skill example — stable, non-EOL, mutually compatible; confirmation per `--confirm-versions` / `--no-confirm-versions` / `options.confirm_versions` (unset → interactive asks, `--auto` adopts); decisions in `work/version-decisions.json` (`rules/dependency-versions.md`).
@@ -259,6 +260,7 @@ session context small — do not load ScalarDB rules for non-ScalarDB work.
 | infra skill rules | rules/infra/*.md (environments, multi-cloud) | Editing an `/infra:*` skill, or a question on the four environments or the portability boundary |
 | Open Questions protocol | rules/open-questions.md | Any point where a skill would write `TBD` |
 | Output conventions | rules/output-conventions.md | Writing or changing what a skill emits under `reports/` |
+| ELI5 summary | rules/eli5-summary.md | Writing a report for engineers — the plain-language section it opens with, and `options.eli5` |
 | Token pricing & usage | rules/token-pricing.md | Estimating run cost, or reading `work/token-usage.json` |
 | Dependency version selection | rules/dependency-versions.md | Writing any file that pins a version |
 | OKF bundle: Kubernetes/Terraform | rules/okf-k8s-tf-bundle.md | Any infrastructure design, implementation or review |

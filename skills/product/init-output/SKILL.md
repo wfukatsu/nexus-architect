@@ -57,7 +57,7 @@ it and merge into what is there; only `--reset` replaces, and only after a backu
    ```json
    {
      "schema_version": 1,
-     "options": { "output_language": "en", "confirm_versions": true, "no_research": false, "profile": "full", "design_system": null, "frontend": null },
+     "options": { "output_language": "en", "confirm_versions": true, "eli5": "technical", "no_research": false, "profile": "full", "design_system": null, "frontend": null },
      "phases": {
        "define-vision": { "status": "pending", "plugin": "product", "started_at": null, "completed_at": null, "updated_at": null, "note": null, "outputs": [] }
      },
@@ -72,7 +72,8 @@ it and merge into what is there; only `--reset` replaces, and only after a backu
    Ask the user which `output_language` to use (`en` default / `ja`) unless it is already set
    or passed via `--lang`. `confirm_versions` (default `true`) controls whether
    `/product:generate-frontend` confirms the dependency versions it resolves before pinning them —
-   see @rules/dependency-versions.md.
+   see @rules/dependency-versions.md. `eli5` (default `"technical"`) says which reports open with
+   the plain-language section of @rules/eli5-summary.md.
 
 3. Initialize `work/traceability.json` **only if it is absent**, as an empty graph — this is
    what makes `/product:adapt-change` work; every skill appends to it:

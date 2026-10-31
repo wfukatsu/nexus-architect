@@ -200,6 +200,26 @@ PRODUCT_OQ_STORE = (
 )
 
 
+DOC_ELI5 = """---
+title: "Transaction Boundary Design"
+schema_version: 1
+skill: design-scalardb
+---
+
+## ELI5 — the short version
+
+Think of it as a checkout line with one cashier per order (an analogy): every order is paid for
+in one go.
+
+**What it means for you**
+- An order is either fully placed or not at all.
+
+## Boundaries
+
+Each aggregate commits on its own.
+"""
+
+
 def simple_doc(title, body="Body.\n"):
     return '---\ntitle: "%s"\nschema_version: 1\n---\n\n%s' % (title, body)
 
@@ -248,6 +268,7 @@ def build_product_project(root, language, degraded=False):
     write(os.path.join(root, "reports", "03_domain", "domain-map.md"),
           simple_doc("Domain Map", "![runtime view](figures/arch.png)\n"))
     write(os.path.join(root, "reports", "03_domain", "figures", "arch.png"), "")
+    write(os.path.join(root, "reports", "03_domain", "transaction-design.md"), DOC_ELI5)
     write(os.path.join(root, "reports", "poc", "poc-results.md"), simple_doc("PoC Results"))
     write(os.path.join(root, "reports", "report", "review.md"), simple_doc("Multi-Lens Review"))
 
@@ -280,6 +301,7 @@ def build_project(root, language):
           "| OQ-002 | Which tenant isolation model? | answered | architect |\n")
     write(os.path.join(root, "reports", "01_analysis", "system-overview.md"), DOC_A)
     write(os.path.join(root, "reports", "03_design", "data-model.md"), DOC_B)
+    write(os.path.join(root, "reports", "03_design", "transaction-design.md"), DOC_ELI5)
     write(os.path.join(root, "reports", "03_design", "adr", "index.md"), ADR_INDEX)
     write(os.path.join(root, "reports", "03_design", "adr", "adr-001-consensus-commit.md"),
           ADR_001)
@@ -326,8 +348,9 @@ try:
 
     # --- article identity -----------------------------------------------------
     ids = re.findall(r'<article class="doc" id="([^"]+)"', doc)
-    expected = {"system-overview", "data-model", "index", "adr-001-consensus-commit",
-                "aggregate-order", "feature-order", "ui-screen-catalog", "ux-evaluation"}
+    expected = {"system-overview", "data-model", "transaction-design", "index",
+                "adr-001-consensus-commit", "aggregate-order", "feature-order",
+                "ui-screen-catalog", "ux-evaluation"}
     check("every source document became exactly one article",
           set(ids) == expected, "got %s" % sorted(ids))
     check("no article id is emitted twice", len(ids) == len(set(ids)),
@@ -385,6 +408,17 @@ try:
           h2_ids == ["investigation", "analysis", "evaluation", "design", "test-specs"], h2_ids)
     check("the summary section is present", 'id="summary"' in doc)
 
+    # --- ELI5 digest (rules/eli5-summary.md) ----------------------------------
+    summary = summary_of(doc)
+    check("the executive summary carries the ELI5 digest when a document has the section",
+          "ELI5 digest" in summary and "one cashier per order" in summary)
+    check("each digest entry links to its document",
+          '<a href="#transaction-design">Transaction Boundary Design</a>' in summary)
+    check("a document without the section is not in the digest",
+          "Data Model" not in summary.split("ELI5 digest", 1)[1])
+    check("the digest carries the section body, not its heading",
+          "the short version" not in summary)
+
     # --- missing review synthesis --------------------------------------------
     check("the summary says the review has not been run",
           "review-synthesis.json" in doc and "has not been run" in doc)
@@ -412,6 +446,7 @@ try:
     check("Japanese table of contents title", ">目次</h2>" in ja_doc)
     check("Japanese executive-summary heading", "エグゼクティブサマリ" in ja_doc)
     check("Japanese 'review not run' note", "レビューは未実行" in ja_doc)
+    check("Japanese ELI5 digest heading", "やさしい説明（ELI5）の一覧" in summary_of(ja_doc))
     check("document content is unchanged by the language switch",
           "System Overview" in ja_doc and "Place an order" in ja_doc)
     check("the section identifiers are language-independent",
@@ -451,6 +486,9 @@ try:
           0 < pr_doc.find('id="summary"') < pr_doc.find('<h2 id="core"'))
     check("the summary is titled Key Assumptions & Validation Status",
           "<h2>Key Assumptions &amp; Validation Status</h2>" in pr_summary)
+    check("the product summary keeps the assumptions first and the ELI5 digest after them",
+          0 < pr_summary.find("Open assumptions") < pr_summary.find("ELI5 digest")
+          and "one cashier per order" in pr_summary, pr_summary.find("ELI5 digest"))
     check('id="summary" is emitted exactly once', pr_doc.count('id="summary"') == 1)
     check("exactly one <h1> on the product page", len(re.findall(r"<h1[ >]", pr_doc)) == 1)
 

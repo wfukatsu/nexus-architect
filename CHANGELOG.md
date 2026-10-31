@@ -7,7 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
-## [Unreleased]
+## [0.51.0] - 2026-11-01
+
+### Added
+- **Every technical report opens with an ELI5 section.** A report written for engineers —
+  investigation, analysis, evaluation, design, review synthesis, verification, cost estimation, the
+  product pipeline's data-model / domain / SLA / NFR / architecture documents, the infra design and
+  review documents — now starts with `## ELI5`: one everyday analogy for what the document decides or
+  finds, "What it means for you" in three to five plain bullets, and "What you are asked to decide"
+  naming the open `OQ-` / `ADR-` / finding IDs. The technical body below is unchanged, since the next
+  skill reads it. `options.eli5` in `work/pipeline-progress.json` selects `technical` (the default,
+  also when absent), `all` or `off`; `/architect:start` and `/product:start` ask it with the output
+  language, and `init-output` seeds it. Which skills count as technical is one list,
+  `tools/lib/report_audience.py`, that the rule (`rules/eli5-summary.md`), the frontmatter hook and
+  the contract suites all read. The hook rejects a technical report without the section (exit 2, so
+  the writer adds it), an ADR and a document declaring `eli5: false` are exempt, and
+  `tools/build-report.py` gathers every section into the executive summary as the "ELI5 digest",
+  each entry linked to its document. The infra templates carry the placeholder section
+  (`design-doc.md`, `review-report.md`) or the opt-out (`env-matrix.md`, `adr.md`).
 
 ### Changed
 - **Three more open questions in the Kubernetes/Terraform bundle, two of them grounded in a new

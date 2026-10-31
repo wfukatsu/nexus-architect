@@ -176,6 +176,7 @@ the questions are in `work/context.md` § Open Questions as `unasked` when it en
 - `--analyze-only`: Execute analysis phases only
 - `--no-scalardb`: Skip all ScalarDB-related skills
 - `--lang=en|ja`: Set the output language (default: en). Stored in pipeline-progress.json options.output_language
+- The plain-language ELI5 section (@rules/eli5-summary.md) follows pipeline-progress.json `options.eli5`, default `technical`; there is no flag — set the option before running
 
 ## Error Handling
 

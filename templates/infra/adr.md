@@ -11,6 +11,7 @@ phase: "Infrastructure"
 skill: infra-design
 generated_at: "<ISO8601>"
 input_files: []
+eli5: false
 ---
 ```
 

@@ -41,6 +41,7 @@
 | `workflow_type` | `legacy` \| `greenfield` | Which entry path the project took |
 | `output_language` | `en` \| `ja` | Language of generated report content |
 | `confirm_versions` | `true` \| `false` | Project default for confirming resolved dependency versions with the user before pinning them (see @rules/dependency-versions.md). Absent → interactive runs ask, `--auto` runs adopt. Overridden per run by `--confirm-versions` / `--no-confirm-versions`. |
+| `eli5` | `technical` \| `all` \| `off` | Which Markdown reports open with the plain-language `## ELI5` section of @rules/eli5-summary.md: those written for engineers (the skill list in `tools/lib/report_audience.py`; the default, also when absent), every report, or none. The frontmatter hook enforces it |
 | `skip_phases` | list of phase names | Phases the user excluded |
 | `layering_style` | `ddd` \| `clean` | Project default for `/architect:design-implementation --layering` — DDD application services, or Clean Architecture Use Case / Interactor / Presenter naming. The canonical record is `layering_style` in the frontmatter of `reports/06_implementation/api-layer-spec.md`, which the generators read; this option only seeds it |
 | `quality_gate` | object, optional | Project overrides for the stage-2 test-quality thresholds of @rules/ai-code-quality-gate.md §Test quality — e.g. `{ "coverage": { "domain": { "line": 90, "branch": 80 }, "other": { "line": 70 } }, "mutation": { "threshold": 80 } }`. Absent → the rule's defaults; a build-file rule wins over both |
