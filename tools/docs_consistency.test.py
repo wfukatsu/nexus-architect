@@ -662,17 +662,12 @@ print("Skills stay short enough to load whole")
 
 # A SKILL.md is loaded in full when the skill runs; the documented ceiling is 500 lines, past which
 # what a single step needs (a template, a display format, a code example) belongs in a reference
-# file that step reads (issue #55).
-#
-# One skill is kept whole on purpose. `design-aggregate` is a facilitated dialogue: its steps, the
-# questions it asks and the manifest shape the answers fill are read back and forth across the
-# whole session, not one step at a time, so there is no step to hand a reference file to — and it
-# is 79 lines over, not hundreds. The exemption is by name, it is dropped the moment the file is
-# under the ceiling, and it is not a precedent: a new long skill is split.
+# file that step reads (issue #55). `design-aggregate` was the one exemption (579 lines, kept
+# whole as a facilitated dialogue) until 0.46.1 handed its manifest shape, catalog shape and
+# document template to `reference/` files its Stage 6 reads; an exemption, if one is ever needed
+# again, is added here by name and dropped the moment the file is under the ceiling.
 MAX_SKILL_LINES = 500
-KEPT_WHOLE = {
-    "skills/design-aggregate/SKILL.md",
-}
+KEPT_WHOLE = set()
 skill_files = [f for f in prose if f.endswith("/SKILL.md")]
 long_ones = {f for f in skill_files if len(read(f).splitlines()) > MAX_SKILL_LINES}
 check("no SKILL.md is over %d lines (%d files)" % (MAX_SKILL_LINES, len(skill_files)),

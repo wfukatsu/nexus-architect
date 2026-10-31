@@ -7,6 +7,21 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.46.1] - 2026-10-31
+
+### Changed
+- **`/architect:design-aggregate` を 500 行の上限内に収め（579 → 318 行）、上限の例外を無くした。**
+  - Stage 6 と auto モード step 5 だけが使う 3 つの「形」—— `tools/lib/aggregate_manifest.py` が
+    強制するフィールド契約つきの集約 manifest、契約と `.md` 投影の frontmatter つきの Domain Event
+    Catalog、集約ごとの文書テンプレート —— を `skills/design-aggregate/reference/` に移し、
+    該当ステップがそのファイル名を挙げる。
+  - 本文には、reference に隠してはならないものを残した。6 つのステージ、7 つの well-formedness
+    チェック、そして validator では判定できない判断ルール（consumer は非同期の購読者である、
+    orphan event は落とさず列挙する、idempotency key は event type ごとに一意で、その値はカタログの
+    もの、dedup 規則は `design-api` のもの）である。
+  - `tools/docs_consistency.test.py` から名前指定の例外を外し、`docs/skill-authoring.md` に
+    この分割を従うべきパターンとして記した。
+
 ## [0.46.0] - 2026-10-31
 
 ### Changed

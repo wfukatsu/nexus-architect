@@ -51,8 +51,11 @@ Code documents — an unrecognised key is silently ignored at load time, which i
 A SKILL.md is loaded whole when the skill runs, so it stays under 500 lines: what one step alone
 needs — a file template, a display format, a long code example — goes in a `reference/` file beside
 it that the step says to read. What must not be skipped (the order of steps, stop conditions,
-exception rules) stays in the body. The test enforces the ceiling; `design-aggregate` is the one
-named exemption, kept whole.
+exception rules) stays in the body. The test enforces the ceiling. `design-aggregate` was the one
+exemption until its manifest shape, catalog shape and document template moved to
+`skills/design-aggregate/reference/`, which is the pattern to follow: the step that writes a file
+names the reference file that gives its shape, and the judgment rules the validator cannot check
+stay in the body.
 
 ### Registration
 
