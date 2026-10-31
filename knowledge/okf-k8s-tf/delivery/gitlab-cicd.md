@@ -5,9 +5,9 @@ description: 再利用テンプレート、OIDC、Runner、セキュリティ検
 resource: "https://docs.gitlab.com/ci/"
 tags: [gitlab, cicd, runner, oidc, devsecops]
 generated: { by: codex/gpt-5, at: "2026-08-19T00:00:00+09:00" }
-verified: { by: "process:official-document-cross-check", at: "2026-10-09T00:00:00+09:00" }
+verified: { by: "process:official-document-cross-check", at: "2026-11-01T00:00:00+09:00" }
 status: stable
-stale_after: 2027-01-09
+stale_after: 2027-02-01
 sources:
   - { id: gitlab-yaml, resource: "https://docs.gitlab.com/ci/yaml/", title: CI/CD YAML syntax, author: "team:gitlab" }
   - { id: gitlab-components, resource: "https://docs.gitlab.com/ci/components/", title: CI/CD components, author: "team:gitlab" }
@@ -52,7 +52,7 @@ GitLab ID token は job ごとに OIDC JWT を発行し、cloud/Vault/Sigstore �
 
 - audience、project path、ref type、protected ref 等の claim を trust policy で絞る。
 - path 系の claim（`sub`、`project_path`）だけに依存せず、cloud provider と GitLab の提供形態が対応していれば `project_id`、`namespace_id` を併用する。ID は path から独立しており、group や project の rename の影響を受けない。[gitlab-oidc]
-- merge request pipeline では `project_id`、`project_path`、`ref` は source project 側の値になる。job を実行する project は `job_project_id`、`job_project_path`（GitLab 18.4 以降）で識別する。[gitlab-oidc]
+- merge request pipeline では `project_id`、`project_path`、`ref` は source project 側の値になる。job を実行する project は `job_project_id`、`job_project_path`（GitLab 18.4 以降）で識別する。source code を持つ project を明示的に絞る場合は `source_project_id`、`source_project_path`（GitLab 19.5 以降）を使う。[gitlab-oidc]
 - plan、apply、deploy、sign の role を分ける。
 - CI variable の長期 cloud key を廃止し、job token の allowlist と scope も最小化する。
 

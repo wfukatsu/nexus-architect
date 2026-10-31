@@ -7,6 +7,19 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.50.1] - 2026-11-01
+
+### Changed
+- **GitLab CI/CD の指針: merge request pipeline を source project で絞る。** 同梱の Kubernetes/Terraform
+  バンドルの `delivery/gitlab-cicd.md` を GitLab の ID token ドキュメントと照合し、1 点を追記した。trust policy で
+  source code を持つ project を明示する場合は、既存の `project_id` / `namespace_id` の併用と
+  `job_project_id` / `job_project_path` に加えて `source_project_id` / `source_project_path`（GitLab 19.5
+  以降）を使う。週次更新が挙げた他の 4 文書 —— `architecture/design-build-checklist.md`、
+  `delivery/docker-cosign.md`、`foundation/helm.md`（Helm 4.3.1 版の 5 ページと照合）、`secrets/vault.md` ——
+  は再確認のみで日付以外は変更なし。`docker-cosign.md` の確認事項は最新 stable を Docker Engine 29.9.2・
+  Cosign 3.1.4 に更新した。upstream の状態（`knowledge/okf-k8s-tf-upstream/`）は 2026-11-01 の収集結果で、
+  再検証待ちの文書はない。
+
 ## [0.50.0] - 2026-10-31
 
 ### Added

@@ -4,8 +4,9 @@ title: インフラ設計・構築チェックリスト
 description: AIDD スタックで設計、実装、検証、運用移管する際の横断チェックリスト。
 tags: [checklist, design, build, operations, security]
 generated: { by: codex/gpt-5, at: "2026-08-19T00:00:00+09:00" }
+verified: { by: "process:official-document-cross-check", at: "2026-11-01T00:00:00+09:00" }
 status: stable
-stale_after: 2026-11-19
+stale_after: 2027-02-01
 sources:
   - { id: terraform-style, resource: "https://developer.hashicorp.com/terraform/language/style", title: Terraform style guide }
   - { id: kubernetes-prod, resource: "https://kubernetes.io/docs/setup/production-environment/", title: Production environment }

@@ -31,3 +31,13 @@
 
 - `delivery/gitlab-cicd.md`: 出典 `gitlab-oidc`（ID token authentication）の更新に合わせ、認証の設計指針に 2 点を追記。(1) trust policy は path 系の claim だけに依存せず、対応していれば `project_id`・`namespace_id` を併用する（rename の影響を受けないため）。(2) merge request pipeline では `project_id`・`project_path`・`ref` が source project 側の値になり、job を実行する project は `job_project_id`・`job_project_path`（GitLab 18.4 以降）で識別する。出典 `gitlab-yaml`（CI/CD YAML syntax）の更新は、本書の設計指針（`rules`、`allow_failure`、`include`、resource group 等）に影響なし。
 - `foundation/helm.md`: 変更なし（再確認のみ）。出典 `helm-use`（Using Helm、Helm 4.3.0 版）の更新後も、`helm get values`・`helm history`・`helm rollback` と revision の記述は本書の内容を支持する。
+
+## 2026-11-01
+
+公開 upstream との照合（`/architect:revise-knowledge`）。対象実装の記述は変更していない。
+
+- `delivery/gitlab-cicd.md`: 出典 `gitlab-oidc`（ID token authentication）の更新に合わせ、merge request pipeline の認証指針に 1 点を追記。source code を持つ project を明示的に絞る claim として `source_project_id`・`source_project_path`（GitLab 19.5 以降）を挙げた。既存の `project_id`・`namespace_id` の併用と `job_project_id`・`job_project_path`（GitLab 18.4 以降）の記述は引き続き支持される。出典 `gitlab-components`（CI/CD components）と `gitlab-yaml`（CI/CD YAML syntax）の更新は、本書の設計指針（job 名衝突、version 固定、`allow_failure`、`include`、resource group 等）に影響なし。
+- `delivery/docker-cosign.md`: 変更なし（再確認のみ）。出典 `docker-build`（Building best practices）の更新後も、multi-stage build、`.dockerignore`、信頼できる最小の base image、digest 固定と更新手段（Dependabot・Docker Scout）、同一 `RUN` での cleanup、non-root `USER` の記述は本書の設計指針を支持する。確認事項の最新 version を Docker Engine 29.9.2・Cosign 3.1.4（いずれも 2026-10-20 リリース）に更新。
+- `architecture/design-build-checklist.md`: 変更なし（再確認のみ）。出典 `gitlab-components` の更新後も、他プロジェクトの component は `~latest` や Git 参照ではなく catalog の release か commit SHA に固定し、定期的に新しい release へ更新するという推奨は変わらず、CI template の固定と定期更新の項目を支持する。`verified` を追加し、`stale_after` を 2027-02-01 へ更新。
+- `foundation/helm.md`: 変更なし（再確認のみ）。出典 5 ページ（Helm 4.3.1 版、2026-10-26 更新）を確認し、chart/release と values による環境差（`helm-intro`）、hook の失敗・削除 policy・TTL と release 非管理（`helm-hooks`）、`helm get values`・`helm history`・`helm rollback` と revision（`helm-use`）の記述はいずれも本書の内容を支持する。`helm history --show-rollback-revision` の追加は既存の指針と矛盾しない。
+- `secrets/vault.md`: 変更なし（再確認のみ）。出典 `vault-policies`（Policies）の更新後も、path ベースで既定は拒否、root token は初期設定後に revoke、発行済み token の policy は変更できず revoke が必要、という記述は本書の内容を支持する（追加された list 値の照合方法（Vault 1.21.0 以降）、`deny_slash_in_templated_paths`、UI policy の事前設定は本書の指針と矛盾しない）。`vault-ha`・`vault-hardening`・`vault-k8s` の各指針も維持。

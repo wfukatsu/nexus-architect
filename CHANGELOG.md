@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.50.1] - 2026-11-01
+
+### Changed
+- **GitLab CI/CD guidance: scoping a merge request pipeline to its source project.** The vendored
+  Kubernetes/Terraform bundle's `delivery/gitlab-cicd.md` was re-verified against GitLab's ID token
+  documentation and gains one point: where a trust policy must name the project that holds the source
+  code, use `source_project_id` / `source_project_path` (GitLab 19.5 and later) beside the existing
+  `project_id` / `namespace_id` pairing and the `job_project_id` / `job_project_path` claims. The other
+  four documents the weekly refresh listed — `architecture/design-build-checklist.md`,
+  `delivery/docker-cosign.md`, `foundation/helm.md` (now against the Helm 4.3.1 edition of its five
+  pages) and `secrets/vault.md` — were re-verified and are unchanged apart from their dates;
+  `docker-cosign.md`'s open questions now state Docker Engine 29.9.2 and Cosign 3.1.4 as the latest
+  stable releases. The upstream state (`knowledge/okf-k8s-tf-upstream/`) is the 2026-11-01 collection
+  and no document awaits re-verification.
+
 ## [0.50.0] - 2026-10-31
 
 ### Added

@@ -5,9 +5,9 @@ description: Kubernetes 上の Vault を高可用・最小権限・監査可能�
 resource: "https://developer.hashicorp.com/vault/docs"
 tags: [vault, secrets, kubernetes, security, operations]
 generated: { by: codex/gpt-5, at: "2026-08-19T00:00:00+09:00" }
-verified: { by: "process:official-document-cross-check", at: "2026-08-19T00:00:00+09:00" }
+verified: { by: "process:official-document-cross-check", at: "2026-11-01T00:00:00+09:00" }
 status: stable
-stale_after: 2026-11-19
+stale_after: 2027-02-01
 sources:
   - { id: vault-k8s, resource: "https://developer.hashicorp.com/vault/docs/deploy/kubernetes", title: Run Vault on Kubernetes, author: "team:hashicorp" }
   - { id: vault-ha, resource: "https://developer.hashicorp.com/vault/docs/concepts/ha", title: High availability, author: "team:hashicorp" }
