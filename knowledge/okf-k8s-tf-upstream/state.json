@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checked_at": "2026-10-31T21:04:02Z",
+  "checked_at": "2026-10-31T21:19:35Z",
   "pages": {
     "https://argo-cd.readthedocs.io/en/stable/": {
       "title": "Argo CD - Declarative GitOps CD for Kubernetes",
@@ -335,6 +335,28 @@
         "## Work with Vault"
       ],
       "changed_at": null
+    },
+    "https://developer.hashicorp.com/vault/docs/audit": {
+      "title": "Audit Devices | Vault | HashiCorp Developer",
+      "source_ids": [
+        "vault-audit"
+      ],
+      "cited_by": [
+        "secrets/vault.md"
+      ],
+      "sha256": "sha256:f32751625a59c9a22ccfcd2e7fc7056d8ec68dd9b1b1140c15daec1202413f73",
+      "chars": 6037,
+      "outline": [
+        "# Audit logging",
+        "## Enabling and disabling audit devices",
+        "## Availability of audit devices",
+        "## Hashing sensitive values",
+        "## Eliding list response bodies",
+        "## Logging request headers",
+        "## Exempted API endpoints",
+        "## Additional resources"
+      ],
+      "changed_at": "2026-10-31T21:19:35Z"
     },
     "https://developer.hashicorp.com/vault/docs/concepts/ha": {
       "title": "High Availability | Vault | HashiCorp Developer",

@@ -13,6 +13,7 @@ sources:
   - { id: vault-ha, resource: "https://developer.hashicorp.com/vault/docs/concepts/ha", title: High availability, author: "team:hashicorp" }
   - { id: vault-hardening, resource: "https://developer.hashicorp.com/vault/docs/concepts/production-hardening", title: Production hardening, author: "team:hashicorp" }
   - { id: vault-policies, resource: "https://developer.hashicorp.com/vault/docs/concepts/policies", title: Policies, author: "team:hashicorp" }
+  - { id: vault-audit, resource: "https://developer.hashicorp.com/vault/docs/audit", title: Audit logging, author: "team:hashicorp" }
   - { id: infrastructure-repo, resource: "https://gitlab.com/scalar-labs/ai-driven-devops/ai-devops-project-template/aidd-infrastructure", title: aidd-infrastructure }
 ---
 
@@ -44,7 +45,7 @@ Vault policy は path と capability に対して deny-by-default である。[v
 公式 hardening の基準は defense in depth である。[vault-hardening]
 
 - end-to-end TLS、non-root、swap/core dump 無効化、最小 filesystem write、network 制限。
-- audit device を複数用意し、ログ停止時の挙動、rotation、中央転送、アクセス制御を設計する。
+- audit device を複数（公式は 2 つ以上を推奨）用意し、ログ停止時の挙動、rotation、中央転送、アクセス制御を設計する。有効な audit device のどれにも書き込めない要求を Vault は拒否するため、全 device の停止は Vault の停止に等しい。[vault-audit]
 - clock synchronization を維持する。TTL と証明書は時刻ずれの影響を受ける。
 - Vault binary/chart を定期更新し、security release を追跡する。
 - cleartext cloud credential を seal stanza に書かず、cloud workload identity を使う。
@@ -63,3 +64,7 @@ Vault 公式 chart は dev、standalone、HA、external mode を提供する。[
 - quorum loss、KMS failure、expired certificate、storage full、audit device blocked を演習する。
 - snapshot の存在だけでなく、隔離環境で restore し auth/policy/secret の読取まで検証する。
 - break-glass root generation は複数人統制、監査、使用後 revoke を必須にする。
+
+# 確認事項
+
+- 対象実装で有効化している audit device の数と種類（file / syslog / socket）を確認する。Vault は有効な audit device のどれにも書き込めない API 要求を拒否するため、device が 1 つなら、その停止（disk full、syslog 不達）が Vault 全体の停止になる。公式が推奨する 2 つ以上の device にするか、1 つのままなら blocked 時の alert と復旧手順をどう用意するかを決める。audit log では文字列値が既定で HMAC-SHA256 化され、整数や boolean は化されないため、sensitive な値を文字列で扱っているかも併せて確認する。[vault-audit]
