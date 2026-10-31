@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.46.3] - 2026-10-31
+
+### Changed
+- **The ScalarDB SQL grammar has one owner.** `skills/common/references/sql-reference.md` holds the
+  language facts and the vendored `skills/common/sql-migration/references/scalardb-grammar.md` holds
+  only the conversion rules — rewrites, source-type mapping, key split, what cannot be converted,
+  finding codes. The grammar restatements in the vendored file (the narrow-grammar bullets, the
+  eleven-type list, the access-path table) are now pointers; the facts only it stated — columns and
+  the five aggregates in the select list, a literal on every `WHERE` right-hand side, the
+  `FROM`-table-only `WHERE` / `ORDER BY` under a JOIN, `GROUP BY` / `HAVING` rules, literal-only
+  `UPDATE ... SET`, no `OFFSET` — move into `sql-reference.md`, checked against the bundle's 3.19
+  grammar (SQL Limitations grows from 15 to 19). The divergence from upstream is recorded in
+  `PROVENANCE.md` with the re-import rule; `architecture.md` and `/architect:design-sql-migration`
+  name each file's role.
+
 ## [0.46.2] - 2026-10-31
 
 ### Changed
