@@ -5,15 +5,17 @@ inventoried statement moves to ScalarDB — the Markdown views are its projectio
 @rules/sql-migration.md are checked here rather than trusted to prose. Every rule below guards a
 mistake that reads fine: a statement nobody decided, an ERROR statement routed to ScalarDB SQL,
 ScalarDB SQL chosen for an edition without it, dynamic SQL routed on the converter's word for one
-rendering, application-side work that drops the semantics the converter flagged, a key naming a
-column the schema does not have, evidence that no longer exists, a statement called verified with
-nothing to show for it.
+rendering, application-side work that drops the semantics the converter flagged, a statement kept
+on ScalarDB Native JDBC in a shape the driver refuses (`0AN01`) or without the shared connection
+facts the route needs, a key naming a column the schema does not have, evidence that no longer
+exists, a statement called verified with nothing to show for it.
 
 Usage:  python3 tools/lib/sql_migration_manifest.py <project_dir>   (exit 1 on violations)
 """
 
 import json
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -26,18 +28,44 @@ SCHEMA_PATH = os.path.join(BASE, "schema.json")
 TRACEABILITY_PATH = os.path.join("work", "traceability.json")
 LABEL = "sql migration manifest"
 
-ROUTES = ("schema", "scalardb_sql", "core_api", "plan", "app_side", "redesign", "retire")
+ROUTES = ("schema", "scalardb_sql", "core_api", "plan", "app_side", "redesign", "retire", "native_jdbc")
 STATUSES = ("OK", "WARN", "PLANNED", "ERROR")
-CONVERTED = {"schema", "scalardb_sql", "core_api", "app_side", "redesign", "retire"}
+# `native_jdbc` keeps the statement as the source database's own SQL through ScalarDB Native JDBC; the
+# converter's verdict is recorded but does not constrain it, so every status may take it.
+CONVERTED = {"schema", "scalardb_sql", "core_api", "app_side", "redesign", "retire", "native_jdbc"}
 ALLOWED_ROUTES = {"OK": CONVERTED, "WARN": CONVERTED,
-                  "PLANNED": {"plan", "app_side", "redesign", "retire"},
-                  "ERROR": {"app_side", "redesign", "retire"}}
-AUTOMATIC_ROUTES = {"schema", "scalardb_sql", "core_api", "plan"}
-QUERY_ROUTES = {"scalardb_sql", "core_api", "plan"}
-JPQL_ROUTES = {"app_side", "redesign", "retire"}
+                  "PLANNED": {"plan", "app_side", "redesign", "retire", "native_jdbc"},
+                  "ERROR": {"app_side", "redesign", "retire", "native_jdbc"}}
+AUTOMATIC_ROUTES = {"schema", "scalardb_sql", "core_api", "plan", "native_jdbc"}
+QUERY_ROUTES = {"scalardb_sql", "core_api", "plan", "native_jdbc"}
+# The native driver wraps the vendor driver, so an ORM's generated SQL runs through it: JPQL may stay native.
+JPQL_ROUTES = {"app_side", "redesign", "retire", "native_jdbc"}
 EDITIONS = ("community", "enterprise_standard", "enterprise_premium")
 SQL_EDITION = "enterprise_premium"
 STORAGES = ("jdbc", "cassandra")
+NATIVE_JDBC_STORAGE = "jdbc"
+NATIVE_JDBC_ENGINES = ("postgresql", "mysql", "mariadb", "sqlserver", "oracle")
+NATIVE_JDBC_ISOLATION = ("READ_COMMITTED", "SNAPSHOT", "SERIALIZABLE")
+# Statement shapes ScalarDB Native JDBC refuses on a ScalarDB-managed table (SQLState 0AN01), matched on
+# the inventory's masked text. Conservative on purpose: a shape the regex cannot see is the design's to
+# confirm (an UPDATE of a key column, which only `keys[]` can tell).
+_W = r"(?is)"
+NATIVE_JDBC_REFUSED = (
+    ("INSERT ... SELECT", re.compile(_W + r"\bINSERT\s+(?:IGNORE\s+)?INTO\b(?:(?!\bVALUES\b).)*?\bSELECT\b")),
+    ("INSERT IGNORE", re.compile(_W + r"\bINSERT\s+IGNORE\b")),
+    ("MERGE", re.compile(_W + r"^\s*MERGE\b")),
+    ("ON CONFLICT", re.compile(_W + r"\bON\s+CONFLICT\b")),
+    ("ON DUPLICATE KEY UPDATE", re.compile(_W + r"\bON\s+DUPLICATE\s+KEY\b")),
+    ("UPDATE reading another table (FROM / JOIN / subquery)",
+     re.compile(_W + r"^\s*UPDATE\b(?:.*?\b(?:FROM|JOIN)\b|.*?\(\s*SELECT\b)")),
+    ("DELETE reading another table (USING / JOIN / subquery)",
+     re.compile(_W + r"^\s*DELETE\b(?:.*?\b(?:USING|JOIN)\b|.*?\(\s*SELECT\b)")),
+    ("RETURNING on UPDATE / DELETE", re.compile(_W + r"^\s*(?:UPDATE|DELETE)\b.*?\bRETURNING\b")),
+    ("SELECT ... INTO", re.compile(_W + r"^\s*SELECT\b(?:(?!\bFROM\b).)*?\bINTO\b")),
+    ("CREATE TABLE AS SELECT", re.compile(_W + r"\bCREATE\s+(?:\w+\s+)*TABLE\b.*?\bAS\s+SELECT\b")),
+    ("CALL / EXEC", re.compile(_W + r"^\s*(?:CALL|EXEC|EXECUTE)\b|^\s*\{\s*call\b")),
+    ("TRUNCATE", re.compile(_W + r"^\s*TRUNCATE\b")),
+)
 APP_PATTERNS = ("read", "rmw", "conditional_write", "id_generation", "app_clock")
 KEY_SOURCES = ("design-scalardb", "investigation", "source_ddl", "user")
 VERIFICATION_STATUSES = ("pending", "verified", "failed", "skipped")
@@ -66,14 +94,44 @@ def _validate_target(manifest, errors):
     target = manifest.get("target")
     if not isinstance(target, dict):
         errors.append("target: must be an object")
-        return None
+        return None, None
     edition = target.get("edition")
     if edition not in EDITIONS:
         errors.append("target.edition must be one of %s" % "/".join(EDITIONS))
         edition = None
     if target.get("storage") not in STORAGES:
         errors.append("target.storage must be one of %s" % "/".join(STORAGES))
-    return edition
+    return edition, target
+
+
+def _validate_native_jdbc_target(target, errors):
+    """The connection facts every `native_jdbc` statement shares; checked once, when the route is used."""
+    native = target.get("native_jdbc")
+    if not isinstance(native, dict):
+        errors.append("target.native_jdbc is required when a statement takes route native_jdbc "
+                      "(engine, isolation_level, database)")
+        return
+    if target.get("storage") != NATIVE_JDBC_STORAGE:
+        errors.append("route native_jdbc needs target.storage %s — the driver runs on the one relational "
+                      "database ScalarDB manages" % NATIVE_JDBC_STORAGE)
+    engine = native.get("engine")
+    if engine not in NATIVE_JDBC_ENGINES:
+        errors.append("target.native_jdbc.engine must be one of %s" % "/".join(NATIVE_JDBC_ENGINES))
+    isolation = native.get("isolation_level")
+    if isolation not in NATIVE_JDBC_ISOLATION:
+        errors.append("target.native_jdbc.isolation_level must be one of %s — the level every ScalarDB "
+                      "application on the shared tables also uses" % "/".join(NATIVE_JDBC_ISOLATION))
+    elif engine == "oracle" and isolation == "SERIALIZABLE":
+        errors.append("target.native_jdbc: SERIALIZABLE is refused on oracle (0AN01); use SNAPSHOT or READ_COMMITTED")
+    if not _text(native.get("database")):
+        errors.append("target.native_jdbc.database is required — the single database the connection targets")
+
+
+def _refused_native_shape(sql):
+    for label, pattern in NATIVE_JDBC_REFUSED:
+        if pattern.search(sql):
+            return label
+    return None
 
 
 def _validate_route_payload(sid, entry, route, codes, errors):
@@ -102,6 +160,14 @@ def _validate_route_payload(sid, entry, route, codes, errors):
         limit = plan.get("row_limit") if isinstance(plan, dict) else None
         if not isinstance(limit, int) or isinstance(limit, bool) or limit <= 0:
             errors.append("%s: plan.row_limit must be a positive integer" % sid)
+
+
+def _validate_native_jdbc_statement(sid, stmt, errors):
+    sql = stmt.get("sql") if isinstance(stmt.get("sql"), str) else ""
+    shape = _refused_native_shape(sql)
+    if shape:
+        errors.append("%s: statement shape the native driver refuses (0AN01): %s; take app_side or redesign"
+                      % (sid, shape))
 
 
 def _validate_verification(sid, entry, errors):
@@ -177,7 +243,8 @@ def validate_sql_migration_manifest(manifest, project_dir=None, inventory=None, 
     if not isinstance(manifest, dict):
         return ["%s: must be an object" % LABEL]
     errors = []
-    edition = _validate_target(manifest, errors)
+    edition, target = _validate_target(manifest, errors)
+    native_used = False
     inventory_statements = [s for s in _list((inventory or {}).get("statements")) if isinstance(s, dict)] \
         if isinstance(inventory, dict) else None
     by_id = {s.get("id"): s for s in inventory_statements or []}
@@ -237,6 +304,9 @@ def validate_sql_migration_manifest(manifest, project_dir=None, inventory=None, 
                         and _text(confirmation.get("note"))):
                     errors.append("%s: dynamic statement on route %s needs confirmation by the user "
                                   "(which variants were expanded and converted)" % (sid, route))
+            if route == "native_jdbc":
+                native_used = True
+                _validate_native_jdbc_statement(sid, stmt, errors)
             _validate_route_payload(sid, entry, route, codes, errors)
 
         upstream = entry.get("upstream", [])
@@ -252,6 +322,8 @@ def validate_sql_migration_manifest(manifest, project_dir=None, inventory=None, 
         for stmt in inventory_statements:
             if stmt.get("id") not in decided:
                 errors.append("%s: in the inventory but has no decision" % stmt.get("id"))
+    if native_used and target is not None:
+        _validate_native_jdbc_target(target, errors)
     _validate_keys(manifest, schema, errors)
     if project_dir is not None and inventory_statements is not None:
         _validate_evidence(project_dir, inventory_statements, errors)

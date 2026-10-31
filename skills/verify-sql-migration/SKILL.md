@@ -10,6 +10,9 @@ disable-model-invocation: true
 
 # SQL Migration Verification
 
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
 ## Desired Outcome
 
 For every statement of `reports/03_design/sql-migration/sql-migration-manifest.json`, an honest answer to **has this
@@ -21,6 +24,10 @@ route been shown to return what the source database returns?**
   and the migrated route on ScalarDB, with the same data, compared as result sets.
 - **Recorded states** — `verification` in the manifest: `verified` / `failed` with method and evidence, `skipped` with
   the reason; the manifest validator accepts the result.
+- **Native JDBC statements are reported, not run.** Nothing in the generated module executes a `native_jdbc`
+  statement, and `--fetcher` does not apply to it. It stays `pending` unless the user supplies evidence produced
+  against the driver — the application's own test (`method: unit`) or a differential run they made
+  (`method: difftest`) — and the report lists it as unproven otherwise (@rules/sql-migration.md §7).
 - **Report** — `reports/09_verification/sql-migration/verification-report.md` plus one JSON evidence file per run.
 
 This skill opens database connections, so it runs only when explicitly invoked.

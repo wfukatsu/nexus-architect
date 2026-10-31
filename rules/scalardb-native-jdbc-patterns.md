@@ -43,7 +43,10 @@ Decide among the SQL-shaped paths before writing code (`skills/common/references
 | The transaction must span databases or services | Not this driver — @rules/scalardb-2pc-patterns.md |
 
 Record the choice in the transaction design document, including the fact that the application
-and every ScalarDB application sharing the tables **run at the same isolation level** (below).
+and every ScalarDB application sharing the tables **run at the same isolation level** (below). In a SQL
+migration it is the manifest's `native_jdbc` route with `target.native_jdbc` (@rules/sql-migration.md
+§2–§3): `/architect:design-sql-migration --native-jdbc=<engine>` applies it per statement, and the
+validator refuses the shapes listed below.
 
 ## Dependency and URL
 
