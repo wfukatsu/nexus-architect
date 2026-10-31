@@ -7,7 +7,21 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
-## [Unreleased]
+## [0.51.0] - 2026-11-01
+
+### Added
+- **技術レポートは ELI5 の節から始まる。** エンジニア向けのレポート —— 調査、分析、評価、設計、レビュー統合、検証、
+  コスト見積、product パイプラインのデータモデル / ドメインマップ / SLA / NFR / アーキテクチャ、infra の設計と
+  レビュー —— は `## ELI5` の節で始まるようにした。文書が決めたこと・見つけたことの日常的なたとえ 1 段落、
+  「あなたにとっての意味」3〜5 点、「決めてもらうこと」（未決の `OQ-` / `ADR-` / 指摘 ID を列挙）の固定形で、
+  その下の技術的な本文は変えない（次のスキルが読むため）。`work/pipeline-progress.json` の `options.eli5` で
+  `technical`（既定、未設定時も）/ `all` / `off` を選び、`/architect:start` と `/product:start` が出力言語と
+  一緒に尋ね、`init-output` が既定値を書く。どのスキルを技術系とみなすかは `tools/lib/report_audience.py` の
+  1 つのリストで、規則（`rules/eli5-summary.md`）、frontmatter hook、契約テストが同じリストを読む。hook は節の
+  無い技術レポートを拒否し（exit 2 で書き手が追加する）、ADR と `eli5: false` を宣言した文書は対象外。
+  `tools/build-report.py` は各文書の節をエグゼクティブサマリの「やさしい説明（ELI5）の一覧」に集め、文書へ
+  リンクする。infra のテンプレートは節の雛形（`design-doc.md`、`review-report.md`）または opt-out
+  （`env-matrix.md`、`adr.md`）を持つ。
 
 ### Changed
 - **Kubernetes/Terraform バンドルに確認事項を 3 件追加し、うち 2 件は新しい公式出典で裏付けた。**

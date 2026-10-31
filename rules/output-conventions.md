@@ -47,6 +47,14 @@ Reasons:
 - YAML frontmatter: English keys, values in the configured language
 - Mermaid nodes: Wrap non-ASCII text in quotes
 
+## ELI5 Summary
+
+A report written for engineers opens with a plain-language section — `## ELI5` right after the
+title, then the technical body unchanged. Which reports, the shape of the section and how the
+hook enforces it: @rules/eli5-summary.md. Read it before writing any report whose skill is in
+the technical list (`tools/lib/report_audience.py`), or any report at all when
+`options.eli5` is `all`.
+
 ## Document Structure
 
 - Heading levels start at `##` (`#` is reserved for the title)

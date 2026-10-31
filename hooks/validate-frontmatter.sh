@@ -5,6 +5,19 @@
 # In CLI mode (file paths as arguments), failures exit 1.
 # Hook mode acts only inside a pipeline project (see in_pipeline_project below).
 
+# The pipeline project's progress file for a report, or nothing: the nearest
+# work/pipeline-progress.json at or above the file. Hook mode is inert without one (below);
+# CLI mode validates the frontmatter regardless and skips only the ELI5 check.
+progress_file_for() {
+  local dir
+  dir=$(dirname "$1")
+  while [ -n "$dir" ] && [ "$dir" != "/" ] && [ "$dir" != "." ]; do
+    [ -f "$dir/work/pipeline-progress.json" ] && { echo "$dir/work/pipeline-progress.json"; return 0; }
+    dir=$(dirname "$dir")
+  done
+  return 1
+}
+
 validate_file() {
   FILE_PATH="$1"
 
@@ -64,6 +77,38 @@ except yaml.YAMLError as e:
     if [ $? -ne 0 ]; then
       echo "FRONTMATTER VALIDATION ERROR in $FILE_PATH:" >&2
       echo "  $YAML_ERROR" >&2
+      return 1
+    fi
+
+    # A report written for engineers opens with a plain-language section (rules/eli5-summary.md).
+    # Which reports, and whether at all, is options.eli5 of the project's progress file and the
+    # skill list in tools/lib/report_audience.py — the hook decides nothing on its own.
+    PROGRESS_FILE=$(progress_file_for "$FILE_PATH") || return 0
+    ELI5_ERROR=$(python3 - "$FILE_PATH" "$PROGRESS_FILE" "$(dirname "$0")/../tools/lib" <<'PY' 2>&1
+import json, re, sys, yaml
+report, progress_path, lib = sys.argv[1:4]
+sys.path.insert(0, lib)
+import report_audience
+with open(report, encoding="utf-8") as fh:
+    text = fh.read()
+m = re.match(r"^---\n(.*?)\n---\n?(.*)$", text, re.S)   # the frontmatter the checks above accepted
+front = yaml.safe_load(m.group(1)) or {} if m else {}
+body = m.group(2) if m else ""
+try:
+    with open(progress_path, encoding="utf-8") as fh:
+        options = (json.load(fh) or {}).get("options") or {}
+except Exception:
+    options = {}
+if report_audience.eli5_required(front, options) and not report_audience.has_eli5_section(body):
+    print("options.eli5 = %s and skill %s writes a technical report, so the document must open "
+          "with a `## ELI5` section right after its title — see rules/eli5-summary.md"
+          % (report_audience.eli5_mode(options), front.get("skill")))
+    sys.exit(1)
+PY
+)
+    if [ $? -ne 0 ]; then
+      echo "ELI5 ERROR in $FILE_PATH:" >&2
+      echo "  $ELI5_ERROR" >&2
       return 1
     fi
   fi

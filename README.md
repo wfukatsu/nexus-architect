@@ -495,6 +495,16 @@ Output language is configurable per project. Set during `/architect:start` initi
 
 Supported: `en` (English, default), `ja` (Japanese).
 
+## ELI5 Sections
+
+Every report written for engineers — investigation, evaluation, design, review synthesis,
+verification — opens with a plain-language `## ELI5` section: one everyday analogy for what the
+document decides, what it means for the reader, and what they are asked to decide. The technical
+body below it is unchanged. `options.eli5` in `work/pipeline-progress.json` selects `technical`
+(default), `all` or `off`; the frontmatter hook rejects a technical report that lacks the section,
+and the consolidated HTML report gathers every section into its executive summary
+(`rules/eli5-summary.md`).
+
 ### Documentation language policy
 
 All skill instructions (`SKILL.md`), rule files, and embedded prompts are written in **English**; `output_language` applies only to generated report artifacts. User guides under `docs/` are maintained as EN/JA pairs (`getting-started`, `product-input-requirements`, `architect-input-requirements`, `skill-reference`, `scalardb-development`, `database-migration`, `infrastructure`, `ddd-coverage`, `docs-site`, `codex-usage`). Exceptions by design: `docs/design.md` (internal design spec, EN only), `docs/test-suites.md` and `docs/skill-authoring.md` (contributor references for the contract suites and for skill authoring, EN only), `docs/analysis-mechanism_ja.md` (walkthrough of the analysis mechanism, JA only) and the `docs/codex-*` audit records (point-in-time internal audits, JA only). `CHANGELOG.md` and `CHANGELOG_ja.md` carry the same versions and the same section headings, which stay in English in both (`Added`, `Changed`, `Fixed`, …, as Keep a Changelog names them); the Japanese entries are written in the plain だ・である style.

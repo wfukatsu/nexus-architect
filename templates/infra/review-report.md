@@ -30,6 +30,12 @@ input_files:
 <!-- Round 2 and later: open with a reconciliation against the previous round's findings —
      resolved / still open / new — before anything else. -->
 
+## ELI5 — the short version
+
+<!-- Required when options.eli5 is `technical` (the default) — @rules/eli5-summary.md §3:
+     what the review found in everyday words, what it means for the reader, and which findings
+     need their decision. -->
+
 ## Overall assessment
 
 (Three to five lines. What is good, and what is most at risk. Verdict: pass / pass with

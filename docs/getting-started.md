@@ -285,6 +285,11 @@ Set it once per project instead in `work/pipeline-progress.json`
 
 Unset means interactive runs ask and `--auto` runs adopt.
 
+The same initialization asks which reports open with a plain-language **ELI5 section** —
+`options.eli5`: `technical` (the reports written for engineers; the default, also when unset),
+`all` or `off`. The frontmatter hook enforces it and the consolidated report gathers every
+section into its executive summary (`rules/eli5-summary.md`).
+
 ## Checking Output
 
 All outputs are generated in the following directories:

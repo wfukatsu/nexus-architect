@@ -11,6 +11,7 @@ product プラグインのインプットは [product-input-requirements_ja.md](
 - **ギャップ駆動の対話（gap-driven elicitation）**：提供資料を先に読み込み、資料で埋まらない項目だけを質問します。資料が充実しているほど対話は短くなります。
 - **2つの実行モード**：対話モード（既定）と `--auto`（対話をスキップし入力資料・既存成果物のみから生成。質問しないため、不明点は `unasked` 状態の `TBD` として記録され、質問文と提示されたはずの選択肢が残るので、後から対話的に回答できます）。`--auto` は入力が1つも無いとエラーになります。
 - **出力言語**：`work/pipeline-progress.json` の `options.output_language`（`en` 既定 / `ja`）で切替。入力そのものの言語は自由（日本語資料でも可）。
+- **ELI5 の節**：技術レポートは平易な `## ELI5` の節で始まる（`rules/eli5-summary.md`）。`options.eli5` で `technical`（既定）/ `all` / `off` を選び、初期化時に出力言語と一緒に尋ねられる。
 
 ## 目的とエントリーポイント
 

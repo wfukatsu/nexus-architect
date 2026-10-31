@@ -91,6 +91,9 @@ import os
 import re
 import sys
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
+import report_audience  # noqa: E402 — tools/lib, beside this script
+
 try:
     import markdown
 except ImportError:  # pragma: no cover - environment guard
@@ -203,6 +206,8 @@ UI = {
         "重大度内訳: 致命 %(critical)s／重大 %(major)s／軽微 %(minor)s／情報 %(info)s。",
     ),
     "h_open_questions": ("Open Questions", "未決事項（Open Questions）サマリ"),
+    "h_eli5_digest": ("ELI5 digest — each document in plain words",
+                      "やさしい説明（ELI5）の一覧 — 各文書の要点"),
     "col_status": ("Status", "状態"),
     "col_count": ("Count", "件数"),
     "oq_note": (
@@ -659,10 +664,16 @@ class ReportBuilder:
         # lists them, the architect summary ignores them.
         hits = TBD_PATTERN.findall(re.sub(r"`[^`\n]*`", "", body_protected))
         tbd_asm = sum(1 for kind, _ in hits if kind)
+        # The plain-language section (rules/eli5-summary.md), kept for the executive summary's
+        # digest; a document without one contributes nothing there.
+        eli5_md = report_audience.extract_eli5(body)
+        eli5_html = (markdown.markdown(rewrite_links(eli5_md), extensions=MD_EXTENSIONS,
+                                       output_format="html5") if eli5_md else "")
         self.articles.append({
             "id": stem, "title": title, "relpath": relpath,
             "tbd": len(hits) - tbd_asm, "tbd_assumption": tbd_asm,
             "oq_refs": sorted({oq for _, oq in hits if oq}),
+            "eli5_html": eli5_html,
         })
 
         article = (
@@ -936,6 +947,19 @@ class ReportBuilder:
             counts[row["status"]] = counts.get(row["status"], 0) + 1
         return counts
 
+    def eli5_digest(self):
+        """Every article's ELI5 section, in document order, each linked to its article —
+        or an empty string when no document carries one (the heading is omitted too)."""
+        entries = [a for a in self.articles if a.get("eli5_html")]
+        if not entries:
+            return ""
+        items = "".join(
+            '<div class="eli5-entry"><h4><a href="#%s">%s</a></h4>%s</div>'
+            % (html.escape(a["id"], quote=True), html.escape(a["title"]), a["eli5_html"])
+            for a in entries)
+        return '<h3>%s</h3><div class="eli5-digest">%s</div>' % (
+            html.escape(self.t("h_eli5_digest")), items)
+
     def summary_section(self, progress, synthesis, oq_counts):
         options = progress.get("options", {}) or {}
         lede = self.t("summary_lede") % {
@@ -952,9 +976,9 @@ class ReportBuilder:
                 "<h2>%s</h2>"
                 '<div class="verdict-banner warn"><div class="verdict-label">%s</div>'
                 '<div class="verdict-value">—</div></div>'
-                '<p class="lede">%s</p><p class="note">%s</p></section>'
+                '<p class="lede">%s</p><p class="note">%s</p>%s</section>'
                 % (html.escape(self.t("sec_summary")), html.escape(self.t("verdict_label")),
-                   lede, self.t("review_not_run")))
+                   lede, self.t("review_not_run"), self.eli5_digest()))
 
         verdict = synthesis.get("verdict", "?")
         agg = synthesis.get("aggregate_score")
@@ -1037,6 +1061,7 @@ class ReportBuilder:
   <table class="score-table"><thead><tr><th>{html.escape(self.t('col_status'))}</th>
   <th>{html.escape(self.t('col_count'))}</th></tr></thead><tbody>{oq_rows}</tbody></table>
   <p class="note">{oq_note}</p>
+  {self.eli5_digest()}
 </section>
 """.strip()
 
@@ -1478,11 +1503,12 @@ class ProductReportBuilder(ReportBuilder):
             '<p class="lede">%s</p>'
             "<h3>%s</h3>%s"
             "<h3>%s</h3>%s"
-            "<h3>%s</h3>%s</section>"
+            "<h3>%s</h3>%s%s</section>"
             % (html.escape(self.t("sec_summary_product")), banner, gate_note, lede,
                html.escape(self.t("h_open_assumptions")), "".join(assumptions_html),
                html.escape(self.t("h_tbd")), self.tbd_table(),
-               html.escape(self.t("h_oq_by_status")), self.oq_tables(self.open_question_rows())))
+               html.escape(self.t("h_oq_by_status")), self.oq_tables(self.open_question_rows()),
+               self.eli5_digest()))
 
 
 BUILDERS = {"architect": ReportBuilder, "product": ProductReportBuilder}

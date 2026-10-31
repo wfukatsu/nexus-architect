@@ -58,7 +58,9 @@ chose during the product run.
    - `options` — keep every value already set, in particular `output_language`, which the
      product run may have asked the user for. Fill in only what is missing: `output_language`
      defaults to `"en"`, `confirm_versions` to `true` (whether codegen skills confirm resolved
-     dependency versions with the user — see @rules/dependency-versions.md).
+     dependency versions with the user — see @rules/dependency-versions.md), `eli5` to
+     `"technical"` (which reports open with the plain-language section of
+     @rules/eli5-summary.md).
    - **Colliding phase names.** Four names are defined by *both* manifests — `map-domains`,
      `design-api`, `create-domain-story`, `report` — and the registry keys phases by bare
      name, so an existing entry under one of them may describe the **product** phase rather

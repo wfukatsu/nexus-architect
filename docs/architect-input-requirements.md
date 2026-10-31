@@ -11,6 +11,7 @@ For the product plugin, see [product-input-requirements.md](product-input-requir
 - **Gap-driven elicitation.** Provided materials are read first; only items the materials do not answer are asked. The richer your inputs, the shorter the dialogue.
 - **Two execution modes.** Interactive (default) and `--auto` (skips elicitation, generates from input documents and existing artifacts only; nothing is asked, so unknowns become `TBD` recorded as `unasked` — carrying the question and the options that would have been offered, so a later interactive pass can answer them). `--auto` errors out if there are no inputs at all.
 - **Output language.** Switched via `options.output_language` in `work/pipeline-progress.json` (`en` default / `ja`). The input material itself can be in any language (Japanese sources are fine).
+- **ELI5 section.** Every technical report opens with a plain-language `## ELI5` section (`rules/eli5-summary.md`); `options.eli5` selects `technical` (default) / `all` / `off`, asked at initialization with the output language.
 
 ## Purpose and Entry Points
 

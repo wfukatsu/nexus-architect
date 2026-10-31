@@ -134,6 +134,55 @@ with tempfile.TemporaryDirectory() as tmp:
               "tool_input": {"file_path": "reports/deep/bad.md"},
               "cwd": os.path.join(tmp, "other")}).returncode == 0)
 
+    # The ELI5 section (rules/eli5-summary.md): required on a technical skill's report under the
+    # default mode, switched by options.eli5, never on an ADR (no skill key) or an `eli5: false`.
+    e5 = os.path.join(tmp, "eli5")
+    os.makedirs(os.path.join(e5, "reports", "03_design"))
+    os.makedirs(os.path.join(e5, "work"))
+
+    def progress(options):
+        with open(os.path.join(e5, "work", "pipeline-progress.json"), "w") as fh:
+            json.dump({"phases": {}, "options": options}, fh)
+
+    def report(name, skill, section, extra=""):
+        path = os.path.join(e5, "reports", "03_design", name)
+        front = ('title: "T"\nschema_version: 1\n' + ("skill: %s\n" % skill if skill else "")
+                 + extra)
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write("---\n%s---\n\n# T\n\n%s## Body\n\ntext\n"
+                     % (front, "## ELI5 — the short version\n\nPlain words.\n\n" if section else ""))
+        return path
+
+    def hook(path, tid):
+        return fire("validate-frontmatter.sh", tid, extra={
+            "tool_input": {"file_path": path}, "cwd": e5}).returncode
+
+    def cli(path):
+        return subprocess.run(["bash", os.path.join(HERE, "validate-frontmatter.sh"), path],
+                              capture_output=True, text=True)
+
+    progress({})
+    missing = report("a.md", "design-scalardb", False)
+    r = cli(missing)
+    check("default mode: a technical report without `## ELI5` is rejected (hook)",
+          hook(missing, "toolu_E1") == 2)
+    check("... and on the command line, naming the rule",
+          r.returncode == 1 and "rules/eli5-summary.md" in r.stderr, r.stderr)
+    check("... with the section it passes", hook(report("b.md", "design-scalardb", True), "toolu_E2") == 0)
+    check("a report of a non-technical skill needs no section",
+          hook(report("c.md", "report", False), "toolu_E3") == 0)
+    check("an ADR (frontmatter with decided_at) is not checked",
+          hook(report("d.md", "redesign", False, "decided_at: 2026-01-01\n"), "toolu_E4") == 0)
+    check("`eli5: false` opts a document out",
+          hook(report("e.md", "infra-design", False, "eli5: false\n"), "toolu_E5") == 0)
+    progress({"eli5": "off"})
+    check("options.eli5 = off checks nothing", hook(missing, "toolu_E6") == 0)
+    progress({"eli5": "all"})
+    check("options.eli5 = all requires the section of every report",
+          hook(report("f.md", "report", False), "toolu_E7") == 2)
+    check("the frontmatter itself is still validated first",
+          cli(bad).returncode == 1)
+
     blocked = os.path.join(tmp, "blocked")
     with open(blocked, "w") as fh:          # a file where the directory would go: mkdir -p fails
         fh.write("")
