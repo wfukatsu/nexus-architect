@@ -1,6 +1,14 @@
 # Codex で Nexus Architect を使う
 
-Nexus Architect は引き続き Claude Code plugin として利用できます。同時に、リポジトリ直下の `AGENTS.md` により Codex からも利用できます。
+Nexus Architect は引き続き Claude Code plugin として利用できます。同時に、リポジトリ直下の `AGENTS.md` により Codex からも利用できます。`AGENTS.md` はすべてのランタイムに共通する唯一の入口文書で、その § Runtimes 節に Codex 向けの読み替え規則があります。
+
+### 指示ファイルのサイズ
+
+Codex は `AGENTS.md` を `project_doc_max_bytes`（既定 32 KiB）までしか読まず、それを超えた部分は警告なしに切り捨てます。このリポジトリは `AGENTS.md` を 32 KiB 未満に保っている（超えると `tools/docs_consistency.test.py` が失敗する）ため、既定値のままで足ります。リポジトリより上の階層に自分の大きな指示ファイルを置いている場合は、`~/.codex/config.toml` で上限を引き上げてください:
+
+```toml
+project_doc_max_bytes = 65536
+```
 
 ## セットアップ
 
@@ -22,7 +30,7 @@ npm install -g @mermaid-js/mermaid-cli
 
 Claude Code では `/product:start`、`/architect:start`、`/scalardb:model` のような slash command が使えます。
 
-Codex では同じコマンド文字列をチャットで依頼してください。Codex は `AGENTS.md` のルールに従って対応する `SKILL.md` を読みます。
+Codex では同じコマンド文字列をチャットで依頼してください。Codex は `AGENTS.md` § Runtimes の規則に従って対応する `SKILL.md` を読みます。
 
 - `/product:start` -> `skills/product/start/SKILL.md`（product スキルは `skills/product/` 配下にネストされています）
 - `/architect:start ./path/to/project` -> `skills/start/SKILL.md`
@@ -92,3 +100,5 @@ claude plugin install scalardb@nexus-architect --scope user
 ```
 
 インストール後は、`README.md` に記載された `/product:*`、`/architect:*`、`/scalardb:*` のコマンドを利用できます。
+
+Claude Code も同じ `AGENTS.md` を読みます。v2.1.277 以降は直接読み、それ以前の版でも、リポジトリの `CLAUDE.md` の中身である `@AGENTS.md` の import を通じて読みます。**Project instructions** の設定がどれであっても、import した `AGENTS.md` を二重に読み込むことはありません。

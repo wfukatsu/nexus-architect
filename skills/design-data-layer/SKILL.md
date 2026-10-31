@@ -37,7 +37,7 @@ Generic data layer design for projects not using ScalarDB:
 |------|---------|
 | `reports/03_design/data-layer-design.md` | DB design, transaction management, migration, the Read Model / CQRS / Event Sourcing decision per aggregate |
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 
 ## Architecture Decision Records
 

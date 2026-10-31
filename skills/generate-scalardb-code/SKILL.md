@@ -169,7 +169,7 @@ production backend's own suite (when the project has one) as the CI integration 
 
 ## Output
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 
 | File | Content |
 |------|---------|

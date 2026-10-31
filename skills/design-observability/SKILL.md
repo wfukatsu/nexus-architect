@@ -25,7 +25,7 @@ plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Rea
 
 ## Output
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 
 | File | Content |
 |------|---------|

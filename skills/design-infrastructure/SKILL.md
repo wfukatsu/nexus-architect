@@ -35,7 +35,7 @@ is published). State the version *and* its support horizon in the design, so
 
 ## Output
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 
 | File | Content |
 |------|---------|

@@ -9,6 +9,9 @@ model: haiku
 
 **Usage:** `/architect:render-mermaid [target_path]`
 
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
 ## Desired Outcome
 
 Convert Mermaid diagrams in the specified Markdown file or directory to images.
@@ -28,6 +31,6 @@ Automatically fix any syntax errors found.
 
 ## Output
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 
 Rendered output is placed in the same directory as the source file.

@@ -177,5 +177,5 @@ rerun may assume — so neither side owns the file.
 
 Codex and the omnigent loader have no `AskUserQuestion` tool. They present the identical content as
 a numbered list, followed by an explicit "or type your own answer" line, and wait for the reply — a
-typed answer matching no number is a free-text answer and is recorded per §4. See `AGENTS.md` and
-`OMNIGENT.md`.
+typed answer matching no number is a free-text answer and is recorded per §4. See `AGENTS.md`
+§ Runtimes.

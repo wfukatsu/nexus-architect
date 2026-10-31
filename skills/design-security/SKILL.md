@@ -77,7 +77,7 @@ against rather than a blank page. Detail in @rules/api-security-checks.md.
 
 ## Output
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 
 | File | Content |
 |------|---------|

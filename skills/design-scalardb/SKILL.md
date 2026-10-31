@@ -113,7 +113,7 @@ Edition comparison and version support: @rules/scalardb-edition-profiles.md
 | `reports/03_design/scalardb-transaction.md` | Transaction boundaries, pattern selection |
 | `reports/03_design/scalardb-migration.md` | Data migration plan |
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 
 Before marking the phase complete, run the cross-reference lint and fix its findings — it catches
 table-count drift and namespace-name variants at the source:

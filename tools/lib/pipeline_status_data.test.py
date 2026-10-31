@@ -199,7 +199,7 @@ def check_real_manifests():
           <= set(architect["skills"]), architect["skills"])
 
 
-# The manual extension tier as CLAUDE.md and README describe it. The dashboard claims to
+# The manual extension tier as AGENTS.md and README describe it. The dashboard claims to
 # cover the tier, so a skill added there must be added here too — that is what this pins.
 DOC_EXTENSION_TIER = [
     "investigate-security", "select-scalardb-edition", "design-scalardb-analytics",

@@ -3,7 +3,7 @@
 **Status: legacy / superseded.** These numbered workflow documents predate the
 skills system. The current representation of the greenfield and legacy sequences
 is the skill dependency manifest (`skills/common/skill-dependencies.yaml`) plus
-the per-skill `SKILL.md` files — see `CLAUDE.md` for the command reference.
+the per-skill `SKILL.md` files — see `AGENTS.md` for the command reference.
 
 The one file still referenced by an active skill is
 `greenfield/01_requirements_analysis.md`, which

@@ -1,6 +1,6 @@
 # Nexus Architect
 
-System architecture toolkit for Claude Code and Codex. Claude Code uses this repository as four plugins with 117 skills; Codex uses the same skill files through `AGENTS.md` compatibility rules.
+System architecture toolkit for Claude Code, Codex and Omnigent. Claude Code uses this repository as four plugins with 117 skills; Codex and Omnigent use the same skill files. One entry document, `AGENTS.md`, serves all three runtimes (`CLAUDE.md` is a stub that imports it).
 
 - **product** (28 skills) — Product direction: validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
 - **architect** (69 skills) — Legacy refactoring, greenfield design, database investigation and migration, consulting deliverables
@@ -85,7 +85,7 @@ cd nexus-architect
 pip install -r requirements.txt
 ```
 
-Open Codex at the repository root. `AGENTS.md` tells Codex how to translate Claude Code conventions:
+Open Codex at the repository root. `AGENTS.md` § Runtimes tells Codex how to translate Claude Code conventions (Codex reads the file whole only up to its `project_doc_max_bytes`, 32 KiB by default; the file is kept under that, see [Codex Usage](docs/codex-usage.md)):
 
 - `/product:<name>` -> `skills/product/<name>/SKILL.md` (product skills are nested under `skills/product/`)
 - `/architect:<name>` -> `skills/<name>/SKILL.md`
@@ -123,7 +123,7 @@ hooks/validate-frontmatter.sh reports/before/example/technology-stack.md
 hooks/validate-mermaid.sh reports/before/example/codebase-structure.md
 ```
 
-Claude Code continues to use the plugin metadata and slash commands unchanged. See [Using Nexus Architect with Codex](docs/codex-usage.md) for the full Codex guide.
+Claude Code continues to use the plugin metadata and slash commands unchanged, and reads the same `AGENTS.md` through the `@AGENTS.md` import in `CLAUDE.md`. See [Using Nexus Architect with Codex](docs/codex-usage.md) for the full Codex guide.
 
 ## Quick Start
 
@@ -495,7 +495,7 @@ Supported: `en` (English, default), `ja` (Japanese).
 
 ### Documentation language policy
 
-All skill instructions (`SKILL.md`), rule files, and embedded prompts are written in **English**; `output_language` applies only to generated report artifacts. User guides under `docs/` are maintained as EN/JA pairs (`getting-started`, `product-input-requirements`, `architect-input-requirements`, `skill-reference`, `scalardb-development`, `database-migration`, `infrastructure`, `ddd-coverage`, `docs-site`, `codex-usage`). Exceptions by design: `docs/design.md` (internal design spec, EN only), `docs/test-suites.md` (contributor reference for the contract suites, EN only), `docs/analysis-mechanism_ja.md` (walkthrough of the analysis mechanism, JA only) and the `docs/codex-*` audit records (point-in-time internal audits, JA only). `CHANGELOG.md` and `CHANGELOG_ja.md` carry the same versions and the same section headings, which stay in English in both (`Added`, `Changed`, `Fixed`, …, as Keep a Changelog names them); the Japanese entries are written in the plain だ・である style.
+All skill instructions (`SKILL.md`), rule files, and embedded prompts are written in **English**; `output_language` applies only to generated report artifacts. User guides under `docs/` are maintained as EN/JA pairs (`getting-started`, `product-input-requirements`, `architect-input-requirements`, `skill-reference`, `scalardb-development`, `database-migration`, `infrastructure`, `ddd-coverage`, `docs-site`, `codex-usage`). Exceptions by design: `docs/design.md` (internal design spec, EN only), `docs/test-suites.md` and `docs/skill-authoring.md` (contributor references for the contract suites and for skill authoring, EN only), `docs/analysis-mechanism_ja.md` (walkthrough of the analysis mechanism, JA only) and the `docs/codex-*` audit records (point-in-time internal audits, JA only). `CHANGELOG.md` and `CHANGELOG_ja.md` carry the same versions and the same section headings, which stay in English in both (`Added`, `Changed`, `Fixed`, …, as Keep a Changelog names them); the Japanese entries are written in the plain だ・である style.
 
 ## Output Structure
 
@@ -533,6 +533,7 @@ work/             # Pipeline state and intermediate files
 | [Report Documentation Site](docs/docs-site.md) | Browsing a project's `reports/` as a local site |
 | [Database Migration](docs/database-migration.md) | Migration guide (Oracle/MySQL/PostgreSQL) |
 | [Codex Usage](docs/codex-usage.md) | Using the same skills from Codex |
+| [Skill Authoring](docs/skill-authoring.md) | Writing and changing skills: frontmatter, size, hooks, where `model` takes effect — the measurements behind `AGENTS.md` |
 | [Changelog](CHANGELOG.md) | Release notes and version history |
 
 Japanese translations:

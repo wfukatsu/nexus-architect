@@ -89,7 +89,7 @@ target architecture — whichever runs second completes the catalog.
 5. `work/pipeline-progress.json` stamped — `in_progress` with `plugin: "architect"` before the work,
    `completed` with `outputs` and `summary` after (@skills/common/progress-registry.md)
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 
 ## Architecture Decision Records
 

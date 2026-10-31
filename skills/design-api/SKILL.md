@@ -151,7 +151,7 @@ defects that surface much later and much more expensively.
 `operation-contracts.md` is what `generate-api-code` and `verify-implementation` join against; it is
 the human-readable half of the contract map they later produce (@rules/api-contract-fidelity.md §4).
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 Specification files themselves — schema names, `operationId`s, enum values — stay in English regardless.
 
 Run the following before completion, substituting the configured `en` or `ja`. The validator is
