@@ -28,7 +28,9 @@ evidence when a finding depends on documented behavior.
 - Whether a PostgreSQL wire protocol or Native JDBC access path relies on semantics it does not
   provide (enforced constraints, locks) or on a mismatched isolation level
 - Detection of transactions spanning 4+ services
-- Application points for ScalarDB Saga, and whether compensations are defined and idempotent
+- Application points for ScalarDB Saga, whether compensations are defined and idempotent, and
+  whether every external participant's readiness (idempotency, duplicate response, compensation
+  deadline, outcome query) is assessed with a disposition per gap
 
 ### 2. OCC Contention Analysis (weight: 0.35)
 - Identification of write hotspots
@@ -97,6 +99,10 @@ Evaluate ONLY the Cross-Service Transaction Mechanism dimension:
 - Are hand-written 2PC transactions contained within 2-3 services maximum?
 - Are there transactions spanning 4+ services that should use Saga instead?
 - Where Saga is used, is a compensation defined for every step, and are the steps idempotent?
+- Where a saga step calls an external API, does the Participant Readiness table state the provider's
+  idempotency mechanism, duplicate response, compensation deadline against the saga horizon, outcome
+  query and evidence URL, and does every gap carry a disposition? (An unassessed external participant
+  is a blocker — @rules/scalardb-saga-patterns.md § External Participants)
 - Where the PostgreSQL wire protocol or a standalone frontend is an access path, does any invariant
   rely on `UNIQUE` / `CHECK` / `REFERENCES` being enforced, or on `FOR UPDATE` locking? (It is not —
   @rules/scalardb-postgres-frontend-patterns.md)

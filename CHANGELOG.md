@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.50.0] - 2026-10-31
+
+### Added
+- **Saga participant readiness assessment.** ScalarDB Saga's requirements — idempotent steps, a
+  compensation per step, compensations that eventually succeed — were imposed on every step as if the
+  project wrote every participant; for an external API they are facts to establish first.
+  `rules/scalardb-saga-patterns.md` § External Participants defines the assessment: one row per step and
+  participant with the provider's idempotency mechanism, duplicate response, compensating operation and
+  its deadline against the saga horizon, outcome query, TCC decomposition, rate limits and the evidence
+  URL, and exactly one disposition per gap — `idempotency_layer` (a request ledger keyed by
+  `X-Saga-Id` + `X-Saga-Step`, written in the business transaction), `query_before_retry`,
+  `pivot_or_exclude`, `accept_risk` (an ADR). `/architect:define-requirements` collects the facts per
+  Saga candidate (step 5a, criterion 2a of the decision tree; `unknown` becomes an `OQ-` for the
+  integration owner), `/architect:design-scalardb` writes the table as item 0 of a now six-point saga
+  checklist (template: `reference/saga-participant-readiness.md`), `review-risk` and `review-scalardb`
+  treat an unassessed external participant as a Critical / blocker finding, `verify-implementation`
+  checks the ledger and the query the disposition promised, and `/product:design-architecture` returns
+  Conditional instead of Adopt while an external participant is unassessed. The greenfield workflow's
+  transaction design gains step 5.3.0 and two checklist items; `docs/ddd-coverage` names the assessment.
+
 ## [0.49.0] - 2026-10-31
 
 ### Added

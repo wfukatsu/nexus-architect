@@ -197,6 +197,24 @@ Client overall timeout > Coordinator timeout > Sum of individual RPC timeouts
 
 ### Step 5.3: Saga Pattern Detailed Design (If Needed)
 
+#### 5.3.0 Participant Readiness
+
+Before pairing operations with compensations, establish what each participant can do — for an
+external API, from its documentation (`rules/scalardb-saga-patterns.md` § External Participants;
+template: `skills/design-scalardb/reference/saga-participant-readiness.md`). The saga horizon is the
+longest run to a terminal state, retries and escalation grace included.
+
+| Step | Participant | Idempotency mechanism | Duplicate response | Compensation (deadline) | Outcome query | TCC decomposition | Rate limit / latency | Evidence | Disposition |
+|------|-------------|-----------------------|--------------------|-------------------------|---------------|-------------------|----------------------|----------|-------------|
+| 1 | own: Order | key_header:Idempotency-Key | same_result | exists:cancel (none) | get | reserve/confirm/cancel | — | api-specifications/order.yaml | — |
+| 2 | own: Inventory | key_header:Idempotency-Key | same_result | exists:release (none) | get | reserve/confirm/cancel | — | api-specifications/inventory.yaml | — |
+| 3 | external: Payment provider vN | key_header:… (24 h) | same_result | exists:refund (30 days) | get:/payments/{id} | authorize/capture/void | 50 rps | <provider URL> | — |
+| 4 | external: Carrier vN | none | new_effect | exists:cancel (until pickup) | get:/shipments?ref= | not_possible | 10 rps | <provider URL> | idempotency_layer + query_before_retry |
+
+A gap without a disposition is a design defect; an `unknown` cell is an open question owned by the
+integration owner. A step that cannot be compensated within the horizon is the pivot or leaves the
+saga (`pivot_or_exclude`); a risk the business accepts is an ADR (`accept_risk`).
+
 #### 5.3.1 Compensating Transaction Design
 
 Define the normal operation and compensating operation as a pair for each Saga step.
@@ -472,6 +490,8 @@ When using ScalarDB 3.17's Transaction Metadata Decoupling, metadata is separate
 
 ### Saga Design (If Applicable)
 
+- [ ] Every participant is assessed (5.3.0): external APIs with documented idempotency mechanism, duplicate response, compensation deadline vs. the saga horizon, outcome query and evidence URL
+- [ ] Every readiness gap carries one disposition (`idempotency_layer` / `query_before_retry` / `pivot_or_exclude` / `accept_risk`); `unknown` cells are open questions with an owner
 - [ ] Normal operations and compensating operations are defined as pairs for all Saga steps
 - [ ] Idempotency of compensating operations is guaranteed
 - [ ] Rationale for Choreography/Orchestration selection is recorded

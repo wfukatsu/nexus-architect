@@ -68,7 +68,7 @@
 | 状態 × イベント行列 | ◎ | `/architect:design-state-machine` | 全セル決定済み。`tools/lib/state_machine_manifest.py` が検証 |
 | 並行・競合設計 | ◎ | `/architect:design-state-machine` | 競合表 |
 | Local / Distributed / Saga 分類 | ◎ | `/architect:design-aggregate`, `/architect:design-state-machine`, `/architect:design-scalardb` | コマンド / 遷移ごと。`reports/03_design/scalardb-transaction.md` |
-| Saga / 補償 | ◎ | `/architect:design-scalardb` | `scalardb-transaction.md` の Saga 設計チェックリスト |
+| Saga / 補償 | ◎ | `/architect:define-requirements`, `/architect:design-scalardb` | `scalardb-transaction.md` の参加者適性表（外部 API の冪等性・重複時の応答・補償の期限・結果照会、ギャップごとの処置）と 6 項目の Saga 設計チェックリスト |
 | CQRS / リードモデル | ◎ | `/architect:design-scalardb`, `/architect:design-data-layer` | Read Model, CQRS and Event Sourcing Decisions 節 |
 | イベントソーシング | ◎ | `/architect:design-scalardb`, `/architect:design-data-layer` | 同節。`rules/scalardb-schema-design.md` の Event Store パターン |
 

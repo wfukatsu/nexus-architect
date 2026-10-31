@@ -139,6 +139,7 @@ assessment is per business process, not per system.
 |---|-----------|--------|-------|
 | 1 | Does the process require immediate consistency, or is eventual consistency acceptable? | | |
 | 2 | If eventual: is a compensation definable and business-acceptable for every step? (ScalarDB Saga candidacy) | | |
+| 2a | If eventual: does every **external** participant document an idempotency mechanism, a compensating operation whose deadline covers the saga's horizon, and a way to query a timed-out call's outcome? Record the facts and the evidence URL per participant; `unknown` is an open question for the integration owner, and the design phase assigns a disposition to every gap (`rules/scalardb-saga-patterns.md` § External Participants) | | |
 | 3 | Are multiple types of DBs in use? | | |
 | 4 | Does it include NoSQL (Cassandra, DynamoDB, etc.)? | | |
 | 5 | Can XA transactions handle this? (Detailed assessment in Step 1.5) | | |

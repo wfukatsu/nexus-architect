@@ -33,7 +33,10 @@ Produce two deliverables:
    ScalarDB Saga (3.20 GA, Apache-2.0) is triggered by a `CTX-`-spanning process whose consistency
    requirement is eventual, or a step that calls an external system — not by ScalarDB adoption on
    its own. Strong-consistency processes across contexts stay on ScalarDB's one-phase Microservice
-   Transaction API; the 2PC interface is deprecated.
+   Transaction API; the 2PC interface is deprecated. A Saga verdict is **Conditional**, not Adopt,
+   while a triggering step calls an external API whose idempotency, duplicate behaviour, compensation
+   deadline and outcome query are unassessed — name the assessment as the condition
+   (@rules/product/architecture-and-tech-fitness.md).
 
 ## Invocation
 

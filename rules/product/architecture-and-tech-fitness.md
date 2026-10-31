@@ -86,6 +86,12 @@ The standing checklist (assess all five every run):
   Maps to a **saga orchestration component** beside the Process API layer.
 - **Reject-when**: every cross-context invariant needs strong consistency (use ScalarDB transactions);
   no step has a meaningful compensation; the process is single-context.
+- **Conditional-when**: a triggering process has a step on an **external API** whose readiness is not
+  yet established — idempotency mechanism, what a duplicate request does, a compensating operation
+  and its deadline, a way to query a timed-out call's outcome. The condition names that assessment
+  (`rules/scalardb-saga-patterns.md` § External Participants), which `/architect:define-requirements`
+  collects and `/architect:design-scalardb` decides; a provider with no idempotency key and no
+  compensation can still be a saga step, but only with a disposition the architect records.
 - **Note**: not implied by a ScalarDB Adopt. The two answer different questions — ScalarDB for
   immediate consistency across databases, ScalarDB Saga for compensation-based convergence across
   services. A system commonly adopts both, for different processes.
