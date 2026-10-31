@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.46.1] - 2026-10-31
+
+### Changed
+- **`/architect:design-aggregate` is under the 500-line ceiling (579 → 318 lines), and the
+  ceiling has no exemption left.** The three shapes that only Stage 6 and auto-mode step 5 use —
+  the aggregate manifest with the field contracts `tools/lib/aggregate_manifest.py` enforces, the
+  Domain Event Catalog with its contracts and the `.md` projection's frontmatter, and the
+  per-aggregate document template — are `skills/design-aggregate/reference/` files those steps
+  name. The body keeps what a reference file must not hide: the six stages, the seven
+  well-formedness checks, and the judgment rules the validators cannot decide (a consumer is an
+  asynchronous subscriber, orphan events are listed rather than dropped, the idempotency key is
+  unique per event type and its value is the catalog's while the dedup rule is `design-api`'s).
+  `tools/docs_consistency.test.py` drops the by-name exemption; `docs/skill-authoring.md` records
+  the split as the pattern to follow.
+
 ## [0.46.0] - 2026-10-31
 
 ### Changed
