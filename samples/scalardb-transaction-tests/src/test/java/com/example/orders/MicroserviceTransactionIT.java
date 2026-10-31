@@ -15,7 +15,6 @@ import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
 import com.scalar.db.exception.transaction.CommitConflictException;
 import com.scalar.db.exception.transaction.CrudException;
-import com.scalar.db.io.Key;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -64,30 +63,21 @@ class MicroserviceTransactionIT {
     }
 
     private static Put orderPut(String id, String status) {
-        return Put.newBuilder().namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.ORDERS)
-                .partitionKey(Key.ofText("tenant_id", TENANT))
-                .clusteringKey(Key.ofText("order_id", id))
+        return Rows.order(TENANT, id)
                 .textValue("customer_id", "alice").textValue("status", status)
                 .intValue("total_amount", 100).build();
     }
 
     private static Get orderGet(String id) {
-        return Get.newBuilder().namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.ORDERS)
-                .partitionKey(Key.ofText("tenant_id", TENANT))
-                .clusteringKey(Key.ofText("order_id", id)).build();
+        return Rows.orderGet(TENANT, id);
     }
 
     private static Put stockPut(String product, int available, int reserved) {
-        return Put.newBuilder().namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.INVENTORY)
-                .partitionKey(Key.ofText("tenant_id", TENANT))
-                .clusteringKey(Key.ofText("product_id", product))
-                .intValue("available", available).intValue("reserved", reserved).build();
+        return Rows.stockPut(TENANT, product, available, reserved);
     }
 
     private static Get stockGet(String product) {
-        return Get.newBuilder().namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.INVENTORY)
-                .partitionKey(Key.ofText("tenant_id", TENANT))
-                .clusteringKey(Key.ofText("product_id", product)).build();
+        return Rows.stockGet(TENANT, product);
     }
 
     private static void seedStock(String product, int available) throws Exception {
@@ -97,10 +87,7 @@ class MicroserviceTransactionIT {
     }
 
     private static Optional<Result> read(Get g) throws Exception {
-        DistributedTransaction tx = manager.begin();
-        Optional<Result> r = tx.get(g);
-        tx.commit();
-        return r;
+        return Rows.readOnce(manager, g);
     }
 
     /** What the participant does on its side: reserve one unit, or refuse when nothing is left. */

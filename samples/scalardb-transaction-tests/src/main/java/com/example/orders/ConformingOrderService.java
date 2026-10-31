@@ -1,5 +1,9 @@
 package com.example.orders;
 
+import static com.example.orders.OrderSchema.IDEMPOTENCY;
+import static com.example.orders.OrderSchema.NS;
+import static com.example.orders.OrderSchema.ORDERS;
+
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Get;
@@ -32,9 +36,6 @@ public class ConformingOrderService implements OrderApplicationService {
 
     private static final Logger log = LoggerFactory.getLogger(ConformingOrderService.class);
 
-    private static final String NS = "order";
-    private static final String ORDERS = "orders";
-    private static final String IDEMPOTENCY = "idempotency";
     private static final int MAX_RETRIES = 3;
 
     private final DistributedTransactionManager manager;

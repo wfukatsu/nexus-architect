@@ -8,11 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
-import com.scalar.db.api.Get;
-import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
 import com.scalar.db.exception.transaction.CommitConflictException;
-import com.scalar.db.io.Key;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterAll;
@@ -56,9 +53,7 @@ class OrderTransactionIT {
     private static void seedOrder(Caller owner, String orderId, String status, int total,
             String email) throws Exception {
         DistributedTransaction tx = manager.begin();
-        tx.put(Put.newBuilder().namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.ORDERS)
-                .partitionKey(Key.ofText("tenant_id", owner.tenantId()))
-                .clusteringKey(Key.ofText("order_id", orderId))
+        tx.put(Rows.order(owner.tenantId(), orderId)
                 .textValue("customer_id", owner.subject())
                 .textValue("customer_email", email)
                 .textValue("status", status)
@@ -67,23 +62,11 @@ class OrderTransactionIT {
     }
 
     private static Optional<Result> readOrder(Caller owner, String orderId) throws Exception {
-        DistributedTransaction tx = manager.begin();
-        Optional<Result> r = tx.get(Get.newBuilder()
-                .namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.ORDERS)
-                .partitionKey(Key.ofText("tenant_id", owner.tenantId()))
-                .clusteringKey(Key.ofText("order_id", orderId)).build());
-        tx.commit();
-        return r;
+        return Rows.readOnce(manager, Rows.orderGet(owner.tenantId(), orderId));
     }
 
     private static Optional<Result> readIdempotency(Caller owner, String key) throws Exception {
-        DistributedTransaction tx = manager.begin();
-        Optional<Result> r = tx.get(Get.newBuilder()
-                .namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.IDEMPOTENCY)
-                .partitionKey(Key.ofText("tenant_id", owner.tenantId()))
-                .clusteringKey(Key.ofText("idempotency_key", key)).build());
-        tx.commit();
-        return r;
+        return Rows.readOnce(manager, Rows.idempotencyGet(owner.tenantId(), key));
     }
 
     // ---- TX-001 / TX-002 --------------------------------------------------

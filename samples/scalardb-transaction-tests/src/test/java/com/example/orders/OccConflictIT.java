@@ -2,17 +2,13 @@ package com.example.orders;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
-import com.scalar.db.api.Result;
 import com.scalar.db.exception.transaction.CommitConflictException;
 import com.scalar.db.exception.transaction.TransactionException;
-import com.scalar.db.io.Key;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
@@ -43,9 +39,7 @@ class OccConflictIT {
 
     private static void seed(String orderId, String status) throws Exception {
         DistributedTransaction tx = manager.begin();
-        tx.put(Put.newBuilder().namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.ORDERS)
-                .partitionKey(Key.ofText("tenant_id", ALICE.tenantId()))
-                .clusteringKey(Key.ofText("order_id", orderId))
+        tx.put(Rows.order(ALICE.tenantId(), orderId)
                 .textValue("customer_id", ALICE.subject())
                 .textValue("status", status)
                 .intValue("total_amount", 500).build());
@@ -53,23 +47,15 @@ class OccConflictIT {
     }
 
     private static Get get(String orderId) {
-        return Get.newBuilder().namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.ORDERS)
-                .partitionKey(Key.ofText("tenant_id", ALICE.tenantId()))
-                .clusteringKey(Key.ofText("order_id", orderId)).build();
+        return Rows.orderGet(ALICE.tenantId(), orderId);
     }
 
     private static Put statusPut(String orderId, String status) {
-        return Put.newBuilder().namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.ORDERS)
-                .partitionKey(Key.ofText("tenant_id", ALICE.tenantId()))
-                .clusteringKey(Key.ofText("order_id", orderId))
-                .textValue("status", status).build();
+        return Rows.order(ALICE.tenantId(), orderId).textValue("status", status).build();
     }
 
     private static String statusOf(String orderId) throws Exception {
-        DistributedTransaction tx = manager.begin();
-        Optional<Result> r = tx.get(get(orderId));
-        tx.commit();
-        return r.orElseThrow().getText("status");
+        return Rows.readOnce(manager, get(orderId)).orElseThrow().getText("status");
     }
 
     @Test
@@ -125,7 +111,6 @@ class OccConflictIT {
         assertEquals(1, confirmed.get(), "exactly one confirm may succeed");
         assertEquals(1, stateConflicts.get() + occFailures.get(),
                 "the loser must fail cleanly, not silently succeed");
-        assertTrue(stateConflicts.get() + occFailures.get() == 1);
     }
 
     @Test

@@ -66,7 +66,7 @@ curl http://localhost:8080/api/admin/users
 
 | # | 種別 | 場所 | 説明 |
 |---|------|------|------|
-| D1 | God Service | `OrderService.java` | 500行超・在庫/決済/メール/ポイント処理を単一クラスに集約 |
+| D1 | God Service | `OrderService.java` | 注文・在庫・決済・ポイント・メール通知を単一クラス（約 200 行）に集約 |
 | D2 | N+1 クエリ | `OrderService.getOrdersByUser()` | `findByUserId()` 後に各 Order.items を lazy アクセス |
 | D3 | DTO 未使用 | 全 Controller | Entity をそのまま JSON レスポンスとして返却 |
 | D4 | 循環依存 | `order` ↔ `inventory`, `order` → `payment` | ドメイン間の直接 import |
@@ -116,8 +116,10 @@ cd /path/to/nexus-architect
 1. `reports/before/ec-monolith/` に調査結果（技術負債・セキュリティ課題）
 2. `reports/01_analysis/` にドメイン分析（5つの BC 検出）
 3. `reports/02_evaluation/` に MMI/DDD スコア（低スコア期待）
-4. `reports/03_design/` に ScalarDB 2PC マイクロサービス設計
+4. `reports/03_design/` にマイクロサービス設計と ScalarDB トランザクション設計（`scalardb-transaction.md`）
 5. `reports/00_summary/full-report.html` に統合 HTML レポート
+
+DDD 関連スキルが実際に生成した参照出力は [`expected-reports/`](expected-reports/README.md) にコミットされています（本来の `reports/` は git-ignore 対象）。`reference-set.test.py` が `tools/run-tests.sh` から実行され、その妥当性と `docs/ddd-coverage.md` との整合を保ちます。
 
 ---
 
@@ -132,7 +134,7 @@ graph TB
     GW --> CatalogSvc["Catalog Service\n(MySQL)"]
     GW --> UserSvc["User Service\n(PostgreSQL)"]
 
-    OrderSvc -->|"ScalarDB 2PC"| ScalarDB["ScalarDB Cluster"]
+    OrderSvc -->|"Microservice Transaction API"| ScalarDB["ScalarDB Cluster"]
     ScalarDB --> MySQL["MySQL\n(Orders)"]
     ScalarDB --> Cassandra["Cassandra\n(Inventory)"]
     ScalarDB --> PostgreSQL["PostgreSQL\n(Payments)"]
@@ -151,7 +153,7 @@ graph TB
 - 在庫引き当て成功 → 決済失敗 → 在庫が戻らない
 - 決済成功 → Order 保存失敗 → 請求だけが発生する
 
-ScalarDB の 2PC（Two-Phase Commit）がこれらを原子的に解決します。
+ScalarDB Cluster の Microservice Transaction API がこれらを 1 つのトランザクションとして原子的に解決します（分離クラスタでは Transaction Coordinator が内部で 2PC を実行します）。アプリケーション主導の 2PC インターフェースは 3.19 で非推奨、3.20 の Core からは削除されているため、設計の期待値はこちらです（`rules/scalardb-2pc-patterns.md`）。
 
 ---
 
