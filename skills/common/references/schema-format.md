@@ -1,5 +1,9 @@
 # ScalarDB Schema Format Reference
 
+The format facts: Schema Loader JSON fields, data types with their Java mapping, SQL DDL grammar
+and the Schema Loader commands. How to choose the keys, indexes and tables that go into the file is
+`rules/scalardb-schema-design.md`.
+
 ## JSON Format (Schema Loader)
 
 ### Structure
@@ -171,35 +175,7 @@ DROP COORDINATOR TABLES [IF EXIST];
 - Reserved words as column names must be quoted: `"timestamp"`, `"order"`, `"key"`
 - `CREATE COORDINATOR TABLES` is ScalarDB-specific — creates the transaction coordinator metadata table
 - Tables created via SQL DDL are transactional by default
-
-## Schema Design Guidelines
-
-### Partition Key Selection
-
-- Choose keys that distribute data **evenly** across partitions
-- Avoid monotonically increasing values (timestamps, auto-increment IDs) as sole partition key
-- Common access pattern columns make good partition keys
-- Multiple columns can form a composite partition key
-
-### Clustering Key Selection
-
-- Determines sort order within a partition
-- Range queries are efficient along clustering key order
-- Specify `ASC` or `DESC` for sort direction
-
-### Secondary Index Guidelines
-
-- Use sparingly — indexes add overhead to writes
-- Good for: occasional lookups by non-key columns
-- Bad for: high-cardinality columns with many unique values on some backends
-- Alternative: denormalize data into separate tables
-
-### Anti-Patterns
-
-1. **Hot partitions**: Single partition key value receiving most traffic
-2. **Large partitions**: Too many rows under one partition key
-3. **No-JOIN assumption**: CRUD API does not support JOINs — design schemas for single-table access patterns
-4. **Missing `transaction: true`**: Forgetting to enable transactions on tables that need ACID guarantees
+- A partition key may be composite (several columns); a clustering key column takes `ASC` or `DESC`
 
 ## Schema Loader Commands
 

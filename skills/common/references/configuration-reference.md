@@ -1,5 +1,9 @@
 # ScalarDB Configuration Reference
 
+Every property by backend and by API, with its default. What to check a properties file for — the
+required set, the closed value sets, the cluster-mode and cross-partition mistakes — is
+`rules/scalardb-config-validation.md`.
+
 ## General Properties
 
 | Property | Description | Default |
@@ -12,7 +16,8 @@
 | `scalar.db.transaction_manager` | `consensus-commit`, `single-crud-operation`, `cluster` | `consensus-commit` |
 | `scalar.db.default_namespace_name` | Default namespace | — |
 | `scalar.db.metadata.cache_expiration_time_secs` | Metadata cache expiration (`-1` = no expiration) | `60` |
-| `scalar.db.active_transaction_management.expiration_time_millis` | Idle transaction expiration (`-1` = disable) | `-1` (core), `60000` (cluster) |
+| `scalar.db.active_transaction_management.expiration_time_millis` | Idle transaction expiration (`-1` = disable); from 3.19 the idle timer is refreshed on every transaction operation | `-1` (core), `60000` (cluster) |
+| `scalar.db.active_transaction_management.max_active_transactions` | 3.19+: cap on transactions tracked by active transaction management (Caffeine cache, Window-TinyLFU eviction) | `10000` |
 
 ## Backend-Specific Properties
 
@@ -121,8 +126,11 @@ scalar.db.multi_storage.storages.cassandra.password=cassandra
 | `scalar.db.consensus_commit.async_commit.enabled` | `false` |
 | `scalar.db.consensus_commit.async_rollback.enabled` | follows `async_commit` |
 | `scalar.db.consensus_commit.one_phase_commit.enabled` | `false` |
+| `scalar.db.consensus_commit.coordinator.group_commit.enabled` | `false` (incompatible with the 2PC interface) |
+| `scalar.db.consensus_commit.coordinator.write_set_logging.enabled` | `false` (3.19+; adds a `tx_write_set` column to the Coordinator table — an existing table migrates via `Admin.repairCoordinatorTables()`) |
 
-Isolation levels: `SNAPSHOT`, `SERIALIZABLE`, `READ_COMMITTED`
+Isolation levels: `SNAPSHOT`, `SERIALIZABLE`, `READ_COMMITTED`. With
+`scalar.db.transaction_manager=single-crud-operation` every `scalar.db.consensus_commit.*` property is ignored.
 
 ## Cross-Partition Scan Properties
 

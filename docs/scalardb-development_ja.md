@@ -281,8 +281,8 @@ ScalarDB ドキュメントを検索し、コード例付きの回答を提供�
 | `scalardb-jdbc-patterns` | setAutoCommit、PreparedStatement、エラーコード 301、JOIN/集約構文 |
 | `scalardb-2pc-patterns` | サービス跨ぎ方式の選択（共有クラスタ / Global Transaction API / 2PC / Saga）、コーディネーター/パーティシパントプロトコル、リクエストルーティング、グループコミット |
 | `scalardb-saga-patterns` | ScalarDB Saga: SAGA と TCC、冪等性、Saga 定義、サーバー設定、エスカレーション対応 |
-| `scalardb-config-validation` | ストレージ別の必須プロパティ、contact points 形式、クロスパーティションスキャン |
-| `scalardb-schema-design` | パーティションキー設計、クラスタリングキー、アンチパターン、データ型 |
+| `scalardb-config-validation` | properties ファイルが満たすべき検査: バックエンドごとの必須キー、値の閉集合、cluster モードの prefix と API 別のキー、クロスパーティションスキャン、group commit と 2PC の非互換（プロパティ自体は `configuration-reference.md`） |
+| `scalardb-schema-design` | パーティションキー設計、クラスタリングキー、セカンダリインデックス、JOIN 無しの設計、イベントストアのパターン（形式とデータ型は `schema-format.md`） |
 | `scalardb-java-best-practices` | スレッドセーフティ、トランザクションライフサイクル、SLF4J、try-with-resources |
 
 ## 参照ドキュメント
