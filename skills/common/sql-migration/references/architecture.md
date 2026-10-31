@@ -29,7 +29,10 @@ flowchart LR
 ```
 
 The design skill maps these three onto the manifest's routes (`scalardb_sql` or `core_api` for route 1,
-`plan` for route 2, `app_side` or `redesign` for route 3) — see @rules/sql-migration.md.
+`plan` for route 2, `app_side` or `redesign` for route 3) — see @rules/sql-migration.md. A fourth manifest
+route, `native_jdbc`, sits outside this converter altogether: the statement stays the source database's own
+SQL and runs through ScalarDB Native JDBC on the one database ScalarDB manages; the converter's verdict is
+recorded but decides nothing there.
 
 ## Converting one statement
 

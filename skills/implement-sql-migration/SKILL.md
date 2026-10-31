@@ -24,6 +24,7 @@ A Gradle module at `generated/sql-migration/<target>/` that turns every decision
 | `plan` | `src/main/resources/plans/SQM-###.plan.json` and `MigrationPlans`, which fetches in one read-only transaction and runs the original SQL in H2 |
 | `core_api` | a method on `CoreApiStatements` to implement, documented with the access the converted SQL states |
 | `app_side` | `appside/Sqm###Query` (read, with a disabled golden test), `Sqm###Write` (read-modify-write, conditional write, application clock) or `Sqm###IdGenerator`, each documenting the semantics it must keep |
+| `native_jdbc` | no Java — `src/main/resources/native-jdbc.properties` (the `jdbc:scalardb-native:<engine>:` connection template with the agreed isolation level) and `NATIVE-JDBC.md` (the statements kept native, the `scalardb-native-tools setup` step with the application user's grant, the isolation agreement and engine settings); `build.gradle` pins `scalardb-native-jdbc` and the vendor driver |
 | `redesign`, `retire` | nothing — listed in the summary |
 
 plus the vendored runtime (`com.scalar.migrate.runtime` / `appside`), `build.gradle` with resolved versions,
@@ -76,7 +77,10 @@ Implementing the `core_api` methods and the application-side skeletons is the ne
 1. **Record progress.** Mark the phase `in_progress` in `work/pipeline-progress.json` (`plugin: architect`).
 2. **Resolve versions.** The module pins `com.scalar-labs:scalardb` (and, under Enterprise Premium,
    `scalardb-sql-jdbc` / `scalardb-cluster-java-client-sdk` at the same version), `com.h2database:h2`,
-   `com.google.code.gson:gson` and `org.junit:junit-bom`. Reuse `work/version-decisions.json` when under seven days
+   `com.google.code.gson:gson` and `org.junit:junit-bom` — plus, when a statement takes `native_jdbc`,
+   `com.scalar-labs:scalardb-native-jdbc` and the vendor driver of `target.native_jdbc.engine`
+   (`org.postgresql:postgresql`, `com.mysql:mysql-connector-j`, `org.mariadb.jdbc:mariadb-java-client`,
+   `com.microsoft.sqlserver:mssql-jdbc` or `com.oracle.database.jdbc:ojdbc11`). Reuse `work/version-decisions.json` when under seven days
    old; otherwise look each up from its registry, choose stable and mutually compatible releases, confirm per the
    flags, and write the entries (@rules/dependency-versions.md). The ScalarDB version matches the manifest's
    `target.scalardb_version` line when it names one.
@@ -127,7 +131,8 @@ Implementing the `core_api` methods and the application-side skeletons is the ne
 Report structure (frontmatter `title`, `schema_version: 1`, `phase: "Phase 6: Implementation"`,
 `skill: implement-sql-migration`, `generated_at`, `input_files`):
 
-- **Summary** — statements by route; generated, to implement, not generated
+- **Summary** — statements by route; generated, to implement, kept native (`native_jdbc`, with the engine and
+  the isolation level every ScalarDB application must share), not generated
 - **Version Decisions** — the table of @rules/dependency-versions.md §3
 - **Gate** — the manifest hash the module was generated from, the build result, each plan's `validate` result
 - **Work Remaining** — one row per `core_api` method and application-side skeleton: SQM ID, class, pattern,

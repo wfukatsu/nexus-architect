@@ -24,11 +24,21 @@ and are reported as open work, never silently dropped.
 | `app_side` | reimplemented in the application | PLANNED / ERROR (OK / WARN too, when the user prefers it) | `rationale`, `app_side.pattern`, and `app_side.semantics` when the converter reported `APP_SEMANTICS` |
 | `redesign` | the schema or the use case changes (keys, summary table, precomputed hierarchy, ScalarDB Analytics) | any | `rationale`, `redesign.proposal`; an ADR when it changes keys or the backend |
 | `retire` | the statement is not migrated (dead code, a one-off script) | any | `rationale`, `retire.evidence` |
+| `native_jdbc` | not converted: the application keeps the statement as the source database's own SQL through ScalarDB Native JDBC (`jdbc:scalardb-native:`), on the one database ScalarDB also manages | any — the converter is not in the path | `rationale`; `target.native_jdbc` (§3); not DDL; not a shape the driver refuses (below) |
 
 - `ERROR` never takes `scalardb_sql`, `core_api` or `plan`; `PLANNED` never takes `scalardb_sql` or
   `core_api`. The converter's verdict is recorded in `converter.status` / `codes` / `pattern` as produced.
-- `schema` is for DDL only, and DDL takes no query route.
-- JPQL (`language: jpql`) is not SQL the converter reads: it takes `app_side`, `redesign` or `retire`.
+- `schema` is for DDL only, and DDL takes no query route (`native_jdbc` included — the driver refuses DDL on
+  a ScalarDB table; the schema is loaded through ScalarDB).
+- JPQL (`language: jpql`) is not SQL the converter reads: it takes `app_side`, `redesign`, `retire` — or
+  `native_jdbc`, because the driver wraps the vendor driver the ORM generates SQL for.
+- `native_jdbc` is refused for the statement shapes the driver refuses on a ScalarDB table (SQLState
+  `0AN01`), matched on the inventory's masked text: `INSERT ... SELECT`, `INSERT IGNORE`, `MERGE`,
+  `ON CONFLICT`, `ON DUPLICATE KEY`, an `UPDATE` or `DELETE` that reads another table (`FROM`, `USING`,
+  `JOIN`, a subquery), `RETURNING` on `UPDATE` / `DELETE`, `SELECT ... INTO`, `CREATE TABLE AS SELECT`,
+  `CALL` / `EXEC`, `TRUNCATE`. Such a statement takes `app_side` or `redesign`. An `UPDATE` of a key column
+  is refused too but cannot be read from the text — the design confirms it against `keys[]`
+  (@rules/scalardb-native-jdbc-patterns.md).
 - `app_side.pattern` is one of `read` (a query rewritten with the helpers), `rmw` (read → compute →
   write in one transaction, P9), `conditional_write` (existence check and write, P10), `id_generation`
   (P11), `app_clock` (P12). Each `app_side.semantics` entry names the note it answers and how the code
@@ -42,23 +52,24 @@ and are reported as open work, never silently dropped.
 - `target.storage` is `jdbc` or `cassandra`, and must be the storage the converter ran with. Cassandra has
   no cross-partition scan; the converter reflects that in its verdicts.
 - Plans fetch through `CoreFetcher` (no license) unless the edition has ScalarDB SQL.
-- **ScalarDB Native JDBC is a different question from the routes above.** When the application keeps
-  running against **one** database that ScalarDB applications also write, the whole SQL inventory can
-  stay native through `jdbc:scalardb-native:` (Apache-2.0, any edition) instead of being routed
-  statement by statement — at the cost of one database per connection, a shared isolation level with
-  every ScalarDB application, and the refused statement shapes (`INSERT ... SELECT`, upserts,
-  multi-table writes). Decide that **before** routing, record it in the design rationale, and state
-  which statements the driver would refuse (@rules/scalardb-native-jdbc-patterns.md). The manifest
-  has no `native_jdbc` route; a project that chooses the driver does not run the per-statement
-  pipeline for the statements it keeps.
+- **`target.native_jdbc`** is required as soon as one statement takes `native_jdbc`, and it holds the
+  facts every such statement shares: `engine` (`postgresql` / `mysql` / `mariadb` / `sqlserver` /
+  `oracle`), `isolation_level` (`READ_COMMITTED` / `SNAPSHOT` / `SERIALIZABLE`; `SERIALIZABLE` is refused
+  on `oracle`) and `database` (the single database the connection targets). It needs `target.storage:
+  jdbc` — the driver runs on the one relational database ScalarDB manages — and no edition: the driver is
+  Apache-2.0. The isolation level is **the level every ScalarDB application on the shared tables must
+  set too** (`scalar.db.consensus_commit.isolation_level` / `scalar.db.jdbc.isolation_level`); the design
+  decides it once, before routing, and `implement-sql-migration` writes it into the connection template
+  (@rules/scalardb-native-jdbc-patterns.md).
 
 ## 4. Dynamic SQL
 
 A `dynamic` statement (string concatenation with a variable, MyBatis dynamic elements, `${...}`) is a
 family of statements; the inventory keeps one rendering with its dynamic parts marked, and the converter's
 verdict on it (usually `PARSE`) says nothing about the real renderings. It takes an automatic route (`schema`,
-`scalardb_sql`, `core_api`, `plan`) only with `confirmation: {"by": "user", "note": ...}` recording which
-variants were expanded and converted. Otherwise it takes `app_side`, `redesign` or `retire`.
+`scalardb_sql`, `core_api`, `plan`, `native_jdbc`) only with `confirmation: {"by": "user", "note": ...}`
+recording which variants were expanded and converted — for `native_jdbc`, that none of the renderings is a
+shape the driver refuses. Otherwise it takes `app_side`, `redesign` or `retire`.
 
 ## 5. Keys
 
@@ -91,6 +102,10 @@ done.
 A JPQL, dynamic or parameterised statement is proven through a rendering the user confirmed: one concrete SELECT,
 the dynamic branch it takes, and the parameter values. The golden data records the rendering and the values.
 `verified` then covers that variant only, and the report lists the variants that were not captured as unproven.
+
+A `native_jdbc` statement is not run by the verification tooling (nothing in the generated module executes it).
+It becomes `verified` only with evidence produced against the driver — the application's own test
+(`method: unit`) or a differential run the user made (`method: difftest`) — and stays `pending` otherwise.
 
 ## 8. Never
 

@@ -3,7 +3,7 @@ description: |
   Design the migration of an existing system's SQL to ScalarDB statement by statement: inventory
   every statement, run the vendored converter, and decide one route per statement in a validated
   manifest. Extension tier, after investigate-db-design / investigate-db-live and design-scalardb.
-argument-hint: '[target_path] [--source=oracle|postgres|mysql] [--app-root=<path>] [--sql-file=<path>] [--db-run=<path>] [--live-run=<path>] [--edition=community|enterprise_standard|enterprise_premium] [--storage=jdbc|cassandra] [--namespace=<name>] [--auto] [--lang=en|ja]'
+argument-hint: '[target_path] [--source=oracle|postgres|mysql] [--app-root=<path>] [--sql-file=<path>] [--db-run=<path>] [--live-run=<path>] [--edition=community|enterprise_standard|enterprise_premium] [--storage=jdbc|cassandra] [--namespace=<name>] [--native-jdbc=postgresql|mysql|mariadb|sqlserver|oracle] [--auto] [--lang=en|ja]'
 model: opus
 ---
 
@@ -38,7 +38,7 @@ Read @rules/sql-migration.md before Stage 1. The mechanism behind the converter 
 ## Invocation
 
 ```
-/architect:design-sql-migration [target_path] [--source=oracle|postgres|mysql] [--app-root=<path>] [--sql-file=<path>] [--db-run=<path>] [--live-run=<path>] [--edition=community|enterprise_standard|enterprise_premium] [--storage=jdbc|cassandra] [--namespace=<name>] [--auto] [--lang=en|ja]
+/architect:design-sql-migration [target_path] [--source=oracle|postgres|mysql] [--app-root=<path>] [--sql-file=<path>] [--db-run=<path>] [--live-run=<path>] [--edition=community|enterprise_standard|enterprise_premium] [--storage=jdbc|cassandra] [--namespace=<name>] [--native-jdbc=postgresql|mysql|mariadb|sqlserver|oracle] [--auto] [--lang=en|ja]
 ```
 
 - `target_path` — Project directory; defaults to the current directory.
@@ -52,6 +52,10 @@ Read @rules/sql-migration.md before Stage 1. The mechanism behind the converter 
 - `--storage` — Storage behind ScalarDB; `cassandra` has no cross-partition scan. Taken from the
   `design-scalardb` ADR when omitted.
 - `--namespace` — ScalarDB namespace of the migrated tables. Taken from `scalardb-schema.md` when omitted.
+- `--native-jdbc` — The application keeps its native SQL on this engine through ScalarDB Native JDBC: records
+  `target.native_jdbc` and makes `native_jdbc` the default route for every statement the driver accepts
+  (@rules/sql-migration.md §2–§3). Needs `--storage=jdbc`. Without the flag the route is still available per
+  statement in Stage 5, but never the default.
 - `--auto` — No questions; everything the user owns becomes an `unasked` Open Question.
 - `--lang` — Output language of the design view. Defaults to `options.output_language`.
 
@@ -68,11 +72,13 @@ Read @rules/sql-migration.md before Stage 1. The mechanism behind the converter 
   findings include a WARN, and leave `verification.status: pending` for `verify-sql-migration`.
 - **The edition gates ScalarDB SQL.** It is Enterprise Premium (@rules/scalardb-edition-profiles.md). Under
   any other edition a convertible statement takes `core_api`; never propose a license to make a route work.
-- **Ask first whether the SQL needs routing at all.** When the application will keep running against
-  **one** database that ScalarDB applications also write, ScalarDB Native JDBC keeps the inventory native
-  (@rules/scalardb-native-jdbc-patterns.md, @rules/sql-migration.md §3). Record that decision in the
-  rationale before routing; if it is taken, the per-statement manifest covers only the statements the
-  driver refuses. There is no `native_jdbc` route in the manifest.
+- **Ask first whether the SQL needs converting at all.** When the application will keep running against
+  **one** relational database that ScalarDB applications also write, ScalarDB Native JDBC keeps a statement
+  native — the `native_jdbc` route (@rules/sql-migration.md §2–§3, @rules/scalardb-native-jdbc-patterns.md).
+  It is a design decision made once (engine, the isolation level every ScalarDB application must share, the
+  database), recorded in `target.native_jdbc`, and then applied statement by statement: the validator
+  refuses DDL and the shapes the driver rejects (`0AN01`), and those statements take a converted route.
+  The converter's verdict never decides this route; the user does.
 - **Dynamic SQL is a family of statements.** The inventory keeps one rendering with its dynamic parts marked,
   which the converter usually cannot parse (`ERROR` with `PARSE`) — that verdict says nothing about the
   real renderings. Ask which renderings exist and convert each before any automatic route; otherwise take
@@ -113,6 +119,12 @@ Resolve from the reports what they already state: source dialect and version (th
 `product` / `version`), edition, storage backend, namespace. Ask for what is missing in one batch — the
 edition question states that ScalarDB SQL needs Enterprise Premium and what the Core API route costs
 instead. Confirm the application roots, SQL files and investigation runs in scope.
+
+Ask whether any application keeps its native SQL through ScalarDB Native JDBC (answered by `--native-jdbc`
+when given). If so, settle `target.native_jdbc` here: the engine, the isolation level — default `SNAPSHOT`,
+and state that every ScalarDB application on the shared tables must set the matching
+`scalar.db.consensus_commit.isolation_level` / `scalar.db.jdbc.isolation_level` — and the single database
+the connection targets. `SERIALIZABLE` on Oracle is refused; a `cassandra` storage rules the route out.
 
 **Stage 2 — Inventory**
 
@@ -159,6 +171,11 @@ lists the questions a tool may not answer in `open`.
 **Stage 5 — Decide**
 Walk the draft with the user, grouped so each question decides many statements:
 
+- **Native JDBC** (when `target.native_jdbc` is set) — every non-DDL statement whose masked text is not a
+  shape the driver refuses (@rules/sql-migration.md §2) defaults to `native_jdbc`, the draft's route being
+  the alternative; list the refused ones with their shape, and keep the draft's route for them. JPQL may stay
+  native. A dynamic statement stays native only with the user's `confirmation` that no rendering is a refused
+  shape. Confirm against `keys[]` that no native `UPDATE` sets a key column.
 - **Dynamic statements** — show the static text with its dynamic markers; ask which renderings occur. Convert
   each rendering by writing it to a scratch SQL file under `work/sql-migration/` and running `convert.py` on
   it; record `confirmation` only when every rendering converts.
@@ -191,7 +208,10 @@ Run Stages 2, 4 and 6 without questions, taking the edition, storage and namespa
 (stop with an error when neither states one of them — a guessed edition changes every route, a guessed namespace
 every generated plan). Accept the
 draft's routes except: a dynamic statement proposed for an automatic route takes `app_side` instead; each
-`APP_SEMANTICS` note's `handling` is `TBD (OQ-###)`; JPQL keeps the proposed `app_side`. Every such item is an
+`APP_SEMANTICS` note's `handling` is `TBD (OQ-###)`; JPQL keeps the proposed `app_side`. With `--native-jdbc`,
+every non-DDL, non-dynamic statement the shape check accepts takes `native_jdbc` (isolation `SNAPSHOT`, the
+database from the flag's engine and the inventory's sources, both recorded as `unasked`); a refused shape keeps
+the draft's route and is listed. Without the flag auto mode never chooses `native_jdbc`. Every such item is an
 `unasked` Open Question carrying the options that would have been offered (@rules/open-questions.md §5).
 Auto mode never retires a statement.
 
@@ -237,7 +257,9 @@ input_files:
 [one row per table: partition key, clustering key, indexes, source, rationale; ADR links]
 
 ## Routes
-[one table per route: SQM ID, origin (path:lines, locator), category, converter status and codes, rationale]
+[one table per route: SQM ID, origin (path:lines, locator), category, converter status and codes, rationale;
+the native_jdbc table is headed by the engine, isolation level and database of target.native_jdbc and lists
+the statements the shape check sent elsewhere]
 
 ## Application-side Work
 [per statement: pattern, semantics notes and their handling, owning aggregate]

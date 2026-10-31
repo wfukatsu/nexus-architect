@@ -52,6 +52,7 @@ INVENTORY = {
         statement("SQM-004", "query", lines=(6, 7)),
         statement("SQM-005", "dml", lines=(8, 8), dynamic=True, dynamic_reasons=["mybatis_if"]),
         statement("SQM-006", "query", lines=(9, 9), language="jpql"),
+        statement("SQM-007", "query", lines=(2, 2), sql="SELECT o.order_no, c.name FROM orders o JOIN customers c ON c.id = o.customer_id WHERE o.status = ?"),
     ],
 }
 
@@ -62,7 +63,8 @@ SCHEMA = {"shop.orders": {"transaction": True, "partition-key": ["customer_id"],
 WELL_FORMED = {
     "schema_version": 1,
     "source": {"dialect": "oracle"},
-    "target": {"scalardb_version": "3.19", "edition": "enterprise_premium", "storage": "jdbc", "namespace": "shop"},
+    "target": {"scalardb_version": "3.20", "edition": "enterprise_premium", "storage": "jdbc", "namespace": "shop",
+               "native_jdbc": {"engine": "postgresql", "isolation_level": "SNAPSHOT", "database": "shopdb"}},
     "inputs": {"inventory": INVENTORY_PATH, "schema": SCHEMA_PATH,
                "db_runs": ["reports/01_analysis/database-investigation/shop/design/r1"]},
     "keys": [{"table": "orders", "partition_key": ["customer_id"], "clustering_key": ["order_no"],
@@ -87,6 +89,9 @@ WELL_FORMED = {
          "verification": {"status": "pending"}},
         {"id": "SQM-006", "converter": {"status": "ERROR", "codes": ["PARSE"]}, "route": "redesign",
          "rationale": "JPQL over a join ScalarDB cannot serve", "redesign": {"proposal": "summary table keyed by customer"},
+         "verification": {"status": "pending"}},
+        {"id": "SQM-007", "converter": {"status": "ERROR", "codes": ["JOIN"]}, "route": "native_jdbc",
+         "rationale": "the reporting module keeps its native SQL on shopdb through ScalarDB Native JDBC",
          "verification": {"status": "pending"}},
     ],
 }
@@ -125,7 +130,7 @@ errors = validate_sql_migration_manifest(copy.deepcopy(WELL_FORMED), inventory=I
 check("no violation on the well-formed fixture", errors == [], errors)
 
 print("Every inventoried statement is decided exactly once")
-rejects("a statement without a decision", mutated(lambda m: m["statements"].pop()), expect="SQM-006: in the inventory but has no decision")
+rejects("a statement without a decision", mutated(lambda m: m["statements"].pop()), expect="SQM-007: in the inventory but has no decision")
 rejects("a decision for a statement the inventory lacks",
         mutated(lambda m: m["statements"].append(dict(copy.deepcopy(entry(m, "SQM-002")), id="SQM-099"))),
         expect="SQM-099: decision for a statement not in the inventory")
@@ -175,6 +180,68 @@ rejects("a retirement without evidence", mutated(lambda m: entry(m, "SQM-006").u
 rejects("a plan without its row limit", mutated(lambda m: entry(m, "SQM-003").update(plan={})),
         expect="SQM-003: plan.row_limit must be a positive integer")
 
+print("Native JDBC keeps a statement native only where the driver accepts it")
+
+
+def native_sql(sql):
+    def edit(inv):
+        next(s for s in inv["statements"] if s["id"] == "SQM-007")["sql"] = sql
+    return edit
+
+
+def accepts(label, mutate=None, *, edit_inventory=None):
+    manifest = mutate(copy.deepcopy(WELL_FORMED)) if mutate else copy.deepcopy(WELL_FORMED)
+    inventory = copy.deepcopy(INVENTORY)
+    if edit_inventory:
+        edit_inventory(inventory)
+    errors = validate_sql_migration_manifest(manifest, inventory=inventory, schema=SCHEMA, traceability=TRACEABILITY)
+    check(label, errors == [], errors)
+
+
+accepts("JPQL may stay native — the driver wraps the vendor driver the ORM talks to",
+        mutated(lambda m: entry(m, "SQM-006").update(route="native_jdbc", redesign=None)))
+accepts("an ERROR verdict does not bar the native route — the converter is not in the path",
+        mutated(lambda m: entry(m, "SQM-004").update(route="native_jdbc", app_side=None)))
+accepts("a community edition may keep statements native (no ScalarDB SQL involved)",
+        mutated(lambda m: (m["target"].update(edition="community"),
+                           entry(m, "SQM-002").update(route="native_jdbc"),
+                           entry(m, "SQM-005").update(route="native_jdbc"))))
+accepts("a plain INSERT ... VALUES with a scalar subquery in a value is not INSERT ... SELECT",
+        edit_inventory=native_sql("INSERT INTO orders (customer_id, order_no, total) VALUES (?, ?, (SELECT MAX(total) FROM orders))"))
+rejects("DDL kept native", mutated(lambda m: entry(m, "SQM-001").update(route="native_jdbc")),
+        expect="SQM-001: DDL cannot take route native_jdbc")
+rejects("the native route without the shared connection facts", mutated(lambda m: m["target"].pop("native_jdbc")),
+        expect="target.native_jdbc is required when a statement takes route native_jdbc")
+rejects("the native route on a Cassandra backend", mutated(lambda m: m["target"].update(storage="cassandra")),
+        expect="route native_jdbc needs target.storage jdbc")
+rejects("an unknown engine", mutated(lambda m: m["target"]["native_jdbc"].update(engine="db2")),
+        expect="target.native_jdbc.engine must be one of")
+rejects("an unknown isolation level", mutated(lambda m: m["target"]["native_jdbc"].update(isolation_level="REPEATABLE_READ")),
+        expect="target.native_jdbc.isolation_level must be one of")
+rejects("SERIALIZABLE on Oracle", mutated(lambda m: m["target"]["native_jdbc"].update(engine="oracle", isolation_level="SERIALIZABLE")),
+        expect="SERIALIZABLE is refused on oracle (0AN01)")
+rejects("no database named", mutated(lambda m: m["target"]["native_jdbc"].update(database="")),
+        expect="target.native_jdbc.database is required")
+rejects("a dynamic statement kept native without the user's confirmation",
+        mutated(lambda m: entry(m, "SQM-005").update(route="native_jdbc", confirmation=None)),
+        expect="SQM-005: dynamic statement on route native_jdbc needs confirmation by the user")
+for label, sql in (
+        ("INSERT ... SELECT", "INSERT INTO orders_archive (customer_id, order_no) SELECT customer_id, order_no FROM orders WHERE status = ?"),
+        ("INSERT IGNORE", "INSERT IGNORE INTO orders (customer_id, order_no) VALUES (?, ?)"),
+        ("MERGE", "MERGE INTO orders o USING staging s ON (o.order_no = s.order_no) WHEN MATCHED THEN UPDATE SET o.total = s.total"),
+        ("ON CONFLICT", "INSERT INTO orders (customer_id, order_no) VALUES (?, ?) ON CONFLICT (customer_id, order_no) DO UPDATE SET total = ?"),
+        ("ON DUPLICATE KEY UPDATE", "INSERT INTO orders (customer_id, order_no) VALUES (?, ?) ON DUPLICATE KEY UPDATE total = ?"),
+        ("UPDATE reading another table", "UPDATE orders o SET total = (SELECT SUM(amount) FROM order_lines l WHERE l.order_no = o.order_no) WHERE o.customer_id = ?"),
+        ("UPDATE reading another table", "UPDATE orders SET status = ? FROM customers WHERE customers.id = orders.customer_id"),
+        ("DELETE reading another table", "DELETE FROM orders USING customers WHERE customers.id = orders.customer_id AND customers.closed = ?"),
+        ("RETURNING on UPDATE / DELETE", "UPDATE orders SET status = ? WHERE order_no = ? RETURNING total"),
+        ("SELECT ... INTO", "SELECT customer_id, order_no INTO orders_backup FROM orders WHERE status = ?"),
+        ("CREATE TABLE AS SELECT", "CREATE TABLE orders_copy AS SELECT * FROM orders"),
+        ("CALL / EXEC", "CALL recompute_totals(?)"),
+        ("TRUNCATE", "TRUNCATE TABLE orders")):
+    rejects("a native statement shaped as %s" % label, lambda m: m, edit_inventory=native_sql(sql),
+            expect="SQM-007: statement shape the native driver refuses (0AN01): %s" % label)
+
 print("Keys name tables and columns the schema declares")
 rejects("a key for a table the schema lacks", mutated(lambda m: m["keys"][0].update(table="invoices")),
         expect="keys[0]: table invoices is not in the schema")
@@ -200,8 +267,8 @@ rejects("a dangling upstream ID", mutated(lambda m: entry(m, "SQM-002").update(u
 print("Hostile shapes are reported, not crashed on")
 rejects("statements that are not an array", mutated(lambda m: m.update(statements={"SQM-001": {}})),
         expect="statements: must be an array")
-rejects("an entry that is not an object", mutated(lambda m: m["statements"].append("SQM-007")),
-        expect="statements[6]: entry must be an object")
+rejects("an entry that is not an object", mutated(lambda m: m["statements"].append("SQM-008")),
+        expect="statements[7]: entry must be an object")
 rejects("a converter block that is not an object", mutated(lambda m: entry(m, "SQM-002").update(converter="OK")),
         expect="SQM-002: converter must be an object")
 try:

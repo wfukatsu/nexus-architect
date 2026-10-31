@@ -193,6 +193,49 @@ class GenerateMigrationTests(unittest.TestCase):
         self.assertNotIn("SECRET-LITERAL", json.dumps(summary))
         self.assertEqual(json.loads((self.out / "migration-summary.json").read_text()), summary)
 
+    def keep_native(self, sid, *, versions=True):
+        """Route one statement native_jdbc on PostgreSQL and, unless told otherwise, resolve the driver versions."""
+        def mutate(m):
+            m["target"]["native_jdbc"] = {"engine": "postgresql", "isolation_level": "SNAPSHOT", "database": "shopdb"}
+            e = next(e for e in m["statements"] if e["id"] == sid)
+            e.update(route="native_jdbc", rationale="the reporting module keeps its native SQL on shopdb")
+            e.pop("redesign", None)
+            e.pop("app_side", None)
+        self.rewrite(BASE / "sql-migration-manifest.json", mutate)
+        if versions:
+            self.rewrite(Path("work/version-decisions.json"), lambda v: v["entries"].extend([
+                {"name": "com.scalar-labs:scalardb-native-jdbc", "chosen": "3.20.0"},
+                {"name": "org.postgresql:postgresql", "chosen": "42.7.8"}]))
+
+    def test_a_statement_kept_native_gets_the_connection_template_and_checklist_but_no_java(self):
+        sid = self.ids["redesign"]
+        self.keep_native(sid)
+        summary = self.generate()
+        properties = (self.out / "src/main/resources/native-jdbc.properties").read_text()
+        self.assertIn("url=jdbc:scalardb-native:postgresql://<host>:5432/shopdb", properties)
+        self.assertIn("scalar.db.consensus_commit.isolation_level=SNAPSHOT", properties)
+        checklist = (self.out / "NATIVE-JDBC.md").read_text()
+        self.assertIn(sid, checklist)
+        self.assertIn("scalardb-native-tools setup --grant", checklist)
+        self.assertNotIn("'X'", checklist)  # the masked inventory text is not reproduced, let alone literals
+        gradle = (self.out / "build.gradle").read_text()
+        self.assertIn("com.scalar-labs:scalardb-native-jdbc:3.20.0", gradle)
+        self.assertIn("org.postgresql:postgresql:42.7.8", gradle)
+        self.assertEqual(summary["kept_native"], [sid])
+        self.assertNotIn(sid, summary["requires_implementation"])
+        self.assertNotIn(sid, summary["not_generated"])
+        by_id = {s["id"]: s for s in summary["statements"]}
+        self.assertEqual(by_id[sid]["generated"], ["src/main/resources/native-jdbc.properties", "NATIVE-JDBC.md"])
+        self.assertFalse(list((self.out / "src/main/java/com/example/shop/migration").rglob(f"*{sid.replace('-', '')}*")))
+
+    def test_a_native_route_without_its_driver_versions_refuses_generation(self):
+        self.keep_native(self.ids["redesign"], versions=False)
+        with self.assertRaises(generate_migration.GateFailure) as refused:
+            self.generate()
+        self.assertIn("com.scalar-labs:scalardb-native-jdbc", str(refused.exception))
+        self.assertIn("org.postgresql:postgresql", str(refused.exception))
+        self.assertFalse(self.out.exists())
+
     def test_a_verdict_the_converter_no_longer_gives_refuses_generation(self):
         self.rewrite(BASE / "sql-migration-manifest.json", lambda m: next(
             e for e in m["statements"] if e["id"] == self.ids["get"])["converter"].update(status="WARN"))

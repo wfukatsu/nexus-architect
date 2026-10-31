@@ -7,6 +7,26 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.48.0] - 2026-10-31
+
+### Added
+- **SQL 移行マニフェストに `native_jdbc` 経路を追加。** アプリケーションが ScalarDB Native JDBC を通して
+  移行元データベースのネイティブ SQL のまま使い続ける文を、文章の注記ではなく経路として記録できるように
+  した。`rules/sql-migration.md` §2〜§3 が定義: 変換器のステータスは問わない、DDL は不可、JPQL は可
+  （ドライバーは ORM が話すベンダードライバーをラップする）、`target.native_jdbc` にエンジン・共有テーブルを
+  使う全 ScalarDB アプリケーションと揃える分離レベル・対象の単一データベースを記録、`target.storage` は
+  `jdbc` 必須、エディションの制約なし。`tools/lib/sql_migration_manifest.py` がこれらを検証し、ドライバーが
+  `0AN01` で拒否する文の形（`INSERT ... SELECT`、upsert、他テーブルを読む `UPDATE` / `DELETE`、書き込みの
+  `RETURNING`、`SELECT ... INTO`、`CREATE TABLE AS SELECT`、`CALL`、`TRUNCATE`）をマスク済みの棚卸し本文で
+  拒否する。動的 SQL は他の自動経路と同じく利用者の確認が要る。
+  `/architect:design-sql-migration --native-jdbc=<engine>` が target ブロックを記録し、検査を通る全文の既定
+  経路にする。ステージ 5 と auto モードは拒否された形の戻し先を定める。`implement-sql-migration` は
+  `native-jdbc.properties`（`jdbc:scalardb-native:<engine>:` のテンプレートと分離レベルの対応）と
+  `NATIVE-JDBC.md`（ネイティブのまま残す文、`scalardb-native-tools setup --grant`、エンジン設定）を出力し、
+  `scalardb-native-jdbc` とベンダードライバーを `work/version-decisions.json` 経由で固定し、`kept_native` を
+  報告する。`verify-sql-migration` は、利用者がドライバーで得た証跡を出さない限り未証明として報告する。
+  両スイートが対象（マニフェスト 64 チェック、生成器 19 テスト）。
+
 ## [0.47.1] - 2026-10-31
 
 ### Changed

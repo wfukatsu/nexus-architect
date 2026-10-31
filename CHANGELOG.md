@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.48.0] - 2026-10-31
+
+### Added
+- **`native_jdbc` route in the SQL migration manifest.** A statement an application keeps as the source
+  database's own SQL through ScalarDB Native JDBC now has a route of its own instead of a prose note.
+  `rules/sql-migration.md` §2–§3 define it: any converter status, not DDL, JPQL allowed (the driver wraps
+  the vendor driver the ORM talks to), `target.native_jdbc` with the engine, the isolation level every
+  ScalarDB application on the shared tables must match, and the single database; `target.storage` must
+  be `jdbc`; no edition gate. `tools/lib/sql_migration_manifest.py` enforces all of it and refuses the
+  statement shapes the driver rejects with `0AN01` (`INSERT ... SELECT`, upserts, an `UPDATE` / `DELETE`
+  reading another table, `RETURNING` on writes, `SELECT ... INTO`, `CREATE TABLE AS SELECT`, `CALL`,
+  `TRUNCATE`), matched on the masked inventory text; a dynamic statement needs the user's confirmation
+  like the other automatic routes. `/architect:design-sql-migration --native-jdbc=<engine>` records the
+  target block and makes the route the default for every statement the check accepts; Stage 5 and auto
+  mode say how refused shapes fall back. `implement-sql-migration` emits `native-jdbc.properties` (the
+  `jdbc:scalardb-native:<engine>:` template with the isolation mapping) and `NATIVE-JDBC.md` (statements
+  kept native, `scalardb-native-tools setup --grant`, engine settings), pins `scalardb-native-jdbc` and
+  the vendor driver through `work/version-decisions.json`, and reports `kept_native`;
+  `verify-sql-migration` reports such statements as unproven unless the user supplies evidence from the
+  driver. Both suites cover it (manifest 64 checks, generator 19 tests).
+
 ## [0.47.1] - 2026-10-31
 
 ### Changed

@@ -23,6 +23,8 @@ directory with a Gradle module:
   <package>/MigrationPlans.java             loads and runs plans through a Fetcher and H2
   <package>/appside/Sqm###Query|Write|IdGenerator.java   route app_side skeletons with their semantics
   src/test/java/<package>/appside/Sqm###QueryGoldenTest.java  disabled until golden results are captured
+  src/main/resources/native-jdbc.properties route native_jdbc: the ScalarDB Native JDBC connection template
+  NATIVE-JDBC.md                            route native_jdbc: the statements kept native and the setup they need
   com/scalar/migrate/**                     the vendored runtime and helpers
   migration-summary.json                    what was generated per statement and what still needs implementing
 """
@@ -54,6 +56,24 @@ CONVERSION_PATH = Path("reports/03_design/sql-migration/conversion.json")
 VERSIONS_PATH = Path("work/version-decisions.json")
 MARKER = ".sql-migration-generated"
 REQUIRED_VERSIONS = ("com.scalar-labs:scalardb", "com.h2database:h2", "com.google.code.gson:gson", "org.junit:junit-bom")
+NATIVE_JDBC_ARTIFACT = "com.scalar-labs:scalardb-native-jdbc"
+# The vendor driver the native driver wraps, per engine (rules/scalardb-native-jdbc-patterns.md), and the URL
+# shape: the vendor URL with `scalardb-native:` inserted after `jdbc:`.
+NATIVE_JDBC_ENGINES = {
+    "postgresql": ("org.postgresql:postgresql", "jdbc:scalardb-native:postgresql://<host>:5432/<database>"),
+    "mysql": ("com.mysql:mysql-connector-j", "jdbc:scalardb-native:mysql://<host>:3306/<database>"),
+    "mariadb": ("org.mariadb.jdbc:mariadb-java-client", "jdbc:scalardb-native:mariadb://<host>:3306/<database>"),
+    "sqlserver": ("com.microsoft.sqlserver:mssql-jdbc", "jdbc:scalardb-native:sqlserver://<host>:1433;databaseName=<database>"),
+    "oracle": ("com.oracle.database.jdbc:ojdbc11", "jdbc:scalardb-native:oracle:thin:@<host>:1521/<database>"),
+}
+# Driver isolation level -> (scalar.db.consensus_commit.isolation_level, scalar.db.jdbc.isolation_level) every
+# ScalarDB application on the shared tables must set (docs/transactions.md of the driver).
+NATIVE_JDBC_ISOLATION = {
+    "READ_COMMITTED": ("TRANSACTION_READ_COMMITTED", "READ_COMMITTED", "REPEATABLE_READ"),
+    "SNAPSHOT": ("TRANSACTION_REPEATABLE_READ", "SNAPSHOT", "REPEATABLE_READ"),
+    "SERIALIZABLE": ("TRANSACTION_SERIALIZABLE", "SERIALIZABLE",
+                     "SERIALIZABLE on PostgreSQL; REPEATABLE_READ on MySQL / MariaDB / SQL Server"),
+}
 SEVERITY = {"OK": 0, "WARN": 1, "PLANNED": 2, "ERROR": 3}
 WRITE_PATTERNS = {"rmw", "conditional_write", "app_clock"}
 STATEMENT_SEPARATOR = ";\n"  # one SQM may convert to several statements (a table and its index)
@@ -96,7 +116,13 @@ def _gate(project: Path, out: Path):
         if (project / CONVERSION_PATH).is_file() else {}
     versions = _load_json(project / VERSIONS_PATH, "dependency versions", failures) or {}
     chosen = {e.get("name"): e.get("chosen") for e in versions.get("entries", []) if isinstance(e, dict)}
-    missing = [name for name in REQUIRED_VERSIONS if not chosen.get(name)]
+    required = list(REQUIRED_VERSIONS)
+    if any(e.get("route") == "native_jdbc" for e in manifest.get("statements", [])):
+        # The validator guaranteed target.native_jdbc and a known engine; the module then pins the driver
+        # and the vendor driver it wraps, both resolved like every other dependency.
+        engine = manifest["target"]["native_jdbc"]["engine"]
+        required += [NATIVE_JDBC_ARTIFACT, NATIVE_JDBC_ENGINES[engine][0]]
+    missing = [name for name in required if not chosen.get(name)]
     if missing:
         failures.append(f"dependency versions not resolved in {VERSIONS_PATH}: {', '.join(missing)}")
     if out.exists() and any(out.iterdir()) and not (out / MARKER).is_file():
@@ -154,10 +180,16 @@ def _reconvert(project, manifest, inventory, schema_path, conversion):
     return verdicts
 
 
-def _build_gradle(versions, premium):
+def _build_gradle(versions, premium, native_engine=None):
     sql_client = (f"    runtimeOnly 'com.scalar-labs:scalardb-sql-jdbc:{versions['com.scalar-labs:scalardb']}'\n"
                   f"    runtimeOnly 'com.scalar-labs:scalardb-cluster-java-client-sdk:{versions['com.scalar-labs:scalardb']}'\n"
                   if premium else "")
+    if native_engine:
+        vendor = NATIVE_JDBC_ENGINES[native_engine][0]
+        sql_client += (f"    // route native_jdbc: the application keeps its SQL through ScalarDB Native JDBC, which\n"
+                       f"    // wraps the vendor driver the application supplies (NATIVE-JDBC.md)\n"
+                       f"    runtimeOnly '{NATIVE_JDBC_ARTIFACT}:{versions[NATIVE_JDBC_ARTIFACT]}'\n"
+                       f"    runtimeOnly '{vendor}:{versions[vendor]}'\n")
     return f"""plugins {{
     id 'java'
 }}
@@ -191,6 +223,75 @@ def _origin(stmt):
     origin = stmt["origin"]
     where = f"{origin['path']}:{origin['lines'][0]}-{origin['lines'][1]}"
     return where + (f" ({origin['locator']})" if origin.get("locator") else "")
+
+
+def _native_jdbc_properties(native):
+    """Connection template for the statements kept native. Placeholders stay placeholders: the host, the
+    credentials and the ScalarDB applications' matching settings are the deployment's, not the generator's."""
+    engine, isolation = native["engine"], native["isolation_level"]
+    _, url = NATIVE_JDBC_ENGINES[engine]
+    driver_level, cc_level, jdbc_level = NATIVE_JDBC_ISOLATION[isolation]
+    return f"""# Generated by /architect:implement-sql-migration for the statements routed native_jdbc (NATIVE-JDBC.md).
+# ScalarDB Native JDBC wraps the {engine} driver: the application keeps its native SQL on the one database
+# ScalarDB also manages. One database per connection; a transaction never spans databases.
+url={url.replace('<database>', native['database'])}
+# setTransactionIsolation({driver_level}) on every connection — the driver level is {isolation}.
+# Every ScalarDB application writing the same tables must set
+#   scalar.db.consensus_commit.isolation_level={cc_level}
+#   scalar.db.jdbc.isolation_level={jdbc_level}
+# or neither side's isolation protects what the other side's level assumes.
+scalar.db.native_jdbc.catalog_ttl_millis=60000
+scalar.db.native_jdbc.inflight_wait_millis=0
+# Change these only if the ScalarDB applications changed them:
+scalar.db.native_jdbc.metadata_schema=scalardb
+scalar.db.native_jdbc.coordinator_namespace=coordinator
+"""
+
+
+def _native_jdbc_checklist(native, entries):
+    engine, isolation = native["engine"], native["isolation_level"]
+    vendor, url = NATIVE_JDBC_ENGINES[engine]
+    driver_level, cc_level, jdbc_level = NATIVE_JDBC_ISOLATION[isolation]
+    rows = "\n".join(f"| {stmt['id']} | {_origin(stmt)} | {stmt['category']} | {stmt['language']} |" for stmt in entries)
+    settings = {
+        "mysql": "- MySQL: strict `sql_mode` (`STRICT_TRANS_TABLES` or `STRICT_ALL_TABLES`), vendor driver `useAffectedRows` left `false`.",
+        "mariadb": "- MariaDB: vendor driver `useAffectedRows` left `false`; Connector/J 3.4 is outside the supported range.",
+        "sqlserver": "- SQL Server: `READ_COMMITTED_SNAPSHOT ON`, `ALLOW_SNAPSHOT_ISOLATION ON`, `XACT_ABORT` off; "
+                     "`QUOTED_IDENTIFIER`, `ANSI_NULLS`, `ANSI_PADDING`, `ANSI_WARNINGS` on. Run `scalardb-native-tools check`.",
+        "oracle": "- Oracle: SERIALIZABLE is refused (`0AN01`); the read view runs with its owner's rights, so grant it only to users who may read every column.",
+        "postgresql": "- PostgreSQL before 15: the read view runs with its owner's rights, so grant it only to users who may read every column.",
+    }[engine]
+    return f"""# Statements kept native through ScalarDB Native JDBC
+
+These statements are **not converted**: the application keeps running them as {engine} SQL through
+`{NATIVE_JDBC_ARTIFACT}` on database `{native['database']}`, which ScalarDB applications also write. Nothing
+in this module executes them; `native-jdbc.properties` is the connection template. Rules:
+`rules/scalardb-native-jdbc-patterns.md`.
+
+| SQM | Origin | Category | Language |
+|---|---|---|---|
+{rows}
+
+## Before the first connection
+
+1. `scalardb-native-tools setup --grant <application user>` on `{native['database']}` (creates the read views the
+   driver needs; `check` verifies, `add` registers a table while applications run). Missing setup fails
+   statements with `55000`; a missing catalog grant refuses the connection with `42501`.
+2. Add `{NATIVE_JDBC_ARTIFACT}` and the vendor driver `{vendor}` to the application (this module's
+   `build.gradle` pins the resolved versions). The driver pulls JSQLParser 5.4 — pin it if the application also uses JSQLParser.
+3. Point the application at `{url}` and call `setTransactionIsolation({driver_level})`.
+4. Set `scalar.db.consensus_commit.isolation_level={cc_level}` and `scalar.db.jdbc.isolation_level={jdbc_level}`
+   in **every** ScalarDB application on the shared tables; record the agreed level in `work/version-decisions.json`.
+5. Retry the unit of work on SQLState `40001` with a new transaction; never swallow it.
+6. Database settings the driver checks at connect or write time:
+{settings}
+
+## What the manifest validator could not check
+
+An `UPDATE` of a partition- or clustering-key column is refused by the driver (`0AN01`) but cannot be read from
+the statement text; confirm against `keys[]` of the manifest. Dynamic statements were accepted on the user's
+confirmation of their renderings; a rendering in a refused shape fails at run time.
+"""
 
 
 def _scalardb_sql_class(package, entries):
@@ -387,11 +488,14 @@ def generate(project_dir, out_dir, package):
     test_java = Path("src/test/java") / Path(*package.split("."))
     files: dict[Path, str] = {}
     generated: dict[str, list[str]] = {e["id"]: [] for e in manifest["statements"]}
-    sql_entries, core_entries, plan_ids = [], [], []
+    sql_entries, core_entries, plan_ids, native_entries = [], [], [], []
     for entry in manifest["statements"]:
         sid, route, stmt = entry["id"], entry["route"], statements[entry["id"]]
         _, converted, plan = verdicts[sid]
-        if route == "schema":
+        if route == "native_jdbc":
+            generated[sid] += ["src/main/resources/native-jdbc.properties", "NATIVE-JDBC.md"]
+            native_entries.append(stmt)
+        elif route == "schema":
             generated[sid].append("src/main/resources/schema.json")
         elif route == "scalardb_sql":
             path = Path(f"src/main/resources/sql/{sid}.sql")
@@ -418,8 +522,13 @@ def generate(project_dir, out_dir, package):
         files[main_java / "CoreApiStatements.java"] = _core_api_interface(package, core_entries)
     if plan_ids:
         files[main_java / "MigrationPlans.java"] = _plans_class(package, plan_ids)
+    native = manifest["target"].get("native_jdbc") if native_entries else None
+    if native:
+        files[Path("src/main/resources/native-jdbc.properties")] = _native_jdbc_properties(native)
+        files[Path("NATIVE-JDBC.md")] = _native_jdbc_checklist(native, native_entries)
     files[Path("src/main/resources/schema.json")] = json.dumps(schema, indent=2, ensure_ascii=False) + "\n"
-    files[Path("build.gradle")] = _build_gradle(versions, manifest["target"]["edition"] == "enterprise_premium")
+    files[Path("build.gradle")] = _build_gradle(versions, manifest["target"]["edition"] == "enterprise_premium",
+                                                native["engine"] if native else None)
     files[Path("settings.gradle")] = f"rootProject.name = '{out.name}'\n"
     files[Path(".gitignore")] = "build/\n.gradle/\n"
 
@@ -435,6 +544,7 @@ def generate(project_dir, out_dir, package):
         "statements": [{"id": e["id"], "route": e["route"], "generated": generated[e["id"]]} for e in manifest["statements"]],
         "requires_implementation": [e["id"] for e in manifest["statements"] if e["route"] in ("core_api", "app_side")],
         "not_generated": [e["id"] for e in manifest["statements"] if e["route"] in ("redesign", "retire")],
+        "kept_native": [e["id"] for e in manifest["statements"] if e["route"] == "native_jdbc"],
     }
 
     if out.exists():
@@ -464,8 +574,9 @@ def main(argv=None):
     except (OSError, ValueError, KeyError) as exc:
         print(f"generation failed: {exc}", file=sys.stderr)
         return 1
+    kept = f"; {len(summary['kept_native'])} kept native" if summary["kept_native"] else ""
     print(f"{len(summary['statements'])} statements {summary['routes']}; "
-          f"{len(summary['requires_implementation'])} to implement -> {args.out}")
+          f"{len(summary['requires_implementation'])} to implement{kept} -> {args.out}")
     return 0
 
 
