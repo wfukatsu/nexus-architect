@@ -90,9 +90,11 @@ src/main/java/com/example/orders/
   OrderApplicationService.java   the operations under test
   ConformingOrderService.java    implements the design
   NonConformingOrderService.java implements it wrongly, on purpose
+  OrderSchema.java               the namespace and table names, shared by the services and the tests
   Caller.java, OrderView.java, DraftOrderCommand.java, *Exception.java
 src/test/java/com/example/orders/
   ScalarDbTestBackend.java       real ScalarDB over SQLite; the two microservice topologies
+  Rows.java                      one row builder per table, and the one committed read the scenarios share
   *IT.java                       the scenarios
 ```
 

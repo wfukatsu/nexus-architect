@@ -7,6 +7,25 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.51.2] - 2026-11-01
+
+### Changed
+- **`samples/` を整理した。** 新設の `samples/README.md` に、4 つのサンプルの用途、呼び出すスキル、実行と検証の
+  方法、そして前提を書いた —— `ec-monolith` と `legacy-ui-shop` は欠陥を意図的に埋め込んだ fixture であり決して
+  「整理」しない（`legacy-ui-shop` は `planted-defects.json` でファイルと行番号を固定している）、`expected-reports/`
+  はコミットされたスキルの出力である、リファクタしてよいコードは `scalardb-transaction-tests` だけで、条件は
+  `./gradlew integrationTest` が通り続けること。Gradle の 3 サンプルの `.gitignore` を同じ 2 行に揃えた。
+- **`samples/scalardb-transaction-tests` の重複を除いた。** namespace とテーブル名は `OrderSchema` に 1 回だけ
+  置く（2 つのサービスとテストバックエンドがそれぞれ定義し、バックエンドは 2 テーブルをリテラルで呼んでいた）。
+  `Rows` にテーブルごとの `Get` / `Put` ビルダーと、5 つのシナリオスイートがそれぞれ再実装していた
+  「1 トランザクションで読んでコミットする」読み取りを置いた。シナリオ本体は変えていない —— 前後とも 34 テスト。
+  直前の行の繰り返しだったアサーションと `assertTrue(x == n)` を締め、Saga スイートの Javadoc は 3.19 の alpha
+  ではなく ScalarDB Saga が 3.20.0 で GA であることを言うようにした。
+- **`samples/ec-monolith/README.md` をコードと規則に合わせた。** `OrderService` は「500 行超」ではなく約 200 行、
+  移行ターゲットは Microservice Transaction API を指す（アプリケーション主導の 2PC インターフェースは 3.19 で
+  非推奨、3.20 の Core jar には無い。`rules/scalardb-2pc-patterns.md`）、コミット済みの `expected-reports/` への
+  案内を加えた。
+
 ## [0.51.1] - 2026-11-01
 
 ### Fixed

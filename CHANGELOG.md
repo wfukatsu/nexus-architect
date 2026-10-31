@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.51.2] - 2026-11-01
+
+### Changed
+- **`samples/` tidied.** A new `samples/README.md` names the four samples, which skills exercise
+  each, how each is run and checked, and the ground rules: `ec-monolith` and `legacy-ui-shop` are
+  fixtures with deliberate defects that are never "cleaned up" (`legacy-ui-shop` pins file and line
+  numbers in `planted-defects.json`), `expected-reports/` is committed skill output, and only
+  `scalardb-transaction-tests` is code to refactor — as long as `./gradlew integrationTest` stays
+  green. The three Gradle samples carry the same two-line `.gitignore`.
+- **`samples/scalardb-transaction-tests` deduplicated.** `OrderSchema` holds the namespace and table
+  names once (the two services and the test backend each defined them, and the backend named two
+  tables by literal); `Rows` holds one `Get` / `Put` builder per table and the one committed read
+  that the five scenario suites each re-implemented. Scenario bodies are unchanged — 34 tests before
+  and after. An assertion that restated the previous line and an `assertTrue(x == n)` were
+  tightened, and the Saga suite's Javadoc says ScalarDB Saga is GA in 3.20.0 instead of naming the
+  3.19 alpha.
+- **`samples/ec-monolith/README.md` matches the code and the rules.** `OrderService` is about 200
+  lines, not "over 500"; the target architecture names the Microservice Transaction API (the
+  application-driven 2PC interface is deprecated since 3.19 and absent from the 3.20 Core jar,
+  `rules/scalardb-2pc-patterns.md`); and the README points at the committed `expected-reports/`.
+
 ## [0.51.1] - 2026-11-01
 
 ### Fixed

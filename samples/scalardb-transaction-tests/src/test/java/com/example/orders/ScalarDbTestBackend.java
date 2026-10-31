@@ -1,5 +1,11 @@
 package com.example.orders;
 
+import static com.example.orders.OrderSchema.IDEMPOTENCY;
+import static com.example.orders.OrderSchema.INVENTORY;
+import static com.example.orders.OrderSchema.NS;
+import static com.example.orders.OrderSchema.ORDERS;
+import static com.example.orders.OrderSchema.SAGA_LOG;
+
 import com.scalar.db.api.DistributedTransactionAdmin;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.GlobalTransactionManager;
@@ -19,12 +25,6 @@ import java.util.Properties;
 
 /** A real ScalarDB instance over SQLite — in-process, no container. */
 final class ScalarDbTestBackend implements AutoCloseable {
-
-    static final String NS = "order";
-    static final String ORDERS = "orders";
-    static final String IDEMPOTENCY = "idempotency";
-    static final String INVENTORY = "inventory";
-    static final String SAGA_LOG = "saga_log";
 
     /**
      * The two processes of a microservice transaction, each holding the {@link GlobalTransactionManager}
@@ -65,7 +65,7 @@ final class ScalarDbTestBackend implements AutoCloseable {
                 .addPartitionKey("tenant_id")
                 .addClusteringKey("order_id")
                 .build(), true, new HashMap<>());
-        admin.createTable(NS, "inventory", TableMetadata.newBuilder()
+        admin.createTable(NS, INVENTORY, TableMetadata.newBuilder()
                 .addColumn("tenant_id", DataType.TEXT)
                 .addColumn("product_id", DataType.TEXT)
                 .addColumn("available", DataType.INT)
@@ -73,7 +73,7 @@ final class ScalarDbTestBackend implements AutoCloseable {
                 .addPartitionKey("tenant_id")
                 .addClusteringKey("product_id")
                 .build(), true, new HashMap<>());
-        admin.createTable(NS, "saga_log", TableMetadata.newBuilder()
+        admin.createTable(NS, SAGA_LOG, TableMetadata.newBuilder()
                 .addColumn("tenant_id", DataType.TEXT)
                 .addColumn("saga_id", DataType.TEXT)
                 .addColumn("step", DataType.TEXT)

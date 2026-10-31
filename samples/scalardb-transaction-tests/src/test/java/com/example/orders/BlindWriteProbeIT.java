@@ -8,7 +8,6 @@ import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.exception.transaction.CommitConflictException;
-import com.scalar.db.io.Key;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +18,7 @@ class BlindWriteProbeIT {
 
     private static ScalarDbTestBackend backend;
     private static DistributedTransactionManager manager;
+    private static final String TENANT = "t";
 
     @BeforeAll static void boot() throws Exception {
         backend = new ScalarDbTestBackend();
@@ -28,16 +28,11 @@ class BlindWriteProbeIT {
     @AfterAll static void down() throws Exception { if (backend != null) backend.close(); }
 
     private static Put put(String id, String status) {
-        return Put.newBuilder().namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.ORDERS)
-                .partitionKey(Key.ofText("tenant_id", "t"))
-                .clusteringKey(Key.ofText("order_id", id))
-                .textValue("status", status).build();
+        return Rows.order(TENANT, id).textValue("status", status).build();
     }
 
     private static Get get(String id) {
-        return Get.newBuilder().namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.ORDERS)
-                .partitionKey(Key.ofText("tenant_id", "t"))
-                .clusteringKey(Key.ofText("order_id", id)).build();
+        return Rows.orderGet(TENANT, id);
     }
 
     @Test

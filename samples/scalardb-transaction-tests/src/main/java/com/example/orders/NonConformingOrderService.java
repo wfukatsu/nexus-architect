@@ -1,5 +1,9 @@
 package com.example.orders;
 
+import static com.example.orders.OrderSchema.IDEMPOTENCY;
+import static com.example.orders.OrderSchema.NS;
+import static com.example.orders.OrderSchema.ORDERS;
+
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Get;
@@ -18,9 +22,6 @@ import org.slf4j.LoggerFactory;
 public class NonConformingOrderService implements OrderApplicationService {
 
     private static final Logger log = LoggerFactory.getLogger(NonConformingOrderService.class);
-    private static final String NS = "order";
-    private static final String ORDERS = "orders";
-    private static final String IDEMPOTENCY = "idempotency";
 
     private final DistributedTransactionManager manager;
 

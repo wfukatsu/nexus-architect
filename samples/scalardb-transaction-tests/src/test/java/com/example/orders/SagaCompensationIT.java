@@ -2,18 +2,13 @@ package com.example.orders;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
-import com.scalar.db.api.Get;
-import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
-import com.scalar.db.io.Key;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +19,7 @@ import org.junit.jupiter.api.Test;
  * coordinator that unwinds in reverse when a later step fails.
  *
  * SCOPE: this exercises the saga PATTERN over ScalarDB local transactions. It is not ScalarDB Saga
- * the product (3.19.0-alpha.1), which is not a dependency here. What it establishes is what a
+ * the product (GA in 3.20.0), which is not a dependency here. What it establishes is what a
  * design review can check for: that every step has a compensation, that compensation is idempotent,
  * and that a partially-applied saga leaves no forward effect behind.
  */
@@ -70,75 +65,44 @@ class SagaCompensationIT {
 
     private static void recordStep(String sagaId, String step, String state) throws Exception {
         DistributedTransaction tx = manager.begin();
-        tx.get(Get.newBuilder().namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.SAGA_LOG)
-                .partitionKey(Key.ofText("tenant_id", TENANT))
-                .clusteringKey(Key.newBuilder().addText("saga_id", sagaId)
-                        .addText("step", step).build()).build());
-        tx.put(Put.newBuilder().namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.SAGA_LOG)
-                .partitionKey(Key.ofText("tenant_id", TENANT))
-                .clusteringKey(Key.newBuilder().addText("saga_id", sagaId)
-                        .addText("step", step).build())
-                .textValue("state", state).build());
+        tx.get(Rows.sagaStepGet(TENANT, sagaId, step));
+        tx.put(Rows.sagaStepPut(TENANT, sagaId, step, state));
         tx.commit();
     }
 
     private static String stepState(String sagaId, String step) throws Exception {
-        DistributedTransaction tx = manager.begin();
-        Optional<Result> r = tx.get(Get.newBuilder()
-                .namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.SAGA_LOG)
-                .partitionKey(Key.ofText("tenant_id", TENANT))
-                .clusteringKey(Key.newBuilder().addText("saga_id", sagaId)
-                        .addText("step", step).build()).build());
-        tx.commit();
-        return r.map(x -> x.getText("state")).orElse("NONE");
+        return Rows.readOnce(manager, Rows.sagaStepGet(TENANT, sagaId, step))
+                .map(x -> x.getText("state")).orElse("NONE");
     }
 
     // ---- domain operations -------------------------------------------------
 
     private static void seedStock(String product, int available, int reserved) throws Exception {
         DistributedTransaction tx = manager.begin();
-        tx.get(stockGet(product));
-        tx.put(Put.newBuilder().namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.INVENTORY)
-                .partitionKey(Key.ofText("tenant_id", TENANT))
-                .clusteringKey(Key.ofText("product_id", product))
-                .intValue("available", available).intValue("reserved", reserved).build());
+        tx.get(Rows.stockGet(TENANT, product));
+        tx.put(Rows.stockPut(TENANT, product, available, reserved));
         tx.commit();
-    }
-
-    private static Get stockGet(String product) {
-        return Get.newBuilder().namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.INVENTORY)
-                .partitionKey(Key.ofText("tenant_id", TENANT))
-                .clusteringKey(Key.ofText("product_id", product)).build();
     }
 
     private static int available(String product) throws Exception {
-        DistributedTransaction tx = manager.begin();
-        Optional<Result> r = tx.get(stockGet(product));
-        tx.commit();
-        return r.orElseThrow().getInt("available");
+        return Rows.readOnce(manager, Rows.stockGet(TENANT, product)).orElseThrow().getInt("available");
     }
 
     private static int reserved(String product) throws Exception {
-        DistributedTransaction tx = manager.begin();
-        Optional<Result> r = tx.get(stockGet(product));
-        tx.commit();
-        return r.orElseThrow().getInt("reserved");
+        return Rows.readOnce(manager, Rows.stockGet(TENANT, product)).orElseThrow().getInt("reserved");
     }
 
     /** Move n units available -> reserved, in one local transaction. */
     private static void reserve(String product, int n) throws Exception {
         DistributedTransaction tx = manager.begin();
-        Result row = tx.get(stockGet(product)).orElseThrow();
+        Result row = tx.get(Rows.stockGet(TENANT, product)).orElseThrow();
         int a = row.getInt("available");
         int r = row.getInt("reserved");
         if (a < n) {
             tx.rollback();
             throw new IllegalStateException("insufficient stock");
         }
-        tx.put(Put.newBuilder().namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.INVENTORY)
-                .partitionKey(Key.ofText("tenant_id", TENANT))
-                .clusteringKey(Key.ofText("product_id", product))
-                .intValue("available", a - n).intValue("reserved", r + n).build());
+        tx.put(Rows.stockPut(TENANT, product, a - n, r + n));
         tx.commit();
     }
 
@@ -148,14 +112,11 @@ class SagaCompensationIT {
      */
     private static void releaseReservation(String product, int n) throws Exception {
         DistributedTransaction tx = manager.begin();
-        Result row = tx.get(stockGet(product)).orElseThrow();
+        Result row = tx.get(Rows.stockGet(TENANT, product)).orElseThrow();
         int a = row.getInt("available");
         int r = row.getInt("reserved");
         int release = Math.min(n, r);
-        tx.put(Put.newBuilder().namespace(ScalarDbTestBackend.NS).table(ScalarDbTestBackend.INVENTORY)
-                .partitionKey(Key.ofText("tenant_id", TENANT))
-                .clusteringKey(Key.ofText("product_id", product))
-                .intValue("available", a + release).intValue("reserved", r - release).build());
+        tx.put(Rows.stockPut(TENANT, product, a + release, r - release));
         tx.commit();
     }
 
@@ -222,7 +183,7 @@ class SagaCompensationIT {
 
         assertEquals(4, available("P-7004"),
                 "expected the defect: stock stays reserved after the saga failed");
-        assertTrue(reserved("P-7004") == 6);
+        assertEquals(6, reserved("P-7004"));
     }
 
     // ---- step helper -------------------------------------------------------
