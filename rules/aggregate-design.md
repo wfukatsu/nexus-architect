@@ -108,7 +108,7 @@ each is asserted by `tools/lib/aggregate_manifest.py` against the manifest the s
      an exception to one-command-one-aggregate and is written as one — with the reason, and with a
      reconciliation for the day the two disagree.
   2. The invariant spans both and they live in **different services** — classify `distributed`
-     (one ACID transaction across services — shared cluster / Global Transaction API / 2PC,
+     (one ACID transaction across services — shared cluster / Microservice Transaction API / 2PC on ≤ 3.19,
      @rules/scalardb-2pc-patterns.md) and say which service owns it.
   3. It does not span both — the second write is a reaction to the first's event, classified
      `saga` with a compensation (@rules/scalardb-saga-patterns.md).

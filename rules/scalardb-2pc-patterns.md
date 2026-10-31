@@ -183,7 +183,9 @@ TwoPhaseCommitTransaction participant  = inventoryManager.join(coordinator.getId
 ```
 
 A 2PC integration test built on one manager does not exercise 2PC. Build a second
-`TransactionFactory` over the same configuration and take its manager (verified on ScalarDB 3.19.0).
+`TransactionFactory` over the same configuration and take its manager (verified on ScalarDB 3.19.0;
+the interface, and with it this test, is gone from Core 3.20.0 — `MicroserviceTransactionIT` covers
+the successor, where the separated-cluster shape likewise needs one participant per service).
 
 ## Protocol Misuse Is Unchecked
 

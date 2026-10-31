@@ -68,7 +68,8 @@ answer reflects the latest docs, not the project's pinned version.
 
 - Exception handling and retry patterns
 - Configuration for specific databases (MySQL, PostgreSQL, Cassandra, DynamoDB, Cosmos DB)
-- Two-phase commit transactions
+- Microservice Transaction API (transactions across services, 3.19+; the two-phase commit interface on ≤ 3.19)
+- ScalarDB Saga (SAGA / TCC, 3.20 GA), the PostgreSQL wire protocol (Cluster 3.20+), ScalarDB Native JDBC
 - Schema design and loading
 - CRUD API operations
 - JDBC/SQL interface

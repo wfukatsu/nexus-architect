@@ -139,7 +139,7 @@ exists to prevent.
   re-evaluating its guard. Design keys so the contended transitions do not share a partition beyond
   what the business requires (@rules/scalardb-schema-design.md).
 - **Classify every transition.** `local` (one service, one datastore), `distributed` (one ACID
-  transaction across services — shared cluster / Global Transaction API / 2PC), or `saga` (steps
+  transaction across services — shared cluster / Microservice Transaction API / 2PC on ≤ 3.19), or `saga` (steps
   with compensation). The classification comes from `scalardb-transaction.md` when it exists, and
   feeds it when it does not (@rules/scalardb-2pc-patterns.md, @rules/scalardb-saga-patterns.md).
 - **A compensation is a transition.** A saga that rolls back moves the aggregate to a real state —

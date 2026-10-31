@@ -87,7 +87,7 @@ service docs, so do not hand-write a competing table inside its marked sections.
 - Domain tests import nothing from `infrastructure/`, ScalarDB or Spring; every repository port has an
   in-memory Fake; `Clock` and id generation are injected (@rules/tdd-workflow.md §4)
 - Every `TX-` entry has an `*IT` over the in-process engine covering its happy path, OCC conflict and
-  blind write, plus 2PC / saga scenarios where the design uses them; `./gradlew integrationTest` was
+  blind write, plus cross-service transaction / saga scenarios where the design uses them; `./gradlew integrationTest` was
   run, matched tests, and passed
 - Every pinned version was looked up (not recalled), is a stable release, and is recorded in the
   version decision table — with the user's confirmation when that is the configured mode
@@ -152,7 +152,7 @@ stand in for, and it is only as real as the suite behind it — so this skill em
 | **Happy path** per `TX-` | The operation commits, and every table the design says it writes is written in that one transaction |
 | **OCC conflict** | Two concurrent writers on one record: exactly one commits, the loser fails with the contracted outcome (not a silent success), and the service's own retry absorbs a conflict that clears |
 | **Blind write** | A `Put` (or `Insert`) on a record the transaction never read fails at `commit()` with a conflict — the defect no contract test and no static review caught on this pipeline's own reference implementation (@rules/scalardb-crud-patterns.md). `Update` is *not* the same case on 3.19: it performs an implicit read and commits; the test pins both behaviours so a later release changing either is noticed |
-| **2PC failure** (when the design uses it) | One manager per participant; a participant whose `prepare()` conflicts rolls every participant back, leaving no half-applied state (@rules/scalardb-2pc-patterns.md) |
+| **Cross-service transaction failure** (when the design uses one) | On the Microservice Transaction API: a participant branch ending `FAILURE` plus the orchestrator's rollback leaves no half-applied state, and a stale write fails at `commit()` as a conflict; on the ≤ 3.19 2PC interface: one manager per participant, a participant whose `prepare()` conflicts rolls every participant back (@rules/scalardb-2pc-patterns.md) |
 | **Saga compensation** (when the design uses it) | A later step's failure compensates the earlier ones in reverse, and a compensation redelivered twice is idempotent (@rules/scalardb-saga-patterns.md) |
 | **Indeterminate commit** | `UnknownTransactionStatusException` is neither rolled back nor retried; the recorded outcome matches the §3.1 contract (@rules/api-error-standard.md) |
 
@@ -179,7 +179,7 @@ Output language and frontmatter: @rules/output-conventions.md.
 | `generated/{service}/src/main/java/` | Java source code |
 | `generated/{service}/src/test/java/**/domain/` | Example and property tests per invariant, plus the value-object arbitraries |
 | `generated/{service}/src/test/java/**/fakes/` | One in-memory Fake per repository port (@rules/tdd-workflow.md §4) |
-| `generated/{service}/src/test/java/**/integration/` | `*IT` per `TX-` entry — happy path, OCC conflict, blind write, 2PC / saga where designed, indeterminate commit — over an in-process SQLite-backed ScalarDB; `integrationTest` task in `build.gradle` |
+| `generated/{service}/src/test/java/**/integration/` | `*IT` per `TX-` entry — happy path, OCC conflict, blind write, cross-service transaction / saga where designed, indeterminate commit — over an in-process SQLite-backed ScalarDB; `integrationTest` task in `build.gradle` |
 | `generated/{service}/build.gradle` | Build configuration (incl. jqwik when property tests are emitted) |
 | `generated/{service}/Dockerfile` | Container definition |
 | `generated/{service}/scalardb.properties` | ScalarDB configuration |

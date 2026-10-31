@@ -31,7 +31,7 @@ with `skill:` naming itself and the Context section naming where the decision wa
 | Skill | Decisions it records |
 |-------|----------------------|
 | `redesign` | each bounded-context boundary that differs from the current code; each context relationship pattern (ACL, OHS/PL, Customer/Supplier, Conformist, Shared Kernel) |
-| `design-microservices` | the service split and its granularity; the cross-service transaction mechanism (shared cluster / Global Transaction API / application 2PC / Saga); synchronous vs. event-driven integration per edge |
+| `design-microservices` | the service split and its granularity; the cross-service transaction mechanism (shared cluster / Microservice Transaction API / application 2PC on ≤ 3.19 / Saga); synchronous vs. event-driven integration per edge |
 | `design-scalardb` / `design-data-layer` | ScalarDB edition, storage backend, partition-key strategy; CQRS adoption; Event Sourcing adoption |
 | `design-api` | the API style per surface (linking `api-style-decisions.json`); the error standard |
 
