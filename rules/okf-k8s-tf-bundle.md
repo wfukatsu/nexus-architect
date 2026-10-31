@@ -145,7 +145,7 @@ whose date has passed, and `/architect:revise-knowledge` re-verifies them and re
 When citing a document whose date has passed, **say so explicitly** — "this statement is past its
 `stale_after: YYYY-MM-DD` and needs re-checking against official documentation" — and check the
 locally held page (`knowledge/okf-k8s-tf-upstream/pages/`), or WebFetch the official source, when
-the claim matters. A document that warns of a coming removal carries an earlier date on purpose —
+the claim matters. A document that warns of a coming removal carries a shorter horizon on purpose —
 Kyverno, because v1.20 plans to remove `kyverno.io/v1 ClusterPolicy` — so the actual release state
 is checked rather than assumed.
 

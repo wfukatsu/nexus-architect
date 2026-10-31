@@ -10,8 +10,8 @@ all four plugins (`product`, `architect`, `scalardb`, `infra`) are released toge
 ## [Unreleased]
 
 ### Changed
-- **Three more open questions in the Kubernetes/Terraform bundle, each grounded in a new official
-  source.** `foundation/helm.md` records that Helm 4's `helm upgrade` has no `--atomic` — rollback on
+- **Three more open questions in the Kubernetes/Terraform bundle, two of them grounded in a new
+  official source.** `foundation/helm.md` records that Helm 4's `helm upgrade` has no `--atomic` — rollback on
   failure is `--rollback-on-failure`, forced replacement `--force-replace`, and `--wait` takes a
   strategy — and asks how the observed Terraform helm provider's `atomic` / `force_update` / `wait`
   attributes map onto that in provider 3.x (source: the Helm 4.3.1 `helm upgrade` reference).
@@ -35,7 +35,7 @@ all four plugins (`product`, `architect`, `scalardb`, `infra`) are released toge
   `delivery/docker-cosign.md`, `foundation/helm.md` (now against the Helm 4.3.1 edition of its five
   pages) and `secrets/vault.md` — were re-verified and are unchanged apart from their dates;
   `docker-cosign.md`'s open questions now state Docker Engine 29.9.2 and Cosign 3.1.4 as the latest
-  stable releases. The upstream state (`knowledge/okf-k8s-tf-upstream/`) is the 2026-11-01 collection
+  stable releases. The upstream state (`knowledge/okf-k8s-tf-upstream/`) is the 2026-11-01 (JST) collection
   and no document awaits re-verification.
 
 ## [0.50.0] - 2026-10-31

@@ -149,7 +149,7 @@ architect パイプラインを先に流す必要はありませんが、
 ## 最初の実行前に知っておくとよいこと
 
 - **Kyverno の `ClusterPolicy` には期限がある。** `kyverno.io/v1 ClusterPolicy` は deprecated で、
-  v1.20（2026年10月予定）で削除されます。`security/kyverno.md` の `stale_after` が他より短いのも、
+  v1.20（2026年11月見込み）で削除されます。`security/kyverno.md` の `stale_after` の間隔が他より短い（3 か月後ではなく Kyverno の release ごとに再確認する）のも、
   レビューの既知課題の筆頭に挙がるのもこのためです。
 - **test と staging の非対称は意図された設計。** test は直接適用、staging は GitOps という
   非対称は対象実装における設計判断であり、それ自体は指摘対象ではありません。指摘すべきは

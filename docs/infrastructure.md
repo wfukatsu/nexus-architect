@@ -155,8 +155,9 @@ when they exist.
 ## Things worth knowing before the first run
 
 - **Kyverno `ClusterPolicy` is on a clock.** `kyverno.io/v1 ClusterPolicy` is deprecated and v1.20
-  (planned October 2026) removes it. This is why `security/kyverno.md` carries an earlier
-  `stale_after` than the rest of the bundle, and why the review lists it as the first known issue.
+  (November 2026, estimated) removes it. This is why `security/kyverno.md` carries a shorter
+  `stale_after` horizon than the rest of the bundle — re-checked after each Kyverno release rather
+  than three months on — and why the review lists it as the first known issue.
 - **The test/staging asymmetry is deliberate.** Direct apply in test, GitOps in staging, is a
   design decision in the observed implementation — not a defect to report. What is worth reporting
   is that the asymmetry is undocumented, or that test has no drift re-creation procedure.

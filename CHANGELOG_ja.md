@@ -10,7 +10,7 @@ Nexus Architect の主な変更点を記録します。
 ## [Unreleased]
 
 ### Changed
-- **Kubernetes/Terraform バンドルに確認事項を 3 件追加し、それぞれ新しい公式出典で裏付けた。**
+- **Kubernetes/Terraform バンドルに確認事項を 3 件追加し、うち 2 件は新しい公式出典で裏付けた。**
   `foundation/helm.md` は、Helm 4 の `helm upgrade` に `--atomic` が無く、失敗時の rollback は
   `--rollback-on-failure`、置換による強制更新は `--force-replace`、`--wait` は strategy を取ることを記し、
   対象実装の Terraform helm provider の `atomic` / `force_update` / `wait` 属性が provider 3.x でどう対応するかを
@@ -31,7 +31,7 @@ Nexus Architect の主な変更点を記録します。
   以降）を使う。週次更新が挙げた他の 4 文書 —— `architecture/design-build-checklist.md`、
   `delivery/docker-cosign.md`、`foundation/helm.md`（Helm 4.3.1 版の 5 ページと照合）、`secrets/vault.md` ——
   は再確認のみで日付以外は変更なし。`docker-cosign.md` の確認事項は最新 stable を Docker Engine 29.9.2・
-  Cosign 3.1.4 に更新した。upstream の状態（`knowledge/okf-k8s-tf-upstream/`）は 2026-11-01 の収集結果で、
+  Cosign 3.1.4 に更新した。upstream の状態（`knowledge/okf-k8s-tf-upstream/`）は 2026-11-01（JST）の収集結果で、
   再検証待ちの文書はない。
 
 ## [0.50.0] - 2026-10-31
