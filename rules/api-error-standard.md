@@ -78,13 +78,13 @@ release whose documented retryability differs, the pinned OKF bundle wins
 | `UnsatisfiedConditionException` where the condition came from a **client-supplied precondition** (`If-Match`, a version field) | 412 | `precondition-failed` | No — the client must re-read and re-decide |
 | `UnsatisfiedConditionException` otherwise (server-side invariant not met) | 409 | `state-conflict` | No |
 | `UnknownTransactionStatusException` | **§3.1 — has its own rule** | `transaction-status-unknown` | **No, unless idempotency-protected** |
-| `TransactionNotFoundException` (2PC participant, expired or unknown transaction) | 404 | `transaction-not-found` | No — the coordinator aborts |
+| `TransactionNotFoundException` (a participant's `beginBranch` on an expired or unknown global transaction; 2PC `join` on the deprecated interface) | 404 | `transaction-not-found` | No — the orchestrating process rolls back |
 | `CrudException`, `CommitException`, `PreparationException`, `ValidationException` (non-conflict) | 500 | `transaction-failed` | No |
 | `TransactionException` (unclassified) | 500 | `transaction-failed` | No |
 | Connectivity / cluster unavailable | 503 | `service-unavailable` | Yes — set `Retry-After` |
-| `IllegalStateException` from 2PC protocol misuse (commit before prepare, reusing a finished transaction) | 500 | `internal-error` | No |
+| `IllegalStateException` from protocol misuse (`end(SUCCESS)` on an already-ended branch or with an open scanner; on the deprecated 2PC interface, commit before prepare or reusing a finished transaction) | 500 | `internal-error` | No |
 
-The last row is easy to miss and the handler must cover it explicitly: 2PC protocol misuse throws an
+The last row is easy to miss and the handler must cover it explicitly: protocol misuse throws an
 **unchecked** `IllegalStateException`, not a `TransactionException`
 (@rules/scalardb-2pc-patterns.md). A handler written as `catch (TransactionException e)` never sees
 it, so it escapes as an unhandled 500 with a framework error page — which is also a §4 disclosure
@@ -113,8 +113,8 @@ Read the ID with **`TransactionException#getTransactionId()`** — the accessor 
 (`scalardb-sql/sql-api-guide.md`). The pinned 3.19 bundle does not document
 `getUnknownTransactionId()` at all, so this file makes no claim about its status; an earlier
 revision asserted it was `@Deprecated` as part of a 3.19 deprecation of the application-driven 2PC
-surface, and that rationale is **withdrawn** — the 2PC surface is not deprecated on 3.19
-(@rules/scalardb-2pc-patterns.md). If you need `getUnknownTransactionId()` on any release, verify it
+surface; the 2PC interface **is** deprecated as of 3.19 per the docs site, but that says nothing
+about this accessor (@rules/scalardb-2pc-patterns.md). If you need `getUnknownTransactionId()` on any release, verify it
 against that release's javadoc before generating the handler (@rules/okf-knowledge-bundle.md) — both
 accessors compile and pass tests, so only the version check catches the wrong choice.
 

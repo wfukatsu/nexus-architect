@@ -30,8 +30,10 @@ Produce two deliverables:
    the triggering signals (cited `NFR-`/`CTX-`/`ENT-`/`API-`/`CON-`/`SCP-` ids), a **decision
    (Adopt/Conditional/Reject)**, the **adoption rationale** (and where it slots into the architecture
    if adopted), and conditions/risks. A scored matrix summarizes all five.
-   ScalarDB Saga is triggered by a `CTX-`-spanning process whose consistency requirement is
-   eventual, or a step that calls an external system — not by ScalarDB adoption on its own.
+   ScalarDB Saga (3.20 GA, Apache-2.0) is triggered by a `CTX-`-spanning process whose consistency
+   requirement is eventual, or a step that calls an external system — not by ScalarDB adoption on
+   its own. Strong-consistency processes across contexts stay on ScalarDB's one-phase Microservice
+   Transaction API; the 2PC interface is deprecated.
 
 ## Invocation
 

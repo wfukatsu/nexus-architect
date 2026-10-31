@@ -6,6 +6,14 @@ Multi-service transactions using ScalarDB Cluster with the SQL/JDBC interface.
 > release. Before emitting a `build.gradle`, resolve each pin per
 > `rules/dependency-versions.md` — the ScalarDB line, Java, and the logging/CLI libraries all
 > move independently of this document.
+>
+> **The SQL two-phase commit mode is deprecated as of ScalarDB 3.19** (`TWO_PHASE_COMMIT_TRANSACTION`),
+> and 3.20 removed the `JOIN`, `SUSPEND` and `RESUME` statements and the matching Spring Data
+> methods. On 3.20+ a SQL transaction that spans processes uses the `GLOBAL_TRANSACTION` session
+> mode (`BEGIN BRANCH` / `END BRANCH`, the Transaction Coordinator driving 2PC when
+> `scalar.db.sql.enabled=true`); ground its grammar on the 3.20 release notes, which the bundle's
+> 3.19 `grammar.md` predates. Generate from this template only for a release before 3.19 or as an
+> ADR-recorded deviation — see `rules/scalardb-2pc-patterns.md`.
 
 ## build.gradle
 

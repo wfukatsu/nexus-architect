@@ -72,11 +72,18 @@ ScalarDB スキーマの設計をステップバイステップで案内する�
 | 5 | Cluster | JDBC | 1PC | 本番環境、SQL 使用 |
 | 6 | Cluster | JDBC | 2PC | 本番環境、複数サービス SQL |
 
-上表の 2PC は**アプリケーションが駆動する** 2 フェーズコミットを指します。複数サービスのシステムが
-必ずこれを使う必要はありません。共有クラスタパターン、または Global Transaction API と Transaction
-Coordinator ノード（ScalarDB 3.19+）を使えば、サービス跨ぎのトランザクションも 1PC の組み合わせ
-（#3 / #5）で記述できます。結果整合で足りる場合は、ScalarDB Saga がトランザクション自体を置き換え
-ます。詳細は `rules/scalardb-2pc-patterns.md` および `rules/scalardb-saga-patterns.md` を参照。
+上表の 2PC は**アプリケーションが駆動する** 2 フェーズコミットインターフェイスを指し、ScalarDB 3.19
+で**非推奨**になりました。複数サービスのシステムはこれを使いません。共有クラスタパターン、または
+Microservice Transaction API と Transaction Coordinator ノードによる分離クラスタ（ScalarDB 3.19+、
+SQL は 3.20+）を使えば、サービス跨ぎのトランザクションも 1PC の組み合わせ（#3 / #5）で、同一のコードで
+記述できます。結果整合で足りる場合は、ScalarDB Saga（3.20 GA）がトランザクション自体を置き換えます。
+詳細は `rules/scalardb-2pc-patterns.md` および `rules/scalardb-saga-patterns.md` を参照。
+
+6 つの組み合わせの外に、ScalarDB 管理データへ SQL で到達する **3 つのアクセスパス**があります（3.20）。
+Cluster ノードの PostgreSQL ワイヤプロトコル（および Apache-2.0 のスタンドアロン版
+`scalardb-postgres-frontend`）は psql / PostgreSQL ドライバー / BI 向け、ScalarDB Native JDBC
+（`jdbc:scalardb-native:`）は ScalarDB と同じデータベース上でネイティブ SQL を使い続ける既存 SQL
+アプリケーション向けです — `skills/common/references/interface-matrix.md` § SQL Access Paths。
 
 ---
 
@@ -279,8 +286,10 @@ ScalarDB ドキュメントを検索し、コード例付きの回答を提供�
 | `scalardb-exception-handling` | キャッチ順序、リトライロジック、UnknownTransactionStatusException |
 | `scalardb-crud-patterns` | ビルダーパターン、非推奨の Put、キー構築、Result の処理 |
 | `scalardb-jdbc-patterns` | setAutoCommit、PreparedStatement、エラーコード 301、JOIN/集約構文 |
-| `scalardb-2pc-patterns` | サービス跨ぎ方式の選択（共有クラスタ / Global Transaction API / 2PC / Saga）、コーディネーター/パーティシパントプロトコル、リクエストルーティング、グループコミット |
-| `scalardb-saga-patterns` | ScalarDB Saga: SAGA と TCC、冪等性、Saga 定義、サーバー設定、エスカレーション対応 |
+| `scalardb-2pc-patterns` | サービス跨ぎ方式の選択（共有クラスタ / Microservice Transaction API / 非推奨の 2PC / Saga）、ブランチプロトコルとその設定、従来のコーディネーター/パーティシパントプロトコル、リクエストルーティング、グループコミット |
+| `scalardb-saga-patterns` | ScalarDB Saga 3.20 GA: SAGA と TCC、冪等性、Saga 定義、ストア要件（Consensus Commit）、サーバー設定、エスカレーション対応 |
+| `scalardb-native-jdbc-patterns` | ScalarDB Native JDBC: ScalarDB と同じデータベースでテーブルを共有する既存 SQL アプリケーション — URL、プロパティ、分離レベルの一致、`40001`、拒否される文、セットアップと権限 |
+| `scalardb-postgres-frontend-patterns` | PostgreSQL ワイヤプロトコル（Cluster 3.20+）とスタンドアロンのフロントエンド: 配置形態、PostgreSQL と異なる点（制約は非強制、ロック無し、DDL は非トランザクショナル）、トランザクションの意味論 |
 | `scalardb-config-validation` | properties ファイルが満たすべき検査: バックエンドごとの必須キー、値の閉集合、cluster モードの prefix と API 別のキー、クロスパーティションスキャン、group commit と 2PC の非互換（プロパティ自体は `configuration-reference.md`） |
 | `scalardb-schema-design` | パーティションキー設計、クラスタリングキー、セカンダリインデックス、JOIN 無しの設計、イベントストアのパターン（形式とデータ型は `schema-format.md`） |
 | `scalardb-java-best-practices` | スレッドセーフティ、トランザクションライフサイクル、SLF4J、try-with-resources |
@@ -292,7 +301,7 @@ ScalarDB ドキュメントを検索し、コード例付きの回答を提供�
 | ドキュメント | 内容 |
 |----------|---------|
 | `api-reference.md` | 完全な ScalarDB API（TransactionManager、CRUD 操作、Result、Key、Conditions） |
-| `interface-matrix.md` | 6 つのインターフェースの組み合わせと意思決定ガイド、依存関係、設定、コードパターン |
+| `interface-matrix.md` | 6 つのインターフェースの組み合わせと意思決定ガイド、依存関係、設定、コードパターン、および SQL アクセスパス（ScalarDB SQL / PostgreSQL ワイヤプロトコル / Native JDBC） |
 | `exception-hierarchy.md` | 例外ツリー、判断フローチャート、リトライパターン、JDBC エラーコードマッピング |
 | `sql-reference.md` | SQL 文法（DDL、DML、TCL、DCL）、JOIN ルール、集約関数、制限事項 |
 | `schema-format.md` | JSON および SQL スキーマ形式、データ型、Schema Loader コマンド |

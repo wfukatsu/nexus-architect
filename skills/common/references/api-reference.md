@@ -22,8 +22,8 @@ DistributedTransaction tx = manager.start();           // alias for begin
 DistributedTransaction tx = manager.start(String txId); // alias for begin
 DistributedTransaction tx = manager.beginReadOnly();
 DistributedTransaction tx = manager.startReadOnly();
-DistributedTransaction tx = manager.resume(String txId);
-DistributedTransaction tx = manager.join(String txId);  // alias for resume
+DistributedTransaction tx = manager.resume(String txId); // deprecated in 3.19, REMOVED in 3.20
+DistributedTransaction tx = manager.join(String txId);   // deprecated in 3.19, REMOVED in 3.20
 
 // State management
 TransactionState state = manager.getState(String txId);
@@ -34,7 +34,43 @@ TransactionState state = manager.abort(String txId);    // alias for rollback
 manager.close();
 ```
 
-### TwoPhaseCommitTransactionManager
+### GlobalTransactionManager — Microservice Transaction API (3.19+, Cluster client SDK)
+
+One transaction made of **branches**, one per process. One process begins and commits (or rolls
+back); every process — the orchestrator included — runs its CRUD on a branch and ends it exactly
+once. The same code runs on a shared cluster and on separated clusters with a Transaction
+Coordinator; only configuration differs (`rules/scalardb-2pc-patterns.md`).
+
+```java
+GlobalTransactionManager manager = factory.getGlobalTransactionManager();
+
+// Orchestrating process
+GlobalTransaction global = manager.begin();
+GlobalTransaction global = manager.begin(Map<String, String> attributes);
+GlobalTransaction global = manager.beginReadOnly();
+String txId = global.getId();                      // pass to the other processes (RPC)
+global.commit();      // CommitConflictException, CommitException, UnknownTransactionStatusException
+global.rollback();    // RollbackException — discards every branch's writes, does not end branches
+
+// Every process (the orchestrator too, if it reads or writes)
+BranchTransaction branch = manager.beginBranch(txId);               // TransactionNotFoundException, TransactionException
+BranchTransaction branch = manager.beginBranch(txId, attributes);
+BranchTransaction branch = manager.startBranch(txId);               // alias
+branch.get(...); branch.scan(...); branch.insert(...); branch.update(...); branch.delete(...); branch.mutate(...);
+String branchId = branch.getId();                 // the branch's own ID
+String globalId = branch.getGlobalTransactionId(); // 3.20
+branch.end(BranchTransaction.Status.SUCCESS);     // IllegalStateException if already ended or a Scanner is open
+branch.end(BranchTransaction.Status.FAILURE);     // lenient; obliges the orchestrator to rollback()
+```
+
+Commit only after every branch ended `SUCCESS`; retry the whole global transaction in every
+process. `BranchTransaction` CRUD throws `CrudException` / `CrudConflictException`
+(`UnsatisfiedConditionException` on conditional mutations) exactly like `DistributedTransaction`.
+
+### TwoPhaseCommitTransactionManager — deprecated interface (3.19+)
+
+> The two-phase commit interface is **deprecated as of ScalarDB 3.19 and will be removed in a
+> future release** (docs site). Kept here for existing code; new code uses the section above.
 
 ```java
 TwoPhaseCommitTransactionManager manager = factory.getTwoPhaseCommitTransactionManager();

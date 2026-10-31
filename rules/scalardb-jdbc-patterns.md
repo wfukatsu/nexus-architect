@@ -6,6 +6,18 @@ globs:
 
 # ScalarDB JDBC/SQL Rules
 
+## Three JDBC-Shaped Paths — Name Which One Before Writing Code
+
+| URL prefix | What it is | Edition | Rule |
+|------------|------------|---------|------|
+| `jdbc:scalardb:` | **ScalarDB SQL** JDBC driver (`com.scalar.db.sql.jdbc.SqlJdbcDriver`) — ScalarDB's own SQL over Cluster; the subject of this file | Enterprise Premium | this file |
+| `jdbc:postgresql:` (or any PostgreSQL driver) to a Cluster node or the standalone frontend | **PostgreSQL wire protocol** (3.20+) — PostgreSQL-dialect SQL executed as ScalarDB transactions | Cluster feature (Enterprise) or Apache-2.0 standalone on Core | @rules/scalardb-postgres-frontend-patterns.md |
+| `jdbc:scalardb-native:<vendor>:` | **ScalarDB Native JDBC** — the database's own driver and SQL on tables ScalarDB also manages; no ScalarDB call | Apache-2.0, any edition | @rules/scalardb-native-jdbc-patterns.md |
+
+The rules below (autocommit, commit on reads, error code 301, the SQL grammar and its limitations)
+apply to the first path only; the other two carry the semantics of PostgreSQL and of the vendor
+database respectively, with their own caveats.
+
 ## Always setAutoCommit(false)
 
 ScalarDB requires explicit transaction management:
@@ -197,9 +209,13 @@ Only `COUNT` supports `*`. All other aggregates require a column name.
 - JOIN predicates must reference primary key or secondary index columns
 - WHERE clause must be in disjunctive normal form (OR of ANDs) or conjunctive normal form (AND of ORs)
 
-## 2PC via SQL Statements
+## 2PC via SQL Statements (Deprecated Interface)
 
-For two-phase commit in JDBC, use SQL transaction control statements:
+The SQL two-phase commit mode (`TWO_PHASE_COMMIT_TRANSACTION`) is **deprecated as of ScalarDB
+3.19**; 3.20 removed the `JOIN`, `SUSPEND` and `RESUME` statements. A SQL transaction that spans
+processes on 3.20+ uses the `GLOBAL_TRANSACTION` session mode (`BEGIN BRANCH` / `END BRANCH`) with
+the Transaction Coordinator — see @rules/scalardb-2pc-patterns.md. For existing code on the
+deprecated mode, use SQL transaction control statements:
 
 ```java
 try (Statement stmt = conn.createStatement()) {

@@ -58,7 +58,40 @@ Code that calls `Scan.newBuilder().all()` needs `scalar.db.cross_partition_scan.
 ## Group Commit Is Incompatible With the 2PC Interface
 
 `scalar.db.consensus_commit.coordinator.group_commit.enabled=true` cannot be used with the
-two-phase commit interface. Flag any properties file that sets both.
+two-phase commit interface. Flag any properties file that sets both — and flag the 2PC interface
+itself, deprecated as of 3.19 (@rules/scalardb-2pc-patterns.md).
+
+## Transaction Coordinator Keys Come in Matched Sets (3.19+)
+
+A separated-cluster deployment is three files that must agree (the keys are in the reference,
+§ Transaction Coordinator):
+
+- **Client**: `scalar.db.cluster.client.transaction_coordinator.enabled=true` requires
+  `...contact_points` and `scalar.db.cluster.id`; the port defaults to `60055`, not the cluster's
+  `60053`. With `enabled=false` (shared cluster) the other keys are inert — flag them as misleading.
+- **Cluster node**: `scalar.db.cluster.node.transaction_participant.enabled=true` requires
+  `scalar.db.cluster.id`, and that ID must appear in the Coordinator's
+  `scalar.db.cluster.transaction_coordinator.clusters` list with a `clusters.<id>.contact_points`.
+- **Coordinator**: `scalar.db.transaction_manager` must stay `consensus-commit`
+  (`single-crud-operation` is invalid there), and its `scalar.db.storage` / `contact_points` must
+  point at the database holding the Coordinator table, which every cluster must also reach.
+
+## PostgreSQL Wire Protocol Keys (3.20+)
+
+`scalar.db.postgres.enabled=true` on a Cluster node listens on `scalar.db.postgres.port` (5432).
+With Cluster authentication on, TLS is required by default — flag a file that enables the protocol
+and disables TLS without an explicit decision. `scalar.db.postgres.auth` takes `userpass` or
+`oidc_jwt` only. The standalone frontend's `scalar.db.postgres.listen_address` must be `127.0.0.1`
+or the deployment must document the trusted network (@rules/scalardb-postgres-frontend-patterns.md).
+
+## Native JDBC Properties Must Agree With the ScalarDB Applications
+
+A `jdbc:scalardb-native:` connection's isolation level, `scalar.db.native_jdbc.coordinator_namespace`
+and `scalar.db.native_jdbc.metadata_schema` must match `scalar.db.consensus_commit.isolation_level`
+/ `scalar.db.jdbc.isolation_level`, `scalar.db.consensus_commit.coordinator.namespace` and the
+metadata schema of **every** ScalarDB application on the same tables. Validate the pair of files
+together (@rules/scalardb-native-jdbc-patterns.md); only `catalog_ttl_millis` and
+`inflight_wait_millis` may live in the URL.
 
 ## Properties Added in 3.19
 
@@ -71,6 +104,10 @@ properties file (@rules/okf-knowledge-bundle.md).
 
 ## ScalarDB Saga Server Properties
 
-Saga server configuration is a separate namespace (`scalar.db.saga.server.*`) with its own rules —
-a misspelled key fails startup, and `${file:...}` secret references work there but not in the plain
-`scalar.db.*` keys ScalarDB itself resolves. See @rules/scalardb-saga-patterns.md.
+Saga server configuration is a separate namespace (`scalar.db.saga.server.*`, `scalar.db.saga.store.*`)
+with its own rules — a misspelled key fails startup, and `${file:...}` secret references work there
+but not in the plain `scalar.db.*` keys ScalarDB itself resolves. The store's `scalar.db.*` keys must
+resolve `scalar.db.transaction_manager` to `consensus-commit` (unset is fine; `cluster` is rejected),
+and `scalar.db.consensus_commit.one_phase_commit.enabled=true` is the recommended performance
+setting. `--validate-config` checks the `scalar.db.saga.*` keys only. See
+@rules/scalardb-saga-patterns.md.

@@ -22,8 +22,11 @@ evidence when a finding depends on documented behavior.
 ### 1. Cross-Service Transaction Mechanism (weight: 0.40)
 - Whether the design names a mechanism per cross-service transaction rather than defaulting to 2PC
 - Whether a simpler mechanism was available and skipped (shared-cluster one-phase commit; the
-  Global Transaction API on ScalarDB 3.19+ Cluster)
+  Microservice Transaction API on ScalarDB 3.19+ Cluster)
+- Whether a new design adopts the deprecated 2PC interface without an ADR-recorded deviation
 - Whether hand-written 2PC transactions are contained within a maximum of 2-3 services
+- Whether a PostgreSQL wire protocol or Native JDBC access path relies on semantics it does not
+  provide (enforced constraints, locks) or on a mismatched isolation level
 - Detection of transactions spanning 4+ services
 - Application points for ScalarDB Saga, and whether compensations are defined and idempotent
 
@@ -74,22 +77,31 @@ Read all of the following files using the Read tool:
 ScalarDB offers four mechanisms for a transaction that spans services, in order of preference:
 1. Shared-cluster pattern with the one-phase commit interface — every service uses one ScalarDB
    Cluster instance. This is the documented recommendation "whenever possible".
-2. Global Transaction API (`GlobalTransactionManager`, ScalarDB 3.19+ Cluster) — separated Cluster
-   instances with a Transaction Coordinator node driving 2PC underneath; application code stays
-   one-phase. Available only if the project pins 3.19 or later on an Enterprise edition.
-3. Application-driven two-phase commit — required pre-3.19, without a Coordinator node, on Core
-   (Community) only, or with Spring Data JDBC. ScalarDB recommends such transactions span at most
-   2-3 services.
-4. ScalarDB Saga — eventual consistency with compensations (SAGA) or reservations (TCC), for cases
-   where a single ACID transaction is not possible or not wanted.
+2. Microservice Transaction API (`GlobalTransactionManager` / `BranchTransaction`, ScalarDB 3.19+
+   Cluster; SQL `GLOBAL_TRANSACTION` on 3.20+) — separated Cluster instances with a Transaction
+   Coordinator node driving 2PC underneath; application code stays one-phase and is identical to
+   option 1. Available only if the project pins 3.19 or later on an Enterprise edition.
+3. Application-driven two-phase commit interface — **deprecated as of ScalarDB 3.19** ("will be
+   removed in a future release"; 3.20 removed `join()` / `resume()`). Acceptable only pre-3.19, on
+   Core (Community) only, or with Spring Data JDBC, and only as an ADR-recorded deviation with a
+   migration path. ScalarDB recommends such transactions span at most 2-3 services.
+4. ScalarDB Saga (3.20 GA, Apache-2.0) — eventual consistency with compensations (SAGA) or
+   reservations (TCC), for cases where a single ACID transaction is not possible or not wanted.
+   Its store must run Consensus Commit.
 
 Evaluate ONLY the Cross-Service Transaction Mechanism dimension:
 - Does the design name a mechanism for each cross-service transaction, with a recorded reason?
-- Was a simpler mechanism available and skipped (shared cluster, or Global Transaction API when the
-  pinned version and edition allow it)?
+- Was a simpler mechanism available and skipped (shared cluster, or the Microservice Transaction
+  API when the pinned version and edition allow it)?
+- Does any new design adopt the deprecated 2PC interface without an ADR and a migration path?
 - Are hand-written 2PC transactions contained within 2-3 services maximum?
 - Are there transactions spanning 4+ services that should use Saga instead?
 - Where Saga is used, is a compensation defined for every step, and are the steps idempotent?
+- Where the PostgreSQL wire protocol or a standalone frontend is an access path, does any invariant
+  rely on `UNIQUE` / `CHECK` / `REFERENCES` being enforced, or on `FOR UPDATE` locking? (It is not —
+  @rules/scalardb-postgres-frontend-patterns.md)
+- Where ScalarDB Native JDBC is used, do every ScalarDB application and the driver pin the same
+  isolation level, and are the refused statement shapes absent? (@rules/scalardb-native-jdbc-patterns.md)
 
 Score 1-5: 5=Exemplary (mechanism chosen and justified per transaction, simplest viable option
 used), 4=Good, 3=Acceptable, 2=Concerning, 1=Critical (wide hand-written 2PC scope, or no

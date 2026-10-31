@@ -7,6 +7,55 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.47.0] - 2026-10-31
+
+### Added
+- **ScalarDB 3.20 のアクセスパスに対応する 2 つのルールを追加。**
+  - `rules/scalardb-native-jdbc-patterns.md` は ScalarDB Native JDBC 3.20.0（Apache-2.0）のダイジェスト。
+    既存の SQL アプリケーションが、ScalarDB も管理するテーブルに対してネイティブ SQL を使い続ける
+    （接続あたり 1 データベース、ScalarDB への呼び出し無し）—— エンジン別 URL、`scalar.db.native_jdbc.*`
+    プロパティ、同じテーブルを使う全 ScalarDB アプリケーションと揃えるべき分離レベル、`40001` の扱い、
+    `0AN01` で拒否される文、`scalardb-native-tools` によるセットアップと権限。
+  - `rules/scalardb-postgres-frontend-patterns.md` は ScalarDB Cluster 3.20 の PostgreSQL ワイヤプロトコルと
+    Apache-2.0 のスタンドアロン版 `scalardb-postgres-frontend` のダイジェスト。2 つの配置形態、受理されるが
+    強制されないもの（`UNIQUE`・`CHECK`・`REFERENCES`・`FOR UPDATE`）、拒否されるもの、トランザクションと
+    DDL の注意点。
+  - いずれも OKF バンドルに 3.20 の内容がまだ無いため、上流リポジトリを根拠にしている。
+- **Microservice Transaction API のパターンを追加。** `rules/scalardb-2pc-patterns.md` に
+  `GlobalTransactionManager` / `GlobalTransaction` / `BranchTransaction` の手順（begin → ID を渡す →
+  `beginBranch` → CRUD → `end(SUCCESS|FAILURE)` → commit）、失敗時のルール、共有クラスタ / 分離クラスタの
+  3 種類の properties を追加。新しいコードパターン
+  `skills/common/references/code-patterns/cluster-crud-microservice-tx.md` と `api-reference.md` の
+  API 節がコード生成へ運ぶ。`interface-matrix.md` に SQL アクセスパス表（ScalarDB SQL / PostgreSQL
+  ワイヤプロトコル / Native JDBC）、`configuration-reference.md` に Transaction Coordinator・参加ノード・
+  クライアント・`scalar.db.postgres.*` のキーを追加。
+
+### Changed
+- **アプリケーション駆動の 2PC インターフェイスは非推奨であり、ツールキットもそう述べる。** ドキュメント
+  サイトは ScalarDB 3.19 で非推奨、将来削除と明記し、3.20 は `join()` / `resume()`、SQL の `JOIN` /
+  `SUSPEND` / `RESUME` 文、GraphQL の `@twoPhaseCommit` を削除した。`rules/scalardb-2pc-patterns.md` の
+  4 方式の順位付け、`design-scalardb`・`review-scalardb`・`design-microservices`・
+  `select-scalardb-edition`・`define-requirements`・`generate-scalardb-code`・`scalardb:config`・
+  `scalardb:migrate` の判断基準、2PC コードパターン 3 件のヘッダー、`api-error-standard.md`、
+  グリーンフィールドのワークフロー、開発ガイドは、サービス跨ぎトランザクションの 1 フェーズ
+  インターフェイスとして Microservice Transaction API を名指しし（分離クラスタでは Transaction
+  Coordinator が裏で 2PC を駆動し、アプリケーションコードは同一）、2PC インターフェイスは ADR に記録する
+  逸脱として扱う。「3.19 では非推奨ではない」という以前の記述（バンドルのスナップショットでは正しかった）は、
+  `rules/okf-knowledge-bundle.md` の遅延の注記に置き換えた。
+- **ScalarDB Saga は GA になった。** `rules/scalardb-saga-patterns.md` を 3.20.0（2026-10-29）向けに
+  書き直した: Consensus Commit が必須（Cluster クライアント側のマネージャーは拒否される）、
+  `one_phase_commit.enabled` の性能オプションを 1 フェーズのアプリケーションインターフェイスと区別、
+  組み込みエンジンとサーバーイメージは Java 25、3.20 のキー名（`recovery.staleness_threshold_millis`、
+  `recovery.escalation_grace_period_seconds`、流入制御、`sync.max_wait_millis`、
+  `scalar.db.saga.store.*`）、REST の面、Saga ID の冪等性、`DB-SAGA-` コード、`--validate-config`。
+  `rules/okf-knowledge-bundle.md` と product の技術適合ルールの alpha の注意書きは削除。
+  `/product:design-architecture` のカタログ行は評価する 5 製品に ScalarDB Saga を含める。
+- **エディションプロファイルが 3.20 を知る。** `rules/scalardb-edition-profiles.md` に「New in 3.20」表、
+  エディションの外にある Apache-2.0 製品、PostgreSQL ワイヤプロトコルの行（Enterprise。ティアは上流に
+  記載無し）、3.20 のバージョン行、3.16 の保守終了 2026-11-26 を追加。選択基準は SQL ツールをワイヤ
+  プロトコルへ、既存 SQL アプリケーションを Native JDBC へ導く。`scalardb-config-validation.md` に
+  Coordinator のキーの組、PostgreSQL のキー、Saga ストア要件、Native JDBC の分離レベルの一致を追加。
+
 ## [0.46.3] - 2026-10-31
 
 ### Changed

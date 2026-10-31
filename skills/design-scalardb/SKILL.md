@@ -14,7 +14,7 @@ plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Rea
 
 Design a data architecture leveraging ScalarDB:
 1. **Schema Design** -- Partition keys, clustering keys, secondary indexes
-2. **Transaction Boundaries** -- Selection and boundary definition across the four cross-service mechanisms (one-phase shared cluster / Global Transaction API / 2PC / ScalarDB Saga)
+2. **Transaction Boundaries** -- Selection and boundary definition across the four cross-service mechanisms (one-phase shared cluster / Microservice Transaction API / deprecated 2PC / ScalarDB Saga), plus the SQL access paths
 3. **Migration Plan** -- Migration strategy from existing databases to ScalarDB
 
 ## Decision Criteria
@@ -22,10 +22,16 @@ Design a data architecture leveraging ScalarDB:
 - Ground the design in the version-pinned OKF knowledge bundle (@rules/okf-knowledge-bundle.md): pin the project's ScalarDB version and edition first, then read the `design`-phase concepts (`design.md`, `data-modeling.md`, `consensus-commit.md`) of that release only. Context7 MCP is the fallback when the bundle is unavailable
 - **Choose the cross-service mechanism before designing any transaction that spans services**, in this order (@rules/scalardb-2pc-patterns.md):
   1. Shared-cluster pattern with the one-phase interface — the documented recommendation whenever possible
-  2. Global Transaction API + Transaction Coordinator (ScalarDB 3.19+, Cluster) — separated clusters without hand-written 2PC
-  3. Application-driven 2PC — pre-3.19, no Coordinator node, Core-only, or Spring Data JDBC. Limit to a maximum of 2-3 services
-  4. ScalarDB Saga (@rules/scalardb-saga-patterns.md) — when a single ACID transaction is not possible or not wanted and compensation is business-acceptable
+  2. Microservice Transaction API + Transaction Coordinator (ScalarDB 3.19+ CRUD, 3.20+ SQL `GLOBAL_TRANSACTION`; Cluster) — separated clusters with the **same one-phase code** as option 1; the Coordinator drives 2PC underneath
+  3. Application-driven 2PC interface — **deprecated as of 3.19**; only pre-3.19, Core-only, or Spring Data JDBC, as an ADR-recorded deviation. Limit to a maximum of 2-3 services
+  4. ScalarDB Saga (@rules/scalardb-saga-patterns.md; 3.20 GA, Apache-2.0) — when a single ACID transaction is not possible or not wanted and compensation is business-acceptable
   Record which option was chosen and why in `scalardb-transaction.md`
+- **Decide the SQL access paths** when anything other than the Java SDK must reach the data: the
+  PostgreSQL wire protocol (Cluster 3.20+, @rules/scalardb-postgres-frontend-patterns.md) for psql /
+  PostgreSQL drivers / BI, and ScalarDB Native JDBC (@rules/scalardb-native-jdbc-patterns.md) for a
+  legacy SQL application that keeps native SQL on one database shared with ScalarDB. State in
+  `scalardb-transaction.md` which invariants those paths do **not** enforce (constraints, locks) and
+  the isolation level every application on the shared tables must use
 - **Decide read models, CQRS and event sourcing per aggregate, in the design — not in review.**
   The default is *neither*: one write model, read from the same tables. Adopt a separate read
   model only for a named reason (read/write ratio, a query shape the partition key cannot serve, a

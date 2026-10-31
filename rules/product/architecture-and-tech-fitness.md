@@ -56,11 +56,18 @@ The standing checklist (assess all five every run):
 - **What**: a universal transaction manager giving **ACID transactions across multiple/heterogeneous
   databases and across microservices** (incl. two-phase commit), abstracting polyglot backends under
   one transactional API. Editions: Community (Core library) / Enterprise Standard / Enterprise
-  Premium (Cluster) — the SQL/JDBC interface is Premium, not Standard.
+  Premium (Cluster) — the SQL/JDBC interface is Premium, not Standard. Since 3.19 the cross-service
+  interface is one-phase (Microservice Transaction API; the Transaction Coordinator runs 2PC
+  underneath on separated clusters) and the application-driven 2PC interface is deprecated. Since
+  3.20, Cluster also speaks the **PostgreSQL wire protocol** (psql / PostgreSQL drivers / BI, Enterprise),
+  and the Apache-2.0 **Native JDBC** driver lets a legacy SQL application keep its native SQL on
+  tables ScalarDB manages.
 - **Adopt-when signals**: a **microservice constraint** (`CON-` microservices) with invariants that
   span **multiple aggregates/contexts**; **polyglot persistence**; a need for strong consistency that
   would otherwise force fragile **sagas**; cross-service transactional writes visible in `api-design`
-  (a Process API mutating several System APIs atomically). Maps to the **System layer / data access**.
+  (a Process API mutating several System APIs atomically); existing SQL tooling, reporting or a legacy
+  SQL application that must keep querying the same data (the PostgreSQL wire protocol or Native JDBC
+  removes the "ScalarDB hides the data from SQL" objection). Maps to the **System layer / data access**.
 - **Reject-when**: a single datastore with no cross-service transaction; a purely append-only /
   event-sourced model where eventual consistency is acceptable everywhere.
 - **Note**: if adopted, flag whether `select-scalardb-edition` / `design-scalardb` (architect plugin)
@@ -70,6 +77,8 @@ The standing checklist (assess all five every run):
 - **What**: a saga orchestration engine coordinating **eventually consistent** transactions across
   services — steps with compensations (SAGA) or reservations (TCC) — keeping saga state durable
   through ScalarDB, so it needs no message broker. Runs as a server (REST + gRPC) or embedded.
+  GA since 3.20.0 (2026-10-29), Apache-2.0, no edition gate; the embedded engine needs Java 25,
+  the server image is Java 25, the client SDK Java 8+; the store must run Consensus Commit.
 - **Adopt-when signals**: a business process spanning contexts whose consistency requirement is
   **eventual** rather than strong; a step calling an **external system** or running long enough that
   holding a transaction open is untenable; an existing hand-rolled compensation/orchestration in the

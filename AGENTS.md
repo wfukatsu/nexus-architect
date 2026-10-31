@@ -276,8 +276,10 @@ session context small — do not load ScalarDB rules for non-ScalarDB work.
 | ScalarDB exception handling | rules/scalardb-exception-handling.md | Exception handling, retry logic |
 | ScalarDB CRUD patterns | rules/scalardb-crud-patterns.md | CRUD API operations |
 | ScalarDB JDBC patterns | rules/scalardb-jdbc-patterns.md | JDBC/SQL operations |
-| ScalarDB cross-service transactions | rules/scalardb-2pc-patterns.md | Shared cluster / Global Transaction API / 2PC / Saga choice; two-phase commit |
+| ScalarDB cross-service transactions | rules/scalardb-2pc-patterns.md | Shared cluster / Microservice Transaction API / 2PC (deprecated) / Saga choice |
 | ScalarDB Saga patterns | rules/scalardb-saga-patterns.md | Cross-service eventually consistent transactions |
+| ScalarDB Native JDBC | rules/scalardb-native-jdbc-patterns.md | A SQL app keeping native SQL on tables ScalarDB manages |
+| ScalarDB PostgreSQL wire protocol | rules/scalardb-postgres-frontend-patterns.md | psql / PostgreSQL drivers / BI over ScalarDB data |
 | ScalarDB config validation | rules/scalardb-config-validation.md | Configuration correctness |
 | ScalarDB schema design | rules/scalardb-schema-design.md | Schema and key design |
 | ScalarDB Java best practices | rules/scalardb-java-best-practices.md | Java coding standards |

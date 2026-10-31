@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.47.0] - 2026-10-31
+
+### Added
+- **Two rules for the ScalarDB 3.20 access paths.** `rules/scalardb-native-jdbc-patterns.md` digests
+  ScalarDB Native JDBC 3.20.0 (Apache-2.0): a legacy SQL application keeps its native SQL on tables
+  ScalarDB also manages, one database per connection, no ScalarDB call — URL per engine, the
+  `scalar.db.native_jdbc.*` properties, the isolation-level agreement every ScalarDB application on
+  the shared tables must keep, `40001` conflict handling, the statements refused with `0AN01`,
+  `scalardb-native-tools` setup and grants. `rules/scalardb-postgres-frontend-patterns.md` digests
+  the PostgreSQL wire protocol on ScalarDB Cluster 3.20 and the Apache-2.0 standalone
+  `scalardb-postgres-frontend`: the two deployment forms, what is accepted-but-unenforced (`UNIQUE`,
+  `CHECK`, `REFERENCES`, `FOR UPDATE`), what is refused, transaction and DDL caveats. Both are
+  grounded on the upstream repositories because the OKF bundle has no 3.20 content yet.
+- **Microservice Transaction API pattern.** `rules/scalardb-2pc-patterns.md` gains the
+  `GlobalTransactionManager` / `GlobalTransaction` / `BranchTransaction` sequence (begin → pass the
+  ID → `beginBranch` → CRUD → `end(SUCCESS|FAILURE)` → commit), its failure rules, and the three
+  property files of the shared- and separated-cluster patterns; a new code pattern
+  `skills/common/references/code-patterns/cluster-crud-microservice-tx.md` and an API section in
+  `api-reference.md` carry it into code generation. `interface-matrix.md` adds the SQL Access Paths
+  table (ScalarDB SQL / PostgreSQL wire protocol / Native JDBC); `configuration-reference.md` adds
+  the Transaction Coordinator, participant, client and `scalar.db.postgres.*` keys.
+
+### Changed
+- **The application-driven 2PC interface is deprecated, and the toolkit says so.** The docs site
+  states it is deprecated as of ScalarDB 3.19 and will be removed; 3.20 removed `join()` /
+  `resume()`, the SQL `JOIN` / `SUSPEND` / `RESUME` statements and GraphQL's `@twoPhaseCommit`. The
+  four-option ranking in `rules/scalardb-2pc-patterns.md`, the decision criteria of
+  `design-scalardb`, `review-scalardb`, `design-microservices`, `select-scalardb-edition`,
+  `define-requirements`, `generate-scalardb-code`, `scalardb:config` and `scalardb:migrate`, the
+  three 2PC code-pattern headers, `api-error-standard.md`, the greenfield workflow and the
+  development guides now name the Microservice Transaction API as the one-phase interface for
+  transactions across services (the Transaction Coordinator drives 2PC underneath on separated
+  clusters, with identical application code) and treat the 2PC interface as an ADR-recorded
+  deviation. The earlier "not deprecated on 3.19" wording — true of the bundle's snapshot — is
+  replaced by the lag note of `rules/okf-knowledge-bundle.md`.
+- **ScalarDB Saga is GA.** `rules/scalardb-saga-patterns.md` is rewritten for 3.20.0 (2026-10-29):
+  Consensus Commit required (the Cluster client-side manager is rejected), the
+  `one_phase_commit.enabled` performance option kept distinct from the one-phase application
+  interface, Java 25 for the embedded engine and server image, the 3.20 key names
+  (`recovery.staleness_threshold_millis`, `recovery.escalation_grace_period_seconds`, admission
+  control, `sync.max_wait_millis`, `scalar.db.saga.store.*`), the REST surface, saga-ID idempotency,
+  `DB-SAGA-` codes and `--validate-config`. The alpha warnings in `rules/okf-knowledge-bundle.md`
+  and the product fitness rule are gone; `/product:design-architecture`'s catalogue row now lists
+  ScalarDB Saga among the five products it assesses.
+- **Edition profiles know 3.20.** `rules/scalardb-edition-profiles.md` adds a "New in 3.20" table,
+  the Apache-2.0 products beside the editions, the PostgreSQL wire protocol row (Enterprise, tier
+  not stated upstream), the 3.20 version line and the 2026-11-26 end of 3.16's maintenance; the
+  selection criteria route SQL tooling to the wire protocol and legacy SQL applications to Native
+  JDBC. `scalardb-config-validation.md` adds the matched Coordinator key sets, the PostgreSQL keys,
+  the Saga store requirement and the Native JDBC isolation agreement.
+
 ## [0.46.3] - 2026-10-31
 
 ### Changed

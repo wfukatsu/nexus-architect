@@ -27,14 +27,22 @@ Ask: "Which deployment mode?"
 ### Step 2: API Style
 Ask: "Which API style?"
 - **CRUD API** — Java native builder pattern (Get, Scan, Insert, etc.)
-- **JDBC/SQL** — Standard SQL via JDBC driver (requires Cluster mode)
+- **JDBC/SQL** — ScalarDB SQL via the ScalarDB JDBC driver (requires Cluster mode, Enterprise Premium)
 
-If user chose Core + JDBC, explain that JDBC requires Cluster mode and suggest either switching to Cluster or using CRUD API.
+If user chose Core + JDBC, explain that ScalarDB SQL requires Cluster mode and suggest either
+switching to Cluster or using the CRUD API — or, if the real need is "SQL tools / PostgreSQL drivers
+must query the data" or "a legacy SQL application keeps its native SQL on the same database", point
+to the PostgreSQL wire protocol (Cluster 3.20+; standalone Apache-2.0 frontend on Core) or ScalarDB
+Native JDBC, which are configured outside this file: @rules/scalardb-postgres-frontend-patterns.md,
+@rules/scalardb-native-jdbc-patterns.md.
 
 ### Step 3: Transaction Mode
 Ask: "Which transaction mode?"
-- **One-phase commit (1PC)** — Single database, standard transactions
-- **Two-phase commit (2PC)** — Multiple databases/services, distributed transactions
+- **One-phase commit (1PC)** — Standard transactions, including multi-storage from one application
+  and, on Cluster 3.19+, transactions spanning services through the Microservice Transaction API
+  (shared cluster, or separated clusters with `scalar.db.cluster.client.transaction_coordinator.*`)
+- **Two-phase commit (2PC)** — The application-driven 2PC interface, **deprecated as of 3.19**;
+  only for a release before 3.19, Core without Cluster, or Spring Data JDBC, as a recorded deviation
 
 ### Step 4: Database Backend
 Ask: "Which database backend?"

@@ -7,15 +7,16 @@ For applications that need ACID transactions across multiple databases or micros
 > `rules/dependency-versions.md` — the ScalarDB line, Java, and the logging/CLI libraries all
 > move independently of this document.
 >
-> **Deprecation check is mandatory before generating from this template** — but do not assume the
-> answer. The application-driven 2PC surface used below (`TwoPhaseCommitTransactionManager`,
-> `TwoPhaseCommitTransaction`, `getTwoPhaseCommitTransactionManager()`) is **not** deprecated on
-> 3.19: `two-phase-commit-transactions.md` is `status: stable` across all three editions. An earlier
-> revision of this note claimed otherwise and was wrong. Verify against the resolved jar (`javap`)
-> or the pinned OKF docs for the release you actually target; only if that check finds a deprecation
-> do you need `@SuppressWarnings("deprecation")` with an in-code rationale and a migration note.
-> Note that option 1 (shared cluster) and option 2 (Global Transaction API) are still preferred over
-> this template where they apply — see `rules/scalardb-2pc-patterns.md`.
+> **This interface is deprecated as of ScalarDB 3.19** — the docs site states "The two-phase commit
+> (2PC) interface is deprecated as of ScalarDB 3.19 and will be removed in a future release"; 3.20
+> also removed `join()` / `resume()` from `DistributedTransactionManager`. The bundle's 3.19
+> snapshot still marks `two-phase-commit-transactions.md` `status: stable`; that is lag, not a
+> contradiction. Generate from this template only for a release before 3.19, or as an ADR-recorded
+> deviation (Core without Cluster is the usual reason), with `@SuppressWarnings("deprecation")`
+> scoped to the smallest element, an in-code rationale and a migration note. Verify the exact
+> deprecation annotations against the resolved jar (`javap`) for the release you target. Option 1
+> (shared cluster) and option 2 (Microservice Transaction API, `cluster-crud-microservice-tx.md`)
+> come first — see `rules/scalardb-2pc-patterns.md`.
 
 ## build.gradle
 

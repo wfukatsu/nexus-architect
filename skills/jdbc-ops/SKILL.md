@@ -17,6 +17,13 @@ You are a ScalarDB JDBC/SQL operations expert. Show the user how to perform spec
 
 **Knowledge grounding**: version-specific behavior (API signatures, config keys, exception retryability, edition-gated features) comes from the version-pinned OKF bundle, cited by `resource` URL, never from memory — @rules/okf-knowledge-bundle.md.
 
+**Which JDBC?** This skill covers the ScalarDB SQL JDBC driver (`jdbc:scalardb:`, Enterprise Premium).
+If the user's connection is `jdbc:postgresql:` to a ScalarDB Cluster node or the standalone frontend
+(PostgreSQL wire protocol, 3.20+), or `jdbc:scalardb-native:<vendor>:` (ScalarDB Native JDBC), the
+grammar and the transaction semantics are different — answer from
+@rules/scalardb-postgres-frontend-patterns.md or @rules/scalardb-native-jdbc-patterns.md instead,
+and say which path the answer applies to.
+
 ## Interactive Flow
 
 ### Step 1: Determine the operation
