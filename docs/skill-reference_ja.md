@@ -60,7 +60,7 @@
 | `/architect:design-state-machine` | opus | オプション | アグリゲートごとの状態遷移モデル: 状態・ガード付き遷移・空欄のない状態×イベント行列・各遷移の整合性クラスを対話的に構築 |
 | `/architect:design-microservices` | opus | - | ターゲットアーキテクチャ |
 | `/architect:select-scalardb-edition` | sonnet | ScalarDB | エディション選択 |
-| `/architect:design-scalardb` | opus | ScalarDB | スキーマとトランザクション設計 |
+| `/architect:design-scalardb` | opus | ScalarDB | スキーマとトランザクション設計（Saga 参加者の適性評価を含む） |
 | `/architect:design-scalardb-analytics` | sonnet | Analytics Option | HTAP分析プラットフォーム設計 |
 | `/architect:design-data-layer` | opus | ScalarDB以外 | 汎用DB設計 |
 | `/architect:design-api` | opus | - | surface ごとに REST/GraphQL/hybrid/gRPC/AsyncAPI を選択し、共通の検証可能な契約を生成 |

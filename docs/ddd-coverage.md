@@ -70,7 +70,7 @@ skill · △ referenced, evaluated or partially produced, not a standalone metho
 | State × event matrix | ◎ | `/architect:design-state-machine` | every cell decided, validated by `tools/lib/state_machine_manifest.py` |
 | Concurrency / contention design | ◎ | `/architect:design-state-machine` | the contention table |
 | Local / distributed / saga classification | ◎ | `/architect:design-aggregate`, `/architect:design-state-machine`, `/architect:design-scalardb` | per command / transition; `reports/03_design/scalardb-transaction.md` |
-| Saga / compensation | ◎ | `/architect:design-scalardb` | the saga design checklist in `scalardb-transaction.md` |
+| Saga / compensation | ◎ | `/architect:define-requirements`, `/architect:design-scalardb` | the Participant Readiness table (external APIs: idempotency, duplicate response, compensation deadline, outcome query, disposition per gap) and the six-point saga checklist in `scalardb-transaction.md` |
 | CQRS / read models | ◎ | `/architect:design-scalardb`, `/architect:design-data-layer` | the Read Model, CQRS and Event Sourcing Decisions section |
 | Event Sourcing | ◎ | `/architect:design-scalardb`, `/architect:design-data-layer` | the same section; the Event Store pattern in `rules/scalardb-schema-design.md` |
 

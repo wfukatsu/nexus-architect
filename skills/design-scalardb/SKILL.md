@@ -62,9 +62,19 @@ consumer is analytical rather than transactional.
 
 ### Saga design checklist (mandatory when any process uses a saga)
 
-Every saga in `scalardb-transaction.md` specifies all five of the following — each was a
+Every saga in `scalardb-transaction.md` specifies all six of the following — each was a
 blocker-or-major finding the first time it was left implicit:
 
+0. **Participant readiness** (first, because the pivot and the retry policy follow from it): one row
+   per (step, participant) with the participant's idempotency mechanism, duplicate response,
+   compensation and its deadline against the saga horizon, outcome query, TCC decomposition, rate
+   limits and **evidence** — the provider documentation URL for an external API, the project's API
+   contract for an own service. Every gap carries one disposition (`idempotency_layer`,
+   `query_before_retry`, `pivot_or_exclude`, `accept_risk`); a ledger table a disposition adds is in
+   `scalardb-schema.md`, an `accept_risk` is an ADR, an `unknown` is an `OQ-` owned by the
+   integration owner. Start from what `scalardb-applicability.md` collected at requirements time.
+   Template and vocabulary: `reference/saga-participant-readiness.md`;
+   rule: @rules/scalardb-saga-patterns.md § External Participants.
 1. **Durable start**: the saga state row is committed **in the same transaction** as the business
    write that triggers it (or via an outbox). An in-process async handoff after commit loses the
    saga on a crash.
@@ -116,7 +126,7 @@ Edition comparison and version support: @rules/scalardb-edition-profiles.md
 | File | Content |
 |------|---------|
 | `reports/03_design/scalardb-schema.md` | Table design, key strategy, the Read Model / CQRS / Event Sourcing decision per aggregate |
-| `reports/03_design/scalardb-transaction.md` | Transaction boundaries, pattern selection |
+| `reports/03_design/scalardb-transaction.md` | Transaction boundaries, pattern selection; per saga the Participant Readiness table and the six-point checklist |
 | `reports/03_design/scalardb-migration.md` | Data migration plan |
 
 Output language and frontmatter: @rules/output-conventions.md.

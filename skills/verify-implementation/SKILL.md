@@ -167,6 +167,11 @@ Against `scalardb-transaction.md` (or the data-layer design) and the saga defini
   unreachable (@rules/scalardb-exception-handling.md).
 - A saga step with no compensation, a compensation that is not idempotent, or a compensation that
   drops the authorization or tenant scoping its forward step applied.
+- A saga step on an external API whose Participant Readiness disposition is `idempotency_layer` but
+  whose code writes no request-ledger row in the business transaction (or does not consult it before
+  calling), or `query_before_retry` with no outcome query before the re-send; a step whose readiness
+  is still `unknown` is reported as unproven, not as implemented
+  (@rules/scalardb-saga-patterns.md § External Participants).
 - 2PC: prepare / validate / commit / abort not all present on a participant; a 2PC transaction
   spanning more services than the design allows.
 - A cross-service transaction using a mechanism the pinned release or edition does not provide.

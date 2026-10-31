@@ -7,6 +7,9 @@ model: opus
 
 # Distributed System Risk Review
 
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
 ## Your Role
 
 As a distributed systems architect, discover risks that only manifest at scale or during failures.
@@ -31,6 +34,9 @@ Adversarial perspective: find failure modes the designer did not consider.
 - Rationale for orchestration vs. choreography choice
 - Handling of partial failures (failure of compensation itself)
 - Idempotency guarantees
+- Readiness of every **external** participant (idempotency mechanism, duplicate response, compensation
+  deadline vs. the saga horizon, outcome query, evidence) and a disposition for every gap
+  (@rules/scalardb-saga-patterns.md § External Participants)
 
 ### 4. Data Consistency Risks (weight: 0.15)
 - Business impact of eventual consistency windows
@@ -156,6 +162,15 @@ Evaluate ONLY the Saga Design Adequacy dimension:
 - Rationale for orchestration vs. choreography choice
 - Handling of partial failures (failure of compensation itself)
 - Idempotency guarantees
+- External participants: does the design carry a Participant Readiness table (one row per step and
+  participant) and, for every step that calls an API the project does not own, state the provider's
+  idempotency mechanism, what a duplicate request does, the compensating operation and its deadline
+  compared with the saga's horizon, how a timed-out call's outcome is queried, and the document URL
+  as evidence? Does every gap (none / unknown / new_effect / deadline shorter than the horizon / no
+  outcome query) carry exactly one disposition — idempotency_layer, query_before_retry,
+  pivot_or_exclude or accept_risk (as an ADR)? A saga step on an external API with no readiness row,
+  or a gap with no disposition, is a Critical finding: the engine's retries and compensations rest on
+  facts nobody established.
 
 Score 1-5: 5=Exemplary, 4=Good, 3=Acceptable, 2=Concerning, 1=Critical
 

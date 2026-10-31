@@ -51,7 +51,9 @@ Pick `TCC` when a partial confirm is unacceptable and every participant can hold
 - **Steps must be idempotent.** A step interrupted between running and being recorded runs again.
   Every execution, compensation, reservation, confirmation and cancellation endpoint must tolerate
   redelivery. The engine stamps `X-Saga-Id` and `X-Saga-Step` on every request — use them as the
-  idempotency key.
+  idempotency key. When the participant is **not yours** — an external API the project cannot
+  change — idempotency, compensation and outcome visibility are facts to establish, not obligations
+  to impose: § External Participants, assessed before the saga is designed.
 - **Saga IDs are idempotency keys too.** Start a saga with your own ID derived from a business key
   (`PUT /sagas/{id}`; up to 128 characters of letters, digits, `.`, `_`, `-`). When a start's
   outcome is unknown, start again with the same ID — `SagaAlreadyExistsException` / `409` means the
@@ -69,6 +71,49 @@ Pick `TCC` when a partial confirm is unacceptable and every participant can hold
 - **The state store is production data.** Saga state and its event history live in the ScalarDB
   store configured by `scalar.db.*` (namespace `saga`) — it must be a real, backed-up database,
   never ephemeral container storage.
+
+## External Participants
+
+A saga whose step calls a payment provider, a carrier or a partner's system inherits that system's
+behaviour on duplicates, timeouts and reversals. ScalarDB Saga retries interrupted steps and runs
+compensations in reverse; whether that is safe depends on facts only the provider's documentation
+states. **Assess every external participant before the saga is designed**, in
+`reports/03_design/scalardb-transaction.md` § Saga Participant Readiness, one row per (step,
+participant) with these columns — the template and vocabulary are
+`skills/design-scalardb/reference/saga-participant-readiness.md`:
+
+| Fact | Why it decides the design |
+|------|---------------------------|
+| **Idempotency mechanism** (`key_header:<name>` with its lifetime / `request_id_in_body` / `natural_key` / `none` / `unknown`) | the engine's redelivery is safe only if a replay is recognised; `X-Saga-Id` + `X-Saga-Step` can feed a provider key, or must feed a ledger of your own |
+| **Duplicate response** (`same_result` / `conflict_409` / `new_effect` / `unknown`) | `new_effect` means a retry double-charges or double-ships — a retry policy on a 5xx then creates the damage it was meant to survive |
+| **Compensation and its deadline** (`exists:<op> (<deadline>)` / `none` / `manual`) | a refund accepted for 30 days compensates a saga whose horizon is 4 hours; a void accepted only before capture does not compensate a step that ran yesterday. A deadline shorter than the **saga horizon** (the longest run including retries and `recovery.escalation_grace_period_seconds`) is a gap |
+| **Outcome query** (`get:<op>` / `webhook` / `none`) | a timed-out call has an unknown outcome; without a query the only safe retry is one the provider recognises as a duplicate |
+| **TCC decomposition** (`reserve/confirm/cancel:<ops>` / `not_possible`) | TCC mode needs a hold-then-capture shape on every step; a provider without it forces SAGA mode for the whole saga |
+| **Rate limit / latency** | bound the step's `retryPolicy` and `timeoutMillis`, and the saga's concurrency (`max_concurrent_saga_starts`) |
+| **Evidence** | the provider document URL at the assessed version; a claim without it is `unknown` |
+
+A gap — `none`, `unknown`, `new_effect`, a deadline shorter than the horizon, a step without an outcome
+query — takes exactly one **disposition**, recorded in the same row:
+
+- `idempotency_layer`: the project wraps the call with a request ledger — a ScalarDB table keyed by
+  `X-Saga-Id` + `X-Saga-Step`, written in the **same transaction** as the step's business write, holding
+  the provider's response (and its response ID for reconciliation). The step consults the ledger first
+  and answers a replay from it. This is the pattern for a provider with no idempotency key; it does not
+  repair a provider that has no compensation.
+- `query_before_retry`: on timeout the step calls the outcome query before re-executing; requires an
+  outcome query, and is combined with `idempotency_layer` when the duplicate response is `new_effect`.
+- `pivot_or_exclude`: a step that cannot be undone within the horizon is the saga's **pivot** (every
+  step before it reversible, every step after it roll-forward only — stated in the saga checklist's
+  pivot item) or leaves the saga for a manual exception process with an operator queue and an
+  `ESCALATED` runbook entry.
+- `accept_risk`: an ADR (@rules/architecture-decision-records.md) naming the business owner, the
+  exposure on a duplicate or an uncompensated step, its expected frequency and the manual remedy.
+
+A gap without a disposition is a design defect (`review-scalardb`, `review-risk`); `unknown` at the end
+of the design is an `OQ-` owned by the integration owner (@rules/open-questions.md), and
+`verify-implementation` treats the step as unproven until it is answered. Participants the project
+writes (`own`) are assessed against the project's own API contract — the `Idempotency-Key` obligation
+of `design-api` — which is where the rest of this document already binds.
 
 ## Store Requirements (ScalarDB side)
 

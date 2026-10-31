@@ -60,7 +60,7 @@ For the inputs you should prepare before running each pipeline, see the
 | `/architect:design-state-machine` | opus | Optional | State transition models per aggregate — states, guarded transitions, the full state x event matrix with no undecided cell, and the consistency class of every transition |
 | `/architect:design-microservices` | opus | - | Target architecture |
 | `/architect:select-scalardb-edition` | sonnet | ScalarDB | Edition selection |
-| `/architect:design-scalardb` | opus | ScalarDB | Schema and transaction design |
+| `/architect:design-scalardb` | opus | ScalarDB | Schema and transaction design, incl. the saga participant readiness assessment |
 | `/architect:design-scalardb-analytics` | sonnet | Analytics Option | HTAP analytics platform design |
 | `/architect:design-data-layer` | opus | Non-ScalarDB | Generic DB design |
 | `/architect:design-api` | opus | - | Select REST/GraphQL/hybrid/gRPC/AsyncAPI per surface and generate shared verifiable contracts |

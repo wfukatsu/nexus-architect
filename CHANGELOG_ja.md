@@ -7,6 +7,23 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.50.0] - 2026-10-31
+
+### Added
+- **Saga 参加者の適性評価。** ScalarDB Saga の要件 —— ステップの冪等性、ステップごとの補償、最終的に必ず成功する
+  補償 —— は、参加者を全部このプロジェクトが実装する前提で全ステップに課されていたが、外部 API に対しては
+  先に確かめるべき事実である。`rules/scalardb-saga-patterns.md` § External Participants が評価を定義する:
+  ステップ × 参加者ごとに 1 行、プロバイダーの冪等化の仕組み、重複リクエストへの応答、補償操作とその期限
+  （Saga の最長所要時間と比較）、タイムアウト時の結果照会、TCC への分解可否、レート制限、根拠 URL を記録し、
+  ギャップには処置を 1 つだけ付ける —— `idempotency_layer`（`X-Saga-Id` + `X-Saga-Step` をキーに業務トランザクション
+  内で書くリクエスト台帳）、`query_before_retry`、`pivot_or_exclude`、`accept_risk`（ADR）。
+  `/architect:define-requirements` が Saga 候補ごとに事実を収集し（手順 5a、判定木の基準 2a。`unknown` は
+  連携担当者をオーナーとする `OQ-`）、`/architect:design-scalardb` が 6 項目になった Saga チェックリストの第 0 項として
+  表を書き（テンプレート: `reference/saga-participant-readiness.md`）、`review-risk` と `review-scalardb` は
+  未評価の外部参加者を Critical / blocker として扱い、`verify-implementation` は処置が約束した台帳と照会を検査し、
+  `/product:design-architecture` は外部参加者が未評価の間は Adopt ではなく Conditional を返す。グリーンフィールド
+  ワークフローのトランザクション設計に手順 5.3.0 とチェック項目 2 つを追加、`docs/ddd-coverage` に評価を記載。
+
 ## [0.49.0] - 2026-10-31
 
 ### Added
