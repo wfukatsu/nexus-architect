@@ -2,7 +2,8 @@
 
 The mechanism behind `/architect:design-sql-migration`, `implement-sql-migration` and
 `verify-sql-migration`: the converter, execution plans, the Java runtime and the verification harness.
-Grammar details and finding codes are in references/scalardb-grammar.md.
+Conversion rules and finding codes are in references/scalardb-grammar.md; the ScalarDB SQL grammar
+itself is skills/common/references/sql-reference.md.
 
 ## Design principles
 
