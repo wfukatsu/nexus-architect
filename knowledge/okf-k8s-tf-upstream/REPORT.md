@@ -1,7 +1,7 @@
 ---
 title: "okf-k8s-tf upstream report"
 schema_version: 1
-generated_at: "2026-10-31T20:48:14Z"
+generated_at: "2026-10-31T21:04:02Z"
 generator: tools/refresh-okf-k8s-tf.py
 ---
 
@@ -17,7 +17,11 @@ None.
 
 ## Pages
 
-Checked 49 public pages.
+Checked 50 public pages.
+
+### Newly cited
+
+- https://helm.sh/docs/helm/helm_upgrade/ — cited by `foundation/helm.md`
 
 ## Releases
 
