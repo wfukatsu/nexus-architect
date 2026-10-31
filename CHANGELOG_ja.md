@@ -7,6 +7,26 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.46.2] - 2026-10-31
+
+### Changed
+- **ScalarDB の各トピックの所有者を 1 つにした。rule が判断を、reference が事実を持つ。**
+  - rule と reference の 3 組が同じことを二度述べていた。
+  - `rules/scalardb-exception-handling.md` は、トランザクションのコードが守るべきこと（catch の順序、
+    結果不明の場合を除く rollback、リトライの分類、JDBC エラーコードの規則、3.19 の recovery と
+    pause の規則）を残し、完全な catch ブロックのパターンは
+    `skills/common/references/exception-hierarchy.md` に渡した。reference には `SqlSession` のパターンを加えた。
+  - `rules/scalardb-config-validation.md` は、properties ファイルが満たすべき検査 —— バックエンドの
+    必須キー集合、値の閉集合、cluster モードの prefix と API 別のキー、クロスパーティションスキャン、
+    group commit と 2PC の非互換 —— になり、プロパティとその既定値はすべて
+    `configuration-reference.md` が持つ。reference には 3.19 のプロパティ、`group_commit`、
+    `write_set_logging` を加えた。
+  - `rules/scalardb-schema-design.md` は、キー・インデックス・イベントストアの判断を残し、
+    データ型、必須フィールド、予約語、coordinator のコマンドは `schema-format.md` に渡した。
+    reference にあった設計指針の節（rule と同文）は削除した。
+  - どのファイルも冒頭で相手の役割を述べる。`/scalardb:config` と `docs/scalardb-development`（en/ja）は、
+    それぞれが何のためのものかを言い直した。
+
 ## [0.46.1] - 2026-10-31
 
 ### Changed

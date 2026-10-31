@@ -9,44 +9,34 @@ globs:
 
 # ScalarDB Schema Design Rules
 
+How to choose keys, indexes and tables, and what a reviewer flags. The format itself — the
+Schema Loader JSON fields, the data types with their Java mapping, the SQL DDL grammar, the
+reserved-word quoting and the Schema Loader commands — is
+`skills/common/references/schema-format.md`; write the file from that, decide its content from this.
+
 ## Transaction Flag
 
-Set `"transaction": true` for tables that need ACID guarantees. This is the default but should be explicit:
-
-```json
-{
-  "ns.table": {
-    "transaction": true,
-    "partition-key": ["id"],
-    "columns": { "id": "INT", "name": "TEXT" }
-  }
-}
-```
-
-Mixing transactional and non-transactional tables in the same transaction is NOT supported.
+Set `"transaction": true` for tables that need ACID guarantees. It is the default, but make it
+explicit. Mixing transactional and non-transactional tables in the same transaction is **not**
+supported.
 
 ## Partition Key Design
 
-- **Even distribution**: Choose keys that distribute data evenly
-- **Avoid hot partitions**: A single partition key value receiving most traffic causes bottlenecks
-- **Common access patterns**: Partition keys should match the most common query patterns
+- **Even distribution**: choose keys that distribute data evenly
+- **Avoid hot partitions**: a single partition key value receiving most traffic is a bottleneck
+- **Common access patterns**: the partition key matches the most common query
 - **Avoid monotonically increasing values** as the sole partition key (timestamps, auto-increment IDs)
+- **Avoid large partitions**: too many rows under one partition key
 
-Good:
 ```json
-"partition-key": ["customer_id"]    // distributes by customer
-```
-
-Bad:
-```json
-"partition-key": ["created_at"]     // hot partition at current time
+"partition-key": ["customer_id"]    // good: distributes by customer
+"partition-key": ["created_at"]     // bad: hot partition at the current time
 ```
 
 ## Clustering Key Design
 
-- Determines sort order within a partition
-- Enables efficient range queries
-- Specify direction with `ASC` or `DESC` suffix
+The clustering key determines sort order within a partition and makes range queries along it
+efficient; give each column its direction:
 
 ```json
 "clustering-key": ["timestamp DESC", "item_id ASC"]
@@ -54,53 +44,24 @@ Bad:
 
 ## No JOIN in CRUD API
 
-The CRUD API does not support JOINs. Design schemas for single-table access:
-
-- **Denormalize**: Duplicate data across tables to avoid joins
-- **Application-level joins**: Read from multiple tables in the same transaction
-- **Design around access patterns**: Each table should serve specific query patterns
-
-If JOINs are needed, use the SQL/JDBC interface (Cluster mode only).
+The CRUD API has no JOIN. Design for single-table access: denormalize across tables, read several
+tables in one transaction (an application-level join), and give each table the query pattern it
+serves. Where a JOIN is unavoidable, that is the SQL/JDBC interface (Cluster mode only).
 
 ## Secondary Index Guidelines
 
-- Use for occasional lookups by non-key columns
-- Each index adds write overhead
-- Avoid indexing high-cardinality columns on some backends (Cassandra)
-- Alternative: create a separate table with the indexed column as partition key
+- For occasional lookups by non-key columns; every index adds write overhead
+- Avoid indexing high-cardinality columns on backends where that hurts (Cassandra)
+- The alternative is a separate table with the indexed column as its partition key
 
 ```json
 "secondary-index": ["order_id"]     // enables Get by order_id
 ```
 
-## Supported Data Types
+## Data Types and Names
 
-`BOOLEAN`, `INT`, `BIGINT`, `FLOAT`, `DOUBLE`, `TEXT`, `BLOB`, `DATE`, `TIME`, `TIMESTAMP`, `TIMESTAMPTZ`
-
-Choose the narrowest type that fits the data.
-
-## SQL Reserved Words
-
-When using SQL DDL, quote reserved words as column names:
-
-```sql
-CREATE TABLE ns.tbl (
-  id INT PRIMARY KEY,
-  "timestamp" BIGINT,    -- quoted
-  "order" TEXT           -- quoted
-);
-```
-
-## Schema JSON Required Fields
-
-Every table definition MUST have:
-- `partition-key` (array of column names)
-- `columns` (object mapping column names to types)
-
-Optional:
-- `transaction` (default `true`)
-- `clustering-key` (array with optional ASC/DESC)
-- `secondary-index` (array of column names)
+Choose the narrowest type that fits the data (the type list and its Java mapping are in the
+reference). In SQL DDL, quote a reserved word used as a column name (`"timestamp"`, `"order"`).
 
 ## Event Store Pattern (only when event sourcing is adopted)
 
@@ -122,6 +83,6 @@ default. Three tables and one procedure:
 
 ## Coordinator Tables
 
-Coordinator tables are required for transactional operations. Create them with:
-- Schema Loader: `--coordinator` flag
-- SQL: `CREATE COORDINATOR TABLES IF NOT EXIST`
+Coordinator tables are required for transactional operations — the Schema Loader `--coordinator`
+flag or `CREATE COORDINATOR TABLES IF NOT EXIST` (commands in the reference). A schema that creates
+transactional tables and no coordinator tables is incomplete.

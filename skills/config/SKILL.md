@@ -59,7 +59,7 @@ Based on choices, generate:
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/common/references/configuration-reference.md` for the complete property reference.
 Read `${CLAUDE_PLUGIN_ROOT}/skills/common/references/interface-matrix.md` for the dependency matrix.
-Read `${CLAUDE_PLUGIN_ROOT}/rules/scalardb-config-validation.md` for required properties and valid values per backend.
+Read `${CLAUDE_PLUGIN_ROOT}/rules/scalardb-config-validation.md` for the checks a properties file must pass and the mistakes to catch.
 
 ## Dependency Versions
 

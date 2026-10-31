@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.46.2] - 2026-10-31
+
+### Changed
+- **Each ScalarDB topic has one owner: the rule decides, the reference states the facts.** Three
+  rule/reference pairs said the same things twice. `rules/scalardb-exception-handling.md` keeps
+  what transaction code must do (catch order, rollback except for the unknown-status case, retry
+  classes, the JDBC error-code rules, the 3.19 recovery and pause rules) and hands the complete
+  catch-block patterns to `skills/common/references/exception-hierarchy.md`, which gains the
+  `SqlSession` pattern. `rules/scalardb-config-validation.md` becomes the checks a properties file
+  must pass — the backend's required set, closed value sets, the cluster-mode prefix and
+  per-API keys, cross-partition scan, group commit versus 2PC — while every property and default
+  lives in `configuration-reference.md`, which gains the 3.19 properties, `group_commit` and
+  `write_set_logging`. `rules/scalardb-schema-design.md` keeps the key, index and event-store
+  decisions and hands the data types, required fields, reserved words and coordinator commands to
+  `schema-format.md`, whose duplicated design-guidelines section is gone. Each file opens by
+  naming its counterpart's role; `/scalardb:config` and `docs/scalardb-development` (en/ja) say
+  what each is now for.
+
 ## [0.46.1] - 2026-10-31
 
 ### Changed

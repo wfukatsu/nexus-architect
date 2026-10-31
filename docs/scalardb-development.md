@@ -286,8 +286,8 @@ These rules are automatically loaded and provide guidance whenever you work with
 | `scalardb-jdbc-patterns` | setAutoCommit, PreparedStatement, error code 301, JOIN/aggregate syntax |
 | `scalardb-2pc-patterns` | Choosing the cross-service mechanism (shared cluster / Global Transaction API / 2PC / Saga), coordinator/participant protocol, request routing, group commit |
 | `scalardb-saga-patterns` | ScalarDB Saga: SAGA vs TCC, idempotency, saga definitions, server configuration, escalation handling |
-| `scalardb-config-validation` | Required properties by storage, contact points format, cross-partition scan |
-| `scalardb-schema-design` | Partition key design, clustering keys, anti-patterns, data types |
+| `scalardb-config-validation` | The checks a properties file must pass: the backend's required set, closed value sets, cluster-mode prefix and API keys, cross-partition scan, group commit vs 2PC (the properties themselves are `configuration-reference.md`) |
+| `scalardb-schema-design` | Partition key design, clustering keys, secondary indexes, no-JOIN design, the event store pattern (the format and data types are `schema-format.md`) |
 | `scalardb-java-best-practices` | Thread safety, transaction lifecycle, SLF4J, try-with-resources |
 
 ## Reference Documents

@@ -1,5 +1,9 @@
 # ScalarDB Exception Hierarchy
 
+The facts behind `rules/scalardb-exception-handling.md`: the exception tree, what each exception
+means, the JDBC error-code mapping, and complete catch-block patterns for the CRUD, 2PC, JDBC and
+SQL APIs. The rule says what the code must do; this file is what to copy when writing it.
+
 ## Exception Tree
 
 ```
@@ -60,9 +64,9 @@ Exception caught?
           → Log and continue; the transaction will eventually time out
 ```
 
-## Correct Catch Order (Critical!)
+## Catch Order
 
-Catch specific conflict exceptions BEFORE their parent classes:
+Specific conflict exceptions before their parents (the rule's § Catch Order), in full:
 
 ```java
 // CORRECT order:
@@ -248,6 +252,23 @@ try {
         // The cause can be TransactionRetryableException (retry)
         // or other exceptions (retry with limits — may be non-transient)
     }
+}
+```
+
+### SQL API Used Directly (`SqlSession`)
+
+The `com.scalar.db.sql.exception` classes arrive unwrapped:
+
+```java
+try {
+    sqlSession.begin();
+    // Execute statements
+    sqlSession.commit();
+} catch (UnknownTransactionStatusException e) {
+    // Do NOT rollback — status unknown; verify and retry if needed
+} catch (SqlException e) {
+    sqlSession.rollback();
+    // Retry with limits
 }
 ```
 
