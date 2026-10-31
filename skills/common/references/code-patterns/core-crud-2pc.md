@@ -7,9 +7,11 @@ For applications that need ACID transactions across multiple databases or micros
 > `rules/dependency-versions.md` — the ScalarDB line, Java, and the logging/CLI libraries all
 > move independently of this document.
 >
-> **This interface is deprecated as of ScalarDB 3.19** — the docs site states "The two-phase commit
-> (2PC) interface is deprecated as of ScalarDB 3.19 and will be removed in a future release"; 3.20
-> also removed `join()` / `resume()` from `DistributedTransactionManager`. The bundle's 3.20
+> **This interface is deprecated as of ScalarDB 3.19 and absent from the Core 3.20.0 library** — the
+> docs site states "The two-phase commit (2PC) interface is deprecated as of ScalarDB 3.19 and will be
+> removed in a future release", and `com.scalar-labs:scalardb:3.20.0` no longer contains
+> `TwoPhaseCommitTransactionManager` (this template does not compile against it); 3.20 also removed
+> `join()` / `resume()` from `DistributedTransactionManager`. The bundle's 3.20
 > `two-phase-commit-transactions.md` carries the notice; the 3.19 page predates it, which is lag,
 > not a contradiction. Generate from this template only for a release before 3.19, or as an ADR-recorded
 > deviation (Core without Cluster is the usual reason), with `@SuppressWarnings("deprecation")`

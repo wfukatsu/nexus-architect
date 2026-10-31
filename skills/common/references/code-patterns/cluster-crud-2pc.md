@@ -9,7 +9,9 @@ Production multi-service transactions using ScalarDB Cluster with the CRUD API.
 >
 > **This interface is deprecated as of ScalarDB 3.19** — the docs site states "The two-phase commit
 > (2PC) interface is deprecated as of ScalarDB 3.19 and will be removed in a future release"; 3.20
-> also removed `join()` / `resume()` from the Cluster client managers. On Cluster 3.19+ use
+> also removed `join()` / `resume()` from the Cluster client managers, and the Core 3.20.0 library no
+> longer contains `TwoPhaseCommitTransactionManager` at all (verify the Cluster client SDK's own jar
+> before assuming it still does). On Cluster 3.19+ use
 > `cluster-crud-microservice-tx.md` instead: the same one-phase code serves the shared-cluster and
 > the separated-cluster pattern, with the Transaction Coordinator driving 2PC underneath. Generate
 > from this template only for a release before 3.19 or as an ADR-recorded deviation, with

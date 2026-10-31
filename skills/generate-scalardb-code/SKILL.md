@@ -168,7 +168,7 @@ shape (`ScalarDbTestBackend`, `OccConflictIT`, `TwoPhaseCommitIT`, `SagaCompensa
 task filtering `*IT` with `failOnNoMatchingTests = true`, so a filter matching nothing is a red
 build rather than a green one. The SQLite backend proves transaction semantics, not the production
 backend's performance or its storage-specific limits — say so in the run summary, and keep the
-production backend's own suite (when the project has one) as the CI integration job. Nor does it prove ScalarDB **Cluster** transaction propagation between services (the Global Transaction API / coordinator path of @rules/scalardb-2pc-patterns.md) — that needs a Cluster, and the summary names it as unproven rather than covered.
+production backend's own suite (when the project has one) as the CI integration job. The Microservice Transaction API's semantics can be proven in-process on both of its backings the way `samples/scalardb-transaction-tests` `MicroserviceTransactionIT` does (one single-phase manager for the shared-cluster shape; one coordinator with two participants for the separated-cluster shape, wired by hand because Core's `TransactionFactory` does not hand the manager out); what no in-process suite proves is the ScalarDB **Cluster** transport — the Transaction Coordinator node and its gRPC path (@rules/scalardb-2pc-patterns.md) — and the summary names that as unproven rather than covered.
 
 ## Output
 

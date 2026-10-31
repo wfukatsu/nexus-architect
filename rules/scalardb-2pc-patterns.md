@@ -19,7 +19,7 @@ this order:
 |---|-----------|----------|-----------------------|
 | 1 | **Shared-cluster, one-phase commit** | Every service can talk to one ScalarDB Cluster instance. The documented recommendation "whenever possible": simplest deployment, no Coordinator, fewest resources | Ordinary one-phase code; one service calls `commit()`. On 3.19+ this is the **Microservice Transaction API** with `scalar.db.cluster.client.transaction_coordinator.enabled=false` — the same code as option 2 |
 | 2 | **Microservice Transaction API on separated clusters** (3.19+, Cluster; the "Global Transaction API" of the 3.19 release notes) | Services need their own Cluster instances (resource isolation, per-team administration) | `GlobalTransactionManager` / `GlobalTransaction` / `BranchTransaction` — **one-phase application code**; the **Transaction Coordinator** node drives 2PC across the clusters underneath. "The code that begins a transaction, reads and writes records, and commits is the same in both patterns" — only configuration differs. CRUD interface on 3.19+; ScalarDB SQL gains the `GLOBAL_TRANSACTION` session mode (`BEGIN BRANCH` / `END BRANCH`) in 3.20 |
-| 3 | **Application-driven 2PC interface** (`TwoPhaseCommitTransactionManager`) | Only where options 1–2 cannot apply: a release before 3.19, Core (Community) without Cluster, or Spring Data JDBC (which does not support the shared-cluster pattern) | **Deprecated as of ScalarDB 3.19** — the docs site states "The two-phase commit (2PC) interface is deprecated as of ScalarDB 3.19 and will be removed in a future release." Still shipped in 3.20, but 3.20 removes `join()` / `resume()` from `DistributedTransactionManager`, the SQL `JOIN` / `SUSPEND` / `RESUME` statements and GraphQL's `@twoPhaseCommit`, and deprecates the SQL `TWO_PHASE_COMMIT_TRANSACTION` mode. Choosing it is an **ADR-recorded deviation** (@rules/architecture-decision-records.md) with a migration path to option 1 or 2 |
+| 3 | **Application-driven 2PC interface** (`TwoPhaseCommitTransactionManager`) | Only where options 1–2 cannot apply: a release before 3.19, Core (Community) without Cluster, or Spring Data JDBC (which does not support the shared-cluster pattern) | **Deprecated as of ScalarDB 3.19, and absent from the Core 3.20.0 library** — the docs site states "The two-phase commit (2PC) interface is deprecated as of ScalarDB 3.19 and will be removed in a future release", and `com.scalar-labs:scalardb:3.20.0` no longer contains `TwoPhaseCommitTransactionManager` / `TwoPhaseCommitTransaction` (compiling `samples/scalardb-transaction-tests` against it fails; `MicroserviceTransactionCoreProbeIT` asserts the absence). 3.20 also removed `join()` / `resume()` from `DistributedTransactionManager`, the SQL `JOIN` / `SUSPEND` / `RESUME` statements and GraphQL's `@twoPhaseCommit`, and deprecated the SQL `TWO_PHASE_COMMIT_TRANSACTION` mode. Available only on ≤ 3.19; choosing it there is an **ADR-recorded deviation** (@rules/architecture-decision-records.md) with a migration path to option 1 or 2 |
 | 4 | **ScalarDB Saga** (3.20 GA) | A single ACID transaction across the services is not possible or not wanted — long-running steps, external systems, eventual consistency acceptable | Saga/TCC definitions with compensations. See @rules/scalardb-saga-patterns.md |
 
 Options 1–3 give strong consistency; option 4 trades it for compensation-based rollback and
@@ -83,6 +83,18 @@ try {
 A branch handle is not thread-safe — `end()` from a timeout handler on another thread while CRUD
 is in flight is a data race the implementation does not guard against (javadoc, 3.20.0).
 
+**Verified on ScalarDB 3.20.0** by `samples/scalardb-transaction-tests` `MicroserviceTransactionIT`,
+which runs the same test code against both backings the API has — a single-phase manager (the
+shared-cluster shape) and one coordinator with two participants (the separated-cluster shape): both
+branches' writes persist after one `commit()`; ending a branch commits nothing; a participant's
+`FAILURE` plus the orchestrator's rollback leaves nothing; a stale write fails at `commit()` as
+`CommitConflictException`; a second `end(SUCCESS)` is an `IllegalStateException` and `end(FAILURE)`
+afterwards a no-op. What the suite does **not** prove: the Transaction Coordinator node and its gRPC
+transport, which need a ScalarDB Cluster. And `MicroserviceTransactionCoreProbeIT` shows the
+edition fact: Core's `TransactionFactory.getGlobalTransactionManager()` throws
+`UnsupportedOperationException` — on the Community edition the API's classes exist but nothing
+hands the manager out; the production wiring is Cluster (Enterprise).
+
 Rules the upstream guide states (3.20 docs site, Java API Guide):
 
 - `end(SUCCESS)` throws `IllegalStateException` if the branch already ended or a `Scanner` is
@@ -137,8 +149,9 @@ cluster**: an instance that meets a record left by an unfinished transaction loo
 there to recover it. Request routing within a cluster is the Cluster SDK's job (gRPC connection,
 or session affinity behind an L7 balancer, or `direct-kubernetes`).
 
-Everything below applies to **option 3** — the deprecated interface — and is kept for existing
-code and for the ADR-recorded cases above.
+Everything below applies to **option 3** — the deprecated interface, present in Core **≤ 3.19 only**
+— and is kept for existing code and for the ADR-recorded cases above. A project on 3.20 that still
+holds such code must move it to the Microservice Transaction API before upgrading; it does not compile.
 
 ## Protocol Order
 
@@ -271,8 +284,8 @@ All operations in a 2PC transaction MUST route to the same ScalarDB Cluster node
 This is the hand-written orchestration of option 3. On ScalarDB 3.19+ the Microservice Transaction
 API replaces every step below with ordinary one-phase code (§ above) — reach for this pattern
 only when options 1 and 2 are unavailable, and record the deviation. Note that 3.20 removed
-`join()` / `resume()` from `DistributedTransactionManager`; the `TwoPhaseCommitTransactionManager`
-methods remain, deprecated.
+`join()` / `resume()` from `DistributedTransactionManager` and the `TwoPhaseCommitTransactionManager`
+interface itself from the Core library; this pattern compiles on ≤ 3.19 only.
 
 In a microservice architecture with gRPC:
 1. Coordinator calls `begin()`, gets `txId`

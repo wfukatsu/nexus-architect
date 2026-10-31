@@ -51,7 +51,8 @@ commit. `tools/docs_consistency.test.py` fails a suite this table does not name.
 ## The one suite that runs real code
 
 `samples/scalardb-transaction-tests/` is a runnable Gradle
-project (`./gradlew integrationTest`, 25 tests, ~10s) asserting the ScalarDB transaction rules
-against a **real engine** over in-process SQLite — no container, no external service. It is outside
+project (`./gradlew integrationTest`, 34 tests, ~30s, ScalarDB 3.20.0) asserting the ScalarDB transaction
+rules against a **real engine** over in-process SQLite — no container, no external service — including the
+Microservice Transaction API on both of its backings and the probe of what Core 3.20.0 no longer ships. It is outside
 the CLI suite above because it needs network for dependency resolution. Run it after a ScalarDB
 version bump: every rule it backs was written or corrected because one of these tests failed.
