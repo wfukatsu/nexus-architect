@@ -7,6 +7,21 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.47.1] - 2026-10-31
+
+### Changed
+- **OKF バンドルが ScalarDB 3.20 と ScalarDB Saga 3.20 GA を収録した。** サブモジュールを
+  バンドル v1.3.0（`e374f05`: ScalarDB 3.20 が 206 概念、Saga 3.20 が 15 概念 —— 新しい `guides/` と
+  CHANGELOG をリリースノートとして収録 ——、ScalarDL 3.14 が最新。計 2,370 概念 / 24 バージョン）へ
+  進めた。0.47.0 で書いた「バンドル未収録」の注記はすべてバンドルの概念の引用に置き換えた:
+  `rules/okf-knowledge-bundle.md` §2〜§4（サポート中のライン、Saga 3.20 のエントリポイント、3.20 の
+  `two-phase-commit-transactions.md` が載せる 2PC 非推奨の告知）、`scalardb-edition-profiles`、
+  `scalardb-saga-patterns`、`scalardb-2pc-patterns`、`scalardb-postgres-frontend-patterns`、
+  `configuration-reference.md`、2PC コードパターンのヘッダー、`generate-scalardb-code`、README。
+  バンドルの外に残るのは ScalarDB Native JDBC とスタンドアロンの PostgreSQL フロントエンド。Cluster の
+  PostgreSQL ワイヤプロトコルと `scalar.db.postgres.*` キーはバンドルでは 3.20 のリリースノートにしか
+  無く、ルールはそのように述べる。
+
 ## [0.47.0] - 2026-10-31
 
 ### Added

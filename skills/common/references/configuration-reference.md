@@ -199,8 +199,8 @@ JDBC-specific:
 
 ## Transaction Coordinator (Microservice Transaction API, 3.19+)
 
-Source: ScalarDB Cluster configuration reference, 3.20 docs site (not in the bundle's 3.19
-`configurations.md`). Three files must agree — `rules/scalardb-config-validation.md`.
+Source: `products/scalardb/3.20/scalardb-cluster/scalardb-cluster-configurations.md` (bundle
+v1.3.0; absent from the 3.19 line). Three files must agree — `rules/scalardb-config-validation.md`.
 
 Client (every service):
 
@@ -239,8 +239,10 @@ Transaction Coordinator node:
 
 ## PostgreSQL Wire Protocol (Cluster, 3.20+)
 
-Source: ScalarDB 3.20.0 release notes and `scalar-labs/scalardb-postgres-frontend` README (not in
-the bundle). Rules: `rules/scalardb-postgres-frontend-patterns.md`.
+Source: `products/scalardb/3.20/releases/release-notes.md` (the bundle's only page for these keys —
+the 3.20 cluster configuration reference does not list them yet) and the
+`scalar-labs/scalardb-postgres-frontend` README (outside the bundle). Rules:
+`rules/scalardb-postgres-frontend-patterns.md`.
 
 | Property | Default |
 |----------|---------|

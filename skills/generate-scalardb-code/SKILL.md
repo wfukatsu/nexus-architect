@@ -52,10 +52,10 @@ After resolving the ScalarDB version, verify the deprecation status of every Sca
 design commits to **against the resolved artifact** (e.g. `javap` on the jar from the Gradle
 cache) or the pinned release notes in the OKF bundle — not against the pattern templates, which
 are dated examples. The application-driven 2PC surface (`TwoPhaseCommitTransactionManager`,
-`TwoPhaseCommitTransaction`, `getTwoPhaseCommitTransactionManager()`) **is deprecated as of 3.19**
-per the docs site, while the bundle's 3.19 snapshot still marks `two-phase-commit-transactions.md`
-`status: stable` — cite the docs-site notice and the 3.20 release notes (`join()` / `resume()`
-removed), not the bundle, for that claim (@rules/scalardb-2pc-patterns.md), and generate
+`TwoPhaseCommitTransaction`, `getTwoPhaseCommitTransactionManager()`) **is deprecated as of 3.19**:
+the bundle's 3.20 `two-phase-commit-transactions.md` opens with the notice and the 3.20 release
+notes record the `join()` / `resume()` removal, while the 3.19 page predates the notice — cite the
+3.20 line for that claim (@rules/scalardb-2pc-patterns.md), and generate
 cross-service code on the Microservice Transaction API
 (`skills/common/references/code-patterns/cluster-crud-microservice-tx.md`) unless the design records
 a deviation. The check against the resolved jar still decides which annotations the compiler will

@@ -7,10 +7,11 @@ patterns; only the properties files differ. On separated clusters the Transactio
 drives two-phase commit underneath. This replaces `cluster-crud-2pc.md`, whose interface is
 deprecated as of 3.19. Rules: `rules/scalardb-2pc-patterns.md`.
 
-> **Versions in this file are a dated example** (snapshot: 2026-10, grounded on the ScalarDB 3.20
-> docs site and `scalardb-samples/microservice-transaction-sample-with-cluster`), not the current
-> stable release. Resolve each pin per `rules/dependency-versions.md`. The OKF bundle's 3.19
-> snapshot does not document this API beyond the release notes — say so in the design.
+> **Versions in this file are a dated example** (snapshot: 2026-10, grounded on the bundle's
+> `products/scalardb/3.20/scalardb-cluster/api-guide.md` § Microservice Transaction API and
+> `scalardb-samples/microservice-transaction-sample-with-cluster/`), not the current stable
+> release. Resolve each pin per `rules/dependency-versions.md`. A project pinned to 3.19 finds this
+> API only in that line's release notes — say so in the design.
 
 ## build.gradle
 

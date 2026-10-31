@@ -1,11 +1,13 @@
 # ScalarDB Edition Profiles
 
-Reference snapshot for **ScalarDB 3.19** from the OKF knowledge bundle
-(`products/scalardb/3.19/features.md`, `releases/release-notes.md`,
-`releases/release-support-policy.md`, and each concept's frontmatter `editions`), extended with the
-**ScalarDB 3.20.0** release notes (2026-10-30) and the three Apache-2.0 products released beside it
-— ScalarDB Saga 3.20 GA, ScalarDB Native JDBC 3.20 and scalardb-postgres-frontend 3.20 — which the
-bundle does not carry yet (@rules/okf-knowledge-bundle.md §2).
+Reference snapshot for **ScalarDB 3.20** from the OKF knowledge bundle (bundle v1.3.0:
+`products/scalardb/3.20/features.md`, `releases/release-notes.md`,
+`releases/release-support-policy.md`, and each concept's frontmatter `editions`), plus the three
+Apache-2.0 products released beside it — ScalarDB Saga 3.20 GA (`products/scalardb-saga/3.20/`),
+ScalarDB Native JDBC 3.20 and scalardb-postgres-frontend 3.20 (the last two are outside the bundle;
+@rules/okf-knowledge-bundle.md §2). The feature table below is the 3.19 `features.md` layout; the
+3.20 `features.md` adds no row for the PostgreSQL wire protocol, which is why that row cites the
+release notes.
 
 This file is a digest and it drifts. Before an edition-gated feature reaches a deliverable, verify it
 against the project's own pinned release per @rules/okf-knowledge-bundle.md — the concept's
@@ -83,16 +85,16 @@ Source: `products/scalardb/3.19/releases/release-notes.md` (v3.19.0, released 20
 | `ABORTED` + `google.rpc.ErrorInfo` on the Cluster pause RPC | Enterprise Standard / Premium | A pause failure with reason `TIMED_OUT_STILL_PAUSED` must **not** be followed by an unpause; a lost race is now retryable |
 | Bouncy Castle / grpc_health_probe CVE fixes | Enterprise Standard / Premium | Material argument when a project weighs staying on 3.18 or earlier |
 
-The bundle's 3.19 guide pages have not caught up with the Microservice Transaction API and
-Transaction Coordinator — its `scalardb-cluster/deployment-patterns-for-microservices.md` still
-describes only the pre-3.19 shared/separated choice (the 3.20 docs-site version does). Ground those
-on the release notes and the docs site, and say so.
+The 3.19 guide pages never caught up with the Microservice Transaction API and Transaction
+Coordinator; the 3.20 pages did — ground those two on
+`products/scalardb/3.20/scalardb-cluster/deployment-patterns-for-microservices.md` and
+`scalardb-cluster/api-guide.md` § Microservice Transaction API, not on the 3.19 line.
 
 ## New in 3.20
 
-Source: ScalarDB 3.20.0 release notes (GitHub release `v3.20.0`, 2026-10-30; docs-site release
-notes). **Not in the bundle yet** — cite the release notes URL and re-verify when the bundle is
-refreshed.
+Source: `products/scalardb/3.20/releases/release-notes.md` (v3.20.0, released 2026-10-30). The
+PostgreSQL wire protocol and its keys appear **only there** in the bundle — `features.md` and
+`scalardb-cluster-configurations.md` do not list them yet — so cite the release notes for them.
 
 | Capability | Edition | Why it changes a design |
 |------------|---------|-------------------------|
@@ -107,8 +109,7 @@ refreshed.
 
 ## Version Support (as of 2026-10-31)
 
-Source: `products/scalardb/index.md`, `releases/release-support-policy.md` (bundle, 3.19 snapshot)
-plus the 3.20.0 release.
+Source: `products/scalardb/index.md` and `releases/release-support-policy.md` (bundle v1.3.0).
 
 | Line | Newest patch | Maintenance | Maintenance support ends |
 |------|--------------|-------------|--------------------------|

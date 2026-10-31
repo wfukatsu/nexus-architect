@@ -11,8 +11,8 @@ Multi-service transactions using ScalarDB Cluster with the SQL/JDBC interface.
 > and 3.20 removed the `JOIN`, `SUSPEND` and `RESUME` statements and the matching Spring Data
 > methods. On 3.20+ a SQL transaction that spans processes uses the `GLOBAL_TRANSACTION` session
 > mode (`BEGIN BRANCH` / `END BRANCH`, the Transaction Coordinator driving 2PC when
-> `scalar.db.sql.enabled=true`); ground its grammar on the 3.20 release notes, which the bundle's
-> 3.19 `grammar.md` predates. Generate from this template only for a release before 3.19 or as an
+> `scalar.db.sql.enabled=true`); ground its grammar on the bundle's 3.20 line (release notes and
+> `scalardb-sql/grammar.md`), which the 3.19 grammar predates. Generate from this template only for a release before 3.19 or as an
 > ADR-recorded deviation — see `rules/scalardb-2pc-patterns.md`.
 
 ## build.gradle
