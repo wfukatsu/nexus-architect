@@ -348,7 +348,9 @@ analyze スキルが用語辞書を導く流れ。**1つの文書から抜き出
 4 つのプラグインはそれぞれ同じフックを登録するが、1 回のツール呼び出しにつき 1 つだけが
 実際に検証する（`hooks/claim.sh`）。検証内容は
 「先頭が `---` で始まる / 閉じ `---` がある / YAML としてパースできる /
-必須キー `title` `schema_version` `skill` を持つ」「Mermaid ブロックがパースできる」。
+必須キー `title` `schema_version` `skill` を持つ / `options.eli5`（既定 `technical`）と
+`tools/lib/report_audience.py` のスキル一覧が求める文書では `## ELI5` の節で始まる（`rules/eli5-summary.md`）」
+「Mermaid ブロックがパースできる」。
 
 失敗時、フックは **stderr にエラーを書いて exit 2** する。Claude Code は exit 2 の
 フック出力をモデルへ差し戻すため、エージェントはエラー文を読んで自分で修正し再書き込みする。

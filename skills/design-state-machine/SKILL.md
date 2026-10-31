@@ -183,6 +183,9 @@ a failure as a defect in the model rather than in the checker.
 
 ## Output
 
+Every Markdown document here opens with the `## ELI5` section of @rules/eli5-summary.md, as
+`options.eli5` (default `technical`) directs.
+
 | File | Content |
 |------|---------|
 | `reports/03_design/state-machines/state-machine-{aggregate}.md` | One document per aggregate — states, events, transitions, matrix, diagram, concurrency notes |

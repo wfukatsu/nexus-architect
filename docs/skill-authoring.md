@@ -133,7 +133,10 @@ an `if` rule matches one tool's calls) and is inert outside a pipeline project: 
 `work/pipeline-progress.json` at or above the file, as the recorder is, because the plugins are
 enabled per user and `reports/` is a common directory name (issue #60). In hook mode a failure
 exits 2 (feeds the error back for self-correction); the same scripts exit 1 when run from the CLI
-with file-path arguments. `record_token_usage.py` runs after Write/Edit/Agent in the background
+with file-path arguments. Besides the frontmatter it checks the plain-language `## ELI5` section
+of `rules/eli5-summary.md`: required when `options.eli5` of the project's progress file (default
+`technical`) and the skill list in `tools/lib/report_audience.py` say so, never on an ADR
+(`decided_at`) or a document declaring `eli5: false`. `record_token_usage.py` runs after Write/Edit/Agent in the background
 (`async`) and, waiting, at Stop/SubagentStop — `claude -p` kills a background hook at teardown, and
 the turn-end firing is the one that flushes the pending bucket.
 

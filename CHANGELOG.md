@@ -7,7 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
-## [0.51.0] - 2026-11-01
+## [0.51.1] - 2026-11-01
+
+### Fixed
+- **The ADR index no longer trips the ELI5 check.** `reports/03_design/adr/index.md` carries the
+  standard frontmatter with the regenerating skill's name (`redesign`, `design-aggregate`, …) and no
+  `decided_at`, so a default-mode redesign run would have had the hook reject its own index. Anything
+  under an `adr/` directory is now exempt, next to the records themselves and `eli5: false`.
+- **Every technical skill now says it.** Fourteen skills in the technical list cite neither
+  `rules/output-conventions.md` nor the ELI5 rule — the product pipeline's data-model, domain, SLA,
+  NFR and architecture skills, the SQL-migration pair, the database investigations, `analyze-ui`,
+  `design-graphql`, `design-state-machine`, `review-synthesizer` (whose fixed heading order now
+  starts with ELI5) and the two infra skills — so under Codex and Omnigent, where no hook runs,
+  nothing asked for the section. Each now opens its Output section with the pointer. The infra
+  skills and templates also say what was true but unstated: a standalone run writing to
+  `docs/infra/` has no `options.eli5` and no hook, so the skill writes the section on the default.
+
 
 ### Added
 - **Every technical report opens with an ELI5 section.** A report written for engineers —
@@ -20,7 +35,7 @@ all four plugins (`product`, `architect`, `scalardb`, `infra`) are released toge
   also when absent), `all` or `off`; `/architect:start` and `/product:start` ask it with the output
   language, and `init-output` seeds it. Which skills count as technical is one list,
   `tools/lib/report_audience.py`, that the rule (`rules/eli5-summary.md`), the frontmatter hook and
-  the contract suites all read. The hook rejects a technical report without the section (exit 2, so
+  the documentation-consistency suite read. The hook rejects a technical report without the section (exit 2, so
   the writer adds it), an ADR and a document declaring `eli5: false` are exempt, and
   `tools/build-report.py` gathers every section into the executive summary as the "ELI5 digest",
   each entry linked to its document. The infra templates carry the placeholder section

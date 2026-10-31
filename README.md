@@ -485,6 +485,17 @@ The bundle's "observed implementation" tier is scoped to two specific commits. W
 repository is available to read, the repository is the fact and the bundle is the standard — the
 difference between them gets reported, not smoothed over.
 
+## ELI5 Sections
+
+Every report written for engineers — investigation, analysis, evaluation, design, review synthesis,
+verification, cost estimation, the product pipeline's data-model / domain / SLA / NFR / architecture
+documents and the infra design and review documents — opens with a plain-language `## ELI5` section: one everyday analogy for what the
+document decides, what it means for the reader, and what they are asked to decide. The technical
+body below it is unchanged. `options.eli5` in `work/pipeline-progress.json` selects `technical`
+(default), `all` or `off`; the frontmatter hook rejects a technical report that lacks the section,
+and the consolidated HTML report gathers every section into its executive summary
+(`rules/eli5-summary.md`).
+
 ## Output Language
 
 Output language is configurable per project. Set during `/architect:start` initialization or via flag:
@@ -494,16 +505,6 @@ Output language is configurable per project. Set during `/architect:start` initi
 ```
 
 Supported: `en` (English, default), `ja` (Japanese).
-
-## ELI5 Sections
-
-Every report written for engineers — investigation, evaluation, design, review synthesis,
-verification — opens with a plain-language `## ELI5` section: one everyday analogy for what the
-document decides, what it means for the reader, and what they are asked to decide. The technical
-body below it is unchanged. `options.eli5` in `work/pipeline-progress.json` selects `technical`
-(default), `all` or `off`; the frontmatter hook rejects a technical report that lacks the section,
-and the consolidated HTML report gathers every section into its executive summary
-(`rules/eli5-summary.md`).
 
 ### Documentation language policy
 

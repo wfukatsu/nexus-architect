@@ -15,11 +15,16 @@ when the section is required, where it goes and what shape it has.
 | `all` | every Markdown report under `reports/`, whatever its skill |
 | `off` | none |
 
-The list lives in that module and nowhere else; the hook, this rule and the tests read it. Two
-documents are exempt in every mode: an Architecture Decision Record (its frontmatter carries
-`decided_at` — the shape of @rules/architecture-decision-records.md §2; its Context section is
-already the plain statement) and a document whose frontmatter declares `eli5: false` — the
-opt-out for a technical skill's non-prose output, such as an environment matrix that is one table.
+The list lives in that module and nowhere else; the hook, this rule and the tests read it.
+Exempt in every mode: an Architecture Decision Record (its frontmatter carries `decided_at` — the
+shape of @rules/architecture-decision-records.md §2; its Context section is already the plain
+statement), anything under an `adr/` directory (the ADR index is a table view with the standard
+frontmatter), and a document whose frontmatter declares `eli5: false` — the opt-out for a
+technical skill's non-prose output, such as an environment matrix that is one table.
+
+A skill run outside a pipeline project — a standalone `/infra:design` or `/infra:review` writing
+to `docs/infra/` — has no `options.eli5` and no hook: the default `technical` applies, and the
+skill writes the section because its text says so, not because anything rejects the file.
 
 ## 2. Where
 

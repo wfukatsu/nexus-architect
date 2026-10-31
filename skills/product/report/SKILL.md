@@ -115,7 +115,7 @@ and the `<h2 id>` of each section regardless of language.
 
 | Directory | Section heading (English canonical) | Notes |
 |-----------|--------------------------------------|-------|
-| — | Key Assumptions & Validation Status (`summary`) | gate verdict from `gates.validate-assumptions`, the open `ASM-` rows of `assumptions.md` and `validation-plan.md` verbatim, `TBD` / `TBD-assumption` per document with the `OQ-` they cite, Open Questions grouped by status with owner and impact |
+| — | Key Assumptions & Validation Status (`summary`) | gate verdict from `gates.validate-assumptions`, the open `ASM-` rows of `assumptions.md` and `validation-plan.md` verbatim, `TBD` / `TBD-assumption` per document with the `OQ-` they cite, Open Questions grouped by status with owner and impact, then the "ELI5 digest" — the `## ELI5` section of every rendered document (@rules/eli5-summary.md), linked, after the assumptions |
 | `reports/00_core/` | Product Core (`core`) | |
 | `reports/01_ux/` | UX Foundation (`ux`) | `domain-stories/` as a subgroup |
 | `reports/02_spec/` | Specification (`spec`) | `examples/` as a subgroup, `index.md` first; `ui-mocks/` Markdown as articles, HTML mocks listed by name |

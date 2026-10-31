@@ -140,6 +140,9 @@ log raw documents or variables by default; mask or allowlist recorded values.
 
 ## Output
 
+Every Markdown document here opens with the `## ELI5` section of @rules/eli5-summary.md, as
+`options.eli5` (default `technical`) directs.
+
 Write reports in `options.output_language`; keep SDL identifiers in English.
 
 | File | Content |

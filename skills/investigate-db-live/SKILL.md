@@ -108,6 +108,9 @@ tests may set `allow_local_plaintext: true`. No arbitrary driver options/modules
 
 ## Outputs and Completion
 
+Every Markdown document here opens with the `## ELI5` section of @rules/eli5-summary.md, as
+`options.eli5` (default `technical`) directs.
+
 `reports/01_analysis/database-investigation/<target-id>/live/<run-id>/` contains the four helper
 outputs plus `live-review.md` with the output-convention frontmatter. Raw driver errors and
 credentials are not printed; diagnose failures locally without copying secret-bearing logs.

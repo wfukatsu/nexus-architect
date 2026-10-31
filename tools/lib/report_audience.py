@@ -9,6 +9,7 @@ the skills whose documents are written for engineers: investigation and evaluati
 models, transaction boundaries, API contracts, review synthesis. The seven review-* phases write JSON
 only, so their plain-language rendering is the synthesizer's Markdown.
 """
+import os
 import re
 
 ELI5_MODES = ("technical", "all", "off")
@@ -43,16 +44,19 @@ def eli5_mode(options):
     return mode if mode in ELI5_MODES else DEFAULT_ELI5_MODE
 
 
-def eli5_required(frontmatter, options):
+def eli5_required(frontmatter, options, path=None):
     """Whether this Markdown report has to open with a `## ELI5` section.
 
-    An Architecture Decision Record (its frontmatter carries `decided_at` — the shape of
-    rules/architecture-decision-records.md §2), a document with no `skill:` key, and a document
-    declaring `eli5: false` (a technical skill's non-prose output — an environment matrix) are
-    exempt whatever the mode.
+    Exempt whatever the mode: an Architecture Decision Record (its frontmatter carries
+    `decided_at` — the shape of rules/architecture-decision-records.md §2), anything under an
+    `adr/` directory (the ADR index is a table view with the standard frontmatter), a document
+    declaring `eli5: false` (a technical skill's non-prose output — an environment matrix), and a
+    document with no `skill:` key.
     """
     fm = frontmatter or {}
     if fm.get("eli5") is False or "decided_at" in fm:
+        return False
+    if path and "adr" in os.path.normpath(path).split(os.sep):
         return False
     skill = fm.get("skill")
     if not skill:

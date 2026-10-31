@@ -32,7 +32,7 @@ input_files:
 
 ## ELI5 — the short version
 
-<!-- Required when options.eli5 is `technical` (the default) — @rules/eli5-summary.md §3:
+<!-- Required — a standalone run has no options.eli5, so the default `technical` applies — @rules/eli5-summary.md §3:
      what the review found in everyday words, what it means for the reader, and which findings
      need their decision. -->
 

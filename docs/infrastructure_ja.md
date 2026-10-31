@@ -133,6 +133,10 @@ reports/08_infrastructure/
 └── reviews/review-<対象>-r<n>.md     # /infra:review — 2回目以降は前回指摘との照合から始まる
 ```
 
+設計文書とレビュー報告は平易な `## ELI5` の節（`rules/eli5-summary.md`）で始まります（テンプレートに雛形があります）。
+環境マトリクスと ADR は対象外です。パイプラインのプロジェクト内では frontmatter hook が `options.eli5` に従って
+強制しますが、`docs/infra/` に書く単独実行にはどちらも無く、スキル自身が節を書きます。
+
 ## architect パイプラインとの境界
 
 | architect | infra | 境界 |

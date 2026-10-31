@@ -99,7 +99,8 @@ try:
         options = (json.load(fh) or {}).get("options") or {}
 except Exception:
     options = {}
-if report_audience.eli5_required(front, options) and not report_audience.has_eli5_section(body):
+if (report_audience.eli5_required(front, options, report)
+        and not report_audience.has_eli5_section(body)):
     print("options.eli5 = %s and skill %s writes a technical report, so the document must open "
           "with a `## ELI5` section right after its title — see rules/eli5-summary.md"
           % (report_audience.eli5_mode(options), front.get("skill")))

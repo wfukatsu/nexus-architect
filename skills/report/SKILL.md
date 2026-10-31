@@ -108,7 +108,9 @@ only, never embedded. No manifest JSON is ever rendered.
 the Test Specifications section.
 
 The Executive Summary is built from `work/pipeline-progress.json`,
-`reports/review/review-synthesis.json` and the Open Questions store in `work/context.md`.
+`reports/review/review-synthesis.json`, the Open Questions store in `work/context.md`, and the
+`## ELI5` section of every rendered document (@rules/eli5-summary.md), gathered at its end as the
+"ELI5 digest" with a link to each document — omitted when no document carries one.
 When the review has not run — no `review-synthesis.json` — the report is still produced and
 the summary says so instead of carrying a quality gate verdict.
 

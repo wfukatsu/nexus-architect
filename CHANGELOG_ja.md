@@ -7,7 +7,20 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
-## [0.51.0] - 2026-11-01
+## [0.51.1] - 2026-11-01
+
+### Fixed
+- **ADR の index が ELI5 の検査に引っかからないようにした。** `reports/03_design/adr/index.md` は再生成する
+  スキル名（`redesign`、`design-aggregate` など）を持つ標準の frontmatter で `decided_at` が無いため、既定モードの
+  redesign 実行で hook が自分の index を拒否するところだった。`adr/` ディレクトリ配下はすべて対象外とした
+  （ADR 本体と `eli5: false` に加えて）。
+- **技術系スキルすべてが節を指示するようにした。** 技術リストの 14 スキル —— product の データモデル / ドメイン /
+  SLA / NFR / アーキテクチャ、SQL 移行の 2 つ、DB 調査の 2 つ、`analyze-ui`、`design-graphql`、
+  `design-state-machine`、`review-synthesizer`（固定の見出し順を ELI5 から始めた）、infra の 2 つ —— は
+  `rules/output-conventions.md` も ELI5 の規則も引用しておらず、hook の無い Codex / Omnigent では誰も節を
+  求めていなかった。各 Output 節の冒頭に参照を置いた。infra のスキルとテンプレートには、`docs/infra/` に書く
+  単独実行には `options.eli5` も hook も無く、既定の `technical` でスキル自身が節を書くことを明記した。
+
 
 ### Added
 - **技術レポートは ELI5 の節から始まる。** エンジニア向けのレポート —— 調査、分析、評価、設計、レビュー統合、検証、
@@ -17,7 +30,7 @@ Nexus Architect の主な変更点を記録します。
   その下の技術的な本文は変えない（次のスキルが読むため）。`work/pipeline-progress.json` の `options.eli5` で
   `technical`（既定、未設定時も）/ `all` / `off` を選び、`/architect:start` と `/product:start` が出力言語と
   一緒に尋ね、`init-output` が既定値を書く。どのスキルを技術系とみなすかは `tools/lib/report_audience.py` の
-  1 つのリストで、規則（`rules/eli5-summary.md`）、frontmatter hook、契約テストが同じリストを読む。hook は節の
+  1 つのリストで、規則（`rules/eli5-summary.md`）、frontmatter hook、ドキュメント整合テストが同じリストを読む。hook は節の
   無い技術レポートを拒否し（exit 2 で書き手が追加する）、ADR と `eli5: false` を宣言した文書は対象外。
   `tools/build-report.py` は各文書の節をエグゼクティブサマリの「やさしい説明（ELI5）の一覧」に集め、文書へ
   リンクする。infra のテンプレートは節の雛形（`design-doc.md`、`review-report.md`）または opt-out
