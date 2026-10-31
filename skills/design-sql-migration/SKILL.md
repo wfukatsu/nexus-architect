@@ -31,8 +31,9 @@ statement run on ScalarDB, what does acting on that decision take, and what is s
    proposals, the open questions and an effort picture a reader can act on.
 
 Read @rules/sql-migration.md before Stage 1. The mechanism behind the converter is
-`skills/common/sql-migration/references/architecture.md`; the grammar and finding codes are
-`references/scalardb-grammar.md`; application-side semantics are `references/app-side-notes.md`.
+`skills/common/sql-migration/references/architecture.md`; the conversion rules and finding codes are
+`references/scalardb-grammar.md` (the ScalarDB SQL grammar itself is
+`skills/common/references/sql-reference.md`); application-side semantics are `references/app-side-notes.md`.
 
 ## Invocation
 

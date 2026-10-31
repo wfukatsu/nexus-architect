@@ -7,6 +7,21 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.46.3] - 2026-10-31
+
+### Changed
+- **ScalarDB SQL の文法の所有者を 1 つにした。**
+  - `skills/common/references/sql-reference.md` が言語の事実を持ち、vendored の
+    `skills/common/sql-migration/references/scalardb-grammar.md` は変換ルール —— 自動書き換え、
+    ソース型のマッピング、キー分割、変換不能、finding code —— だけを持つ。
+  - vendored 側にあった文法の再掲（文法が狭い理由の箇条、11 型のリスト、アクセスパス表）はポインタにした。
+    vendored 側だけが述べていた事実 —— select list は列と 5 つの集約のみ、`WHERE` の右辺はリテラル、
+    JOIN 時の `WHERE` / `ORDER BY` は FROM 側の列のみ、`GROUP BY` / `HAVING` の規則、
+    `UPDATE ... SET` はリテラルのみ、`OFFSET` 無し —— はバンドルの 3.19 文法で確認して
+    `sql-reference.md` に移した（SQL Limitations は 15 → 19 項目）。
+  - 上流との差分は `PROVENANCE.md` に再インポート時の規則とともに記録した。`architecture.md` と
+    `/architect:design-sql-migration` は各ファイルの役割を言い直した。
+
 ## [0.46.2] - 2026-10-31
 
 ### Changed

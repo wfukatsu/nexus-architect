@@ -1,22 +1,19 @@
-# ScalarDB SQL grammar and conversion rules
+# ScalarDB SQL conversion rules
 
 What the converter (`scripts/scalardb_migrate/`) applies when it turns a source statement into
-ScalarDB SQL. The official grammar is https://scalardb.scalar-labs.com/docs/latest/scalardb-sql/grammar/
-— pin the release per @rules/okf-knowledge-bundle.md before relying on a detail here.
+ScalarDB SQL: the automatic rewrites, the source-type mapping, the key split, what cannot be
+converted and the finding codes. The grammar it targets — statements, literals, what each clause
+accepts and what the language lacks — is `skills/common/references/sql-reference.md`; the official
+grammar is https://scalardb.scalar-labs.com/docs/latest/scalardb-sql/grammar/ — pin the release per
+@rules/okf-knowledge-bundle.md before relying on a detail.
 
 ## Why the grammar is narrow
 
 ScalarDB virtually unifies several storages and runs transactions across them. Arbitrary subqueries
 or joins would make it impossible to decide which storage executes which part, so the grammar is
-deliberately limited to what can be routed with certainty.
-
-- The select list holds columns and the aggregates `COUNT` / `SUM` / `AVG` / `MIN` / `MAX` only — no
-  expressions or functions.
-- A `WHERE` right-hand side is a literal. Column-to-column comparison is only allowed in a join's `ON`.
-- `WHERE` must be in DNF (OR of ANDs) or CNF (AND of ORs).
-- A join condition must cover the joined table's primary key or a secondary index.
-- No subqueries, CTEs, `UNION`, window functions, `DISTINCT`, `OFFSET` or `CASE`.
-- No update that references a column (`UPDATE ... SET col = col + 1`).
+deliberately limited to what can be routed with certainty. Which constructs are absent is
+`sql-reference.md` § SQL Limitations; the converter's generator (`dialect.py`) raises on every one of
+them, so a missed rewrite surfaces as an ERROR rather than as SQL that silently passes.
 
 ## Rewritten automatically
 
@@ -34,8 +31,7 @@ deliberately limited to what can be routed with certainty.
 
 ## Type mapping
 
-ScalarDB has 11 types: `BOOLEAN`, `INT`, `BIGINT`, `FLOAT`, `DOUBLE`, `TEXT`, `BLOB`, `DATE`, `TIME`,
-`TIMESTAMP`, `TIMESTAMPTZ`.
+The eleven target types and their literal forms are `sql-reference.md` § Data Types.
 
 | Source type | ScalarDB | Severity |
 |---|---|---|
@@ -72,14 +68,10 @@ narrowed by the partition key becomes a cross-partition scan over the whole tabl
 ## Access paths
 
 With a schema (DDL in the input, or `--schema` Schema Loader JSON) the converter classifies how
-ScalarDB reads each statement.
-
-| Access path | Condition | Result |
-|---|---|---|
-| GET | the full primary key is specified | fine |
-| partition SCAN | the partition key is specified | fine |
-| index SCAN | a secondary index narrows the read | fine |
-| cross-partition SCAN | no predicate covers a key | WARN (cost grows with the row count) |
+ScalarDB reads each statement — Get, partition Scan, index Scan or cross-partition Scan, resolved as
+`sql-reference.md` § SELECT describes. Only the cross-partition Scan is flagged, as a WARN: its cost
+grows with the row count. With `--storage cassandra` a table readable by neither key nor index is
+`FULL_SCAN` (ERROR, below).
 
 ## Not convertible (ERROR)
 

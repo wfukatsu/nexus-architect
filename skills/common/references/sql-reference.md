@@ -1,6 +1,12 @@
 # ScalarDB SQL Reference
 
-Supported SQL grammar for ScalarDB SQL/JDBC interface. Available in Cluster mode only.
+The language facts of ScalarDB SQL (the SQL and JDBC APIs; Cluster mode only, edition per
+`rules/scalardb-edition-profiles.md`): statements, literals, what each clause accepts and what the
+grammar lacks. The release-specific grammar is the OKF bundle's `scalardb-sql/grammar.md` — pin the
+release per `rules/okf-knowledge-bundle.md` before relying on a detail here. How a source dialect's
+SQL is converted into this grammar — automatic rewrites, source-type mapping, key split, what cannot
+be converted and the converter's finding codes — is
+`skills/common/sql-migration/references/scalardb-grammar.md`.
 
 ## Data Types
 
@@ -118,15 +124,25 @@ FROM [ns.]table [AS alias]
 [LIMIT n]
 ```
 
-**Projections**: `*`, `column [AS alias]`, `aggregate_function [AS alias]`
+**Projections**: `*`, `column [AS alias]`, `aggregate_function [AS alias]` — nothing else: no
+expression, function or `CASE` in the select list. An aggregate's argument is `*`, one column or a
+literal.
 
 **Aggregate functions**: `COUNT(*)`, `COUNT(col)`, `SUM(col)`, `AVG(col)`, `MIN(col)`, `MAX(col)`
+
+**WHERE predicate**: `column operator literal` — the right-hand side is a literal or a bind marker,
+never a column, a function or an expression. Column-to-column comparison exists only in a JOIN's
+`ON` (`identifier = identifier`).
 
 **WHERE operators**: `=`, `<>`, `!=`, `>`, `>=`, `<`, `<=`, `BETWEEN x AND y`, `[NOT] LIKE pattern [ESCAPE char]`, `IS [NOT] NULL`
 
 **WHERE structure**: Must be either:
 - OR of ANDs (disjunctive normal form): `(a AND b) OR (c AND d)`
 - AND of ORs (conjunctive normal form): `(a OR b) AND (c OR d)`
+
+**GROUP BY / HAVING**: every select-list column appears in `GROUP BY` or inside an aggregate;
+`HAVING` predicates (same operators, DNF or CNF) compare an identifier, an aggregate or its alias
+with a literal.
 
 **Query execution resolution** (how ScalarDB internally resolves the query):
 1. **Get** — full primary key specified
@@ -148,8 +164,8 @@ RIGHT [OUTER] JOIN [ns.]table [AS alias] ON join_predicates
 ```
 
 **JOIN predicate requirements**:
-- `INNER JOIN` / `LEFT JOIN`: predicates must include all primary-key columns OR a secondary-index column from the **right** table
-- `RIGHT JOIN`: predicates must include all primary-key columns OR a secondary-index column from the **left** table
+- `INNER JOIN` / `LEFT JOIN`: predicates must include all primary-key columns OR a secondary-index column from the **right** table; `WHERE` and `ORDER BY` may name only the `FROM` table's columns
+- `RIGHT JOIN`: predicates must include all primary-key columns OR a secondary-index column from the **left** table; `WHERE` and `ORDER BY` may name only the right-joined table's columns
 
 **Not supported**: `FULL OUTER JOIN`, `CROSS JOIN`, `NATURAL JOIN`
 
@@ -183,6 +199,7 @@ UPDATE [ns.]table [AS alias]
   [WHERE conditions]
 ```
 
+- `SET` assigns a literal or a bind marker only — `SET col = col + 1` is not expressible; read, compute and write the literal in one transaction
 - Recommend specifying primary key in WHERE to avoid cross-partition scan
 
 ### DELETE
@@ -275,14 +292,18 @@ SHOW GRANTS                -- Show privileges
 5. **No FULL OUTER JOIN**
 6. **No UNION / INTERSECT / EXCEPT**
 7. **No CROSS JOIN / NATURAL JOIN**
-8. **JOIN constraints** — ON predicates must reference primary key or secondary-index columns
-9. **RIGHT OUTER JOIN** must be the first join in a multi-join query
-10. **WHERE structure** — must be in DNF or CNF (no arbitrary boolean expressions)
-11. **Encrypted columns** — cannot appear in WHERE or ORDER BY clauses
-12. **Cross-partition scan** — requires explicit config; may downgrade isolation on non-JDBC backends
-13. **ALTER TABLE** — most operations only on JDBC backends; limited on Cassandra; minimal on DynamoDB/CosmosDB
-14. **Data type conversions** — limited: INT→BIGINT, FLOAT→DOUBLE, any→TEXT
-15. **No auto-increment / sequence** — use UUID or application-generated IDs
+8. **No OFFSET** — `LIMIT` only
+9. **No expressions in the select list** — columns and the five aggregates only; no functions, arithmetic or `CASE`
+10. **WHERE compares a column with a literal** — no column-to-column, function or expression predicates outside a JOIN's `ON`
+11. **UPDATE ... SET assigns literals only** — no `col = col + 1`
+12. **JOIN constraints** — ON predicates must reference primary key or secondary-index columns
+13. **RIGHT OUTER JOIN** must be the first join in a multi-join query
+14. **WHERE structure** — must be in DNF or CNF (no arbitrary boolean expressions)
+15. **Encrypted columns** — cannot appear in WHERE or ORDER BY clauses
+16. **Cross-partition scan** — requires explicit config; may downgrade isolation on non-JDBC backends
+17. **ALTER TABLE** — most operations only on JDBC backends; limited on Cassandra; minimal on DynamoDB/CosmosDB
+18. **Data type conversions** — limited: INT→BIGINT, FLOAT→DOUBLE, any→TEXT
+19. **No auto-increment / sequence** — use UUID or application-generated IDs
 
 ## JDBC-Specific Notes
 
@@ -290,4 +311,4 @@ SHOW GRANTS                -- Show privileges
 - Quote reserved words with double quotes: `"timestamp"`, `"order"`, `"key"`
 - Always qualify tables with namespace: `ns.table`
 - `UPSERT` is not standard SQL — specific to ScalarDB
-- Error code 301 in `SQLException` = `UnknownTransactionStatusException`
+- Error codes and the catch pattern: `exception-hierarchy.md` § JDBC/SQL Exception Handling
