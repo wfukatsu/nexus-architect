@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [Unreleased]
+
+### Changed
+- **Three more open questions in the Kubernetes/Terraform bundle, two of them grounded in a new
+  official source.** `foundation/helm.md` records that Helm 4's `helm upgrade` has no `--atomic` — rollback on
+  failure is `--rollback-on-failure`, forced replacement `--force-replace`, and `--wait` takes a
+  strategy — and asks how the observed Terraform helm provider's `atomic` / `force_update` / `wait`
+  attributes map onto that in provider 3.x (source: the Helm 4.3.1 `helm upgrade` reference).
+  `secrets/vault.md`'s audit-device guidance now cites Vault's Audit logging page (at least two
+  devices; a request Vault cannot log to any enabled device is refused) and asks how many devices the
+  platform runs and what happens when logging is blocked. `security/kyverno.md` was re-verified on
+  its `stale_after` date: the legacy ClusterPolicy removal is still scheduled for v1.20 (November
+  2026, estimated; latest stable 1.19.2), and the document asks whether report consumers can follow
+  the move from `wgpolicyk8s` to `openreports.io`; it is re-checked after v1.20 ships
+  (`stale_after: 2026-12-01`).
+
 ## [0.50.1] - 2026-11-01
 
 ### Changed
@@ -19,7 +35,7 @@ all four plugins (`product`, `architect`, `scalardb`, `infra`) are released toge
   `delivery/docker-cosign.md`, `foundation/helm.md` (now against the Helm 4.3.1 edition of its five
   pages) and `secrets/vault.md` — were re-verified and are unchanged apart from their dates;
   `docker-cosign.md`'s open questions now state Docker Engine 29.9.2 and Cosign 3.1.4 as the latest
-  stable releases. The upstream state (`knowledge/okf-k8s-tf-upstream/`) is the 2026-11-01 collection
+  stable releases. The upstream state (`knowledge/okf-k8s-tf-upstream/`) is the 2026-11-01 (JST) collection
   and no document awaits re-verification.
 
 ## [0.50.0] - 2026-10-31

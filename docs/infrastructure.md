@@ -28,10 +28,17 @@ bundle:        k8s-tf (vendored; upstream = the public docs it cites)
 resolved:      .../knowledge/okf-k8s-tf
 okf_version:   0.2
 documents:     23
-stale_after:   earliest 2026-10-19 (a document past its date is re-verified, not quoted as current)
-upstream:      checked 2026-09-28T06:00:00Z (knowledge/okf-k8s-tf-upstream/REPORT.md)
+stale_after:   earliest 2026-11-19 (a document past its date is re-verified, not quoted as current)
+upstream:      checked 2026-10-31T21:19:35Z (knowledge/okf-k8s-tf-upstream/REPORT.md)
+past stale_after: none
+awaiting re-verification: none (as of 2026-10-31; /architect:revise-knowledge re-verifies)
 sections:
-  architecture  delivery  foundation  operations  secrets  security
+  architecture
+  delivery
+  foundation
+  operations
+  secrets
+  security
 ```
 
 **There is no origin repository to pull** — it was deleted, which is why the bundle is vendored
@@ -148,8 +155,9 @@ when they exist.
 ## Things worth knowing before the first run
 
 - **Kyverno `ClusterPolicy` is on a clock.** `kyverno.io/v1 ClusterPolicy` is deprecated and v1.20
-  (planned October 2026) removes it. This is why `security/kyverno.md` carries an earlier
-  `stale_after` than the rest of the bundle, and why the review lists it as the first known issue.
+  (November 2026, estimated) removes it. This is why `security/kyverno.md` carries a shorter
+  `stale_after` horizon than the rest of the bundle — re-checked after each Kyverno release rather
+  than three months on — and why the review lists it as the first known issue.
 - **The test/staging asymmetry is deliberate.** Direct apply in test, GitOps in staging, is a
   design decision in the observed implementation — not a defect to report. What is worth reporting
   is that the asymmetry is undocumented, or that test has no drift re-creation procedure.

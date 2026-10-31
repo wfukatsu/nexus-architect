@@ -211,7 +211,7 @@ write a finding that only says something is bad.
 
 | Pattern | What |
 |---------|------|
-| **Kyverno ClusterPolicy** | `kyverno.io/v1 ClusterPolicy` is deprecated (critical fixes only). v1.18 stabilized ValidatingPolicy / MutatingPolicy / GeneratingPolicy / ImageValidatingPolicy under `policies.kyverno.io/v1`; v1.20 (planned for October 2026) removes the old one [security/kyverno.md]. The observed implementation still used `ClusterPolicy`; the migration procedure is in the same document |
+| **Kyverno ClusterPolicy** | `kyverno.io/v1 ClusterPolicy` is deprecated (critical fixes only). v1.18 stabilized ValidatingPolicy / MutatingPolicy / GeneratingPolicy / ImageValidatingPolicy under `policies.kyverno.io/v1`; v1.20 (November 2026, estimated) removes the old one [security/kyverno.md]. The observed implementation still used `ClusterPolicy`; the migration procedure is in the same document |
 | **Pinning a major image tag** | A tag like `docker:27` is not pinned to a patch or digest. The bundle itself lists this as an improvement candidate [delivery/docker-cosign.md] |
 | **Re-resolving the digest after build** | Re-resolving from a tag can shift what is scanned, signed and deployed. Capture the digest as an artifact right after build [delivery/docker-cosign.md] |
 | **No SBOM / provenance** | Associating an SBOM and build provenance with the same digest is an open improvement [delivery/docker-cosign.md] |

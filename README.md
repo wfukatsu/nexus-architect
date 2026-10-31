@@ -478,7 +478,7 @@ tier from public sources.
 Skills follow [`rules/okf-k8s-tf-bundle.md`](rules/okf-k8s-tf-bundle.md): fix the environment and
 cloud before reading anything; keep the bundle's three tiers apart in the output — observed
 implementation (fact), design guidance (recommendation with a source), open question (unresolved);
-cite the document behind each claim; and respect `stale_after`, which is earlier for
+cite the document behind each claim; and respect `stale_after`, whose horizon is shorter for
 `security/kyverno.md` because Kyverno v1.20 plans to remove `kyverno.io/v1 ClusterPolicy`.
 
 The bundle's "observed implementation" tier is scoped to two specific commits. Where a real

@@ -26,10 +26,17 @@ bundle:        k8s-tf (vendored; upstream = the public docs it cites)
 resolved:      .../knowledge/okf-k8s-tf
 okf_version:   0.2
 documents:     23
-stale_after:   earliest 2026-10-19 (a document past its date is re-verified, not quoted as current)
-upstream:      checked 2026-09-28T06:00:00Z (knowledge/okf-k8s-tf-upstream/REPORT.md)
+stale_after:   earliest 2026-11-19 (a document past its date is re-verified, not quoted as current)
+upstream:      checked 2026-10-31T21:19:35Z (knowledge/okf-k8s-tf-upstream/REPORT.md)
+past stale_after: none
+awaiting re-verification: none (as of 2026-10-31; /architect:revise-knowledge re-verifies)
 sections:
-  architecture  delivery  foundation  operations  secrets  security
+  architecture
+  delivery
+  foundation
+  operations
+  secrets
+  security
 ```
 
 **取得元リポジトリはありません。** 削除されたため、submodule ではなく実体を同梱しています
@@ -142,7 +149,7 @@ architect パイプラインを先に流す必要はありませんが、
 ## 最初の実行前に知っておくとよいこと
 
 - **Kyverno の `ClusterPolicy` には期限がある。** `kyverno.io/v1 ClusterPolicy` は deprecated で、
-  v1.20（2026年10月予定）で削除されます。`security/kyverno.md` の `stale_after` が他より短いのも、
+  v1.20（2026年11月見込み）で削除されます。`security/kyverno.md` の `stale_after` の間隔が他より短い（3 か月後ではなく Kyverno の release ごとに再確認する）のも、
   レビューの既知課題の筆頭に挙がるのもこのためです。
 - **test と staging の非対称は意図された設計。** test は直接適用、staging は GitOps という
   非対称は対象実装における設計判断であり、それ自体は指摘対象ではありません。指摘すべきは
