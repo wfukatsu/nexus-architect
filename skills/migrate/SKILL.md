@@ -28,16 +28,25 @@ You are a ScalarDB migration advisor. Help users migrate between interface combi
 - 1PC → 2PC (adding distributed transactions)
 - 2PC → 1PC (simplifying)
 
-**Before advising a 1PC → 2PC migration, check whether it is needed at all.** Spanning services does
-not require the 2PC interface: the shared-cluster pattern keeps application code one-phase, and on
-ScalarDB 3.19+ the Global Transaction API (`GlobalTransactionManager`) with a Transaction Coordinator
-node does the same for separated clusters. A 2PC migration is the right answer only when neither
-applies — pre-3.19, no Coordinator node, Core (Community) without Cluster, or Spring Data JDBC.
-Where consistency can be eventual, ScalarDB Saga replaces the migration entirely.
+**Do not advise a 1PC → 2PC migration on 3.19+: the 2PC interface is deprecated.** Spanning
+services does not require it: the shared-cluster pattern keeps application code one-phase, and on
+ScalarDB 3.19+ the Microservice Transaction API (`GlobalTransactionManager` / `BranchTransaction`)
+with a Transaction Coordinator node does the same for separated clusters — identical code, different
+properties. A 2PC migration is the right answer only pre-3.19, on Core (Community) without Cluster,
+or with Spring Data JDBC, and then as an ADR-recorded deviation. Where consistency can be eventual,
+ScalarDB Saga (3.20 GA) replaces the migration entirely.
 See @rules/scalardb-2pc-patterns.md and @rules/scalardb-saga-patterns.md.
 
-A **2PC → 1PC** migration is correspondingly more often available than it used to be — moving to a
-shared cluster or adopting the Global Transaction API is usually a simplification worth proposing.
+A **2PC → 1PC** migration is the migration to propose on 3.19+: code on
+`TwoPhaseCommitTransactionManager`, the SQL `TWO_PHASE_COMMIT_TRANSACTION` mode or `join()` /
+`resume()` (removed in 3.20) moves to a shared cluster or to the Microservice Transaction API
+(`skills/common/references/code-patterns/cluster-crud-microservice-tx.md`).
+
+**Two further migrations are access-path changes, not interface changes:** an existing SQL
+application that must keep its native SQL on one database shared with ScalarDB applications moves
+to ScalarDB Native JDBC (@rules/scalardb-native-jdbc-patterns.md — refused statement shapes and the
+shared isolation level are the migration work), and SQL tooling or non-Java clients move to the
+PostgreSQL wire protocol on Cluster 3.20+ (@rules/scalardb-postgres-frontend-patterns.md).
 
 ## Migration Analysis Process
 

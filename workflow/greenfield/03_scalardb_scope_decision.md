@@ -36,8 +36,8 @@ Classify all transactions into the following three categories.
 ```mermaid
 flowchart TD
     TX["Transaction Classification"] --> LOCAL["Intra-Service Local Tx<br/>(Native DB Features)"]
-    TX --> TPC["Inter-Service 2PC<br/>(ScalarDB Managed)"]
-    TX --> SAGA["Eventual Consistency Saga<br/>(Not ScalarDB Managed)"]
+    TX --> TPC["Inter-Service ScalarDB Transaction<br/>(Microservice Transaction API; one-phase code)"]
+    TX --> SAGA["Eventual Consistency Saga<br/>(ScalarDB Saga, compensations)"]
 
     LOCAL --> L1["Completed within a single service"]
     LOCAL --> L2["Accesses a single DB"]
@@ -45,7 +45,7 @@ flowchart TD
 
     TPC --> T1["Spans multiple services"]
     TPC --> T2["Immediate consistency is required"]
-    TPC --> T3["Uses ScalarDB 2PC Interface"]
+    TPC --> T3["Shared cluster, or separated clusters + Transaction Coordinator<br/>(the 2PC interface is deprecated as of 3.19)"]
 
     SAGA --> S1["Spans multiple services"]
     SAGA --> S2["Eventual consistency is acceptable"]
@@ -106,13 +106,18 @@ flowchart TD
 
 ---
 
-### Step 3.3: 2PC Applicability Constraint Evaluation
+### Step 3.3: Cross-Service Transaction Scope Evaluation
 
-Evaluate whether the 2PC scope is within recommended limits based on the limitation guidelines from `07_transaction_model.md` (Section 9.4).
+Evaluate whether the scope of each inter-service ScalarDB transaction is within recommended limits
+based on the limitation guidelines from `07_transaction_model.md` (Section 9.4). The guidelines were
+written for the application-driven 2PC interface; they apply unchanged to a transaction on the
+Microservice Transaction API, whose Transaction Coordinator runs 2PC across separated clusters
+underneath (`rules/scalardb-2pc-patterns.md`). The 2PC interface itself is deprecated as of
+ScalarDB 3.19 — a design that still names it records the deviation in an ADR.
 
 #### Limitation Guidelines
 
-> **Important:** Apply 2PC only when **all** of the following conditions are met simultaneously (`07_transaction_model.md` Section 9.4). If any condition is not met, consider alternative approaches such as the Saga pattern.
+> **Important:** Apply an inter-service ScalarDB transaction only when **all** of the following conditions are met simultaneously (`07_transaction_model.md` Section 9.4). If any condition is not met, consider alternative approaches such as ScalarDB Saga.
 
 | # | Constraint | Recommended Value | Your System's Value | Evaluation | Source |
 |---|-----------|-------------------|---------------------|------------|--------|

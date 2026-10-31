@@ -62,7 +62,8 @@ For anything the materials do not cover, you are asked across the following five
 
 Unless `--no-scalardb` is given, Scalar product applicability (ScalarDB / ScalarDB Saga / neither, per business process) is assessed using:
 
-- **Per-business-process transaction consistency requirements** (Strong / Eventual / Local Tx) — confirmed in Stage 4 above. Strong-consistency processes feed the ScalarDB branch; eventual-consistency processes feed the ScalarDB Saga branch (gated on whether a compensation is definable per step)
+- **Per-business-process transaction consistency requirements** (Strong / Eventual / Local Tx) — confirmed in Stage 4 above. Strong-consistency processes feed the ScalarDB branch (one-phase code on the Microservice Transaction API; the 2PC interface is deprecated as of 3.19); eventual-consistency processes feed the ScalarDB Saga branch (3.20 GA; gated on whether a compensation is definable per step)
+- **Who else must reach the data with SQL** — psql / PostgreSQL drivers / BI (PostgreSQL wire protocol on Cluster 3.20+) or a legacy SQL application that keeps its native SQL on the same database (ScalarDB Native JDBC); both are Apache-2.0 / access-path decisions, not edition upgrades
 - Current/planned DB inventory (types, versions, data volume)
 - (When linked with product) the `tech-stack-fitness.md` Adopt/Trial/Reject verdict, used as a **prior**
 

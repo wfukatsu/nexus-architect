@@ -184,7 +184,7 @@ scalar.db.sql.cluster_mode.contact_points=indirect:<CLUSTER_HOST>
 | Property | Default |
 |----------|---------|
 | `scalar.db.sql.cluster_mode.contact_port` | `60053` |
-| `scalar.db.sql.default_transaction_mode` | `TRANSACTION` |
+| `scalar.db.sql.default_transaction_mode` | `TRANSACTION` (`TWO_PHASE_COMMIT_TRANSACTION` deprecated as of 3.19; `GLOBAL_TRANSACTION` session mode added in 3.20) |
 | `scalar.db.sql.default_namespace_name` | — |
 | `scalar.db.sql.cluster_mode.username` | — |
 | `scalar.db.sql.cluster_mode.password` | — |
@@ -196,6 +196,66 @@ JDBC-specific:
 | `scalar.db.sql.jdbc.default_auto_commit` | `true` |
 | `scalar.db.sql.jdbc.default_read_only` | `false` |
 | `scalar.db.sql.jdbc.sql_session_factory_cache.expiration_time_millis` | `10000` |
+
+## Transaction Coordinator (Microservice Transaction API, 3.19+)
+
+Source: ScalarDB Cluster configuration reference, 3.20 docs site (not in the bundle's 3.19
+`configurations.md`). Three files must agree — `rules/scalardb-config-validation.md`.
+
+Client (every service):
+
+| Property | Default |
+|----------|---------|
+| `scalar.db.cluster.client.transaction_coordinator.enabled` | `false` (transactions stay inside one cluster) |
+| `scalar.db.cluster.client.transaction_coordinator.contact_points` | — (required when enabled) |
+| `scalar.db.cluster.client.transaction_coordinator.contact_port` | `60055` |
+| `scalar.db.cluster.client.transaction_coordinator.<PROPERTY>` | falls back to `scalar.db.cluster.<PROPERTY>` |
+| `scalar.db.cluster.id` | — (required when enabled; must equal the cluster's own ID) |
+
+Cluster node (participant):
+
+| Property | Default |
+|----------|---------|
+| `scalar.db.cluster.node.transaction_participant.enabled` | `false` |
+| `scalar.db.cluster.id` | — (required when the participant flag is `true`) |
+
+Transaction Coordinator node:
+
+| Property | Default |
+|----------|---------|
+| `scalar.db.cluster.transaction_coordinator.clusters` | — (comma-separated cluster IDs, at least one) |
+| `scalar.db.cluster.transaction_coordinator.clusters.<ID>.contact_points` | — (`indirect:` / `direct-kubernetes:`) |
+| `scalar.db.cluster.transaction_coordinator.clusters.<ID>.contact_port` | `60053` |
+| `scalar.db.cluster.transaction_coordinator.clusters.<ID>.<PROPERTY>` | overrides `scalar.db.cluster.<PROPERTY>` for that cluster |
+| `scalar.db.cluster.transaction_coordinator.port` | `60055` |
+| `scalar.db.cluster.transaction_coordinator.admin.port` | same as `port` |
+| `scalar.db.cluster.transaction_coordinator.prometheus_exporter_port` | `9080` |
+| `scalar.db.cluster.transaction_coordinator.standalone_mode.enabled` | `false` |
+| `scalar.db.cluster.transaction_coordinator.decommissioning_duration_secs` | `30` |
+| `scalar.db.cluster.transaction_coordinator.grpc.max_connection_age_millis` / `.max_connection_age_grace_millis` | `Integer.MAX_VALUE` |
+| `scalar.db.cluster.transaction_coordinator.tls.cert_chain_path` / `.private_key_path` | — (TLS switch is the shared `scalar.db.cluster.tls.enabled`) |
+| `scalar.db.transaction_manager` (on the Coordinator) | `consensus-commit` — must stay so |
+| `scalar.db.storage`, `scalar.db.contact_points`, … (on the Coordinator) | the database holding the Coordinator table, reachable from every cluster |
+
+## PostgreSQL Wire Protocol (Cluster, 3.20+)
+
+Source: ScalarDB 3.20.0 release notes and `scalar-labs/scalardb-postgres-frontend` README (not in
+the bundle). Rules: `rules/scalardb-postgres-frontend-patterns.md`.
+
+| Property | Default |
+|----------|---------|
+| `scalar.db.postgres.enabled` | `false` |
+| `scalar.db.postgres.port` | `5432` |
+| `scalar.db.postgres.auth` | both (`userpass` or `oidc_jwt` restricts); TLS required by default with authentication |
+| `scalar.db.postgres.listen_address` | all interfaces (`127.0.0.1` restricts to localhost; standalone frontend) |
+| `scalar.db.postgres.backend_collation_check` | `true` (standalone frontend; JDBC backends only) |
+
+## ScalarDB Saga and Native JDBC
+
+Saga server and store keys (`scalar.db.saga.server.*`, `scalar.db.saga.store.*`) are catalogued in
+`rules/scalardb-saga-patterns.md` § Server Configuration Rules; the store's `scalar.db.*` keys follow
+this reference and must resolve `scalar.db.transaction_manager` to `consensus-commit`. Native JDBC
+driver properties (`scalar.db.native_jdbc.*`) are in `rules/scalardb-native-jdbc-patterns.md`.
 
 ## Contact Points Format (Cluster Mode)
 

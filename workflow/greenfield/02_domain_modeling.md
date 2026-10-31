@@ -188,7 +188,7 @@ flowchart LR
         C["payment-service<br/>(Participant: Downstream)"]
     end
 
-    subgraph "Saga / Event (Not ScalarDB Managed)"
+    subgraph "Saga / Event (ScalarDB Saga, eventual)"
         direction TB
         D["shipping-service"]
         E["notification-service"]

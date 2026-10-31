@@ -183,7 +183,7 @@ flowchart TD
 | Heterogeneous RDBMS | Limited (compatibility issues) | Supported | |
 | Includes NoSQL | Not supported | Supported | |
 | Performance | Large 2PC overhead | Reduced lock contention via OCC. High throughput with Group Commit optimization (note: Group Commit cannot be combined with the 2PC interface) | |
-| Application complexity across services | Application drives the XA protocol | Shared-cluster pattern keeps application code one-phase; on 3.19+ the Global Transaction API does the same for separated clusters, with the Transaction Coordinator driving 2PC underneath | |
+| Application complexity across services | Application drives the XA protocol | Application code is one-phase in every topology: the shared-cluster pattern, and on 3.19+ the Microservice Transaction API for separated clusters, with the Transaction Coordinator driving 2PC underneath (the application-driven 2PC interface is deprecated as of 3.19) | |
 | Operational complexity | TM management required | Managed by ScalarDB Cluster | |
 | Failure recovery | Risk of heuristic exceptions | Automatic (lazy) recovery | |
 | Vendor lock-in | Standard specification (JTA/XA) | ScalarDB dependency | |

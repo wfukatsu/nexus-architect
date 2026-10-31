@@ -30,9 +30,9 @@ than defaulting to "Saga/2PC" (@rules/scalardb-2pc-patterns.md):
 | Mechanism | Topology |
 |-----------|----------|
 | One-phase commit | Shared-cluster pattern — every service uses one ScalarDB Cluster instance. The documented recommendation whenever possible |
-| Global Transaction API (ScalarDB 3.19+) | Separated clusters with a Transaction Coordinator node driving 2PC underneath; application code stays one-phase |
-| Application-driven 2PC | Separated clusters without a Coordinator node, Core-only, or Spring Data JDBC. Keep to 2-3 services |
-| ScalarDB Saga | Eventual consistency with compensations or TCC — see @rules/scalardb-saga-patterns.md |
+| Microservice Transaction API (ScalarDB 3.19+; SQL on 3.20+) | Separated clusters with a Transaction Coordinator node driving 2PC underneath; application code stays one-phase and is the same as the row above — only configuration differs |
+| Application-driven 2PC (deprecated as of 3.19) | Pre-3.19, Core-only, or Spring Data JDBC, as an ADR-recorded deviation with a migration path. Keep to 2-3 services |
+| ScalarDB Saga (3.20 GA) | Eventual consistency with compensations or TCC — see @rules/scalardb-saga-patterns.md |
 
 The choice drives the deployment view (one Cluster instance vs several, plus the Coordinator table
 owner, plus a saga server if used), so make it here and carry it into `/architect:design-scalardb`.

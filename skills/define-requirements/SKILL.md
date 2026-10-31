@@ -116,7 +116,7 @@ Also pick up here any `deferred` / `unasked` Open Question that this run needs a
 3. If the tree reaches an XA comparison node, fill in the XA vs ScalarDB comparison table (Step 1.5) and record the verdict with rationale
 4. Ground capability claims (supported databases, transaction guarantees, edition-gated features; ScalarDL tamper-evidence when in scope) in the version-pinned OKF knowledge bundle per @rules/okf-knowledge-bundle.md — cite the concept's `resource` URL, not memory
 5. For each process classified **Eventual Consistency**, note whether ScalarDB Saga is a candidate (compensation is definable and business-acceptable per step) so the design phase inherits the question rather than rediscovering it — @rules/scalardb-saga-patterns.md
-6. For each process classified **Strong Consistency** that spans services, note the candidate mechanism (shared-cluster one-phase / Global Transaction API on 3.19+ / application-driven 2PC) — @rules/scalardb-2pc-patterns.md
+6. For each process classified **Strong Consistency** that spans services, note the candidate mechanism (shared-cluster one-phase / Microservice Transaction API with a Transaction Coordinator on 3.19+; the application-driven 2PC interface is deprecated as of 3.19 and is only a recorded deviation) — @rules/scalardb-2pc-patterns.md. Note also whether non-Java clients, SQL tooling or a legacy SQL application must reach the data (PostgreSQL wire protocol on 3.20+ / ScalarDB Native JDBC) — @rules/scalardb-edition-profiles.md § Selection Criteria
 7. The result is a **recommendation**; the final decision is deferred to /architect:select-scalardb-edition and /architect:start
 
 ### Step 5: Review & Output

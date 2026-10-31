@@ -42,6 +42,15 @@ and are reported as open work, never silently dropped.
 - `target.storage` is `jdbc` or `cassandra`, and must be the storage the converter ran with. Cassandra has
   no cross-partition scan; the converter reflects that in its verdicts.
 - Plans fetch through `CoreFetcher` (no license) unless the edition has ScalarDB SQL.
+- **ScalarDB Native JDBC is a different question from the routes above.** When the application keeps
+  running against **one** database that ScalarDB applications also write, the whole SQL inventory can
+  stay native through `jdbc:scalardb-native:` (Apache-2.0, any edition) instead of being routed
+  statement by statement — at the cost of one database per connection, a shared isolation level with
+  every ScalarDB application, and the refused statement shapes (`INSERT ... SELECT`, upserts,
+  multi-table writes). Decide that **before** routing, record it in the design rationale, and state
+  which statements the driver would refuse (@rules/scalardb-native-jdbc-patterns.md). The manifest
+  has no `native_jdbc` route; a project that chooses the driver does not run the per-statement
+  pipeline for the statements it keeps.
 
 ## 4. Dynamic SQL
 

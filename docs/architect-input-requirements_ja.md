@@ -62,7 +62,8 @@ product プラグインのインプットは [product-input-requirements_ja.md](
 
 `--no-scalardb` を付けない限り、以下を用いて Scalar 製品の適用可否（業務プロセスごとに ScalarDB / ScalarDB Saga / いずれも不要）が判定されます。
 
-- **業務プロセスごとのトランザクション整合性要件**（Strong / Eventual / Local Tx）— 上記ステージ4で確認。Strong のプロセスは ScalarDB の枝、Eventual のプロセスは ScalarDB Saga の枝（各ステップに補償が定義できるかで分岐）につながります
+- **業務プロセスごとのトランザクション整合性要件**（Strong / Eventual / Local Tx）— 上記ステージ4で確認。Strong のプロセスは ScalarDB の枝（Microservice Transaction API による 1 フェーズのコード。2PC インターフェイスは 3.19 で非推奨）、Eventual のプロセスは ScalarDB Saga の枝（3.20 GA。各ステップに補償が定義できるかで分岐）につながります
+- **データに SQL で到達する必要のある他の利用者** — psql / PostgreSQL ドライバー / BI（Cluster 3.20+ の PostgreSQL ワイヤプロトコル）、または同じデータベース上でネイティブ SQL を使い続ける既存 SQL アプリケーション（ScalarDB Native JDBC）。いずれも Apache-2.0 のアクセスパスの選択であり、エディションのアップグレードではありません
 - 現行/計画中の DB インベントリ（種類・バージョン・データ量）
 - （product 連携時）`tech-stack-fitness.md` の Adopt/Trial/Reject 判定を「事前判断（prior）」として利用
 

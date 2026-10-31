@@ -26,12 +26,21 @@ Use AskUserQuestion to confirm the following step by step:
 4. Whether encryption at rest / wire encryption, or attribute-based access control, is required
    (Premium; ABAC is an **Enterprise Premium Option** and in Private Preview)
 5. Whether transactions must span microservices, and if so which mechanism — shared cluster
-   (one-phase), Global Transaction API with a Transaction Coordinator (3.19+), application-driven
-   2PC, or ScalarDB Saga for eventual consistency. See @rules/scalardb-2pc-patterns.md
-6. Support level requirements — SLA figures come from the commercial contract, not the edition name;
+   (one-phase), the Microservice Transaction API with a Transaction Coordinator (3.19+; the
+   application-driven 2PC interface is deprecated as of 3.19), or ScalarDB Saga (3.20 GA,
+   Apache-2.0, no edition gate) for eventual consistency. See @rules/scalardb-2pc-patterns.md
+6. **Who else must reach the data with SQL** — psql / PostgreSQL drivers / BI tools point to the
+   PostgreSQL wire protocol (Cluster 3.20+, Enterprise, tier to confirm; or the Apache-2.0
+   standalone frontend on a trusted network), and a legacy SQL application that must keep its
+   native SQL on one database shared with ScalarDB points to ScalarDB Native JDBC (Apache-2.0, any
+   edition). Neither substitutes for the Premium SQL interface in a Java application; neither
+   requires it either. See @rules/scalardb-postgres-frontend-patterns.md and
+   @rules/scalardb-native-jdbc-patterns.md
+7. Support level requirements — SLA figures come from the commercial contract, not the edition name;
    do not state one that has not been confirmed
 
-Also pin the **version line** as part of the selection: 3.15 and 3.14 are past maintenance support.
+Also pin the **version line** as part of the selection: 3.20 is the latest (2026-10-30), 3.16's
+maintenance ends 2026-11-26, and 3.15 and 3.14 are past maintenance support.
 
 Edition comparison, feature matrix, version support windows: @rules/scalardb-edition-profiles.md
 Cross-service mechanism selection: @rules/scalardb-2pc-patterns.md, @rules/scalardb-saga-patterns.md

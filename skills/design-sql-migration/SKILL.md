@@ -68,6 +68,11 @@ Read @rules/sql-migration.md before Stage 1. The mechanism behind the converter 
   findings include a WARN, and leave `verification.status: pending` for `verify-sql-migration`.
 - **The edition gates ScalarDB SQL.** It is Enterprise Premium (@rules/scalardb-edition-profiles.md). Under
   any other edition a convertible statement takes `core_api`; never propose a license to make a route work.
+- **Ask first whether the SQL needs routing at all.** When the application will keep running against
+  **one** database that ScalarDB applications also write, ScalarDB Native JDBC keeps the inventory native
+  (@rules/scalardb-native-jdbc-patterns.md, @rules/sql-migration.md §3). Record that decision in the
+  rationale before routing; if it is taken, the per-statement manifest covers only the statements the
+  driver refuses. There is no `native_jdbc` route in the manifest.
 - **Dynamic SQL is a family of statements.** The inventory keeps one rendering with its dynamic parts marked,
   which the converter usually cannot parse (`ERROR` with `PARSE`) — that verdict says nothing about the
   real renderings. Ask which renderings exist and convert each before any automatic route; otherwise take

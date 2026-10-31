@@ -72,11 +72,19 @@ Generates correct configuration files for any deployment/API/transaction mode co
 | 5 | Cluster | JDBC | 1PC | Production with SQL |
 | 6 | Cluster | JDBC | 2PC | Production multi-service SQL |
 
-The 2PC rows above mean **application-driven** two-phase commit. A multi-service system does not
-have to use them: with the shared-cluster pattern, or with the Global Transaction API and a
-Transaction Coordinator node (ScalarDB 3.19+), multi-service transactions are written against the
-1PC combinations (#3 / #5). Where consistency can be eventual, ScalarDB Saga replaces the
-transaction entirely. See `rules/scalardb-2pc-patterns.md` and `rules/scalardb-saga-patterns.md`.
+The 2PC rows above mean the **application-driven** two-phase commit interface, which is
+**deprecated as of ScalarDB 3.19**. A multi-service system does not use them: with the
+shared-cluster pattern, or with the Microservice Transaction API and a Transaction Coordinator node
+on separated clusters (ScalarDB 3.19+; SQL on 3.20+), multi-service transactions are written
+against the 1PC combinations (#3 / #5) with identical code. Where consistency can be eventual,
+ScalarDB Saga (3.20 GA) replaces the transaction entirely. See `rules/scalardb-2pc-patterns.md` and
+`rules/scalardb-saga-patterns.md`.
+
+Beyond the six combinations, three **SQL access paths** reach ScalarDB-managed data (3.20): the
+PostgreSQL wire protocol on Cluster nodes (and its Apache-2.0 standalone twin,
+`scalardb-postgres-frontend`) for psql / PostgreSQL drivers / BI, and ScalarDB Native JDBC
+(`jdbc:scalardb-native:`) for a legacy SQL application that keeps its native SQL on one database
+shared with ScalarDB — `skills/common/references/interface-matrix.md` § SQL Access Paths.
 
 ---
 
@@ -284,8 +292,10 @@ These rules are automatically loaded and provide guidance whenever you work with
 | `scalardb-exception-handling` | Catch order, retry logic, UnknownTransactionStatusException |
 | `scalardb-crud-patterns` | Builder pattern, deprecated Put, key construction, result handling |
 | `scalardb-jdbc-patterns` | setAutoCommit, PreparedStatement, error code 301, JOIN/aggregate syntax |
-| `scalardb-2pc-patterns` | Choosing the cross-service mechanism (shared cluster / Global Transaction API / 2PC / Saga), coordinator/participant protocol, request routing, group commit |
-| `scalardb-saga-patterns` | ScalarDB Saga: SAGA vs TCC, idempotency, saga definitions, server configuration, escalation handling |
+| `scalardb-2pc-patterns` | Choosing the cross-service mechanism (shared cluster / Microservice Transaction API / deprecated 2PC / Saga), the branch protocol and its configuration, the legacy coordinator/participant protocol, request routing, group commit |
+| `scalardb-saga-patterns` | ScalarDB Saga 3.20 GA: SAGA vs TCC, idempotency, saga definitions, store requirements (Consensus Commit), server configuration, escalation handling |
+| `scalardb-native-jdbc-patterns` | ScalarDB Native JDBC: a legacy SQL application sharing tables with ScalarDB on one database — URL, properties, isolation agreement, `40001`, refused statements, setup and grants |
+| `scalardb-postgres-frontend-patterns` | PostgreSQL wire protocol (Cluster 3.20+) and the standalone frontend: deployment forms, what is not PostgreSQL (unenforced constraints, no locks, non-transactional DDL), transaction semantics |
 | `scalardb-config-validation` | The checks a properties file must pass: the backend's required set, closed value sets, cluster-mode prefix and API keys, cross-partition scan, group commit vs 2PC (the properties themselves are `configuration-reference.md`) |
 | `scalardb-schema-design` | Partition key design, clustering keys, secondary indexes, no-JOIN design, the event store pattern (the format and data types are `schema-format.md`) |
 | `scalardb-java-best-practices` | Thread safety, transaction lifecycle, SLF4J, try-with-resources |
@@ -297,7 +307,7 @@ Located in `skills/common/references/`:
 | Document | Content |
 |----------|---------|
 | `api-reference.md` | Complete ScalarDB API (TransactionManager, CRUD operations, Result, Key, Conditions) |
-| `interface-matrix.md` | All 6 interface combinations with decision guide, dependencies, config, code patterns |
+| `interface-matrix.md` | All 6 interface combinations with decision guide, dependencies, config, code patterns, plus the SQL access paths (ScalarDB SQL / PostgreSQL wire protocol / Native JDBC) |
 | `exception-hierarchy.md` | Exception tree, decision flowchart, retry patterns, JDBC error code mapping |
 | `sql-reference.md` | SQL grammar (DDL, DML, TCL, DCL), JOIN rules, aggregate functions, limitations |
 | `schema-format.md` | JSON and SQL schema format, data types, Schema Loader commands |

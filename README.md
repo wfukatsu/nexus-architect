@@ -429,7 +429,10 @@ transaction patterns, exception retryability, edition-gated features) is grounde
 [OKF-ScalarDB-ScalarDL](https://github.com/wfukatsu/OKF-ScalarDB-ScalarDL) knowledge bundle — the
 complete official documentation from developers.scalar-labs.com plus the documentation ScalarDB Saga
 keeps in its source repository, split **per product and per version** (ScalarDB 3.14–3.19,
-ScalarDB Saga 3.19, ScalarDL 3.10–3.13, ScalarDB Community 3.4–3.13; 2,015 concepts).
+ScalarDB Saga 3.19, ScalarDL 3.10–3.13, ScalarDB Community 3.4–3.13; 2,015 concepts). ScalarDB
+3.20, ScalarDB Saga 3.20 GA, ScalarDB Native JDBC and the PostgreSQL wire protocol are newer than
+the bundle; the toolkit grounds them on the upstream release notes and repositories through
+`rules/scalardb-*.md` until the bundle is regenerated.
 
 It is vendored as a git submodule at `knowledge/okf-scalardb-scalardl/`. One command fetches or
 updates it from remote (also available as `/architect:update-knowledge`):
