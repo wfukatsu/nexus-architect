@@ -195,6 +195,10 @@ deferred, unanswerable in session, or never asked (`--auto`).
 ## Output
 
 Written in the project's `options.output_language`. Location per `/infra:start` § Output Location.
+The design document opens with the `## ELI5` section of @rules/eli5-summary.md (the template
+carries the placeholder) — also on a standalone run, which has no `work/pipeline-progress.json`
+and so no `options.eli5`: the default `technical` applies and the hook is not there to remind you.
+The environment matrix and the ADRs are exempt (`eli5: false` in their templates).
 
 | File | Content |
 |------|---------|

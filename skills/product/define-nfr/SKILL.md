@@ -67,6 +67,9 @@ The `NFR-` set maps to architect's non-functional inputs (`docs/design.md` §1.3
 
 ## Output
 
+Every Markdown document here opens with the `## ELI5` section of @rules/eli5-summary.md, as
+`options.eli5` (default `technical`) directs.
+
 `reports/04_quality/nfr.md`, with an `NFR-` table (value/`TBD`, source `SLO-`, bounded context).
 
 ## Reference Materials

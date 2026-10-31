@@ -106,6 +106,9 @@ existing OQ IDs in `work/context.md`, not a new store.
 
 ## Outputs and Completion
 
+Every Markdown document here opens with the `## ELI5` section of @rules/eli5-summary.md, as
+`options.eli5` (default `technical`) directs.
+
 Under `reports/01_analysis/database-investigation/<target-id>/design/<run-id>/`:
 `inventory.json`, `collection-summary.json`, `investigation-report.md`, `er-diagram.md`, and the
 skill's `design-review.md` with frontmatter `title`, `schema_version: 1`, `phase`,

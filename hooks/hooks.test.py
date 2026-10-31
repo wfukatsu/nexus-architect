@@ -135,7 +135,8 @@ with tempfile.TemporaryDirectory() as tmp:
               "cwd": os.path.join(tmp, "other")}).returncode == 0)
 
     # The ELI5 section (rules/eli5-summary.md): required on a technical skill's report under the
-    # default mode, switched by options.eli5, never on an ADR (no skill key) or an `eli5: false`.
+    # default mode, switched by options.eli5, never on an ADR (`decided_at`, or anything under
+    # adr/ — the index carries the standard frontmatter) or an `eli5: false`.
     e5 = os.path.join(tmp, "eli5")
     os.makedirs(os.path.join(e5, "reports", "03_design"))
     os.makedirs(os.path.join(e5, "work"))
@@ -173,6 +174,12 @@ with tempfile.TemporaryDirectory() as tmp:
           hook(report("c.md", "report", False), "toolu_E3") == 0)
     check("an ADR (frontmatter with decided_at) is not checked",
           hook(report("d.md", "redesign", False, "decided_at: 2026-01-01\n"), "toolu_E4") == 0)
+    os.makedirs(os.path.join(e5, "reports", "03_design", "adr"))
+    adr_index = os.path.join(e5, "reports", "03_design", "adr", "index.md")
+    with open(adr_index, "w", encoding="utf-8") as fh:
+        fh.write('---\ntitle: "ADR Index"\nschema_version: 1\nskill: redesign\n---\n\n# ADR Index\n\n| ID |\n|----|\n')
+    check("the ADR index (standard frontmatter, under adr/) is not checked",
+          hook(adr_index, "toolu_E4b") == 0)
     check("`eli5: false` opts a document out",
           hook(report("e.md", "infra-design", False, "eli5: false\n"), "toolu_E5") == 0)
     progress({"eli5": "off"})

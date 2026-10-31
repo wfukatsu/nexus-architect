@@ -139,6 +139,11 @@ reports/08_infrastructure/
 └── reviews/review-<target>-r<n>.md # /infra:review — round 2+ opens with a reconciliation
 ```
 
+The design document and the review report open with the plain-language `## ELI5` section of
+`rules/eli5-summary.md` (the templates carry the placeholder); the environment matrix and the ADRs
+are exempt. Inside a pipeline project the frontmatter hook enforces it per `options.eli5`; a
+standalone run writing to `docs/infra/` has neither, and the skill writes the section on its own.
+
 ## Where it meets the architect pipeline
 
 | Architect | Infra | Boundary |

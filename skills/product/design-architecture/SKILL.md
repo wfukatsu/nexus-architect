@@ -102,6 +102,9 @@ A ScalarDB / ScalarDB Saga / ScalarDL **Adopt** bridges to the **architect** plu
 
 ## Output
 
+Every Markdown document here opens with the `## ELI5` section of @rules/eli5-summary.md, as
+`options.eli5` (default `technical`) directs.
+
 `reports/03_domain/architecture.md` (Mermaid diagrams + trace mapping) and
 `reports/03_domain/tech-stack-fitness.md` (scored matrix + per-technology decision & rationale).
 

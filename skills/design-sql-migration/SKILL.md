@@ -226,6 +226,9 @@ Auto Mode still finalises the draft as Stage 5 does, without asking:
 
 ## Output
 
+Every Markdown document here opens with the `## ELI5` section of @rules/eli5-summary.md, as
+`options.eli5` (default `technical`) directs.
+
 | File | Content |
 |------|---------|
 | `reports/03_design/sql-migration/sql-inventory.json` | The statements, their evidence and flags; `unextracted` calls, `unavailable` definitions, problems |

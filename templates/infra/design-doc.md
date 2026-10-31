@@ -28,7 +28,7 @@ input_files:
 
 ## ELI5 — the short version
 
-<!-- Required when options.eli5 is `technical` (the default) — @rules/eli5-summary.md §3:
+<!-- Required — a standalone run has no options.eli5, so the default `technical` applies — @rules/eli5-summary.md §3:
      one everyday analogy for what this design does, "What it means for you" (3–5 bullets),
      "What you are asked to decide" (one bullet per open ADR / question, or "Nothing"). -->
 

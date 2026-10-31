@@ -66,6 +66,9 @@ Produce one deliverable:
 
 ## Output
 
+Every Markdown document here opens with the `## ELI5` section of @rules/eli5-summary.md, as
+`options.eli5` (default `technical`) directs.
+
 `reports/02_spec/data-model.md`, with an `ENT-` ID table (Upstream column), Pass-2 rationale notes,
 and a Mermaid ER diagram.
 

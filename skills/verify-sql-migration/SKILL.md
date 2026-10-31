@@ -128,6 +128,9 @@ This skill opens database connections, so it runs only when explicitly invoked.
 
 ## Output
 
+Every Markdown document here opens with the `## ELI5` section of @rules/eli5-summary.md, as
+`options.eli5` (default `technical`) directs.
+
 | File | Content |
 |------|---------|
 | `reports/03_design/sql-migration/sql-migration-manifest.json` | `verification` updated per statement |

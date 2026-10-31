@@ -420,6 +420,9 @@ Stamp `analyze-ui` `completed` with `completed_at`, `outputs` (the six files) an
 
 ## Output
 
+Every Markdown document here opens with the `## ELI5` section of @rules/eli5-summary.md, as
+`options.eli5` (default `technical`) directs.
+
 | File | Content |
 |------|---------|
 | `reports/before/{project}/ui-inventory.json` | Canonical inventory: screens, components, features, tasks, coverage |

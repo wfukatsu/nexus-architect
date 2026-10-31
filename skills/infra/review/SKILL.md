@@ -253,7 +253,10 @@ write a finding that only says something is bad.
 | `$OUT/reviews/review-<target>-r<round>.md` | The review report (`templates/infra/review-report.md`) |
 
 Written in the project's `options.output_language`. Location per `/infra:start`
-§ Output Location.
+§ Output Location. The report opens with the `## ELI5` section of @rules/eli5-summary.md (the
+template carries the placeholder) — also on a standalone run, which has no
+`work/pipeline-progress.json` and so no `options.eli5`: the default `technical` applies and the
+hook is not there to remind you.
 
 ## Related Skills
 

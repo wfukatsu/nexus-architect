@@ -81,7 +81,9 @@ Further keys are welcome; these are the ones not to rename.
 
 ### Markdown Output (`reports/review/review-synthesis.md`)
 
-Headings: Verdict -> Score Summary -> P0 Blockers -> P1 Must Fix -> P2 Should Fix -> P3 Consider
+Headings: ELI5 (the plain-language section of `rules/eli5-summary.md` at the plugin root, as
+`options.eli5` directs; default `technical`) -> Verdict -> Score Summary -> P0 Blockers -> P1 Must Fix
+-> P2 Should Fix -> P3 Consider
 
 ## Step 5: Revision Propagation Check
 
