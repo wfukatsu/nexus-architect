@@ -5,9 +5,9 @@ description: Kubernetes admission、image verification、policy report を安全
 resource: "https://kyverno.io/docs/introduction/"
 tags: [kyverno, kubernetes, policy, admission, cosign]
 generated: { by: codex/gpt-5, at: "2026-08-19T00:00:00+09:00" }
-verified: { by: "process:official-document-cross-check", at: "2026-09-28T00:00:00+09:00" }
+verified: { by: "process:official-document-cross-check", at: "2026-11-01T00:00:00+09:00" }
 status: stable
-stale_after: 2026-11-01
+stale_after: 2026-12-01
 sources:
   - { id: kyverno-overview, resource: "https://kyverno.io/docs/policy-types/overview/", title: Policy types overview, author: "team:kyverno", last_modified: 2026-08-01 }
   - { id: kyverno-validate, resource: "https://kyverno.io/docs/policy-types/cluster-policy/validate/", title: Validate rules, author: "team:kyverno" }
@@ -79,5 +79,6 @@ PolicyReport は現在の resource に対する評価結果であり、過去の
 
 # 確認事項
 
-- 対象実装は ClusterPolicy を使っている。2026-09-28 時点の最新 stable は Kyverno 1.19.1 で、1.19 が従来型を full support する最終系統である。v1.20 へ上げる前に CEL ベースの policy type への移行を終える必要があり、移行完了の期限と、それまで 1.19 系に留める判断を決める。
+- 対象実装は ClusterPolicy を使っている。2026-11-01 時点の最新 stable は 2026-10-20 リリースの Kyverno 1.19.2 で、従来型を removal する v1.20（2026年11月見込み）は未リリースである。1.19 が従来型を full support する最終系統であり、v1.20 へ上げる前に CEL ベースの policy type への移行を終える必要があるため、移行完了の期限と、それまで 1.19 系に留める判断を決める。v1.20 の release 後に本書を再確認する（`stale_after` を 2026-12-01 に置いているのはそのため）。[kyverno-overview]
 - 対象実装が利用する chart/Kyverno の version（対象実装の記述からは特定できない）と、`kyverno_deprecated_api_requests_total` による従来型の利用状況を確認する。
+- PolicyReport / ClusterPolicyReport（`wgpolicyk8s.io/v1alpha2`）は Stable として継続されるが、Kyverno 1.15 以降は `openreports.io/v1alpha1` による report（alpha、controller の `--openreportsEnabled` で有効化）が代替として提供され、公式はこれを将来 `wgpolicyk8s` を deprecate して openreports.io に一本化する第一歩と位置付けている。report を読む dashboard・外部保存・CI の連携先が API group の切替に追従できるかを確認する。[kyverno-reports]
