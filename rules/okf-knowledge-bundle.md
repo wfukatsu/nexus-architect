@@ -3,7 +3,7 @@
 Version-pinned official documentation for ScalarDB, ScalarDL and ScalarDB Saga, vendored as the
 [OKF-ScalarDB-ScalarDL](https://github.com/wfukatsu/OKF-ScalarDB-ScalarDL) bundle. It contains the
 complete developers.scalar-labs.com docs — plus the documentation ScalarDB Saga keeps in its source
-repository — split **per product and per version** (2,015 concepts, 4 products, 21 version lines),
+repository — split **per product and per version** (2,370 concepts, 4 products, 24 version lines),
 so implementation decisions can be grounded in exactly the release a project runs — not in model
 memory and not in "latest".
 
@@ -49,19 +49,20 @@ Never read concept pages until all three are fixed. Decision guide:
 | **Version** | Existing project: read it from `build.gradle`/`pom.xml` (`com.scalar-labs` deps) or the Helm `image.tag`; the minor version (`3.19`) selects `products/<product>/<version>/`. New project: newest version whose `maintenance` is `supported` in `products/<product>/index.md`. Reuse/record the answer in `work/version-decisions.json` per @rules/dependency-versions.md; when pinning a dependency, use the `patch_version` from the concept frontmatter, not the directory name. |
 | **Edition** | Confirm the project's contracted edition first (see @rules/scalardb-edition-profiles.md). Each concept's frontmatter `editions` lists where it applies — never propose an Enterprise-only feature to a Community project. Note the bundle uses five edition values: `Community`, `Enterprise Standard`, `Enterprise Premium`, `Enterprise Option` (add-on: Analytics, Scalar Manager) and `Enterprise Premium Option` (add-on on Premium: ABAC). If the edition is unknown, say so and ask before proposing edition-gated features. |
 
-Current supported lines, as of bundle commit `7a723b8`: **ScalarDB 3.19 (latest), 3.18, 3.17, 3.16**
-— 3.15 and 3.14 are `unmaintained`; **ScalarDL 3.13 (latest)**; **ScalarDB Saga 3.19**. Read the
-`maintenance` field in `products/<product>/index.md` rather than trusting this line after an update.
+Current supported lines, as of bundle commit `e374f05` (bundle release v1.3.0, 2026-10-31):
+**ScalarDB 3.20 (latest), 3.19, 3.18, 3.17, 3.16** — 3.15 is `unmaintained`, 3.14 `archived`;
+**ScalarDL 3.14 (latest), 3.13, 3.12** — 3.11 and 3.10 `unmaintained`; **ScalarDB Saga 3.20
+(latest, first GA)** — 3.19 is the `pre-release` alpha. Read the `maintenance` field in
+`products/<product>/index.md` rather than trusting this line after an update.
 
-**Released upstream but not yet in the bundle** (as of 2026-10-31): **ScalarDB 3.20.0**
-(2026-10-30: PostgreSQL wire protocol on Cluster, SQL global transactions, `join`/`resume`
-removal), **ScalarDB Saga 3.20.0 — first GA** (2026-10-29; the bundle's 3.19 line is the alpha),
-**ScalarDB Native JDBC 3.20.0** and **scalardb-postgres-frontend 3.20.0** (both new, Apache-2.0,
-no bundle product). For these, ground on the release notes and the upstream repositories through
-the digests @rules/scalardb-edition-profiles.md § New in 3.20, @rules/scalardb-saga-patterns.md,
-@rules/scalardb-native-jdbc-patterns.md and @rules/scalardb-postgres-frontend-patterns.md, cite the
-upstream URL, and state that the answer is **not bundle-pinned**. A project that pins 3.20 reads the
-3.19 concepts for everything the release notes do not change, and says so.
+**Outside the bundle** (as of 2026-10-31): **ScalarDB Native JDBC 3.20.0** and
+**scalardb-postgres-frontend 3.20.0** (both new, Apache-2.0, no bundle product). The PostgreSQL
+wire protocol on Cluster and its `scalar.db.postgres.*` keys appear in the bundle **only in
+`products/scalardb/3.20/releases/release-notes.md`** — the 3.20 `features.md` and
+`scalardb-cluster-configurations.md` do not list them yet. For these, ground on the release notes
+and the upstream repositories through the digests @rules/scalardb-edition-profiles.md § New in
+3.20, @rules/scalardb-native-jdbc-patterns.md and @rules/scalardb-postgres-frontend-patterns.md,
+cite the upstream URL, and state which part of the answer is **not bundle-pinned**.
 
 ScalarDB + ScalarDL combined architectures: verify the two pinned versions are mutually
 compatible via each product's `requirements` / compatibility concepts. ScalarDB Saga stores its
@@ -82,17 +83,18 @@ Cross-service transaction work reads two extra entry points:
 
 | Question | Concepts |
 |----------|----------|
-| Which ScalarDB Cluster deployment pattern for microservices? | `products/scalardb/<version>/scalardb-cluster/deployment-patterns-for-microservices.md` (pre-3.19 wording in the bundle), `releases/release-notes.md`; the Microservice Transaction API digest in @rules/scalardb-2pc-patterns.md; `two-phase-commit-transactions.md` only for the deprecated interface |
-| Saga / TCC across services | Bundle (3.19 alpha layout): `products/scalardb-saga/<version>/overview.md` (design), `getting-started.md` + `reference/saga-definitions.md` (implement), `reference/server-configuration.md` + `server-deployment.md` + `reference/grpc-admin-api.md` (operate). **3.20 GA** moved these to the repository's `guides/` (`configurations.md`, `model-your-workflow.md`, `rest-api.md`, `run-saga-transactions.md`, `scalardb-saga-status-codes.md`) — prefer those for key names until the bundle carries 3.20 |
+| Which ScalarDB Cluster deployment pattern for microservices? | `products/scalardb/3.20/scalardb-cluster/deployment-patterns-for-microservices.md` (shared / separated on the Microservice Transaction API) and `scalardb-cluster/api-guide.md` § Microservice Transaction API; `scalardb-samples/microservice-transaction-sample-with-cluster/` for the configurations; `two-phase-commit-transactions.md` only for the deprecated interface (its 3.20 page carries the deprecation notice; the 3.19 page predates it). Digest: @rules/scalardb-2pc-patterns.md |
+| Saga / TCC across services | `products/scalardb-saga/3.20/`: `overview.md` + `guides/model-your-workflow.md` (design), `getting-started.md` + `guides/run-saga-transactions.md` + `guides/rest-api.md` + `reference/saga-definitions.md` (implement), `guides/configurations.md` + `reference/server-configuration.md` + `server-deployment.md` + `guides/scalardb-saga-status-codes.md` + `reference/grpc-admin-api.md` + `releases/release-notes.md` (operate). The 3.19 line is the alpha with the old `reference/`-only layout — do not mix its key names into a 3.20 answer |
 | A legacy SQL application sharing tables with ScalarDB on one database | Outside the bundle: `scalar-labs/scalardb-native-jdbc` `docs/` via @rules/scalardb-native-jdbc-patterns.md |
-| psql / PostgreSQL drivers / BI over ScalarDB-managed data | Outside the bundle: ScalarDB 3.20.0 release notes and `scalar-labs/scalardb-postgres-frontend` `LIMITATIONS.md` via @rules/scalardb-postgres-frontend-patterns.md |
+| psql / PostgreSQL drivers / BI over ScalarDB-managed data | `products/scalardb/3.20/releases/release-notes.md` (the only bundle page naming the wire protocol) plus, outside the bundle, `scalar-labs/scalardb-postgres-frontend` `LIMITATIONS.md` via @rules/scalardb-postgres-frontend-patterns.md |
 
 **`releases/release-notes.md` is part of the reference, not an afterthought.** A capability
-introduced in the newest minor is described there before the guide pages catch up — ScalarDB 3.19's
-Global Transaction API and Transaction Coordinator node are documented in the release notes while
-`deployment-patterns-for-microservices.md` still describes only the pre-3.19 shared/separated
-choice. When only the release notes cover a capability, say so and treat the guide pages as stale
-rather than as a contradiction.
+introduced in the newest minor is described there before the guide pages catch up — ScalarDB
+3.20's PostgreSQL wire protocol and its `scalar.db.postgres.*` keys are in the 3.20 release notes
+while `features.md` and `scalardb-cluster-configurations.md` do not list them (3.19's Transaction
+Coordinator went through the same lag, closed in the 3.20 guide pages). When only the release
+notes cover a capability, say so and treat the guide pages as stale rather than as a
+contradiction.
 
 ## 4. Hard rules (from the bundle's operating manual)
 
@@ -102,15 +104,15 @@ rather than as a contradiction.
 - **Exception handling is grounded in the pinned `api-guide.md`** — retryability differs per
   exception (`UnknownTransactionStatusException` must not be blindly rolled back/retried).
 - **Cross-service transactions use the one-phase Microservice Transaction API**; the 2PC interface
-  is deprecated as of 3.19 (docs site) even though the bundle's 3.19 snapshot still marks
-  `two-phase-commit-transactions.md` `status: stable` — treat that as lag, never use 2PC within a
-  single service, and record any remaining 2PC use as an ADR deviation.
+  is deprecated as of 3.19 — the 3.20 `two-phase-commit-transactions.md` opens with the notice,
+  the 3.19 page predates it. Never use 2PC within a single service, and record any remaining 2PC
+  use as an ADR deviation.
 - **Skip `status: deprecated` concepts and `feature_status: [Deprecated]` features** for new
   design; flag Preview features before proposing them for production.
-- **State the release when a concept is `prerelease: true`.** The bundle's ScalarDB Saga 3.19 line
-  is the `3.19.0-alpha.1` snapshot; **3.20.0 is the first GA release** and renamed several server
-  keys. Design on 3.20 GA, take key names from @rules/scalardb-saga-patterns.md (grounded on the
-  3.20 `guides/`), and do not present a 3.19 alpha key as settled.
+- **State the release when a concept is `prerelease: true`.** ScalarDB Saga 3.19 is the
+  `3.19.0-alpha.1` snapshot; **3.20.0 is the first GA release** and renamed several server keys.
+  Design on `products/scalardb-saga/3.20/`, take key names from its `guides/configurations.md`
+  (digest: @rules/scalardb-saga-patterns.md), and do not present a 3.19 alpha key as settled.
 - **Cite the frontmatter `resource` URL** when the answer relies on a concept. If the bundle has
   no grounds for a claim, say "not covered by the documentation" instead of guessing.
 

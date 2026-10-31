@@ -9,9 +9,9 @@ For applications that need ACID transactions across multiple databases or micros
 >
 > **This interface is deprecated as of ScalarDB 3.19** — the docs site states "The two-phase commit
 > (2PC) interface is deprecated as of ScalarDB 3.19 and will be removed in a future release"; 3.20
-> also removed `join()` / `resume()` from `DistributedTransactionManager`. The bundle's 3.19
-> snapshot still marks `two-phase-commit-transactions.md` `status: stable`; that is lag, not a
-> contradiction. Generate from this template only for a release before 3.19, or as an ADR-recorded
+> also removed `join()` / `resume()` from `DistributedTransactionManager`. The bundle's 3.20
+> `two-phase-commit-transactions.md` carries the notice; the 3.19 page predates it, which is lag,
+> not a contradiction. Generate from this template only for a release before 3.19, or as an ADR-recorded
 > deviation (Core without Cluster is the usual reason), with `@SuppressWarnings("deprecation")`
 > scoped to the smallest element, an in-code rationale and a migration note. Verify the exact
 > deprecation annotations against the resolved jar (`javap`) for the release you target. Option 1

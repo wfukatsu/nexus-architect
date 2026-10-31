@@ -10,13 +10,13 @@ globs:
 # ScalarDB Saga Rules
 
 Reference snapshot for **ScalarDB Saga 3.20.0 — the first GA release** (2026-10-29, Apache-2.0),
-grounded on the upstream repository `scalar-labs/scalardb-saga` at tag `v3.20.0` (`README.md`,
-`guides/configurations.md`, `guides/run-saga-transactions.md`, `guides/model-your-workflow.md`,
-`guides/rest-api.md`, `guides/scalardb-saga-status-codes.md`, `server/docker/README.md`). The OKF
-knowledge bundle still carries the **3.19 alpha** snapshot (`products/scalardb-saga/3.19/`,
-`prerelease: true`, a different `reference/` layout); where it and this file disagree on a key
-name, the 3.20 `guides/` win. Resolve the bundle per @rules/okf-knowledge-bundle.md and say the
-answer is grounded upstream until the bundle carries 3.20.
+from the OKF knowledge bundle `products/scalardb-saga/3.20/` (bundle v1.3.0: `overview.md`,
+`getting-started.md`, `guides/configurations.md`, `guides/run-saga-transactions.md`,
+`guides/model-your-workflow.md`, `guides/rest-api.md`, `guides/scalardb-saga-status-codes.md`,
+`server-deployment.md`, `reference/`, `releases/release-notes.md`). The bundle's **3.19** line is
+the `3.19.0-alpha.1` snapshot with a different `reference/`-only layout and older key names — never
+mix it into a 3.20 answer. Resolve the bundle per @rules/okf-knowledge-bundle.md and cite the
+concept's `resource` URL.
 
 ## What It Is, and When To Choose It
 

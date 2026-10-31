@@ -32,16 +32,17 @@ that skips the separate prepare-records and commit-state steps when all of a tra
 mutations can be applied atomically in one storage operation (ScalarDB Saga's getting-started turns
 it on). Do not describe the second as "no 2PC across clusters"; no upstream source claims that.
 
-Grounding: `products/scalardb/<version>/scalardb-cluster/deployment-patterns-for-microservices.md`
-(the 3.20 docs-site version describes both patterns on the Microservice Transaction API and says
-the API is "currently supported only in the CRUD interface"), the docs-site ScalarDB Cluster Java
-API Guide § Microservice Transaction API, `scalardb-samples/microservice-transaction-sample-with-cluster`
-(shared and separated configurations, identical code), `products/scalardb/3.19/releases/release-notes.md`
-(v3.19.0) and the ScalarDB 3.20.0 release notes (SQL `GLOBAL_TRANSACTION`, `join`/`resume` removal,
-`BranchTransaction.end(Status)`). The vendored bundle (3.19 snapshot) still carries
-`two-phase-commit-transactions.md` as `status: stable` and the pre-3.19 pattern guide — treat that as
-the lag described in @rules/okf-knowledge-bundle.md §3, not as a contradiction, and confirm against
-the project's pinned release before designing on option 2.
+Grounding (bundle v1.3.0, `products/scalardb/3.20/`):
+`scalardb-cluster/deployment-patterns-for-microservices.md` (both patterns on the Microservice
+Transaction API; "currently supported only in the CRUD interface"), `scalardb-cluster/api-guide.md`
+§ Microservice Transaction API, `scalardb-samples/microservice-transaction-sample-with-cluster/`
+(shared and separated configurations, identical code), `releases/release-notes.md` (v3.19.0 for the
+Transaction Coordinator; v3.20.0 for SQL `GLOBAL_TRANSACTION`, `join`/`resume` removal,
+`BranchTransaction.end(Status)`), and `two-phase-commit-transactions.md`, whose 3.20 page opens
+with the deprecation notice. A project pinned to **3.19** reads the 3.19 line, where the pattern
+guide still shows the pre-3.19 choice and the 2PC page predates the notice — the lag described in
+@rules/okf-knowledge-bundle.md §3. Confirm against the project's pinned release before designing on
+option 2.
 
 ## Microservice Transaction API Pattern (Options 1 and 2)
 
@@ -292,8 +293,8 @@ The SQL `TWO_PHASE_COMMIT_TRANSACTION` mode is **deprecated as of 3.19**, and 3.
 `JOIN`, `SUSPEND` and `RESUME` statements. On 3.20+ a SQL transaction that spans processes uses the
 `GLOBAL_TRANSACTION` session mode instead: one process begins the transaction, each other process
 runs `BEGIN BRANCH` ... `END BRANCH` with the ID, and the Transaction Coordinator drives 2PC when
-`scalar.db.sql.enabled=true` on it. Ground the exact statement grammar on the pinned 3.20 release
-notes and SQL grammar — the bundle's 3.19 `grammar.md` predates it.
+`scalar.db.sql.enabled=true` on it. Ground the exact statement grammar on the pinned 3.20 line
+(`releases/release-notes.md`, `scalardb-sql/grammar.md`) — the 3.19 grammar predates it.
 
 ### SQL 2PC Statements
 

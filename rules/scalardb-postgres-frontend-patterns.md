@@ -9,9 +9,11 @@ globs:
 
 Reference snapshot for **ScalarDB Cluster 3.20.0** (PostgreSQL wire protocol support, Enterprise,
 released 2026-10-30) and **scalardb-postgres-frontend 3.20.0** (Apache-2.0, released 2026-10-29).
-Grounded on the ScalarDB 3.20.0 release notes and the upstream repository
-`scalar-labs/scalardb-postgres-frontend` (`README.md`, `LIMITATIONS.md`). The OKF knowledge bundle
-has **no 3.20 concept yet** — cite those sources and say the answer is not bundle-pinned
+Grounded on `products/scalardb/3.20/releases/release-notes.md` (bundle v1.3.0 — the **only** bundle
+page that names the wire protocol; the 3.20 `features.md` and `scalardb-cluster-configurations.md`
+do not list it or its keys yet) and the upstream repository `scalar-labs/scalardb-postgres-frontend`
+(`README.md`, `LIMITATIONS.md`), which has no bundle product. Cite the release-notes concept for the
+Cluster feature and the repository for everything else, and say which part is not bundle-pinned
 (@rules/okf-knowledge-bundle.md §5).
 
 ## What It Is
@@ -37,7 +39,8 @@ Config keys named upstream: `scalar.db.postgres.enabled`, `scalar.db.postgres.po
 `scalar.db.postgres.auth`, `scalar.db.postgres.listen_address`,
 `scalar.db.postgres.backend_collation_check` (`false` bypasses the startup collation check on
 PostgreSQL / MySQL backends). Verify each against the project's pinned release before writing it
-into a properties file; the key list is not in the bundle.
+into a properties file; the bundle's 3.20 configuration reference does not list these keys yet —
+the release-notes concept is the citation.
 
 ## When To Offer It — and When Not
 

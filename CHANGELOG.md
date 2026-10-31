@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.47.1] - 2026-10-31
+
+### Changed
+- **The OKF bundle carries ScalarDB 3.20 and ScalarDB Saga 3.20 GA.** The submodule moves to
+  bundle v1.3.0 (`e374f05`: ScalarDB 3.20 with 206 concepts, Saga 3.20 with 15 — the new `guides/`
+  and the CHANGELOG as release notes — ScalarDL 3.14 as latest; 2,370 concepts, 24 version lines).
+  Every "not yet in the bundle" note written for 0.47.0 now cites the bundle concept instead:
+  `rules/okf-knowledge-bundle.md` §2–§4 (supported lines, the Saga 3.20 entry points, the 2PC
+  deprecation carried by the 3.20 `two-phase-commit-transactions.md`), `scalardb-edition-profiles`,
+  `scalardb-saga-patterns`, `scalardb-2pc-patterns`, `scalardb-postgres-frontend-patterns`,
+  `configuration-reference.md`, the 2PC code-pattern headers, `generate-scalardb-code` and the
+  README. Still outside the bundle: ScalarDB Native JDBC and the standalone PostgreSQL frontend; the
+  Cluster PostgreSQL wire protocol and its `scalar.db.postgres.*` keys exist in the bundle only in
+  the 3.20 release notes, and the rules say so.
+
 ## [0.47.0] - 2026-10-31
 
 ### Added
