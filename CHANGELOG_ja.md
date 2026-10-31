@@ -7,6 +7,39 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.46.0] - 2026-10-31
+
+### Changed
+- **入口文書を `AGENTS.md` の 1 本にした。**
+  - Claude Code は v2.1.277 から `AGENTS.md` を自力で読む。手作業で同期していた 3 本の入口文書
+    —— `CLAUDE.md`（42 KB）、`AGENTS.md`（18 KB）、`OMNIGENT.md`（21 KB、後 2 者は約 6 割が重複）——
+    を、ランタイムに依存しない 1 本の `AGENTS.md`（31 KB）にまとめた。
+  - ランタイム固有の記述は § Runtimes に集めた。Claude Code / Codex / Omnigent がこのファイルを
+    どう読むか、コマンドからファイルへの解決、そしてスキル本文の語彙（`Read` / `Write` /
+    `AskUserQuestion` / `Agent(...)` / `Skill` / `model:` / 報告用 hook）を各ランタイムの手段に
+    読み替える表の 3 つである。
+  - `CLAUDE.md` は `@AGENTS.md` だけを中身とするスタブにした。これにより Claude Code のどの版でも、
+    **Project instructions** のどの設定でも、ファイルは 1 回だけ読まれる。`OMNIGENT.md` は削除し、
+    参照していた `tools/omnigent/README.md` と `rules/open-questions.md` §8 は `AGENTS.md` を指す。
+- **Codex の指示ファイル上限を契約にした。** Codex は `AGENTS.md` を `project_doc_max_bytes`
+  （既定 32 KiB）までしか読まず、超えた部分は警告なしに切り捨てる。統合後のファイルはこれを下回り、
+  超えると `tools/docs_consistency.test.py` が失敗する。上限の引き上げ方は `docs/codex-usage`（en/ja）に書いた。
+- 全スキルのモデル tier を手書きした表を `AGENTS.md` から外した。tier は 2 つの依存マニフェストと
+  各 SKILL.md の `model` が持つデータであり、テストは表の再掲ではなく、入口文書がその出典を
+  名指ししていることを確かめる（この表は 0.28.0 でも乖離していた）。
+- rule を言い直していた定型文を、rule へのポインタに置き換えた。architect 27 スキルの出力言語の
+  一文（`@rules/output-conventions.md`）と、`/scalardb:*` 9 スキルの knowledge grounding の段落
+  （`@rules/okf-knowledge-bundle.md`）である。`@` パスを使いながら `Shared files:` のアンカーが
+  無かった 12 スキルにアンカーを加えた。`investigate-db-design` は Codex を名指ししなくなった。
+
+### Added
+- `docs/skill-authoring.md`（英語のみ）を追加した。`AGENTS.md` が短く述べるスキルの規則の裏にある
+  計測値と経緯 —— `allowed-tools`・`model`・`effort` が効く場所、`name` フィールドの別名登録、
+  116 スキルで何もしていなかった `user_invocable` キー、`claim.sh` が防ぐ hook の 4 重実行 —— を収める。
+- `tools/docs_consistency.test.py` に検査を追加した。`CLAUDE.md` の中身が `@AGENTS.md` の import
+  だけであること、`AGENTS.md` が何も import せず 32 KiB に収まり両マニフェストを名指しすること、
+  追跡ファイルが廃止した Omnigent の入口文書を指していないこと。
+
 ## [0.45.1] - 2026-10-30
 
 ### Fixed

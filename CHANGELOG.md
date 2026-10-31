@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.46.0] - 2026-10-31
+
+### Changed
+- **One entry document, `AGENTS.md`, for every runtime.** Claude Code reads `AGENTS.md` by itself
+  since v2.1.277, so the three hand-synchronised entry docs — `CLAUDE.md` (42 KB), `AGENTS.md`
+  (18 KB) and `OMNIGENT.md` (21 KB), about 60 % of the last two restating each other — are now one
+  runtime-neutral `AGENTS.md` (31 KB). Everything runtime-specific sits in its § Runtimes: how
+  Claude Code, Codex and Omnigent each load the file, the command → file resolution, and one table
+  translating the vocabulary skill bodies use (`Read` / `Write` / `AskUserQuestion` / `Agent(...)`
+  / `Skill` / `model:` / the report hooks) into each runtime's means. `CLAUDE.md` is a stub whose
+  only content is `@AGENTS.md`, so the file is read once on every Claude Code version and every
+  **Project instructions** setting; `OMNIGENT.md` is removed and its pointers
+  (`tools/omnigent/README.md`, `rules/open-questions.md` §8) go to `AGENTS.md`.
+- **Codex's instruction budget is now a contract.** Codex reads `AGENTS.md` whole only up to
+  `project_doc_max_bytes` (32 KiB by default) and truncates silently past it. The merged file
+  stays under that, `tools/docs_consistency.test.py` fails when it grows past, and
+  `docs/codex-usage` (en/ja) says how to raise the budget.
+- The hand-kept table of every skill's model tier left `AGENTS.md`: the tier is data — the two
+  dependency manifests and each SKILL.md's `model` — and the test now checks that the entry doc
+  names those sources instead of that it repeats them (that table had drifted before, in 0.28.0).
+- Boilerplate that restated a rule became a pointer to it: the output-language sentence in 27
+  architect skills (`@rules/output-conventions.md`) and the knowledge-grounding paragraph in nine
+  `/scalardb:*` skills (`@rules/okf-knowledge-bundle.md`). Twelve skills that cited `@`-paths
+  without the `Shared files:` anchor gained it. `investigate-db-design` no longer names Codex.
+
+### Added
+- `docs/skill-authoring.md` (EN only): the measurements and history behind the skill rules that
+  `AGENTS.md` now states in brief — where `allowed-tools`, `model` and `effort` take effect, the
+  `name`-field alias, the `user_invocable` key that did nothing on 116 skills, the four-fold hook
+  firing that `claim.sh` guards against.
+- `tools/docs_consistency.test.py`: `CLAUDE.md` holds exactly the `@AGENTS.md` import and
+  nothing else; `AGENTS.md` imports nothing, fits 32 KiB, and names both manifests; no tracked
+  file points at the retired Omnigent entry doc.
+
 ## [0.45.1] - 2026-10-30
 
 ### Fixed
