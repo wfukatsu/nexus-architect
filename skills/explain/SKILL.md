@@ -160,7 +160,7 @@ Read `reference/explanation-formats.md` for the shape of each, and
 
 - **Terms.** Collect the terms the target uses that the reader's level does not assume: domain
   terms from the ubiquitous language, design terms (bounded context, aggregate, idempotency key,
-  SLO), and technology terms (ScalarDB two-phase commit, Problem Details, DTCG token). For each: the
+  SLO), and technology terms (ScalarDB Microservice Transaction API, Problem Details, DTCG token). For each: the
   meaning in this project with its citation, the general meaning, how they differ if they do, and
   where else in the project it appears. Order them so that no term is used before it is defined.
 - **Code.** When the target is a class or module and no function was named, walk through its

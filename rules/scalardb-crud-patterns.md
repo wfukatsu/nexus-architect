@@ -65,7 +65,7 @@ With no preceding `Get` in the same transaction it attaches an implicit `PutIfNo
 | `put(...)` alone | commits — inserts | **`CommitConflictException` at commit** — `DB-CORE-20013: The record being prepared already exists` |
 | `get(...)` then `put(...)` | commits — inserts | commits — updates |
 
-Verified against ScalarDB 3.19.0. The failure surfaces at `commit()`, not at `put()`, so the write
+Verified against ScalarDB 3.19.0 and 3.20.0 (`samples/scalardb-transaction-tests` `BlindWriteProbeIT`). The failure surfaces at `commit()`, not at `put()`, so the write
 looks accepted and the transaction fails later with a *conflict* error that reads like contention —
 sending you to retry logic for a bug that no retry can fix. Retrying is in fact the wrong response:
 every attempt fails identically.

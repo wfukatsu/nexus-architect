@@ -21,7 +21,8 @@ You are a ScalarDB exception handling expert. You can either generate correct ex
 ### Mode 1: Generate Exception Handling Code
 Ask: "Which interface combination are you using?"
 - CRUD API + 1PC (DistributedTransactionManager)
-- CRUD API + 2PC (TwoPhaseCommitTransactionManager)
+- CRUD API across services — Microservice Transaction API (GlobalTransactionManager / BranchTransaction, 3.19+ Cluster; the same exception families as 1PC, plus `TransactionNotFoundException` on `beginBranch` and an unchecked `IllegalStateException` on a second `end(SUCCESS)`)
+- CRUD API + 2PC (TwoPhaseCommitTransactionManager) — ScalarDB ≤ 3.19 only; the interface is absent from the Core 3.20.0 library (@rules/scalardb-2pc-patterns.md)
 - JDBC/SQL
 
 Then generate the complete try/catch pattern with:
@@ -110,7 +111,13 @@ public void executeWithRetry() throws TransactionException, InterruptedException
 }
 ```
 
-## Correct Pattern: CRUD API + 2PC
+## Correct Pattern: CRUD API + 2PC (ScalarDB ≤ 3.19 only)
+
+`TwoPhaseCommitTransactionManager` is deprecated as of 3.19 and absent from the Core 3.20.0 library;
+on 3.19+ generate the Microservice Transaction API pattern instead
+(@rules/scalardb-2pc-patterns.md § Microservice Transaction API Pattern — the orchestrator's cleanup
+is `end(FAILURE)` then `rollback()`, with `UnknownTransactionStatusException` still neither rolled
+back nor retried). This pattern stays for projects pinned to ≤ 3.19.
 
 ```java
 public void executeTwoPhaseCommitWithRetry() throws TransactionException, InterruptedException {

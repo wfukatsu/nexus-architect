@@ -8,7 +8,8 @@ globs:
 
 ## Use try-with-resources for TransactionManager
 
-`DistributedTransactionManager` and `TwoPhaseCommitTransactionManager` implement `AutoCloseable`:
+`DistributedTransactionManager`, `GlobalTransactionManager` (3.19+) and, on ≤ 3.19,
+`TwoPhaseCommitTransactionManager` implement `AutoCloseable`:
 
 ```java
 try (DistributedTransactionManager manager = factory.getTransactionManager()) {
@@ -52,7 +53,9 @@ public void doSomething() {
 
 ## Don't Share Transaction Objects Across Threads
 
-`DistributedTransaction` and `TwoPhaseCommitTransaction` are `@NotThreadSafe`. Each thread should use its own transaction:
+`DistributedTransaction`, `BranchTransaction` (3.19+; ending a branch from another thread while its
+CRUD is in flight is a data race the implementation does not guard against) and, on ≤ 3.19,
+`TwoPhaseCommitTransaction` are `@NotThreadSafe`. Each thread should use its own transaction:
 
 ```java
 // WRONG:
