@@ -28,10 +28,17 @@ bundle:        k8s-tf (vendored; upstream = the public docs it cites)
 resolved:      .../knowledge/okf-k8s-tf
 okf_version:   0.2
 documents:     23
-stale_after:   earliest 2026-10-19 (a document past its date is re-verified, not quoted as current)
-upstream:      checked 2026-09-28T06:00:00Z (knowledge/okf-k8s-tf-upstream/REPORT.md)
+stale_after:   earliest 2026-11-19 (a document past its date is re-verified, not quoted as current)
+upstream:      checked 2026-10-31T21:19:35Z (knowledge/okf-k8s-tf-upstream/REPORT.md)
+past stale_after: none
+awaiting re-verification: none (as of 2026-10-31; /architect:revise-knowledge re-verifies)
 sections:
-  architecture  delivery  foundation  operations  secrets  security
+  architecture
+  delivery
+  foundation
+  operations
+  secrets
+  security
 ```
 
 **There is no origin repository to pull** — it was deleted, which is why the bundle is vendored

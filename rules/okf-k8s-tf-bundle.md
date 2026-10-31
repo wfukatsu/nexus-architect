@@ -138,9 +138,9 @@ Detail, and the four things the bundle does say about production: @rules/infra/e
 ## 6. Freshness
 
 Every document carries `stale_after` (and `verified.at`) in its frontmatter; `status` prints the
-earliest. The dates move: each weekly refresh re-verifies the documents whose sources changed or
-whose date has passed, and resets their `stale_after`. Read the date from the document, never
-from memory or from this rule.
+earliest. The dates move: each weekly refresh lists the documents whose sources changed or
+whose date has passed, and `/architect:revise-knowledge` re-verifies them and resets their
+`stale_after` (§1). Read the date from the document, never from memory or from this rule.
 
 When citing a document whose date has passed, **say so explicitly** — "this statement is past its
 `stale_after: YYYY-MM-DD` and needs re-checking against official documentation" — and check the

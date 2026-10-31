@@ -7,6 +7,20 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+### Changed
+- **Kubernetes/Terraform バンドルに確認事項を 3 件追加し、それぞれ新しい公式出典で裏付けた。**
+  `foundation/helm.md` は、Helm 4 の `helm upgrade` に `--atomic` が無く、失敗時の rollback は
+  `--rollback-on-failure`、置換による強制更新は `--force-replace`、`--wait` は strategy を取ることを記し、
+  対象実装の Terraform helm provider の `atomic` / `force_update` / `wait` 属性が provider 3.x でどう対応するかを
+  確認事項にした（出典: Helm 4.3.1 の `helm upgrade` reference）。`secrets/vault.md` の audit device の指針は
+  Vault の Audit logging ページを出典に持ち（2 つ以上の device を推奨、有効な device のどれにも書き込めない要求は
+  拒否される）、プラットフォームの device 数と blocked 時の運用を確認事項にした。`security/kyverno.md` は
+  `stale_after` 当日に再検証し、従来型 ClusterPolicy の removal は v1.20（2026年11月見込み、最新 stable は
+  1.19.2）のままで、`wgpolicyk8s` から `openreports.io` への移行に report の利用側が追従できるかを確認事項に
+  追加。v1.20 のリリース後に再確認する（`stale_after: 2026-12-01`）。
+
 ## [0.50.1] - 2026-11-01
 
 ### Changed
