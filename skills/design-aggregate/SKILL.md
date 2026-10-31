@@ -144,7 +144,8 @@ rule-5 violation and is challenged, not recorded.
 **Stage 6 — Validate, review, write**
 Run the well-formedness checks below **before** presenting anything. Show the user the class
 diagram, the invariant table with its examples and any check that failed, correct together, then
-write the documents and the manifest.
+write the documents, the manifest and the catalog — their shapes are `reference/aggregate-document.md`,
+`reference/aggregate-manifest.md` and `reference/domain-event-catalog.md`; read them at this step.
 
 ### Auto Mode (`--auto`)
 
@@ -167,8 +168,9 @@ Derive the models without facilitation:
    member to an ID reference, and **mark each default** in the document as assumed, with an `OQ-`
    entry per aggregate recording that the ownership of two-aggregate writes was never asked
    (@rules/open-questions.md §5).
-5. Run the same well-formedness checks. A model that fails them is written with the failures listed
-   under Open Items — never silently repaired by inventing an invariant.
+5. Run the same well-formedness checks, then write the documents, manifest and catalog in the shapes
+   the three `reference/` files give. A model that fails the checks is written with the failures
+   listed under Open Items — never silently repaired by inventing an invariant.
 
 Auto mode never invents an invariant that appears in no input. An aggregate candidate with no
 stated invariant is reported as not modeled — an entity, not an aggregate.
@@ -203,105 +205,13 @@ a failure as a defect in the model rather than in the checker.
 in the configured output language; YAML frontmatter keys and every identifier (aggregate, member,
 command, event, invariant) stay English.
 
-### Manifest shape
+### Manifest
 
-```json
-{
-  "schema_version": 1,
-  "generated_at": "ISO8601",
-  "mode": "interactive",
-  "aggregates": [
-    {
-      "id": "AGG-001",
-      "name": "Order",
-      "bounded_context": "Ordering",
-      "document": "reports/03_design/aggregates/aggregate-order.md",
-      "root": "Order",
-      "members": [
-        { "name": "Order", "kind": "root", "identity": "OrderId" },
-        { "name": "OrderLine", "kind": "entity", "identity": "LineNo (local to Order)" },
-        { "name": "Money", "kind": "value", "validation": "amount >= 0, ISO 4217 currency" },
-        { "name": "customerId", "kind": "reference", "references": "Customer" }
-      ],
-      "invariants": [
-        {
-          "id": "INV-1",
-          "statement": "total equals the sum of line totals",
-          "violated_by": ["addLine", "removeLine"],
-          "examples": [
-            { "kind": "positive", "given": "two lines of 10 EUR", "when": "addLine(5 EUR)", "then": "total 25 EUR, OrderLineAdded" },
-            { "kind": "negative", "given": "submitted order", "when": "addLine(5 EUR)", "then": "rejected: order-not-editable" }
-          ]
-        }
-      ],
-      "commands": [
-        {
-          "name": "place",
-          "creation": true,
-          "actor": "Customer",
-          "guard": "cart has at least one line",
-          "preserves": ["INV-1"],
-          "emits": "OrderPlaced",
-          "consistency": "local"
-        },
-        {
-          "name": "addLine",
-          "actor": "Customer",
-          "guard": "status is Draft",
-          "preserves": ["INV-1"],
-          "emits": "OrderLineAdded",
-          "consistency": "local",
-          "also_writes": []
-        }
-      ],
-      "events": [
-        { "name": "OrderPlaced", "payload": ["orderId", "customerId", "total"] },
-        { "name": "OrderLineAdded", "payload": ["orderId", "lineNo", "productId", "quantity"] }
-      ],
-      "specifications": [
-        { "name": "CanBeShipped", "predicate": "status is Approved and every line is allocated",
-          "used_by": ["ship", "shippable-orders query"] }
-      ],
-      "repository": {
-        "root": "Order",
-        "lookups": ["byId", "byCustomerAndStatus"],
-        "loads_whole_aggregate": true
-      },
-      "state_machine": "STM-001"
-    }
-  ]
-}
-```
-
-Field contracts the validator enforces (`tools/lib/aggregate_manifest.py`; every one is also a
-case in its contract test):
-
-- **Manifest** — `schema_version: 1`; `aggregates` non-empty; `id`, `name`, `document` and `root`
-  each unique across aggregates (two aggregates claiming one root is one aggregate drawn twice).
-- **Aggregate** — `id` matches `AGG-###`; `name` and `root` present; `document` a non-empty file
-  inside the project; `members`, `invariants`, `commands` non-empty arrays; `events` an array;
-  `state_machine`, when present, matches `STM-###` **and** names a machine the state-machine
-  manifest declares when that manifest exists (it is written by `design-state-machine`, see below).
-- **Members** — names present and unique; exactly one `kind: root` whose `name` equals `root`;
-  `kind` ∈ `root` | `entity` | `value` | `reference`; a `reference` names the aggregate it
-  `references`; a member named after another aggregate's root without `kind: reference` is the
-  rule-6 defect; a `value` carries no `identity` (a value object with identity is an entity).
-- **Events** — every entry an object with a unique `name`.
-- **Commands** — names unique; each has an `actor`, a `consistency` ∈ `local` | `distributed` |
-  `saga`, an `emits` naming a declared event or the literal `none`, and a `preserves` list of
-  declared invariant IDs; at most one carries `creation: true`; `also_writes`, when present, lists
-  other aggregates in this manifest the command writes in the same transaction (never itself).
-- **Events** — an event name is published by one aggregate: two aggregates declaring the same
-  event name is a violation, the non-owner's command emits `none`.
-- **Invariants** — `id` unique within the aggregate; `statement` present; `violated_by` non-empty
-  and naming declared commands; `examples` non-empty, every example with `given` / `when` /
-  `then` and a `kind` ∈ `positive` | `negative`, and **both kinds present** — an invariant with
-  one side untried has not located its boundary.
-- **Repository** — an object whose `root` equals the aggregate `root` (no repository for an
-  interior entity). **Specifications**, when present, each state a `predicate`.
-
-A malformed manifest (a list where a string belongs, a string where an object belongs) is reported
-as a violation, never as a traceback.
+The manifest's shape, and the field contracts `tools/lib/aggregate_manifest.py` enforces (every
+one a case in its contract test), are `reference/aggregate-manifest.md` — read it before writing.
+Two contracts shape the dialogue, not just the file: an event name is published by **one**
+aggregate (the non-owner's command emits `none`), and every invariant carries a `positive` and a
+`negative` example — an invariant with one side untried has not located its boundary.
 
 ## Domain Event Catalog
 
@@ -318,214 +228,43 @@ event with its publisher, payload and scope, and fills `consumers` for the conte
 split settles which context reacts to what, and `/architect:design-api` reads the `published`
 entries to emit `api-specifications/asyncapi/`.
 
-```json
-{
-  "schema_version": 1,
-  "generated_at": "ISO8601",
-  "contexts": ["Ordering", "Inventory", "Payment"],
-  "events": [
-    {
-      "name": "OrderPlaced",
-      "scope": "published",
-      "publisher": { "aggregate": "Order", "bounded_context": "Ordering" },
-      "consumers": [
-        { "bounded_context": "Inventory", "relationship": "customer-supplier",
-          "purpose": "reserve stock for every line" },
-        { "bounded_context": "Payment", "relationship": "customer-supplier",
-          "purpose": "authorize the order total" }
-      ],
-      "payload": ["orderId", "customerId", "lines[].productId", "lines[].quantity", "total"],
-      "delivery": "at-least-once",
-      "idempotency_key": "orderId",
-      "version": 1,
-      "evolution": "additive-only"
-    },
-    {
-      "name": "OrderLineAdded",
-      "scope": "internal",
-      "publisher": { "aggregate": "Order", "bounded_context": "Ordering" },
-      "consumers": [],
-      "payload": ["orderId", "lineNo", "productId", "quantity"]
-    }
-  ],
-  "orphan_events": [
-    { "name": "PointsEarned", "named_in": "reports/03_design/bounded-contexts-redesign.md",
-      "reason": "LoyaltyAccount was not modeled — CTX-006 is a candidate context (OQ-008)" }
-  ]
-}
-```
+The catalog's shape, the field contracts `tools/lib/domain_event_catalog.py` enforces, and the
+`.md` projection's frontmatter are `reference/domain-event-catalog.md` — read it before writing.
+What the validator cannot decide is decided here:
 
-Field contracts the validator enforces (`tools/lib/domain_event_catalog.py`; every one is a case
-in its contract test):
-
-- **Catalog** — `schema_version: 1`; `events` non-empty; names unique (one event, one entry);
-  `contexts`, when present, lists the bounded contexts the design knows.
-- **Event** — `name` PascalCase; `publisher` names an aggregate and its `bounded_context`, and
-  when the aggregate manifest exists the aggregate **declares** that event and lives in that
-  context; `scope` ∈ `internal` | `published`; `payload` a non-empty list of field names —
-  identities and values, never another aggregate's interior.
-- **Consumers** — each names a declared `bounded_context` other than the publisher's (a reaction
-  inside one context is not published), a `relationship` from the context map's vocabulary
-  (`partnership` | `shared-kernel` | `customer-supplier` | `conformist` | `anticorruption-layer` |
-  `open-host-service` | `published-language` | `separate-ways`) and its `purpose`; no context
-  twice. A `published` event has at least one; an `internal` event has none — the scope is what
-  the consumers say. A consumer is an **asynchronous subscriber**: a context that receives the
-  event as the reply to a command it issued (the calling service reading `PaymentDeclined` as
-  the response to `charge`) is not a consumer, and that event stays `internal` — when
-  `api-style-decisions.json` / `asyncapi/` already classify the exchange, they win over prose in
-  the design documents. A consumer that is still a **candidate** context (its `CTX-` carries an
-  open `OQ-`) is listed, added to `contexts`, and flagged `"candidate": true`; the event's
-  scope is what it would be if the candidate is confirmed.
-- **Orphans** — an event the design documents name that no aggregate in the manifest declares
-  (an entity that was never modeled) is not silently dropped: list it under the catalog's
-  `orphan_events` with the document that names it, and in the `.md` Open Items. An event named
-  only in another spelling (a state-machine transition `reservation_expired`) is listed in
-  PascalCase with the source spelling in `named_in`. The validator accepts the list; a re-run
-  that models the aggregate moves the event into `events`.
-- **Delivery contract** (`published` only) — `delivery` ∈ `at-least-once` | `at-most-once` |
-  `exactly-once`, an `idempotency_key` whenever delivery is at-least-once, an integer
-  `version` ≥ 1 and an `evolution` rule ∈ `additive-only` | `versioned` | `frozen`. The key
-  must be unique **per event type**: two events of one aggregate sharing `orderId` as their key
-  (`OrderCancelled` and `PaymentDeclined` for the same order) collide in a consumer's inbox —
-  scope it (`orderId` + event type, or a dedicated `eventId`), and check `review-risk` /
-  `review-consistency` findings before copying a key from the context map. Ownership is split
-  and one-directional: the key's **value** is this catalog's (`design-api` copies it, never
-  re-derives it); the **dedup rule** a consumer applies — `(eventType, key)` or the bare key — is
-  the contract's, decided by `design-api` and recorded as its ADR. A colliding value is therefore
-  fixed here (catalog first, then the contract follows on its next run) and, until then, recorded
-  as an Open Item owned by `design-aggregate`; `design-api` may close the gap on its side by
-  making the dedup pair explicit, never by changing the value.
-- **Completeness** — every event an aggregate declares has a catalog entry. An event the
-  manifest emits and the catalog omits is a contract nobody wrote down.
+- **A consumer is an asynchronous subscriber** in another context. A context that receives the
+  event as the reply to a command it issued (the caller reading `PaymentDeclined` as the response
+  to `charge`) is not a consumer, and that event stays `internal`; when `api-style-decisions.json`
+  / `asyncapi/` already classify the exchange, they win over prose in the design documents. A
+  consumer that is still a **candidate** context (its `CTX-` carries an open `OQ-`) is listed,
+  added to `contexts` and flagged `"candidate": true`.
+- **Orphans are listed, never dropped.** An event the design documents name that no aggregate in
+  the manifest declares goes under `orphan_events` with the document that names it, and in the
+  `.md` Open Items; an event named in another spelling (`reservation_expired`) is listed in
+  PascalCase with the source spelling in `named_in`.
+- **The idempotency key is unique per event type.** Two events of one aggregate sharing `orderId`
+  collide in a consumer's inbox — scope it (`orderId` + event type, or a dedicated `eventId`).
+  Ownership is split and one-directional: the key's **value** is this catalog's (`design-api`
+  copies it, never re-derives it); the **dedup rule** a consumer applies is the contract's, decided
+  by `design-api` and recorded as its ADR. A colliding value is fixed here first and, until then,
+  is an Open Item owned by `design-aggregate`.
+- **Completeness.** Every event an aggregate declares has a catalog entry; one the manifest emits
+  and the catalog omits is a contract nobody wrote down.
 
 The `.md` projection carries, per publishing context, a table of its events with consumers and
-delivery, a separate table of the `internal` events (the flowchart cannot show them — an
-internal event has no edge), the `orphan_events` under Open Items, and one Mermaid `flowchart`
-whose edges are publisher context → consumer context labelled by event name. It is regenerated
-from the `.json`, never edited as a source. Its frontmatter:
-
-```yaml
----
-title: "Domain Event Catalog"
-schema_version: 1
-phase: "Phase 3: Design"
-skill: design-aggregate
-completed_by: design-microservices   # only when that skill completed the consumer side
-generated_at: "ISO8601"
-mode: "interactive|auto"
-input_files:
-  - reports/03_design/aggregates/aggregate-manifest.json
-  - reports/03_design/context-map.md
----
-```
-
-`skill` stays `design-aggregate` whichever skill regenerated the projection last; the skill that
+delivery, a separate table of the `internal` events (an internal event has no edge to draw), the
+`orphan_events` under Open Items, and one Mermaid `flowchart` whose edges are publisher context →
+consumer context labelled by event name. It is regenerated from the `.json`, never edited as a
+source. Its `skill` stays `design-aggregate` whichever skill regenerated it last; the skill that
 completed the consumer side names itself in `completed_by`.
-
-The body starts at `##` — the frontmatter `title` is the document's H1 (@rules/output-conventions.md
-§ Document Structure); neither this projection nor the per-aggregate documents repeat it as a `#` line.
 
 ## Output Document Structure
 
-```markdown
----
-title: "Aggregate: {Aggregate}"
-schema_version: 1
-phase: "Phase 3: Design"
-skill: design-aggregate
-generated_at: "ISO8601"
-aggregate: "{Aggregate}"
-mode: "interactive|auto"
-input_files:
-  - reports/03_design/bounded-contexts-redesign.md
-  - reports/01_analysis/ubiquitous-language.md
----
-
-## Scope
-
-[Which bounded context, what this aggregate is the unit of, and the candidates considered and
-deliberately not made aggregates — with what they are instead.]
-
-## Boundary
-
-| Member | Kind | Identity / Validation | Notes |
-|--------|------|-----------------------|-------|
-| Order | root | OrderId | held by Shipment, Invoice |
-| OrderLine | entity | LineNo, local to Order | never referenced from outside |
-| Money | value object | amount >= 0, ISO 4217 currency | |
-| customerId | reference → Customer | | ID only; name snapshot copied at `place` |
-
-## Invariants
-
-| ID | Invariant | Violated by | Enforced |
-|----|-----------|-------------|----------|
-| INV-1 | total equals the sum of line totals | addLine, removeLine | in the root, inside the command's transaction |
-
-### Examples
-
-| Invariant | Kind | Given | When | Then |
-|-----------|------|-------|------|------|
-| INV-1 | positive | two lines of 10 EUR | addLine(5 EUR) | total 25 EUR; OrderLineAdded |
-| INV-1 | negative | submitted order | addLine(5 EUR) | rejected: order-not-editable |
-
-## Commands and Events
-
-| Command | Creation | Actor | Guard | Preserves | Emits | Consistency |
-|---------|----------|-------|-------|-----------|-------|-------------|
-| place | yes (factory: cart, pricing, customer) | Customer | cart has a line | INV-1 | OrderPlaced | local |
-| addLine | | Customer | status is Draft | INV-1 | OrderLineAdded | local |
-
-[A command that writes a second aggregate in the same transaction: its `also_writes`, the owner,
-which §4 case it is, and the reconciliation for when the two disagree.]
-
-[Then: every `distributed` / `saga` command with the aggregate that owns the transaction and the
-compensation, and the events' payloads.]
-
-## Specifications
-
-| Specification | Predicate | Used by |
-|---------------|-----------|---------|
-| CanBeShipped | status is Approved and every line is allocated | ship, shippable-orders query |
-
-## Repository
-
-[Lookups, whether the whole aggregate is loaded, the read consistency, the OCC scope.]
-
-## Diagram
-
-```mermaid
-classDiagram
-    class Order {
-        <<aggregate root>>
-        +OrderId id
-        +Money total
-        +place(cart, pricing)
-        +addLine(product, quantity)
-    }
-    class OrderLine {
-        <<entity>>
-        +LineNo lineNo
-        +Quantity quantity
-    }
-    class Money {
-        <<value object>>
-        +amount
-        +currency
-    }
-    Order "1" *-- "1..*" OrderLine : lines
-    Order --> Money
-```
-
-## Lifecycle
-
-[Whether the root has a lifecycle worth a machine and why (@rules/state-modeling.md §1). The
-`STM-` itself is written back here and into the manifest's `state_machine` by
-`design-state-machine`, which runs after this skill.]
-
-## Open Items
-
-[Failed well-formedness checks, defaulted consistency classes, and TBDs carrying their `OQ-` IDs.]
-```
+The per-aggregate document's frontmatter and section order — Scope, Boundary, Invariants with
+their Examples, Commands and Events, Specifications, Repository, Diagram (a Mermaid
+`classDiagram`), Lifecycle, Open Items — are `reference/aggregate-document.md`; read it before
+writing. The body starts at `##`: the frontmatter `title` is the H1 (@rules/output-conventions.md
+§ Document Structure), and neither this document nor the catalog projection repeats it as a `#` line.
 
 ## Traceability
 
