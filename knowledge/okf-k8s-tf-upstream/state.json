@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checked_at": "2026-10-31T20:48:14Z",
+  "checked_at": "2026-10-31T21:04:02Z",
   "pages": {
     "https://argo-cd.readthedocs.io/en/stable/": {
       "title": "Argo CD - Declarative GitOps CD for Kubernetes",
@@ -1028,6 +1028,24 @@
         "## 📄️Role-Based Access Control"
       ],
       "changed_at": "2026-10-26T19:45:19Z"
+    },
+    "https://helm.sh/docs/helm/helm_upgrade/": {
+      "title": "helm upgrade | Helm",
+      "source_ids": [
+        "helm-upgrade"
+      ],
+      "cited_by": [
+        "foundation/helm.md"
+      ],
+      "sha256": "sha256:d2e65749d322b766271a0836967283eafdd5b084e468cb8537a54e44c502b0b9",
+      "chars": 12042,
+      "outline": [
+        "### Synopsis​",
+        "### Options​",
+        "### Options inherited from parent commands​",
+        "### SEE ALSO​"
+      ],
+      "changed_at": "2026-10-31T21:04:02Z"
     },
     "https://helm.sh/docs/intro/introduction/": {
       "title": "Introduction to Helm | Helm",

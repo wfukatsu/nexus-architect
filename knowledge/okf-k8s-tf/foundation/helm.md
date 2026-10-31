@@ -13,6 +13,7 @@ sources:
   - { id: helm-use, resource: "https://helm.sh/docs/intro/using_helm/", title: Using Helm, author: "team:helm" }
   - { id: helm-best-practices, resource: "https://helm.sh/docs/chart_best_practices/", title: Chart best practices, author: "team:helm" }
   - { id: helm-hooks, resource: "https://helm.sh/docs/topics/charts_hooks/", title: Chart hooks, author: "team:helm" }
+  - { id: helm-upgrade, resource: "https://helm.sh/docs/helm/helm_upgrade/", title: Helm Upgrade, author: "team:helm" }
   - { id: infrastructure-repo, resource: "https://gitlab.com/scalar-labs/ai-driven-devops/ai-devops-project-template/aidd-infrastructure", title: aidd-infrastructure }
 ---
 
@@ -57,3 +58,7 @@ hook は install/upgrade/rollback の特定時点で Job 等を実行できる�
 3. test cluster で upgrade と failure/rollback を試験。
 4. `helm get values`、`helm history`、workload health を確認。[helm-use]
 5. orphan cluster-scoped resource と古い CRD を確認。
+
+# 確認事項
+
+- Helm 4 の `helm upgrade` には `--atomic` が無い。失敗時の rollback は `--rollback-on-failure`（指定すると `--wait` の既定が `watcher` になる）、置換による強制更新は `--force-replace`、`--wait` は strategy を取る（省略時 `hookOnly`、指定時 `watcher`）、`--cleanup-on-fail` は従来どおり（Helm 4.3.1 版の CLI reference）。対象実装の Terraform helm provider 2.17.0 の `atomic`・`force_update`・`wait` 属性が、provider 3.x（2026-11-01 時点の最新は 2026-09-02 リリースの 3.3.0）で Helm 4 のどの挙動に対応するかを確認してから、「Terraform との組み合わせ」の `atomic` の項を読み替える。[helm-upgrade]
