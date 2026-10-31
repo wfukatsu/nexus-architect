@@ -50,7 +50,8 @@ observed catalogs and statistics use `/architect:investigate-db-live` instead.
 
 Read @rules/database-investigation.md and @skills/common/database-investigation/contract.md.
 Load only the selected product's `adapters/<product>/reference.md` and `adapter.json` under that
-common directory. Resolve `${CLAUDE_PLUGIN_ROOT}` to the repository root in Codex.
+common directory. Outside Claude Code, `${CLAUDE_PLUGIN_ROOT}` is the repository root
+(`AGENTS.md` § Runtimes).
 
 ## Prerequisites
 

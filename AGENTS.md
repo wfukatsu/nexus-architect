@@ -1,160 +1,299 @@
 # AGENTS.md
 
-Instructions for using this repository with Codex while preserving Claude Code plugin compatibility.
+The one entry document for every runtime that drives this repository: Claude Code (as four
+plugins with slash commands), Codex (reading this file at the repository root) and Omnigent (a
+generic orchestrator, through `tools/omnigent/load-skill.sh`). All three run the same
+`skills/**/SKILL.md` files; only the translation in § Runtimes differs.
 
-## What This Repository Is
+## What This Is
 
-This repository is a four-plugin architecture toolkit originally packaged for Claude Code:
+A four-plugin system-architecture toolkit:
 
-- `architect`: system architecture, refactoring, design, migration, and reporting skills
-- `scalardb`: ScalarDB application development, review, configuration, and scaffolding skills
-- `product`: product-direction skills (product vision through SLA/NFR), nested under `skills/product/`; product rules under `rules/product/`
-- `infra`: multi-cloud, four-environment infrastructure skills (design, implement, review), nested under `skills/infra/`; infra rules under `rules/infra/`
+- **product** — product direction: a validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
+- **architect** — system architecture for legacy refactoring, greenfield design and consulting deliverables
+- **scalardb** — ScalarDB application development toolkit
+- **infra** — multi-cloud (AWS / Azure / GCP) × four-environment (local / test / staging / production) infrastructure: design, implementation and review of Terraform / Kubernetes / GitOps, grounded in the vendored OKF `okf-k8s-tf` bundle
 
-Claude Code continues to use `CLAUDE.md`, `.claude-plugin/`, and slash commands such as `/architect:start` or `/product:start`.
-Codex uses this `AGENTS.md` file plus the `skills/*/SKILL.md` files directly.
+Workflows:
+- **Product direction**: vision → success metrics / revenue → scope → validate → personas/journey/positioning → domain-stories/design-system → UI/features/data/frontend → domains/API → SLA/NFR → architecture/tech-fitness → review/report (handoff to `/architect:define-requirements`)
+- **Legacy refactoring**: investigate → analyze → evaluate → redesign → implement
+- **Greenfield design**: requirements → domain modeling → ScalarDB design → infra → deploy
+- **Consulting deliverables**: reports, cost estimates, domain stories
+- **Infrastructure**: triage (bundle / freshness / environment / cloud) → design → implement → review, per environment and per cloud
 
-## Codex Command Mapping
+Commands are `/product:<name>`, `/architect:<name>`, `/scalardb:<name>`, `/infra:<name>`. Entry
+points: `/product:start` (product direction), `/architect:start` (interactive analysis/design),
+`/architect:pipeline` (automated), `/infra:start` (infrastructure). Before an entry point, the
+inputs the user must supply are `docs/product-input-requirements.md` and
+`docs/architect-input-requirements.md`.
 
-When the user invokes a Claude-style command in Codex, map it to the matching local skill:
+## Runtimes
 
-- `/product:<name>` -> read and follow `skills/product/<name>/SKILL.md` (product skills are nested under `skills/product/`; product rules are nested under `rules/product/`)
-- `/infra:<name>` -> read and follow `skills/infra/<name>/SKILL.md` (infra skills are nested under `skills/infra/`; infra rules are nested under `rules/infra/`). `/infra:start` is the router: it resolves the bundle, checks freshness and fixes environment and cloud, then follow the mode skill it selects
-- `/architect:<name>` -> read and follow `skills/<name>/SKILL.md`
-- `/scalardb:<name>` -> read and follow `skills/<name>/SKILL.md`
-- `@rules/...`, `@templates/...`, `@skills/...` and `@docs/...` -> resolve as repository-relative paths (each SKILL.md that uses them says so in its `Shared files:` line; `${CLAUDE_PLUGIN_ROOT}` there is the repository root)
+**Claude Code** installs the four plugins from `.claude-plugin/marketplace.json`; a registered
+skill is a slash command, `hooks/hooks.json` fires automatically, and a skill's `model` /
+`allowed-tools` apply as `docs/skill-authoring.md` measures. In this repository `CLAUDE.md` is a
+stub holding `@AGENTS.md`, so this file is read once on every version and every **Project
+instructions** setting; edit this file, never the stub.
 
-If a referenced skill does not exist, explain that it is unavailable and choose the closest documented fallback.
+**Codex** reads this file at the repository root and truncates it silently past
+`project_doc_max_bytes` (32 KiB by default) — `tools/docs_consistency.test.py` keeps it under
+that, and `docs/codex-usage.md` says how to raise the budget. It has no `@` imports, no plugins
+and no hooks: everything it needs is below.
 
-Before running an entry-point skill (`/product:start`, `/product:define-vision`, `/architect:investigate`, `/architect:define-requirements`), consult the input-requirements guides for the information the user must supply: [product Input Requirements](docs/product-input-requirements.md) and [architect Input Requirements](docs/architect-input-requirements.md).
+**Omnigent** calls the loader, which resolves a command to its file, prints a translation
+preamble and emits the body with `${CLAUDE_PLUGIN_ROOT}` expanded to the absolute root (`bash
+tools/omnigent/load-skill.sh architect:investigate`; `--list` enumerates; see
+`tools/omnigent/README.md`). Parallel `Agent(...)` bodies are dispatched by the orchestrator
+(`sys_session_send`), never by `sys_call_async`, which runs a local Python tool.
 
-## Claude Tool Mapping
+**Command → file.** `/architect:<name>` and `/scalardb:<name>` → `skills/<name>/SKILL.md` (one flat
+tree; a bare `<name>` resolves there too); `/product:<name>` → `skills/product/<name>/SKILL.md`;
+`/infra:<name>` → `skills/infra/<name>/SKILL.md` (prefix required: `design`, `implement`, `review`,
+`start` also read as bare words). The migration routers read nested sub-skills by path
+(`skills/migrate-oracle/migrate-oracle-to-scalardb/SKILL.md`); they are not commands. A skill
+that does not exist is reported as unavailable, with the closest documented fallback. Outputs
+go to `reports/`, `generated/` and `work/` of the project being worked on; `${CLAUDE_PLUGIN_ROOT}`
+and the `@rules/…` notation are the repository root (`Shared files:` line in each skill). Legacy
+path spellings and the migration tree's `.claude/configuration/` compatibility paths are
+translated in `docs/codex-usage.md` § Runtime Paths.
 
-Many skill files mention Claude Code tools. In Codex, interpret them as follows:
+**Skill vocabulary.** Skill bodies name Claude Code tools. Translate:
 
-- `Read`: use `sed`, `cat`, or `rg` to read files
-- `Write`: create files with `apply_patch`
-- `Edit` / `MultiEdit`: use `apply_patch`
-- `Bash`: use shell commands
-- `Grep`: use `rg`
-- `Glob`: use `rg --files` or `find`
-- `LS`: use `ls`
-- `WebFetch` / `WebSearch`: use Codex web access, Context7, or `curl` when network access is approved
-- `AskUserQuestion` / `Question`: present numbered choices in chat, add an explicit "or type your own answer" line (Codex has no harness-appended "Other"), and wait for the user's reply
-- `Agent` (`Task` in older skills) / `Subagent`: run the steps in the main Codex thread unless the user explicitly asks for sub-agents
-- `Parallel`: use parallel shell reads where useful; keep code-writing steps coordinated
-- `TodoWrite` / `TodoRead`: use local todo files only if the task requires persistent todos
-- `Skill`: open the referenced `SKILL.md` and follow it
-- `ExitPlanMode`: ignore
+| In a skill | Claude Code | Codex | Omnigent |
+|------------|-------------|-------|----------|
+| `Read`, `Write`, `Edit` (`MultiEdit`) | the tools | `sed`/`cat`/`rg`; `apply_patch` | `sys_os_read`, `sys_os_write`, `sys_os_edit` |
+| `Bash`, `Grep`, `Glob`, `LS` | the tools | shell, `rg`, `rg --files`/`find`, `ls` | `sys_os_shell` |
+| `WebFetch` / `WebSearch` | the tools | web access, Context7 or `curl` when approved | orchestrator web capability |
+| `AskUserQuestion` | the tool (harness appends "Other") | numbered list + an explicit "or type your own answer" line; wait; an answer matching no number is free text, recorded verbatim | the same, surfaced through the orchestrator's human gate; `--auto` picks the documented default and records the question `unasked` |
+| `Agent(...)` with `model`, `run_in_background` | the tool; `model` on every call (`skills/common/sub-agent-patterns.md`) | run the prompt bodies in sequence in the main thread unless the user asks for sub-agents | sequential in one worker, or orchestrator dispatch; composite scores computed after all results are in |
+| `Skill` | the tool | open the named `SKILL.md` and follow it | the loader |
+| `model:` frontmatter, `disable-model-invocation`, `allowed-tools` | honoured as measured | ignored — choose an equivalent session model (opus: architecture, strategy, risk; sonnet: analysis, generation, reviews; haiku: templating) | ignore, or map the tier per dispatch |
+| the two report hooks | fire on Write/Edit under `reports/` | run by hand after every report write: `hooks/validate-frontmatter.sh <file>`, `hooks/validate-mermaid.sh <file>`; non-zero means fix before continuing | the same |
+| `TodoWrite`, `ExitPlanMode` | the tools | a local todo file if needed; ignore | ignore |
 
-## Runtime Paths
+`/architect:pipeline` is non-interactive on every runtime: a question a phase would ask is
+recorded `unasked` (`rules/open-questions.md` §5). Under Claude Code each phase is a sub-agent on
+the manifest's `model`; elsewhere run the phases in manifest order on the session model.
 
-Prefer repository-relative paths for Codex execution:
+## Repository Mechanics
 
-- Reports: `reports/`
-- Generated code: `generated/`
-- Pipeline state: `work/`
-- Rules: `rules/`
-- Common references: `skills/common/references/`
-- Subagent prompt templates: `skills/common/subagents/`
+This repo is not an application — it is a **plugin marketplace** whose product is a corpus of
+~120 skill instruction files (117 registered as commands, plus the ten nested migration
+sub-skills). There is no build step; "developing" here means editing skills, rules and hooks.
+The authoring rules, with the measurements behind them, are `docs/skill-authoring.md`. In brief:
 
-Skills reference plugin files via `${CLAUDE_PLUGIN_ROOT}/...` (e.g.
-`${CLAUDE_PLUGIN_ROOT}/skills/common/references/api-reference.md`,
-`${CLAUDE_PLUGIN_ROOT}/rules/scalardb-crud-patterns.md`). In Codex, resolve
-these as repository-relative paths (see the `CLAUDE_PLUGIN_ROOT` note below).
+- **Packaging.** `.claude-plugin/marketplace.json` defines the four plugins, each with its version, and lists the skill directories it ships. Adding a skill is two edits: `skills/<name>/SKILL.md` **and** its path in the plugin's `skills` array. Only the migration sub-skills stay unregistered, by design.
+- **Anatomy.** One self-contained `SKILL.md` per skill, under 500 lines (a step's template or long example goes in `reference/` beside it), with frontmatter `description` (≤ 300 characters, no flags), `argument-hint` (restated as the body's `**Usage:**` line), `model`, and where needed `disable-model-invocation` / `allowed-tools`. No `name` key, no key Claude Code does not document. Body: Desired Outcome → Decision Criteria → Prerequisites → steps, opening with the `Shared files:` line when it cites `@rules/…`-style paths. English only; `output_language` governs generated reports, never the skills.
+- **Hooks** (`hooks/hooks.json`; fire automatically under Claude Code, never bypass). `validate-mermaid.sh` on every Write/Edit of Markdown; `validate-frontmatter.sh` on `reports/**` inside a pipeline project (one with `work/pipeline-progress.json` above the file); `record_token_usage.py` after Write/Edit/Agent and at Stop/SubagentStop, appending to `work/token-usage.json` (`rules/token-pricing.md`). Every enabled plugin loads its own copy, so `hooks/claim.sh` lets one copy per `tool_use_id` act — keep that guard in any hook you add. Hook mode exits 2 (fed back for self-correction); CLI mode with file arguments exits 1.
+- **Tests.** No unit-test framework; each suite is an executable contract that exits 1 on failure. `bash tools/run-tests.sh` runs them all (`-v` streams, a substring selects); it discovers any `*.test.py` / `*.test.sh`, and `.github/workflows/contracts.yml` runs the same on every push and pull request, then `claude plugin validate . --strict` and `claude plugin validate skills --strict` on a pinned version (which do not reach `skills/product/`, `skills/infra/` or unknown frontmatter keys — the suites own those). What each suite guards is `docs/test-suites.md`; a new suite gets its row in the same commit, or `tools/docs_consistency.test.py` fails. Behavioural evals (`evals/`, `tools/eval-plugin.sh <plugin>`) cost money and run on demand when a `description` changes. Not in the runner: `samples/scalardb-transaction-tests/` (`./gradlew integrationTest`, after a ScalarDB bump). The weekly `refresh-okf-k8s-tf.yml` workflow is not a gate: it collects the k8s-tf bundle's public upstream and opens a pull request; revising the documents is `/architect:revise-knowledge`.
+- **Release.** Git-flow by hand: `release/x.y.z` → bump the versions in `marketplace.json` (all plugins share one number) → `CHANGELOG.md` and `CHANGELOG_ja.md` → merge to `main` → annotated tag → GitHub release.
 
-Legacy fallbacks (only if an old skill copy still mentions them):
+## Command Reference
 
-- `.claude/docs/*` -> `skills/common/references/*`
-- `.claude/rules/*` -> `rules/*`
+**117 slash commands across four plugins.** The catalogue — every command with its model,
+prerequisites and full flag signature — is `docs/skill-reference.md` (`_ja` for Japanese), read on
+demand and deliberately not imported here. This table maps *which group does what*; the counts
+partition all 117.
 
-For migration skills that mention `.claude/configuration/databases.env` or `.claude/output/`, keep those paths unless the user asks to migrate the runtime state. They are compatibility paths and can be used by both Claude Code and Codex.
+| Group | Entry point | What it does | n |
+|-------|-------------|--------------|---|
+| **Product Direction** `/product:*` | `/product:start` | Validation-driven pipeline from product vision to SLA/NFR, gating on the riskiest assumptions; hands off to `/architect:define-requirements`. Skills under `skills/product/`, rules under `rules/product/` | 28 |
+| **Orchestration & setup** | `/architect:start`, `/architect:pipeline` | Interactive or automated execution of the architect core pipeline, plus `init-output` | 3 |
+| **Core pipeline** `/architect:*` | run by the orchestrators | requirements → investigate → analyze → evaluate → redesign → design → review → report. Phases, order, outputs and models are the manifest's: `skills/common/skill-dependencies.yaml` | 29 |
+| **Extension tier** | invoked individually | Implementation specs, code generation (REST / GraphQL / ScalarDB / contract, acceptance and characterization tests / IaC / docs), verification and the quality gate, infrastructure / security / observability / DR design, cost estimation, SQL migration to ScalarDB. Enumerated under Pipeline Dependencies | 24 |
+| **Backlog Delivery** | `/architect:deliver-backlog` | export → implement → review → merge over GitLab/GitHub work items. Writes **merge-bound code into the project's real source tree**, never `generated/`, and stops at every human gate | 7 |
+| **Database Migration** | `/architect:migrate-database` | Oracle / MySQL / PostgreSQL → ScalarDB: schema extraction, analysis, SP/trigger conversion (the router delegates to nested sub-skills) | 4 |
+| **ScalarDB Development** `/scalardb:*` | `/scalardb:build-app` | Schema modeling, configuration, scaffolding, CRUD/JDBC patterns, exception handling, code review, migration advice | 11 |
+| **Multi-Cloud Infrastructure** `/infra:*` | `/infra:start` | Terraform / Kubernetes / Helm / Kustomize / Argo CD / GitLab CI / Cosign / Vault / ESO / Prometheus / Kyverno across AWS-Azure-GCP × local-test-staging-production, grounded in `okf-k8s-tf`. Skills under `skills/infra/`, rules under `rules/infra/` | 4 |
+| **Status & utility** | `/architect:report-status` | One dashboard (`tools/nexus-status.sh`; `Tab` cycles four views), `render-mermaid`, `update-knowledge`, `revise-knowledge`, `report-token-cost`, `investigate-db-design` (DDL/design documents), `investigate-db-live` (catalogs and statistics), `explain` (any generated artifact) | 7 |
 
-When a skill mentions `CLAUDE_PLUGIN_ROOT`, treat the repository root as the plugin root in Codex.
+Which phases `/architect:pipeline` runs is the manifest's; which the dashboard files under Code
+Generation is `CODEGEN_PHASES` in `tools/lib/pipeline_status_data.py`.
 
-- `${CLAUDE_PLUGIN_ROOT}/skills/common/subagents/<db>/` -> `skills/common/subagents/<db>/` (subagent prompt templates for migration skills)
-- `${CLAUDE_PLUGIN_ROOT}/subagents/<db>/` -> `skills/common/subagents/<db>/` (legacy subagent prompt path)
+## Pipeline Dependencies
 
-## Pipeline Skill
+```
+[define-requirements (optional; the greenfield entry point)]
+investigate -> [analyze-ui (optional)] -> analyze -> [evaluate-mmi, evaluate-ddd, evaluate-ux (optional)] -> integrate-evaluations
+            \-> [map-domains, analyze-data-model (optional)]
+  -> redesign -> [create-domain-story (optional, per domain),
+                  design-aggregate (optional, per bounded context),
+                  design-state-machine (optional, per aggregate)]
+  -> design-microservices -> [design-scalardb | design-data-layer, design-api -> design-graphql (conditional)]
+  -> [review-consistency, review-scalardb|review-data-integrity, review-api-security, review-operations, review-risk, review-business]
+  -> review-synthesizer -> report -> review-report
+```
 
-`skills/pipeline/SKILL.md` is an orchestrator. It does not perform analysis itself — it reads
-`skills/common/skill-dependencies.yaml` to determine execution order, then invokes each phase's
-`SKILL.md` in sequence. When running the pipeline in Codex, follow the dependency graph manually:
-read each skill file in order and execute it before moving to the next phase.
+Dependency manifest (architect): `skills/common/skill-dependencies.yaml`. The **product** plugin
+has its own: `skills/product/common/skill-dependencies.yaml` (vision → success-metrics/revenue →
+scope → validate-assumptions [gate] → persona/journey/positioning → create-domain-story/design-system
+→ ui-mock/features/example-map/data-model/frontend → map-domains/api → sla/nfr → design-architecture
+→ review → report; `adapt-change` on demand), ending in the handoff to `/architect:define-requirements`.
 
-The `disable-model-invocation: true` frontmatter in that file is a Claude Code plugin hint; Codex
-does not interpret it, so treat the file as the orchestration specification described above.
+The manifest covers the core pipeline only. Twenty-four further architect skills —
+`investigate-security`, `select-scalardb-edition`, `design-scalardb-analytics`,
+`design-implementation`, `generate-test-specs`, `generate-characterization-tests`,
+`generate-scalardb-code`, `generate-api-code`, `generate-graphql-code`, `generate-contract-tests`,
+`generate-acceptance-tests`, `generate-infra-code`, `generate-docs`, `verify-implementation`,
+`design-sql-migration`, `implement-sql-migration`, `verify-sql-migration`, `design-infrastructure`,
+`design-security`, `design-observability`, `design-disaster-recovery`, `estimate-cost`,
+`estimate-token-cost`, `report-token-cost` — form a **manual extension tier**: not executed by
+`/architect:pipeline` nor by `/architect:start`, invoked individually, typically after the core
+pipeline. That list is exactly `EXTENSION_PHASES` in `tools/lib/pipeline_status_data.py`, which the
+status dashboard renders as its own group, so the two are edited together.
 
-Its § Phase Execution has Claude Code start each phase in a sub-agent so that the phase runs on the
-model the manifest assigns. In Codex there is no per-phase model to select: run each phase in
-sequence as above, and keep the other half of that section — the pipeline is non-interactive, so a
-question a phase would ask is recorded `unasked` (`rules/open-questions.md` §5) rather than asked.
+The extension tier is **not** everything outside the manifest. Three further groups sit outside
+both, none run by `/architect:pipeline`: orchestration and setup (`start`, `pipeline`,
+`init-output`); status and utility (`report-status`, `render-mermaid`, `update-knowledge`,
+`revise-knowledge`, `investigate-db-design`, `investigate-db-live`, `explain`); and two pipelines
+in their own right — **Backlog Delivery** (`deliver-backlog`, `export-backlog`,
+`implement-backlog`, `review-issue`, `merge-issue`, `capture-followup`, `report-backlog-status`)
+and **Database Migration** (`migrate-database`, `migrate-oracle`, `migrate-mysql`,
+`migrate-postgresql`).
 
-## Product → Architect Handoff
+Within that tier the codegen skills have a fixed follow-on order — **generate code → test it →
+document it → verify it**: `generate-api-code` (REST/OpenAPI) or `generate-graphql-code` (Spring
+GraphQL), and `generate-scalardb-code` (`domain/` + `infrastructure/`) emit the service between
+them; `generate-contract-tests` turns the contract into executable tests and
+`generate-acceptance-tests` the Gherkin scenarios into the ATDD outer loop; `generate-infra-code`
+emits the IaC plus the CI workflow that enforces the eight-stage quality gate (and
+`/product:generate-frontend` the frontend); then `generate-docs` documents what was emitted and
+`verify-implementation` checks it against the design — with `--gate`, running that same gate
+in-session (`rules/ai-code-quality-gate.md`). On the legacy path `generate-characterization-tests`
+sits before all of this, pinning the modules a transformation step touches; on the
+backlog-delivery path the same step is Step 5b of `implement-backlog`. SQL migration is a sequence
+of its own inside the tier: `design-sql-migration` decides one route per inventoried statement,
+`implement-sql-migration` generates the migration module behind an offline gate, and
+`verify-sql-migration` proves the routes on data.
 
-`product` and `architect` are two pipelines with two manifests
-(`skills/product/common/skill-dependencies.yaml`, `skills/common/skill-dependencies.yaml`), run
-one after the other in the same project directory. `/product:*` ends at SLA/NFR and hands off to
-`define-requirements`, which reads the product reports instead of re-eliciting them. The contract
-is `docs/design.md` §1 — read it before running either side of the boundary.
-
-Detect the handoff by globbing `reports/00_core/`, `reports/01_ux/`, `reports/02_spec/`,
-`reports/03_domain/`, `reports/04_quality/` and `work/traceability.json` — matching **files**, not directories, since `/product:init-output` creates two of those directories empty. When any exist, run
-`define-requirements` with them as inputs; §1.3 maps each product artifact to its deliverable and
-§1.4 lists what product deliberately does *not* supply (per-process transaction consistency,
-physical DB inventory, actor/role/permission) — those are what still gets elicited.
-
-Three files under `work/` are **shared by both pipelines**, so every write is additive:
+**Product → architect handoff.** Both pipelines run in the same project directory. Detect the
+handoff by globbing for **files** under `reports/00_core/`, `reports/01_ux/`, `reports/02_spec/`,
+`reports/03_domain/`, `reports/04_quality/` and `work/traceability.json` (`/product:init-output`
+creates two of those directories empty); when any exist, `define-requirements` reads them instead
+of re-eliciting — `docs/design.md` §1.3 maps each artifact to its deliverable, §1.4 lists what
+product deliberately does not supply. Three files under `work/` are shared, so **every write is
+additive** (`skills/common/progress-registry.md` § One Registry, Two Pipelines):
 
 | File | Rule |
 |------|------|
-| `pipeline-progress.json` | Holds both pipelines' phases in one map keyed by bare phase name. Never re-register the map, never drop an entry your manifest does not define, never reset another pipeline's `options` (notably `output_language`). Write `"plugin": "product"\|"architect"` on every entry you stamp — `map-domains`, `design-api`, `create-domain-story` and `report` are defined by **both** manifests, so that field is the only thing that says whose entry it is. Where it is absent, confirm a `completed` against the phase's declared `outputs:` on disk before treating it as done |
-| `traceability.json` | One graph for the whole project. `define-requirements` appends `FR-`/`NFR-` nodes to what product wrote; never start a second file and never truncate it to `[]`. ID prefixes are declared per phase as `id_prefix` in the manifests |
-| `context.md` | Decisions, and **the** Open Questions store for the whole project — both pipelines' questions live in this one file, answered in place under their existing `OQ-` IDs; `reports/00_requirements/open-questions.md` is a view rendered from it, not a second store. Allocate a new ID as `max(OQ-###) + 1` over the store, never by numbering from your own reports. Create it only when absent; never overwrite it |
+| `pipeline-progress.json` | One `phases` map keyed by bare phase name, holding both pipelines. Never re-register it, drop another manifest's entry, or reset another pipeline's `options` (notably `output_language`). Stamp `"plugin": "product"\|"architect"` on every entry — `map-domains`, `design-api`, `create-domain-story` and `report` exist in both manifests. Where it is absent, confirm a `completed` against the phase's `outputs:` on disk |
+| `traceability.json` | One graph. `define-requirements` appends `FR-`/`NFR-` to what product wrote; never a second file, never truncated to `[]`. `id_prefix` on each manifest phase says which skill mints which prefix |
+| `context.md` | Decisions, plus **the** Open Questions store for both plugins; `reports/00_requirements/open-questions.md` is a view rendered from it. New IDs are `max(OQ-###) + 1` over the store. Create only when absent; never overwrite |
 
-`/product:adapt-change` walks the shared graph, so its blast radius reaches architect's nodes. It
-**reports** them and stops — it never re-runs an architect skill or rewrites an architect
-artifact (`docs/design.md` §7.5).
+`/product:adapt-change` walks the shared graph; it **reports** architect nodes in its blast radius
+and stops, never re-running an architect skill (`docs/design.md` §7.5).
 
-## Model Recommendations
+**The infra plugin is outside all of this** — no manifest, not a phase, not on the dashboard. It
+overlaps three architect skills on purpose:
 
-Claude Code switches models automatically based on each skill's assignment. Codex ignores the
-`model:` setting and uses the session model throughout, so choose an equivalent tier when possible:
-Opus for architecture decisions, strategy, tradeoff analysis, and risk; Sonnet for standard analysis,
-structured generation, and most reviews; Haiku for template generation and simple transforms.
+| Architect | Infra | Boundary |
+|-----------|-------|----------|
+| `/architect:design-infrastructure` → `reports/08_infrastructure/infrastructure-design.md` | `/infra:design` | Upstream/downstream: architect decides the *logical* infrastructure; infra turns it into a concrete multi-cloud, four-environment configuration grounded in `okf-k8s-tf` |
+| `/architect:generate-infra-code` → `generated/` | `/infra:implement` | Output location: codegen emits scaffolding plus the quality-gate CI workflow into `generated/`; `/infra:implement` writes merge-bound code into the **real infrastructure repository** |
+| `/architect:design-security`, `design-observability`, `design-disaster-recovery` | `/infra:design` sections | Policy vs. means: architect sets the authorization model, SLI/SLO and RTO/RPO; infra decides Vault / ESO / Prometheus / Kyverno and their deployment |
+| `/architect:review-operations` | `/infra:review` | Artefact: architect reviews design documents; infra reviews Terraform, manifests and CI, adding ownership overlap, image digest continuity, secret exposure |
 
-The dependency YAML files are authoritative for pipeline skills; standalone skills use their
-`SKILL.md` frontmatter. Product skill names are prefixed below to distinguish them from architect
-skills with the same name.
+## Model Assignment
 
-`implement-backlog` is a thin sonnet orchestrator that delegates heavy steps to model-tiered
-sub-agents (haiku digests, sonnet implementation, opus only for planning and consistency verdicts —
-see its Sub-Agent Execution table). On runtimes without model switching, run the whole skill at the
-session model and preserve the delegation structure (sub-agents return digests, not full sources).
+| Model | Use for | Examples |
+|-------|---------|----------|
+| **opus** | Architecture decisions, tradeoff analysis, risk, strategy | analyze, redesign, design-microservices, review-risk, product strategy skills, `infra:design` / `infra:review` |
+| **sonnet** | Standard analysis, document generation, reviews, implementation | investigate, review-consistency, evaluate-mmi, `infra:implement` |
+| **haiku** | Template generation, status checks, simple transforms | init-output, render-mermaid, report, report-status |
 
-| Plugin | Opus equivalent | Sonnet equivalent | Haiku equivalent sufficient |
-|---|---|---|---|
-| architect | define-requirements, analyze, map-domains, redesign, create-domain-story, design-aggregate, design-state-machine, design-microservices, design-scalardb, design-data-layer, design-api, design-graphql, design-implementation, generate-scalardb-code, generate-api-code, generate-graphql-code, verify-implementation, design-sql-migration, design-infrastructure, review-risk, review-api-security, export-backlog, review-issue, merge-issue, revise-knowledge | start, pipeline, deliver-backlog, implement-backlog, capture-followup, investigate, investigate-db-design, investigate-db-live, investigate-security, analyze-data-model, analyze-ui, evaluate-mmi, evaluate-ddd, evaluate-ux, integrate-evaluations, select-scalardb-edition, design-scalardb-analytics, generate-test-specs, generate-characterization-tests, generate-contract-tests, generate-acceptance-tests, generate-infra-code, generate-docs, implement-sql-migration, verify-sql-migration, design-security, design-observability, design-disaster-recovery, review-consistency, review-scalardb, review-data-integrity, review-operations, review-business, review-synthesizer, review-report, estimate-cost, estimate-token-cost, explain, migrate-database, migrate-oracle, migrate-mysql, migrate-postgresql | init-output, report, render-mermaid, update-knowledge, report-token-cost, report-backlog-status, report-status |
-| scalardb | — | model, config, scaffold, error-handler, crud-ops, jdbc-ops, local-env, docs, build-app, review-code, migrate | — |
-| infra | infra:design, infra:review | infra:start, infra:implement | — |
-| product | product:define-vision, product:define-success-metrics, product:research-landscape, product:design-revenue, product:name-product, product:validate-assumptions, product:generate-persona, product:design-positioning, product:create-domain-story, product:design-system, product:example-map, product:define-data-model, product:map-domains, product:design-api, product:design-architecture, product:review, product:adapt-change | product:start, product:init-output, product:define-scope, product:map-journey, product:generate-ui-mock, product:define-features, product:generate-frontend, product:design-sla, product:define-nfr, product:report | product:report-status |
+The per-skill tier is **data, not prose**: `skills/common/skill-dependencies.yaml` and
+`skills/product/common/skill-dependencies.yaml` for pipeline phases, each SKILL.md's `model` for
+everything else (`docs/skill-reference.md` lists them). Where the assignment takes effect is
+measured in `docs/skill-authoring.md` § Where `model` takes effect; two rules follow, enforced by
+`skills/common/subagent-model.test.py`:
 
-## Interaction Rules
+- **Every sub-agent call names its `model`**, the calling skill's own tier unless it says otherwise.
+- **`/architect:pipeline` runs every phase as a sub-agent on the manifest's `model`**, never inline, in the foreground, three phases at a time.
 
-- Preserve Claude Code compatibility. Do not remove `.claude-plugin/`, `CLAUDE.md`, or Claude-specific frontmatter unless explicitly asked.
-- If a skill asks for multiple-choice input with `AskUserQuestion`, show the choices as a numbered list, end with an explicit "or type your own answer" line, and wait for the user's answer before continuing. A reply that matches no number is a free-text answer: record it verbatim, never round it to the nearest choice.
-- When a skill hits an unknown it cannot resolve from its inputs, **ask it** rather than writing `TBD`: derive 2–4 candidate answers with their downstream consequences, present them as above, and only record `TBD` for what the user defers, cannot answer in-session, or was never asked (`--auto`) — each with its `OQ-` ID, status and owner. See `rules/open-questions.md`.
-- If a skill asks for parallel Claude subagents, execute the prerequisite steps in order and only parallelize independent shell reads or explicit user-approved agent work.
-- Keep generated outputs in the documented output directories and include YAML frontmatter for Markdown reports.
-- For any infrastructure design, implementation, or review decision (Terraform, Kubernetes, Helm, Kustomize, Argo CD, GitLab CI/CD, Cosign, Vault, External Secrets, Prometheus/Grafana, Kyverno), ground the answer in the vendored OKF bundle at `knowledge/okf-k8s-tf/` (`tools/update-okf-bundle.sh status --bundle=k8s-tf`; it has **no remote** — the origin repository was deleted). Fix the target environment (`local` / `test` / `staging` / `production`) and cloud before reading anything, keep the bundle's three tiers apart in the output (observed implementation = fact, design guidance = recommendation with a source, open question = unresolved), cite the document behind each claim, and say "outside the bundle's scope" for `local` and for anything production-specific rather than asserting. See `rules/okf-k8s-tf-bundle.md`, `rules/infra/environments.md`, `rules/infra/multi-cloud.md`.
-- For any ScalarDB / ScalarDL / ScalarDB Saga design, implementation, review, or migration decision, ground the answer in the version-pinned OKF knowledge bundle at `knowledge/okf-scalardb-scalardl/okf/` (a git submodule; run `tools/update-okf-bundle.sh` to fetch it if absent, `update` to pull the newest, `status` to inspect). Pin product/version/edition first and answer only from that release's docs, per `rules/okf-knowledge-bundle.md`.
-- Before writing any file that pins a version (Gradle/Maven, `package.json`, image tags, Helm/Terraform/Kubernetes), **look the version up** from its registry with the shell (`curl` against `repo1.maven.org` / Docker Hub / the Terraform registry, `npm view <pkg> dist-tags --json`, `gh release list -R <owner>/<repo>`, `curl -s https://endoflife.date/api/<product>.json`) — never write a version from memory or copy one out of a skill example. Choose a stable, non-EOL, mutually compatible release, record the decision table in the artifact and `work/version-decisions.json`, and confirm with the user per `--confirm-versions` / `--no-confirm-versions` / `options.confirm_versions` (unset -> interactive runs ask, `--auto` runs adopt). See `rules/dependency-versions.md`.
-- When a skill designs, generates, or reviews an HTTP API surface, the specification file under `reports/03_design/api-specifications/` is the **contract**: code may not add an endpoint, parameter, field, or status code the specification does not declare, may not contradict one it does, and a behaviour change edits the specification first. Every operation carries an `operationId` bound 1:1 to one handler, and the binding is recorded in `reports/06_implementation/api-contract-map.json`. See `rules/api-contract-fidelity.md`.
-- Every non-2xx response is an RFC 9457 Problem Details object (`application/problem+json`) whose `type` comes from the project's registry in `reports/03_design/api-specifications/problem-types.md` — never a second, ad-hoc error envelope. `UnknownTransactionStatusException` gets its own branch, never a generic 500 handler: the commit may have succeeded, so it is 503 with `Retry-After` **only** when the operation is idempotency-key protected, and otherwise 500 with no retry hint and an explicit reconcile-don't-retry `detail`. See `rules/api-error-standard.md`.
-- Generated or AI-written code passes the eight-stage quality gate before a human is asked to review it: build, unit, contract, integration, SAST, dependency scan, API security, and design↕code conformance. **Every stage produces evidence** — a command that ran with its exit code, or a skill that returned findings; "it looks correct" is not a stage result, and a stage that did not run is recorded with its reason rather than omitted. A FAIL blocks the review handoff; it is not a note on the PR. See `rules/ai-code-quality-gate.md` and `rules/api-security-checks.md`.
-- Merge-bound application code is written **test-first**, as a Red → Green → Refactor commit series per unit: a `test:` commit whose body names the tests that were run and failed, then the `feat:` commit that makes them pass, then a `refactor:` commit that edits no test. Every repository port gets an in-memory Fake; `Clock` and id generation are injected. The gate reads the branch log and records the sequence per unit — reported, never silent. Legacy modules are pinned by characterization tests recorded from the running system before a transformation step touches them. See `rules/tdd-workflow.md`.
-- After editing any report Markdown file or Mermaid diagram, you **must** run the validation hooks before proceeding:
-  - `hooks/validate-frontmatter.sh <file.md>`
-  - `hooks/validate-mermaid.sh <file.md>`
+`/architect:start` and `/product:start` declare `model: inherit`: dialogue-driven phases run
+inline on the session's model (they suggest `/model opus` when it is smaller) and every other
+phase goes to a sub-agent on its manifest model, whose questions are settled before a dependent
+phase starts. No phase declares `effort`. `implement-backlog` is a thin sonnet orchestrator
+delegating to tiered sub-agents (haiku digests, sonnet implementation, opus for planning and
+consistency verdicts); runtimes without model switching keep the delegation structure at the
+session model.
 
-  A non-zero exit means the file has a frontmatter or diagram error — fix it before continuing.
+## Output Conventions
+
+All outputs are git-ignored in the project being worked on: `reports/` (analysis and design
+documents), `generated/` (code per service), `work/` (pipeline state, intermediate files). Naming
+and frontmatter: `rules/output-conventions.md`. In brief:
+
+- **Output language** is per project — `work/pipeline-progress.json` `options.output_language`: `en` (default) or `ja`; `/architect:start` asks at initialization. It governs report prose only; frontmatter keys, Mermaid node IDs, skills and rules stay English.
+- **Files**: kebab-case; every output carries YAML frontmatter with `schema_version`; every diagram is Mermaid (hook-validated); each step writes its file on completion (immediate output).
+- **Open Questions**: an unknown a skill cannot resolve from its inputs is **asked** — `AskUserQuestion` with derived candidate options, "Other" carrying what they cannot express — and only what the user defers, cannot answer in-session or was never asked (`--auto`) becomes a `TBD`, recorded with its `OQ-` ID, status and owner (`rules/open-questions.md`).
+- **Dependency versions**: any generated file that pins a version uses one **looked up** from its registry — never from memory or a skill example — stable, non-EOL, mutually compatible; confirmation per `--confirm-versions` / `--no-confirm-versions` / `options.confirm_versions` (unset → interactive asks, `--auto` adopts); decisions in `work/version-decisions.json` (`rules/dependency-versions.md`).
+- **ScalarDB grounding**: every ScalarDB / ScalarDL / ScalarDB Saga decision is grounded in the version-pinned bundle `knowledge/okf-scalardb-scalardl/okf/` (submodule; `tools/update-okf-bundle.sh` fetches / `update` / `status`): pin product, version and edition first, answer from that release's docs (`rules/okf-knowledge-bundle.md`). Without ScalarDB, its skills are skipped and `review-data-integrity` replaces `review-scalardb`.
+- **Infrastructure grounding**: every infrastructure decision is grounded in `knowledge/okf-k8s-tf/` (vendored, no remote): fix environment and cloud first, keep fact / guidance / open question apart, cite the document, say "outside the bundle's scope" for `local` and anything production-specific (`rules/okf-k8s-tf-bundle.md`, `rules/infra/*.md`).
+- **API contract**: the specification under `reports/03_design/api-specifications/` is the contract; code adds nothing it does not declare, each `operationId` binds to one handler in the contract map, drift is reported, never reconciled silently (`rules/api-contract-fidelity.md`). Every non-2xx response is RFC 9457 Problem Details from the project's type registry (`rules/api-error-standard.md`).
+- **Quality gate**: generated or AI-written code passes the eight-stage gate before human review — every stage with evidence, a skipped stage recorded with its reason, a FAIL blocking the handoff (`rules/ai-code-quality-gate.md`). Merge-bound code is written test-first, `test:` → `feat:` → `refactor:` per unit (`rules/tdd-workflow.md`).
+
+## Tool Priority
+
+1. **Serena MCP** (`get_symbols_overview`, `find_symbol`) — structural understanding
+2. **Glob/Grep** — file discovery and pattern search
+3. **Read** — targeted file reading
+4. **Agent (sub-agent)** — large-scale exploration across many files
+
+## Rules & References
+
+Read on demand with the Read tool when the condition applies; deliberately not imported, to keep
+session context small — do not load ScalarDB rules for non-ScalarDB work.
+
+| Resource | Location | When to read |
+|----------|----------|--------------|
+| product input requirements | docs/product-input-requirements.md | Inputs the user supplies before the product pipeline |
+| architect input requirements | docs/architect-input-requirements.md | Inputs the user supplies before the architect pipeline |
+| DDD technique coverage | docs/ddd-coverage.md | "Does the toolkit do <DDD technique>?", or adding/changing a DDD skill — update the row in the same commit |
+| report documentation site | docs/docs-site.md | Serving a project's `reports/` as a local site (`tools/docs-site.sh`) |
+| multi-cloud infrastructure guide | docs/infrastructure.md | Using `/infra:*` — setup, the four premises, the boundary with architect |
+| skill authoring | docs/skill-authoring.md | Writing or changing a SKILL.md, its frontmatter, hooks or model tier — the measurements behind the rules |
+| contract suites | docs/test-suites.md | Changing anything a suite guards, or adding a suite |
+| product ↔ architect integration | docs/design.md | Touching the handoff (§1) or `adapt-change` (§7) |
+| product skill rules | rules/product/*.md (20 files) | Editing a `/product:*` skill, or `create-domain-story --mode=event-storming`; each SKILL.md names the one it needs — never load the set |
+| infra skill rules | rules/infra/*.md (environments, multi-cloud) | Editing an `/infra:*` skill, or a question on the four environments or the portability boundary |
+| Open Questions protocol | rules/open-questions.md | Any point where a skill would write `TBD` |
+| Output conventions | rules/output-conventions.md | Writing or changing what a skill emits under `reports/` |
+| Token pricing & usage | rules/token-pricing.md | Estimating run cost, or reading `work/token-usage.json` |
+| Dependency version selection | rules/dependency-versions.md | Writing any file that pins a version |
+| OKF bundle: Kubernetes/Terraform | rules/okf-k8s-tf-bundle.md | Any infrastructure design, implementation or review |
+| OKF bundle: ScalarDB/ScalarDL/Saga | rules/okf-knowledge-bundle.md | Any ScalarDB / ScalarDL / ScalarDB Saga decision |
+| API contract fidelity | rules/api-contract-fidelity.md | Designing an API surface, generating API code or contract tests, verifying against the contract |
+| API error standard | rules/api-error-standard.md | Error responses, exception handlers, the ScalarDB exception → HTTP mapping |
+| API security checks | rules/api-security-checks.md | Reviewing an API design or API-layer code — OWASP API Top 10 (2023), tenant isolation |
+| API style selection | rules/api-style-selection.md | Choosing REST / GraphQL / hybrid / gRPC / AsyncAPI per surface; `api-style-decisions.json` is canonical |
+| GraphQL contract fidelity | rules/graphql-contract-fidelity.md | Designing a GraphQL schema, generating resolvers or GraphQL contract tests |
+| GraphQL security checks | rules/graphql-security-checks.md | Reviewing GraphQL design or resolvers — read after api-security-checks |
+| AI code quality gate | rules/ai-code-quality-gate.md | Gating generated or AI-written code before human review |
+| TDD workflow | rules/tdd-workflow.md | Writing merge-bound code or generating a domain layer |
+| SQL migration | rules/sql-migration.md | `design-` / `implement-` / `verify-sql-migration` — one route per statement, evidence, verification states |
+| Database investigation | rules/database-investigation.md | Design-document and live catalog investigation |
+| ScalarDB exception handling | rules/scalardb-exception-handling.md | Exception handling, retry logic |
+| ScalarDB CRUD patterns | rules/scalardb-crud-patterns.md | CRUD API operations |
+| ScalarDB JDBC patterns | rules/scalardb-jdbc-patterns.md | JDBC/SQL operations |
+| ScalarDB cross-service transactions | rules/scalardb-2pc-patterns.md | Shared cluster / Global Transaction API / 2PC / Saga choice; two-phase commit |
+| ScalarDB Saga patterns | rules/scalardb-saga-patterns.md | Cross-service eventually consistent transactions |
+| ScalarDB config validation | rules/scalardb-config-validation.md | Configuration correctness |
+| ScalarDB schema design | rules/scalardb-schema-design.md | Schema and key design |
+| ScalarDB Java best practices | rules/scalardb-java-best-practices.md | Java coding standards |
+| ScalarDB coding patterns | rules/scalardb-coding-patterns.md | Code generation, design-scalardb, generate-scalardb-code |
+| ScalarDB edition profiles | rules/scalardb-edition-profiles.md | Edition selection |
+| Evaluation frameworks | rules/evaluation-frameworks.md | MMI/DDD scoring |
+| Aggregate design | rules/aggregate-design.md | Modeling, reviewing or generating the tactical model inside a bounded context |
+| Architecture Decision Records | rules/architecture-decision-records.md | Making or reviewing a design decision a later phase depends on; the additive `ADR-` allocation |
+| Existing UI analysis | rules/ui-analysis.md | `analyze-ui`, and consuming its inventory |
+| UX evaluation | rules/ux-evaluation.md | `evaluate-ux`, and merging its score |
+| State transition modeling | rules/state-modeling.md | An object with a lifecycle — states, events, the state × event matrix |
+| Mermaid best practices | rules/mermaid-best-practices.md | Creating diagrams |
+| Spring Boot integration | rules/spring-boot-integration.md | Java code generation |
+| Output structure contract | templates/output-structure.md | File dependencies |
+| Dependency manifests | skills/common/skill-dependencies.yaml, skills/product/common/skill-dependencies.yaml | Phase order, declared outputs, `model`, `id_prefix`, `conditions` — the source, not prose |
+| Sub-agent patterns | skills/common/sub-agent-patterns.md | Spawning sub-agents |
+| Progress registry | skills/common/progress-registry.md | `pipeline-progress.json` schema and resume behavior |
+| Backlog checklist contract | skills/common/backlog-checklists.md | Ticking Epic/Sub-Epic/Issue checkboxes during backlog delivery |
+| ScalarDB references | skills/common/references/ | `api-reference.md`, `interface-matrix.md` (6 interface combinations), `exception-hierarchy.md`, `sql-reference.md`, `schema-format.md`, `configuration-reference.md`, `code-patterns/` (complete app templates) |

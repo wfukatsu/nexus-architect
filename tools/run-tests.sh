@@ -12,7 +12,7 @@
 #
 # Not covered here: samples/scalardb-transaction-tests (a Gradle project that resolves
 # dependencies over the network and runs against a real ScalarDB engine — run it directly after a
-# ScalarDB version bump, see CLAUDE.md).
+# ScalarDB version bump, see AGENTS.md § Repository Mechanics).
 #
 # Usage:
 #   tools/run-tests.sh            run everything, print a summary

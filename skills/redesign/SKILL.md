@@ -65,7 +65,7 @@ list is its interior.
 | `reports/03_design/adr/adr-NNN-<slug>.md` | One Architecture Decision Record per decision this skill makes (@rules/architecture-decision-records.md §1) |
 | `reports/03_design/adr/index.md` | The ADR index — a view regenerated from the records' frontmatter |
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 
 ## Architecture Decision Records
 

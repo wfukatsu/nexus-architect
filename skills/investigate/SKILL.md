@@ -76,7 +76,7 @@ Write output files immediately upon completing each section:
 
 All output files must include YAML frontmatter (title, schema_version: 1, phase, skill, generated_at).
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 
 ## Completion
 

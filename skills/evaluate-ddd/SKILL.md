@@ -248,7 +248,7 @@ DDD maturity levels:
 - 40-60  → Weak alignment, significant refactoring required
 - 0-40   → Minimal DDD adoption
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 
 **`reports/02_evaluation/ddd-strategic-evaluation.md`** — Strategic design evaluation (Task A result):
 

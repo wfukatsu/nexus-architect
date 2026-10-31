@@ -45,7 +45,7 @@ recommending it, and flag Private Preview features explicitly.
 |------|---------|
 | `reports/03_design/scalardb-edition-selection.md` | Selection result and rationale — edition, version line, deployment mode, cluster topology, and any separately contracted Option add-ons |
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 
 ## Related Skills
 

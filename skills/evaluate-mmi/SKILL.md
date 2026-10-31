@@ -233,7 +233,7 @@ Maturity classification:
 - 40-60  → Needs Improvement (Major refactoring required)
 - 0-40   → Immature (Fundamental redesign required)
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 
 **`reports/02_evaluation/mmi-by-module.md`** — Per-module 4-axis score table:
 

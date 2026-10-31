@@ -7,6 +7,9 @@ model: sonnet
 
 # Cost Estimation
 
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
 ## Desired Outcome
 
 Produce a multi-dimensional cost estimate for the project:
@@ -24,7 +27,7 @@ Confirm the following via AskUserQuestion:
 
 ## Output
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 
 | File | Content |
 |------|---------|

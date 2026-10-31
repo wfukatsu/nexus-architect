@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Consistency checks for the documentation that describes the skill corpus.
 
-The catalogue of commands lives in docs/skill-reference.md (+ _ja); CLAUDE.md, README.md and
-AGENTS.md carry only a grouped summary and pointers. That split is only safe if something asserts
+The catalogue of commands lives in docs/skill-reference.md (+ _ja); AGENTS.md (the one entry doc
+every runtime reads; CLAUDE.md is a stub that imports it) and README.md carry only a grouped
+summary and pointers. That split is only safe if something asserts
 the pieces still agree with the registry (.claude-plugin/marketplace.json), with the manifests, and
 with each SKILL.md — otherwise the summaries rot exactly the way the full lists did.
 
@@ -74,9 +75,9 @@ REG = registered()
 CMDS = commands(REG)
 EN = read("docs/skill-reference.md")
 JA = read("docs/skill-reference_ja.md")
-CLAUDE = read("CLAUDE.md")
+ENTRY = read("AGENTS.md")
+STUB = read("CLAUDE.md")
 README = read("README.md")
-AGENTS = read("AGENTS.md")
 
 # ---------------------------------------------------------------- catalogue
 
@@ -379,7 +380,7 @@ expected = {
 check("the %d groups partition all %d commands" % (len(expected), len(CMDS)),
       sum(expected.values()) == len(CMDS), expected)
 
-for doc_name, doc in (("CLAUDE.md", CLAUDE), ("README.md", README)):
+for doc_name, doc in (("AGENTS.md", ENTRY), ("README.md", README)):
     rows = dict(re.findall(r"^\| \*\*([^*]+)\*\*[^|]*\|.*\| (\d+) \|$", doc, re.M))
     check("%s group table is present" % doc_name, len(rows) == len(expected), sorted(rows))
     wrong = {g: (rows.get(g), n) for g, n in expected.items() if rows.get(g) != str(n)}
@@ -388,15 +389,30 @@ for doc_name, doc in (("CLAUDE.md", CLAUDE), ("README.md", README)):
           ("%d slash commands" % len(CMDS)) in doc or ("%d skills" % len(CMDS)) in doc)
     check("%s points at the catalogue" % doc_name, "docs/skill-reference.md" in doc)
 
-# The pointer must not be @-imported: CLAUDE.md @-paths are pulled into every session, which
-# would re-add the catalogue this split exists to keep out.
-check("CLAUDE.md does not @-import the catalogue", "@docs/skill-reference.md" not in CLAUDE)
+# The pointer must not be @-imported: an @-path in a file Claude Code loads is pulled into every
+# session, which would re-add the catalogue this split exists to keep out. Nor anything else:
+# seven such paths once made every session load 66 KB it mostly did not need, under a heading
+# saying rules are read on demand (issue #54). A path in backticks is not an import; the notation
+# itself (`@rules/...`) is described in backticks and is not one either. Codex has no imports at
+# all, so an @-path in AGENTS.md would also be a sentence Codex reads and Claude Code expands.
+imports = re.findall(r"(?<![`\w])@(?:skills|rules|docs|templates|tools)/[\w/.-]+", ENTRY)
+check("AGENTS.md @-imports no repository file", not imports, imports)
 
-# Nor anything else. Seven such paths once made every session load 66 KB it mostly did not need,
-# under a heading saying rules are read on demand (issue #54). A path in backticks is not an
-# import; the notation itself (`@rules/...`) is described in backticks and is not one either.
-imports = re.findall(r"(?<![`\w])@(?:skills|rules|docs|templates|tools)/[\w/.-]+", CLAUDE)
-check("CLAUDE.md @-imports no repository file", not imports, imports)
+# CLAUDE.md is the stub that gives Claude Code AGENTS.md on every version and every Project
+# instructions setting (code.claude.com/docs/en/memory#agents-md): exactly one import, of that
+# file, and nothing else that could drift from it. Claude Code never loads an imported AGENTS.md
+# twice, so the stub is harmless where AGENTS.md is read directly.
+stub_imports = re.findall(r"(?<![`\w])@\S+", STUB)
+check("CLAUDE.md is a stub importing exactly AGENTS.md", stub_imports == ["@AGENTS.md"], stub_imports)
+stub_prose = re.sub(r"<!--.*?-->", "", STUB, flags=re.S).replace("@AGENTS.md", "").strip()
+check("CLAUDE.md carries no instructions of its own", not stub_prose, stub_prose[:80])
+
+# Codex reads AGENTS.md whole only up to project_doc_max_bytes, 32 KiB by default, and truncates
+# silently past it (developers.openai.com/codex/guides/agents-md). docs/codex-usage.md says how to
+# raise the budget; this keeps the default sufficient.
+CODEX_DOC_BUDGET = 32 * 1024
+check("AGENTS.md fits Codex's default project_doc_max_bytes (%d bytes)" % CODEX_DOC_BUDGET,
+      len(ENTRY.encode()) <= CODEX_DOC_BUDGET, len(ENTRY.encode()))
 
 # The per-suite reference left CLAUDE.md for docs/test-suites.md, and the runner discovers suites
 # by itself — so nothing but this check would notice a suite the table does not name.
@@ -409,34 +425,44 @@ rows = re.findall(r"^\| `([^`]+?)`", SUITES_DOC, re.M)
 unlisted = [s for s in tracked if not any(fnmatch.fnmatch(s, row.split(" ")[0]) for row in rows)]
 check("docs/test-suites.md names every suite the runner discovers (%d)" % len(tracked),
       tracked and not unlisted, unlisted)
-check("CLAUDE.md points at the per-suite reference", "docs/test-suites.md" in CLAUDE)
+check("AGENTS.md points at the per-suite reference", "docs/test-suites.md" in ENTRY)
 
 # --------------------------------------------------------- tier enumeration
 
-print("CLAUDE.md tier prose matches the code that renders it")
+print("AGENTS.md tier prose matches the code that renders it")
 
-tier_para = CLAUDE.split("**manual extension tier**", 1)[0].rsplit("The manifest covers", 1)[-1]
+tier_para = ENTRY.split("**manual extension tier**", 1)[0].rsplit("The manifest covers", 1)[-1]
 check("extension tier list == EXTENSION_PHASES",
       set(re.findall(r"`([a-z][a-z0-9-]*)`", tier_para)) == ext,
       sorted(ext ^ set(re.findall(r"`([a-z][a-z0-9-]*)`", tier_para))))
 
-rest_para = CLAUDE.split("The extension tier is **not** everything", 1)[1].split("Within that tier", 1)[0]
+rest_para = ENTRY.split("The extension tier is **not** everything", 1)[1].split("Within that tier", 1)[0]
 check("out-of-tier groups == the rest of the architect skills",
       set(re.findall(r"`([a-z][a-z0-9-]*)`", rest_para)) == (arch - core - ext),
       sorted((arch - core - ext) ^ set(re.findall(r"`([a-z][a-z0-9-]*)`", rest_para))))
 
 cg = codegen_phases()
-chain = CLAUDE.split("Within that tier the codegen skills", 1)[-1].split("**Product → architect handoff.**", 1)[0]
+chain = ENTRY.split("Within that tier the codegen skills", 1)[-1].split("**Product → architect handoff.**", 1)[0]
 named = set(re.findall(r"`/?(?:product:)?([a-z-]+)`", chain))
 check("the codegen chain names every CODEGEN_PHASES entry", cg.issubset(named), sorted(cg - named))
 
 # ------------------------------------------------------------ other runtimes
 
-print("The other runtime entry docs know every skill")
+print("The entry doc names the model-tier sources and no retired entry doc")
 
-for plugin, dirs in REG.items():
-    missing = [os.path.basename(d) for d in dirs if not mentions(AGENTS, os.path.basename(d))]
-    check("AGENTS.md model table covers %s" % plugin, not missing, missing)
+# AGENTS.md once carried a hand-kept table of every skill's tier that drifted from the manifests
+# (five skills missing in 0.28.0). The tier is data now; the entry doc has to say where.
+for src in ("skills/common/skill-dependencies.yaml", "skills/product/common/skill-dependencies.yaml"):
+    check("AGENTS.md names the tier source %s" % src, src in ENTRY)
+
+# OMNIGENT.md was folded into AGENTS.md. A pointer to it would send a runtime to a missing file;
+# the changelog and the dated plans are records and may keep the name.
+import subprocess
+pointing = [p for p in subprocess.run(["git", "grep", "-l", "OMNIGENT.md"], cwd=ROOT,
+                                      capture_output=True, text=True).stdout.split()
+            if not (p.startswith("CHANGELOG") or p.startswith("docs/plans/")
+                    or p == "tools/docs_consistency.test.py")]
+check("no tracked file points at OMNIGENT.md", not pointing, pointing)
 
 # ------------------------------------------------------- DDD coverage table
 
@@ -553,8 +579,8 @@ check("every @-path a SKILL.md cites exists", not dangling, dangling)
 print("Rules index is complete")
 
 rules = sorted(f for f in os.listdir(os.path.join(ROOT, "rules")) if f.endswith(".md"))
-missing = [r for r in rules if "rules/" + r not in CLAUDE]
-check("every top-level rules/*.md is listed in CLAUDE.md", not missing, missing)
+missing = [r for r in rules if "rules/" + r not in ENTRY]
+check("every top-level rules/*.md is listed in AGENTS.md", not missing, missing)
 
 # ------------------------------------------------------- emphatic directives
 

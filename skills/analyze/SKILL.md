@@ -64,7 +64,7 @@ The existing UI is evidence the backend alone does not give (@rules/ui-analysis.
 | `reports/01_analysis/actors-roles-permissions.md` | Actor, role, and permission matrix |
 | `reports/01_analysis/domain-code-mapping.md` | Domain-code correspondence table |
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 
 ## Completion
 

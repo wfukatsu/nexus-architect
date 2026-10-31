@@ -39,7 +39,7 @@ Integrate the MMI and DDD evaluation results and formulate a unified improvement
 | `reports/02_evaluation/integrated-evaluation.md` | Integrated evaluation results |
 | `reports/02_evaluation/unified-improvement-plan.md` | Prioritized improvement plan |
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 
 ## Related Skills
 

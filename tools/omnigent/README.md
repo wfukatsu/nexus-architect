@@ -2,11 +2,11 @@
 
 Compatibility helpers that let a generic multi-agent orchestrator (**Omnigent**) run the
 nexus-architect skills, which are otherwise packaged as Claude Code plugins. See the
-repository-root [`OMNIGENT.md`](../../OMNIGENT.md) for the full runtime mapping
+repository-root [`AGENTS.md`](../../AGENTS.md) § Runtimes for the runtime mapping
 (tools, `Agent` dispatch, `AskUserQuestion` gating, hooks, pipeline sequencing).
 
 These helpers are **additive and non-invasive** — they read the existing `skills/*/SKILL.md`
-files and never modify them, the plugin manifest, or `CLAUDE.md` / `AGENTS.md`.
+files and never modify them, the plugin manifest, or `AGENTS.md`.
 
 ## `load-skill.sh`
 
@@ -66,6 +66,6 @@ and that resolution still works from a non-repo-root CWD.
 
 POSIX `bash` + coreutils (`find`, `grep`, `sed`, `basename`, `dirname`) and `git` for root
 detection (with a non-git fallback). No additional language runtime is required to run the
-loader or the tests. The validation hooks referenced by `OMNIGENT.md`
+loader or the tests. The validation hooks referenced by `AGENTS.md`
 (`hooks/validate-frontmatter.sh`, `hooks/validate-mermaid.sh`) use `python3`/`jq` exactly
 as they already do under Claude Code; the loader itself does not.

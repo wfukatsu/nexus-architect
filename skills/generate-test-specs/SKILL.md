@@ -128,7 +128,7 @@ model defect, recorded in the gap list for `design-aggregate`, not a test that a
 
 ## Output
 
-Write all reports in the language configured in `work/pipeline-progress.json` (`options.output_language`).
+Output language and frontmatter: @rules/output-conventions.md.
 
 | File | Content |
 |------|---------|

@@ -61,5 +61,5 @@ jobs:
       # hook that has been broken outright.
       - name: Smoke-test the output validators
         run: |
-          bash hooks/validate-frontmatter.sh CLAUDE.md
-          bash hooks/validate-mermaid.sh CLAUDE.md
+          bash hooks/validate-frontmatter.sh AGENTS.md
+          bash hooks/validate-mermaid.sh AGENTS.md
