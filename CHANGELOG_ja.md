@@ -7,7 +7,7 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
-## [Unreleased]
+## [0.53.0] - 2026-11-01
 
 ### Added
 - **`full-report.html` の横に `full-report.md`。** `/architect:report` と `/product:report` は、1 回のビルドで統合レポートを 2 つ書く。HTML はこれまでどおりで、同じレポートを Markdown でも出力する。Git ホスティング、エディタ、差分、別のモデルへの入力で読むためのものである。章、文書、アンカーは HTML と同じものが同じ順に並ぶ。各文書はその文書自身の Markdown で、リンクと見出しは HTML と同じ変換をし、フェンスはそのまま残すので、Mermaid は Markdown を表示できる場所ならどこでも描画される。エグゼクティブサマリはパイプ表になる。フロントマターに `title`、`schema_version`、`skill` を持ち、本文に H1 はないので、レポートの 2 つのフックを通る。ビルダー自身の HTML を Markdown にする処理は `tools/lib/report_markdown.py` で、`tools/build_report.test.py` に検査を加えた。`.md` で終わる `--output` は Markdown の出力先になり、HTML はその横に書く。両方のマニフェストに新しい出力を宣言した。`tools/docs-site.sh` はこのファイルを取り込まない。各文書はすでに個別のページになっているからである。
