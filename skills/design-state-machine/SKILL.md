@@ -1,8 +1,7 @@
 ---
 description: |
-  Build state transition models for the aggregates that have a lifecycle — states, events, guarded
-  transitions, the state x event matrix and each transition's consistency class — through
-  facilitated dialogue. Use after redesign (and design-aggregate when it ran).
+  Model the lifecycle of aggregates with the user: states, events, guarded transitions, the state x
+  event matrix and each transition's consistency class. Runs after redesign.
 argument-hint: '[--aggregate=<name>] [--auto] [--lang=en|ja]'
 model: opus
 ---

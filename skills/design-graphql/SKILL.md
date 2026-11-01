@@ -1,8 +1,7 @@
 ---
 description: |
-  Design a schema-first Spring for GraphQL API after /architect:design-api selects GraphQL or a
-  hybrid surface. Produces SDL, resolver contracts, authorization, batching, query-governance and
-  transport designs bound to application services and transaction boundaries.
+  Design a schema-first Spring for GraphQL API once design-api chose GraphQL or a hybrid: SDL,
+  resolver contracts, authorization, batching, query limits and transport.
 argument-hint: '[--service=<name>] [--lang=en|ja]'
 model: opus
 ---

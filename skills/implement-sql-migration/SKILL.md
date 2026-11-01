@@ -1,8 +1,7 @@
 ---
 description: |
-  Generate the code the SQL migration manifest decided — ScalarDB SQL, schema, fetch-and-H2 plans,
-  Core API interface and application-side skeletons — as a Gradle module under generated/, behind an
-  offline gate. Use after design-sql-migration, before verify-sql-migration.
+  Generate the code the SQL migration manifest decided (ScalarDB SQL, schema, Core API and
+  application-side code) as a Gradle module behind an offline gate. Runs after design-sql-migration.
 argument-hint: '[target_path] [--out=<path>] [--package=<java.package>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja]'
 model: sonnet
 ---

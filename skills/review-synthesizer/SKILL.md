@@ -1,7 +1,7 @@
 ---
 description: |
-  Consolidate parallel review results. Deduplicate findings, classify priorities, and determine
-  quality gate verdict. Handles variable input of 2-6 perspectives.
+  Merge the design-review perspectives: deduplicate findings, rank priorities and decide the
+  quality-gate verdict.
 model: sonnet
 ---
 

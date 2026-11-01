@@ -1,7 +1,6 @@
 ---
 description: |
-  Merge MMI and DDD evaluation results — and the UX evaluation when it exists — into a unified
-  improvement plan.
+  Merge the MMI, DDD and, when present, UX evaluations into one prioritized improvement plan.
 model: sonnet
 ---
 

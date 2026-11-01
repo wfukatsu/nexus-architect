@@ -1,8 +1,7 @@
 ---
 description: |
-  Turn SLOs into measurable non-functional requirements — availability, latency (p95/p99),
-  throughput, error rate, durability, RPO/RTO — each traced to the SLO it derives from. Bridges to
-  nexus-architect.
+  Turn SLOs into measurable non-functional requirements (availability, p95/p99 latency, throughput,
+  error rate, durability, RPO/RTO), each traced to its SLO.
 argument-hint: '[--auto] [--lang=ja|en]'
 model: sonnet
 ---

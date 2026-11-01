@@ -1,8 +1,7 @@
 ---
 description: |
-  Research the market and competitors in one pass — market sizing (TAM/SAM/SOM), trends,
-  alternatives, a competitive matrix, and Kano classification — then recommend a differentiation
-  (PoD) vs parity (PoP) strategy. Sources are always cited (name + URL).
+  Research the market and competitors: TAM/SAM/SOM, trends, alternatives, a competitive matrix and
+  Kano classification, with cited sources and a differentiation strategy.
 argument-hint: '[target] [--input=<file|dir>] [--auto] [--lang=ja|en] [--no-research]'
 model: opus
 ---

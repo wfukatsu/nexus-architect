@@ -1,6 +1,6 @@
 ---
 description: |
-  Design monitoring, distributed tracing, log aggregation, and alerting.
+  Design SLIs and SLOs, monitoring, alerting, distributed tracing and log aggregation.
 model: sonnet
 ---
 

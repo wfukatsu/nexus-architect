@@ -1,7 +1,7 @@
 ---
 description: |
-  MySQL to ScalarDB migration. Schema extraction, migration analysis, and SP/trigger to Java
-  conversion.
+  MySQL-to-ScalarDB migration: schema extraction, analysis, stored procedure and trigger conversion
+  to Java.
 model: sonnet
 ---
 

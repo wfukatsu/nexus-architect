@@ -1,8 +1,7 @@
 ---
 description: |
-  Pin the current behaviour of a legacy system in executable characterization (golden master) tests
-  before it is refactored or strangled. Use on the legacy path after investigate, before a
-  transformation-plan step touches the module.
+  Pin a legacy system's current behaviour in golden-master tests before a transformation step
+  refactors or strangles it.
 argument-hint: '[target_path] [--scope=module|service|repo] [--module=<name>] [--out=<path>] [--seam=http|cli|function|db] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]'
 model: sonnet
 disable-model-invocation: true

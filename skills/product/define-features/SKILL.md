@@ -1,8 +1,7 @@
 ---
 description: |
-  Extract and define features from the UI mocks — each screen action becomes a Command/feature,
-  reconciled against scope and prioritized with MoSCoW, with every feature traced to a job, journey,
-  and success metric. Stops if the mocks are empty.
+  Define features from the UI mocks, one per screen action, reconciled with scope, prioritized with
+  MoSCoW, and traced to a job, journey stage and metric.
 argument-hint: '[--auto] [--lang=ja|en]'
 model: sonnet
 ---

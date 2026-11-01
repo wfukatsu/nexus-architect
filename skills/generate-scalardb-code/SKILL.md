@@ -1,7 +1,7 @@
 ---
 description: |
-  Generate Spring Boot + ScalarDB Java code from design specifications. Dedicated to projects using
-  ScalarDB.
+  Generate a Spring Boot service on ScalarDB from the design: domain layer, repositories, Fakes, and
+  unit, property and transaction integration tests. ScalarDB projects only.
 model: opus
 ---
 

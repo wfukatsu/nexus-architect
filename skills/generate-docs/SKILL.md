@@ -1,8 +1,7 @@
 ---
 description: |
-  Create and update the README(s) and docs/ pages for code that was generated or implemented, in
-  place, regenerating only its own marked sections. Use after the codegen skills, and as the
-  documentation step of /architect:implement-backlog.
+  Write and update READMEs and docs/ pages for generated or implemented code, regenerating only its
+  own marked sections.
 argument-hint: '[target] [--scope=changed|service|repo] [--source-root=<path>] [--readme-only] [--issue=<id>] [--dry-run] [--auto] [--lang=en|ja]'
 model: sonnet
 disable-model-invocation: true

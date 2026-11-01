@@ -1,8 +1,7 @@
 ---
 description: |
-  Turn the generated reports into a work-item backlog on GitLab or GitHub — Epics, Sub-Epics and
-  Issues — after a review-first plan the user approves. Use after the design (and optionally review)
-  phase, or after the product pipeline.
+  Turn the reports into Epics, Sub-Epics and Issues on GitLab or GitHub, after a plan the user
+  approves.
 argument-hint: '[--target=gitlab|github] [--project=<path>|--repo=<owner/name>] [--group=<gitlab-group>] [--dry-run] [--update] [--lang=en|ja]'
 model: opus
 disable-model-invocation: true

@@ -1,8 +1,7 @@
 ---
 description: |
-  Run Example Mapping per feature — business rules (RULE-), a concrete example on each side of every
-  rule's boundary (EX-), and open questions (OQ-). Use after define-features, before the data model,
-  aggregates and test specs.
+  Run Example Mapping per feature: business rules (RULE-), a passing and a failing example for each
+  (EX-), and open questions. Runs after define-features.
 argument-hint: '[--feature=<FEAT>] [--auto] [--lang=ja|en]'
 model: opus
 ---

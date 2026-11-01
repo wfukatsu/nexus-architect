@@ -1,7 +1,7 @@
 ---
 description: |
-  Review design documents for structural coherence, traceability, and terminology consistency. Used
-  as one perspective within the parallel review system.
+  Design-review perspective: structure, traceability and terminology consistency across the design
+  documents.
 model: sonnet
 ---
 

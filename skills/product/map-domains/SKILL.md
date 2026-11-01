@@ -1,8 +1,8 @@
 ---
 description: |
-  Abstract features and entities into bounded contexts (DDD strategic design): a
-  Core/Supporting/Generic domain map, a context map and a ubiquitous language. Boundaries are
-  derived, or found with the user in a Big Picture EventStorming walk. Bridges to nexus-architect.
+  Group the product's features and entities into bounded contexts: a core, supporting and generic
+  domain map, a context map and a ubiquitous language, derived or found through Big Picture
+  EventStorming.
 argument-hint: '[--mode=derive|event-storming] [--auto] [--lang=ja|en]'
 model: opus
 ---

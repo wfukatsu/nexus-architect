@@ -1,7 +1,7 @@
 ---
 description: |
-  Evaluate DDD principle conformance across 3 layers and 12 criteria. Requires analyze output as a
-  prerequisite. Can run in parallel with evaluate-mmi.
+  Score how closely an existing system follows DDD, on 12 criteria in 3 layers. Runs after analyze,
+  alongside evaluate-mmi.
 argument-hint: '[target_path]'
 model: sonnet
 ---

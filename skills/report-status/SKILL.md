@@ -1,8 +1,7 @@
 ---
 description: |
-  Show where the architect pipeline stands — each phase's status, staleness, declared outputs
-  present, what is running now, and what it has cost — on the terminal, live or as a one-shot
-  render.
+  Show the architect pipeline's progress on the terminal: phase status, staleness, outputs, what is
+  running and what it cost.
 argument-hint: '[--once] [--view=product|architect|codegen|backlog] [--group=core|extension] [--phase=<name>] [--exec] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]'
 allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh *)

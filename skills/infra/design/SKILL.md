@@ -1,8 +1,7 @@
 ---
 description: |
-  Design a multi-cloud, four-environment infrastructure configuration from requirements and emit the
-  design document, environment matrix and ADRs, with no implementation code. Use for "design the
-  infrastructure", "select the technology", "compare the approaches"; /infra:implement follows.
+  Design a multi-cloud, four-environment infrastructure: design document, environment matrix and
+  ADRs, no code. Use for "design the infrastructure" or "compare the approaches".
 argument-hint: '[target] [--env=<env>] [--cloud=<cloud>] [--auto]'
 model: opus
 ---

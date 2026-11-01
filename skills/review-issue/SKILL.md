@@ -1,8 +1,7 @@
 ---
 description: |
-  Review a backlog Issue's implementation for whole-Epic consistency, fix blockers and re-review
-  until they clear, then open a PR/MR linked to the Issue and hand off for approval. Use after
-  /architect:implement-backlog; merging is /architect:merge-issue.
+  Review an Issue's implementation for whole-Epic consistency, fix blockers until they clear, then
+  open the linked PR/MR.
 argument-hint: '[item] [--epic=<id>] [--max-fix-rounds=N] [--base=<branch>] [--no-fix] [--dry-run] [--auto] [--lang=en|ja]'
 model: opus
 disable-model-invocation: true

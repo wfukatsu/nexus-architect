@@ -1,7 +1,7 @@
 ---
 description: |
-  Review ScalarDB-specific constraints (2PC scope, OCC contention, schema compatibility). For
-  ScalarDB-enabled projects only. Used as one perspective within the parallel review system.
+  Design-review perspective for ScalarDB projects: transaction scope, OCC contention and schema
+  compatibility.
 model: sonnet
 ---
 

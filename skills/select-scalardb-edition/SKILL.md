@@ -1,7 +1,7 @@
 ---
 description: |
-  Interactive selection of the optimal ScalarDB edition (Community/Enterprise Standard/Premium, plus
-  the separately contracted Enterprise Option add-ons), deployment mode, and cluster topology.
+  Choose the ScalarDB edition (Community, Enterprise Standard or Premium, plus Enterprise Options),
+  deployment mode and cluster topology through a short interview.
 model: sonnet
 ---
 

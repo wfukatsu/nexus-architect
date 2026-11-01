@@ -1,9 +1,7 @@
 ---
 description: |
-  Design the revenue/business model and a recomputable benefit-evaluation template — Lean
-  Canvas/BMC, a chosen revenue model, unit-economics formulas (LTV/CAC, payback, ROI/NPV), and
-  falsifiable value hypotheses. Price and CAC are sent to validate-assumptions, not computed as
-  fact.
+  Design the business model (Lean Canvas, revenue model) and a recomputable unit-economics template
+  (LTV/CAC, payback, ROI/NPV); price and CAC go to validation as hypotheses.
 argument-hint: '[--input=<file|dir>] [--auto] [--lang=ja|en]'
 model: opus
 ---

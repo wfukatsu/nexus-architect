@@ -1,8 +1,8 @@
 ---
 description: |
-  Interactively start system analysis and design: refactoring a legacy application into services,
-  or designing a new system from requirements. Assesses project context and determines the path.
-  To move an existing database to ScalarDB, use migrate-database instead.
+  Interactive entry point for system architecture work: refactor a legacy application into services,
+  or design a new system from requirements; picks the path from the project's state. To move a
+  database to ScalarDB, use migrate-database.
 argument-hint: '[target_path]'
 model: inherit
 ---

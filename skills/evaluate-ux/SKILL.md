@@ -1,8 +1,7 @@
 ---
 description: |
-  Evaluate the UX of an existing UI from its inventory — Nielsen's heuristics, WCAG 2.2, task
-  efficiency, consistency, navigation — as a UX index with source-cited findings; optionally adds
-  runtime evidence from rendered pages. Requires analyze-ui output.
+  Evaluate an existing UI's UX from its inventory: Nielsen heuristics, WCAG 2.2, task efficiency,
+  consistency and navigation, scored with source-cited findings. Runs after analyze-ui.
 argument-hint: '[--base-url=<url>] [--storage-state=<path>] [--confirm-versions|--no-confirm-versions] [--auto]'
 model: sonnet
 ---

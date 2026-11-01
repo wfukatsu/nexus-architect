@@ -1,7 +1,7 @@
 ---
 description: |
-  Review the quality of the generated HTML report (full-report.html). Checks completeness, score
-  accuracy, Mermaid syntax, language consistency, and structural integrity.
+  Check the consolidated report for completeness, score accuracy, Mermaid syntax, language
+  consistency and structure.
 model: sonnet
 ---
 

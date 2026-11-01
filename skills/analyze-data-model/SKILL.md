@@ -1,7 +1,7 @@
 ---
 description: |
-  Comprehensive data layer analysis including entity/relationship analysis, DB design evaluation,
-  and ER diagram generation. Requires analyze output as a prerequisite.
+  Analyze an existing data layer: entities and relationships, database design quality and the
+  current ER diagram. Runs after analyze.
 argument-hint: '[target_path]'
 model: sonnet
 ---

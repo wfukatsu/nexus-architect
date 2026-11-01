@@ -1,8 +1,7 @@
 ---
 description: |
-  Report the actual token cost recorded while the agent ran, from the work/token-usage ledger:
-  totals, per-phase and per-model cost, daily timeline, per-session cost. Measured actuals only; use
-  /architect:estimate-token-cost for a run that has not happened yet.
+  Show the token cost actually recorded: totals, per phase, per model, per day and per session. For
+  a run not yet made, use estimate-token-cost.
 argument-hint: '[--once] [--follow] [--session=ID] [--since=7d] [--breakdown=tokens|cost] [--ascii] [--ambiguous-width=2] [--md] [--json] [--lang=ja|en]'
 allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/tools/token-cost-report.sh *)

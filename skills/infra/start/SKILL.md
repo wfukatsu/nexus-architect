@@ -1,8 +1,7 @@
 ---
 description: |
-  Triage entry point for multi-cloud (AWS / Azure / GCP) infrastructure work across local / test /
-  staging / production: resolves the OKF k8s/tf bundle, fixes environment and cloud, then routes to
-  design, implement or review. Use for any infrastructure request that does not yet name a mode.
+  Entry point for infrastructure work on AWS, Azure or GCP across local, test, staging and
+  production: fixes the environment and cloud, then routes to design, implement or review.
 argument-hint: '[target] [--env=<env>] [--cloud=<cloud>]'
 allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/tools/update-okf-bundle.sh *)

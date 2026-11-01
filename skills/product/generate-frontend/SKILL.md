@@ -1,8 +1,7 @@
 ---
 description: |
-  Turn the navigable UI mocks into a runnable React + TypeScript frontend under generated/frontend/
-  — Atomic Design components styled by the design tokens, react-router flow, and a Storybook story
-  per variant. Use after generate-ui-mock and design-system.
+  Turn the UI mocks into a runnable React + TypeScript frontend under generated/frontend/: Atomic
+  Design components, design tokens, routing and Storybook stories.
 argument-hint: '[--design-system=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--auto] [--lang=ja|en]'
 model: sonnet
 ---

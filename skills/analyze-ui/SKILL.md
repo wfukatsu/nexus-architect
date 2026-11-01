@@ -1,8 +1,7 @@
 ---
 description: |
-  Analyze the user interface of an existing system: screens with their inputs, outputs, actions and
-  access; UI components; features and user tasks; business logic embedded in the view layer; and the
-  design tokens in use. Optional phase after investigate, skipped when there is no UI layer.
+  Inventory an existing UI: screens with their inputs, actions and access, components, user tasks,
+  business logic in the view layer, and design tokens. Runs after investigate when there is a UI.
 argument-hint: '[target_path] [--ui-root=<path>] [--auto]'
 model: sonnet
 ---

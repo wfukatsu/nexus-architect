@@ -1,8 +1,7 @@
 ---
 description: |
-  Estimate the token usage and USD cost of running the architect pipeline on a codebase. Combines an
-  a-priori model (from lines-of-code) with measured actuals recorded in work/token-usage.json when
-  present.
+  Estimate the tokens and USD cost of running the architect pipeline on a codebase, from its size
+  and any recorded actuals.
 argument-hint: '[target_path]'
 model: sonnet
 ---

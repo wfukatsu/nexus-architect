@@ -1,8 +1,7 @@
 ---
 description: |
-  Generate ScalarDB configuration files (database.properties, build.gradle dependencies) based on
-  your choices. Use when starting a ScalarDB project, switching backend/edition (Core/Cluster) or
-  interface (CRUD/JDBC, 1PC/2PC), or debugging connection/configuration errors.
+  Generate ScalarDB configuration (database.properties, Gradle dependencies) for a backend, edition
+  and interface; also for debugging connection or configuration errors.
 model: sonnet
 ---
 

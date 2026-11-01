@@ -1,6 +1,7 @@
 ---
 description: |
-  Domain classification, bounded context mapping, and business structure identification.
+  Classify an existing system's domains (core, supporting, generic), its business structure and
+  service boundary types, and map the relationships between bounded contexts.
 model: opus
 ---
 

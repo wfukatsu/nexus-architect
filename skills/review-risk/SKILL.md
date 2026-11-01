@@ -1,7 +1,7 @@
 ---
 description: |
-  Review distributed system risks, failure modes, and Saga design adequacy. Adopts an adversarial
-  perspective to discover risks overlooked by the designer. Deepest analysis perspective.
+  Adversarial design-review perspective: distributed-system risks, failure modes and saga gaps the
+  designer missed.
 model: opus
 ---
 

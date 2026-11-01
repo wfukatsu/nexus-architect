@@ -1,8 +1,8 @@
 ---
 description: |
-  Define implementation specifications for the API layer (controller/DTO/validation), domain
-  services, repository interfaces, value objects, and exception mapping. Used after the design phase
-  is complete.
+  Write coding-ready specs: the API layer (controllers, DTOs, validation), domain services,
+  repository ports and their Fakes, value objects and exception mapping. Runs after the design
+  phase.
 argument-hint: '[--layering=ddd|clean]'
 model: opus
 ---

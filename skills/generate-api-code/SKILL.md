@@ -1,8 +1,7 @@
 ---
 description: |
-  Generate the API layer from the OpenAPI contract — controllers, DTOs, Bean Validation, mappers and
-  the RFC 9457 exception handler — bound 1:1 to operationIds, plus the contract map. Use after
-  design-implementation; independent of ScalarDB.
+  Generate the REST API layer from the OpenAPI contract, bound one to one to operationIds:
+  controllers, DTOs, validation, mappers and the RFC 9457 error handler.
 argument-hint: '[--service=<name>] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]'
 model: opus
 disable-model-invocation: true

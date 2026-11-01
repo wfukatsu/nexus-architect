@@ -1,7 +1,7 @@
 ---
 description: |
-  Oracle to ScalarDB migration. Schema extraction, migration analysis, AQ integration, and
-  SP/trigger to Java conversion.
+  Oracle-to-ScalarDB migration: schema extraction, analysis, AQ integration, stored procedure and
+  trigger conversion to Java.
 model: sonnet
 ---
 

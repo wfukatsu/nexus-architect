@@ -1,8 +1,7 @@
 ---
 description: |
-  Prove the SQL migration on data — golden checks against results captured from an authorized source
-  database, and differential tests against ScalarDB — and write each statement's verification state
-  into the manifest. Use after implement-sql-migration. Never connects to production.
+  Prove a SQL migration on data: golden checks against an authorized source database and
+  differential tests against ScalarDB. Never touches production.
 argument-hint: '[target_path] [--mode=golden|difftest|all] [--id=<SQM-###>] [--source-profile=<path>] [--scalardb-properties=<path>] [--fetcher=core|jdbc] [--out=<path>] [--auto] [--lang=en|ja]'
 model: sonnet
 disable-model-invocation: true

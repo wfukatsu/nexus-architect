@@ -1,8 +1,7 @@
 ---
 description: |
-  Show ScalarDB JDBC/SQL operation patterns — SELECT, INSERT, UPSERT, UPDATE, DELETE, JOIN,
-  aggregates with examples. Use when writing or reviewing code against the ScalarDB SQL/JDBC
-  interface, or when the user asks what SQL ScalarDB supports (and its limitations).
+  ScalarDB SQL/JDBC patterns (SELECT, INSERT, UPSERT, UPDATE, DELETE, JOIN, aggregates) with
+  examples, and what ScalarDB SQL does not support.
 model: sonnet
 ---
 

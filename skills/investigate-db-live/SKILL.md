@@ -1,8 +1,7 @@
 ---
 description: |
-  Investigate an existing database by connecting to its catalogs and existing statistics. Oracle,
-  PostgreSQL and MySQL adapters return scoped, source-linked structure and metrics, distinguishing
-  unavailable data from empty results.
+  Investigate a live Oracle, PostgreSQL or MySQL database through its catalogs and statistics,
+  read-only, telling unavailable data apart from empty results.
 argument-hint: '[--profile=path] [--lang=ja|en]'
 model: sonnet
 disable-model-invocation: true

@@ -7,6 +7,14 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [Unreleased]
+
+### Added
+- **`full-report.html` の横に `full-report.md`。** `/architect:report` と `/product:report` は、1 回のビルドで統合レポートを 2 つ書く。HTML はこれまでどおりで、同じレポートを Markdown でも出力する。Git ホスティング、エディタ、差分、別のモデルへの入力で読むためのものである。章、文書、アンカーは HTML と同じものが同じ順に並ぶ。各文書はその文書自身の Markdown で、リンクと見出しは HTML と同じ変換をし、フェンスはそのまま残すので、Mermaid は Markdown を表示できる場所ならどこでも描画される。エグゼクティブサマリはパイプ表になる。フロントマターに `title`、`schema_version`、`skill` を持ち、本文に H1 はないので、レポートの 2 つのフックを通る。ビルダー自身の HTML を Markdown にする処理は `tools/lib/report_markdown.py` で、`tools/build_report.test.py` に検査を加えた。`.md` で終わる `--output` は Markdown の出力先になり、HTML はその横に書く。両方のマニフェストに新しい出力を宣言した。`tools/docs-site.sh` はこのファイルを取り込まない。各文書はすでに個別のページになっているからである。
+
+### Changed
+- **すべてのスキルの説明文を書き直した。** 117 件すべてを、スキルが何をするかを具体的な言葉で書き、いつ使うかを添える形にそろえた。繰り返しの決まり文句（「parallel review system の 1 観点として使う」「X の出力が前提」）、大文字の警告、Markdown は除いた。Claude Code が上限をかける一覧は 24,000 文字から 17,053 文字に、モデルが実際に見る部分（`disable-model-invocation` のない 96 件）は 19,123 文字から 14,175 文字に減った。他のプラグインのスキルが約 300 件ある環境では、この 96 件のうち 21 件が説明文なしで一覧に出ていた。その中には `/scalardb:*` の 11 件のうち 8 件、データベース移行の 4 件、`/infra:design` と `/infra:implement` が含まれていた。`tools/docs_consistency.test.py` は、モデルが見る部分にも 16,000 文字の上限を設けた。`docs/skill-authoring.md` に説明文の形を書いた。
+
 ## [0.52.0] - 2026-11-01
 
 ### Added

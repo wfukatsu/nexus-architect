@@ -1,6 +1,7 @@
 ---
 description: |
-  Design Kubernetes, IaC (Terraform), networking, and multi-environment configuration.
+  Design the logical infrastructure: Kubernetes, Terraform, networking and per-environment
+  configuration. For a concrete multi-cloud setup, infra:design follows.
 model: opus
 ---
 

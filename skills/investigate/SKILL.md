@@ -1,7 +1,7 @@
 ---
 description: |
-  Comprehensive investigation of the target system covering technology stack, codebase structure,
-  technical debt, and DDD readiness. Used as the first step in legacy system analysis.
+  Investigate an existing codebase: technology stack, structure, technical debt and DDD readiness.
+  First step of legacy analysis.
 argument-hint: '[target_path]'
 model: sonnet
 ---

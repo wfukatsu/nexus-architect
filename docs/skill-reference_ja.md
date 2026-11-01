@@ -133,7 +133,7 @@
 
 | コマンド | モデル | 説明 |
 |---------|-------|------|
-| `/architect:report` | haiku | Markdown から HTML への統合レポート(モデルが書き起こすのではなく `tools/build-report.py` が生成) |
+| `/architect:report` | haiku | HTML と Markdown の統合レポート（`full-report.html` + `full-report.md`。モデルが書き起こすのではなく `tools/build-report.py` が生成） |
 | `/architect:review-report` | sonnet | 生成された HTML レポートの品質レビュー（完全性、スコア精度、Mermaid 構文） |
 | `/architect:render-mermaid` | haiku | Mermaid から PNG/SVG + 構文修正 |
 | `/architect:estimate-cost` | sonnet | インフラ、ライセンス、運用コスト |
@@ -233,7 +233,7 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 | `/product:define-nfr` | sonnet | 5. 品質 & 非機能 | SLO を測定可能な非機能要件へ変換（可用性、レイテンシ p95/p99 など） |
 | `/product:design-architecture` | opus | 4/5. 統合 | 全体アーキテクチャ図（構成/クリティカルパス/デプロイ）＋ 技術適合度評価（Kong / ScalarDB / ScalarDB Analytics / ScalarDB Saga / ScalarDL）と採用/条件付/不採用の根拠 |
 | `/product:review` | opus | R. レビュー & レポート | プロダクト成果物をレビュー（整合性、トレーサビリティ、拡張性、戦略） |
-| `/product:report` | sonnet | R. レビュー & レポート | 成果物を 1 つの自己完結型 HTML レポートに統合（冒頭に検証ステータス） |
+| `/product:report` | sonnet | R. レビュー & レポート | 成果物を 1 つの自己完結型 HTML レポートとその Markdown 版に統合（冒頭に検証ステータス） |
 | `/product:report-status` | haiku | R. レビュー & レポート | プロダクトパイプライン進捗のターミナルダッシュボード: フェーズツリーに状態(完了後に上流が更新されたフェーズは `stale`)・宣言出力の充足度・ゲート判定と未検証の前提・フェーズ別コストを表示、次コマンド生成のアクションメニュー付き(`tools/nexus-status.sh` をラップ) |
 | `/product:adapt-change` | opus | 6. 適応 | 再伝播エンジン：変化から影響範囲を算定し、影響を受けるスキルのみ再実行 |
 

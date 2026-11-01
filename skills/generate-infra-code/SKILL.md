@@ -1,7 +1,7 @@
 ---
 description: |
-  Generate Kubernetes manifests, Terraform modules, Helm charts and the quality-gate CI workflow
-  into generated/. For merge-bound code in a real infrastructure repository, use /infra:implement.
+  Generate Kubernetes manifests, Terraform, Helm charts and the quality-gate CI workflow as a
+  scaffold under generated/. For merge-bound infrastructure code, use infra:implement.
 model: sonnet
 ---
 

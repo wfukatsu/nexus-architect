@@ -1,8 +1,7 @@
 ---
 description: |
-  Investigate an existing database from DDL, text schema exports, or design documents, without
-  connecting to a database. Oracle, PostgreSQL and MySQL adapters produce source-linked structure,
-  declared relationships, design findings and an ER diagram.
+  Investigate an existing Oracle, PostgreSQL or MySQL database offline, from DDL, schema exports or
+  design documents: structure, relationships, design findings and an ER diagram.
 argument-hint: '[input_path] [--product=id] [--schema=name] [--target-id=id] [--version=version] [--lang=ja|en]'
 allowed-tools:
   - Bash(python3 ${CLAUDE_PLUGIN_ROOT}/skills/common/database-investigation/scripts/investigate.py design *)

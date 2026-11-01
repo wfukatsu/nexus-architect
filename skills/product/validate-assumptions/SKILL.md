@@ -1,8 +1,7 @@
 ---
 description: |
-  Extract the riskiest assumptions the strategy depends on, attach the cheapest test and a
-  kill/pivot threshold to each, and return a Go/No-Go verdict. The validation gate that connects
-  document generation to hypothesis testing. Rerunnable as evidence arrives.
+  Validation gate: extract the riskiest assumptions, attach the cheapest test and a kill threshold
+  to each, and return Go or No-Go. Rerun as evidence arrives.
 argument-hint: '[--auto] [--lang=ja|en]'
 model: opus
 ---

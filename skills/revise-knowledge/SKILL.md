@@ -1,8 +1,7 @@
 ---
 description: |
-  Re-verify the vendored Kubernetes/Terraform OKF bundle (knowledge/okf-k8s-tf) against its public
-  upstream and revise the documents that fell behind — the judgement step the weekly refresh leaves
-  to a model.
+  Re-verify the vendored Kubernetes/Terraform knowledge bundle against its public upstream and
+  revise the documents that fell behind.
 argument-hint: '[--no-collect] [--doc=<path>] [--dry-run]'
 model: opus
 disable-model-invocation: true

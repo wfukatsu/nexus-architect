@@ -1,8 +1,7 @@
 ---
 description: |
-  Generate Jobs-to-be-Done–anchored personas — job stories plus persona cards (context, pains,
-  gains, JTBD, verbatim) — as a proto-persona scaffold that promotes to research-based as evidence
-  arrives. Never fabricates demographics or quotes.
+  Generate Jobs-to-be-Done personas (job stories, persona cards) as proto-personas that become
+  research-based as evidence arrives; never invents demographics or quotes.
 argument-hint: '[--input=<file|dir>] [--auto] [--lang=ja|en]'
 model: opus
 ---

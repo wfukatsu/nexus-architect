@@ -1,8 +1,7 @@
 ---
 description: |
-  Capture follow-up work discovered during backlog delivery — deferred tasks, out-of-scope findings,
-  doc drift, waived acceptance criteria — into a reviewable queue, then register approved entries as
-  tracker Issues under the in-flight Epic so they enter the /architect:deliver-backlog loop.
+  Queue follow-up work found during delivery (deferred tasks, out-of-scope findings, doc drift),
+  then register approved entries as Issues under the Epic.
 argument-hint: '[title] [--parent=<local_id|#iid>] [--from=<file|issue-ref>] [--queue-only] [--flush] [--dry-run] [--auto] [--lang=en|ja]'
 model: sonnet
 disable-model-invocation: true

@@ -1,7 +1,7 @@
 ---
 description: |
-  Take in constraints, normalize them, and decide product scope — explicitly what the product will
-  and will not do — using MoSCoW and RICE, anchored to success metrics when available.
+  Decide product scope, what it will and will not do, from normalized constraints using MoSCoW and
+  RICE, anchored to the success metrics.
 argument-hint: '[--constraints=<file|text>] [--input=<file|dir>] [--auto] [--lang=ja|en]'
 model: sonnet
 ---

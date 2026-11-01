@@ -1,7 +1,7 @@
 ---
 description: |
-  Design ScalarDB schema, transaction boundaries, and storage backend. For ScalarDB projects only.
-  Do NOT use for projects not using ScalarDB (use /architect:design-data-layer instead).
+  Design the ScalarDB schema, transaction boundaries and storage backend. ScalarDB projects only;
+  without ScalarDB, use design-data-layer.
 model: opus
 ---
 

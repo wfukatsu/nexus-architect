@@ -1,7 +1,6 @@
 ---
 description: |
-  Estimate cloud infrastructure, ScalarDB licensing and operational costs, including sizing
-  estimates.
+  Estimate cloud infrastructure, ScalarDB licensing and operating costs, with sizing.
 model: sonnet
 ---
 

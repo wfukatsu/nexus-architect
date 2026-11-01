@@ -1,8 +1,7 @@
 ---
 description: |
-  Verify that existing code implements the design — API contract, transaction placement, security
-  controls, requirement coverage — and report every divergence; optionally runs the AI code quality
-  gate. Use after code generation or backlog implementation.
+  Check code against the design (API contract, transactions, security, requirements, the example
+  chain) and report every divergence; optionally runs the eight-stage quality gate.
 argument-hint: '[target_path] [--service=<name>] [--scope=changed|service|repo] [--source-root=<path>] [--gate] [--item=<backlog-id>] [--auto] [--lang=en|ja]'
 model: opus
 disable-model-invocation: true

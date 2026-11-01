@@ -1,7 +1,7 @@
 ---
 description: |
-  Design HTAP analytics platform using ScalarDB Analytics with Apache Spark. ScalarDB Analytics is
-  an Enterprise **Option**, contracted separately — it is not included in Enterprise Premium.
+  Design an HTAP analytics platform on ScalarDB Analytics with Apache Spark, a separately contracted
+  Enterprise Option that Premium does not include.
 model: sonnet
 ---
 

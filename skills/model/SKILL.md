@@ -1,7 +1,7 @@
 ---
 description: |
-  Interactive data modeling wizard for ScalarDB. Helps design schemas with proper partition keys,
-  clustering keys, and indexes.
+  Design a ScalarDB data model with the user: tables, partition keys, clustering keys and indexes
+  for the access patterns.
 model: sonnet
 ---
 

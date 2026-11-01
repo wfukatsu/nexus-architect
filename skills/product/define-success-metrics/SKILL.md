@@ -1,8 +1,7 @@
 ---
 description: |
-  Turn the product vision into a measurable shape — one North Star Metric plus 3–5 input metrics
-  with targets and guardrails — that anchors downstream prioritization (RICE Impact, scope,
-  positioning).
+  Set one North Star Metric and 3 to 5 input metrics with targets and guardrails, to anchor
+  prioritization, scope and positioning.
 argument-hint: '[--auto] [--lang=ja|en]'
 model: opus
 ---

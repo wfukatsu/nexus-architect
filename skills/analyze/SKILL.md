@@ -1,7 +1,7 @@
 ---
 description: |
-  Extract ubiquitous language, actor-role-permission matrix, and domain-code mapping. Requires
-  investigate output as a prerequisite.
+  Extract the ubiquitous language, the actor-role-permission matrix and the domain-to-code mapping
+  from an investigated codebase. Runs after investigate.
 argument-hint: '[target_path]'
 model: opus
 ---

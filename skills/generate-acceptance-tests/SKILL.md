@@ -1,8 +1,7 @@
 ---
 description: |
-  Turn the Gherkin scenarios in reports/07_test-specs/bdd-scenarios/ into an executable Cucumber-JVM
-  acceptance suite with an acceptanceTest task. Use after generate-test-specs and before the first
-  implement-backlog item of a service.
+  Make the Gherkin scenarios an executable Cucumber-JVM acceptance suite, the outer loop of TDD.
+  Runs after generate-test-specs.
 argument-hint: '[--service=<name>] [--feature=<id>] [--driver=api|application] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]'
 model: sonnet
 disable-model-invocation: true
