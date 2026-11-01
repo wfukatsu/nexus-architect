@@ -7,7 +7,7 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
-## [Unreleased]
+## [0.52.0] - 2026-11-01
 
 ### Added
 - **architect 側の Example Mapping。** `/architect:define-requirements` に Step 3b を追加した。product が扱っていない `FR-` ごと（High はすべて、Mid と Low は希望があれば）に、業務ルール（`RULE-`）と、ルールごとに正例と反例の具体例（`EX-`）を決め、product と同じ形で `reports/00_requirements/examples/example-map-{fr}.md` に書く。ID は 1 つのグラフで `max + 1` で発番する。これまで architect だけのプロジェクトでは、合意した例が 1 つもないまま Gherkin が作られ、シナリオは設計のマニフェストから推測されていた。`RULE-` と `EX-` は `NFR-` と同じく両方のマニフェストが使う。`design-aggregate`、`generate-test-specs`、`generate-acceptance-tests`、`export-backlog` は両方の場所のマップを読む。
