@@ -266,7 +266,12 @@ paths, and they differ in what the output *is*.
 ```
 
 Each step only needs the reports of the step before it, so you can enter the chain partway. A re-run
-overwrites what it owns — treat this tree as disposable.
+overwrites what it owns — treat this tree as disposable. The pipeline's final message lists this
+chain and says when the project has no example map; without one, the scenarios come from the
+design manifests rather than from examples anyone agreed to, so map them first with
+`/architect:define-requirements` or `/product:example-map`. The scaffold is not test-first — tests
+and code come out of one pass, and the gate names the mutation score as its evidence instead
+(`rules/tdd-workflow.md` §5). Path B is the test-first one.
 
 **B. Delivery — merge-bound code in the project's real source tree.**
 

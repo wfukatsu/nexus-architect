@@ -11,6 +11,7 @@ counterpart in the set — and that nothing in the set lives at a path the table
 Exit 1 on any failure."""
 
 import fnmatch
+import json
 import os
 import re
 import shutil
@@ -94,6 +95,16 @@ try:
         check("%s exits 0" % validator, r.returncode == 0, (r.stdout + r.stderr).strip())
         check("  …and validated something, not nothing", "nothing to validate" not in r.stdout,
               r.stdout.strip())
+
+    # The reference set carries an example map but no Gherkin and no work/: the chain check
+    # follows what is there (the map itself) and must find it whole.
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "lib", "example_chain.py"), tmp,
+                        "--json"], capture_output=True, text=True)
+    check("example_chain.py exits 0", r.returncode == 0, (r.stdout + r.stderr).strip())
+    chain = json.loads(r.stdout) if r.returncode == 0 else {"summary": {}}
+    check("  …and followed rules and examples, not nothing",
+          chain["summary"].get("rules", 0) > 0 and chain["summary"].get("examples", 0) > 0,
+          chain["summary"])
 
     print("Every Markdown file passes the two output hooks")
     md = [p for p in files_in(staged) if p.endswith(".md") and not p.endswith("README.md")]

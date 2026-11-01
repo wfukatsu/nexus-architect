@@ -181,7 +181,12 @@ On the bundled `samples/ec-monolith`, one full run took about 45 minutes (measur
 ### 5. Generating Code
 
 The codegen skills are **not** part of `/architect:pipeline` — it stops after the review and report
-phases. Run them yourself afterwards, in this order:
+phases, and its final message lists the commands below. Run them yourself afterwards, in this order.
+
+The Gherkin scenarios are only as good as the examples behind them. When the project has no example
+map, the pipeline's final message says so: `generate-test-specs` would then derive every scenario
+from the design manifests instead of from cases someone agreed to. Map the rules first, with
+`/architect:define-requirements` (Step 3b, per `FR-`) or `/product:example-map` (per `FEAT-`).
 
 ```bash
 # 1. Turn the design into coding-ready specs        (requires reports/03_design/)
@@ -217,6 +222,15 @@ What the gate's stage 2 and stage 4 now hold the scaffold to (`rules/ai-code-qua
 - the touched `domain/` packages' PIT mutation score is ≥ 80 % with no survivor on an invariant line
 - `integrationTest` ran the `TX-` scenarios (OCC conflict, blind write, saga compensation) against a real in-process ScalarDB
 - `acceptanceTest` ran the Gherkin scenarios
+
+Alongside the gate, `verify-implementation` checks that every agreed rule and example reached a
+scenario and every invariant a property test (`tools/lib/example_chain.py`); each break is a
+`VER-4xx` requirement-conformance finding.
+
+The scaffold is not written test-first: tests and code come out of one generation pass. The gate
+records its test-first sequence as `not-applicable` with that reason, and the mutation score is the
+evidence that the tests can fail at all (`rules/tdd-workflow.md` §5). Test-first code comes from the
+delivery path below.
 
 Every command runs from a clean build state — an UP-TO-DATE Gradle task that exits 0 having run
 nothing is the gate's favourite false pass.

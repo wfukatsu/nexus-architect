@@ -9,8 +9,10 @@ phases:
   define-requirements:
     category: requirements
     # NFR- is shared with the product manifest on purpose: a product NFR- carried across the
-    # handoff keeps its ID verbatim and gets no second node (docs/design.md §1.5).
-    id_prefix: [FR-, NFR-]
+    # handoff keeps its ID verbatim and gets no second node (docs/design.md §1.5). RULE- / EX- are
+    # shared the same way: example-map mints them per FEAT-, Step 3b per FR- the product did not
+    # map, both into the one graph with max + 1 allocation.
+    id_prefix: [FR-, NFR-, RULE-, EX-]
     depends_on: []
     optional: true
     outputs:

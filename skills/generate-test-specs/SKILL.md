@@ -13,9 +13,11 @@ plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Rea
 ## Desired Outcome
 
 Generate comprehensive test specifications based on implementation specs:
-- **BDD scenarios**: Feature files in Gherkin format — when `reports/02_spec/examples/` exists,
-  each feature's `RULE-` entries are its `Rule:` blocks and each `EX-` its `Scenario:`, tagged with
-  their IDs, so the scenarios are the agreed cases rather than cases invented from the feature's name
+- **BDD scenarios**: Feature files in Gherkin format — when an example map exists
+  (`reports/02_spec/examples/` from product, `reports/00_requirements/examples/` from
+  `define-requirements`), each `RULE-` is a `Rule:` block and each `EX-` a `Scenario:` under it,
+  tagged with their IDs, so the scenarios are the agreed cases rather than cases invented from the
+  feature's name (tag forms below)
 - **Contract test specs**: What must be asserted to prove the code obeys the API contract, and the
   stack that will assert it
 - **Unit test specs**: Test cases for services, repositories, and value objects
@@ -96,6 +98,24 @@ Record the stack: **jqwik** on JUnit 5 for the Java services this toolkit genera
 whose property cannot be stated — because the manifest's statement is not a predicate — is a
 model defect, recorded in the gap list for `design-aggregate`, not a test that asserts nothing.
 
+## Gherkin Tags
+
+The tags are the join keys every later link reads — `generate-acceptance-tests` reports reach by
+them, `implement-backlog` names its outer loop by them, and `tools/lib/example_chain.py` follows
+them. One form each:
+
+| Tag | On | Means |
+|-----|----|-------|
+| `@RULE-001` | the `Rule:` line | the block carries this rule of the example map |
+| `@EX-001` | the `Scenario:` / `Scenario Outline:` line, or its `Examples:` table | the scenario replays this example; it sits under the `Rule:` of the example's own rule |
+| `@example=AGG-001.INV-1.positive` | the scenario | it replays that invariant example of the aggregate manifest (`positive` or `negative`) |
+| `@STM-001`, `@TX-1`, `@service=…`, `@context=…` | rule or scenario | the state machine, transaction or scope it exercises — free to add, not followed by the check |
+
+Without an example map, the `Rule:` blocks come from the invariants and the state machines, and
+the `.feature` file's header comment says so — the chain check then warns that no scenario was
+agreed with anyone, which is the true state of the project, not a defect of this skill. The
+`Kind` words and the tag keys stay English whatever the output language; the step text follows it.
+
 ## Acceptance Criteria
 
 - Every aggregate's CRUD operations are covered by at least one BDD scenario
@@ -114,6 +134,10 @@ model defect, recorded in the gap list for `design-aggregate`, not a test that a
   property is recorded as a gap, never silently covered by examples alone
 - Every acceptance criterion in the requirements is reachable from at least one specified test — an
   untested acceptance criterion is recorded as a gap, not omitted silently
+- Every row of `property-test-specs.md` names its aggregate and invariant ids on the same line
+  (`AGG-001`, `INV-3`), so the gate and the chain check can join them
+- `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/example_chain.py" <project_dir>` exits 0 once the specs
+  are written; its warnings are copied into the gap list
 
 ## Prerequisites
 
@@ -125,6 +149,7 @@ model defect, recorded in the gap list for `design-aggregate`, not a test that a
 | reports/03_design/state-machines/state-machine-manifest.json | Optional | /architect:design-state-machine — the matrix is the coverage target above |
 | reports/03_design/aggregates/aggregate-manifest.json | Optional | /architect:design-aggregate — the invariants are the property-test oracle above; their examples seed the unit tests |
 | reports/02_spec/examples/ | Optional | /product:example-map — `RULE-` → `Rule:` blocks, `EX-` → `Scenario:` lines in the BDD feature files |
+| reports/00_requirements/examples/ | Optional | /architect:define-requirements Step 3b — the same, for requirements product did not map |
 
 ## Output
 
@@ -148,6 +173,6 @@ Output language and frontmatter: @rules/output-conventions.md.
 | /architect:design-state-machine | Input source — the state x event matrix the transition tests cover |
 | /architect:design-aggregate | Input source — the invariants are the property-test oracle, their examples the unit-test seeds |
 | /architect:generate-scalardb-code | Output consumer — emits the domain unit and property tests from these specs |
-| /product:example-map | Input source — the agreed rules and examples the Gherkin is generated from |
+| /product:example-map, /architect:define-requirements | Input source — the agreed rules and examples the Gherkin is generated from |
 | /architect:generate-contract-tests | Output consumer — emits the executable tests from these specs |
 | /architect:generate-acceptance-tests | Output consumer — binds the Gherkin scenarios to step definitions |

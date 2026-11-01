@@ -15,13 +15,13 @@
 | コマンド | モデル | 説明 |
 |---------|-------|------|
 | `/architect:start` | inherit | インタラクティブにシステム分析と設計を開始 |
-| `/architect:pipeline` | sonnet | 自動パイプライン実行（--resume-from、--rerun-from、--skip-{phase}、--no-scalardb、--lang） |
+| `/architect:pipeline` | sonnet | 自動パイプライン実行（--resume-from、--rerun-from、--skip-{phase}、--no-scalardb、--lang）。最後に、例のマップの状態と DDD → BDD → TDD の連鎖の次のコマンドを示す |
 
 ## 要件定義
 
 | コマンド | モデル | 説明 |
 |---------|-------|------|
-| `/architect:define-requirements` | opus | 要件定義: FR/NFR 分類、データ・トランザクション要件、ScalarDB 適用判定（greenfield パスの起点。--input、--auto、--no-scalardb をサポート） |
+| `/architect:define-requirements` | opus | 要件定義: FR/NFR 分類、データ・トランザクション要件、ScalarDB 適用判定、product が扱っていない `FR-` ごとの Example Mapping（`reports/00_requirements/examples/` に `RULE-`/`EX-`）（greenfield パスの起点。--input、--auto、--no-scalardb をサポート） |
 
 ## 調査
 
@@ -56,7 +56,7 @@
 | `/architect:map-domains` | opus | - | ドメイン分類、BC マッピング |
 | `/architect:redesign` | opus | - | 境界づけられたコンテキストの再設計・コンテキストマップ・後続の設計スキルが追記する ADR ログ（`reports/03_design/adr/`） |
 | `/architect:create-domain-story` | opus | オプション | ドメインストーリーテリング: ドメインごとの業務プロセスを可視化。`--mode=event-storming` でフローを Process Modeling EventStorming として進行 |
-| `/architect:design-aggregate` | opus | オプション | 境界づけられたコンテキストごとの戦術モデル: 集約ルート・内部エンティティ・値オブジェクト・具体例付き不変条件・コマンド/イベント/ファクトリ/仕様・ルートごとのリポジトリを、トランザクションが書き込む単位として設計。加えてイベントから導出するドメインイベントカタログ（`reports/03_design/domain-event-catalog.json`） |
+| `/architect:design-aggregate` | opus | オプション | 境界づけられたコンテキストごとの戦術モデル: 集約ルート・内部エンティティ・値オブジェクト・具体例付き不変条件・コマンド/イベント/ファクトリ/仕様・ルートごとのリポジトリを、トランザクションが書き込む単位として設計。加えてイベントから導出するドメインイベントカタログ（`reports/03_design/domain-event-catalog.json`）。両プラグインの例のマップ（`02_spec/examples/`、`00_requirements/examples/`）を不変条件の候補として読む |
 | `/architect:design-state-machine` | opus | オプション | アグリゲートごとの状態遷移モデル: 状態・ガード付き遷移・空欄のない状態×イベント行列・各遷移の整合性クラスを対話的に構築 |
 | `/architect:design-microservices` | opus | - | ターゲットアーキテクチャ |
 | `/architect:select-scalardb-edition` | sonnet | ScalarDB | エディション選択 |
@@ -74,16 +74,16 @@
 | コマンド | モデル | 前提 | 説明 |
 |---------|-------|------|------|
 | `/architect:design-implementation` | opus | `reports/03_design/` | 実装仕様 — API レイヤー（Controller/DTO/バリデーション/マッパー、トランザクション境界、認可の実施点）＋サービス、リポジトリ、VO。`--layering=clean` でクリーンアーキテクチャ命名（Use Case / Interactor / Presenter、`usecase/` パッケージ）を記録し、以降のコード生成がそれに従う |
-| `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/契約/ユニット/プロパティ/統合/性能テスト仕様 — `aggregate-manifest.json` があれば不変条件ごとに 1 プロパティ |
+| `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/契約/ユニット/プロパティ/統合/性能テスト仕様 — `aggregate-manifest.json` があれば不変条件ごとに 1 プロパティ。例のマップから `@RULE-` / `@EX-` タグ付きの `Rule:` / `Scenario:` |
 | `/architect:generate-characterization-tests` | sonnet | `reports/before/{project}/`（レガシーパス） | 稼働中のレガシーシステムから記録したゴールデンマスターテスト — モジュール・シームごと、非決定的フィールドはマスク、`@KnownDefect` マーカー付き。移行計画の各ステップをゲートする安全網 |
 | `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB コード生成 — `domain/` と `infrastructure/` に加え、不変条件ごとの具体例テストと jqwik プロパティテストを担当 |
 | `/architect:generate-api-code` | opus | `api-specifications/` + `api-layer-spec.md` | OpenAPI 契約から API レイヤーを生成 — `operationId` と 1:1 の Controller、スキーマ制約から導出した Bean Validation 付き DTO、マッパー、RFC 9457 ハンドラ、`api-contract-map.json` |
 | `/architect:generate-graphql-code` | opus | GraphQL 仕様 + `api-layer-spec.md` | Spring GraphQL API レイヤー — resolver binding、DTO/mapper、security/context、DataLoader、error、query limit、統合 contract map |
 | `/architect:generate-contract-tests` | sonnet | `api-contract-map.json` + `contract-test-specs.md` | 実行可能な契約テスト（既定は swagger-request-validator + `@WebMvcTest`、Schemathesis / Pact / ArchUnit はオプトイン） |
-| `/architect:generate-acceptance-tests` | sonnet | `bdd-scenarios/` + `api-layer-spec.md` または `repository-interfaces-spec.md` | Gherkin シナリオ（`RULE-`/`EX-` タグ付き）の Cucumber-JVM ステップ定義 — API 経由または Fake 上のアプリケーションサービス経由で駆動し、アイテムが着地するまで `@wip`。ATDD の外側ループとステージ 4 の `acceptanceTest` |
+| `/architect:generate-acceptance-tests` | sonnet | `bdd-scenarios/` + `api-layer-spec.md` または `repository-interfaces-spec.md` | Gherkin シナリオ（`RULE-`/`EX-` タグ付き）の Cucumber-JVM ステップ定義 — API 経由または Fake 上のアプリケーションサービス経由で駆動し、アイテムが着地するまで `@wip`。ATDD の外側ループとステージ 4 の `acceptanceTest`。網羅の記録に対して例の連鎖検査を実行する |
 | `/architect:generate-infra-code` | sonnet | `reports/08_infrastructure/` | K8s/Terraform/Helm コード生成 |
 | `/architect:generate-docs` | sonnet | 生成・実装済みコード | 生成・実装済みコードの README と `docs/`（コード生成の後、および implement-backlog の Step 5b で実行） |
-| `/architect:verify-implementation` | opus | 生成・実装済みコード＋設計 | 設計 ↕ コードの適合性検証（契約・トランザクション・セキュリティ・要件の4軸）。`--gate` で8段階の AI コード品質ゲートを実行（implement-backlog の Step 5c） |
+| `/architect:verify-implementation` | opus | 生成・実装済みコード＋設計 | 設計 ↕ コードの適合性検証（契約・トランザクション・セキュリティ・要件の4軸）。`--gate` で8段階の AI コード品質ゲートを実行（implement-backlog の Step 5c）。例の連鎖検査のエラーは `VER-4xx` の指摘になる |
 | `/architect:design-sql-migration` | opus | アプリケーションコード / SQL ファイル / `investigate-db-*` の実行結果 + `design-scalardb` | SQL → ScalarDB 移行設計 — 全文の棚卸し（MyBatis、JDBC、JPA、SQL ファイル、DDL、ビュー、ルーチン）、分析したキー・ストレージ・エディション・推定行数を与えた同梱の SQLGlot 変換器の実行、文ごとに検証済みの経路を `sql-migration-manifest.json` に記録（アプリケーションが ScalarDB Native JDBC でネイティブ SQL のまま使い続ける文の `native_jdbc` 経路を含む） |
 | `/architect:implement-sql-migration` | sonnet | `sql-migration-manifest.json` | `generated/sql-migration/` に Gradle モジュールを生成 — ScalarDB SQL、スキーマ、取得と H2 の実行計画、Core API インターフェース、結果を変えないための注意を持つアプリ側の雛形。変換結果の食い違いやソースの変更を拒否するオフラインゲート付き |
 | `/architect:verify-sql-migration` | sonnet | 生成した移行モジュール + 許可された本番以外の移行元 DB | アプリ側の読み取りは golden 検証、実行計画 / ScalarDB SQL の経路は差分テストで確認し、検証状態をマニフェストに記録 |
@@ -96,7 +96,7 @@
 
 | コマンド | モデル | 説明 |
 |---------|-------|------|
-| `/architect:export-backlog` | opus | レポート → GitLab / GitHub 上の Epic（What/Why）/ Sub-Epic（What/Key Results）/ Issue（How）。レビュー優先の計画 + 承認ゲートを経て冪等に作成。新サービスごとに `walking-skeleton` Issue を 1 件、順序の先頭に |
+| `/architect:export-backlog` | opus | レポート → GitLab / GitHub 上の Epic（What/Why）/ Sub-Epic（What/Key Results）/ Issue（How）。レビュー優先の計画 + 承認ゲートを経て冪等に作成。新サービスごとに `walking-skeleton` Issue を 1 件、順序の先頭に。受入基準は、フィーチャーまたは要件の例のマップの `RULE-` |
 | `/architect:deliver-backlog` | sonnet | Epic 配下の Issue ごとに 実装 → レビュー → 承認 → マージ を統括。`backlog-manifest.json` から再開し、人間のゲートで必ず停止 |
 | `/architect:implement-backlog` | sonnet | 1アイテムを Epic 整合的に作業ブランチ上でテストファーストで実装 — 単位ごとに `test:`（失敗を確認）→ `feat:` → `refactor:`、外側ループはアイテムのシナリオ（`rules/tdd-workflow.md`）。Step 5b で `generate-docs` を実行してドキュメントを同じ PR/MR に載せ、Step 5c で品質ゲートを実行 |
 | `/architect:review-issue` | opus | Epic 全体の整合レビュー、ブロッカー自動修正ループ（回数上限あり。各修正は再現テストの後にコミット）、PR/MR 作成と承認への引き継ぎ |
@@ -224,7 +224,7 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 | `/product:design-system` | opus | 2. UX 基盤 | 独立管理のデザインシステムを構築または `--import`（DTCG トークン + コンポーネント + ガイドライン）。UI モックのスタイルを規定（オプション、単独実行可） |
 | `/product:generate-ui-mock` | sonnet | 3. UX → 仕様 | ドメインストーリーに駆動され、デザインシステムでスタイルされた主要画面のナビゲート可能な UI モック（各活動 → 1 画面、ストーリー順のクリック可能なフローとして連結） |
 | `/product:define-features` | sonnet | 3. UX → 仕様 | UI モックからフィーチャーを抽出（各画面アクション → Command/フィーチャー）。ジャーニー段階をバックボーン、MoSCoW 帯をリリーススライスとするユーザーストーリーマップとして配置 |
-| `/product:example-map` | opus | 3. UX → 仕様 | フィーチャーごとの Example Mapping — 業務ルール（`RULE-`）、境界の両側を示す具体例（`EX-`）、未決の問いを `OQ-` として記録し、Gherkin・集約の不変条件・バックログの受入基準へ流す（オプション） |
+| `/product:example-map` | opus | 3. UX → 仕様 | フィーチャーごとの Example Mapping — 業務ルール（`RULE-`）、境界の両側を示す具体例（`EX-`）、未決の問いを `OQ-` として記録し、Gherkin・集約の不変条件・バックログの受入基準へ流す（オプション）。記録の前に例の連鎖検査を実行する |
 | `/product:define-data-model` | opus | 3. UX → 仕様 | UI モックとフィーチャーからデータモデルを 2 パスで導出（明示 → 暗黙） |
 | `/product:generate-frontend` | sonnet | 3. UX → 仕様 | UI モック + デザインシステムから実行可能な React + Storybook フロントエンドを生成（Atomic Design、トークンスタイリング、react-router）— 選択式、spec フェーズ末尾 |
 | `/product:map-domains` | opus | 4. ドメイン & API | フィーチャー/エンティティを境界づけられたコンテキストへ抽象化（DDD 戦略的設計）。`--mode=event-storming` で境界を Big Picture EventStorming の対話から発見し `reports/03_domain/event-timeline.md` に記録 |

@@ -92,7 +92,10 @@ Read it before the first session; this skill facilitates it, it does not restate
 7. **Append traceability** — add `RULE-` nodes (`upstream: [FEAT-…]` plus any `CON-` / `SCP-` /
    `ENT-` the rule derives from) and `EX-` nodes (`upstream: [RULE-…]`) to
    `work/traceability.json`, IDs allocated `max + 1` over the graph per prefix.
-8. **Record** — append decisions to `work/context.md`; update the Open Questions store in place
+8. **Check** — `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/example_chain.py" <project_dir>` exits 0:
+   every example names a rule, every rule has both kinds of example or cites its `OQ-`, every ID
+   is in the graph.
+9. **Record** — append decisions to `work/context.md`; update the Open Questions store in place
    (@rules/open-questions.md §6–7).
 
 ## Output

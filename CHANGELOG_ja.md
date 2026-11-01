@@ -7,6 +7,18 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.52.0] - 2026-11-01
+
+### Added
+- **architect 側の Example Mapping。** `/architect:define-requirements` に Step 3b を追加した。product が扱っていない `FR-` ごと（High はすべて、Mid と Low は希望があれば）に、業務ルール（`RULE-`）と、ルールごとに正例と反例の具体例（`EX-`）を決め、product と同じ形で `reports/00_requirements/examples/example-map-{fr}.md` に書く。ID は 1 つのグラフで `max + 1` で発番する。これまで architect だけのプロジェクトでは、合意した例が 1 つもないまま Gherkin が作られ、シナリオは設計のマニフェストから推測されていた。`RULE-` と `EX-` は `NFR-` と同じく両方のマニフェストが使う。`design-aggregate`、`generate-test-specs`、`generate-acceptance-tests`、`export-backlog` は両方の場所のマップを読む。
+- **`tools/lib/example_chain.py`** を追加した。すべての `RULE-` / `EX-` を、マップから追跡グラフ、Gherkin のタグ、受け入れテストの記録までたどる。不変条件はプロパティテストまでたどる。品質ゲートの単体テスト段階にテスト先行の記録があり、外側のループが実在するシナリオを指すことも確かめる。`define-requirements`、`/product:example-map`、`generate-test-specs`、`generate-acceptance-tests`、パイプラインの最後のメッセージが実行し、`verify-implementation` はそのエラーを `VER-4xx` の指摘にする（ゲートの記録の検査は、ゲートの結果を書いたあとに行う）。契約スイートは `tools/lib/example_chain.test.py`。ec-monolith の参照セットもこの検査を通る。成果物がない段階は合格扱いにせず、検査を飛ばす。例のマップがないままシナリオがある場合だけ、それ自体を警告する。参照セットの例のマップを ec-monolith のパイプライン実行のシナリオの横に置くと、8 つのルールと 20 の例がどのシナリオにも届いていないと報告する。
+- **`generate-test-specs` の Gherkin Tags 節**で、結合キーごとにタグの形を 1 つに決めた（`@RULE-`、`@EX-`、`@example=<AGG>.<INV>.<kind>`）。`generate-acceptance-tests` は、どこも出力しない `@INV-` の形を挙げなくなった。
+- **`/architect:pipeline` の After the Run 節。** 最後のメッセージで、例のマップの状態と、連鎖の次のコマンドを順に示す（design-implementation → generate-test-specs → generate-acceptance-tests → export-backlog / deliver-backlog → verify-implementation --gate）。
+
+### Changed
+- **生成コードとテスト先行。** `rules/tdd-workflow.md` §5 に、`generated/` に生成したコードはテスト先行ではないと書いた。`test_first` の記録は理由つきの `not-applicable` で、省略しない。代わりの証拠はミューテーションスコアで、実際のソースツリーへのテスト先行の経路は `implement-backlog` だけである。
+- **ドキュメントを連鎖に合わせた。** README、getting-started、入力要件ガイド、コマンド一覧、成果物マップ、AGENTS.md の引き継ぎの表、`docs/design.md` §1.3 と §7 に、Step 3b、例のマップの 2 つ目の置き場所、連鎖検査、生成コードの例外を書いた。
+
 ## [0.51.2] - 2026-11-01
 
 ### Changed

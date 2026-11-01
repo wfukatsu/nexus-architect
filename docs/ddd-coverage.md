@@ -78,8 +78,9 @@ skill · △ referenced, evaluated or partially produced, not a standalone metho
 
 | Technique | Status | Where | Artifact |
 |-----------|--------|-------|----------|
-| Example Mapping | ◎ | `/product:example-map` | `reports/02_spec/examples/example-map-{feat}.md` (`RULE-`, `EX-`) |
+| Example Mapping | ◎ | `/product:example-map` (per `FEAT-`), `/architect:define-requirements` Step 3b (per `FR-` product did not map) | `reports/02_spec/examples/example-map-{feat}.md`, `reports/00_requirements/examples/example-map-{fr}.md` (`RULE-`, `EX-`, one graph) |
 | Specification by Example / BDD | ◎ | `/architect:generate-test-specs` (scenarios), `/architect:generate-acceptance-tests` (executable) | `reports/07_test-specs/bdd-scenarios/` — `Rule:` / `Scenario:` from `RULE-` / `EX-`; Cucumber step definitions and `reports/07_test-specs/acceptance-test-coverage.md` |
+| Example → scenario → test traceability | ◎ | `tools/lib/example_chain.py`, run by `define-requirements`, `/product:example-map`, `/architect:pipeline` (final message), `generate-test-specs`, `generate-acceptance-tests`, `verify-implementation` | every `RULE-` / `EX-` followed from the map through the graph, the Gherkin tags and the acceptance record; every invariant to a property test; the gate's test-first record present (`CHAIN-` codes, `VER-4xx` in the gate) |
 | Acceptance criteria | ◎ | `/architect:export-backlog`, `/architect:define-requirements` | Issue acceptance criteria and FR acceptance criteria from `RULE-` |
 | Contract testing | ◎ | `/architect:generate-contract-tests` | `generated/{service}/src/test/java/**/contract/` |
 | Property-based testing | ◎ | `/architect:generate-test-specs`, `/architect:generate-scalardb-code` | `reports/07_test-specs/property-test-specs.md`; jqwik properties per invariant |
@@ -95,7 +96,7 @@ driven by them.
 
 | Technique | Status | Where | Artifact |
 |-----------|--------|-------|----------|
-| Red → Green → Refactor (test-first, verifiable from history) | ◎ | `/architect:implement-backlog` Step 5, `rules/tdd-workflow.md` §2 | `test:` → `feat:` → `refactor:` commit series per unit on the working branch; the sequence recorded in `reports/09_verification/quality-gate.json` (`test_first`) |
+| Red → Green → Refactor (test-first, verifiable from history) | ◎ | `/architect:implement-backlog` Step 5, `rules/tdd-workflow.md` §2 | `test:` → `feat:` → `refactor:` commit series per unit on the working branch; the sequence recorded in `reports/09_verification/quality-gate.json` (`test_first`). Code generated into `generated/` is not test-first: its record is `not-applicable` with the mutation score as substitute evidence (`rules/tdd-workflow.md` §5) |
 | Double loop (ATDD outside, TDD inside) | ◎ | `/architect:generate-acceptance-tests` (the outer loop's tests), `/architect:implement-backlog` Step 5, `rules/tdd-workflow.md` §3 | The acceptance-level test that carried the outer loop, named in the Issue's progress comment; `@wip` scenarios flipped by the item that makes them pass |
 | Walking skeleton | ◎ | `/product:define-features` (Must row), `/architect:export-backlog` (one `walking-skeleton` Issue per new service, first in order), `/architect:implement-backlog` (implements it first) | the User Story Map's Must row; the `walking-skeleton` Issue |
 | Test doubles — Fake per repository port, injected Clock / id generator | ◎ | `/architect:design-implementation` (specifies), `/architect:generate-scalardb-code` (emits), `/architect:generate-contract-tests` (ArchUnit enforces) | `generated/{service}/src/test/java/**/fakes/`; `reports/06_implementation/repository-interfaces-spec.md` |

@@ -83,7 +83,7 @@ that other files cite by name.
 | `00_core/assumptions.md`, `validation-plan.md` (`ASM-`) | validate-assumptions | open-questions.md → unresolved items / open risks | ✓ |
 | `01_ux/personas.md` (`PER-`, `JOB-`) | generate-persona | requirements-definition.md → Actor list (**seed only**; personas are JTBD user segments, not a role/permission matrix — architect derives roles/permissions in `:analyze`) | △ |
 | `02_spec/feature-list.md` (`FEAT-`) | define-features | requirements-definition.md → Functional Requirements (`FEAT-`→`FR-`, record the link) | ✓ |
-| `02_spec/examples/example-map-*.md` (`RULE-`, `EX-`) | example-map | requirements-definition.md → acceptance criteria per `FR-` (the `RULE-` entries of its `FEAT-`); `EX-` bridges to `/architect:design-aggregate` (invariant examples) and `/architect:generate-test-specs` (Gherkin scenarios) | ✓ |
+| `02_spec/examples/example-map-*.md` (`RULE-`, `EX-`) | example-map | requirements-definition.md → acceptance criteria per `FR-` (the `RULE-` entries of its `FEAT-`); `EX-` bridges to `/architect:design-aggregate` (invariant examples) and `/architect:generate-test-specs` (Gherkin scenarios). A feature product did not map gets its `FR-` mapped by `define-requirements` Step 3b into `00_requirements/examples/` instead — same shape, same graph | ✓ |
 | `02_spec/data-model.md` (`ENT-`) | define-data-model | data-transaction-requirements.md → data requirements (**logical ER**, not a physical DB inventory with versions/volumes) | △ |
 | `03_domain/bounded-contexts.md`, `domain-map.md`, `ubiquitous-language.md` (`CTX-`) | map-domains | **Bounded-context inputs** — requirements-definition.md scoping + feeds `/architect:analyze` ubiquitous language; the per-`CTX-` consistency hint (`Strong`/`Eventual`/`TBD`) **seeds** the transaction matrix (see §1.4) | ✓ |
 | `03_domain/api-design.md` (`API-`) | design-api | reference for downstream `/architect:design-api`; informs FR scope | ✓ |
@@ -103,7 +103,10 @@ every graph-writing skill declares one, that its SKILL.md actually uses it, and 
 skills within a manifest claim the same prefix. The table above lists only the prefixes that
 cross the plugin boundary; the registry lists all of them. `NFR-` is deliberately claimed by
 both manifests — that is the §1.5 carry-over rule (product `NFR-` IDs are reused verbatim,
-never re-numbered), not a collision.
+never re-numbered), not a collision. `RULE-` and `EX-` are claimed by both for the same reason:
+`/product:example-map` maps a `FEAT-`, `define-requirements` Step 3b maps an `FR-` the product did
+not map, and both write the one graph, allocating `max + 1` (rule 4). A feature product mapped is
+never mapped again.
 
 ### 1.4 Designed Gaps (product does **not** supply these)
 
@@ -234,7 +237,9 @@ graph, seeding step 2's "directly touched" set:
 
 `RULE-` (upstream: `FEAT-` / `CON-` / `SCP-` / `ENT-`) and `EX-` (upstream: `RULE-`) are reached
 through the closure from any of these entries; the re-run is `/product:example-map --feature=…` for
-the features whose rules moved.
+the features whose rules moved. A `RULE-` that `define-requirements` Step 3b minted has an `FR-`
+upstream instead; it is an architect node, so §7.5 applies — it is reported, and its re-run is
+`/architect:define-requirements`, never run from here.
 
 ### 7.5 The Architect Boundary
 

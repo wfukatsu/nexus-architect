@@ -15,13 +15,13 @@ For the inputs you should prepare before running each pipeline, see the
 | Command | Model | Description |
 |---------|-------|-------------|
 | `/architect:start` | inherit | Interactively start system analysis and design |
-| `/architect:pipeline` | sonnet | Automated pipeline execution (--resume-from, --rerun-from, --skip-{phase}, --no-scalardb, --lang) |
+| `/architect:pipeline` | sonnet | Automated pipeline execution (--resume-from, --rerun-from, --skip-{phase}, --no-scalardb, --lang); ends with the example-map state and the next commands of the DDD → BDD → TDD chain |
 
 ## Requirements
 
 | Command | Model | Description |
 |---------|-------|-------------|
-| `/architect:define-requirements` | opus | Requirements definition: FR/NFR classification, data/transaction requirements, ScalarDB applicability (greenfield entry point; supports --input, --auto, --no-scalardb) |
+| `/architect:define-requirements` | opus | Requirements definition: FR/NFR classification, data/transaction requirements, ScalarDB applicability, Example Mapping per `FR-` product did not map (`RULE-`/`EX-` under `reports/00_requirements/examples/`) (greenfield entry point; supports --input, --auto, --no-scalardb) |
 
 ## Investigation
 
@@ -56,7 +56,7 @@ For the inputs you should prepare before running each pipeline, see the
 | `/architect:map-domains` | opus | - | Domain classification, BC mapping |
 | `/architect:redesign` | opus | - | Bounded context redesign, context map, and the ADR log (`reports/03_design/adr/`) later design skills append to |
 | `/architect:create-domain-story` | opus | Optional | Domain Storytelling: visualize business processes per domain; `--mode=event-storming` runs the flow as a Process Modeling EventStorming session |
-| `/architect:design-aggregate` | opus | Optional | Tactical model per bounded context — aggregate root, interior entities, value objects, invariants with concrete examples, commands / events / factory / specifications, one repository per root, as the unit a transaction writes; plus the Domain Event Catalog (`reports/03_design/domain-event-catalog.json`) derived from their events |
+| `/architect:design-aggregate` | opus | Optional | Tactical model per bounded context — aggregate root, interior entities, value objects, invariants with concrete examples, commands / events / factory / specifications, one repository per root, as the unit a transaction writes; plus the Domain Event Catalog (`reports/03_design/domain-event-catalog.json`) derived from their events; reads the example maps of both plugins (`02_spec/examples/`, `00_requirements/examples/`) as invariant candidates |
 | `/architect:design-state-machine` | opus | Optional | State transition models per aggregate — states, guarded transitions, the full state x event matrix with no undecided cell, and the consistency class of every transition |
 | `/architect:design-microservices` | opus | - | Target architecture |
 | `/architect:select-scalardb-edition` | sonnet | ScalarDB | Edition selection |
@@ -74,16 +74,16 @@ phases, in the listed order. Output lands under `generated/` (git-ignored, overw
 | Command | Model | Requires | Description |
 |---------|-------|----------|-------------|
 | `/architect:design-implementation` | opus | `reports/03_design/` | Implementation specifications — API layer (controller/DTO/validation/mapper, transaction boundary, authorization point) plus services, repositories, VOs; `--layering=clean` records Clean Architecture naming (Use Case / Interactor / Presenter, `usecase/` package) that every code generator then follows |
-| `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/contract/unit/property/integration/performance test specifications — one property per aggregate invariant when `aggregate-manifest.json` exists |
+| `/architect:generate-test-specs` | sonnet | `reports/06_implementation/` | BDD/contract/unit/property/integration/performance test specifications — one property per aggregate invariant when `aggregate-manifest.json` exists; `Rule:` / `Scenario:` tagged `@RULE-` / `@EX-` from the example maps |
 | `/architect:generate-characterization-tests` | sonnet | `reports/before/{project}/` (legacy path) | Golden-master tests recorded from the running legacy system, per module and seam, with non-determinism masked and `@KnownDefect` markers — the net each transformation-plan step is gated on |
 | `/architect:generate-scalardb-code` | opus | `reports/06_implementation/` + `scalardb-schema.md` | Spring Boot + ScalarDB code generation — owns `domain/` and `infrastructure/`, plus the domain's example and jqwik property tests per invariant |
 | `/architect:generate-api-code` | opus | `api-specifications/` + `api-layer-spec.md` | API layer from the OpenAPI contract — controllers 1:1 with `operationId`, DTOs + derived Bean Validation, mappers, RFC 9457 handler, and `api-contract-map.json` |
 | `/architect:generate-graphql-code` | opus | GraphQL specifications + `api-layer-spec.md` | Spring GraphQL API layer — resolver bindings, DTOs/mappers, security/context, DataLoader, errors, query limits and combined contract map |
 | `/architect:generate-contract-tests` | sonnet | `api-contract-map.json` + `contract-test-specs.md` | Executable contract tests (swagger-request-validator + `@WebMvcTest` by default; Schemathesis / Pact / ArchUnit opt-in) |
-| `/architect:generate-acceptance-tests` | sonnet | `bdd-scenarios/` + `api-layer-spec.md` or `repository-interfaces-spec.md` | Cucumber-JVM step definitions for the Gherkin scenarios (`RULE-`/`EX-` tagged), driven through the API or the application services over the Fakes, `@wip` until their item lands — the ATDD outer loop and stage 4's `acceptanceTest` |
+| `/architect:generate-acceptance-tests` | sonnet | `bdd-scenarios/` + `api-layer-spec.md` or `repository-interfaces-spec.md` | Cucumber-JVM step definitions for the Gherkin scenarios (`RULE-`/`EX-` tagged), driven through the API or the application services over the Fakes, `@wip` until their item lands — the ATDD outer loop and stage 4's `acceptanceTest`; runs the example-chain check over the coverage record |
 | `/architect:generate-infra-code` | sonnet | `reports/08_infrastructure/` | K8s/Terraform/Helm code generation |
 | `/architect:generate-docs` | sonnet | generated/implemented code | README + `docs/` for generated/implemented code (runs after codegen; Step 5b of implement-backlog) |
-| `/architect:verify-implementation` | opus | generated/implemented code + design | Design ↕ code conformance on four axes (contract, transaction, security, requirement); `--gate` runs the eight-stage AI code quality gate (Step 5c of implement-backlog) |
+| `/architect:verify-implementation` | opus | generated/implemented code + design | Design ↕ code conformance on four axes (contract, transaction, security, requirement); `--gate` runs the eight-stage AI code quality gate (Step 5c of implement-backlog); the example-chain check's errors become `VER-4xx` findings |
 | `/architect:design-sql-migration` | opus | application code / SQL files / `investigate-db-*` runs + `design-scalardb` | SQL → ScalarDB migration design: an inventory of every statement (MyBatis, JDBC, JPA, SQL files, DDL, views, routines), the vendored SQLGlot converter run with the analysed keys, storage, edition and row estimates, and one validated route per statement in `sql-migration-manifest.json` — including `native_jdbc` for statements an application keeps as native SQL through ScalarDB Native JDBC |
 | `/architect:implement-sql-migration` | sonnet | `sql-migration-manifest.json` | Gradle module under `generated/sql-migration/` — ScalarDB SQL, schema, fetch-and-H2 plans, a Core API interface and application-side skeletons carrying their semantics — behind an offline gate that refuses converter drift or a changed source |
 | `/architect:verify-sql-migration` | sonnet | generated migration module + authorized non-production source database | Golden checks for application-side reads and differential tests for plan / ScalarDB SQL routes, with the verification states recorded in the manifest |
@@ -96,7 +96,7 @@ Requires `gh` / `glab` authenticated.
 
 | Command | Model | Description |
 |---------|-------|-------------|
-| `/architect:export-backlog` | opus | Reports → Epic (What/Why) / Sub-Epic (What/Key Results) / Issue (How) on GitLab or GitHub; review-first plan + approval gate, idempotent creation; one `walking-skeleton` Issue per new service, first in order |
+| `/architect:export-backlog` | opus | Reports → Epic (What/Why) / Sub-Epic (What/Key Results) / Issue (How) on GitLab or GitHub; review-first plan + approval gate, idempotent creation; one `walking-skeleton` Issue per new service, first in order; acceptance criteria are the `RULE-` entries of the feature's or requirement's example map |
 | `/architect:deliver-backlog` | sonnet | Orchestrates implement → review → approval → merge per Issue under an Epic; resumes from `backlog-manifest.json`, stops at every human gate |
 | `/architect:implement-backlog` | sonnet | Implements one item Epic-consistently on a working branch, test-first — `test:` (seen failing) → `feat:` → `refactor:` per unit with the item's scenarios as the outer loop (`rules/tdd-workflow.md`); Step 5b runs `generate-docs` so docs ship in the same PR/MR, Step 5c runs the quality gate |
 | `/architect:review-issue` | opus | Whole-Epic consistency review, bounded blocker auto-fix loop (each fix committed after its reproduction test), opens the PR/MR and hands off for approval |
@@ -224,7 +224,7 @@ Phase order and the `mvp`/`core-only`/`ux-to-spec`/`full` profiles are defined i
 | `/product:design-system` | opus | 2. UX Foundation | Build or `--import` a separately-managed design system (DTCG tokens + components + guidelines); styles the UI mocks (optional, standalone) |
 | `/product:generate-ui-mock` | sonnet | 3. UX → Spec | Navigable UI mocks for key screens, driven by domain stories and styled by the design system (each activity → a screen, wired into a clickable story flow) |
 | `/product:define-features` | sonnet | 3. UX → Spec | Extract features from UI mocks (each screen action → Command/feature), laid out as a User Story Map (journey stages as backbone, MoSCoW bands as release slices) |
-| `/product:example-map` | opus | 3. UX → Spec | Example Mapping per feature — business rules (`RULE-`), one concrete example per rule on each side of its boundary (`EX-`), unsettled questions as `OQ-`; feeds the Gherkin, the aggregate invariants and the backlog acceptance criteria (optional) |
+| `/product:example-map` | opus | 3. UX → Spec | Example Mapping per feature — business rules (`RULE-`), one concrete example per rule on each side of its boundary (`EX-`), unsettled questions as `OQ-`; feeds the Gherkin, the aggregate invariants and the backlog acceptance criteria (optional); runs the example-chain check before it records |
 | `/product:define-data-model` | opus | 3. UX → Spec | Derive the data model in two passes (explicit → implicit) |
 | `/product:generate-frontend` | sonnet | 3. UX → Spec | Turn UI mocks + design system into a runnable React + Storybook frontend (Atomic Design, token-styled, react-router) — selectable, end of spec phase |
 | `/product:map-domains` | opus | 4. Domain & API | Abstract features/entities into bounded contexts (DDD strategic); `--mode=event-storming` finds the boundaries in a Big Picture EventStorming walk instead and records it in `reports/03_domain/event-timeline.md` |

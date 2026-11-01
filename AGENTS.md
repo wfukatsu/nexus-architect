@@ -177,7 +177,7 @@ additive** (`skills/common/progress-registry.md` § One Registry, Two Pipelines)
 | File | Rule |
 |------|------|
 | `pipeline-progress.json` | One `phases` map keyed by bare phase name, holding both pipelines. Never re-register it, drop another manifest's entry, or reset another pipeline's `options` (notably `output_language`). Stamp `"plugin": "product"\|"architect"` on every entry — `map-domains`, `design-api`, `create-domain-story` and `report` exist in both manifests. Where it is absent, confirm a `completed` against the phase's `outputs:` on disk |
-| `traceability.json` | One graph. `define-requirements` appends `FR-`/`NFR-` to what product wrote; never a second file, never truncated to `[]`. `id_prefix` on each manifest phase says which skill mints which prefix |
+| `traceability.json` | One graph. `define-requirements` appends `FR-`/`NFR-` (and `RULE-`/`EX-` for requirements product did not map) to what product wrote; never a second file, never truncated to `[]`. `id_prefix` on each manifest phase says which skill mints which prefix |
 | `context.md` | Decisions, plus **the** Open Questions store for both plugins; `reports/00_requirements/open-questions.md` is a view rendered from it. New IDs are `max(OQ-###) + 1` over the store. Create only when absent; never overwrite |
 
 `/product:adapt-change` walks the shared graph; it **reports** architect nodes in its blast radius

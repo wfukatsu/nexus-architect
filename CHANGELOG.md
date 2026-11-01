@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.52.0] - 2026-11-01
+
+### Added
+- **Example Mapping on the architect side.** `/architect:define-requirements` gains Step 3b: per
+  `FR-` that product did not already map (every High one, Mid and Low on request), the business
+  rules (`RULE-`) and a positive and a negative concrete example per rule (`EX-`), written to
+  `reports/00_requirements/examples/example-map-{fr}.md` in product's map shape, minted `max + 1`
+  into the one graph. An architect-only project previously reached the Gherkin with no agreed
+  example at all — the scenarios were inferred from the design manifests. `RULE-` / `EX-` are now
+  claimed by both manifests, like `NFR-`. `design-aggregate`, `generate-test-specs`,
+  `generate-acceptance-tests` and `export-backlog` read maps from both locations.
+- **`tools/lib/example_chain.py`** follows every `RULE-` / `EX-` from the map through the
+  traceability graph, the Gherkin tags and the acceptance record, every invariant to a property
+  test, and checks that the gate's unit stage carries a `test_first` record whose outer loop names
+  an existing scenario. Run by `define-requirements`, `/product:example-map`,
+  `generate-test-specs`, `generate-acceptance-tests`, the pipeline's final message, and by
+  `verify-implementation`, which turns its errors into `VER-4xx` findings (the gate-record checks
+  after it writes the gate result). Contract suite `tools/lib/example_chain.test.py`; the
+  ec-monolith reference set now passes it too. A link whose artifact is absent is skipped, not
+  passed — only scenarios with no example map earn a warning of their own. Staging the reference
+  set's example map beside the ec-monolith pipeline run's own scenarios, it reports all 8 rules and
+  20 examples as never reaching a scenario.
+- **`generate-test-specs` § Gherkin Tags** fixes one form per join key (`@RULE-`, `@EX-`,
+  `@example=<AGG>.<INV>.<kind>`); `generate-acceptance-tests` no longer names an `@INV-` form
+  nothing emitted.
+- **`/architect:pipeline` § After the Run** — the final message reports the example-map state and
+  the next commands of the chain in order (design-implementation → generate-test-specs →
+  generate-acceptance-tests → export-backlog / deliver-backlog → verify-implementation --gate).
+
+### Changed
+- **Generated code and test-first.** `rules/tdd-workflow.md` §5 says code the generators emit into
+  `generated/` is not test-first: its `test_first` record is `not-applicable` with that reason and
+  never absent, the mutation score is the substitute evidence, and `implement-backlog` is the one
+  TDD path into the real source tree.
+- **Docs synced to the chain.** README, getting-started, the input-requirements guide, the command
+  catalogue, the artifact map, AGENTS.md's handoff table and `docs/design.md` §1.3 / §7 describe
+  Step 3b, the second example-map location, the chain check and the generated-code exemption.
+
 ## [0.51.2] - 2026-11-01
 
 ### Changed
