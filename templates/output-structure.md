@@ -8,7 +8,8 @@ reports/
 │   ├── requirements-definition.md
 │   ├── data-transaction-requirements.md
 │   ├── scalardb-applicability.md  # Omitted with --no-scalardb
-│   └── open-questions.md
+│   ├── open-questions.md
+│   └── examples/                  # Step 3b: example-map-{fr}.md per mapped FR- + index.md
 ├── before/{project}/              # investigate, analyze-ui
 │   ├── technology-stack.md
 │   ├── codebase-structure.md

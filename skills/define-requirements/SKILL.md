@@ -18,12 +18,13 @@ Accepts additional input documents (RFP, meeting notes, existing design docs) vi
 
 ## Desired Outcome
 
-Produce a traceable requirements baseline as four deliverables:
+Produce a traceable requirements baseline as five deliverables:
 
 1. **Requirements definition** — business context, scope, FR/NFR classification with IDs and priorities, actor list
 2. **Data & transaction requirements** — DB inventory, transaction requirements matrix, consistency level per business process
 3. **Scalar product applicability assessment** — decision tree result (ScalarDB / ScalarDB Saga / neither), XA vs ScalarDB comparison, rationale (skipped with `--no-scalardb`)
-4. **Open questions** — one row per question raised during the run, each with its `OQ-` ID, status (`answered` rows stay as the decision record; `deferred` / `external` / `unasked` are what is still open), answer, owner, and downstream impact (@rules/open-questions.md)
+4. **Example maps** — per functional requirement in scope, the business rules it obeys (`RULE-`) and a concrete positive and negative example on each side of every rule (`EX-`), so that the scenarios, the invariants and the acceptance criteria downstream are the cases someone agreed to rather than cases inferred from a design (Step 3b)
+5. **Open questions** — one row per question raised during the run, each with its `OQ-` ID, status (`answered` rows stay as the decision record; `deferred` / `external` / `unasked` are what is still open), answer, owner, and downstream impact (@rules/open-questions.md)
 
 Every requirement carries an ID (`FR-xxx` / `NFR-xxx`), a priority, and a data consistency requirement so that downstream design skills can trace decisions back to requirements.
 
@@ -46,6 +47,7 @@ Every requirement carries an ID (`FR-xxx` / `NFR-xxx`), a priority, and a data c
 - **Ask before writing `TBD`.** An unknown the materials do not answer is put to the user with `AskUserQuestion` — 2–4 candidate answers derived from the materials, each described by what it changes downstream, with the harness-appended "Other" carrying any answer the options cannot express. `TBD` is only for what the user defers, cannot answer in-session, or was never asked under `--auto`. Full protocol: @rules/open-questions.md.
 - **Always confirm numeric targets** (latency, throughput, RPO, RTO). Ask them as bands (`p95 < 100 ms` / `< 500 ms` / `< 1 s`) so an exact figure arrives through free text; record the figure verbatim, normalize only units, and confirm the normalization. Only if the user cannot supply one does it become `TBD` with the question that must be answered.
 - **Judge consistency requirements per business process**, not per system. Classify each process as Strong Consistency (ACID) / Eventual Consistency (Saga) / Local Tx using the criteria in the reference template.
+- **Agreed examples before design.** A rule nobody has tested against a concrete case means two things to two people, and every later link of the chain (invariants, Gherkin, acceptance tests, the outer TDD loop) inherits the ambiguity. Map rules and examples per requirement here, before any design skill runs, unless product already did it for the feature.
 - **Gap-driven elicitation**: read all provided materials first, then ask only about items the materials did not answer. Never re-ask something already answered by an input document.
 
 ## Prerequisites
@@ -67,6 +69,7 @@ When product reports are present, this skill runs as the **product→architect h
 | Resource | Purpose |
 |----------|---------|
 | `@rules/open-questions.md` | The Open Questions protocol: ask with AskUserQuestion before writing `TBD`, question/option shape, free-text handling, and the entry schema for `open-questions.md` |
+| `@rules/product/example-mapping.md` | The Example Mapping method — the four cards, where rules come from, running the session, the `--auto` behaviour, the discipline. Step 3b runs it per `FR-`; the rule is shared with `/product:example-map`, which runs it per `FEAT-` |
 | `@docs/design.md` §1.3–1.4 | Product→architect artifact mapping, ID carry-over rules, and by-design gaps (read when product reports are present) |
 | `workflow/greenfield/01_requirements_analysis.md` | Templates: FR/NFR classification table, DB inventory, transaction requirements matrix, Scalar product applicability decision tree (Step 1.4), XA comparison table (Step 1.5) |
 | `research/02_scalardb_usecases_{en\|ja}.md` | Decision tree rationale for ScalarDB applicability — background material predating ScalarDB 3.19 / ScalarDB Saga; the bundle wins on any conflict (@rules/okf-knowledge-bundle.md) |
@@ -108,6 +111,17 @@ Also pick up here any `deferred` / `unasked` Open Question that this run needs a
 2. Build the DB inventory (current or planned databases, types, versions, volumes)
 3. Build the transaction requirements matrix: classify each business process into Strong Consistency (ACID) / Eventual Consistency (Saga) / Local Tx with reasons. When `bounded-contexts.md` carries a per-`CTX-` consistency hint (`Strong`/`Eventual`/`TBD`, from /product:map-domains), use it as the **starting point** for the contexts a process spans — confirm or override it with a recorded reason; this is the binding classification (@docs/design.md §1.4)
 
+### Step 3b: Example Mapping (per functional requirement)
+
+The method is @rules/product/example-mapping.md; read it before the first requirement. This step applies it to `FR-` instead of `FEAT-`:
+
+1. **Skip what product already mapped.** An `FR-` derived from a `FEAT-` that has `reports/02_spec/examples/example-map-{feat}.md` keeps that map: its `RULE-` entries are already the FR's acceptance criteria (Step 1, item 4). Map only the requirements with no product map.
+2. **Select the requirements.** Every `High`-priority `FR-` is mapped. Then ask once, with `AskUserQuestion`, whether to map the `Mid` and `Low` requirements as well — options: High only (recommended when the list is long), High and Mid, all. Under `--auto` map the High ones only and record the question `unasked`.
+3. **Harvest, then ask.** Candidate rules come from the materials already read — the RFP's business rules, validation rules in `ui-features.md`, constraints, the existing code's guards on the legacy path — and are presented for confirmation, never asked from scratch. For every rule, ask for the example that breaks it; for every example, name its rule. Batch at most 3 questions per `AskUserQuestion` call, as in Step 2. Under `--auto` follow the rule's `--auto` paragraph: harvested rules only, no invented example, an `OQ-` recorded `unasked` for every rule left without a positive and a negative example, cited in that rule's row.
+4. **Size verdict.** More than roughly 6–8 rules on one `FR-` means it should be split; say so in the map and in the requirements definition, do not split it silently.
+5. **IDs.** Allocate `RULE-` and `EX-` as the highest of each prefix already in `work/traceability.json` + 1 — product's `example-map` mints the same prefixes into the same graph (@docs/design.md §1.5 rule 4). The `RULE-` entries are the FR's acceptance criteria in `requirements-definition.md`, cited by ID.
+6. **Write** one map per requirement as soon as it is settled, in the document shape `/product:example-map` defines (`skills/product/example-map/SKILL.md` § Output Document Structure, with `requirement: "FR-…"` in the frontmatter in place of `feature`, and `feature: "FEAT-…"` as well when the FR derives from one), plus `index.md`. The `Kind` column keeps the English words `positive` / `negative` whatever the output language: they are vocabulary the chain check reads.
+
 ### Step 4: Scalar Product Applicability — skipped with `--no-scalardb`
 
 0. If `reports/03_domain/tech-stack-fitness.md` exists (from /product:design-architecture), use its ScalarDB/ScalarDL **Adopt/Trial/Reject** verdict as the **prior**: confirm or refute it against the transaction matrix rather than deriving the recommendation from a blank slate, and cite it as the input
@@ -123,9 +137,10 @@ Also pick up here any `deferred` / `unasked` Open Question that this run needs a
 ### Step 5: Review & Output
 
 1. Present the draft deliverables for user confirmation (skipped with `--auto`)
-2. Incorporate corrections, then write the four output files
-3. **Write back to the traceability graph** (@docs/design.md §1.5): locate `work/traceability.json` or create it as `{ "schema_version": 1, "nodes": [] }` if absent, then append one node per requirement. Allocate every new `FR-`/`NFR-` as the highest of that prefix already in the graph + 1 (§1.5 rule 4) — product's `define-nfr` mints `NFR-` as well, and a product run resumed after this handoff will continue from what it finds, so numbering from this skill's own reports produces one ID with two meanings — `FR-` nodes (`type: "requirement"`, `upstream: ["FEAT-…"]`, empty `upstream` when elicited fresh) and architect-originated `NFR-` nodes (`type: "nfr"`). Do **not** duplicate a product `NFR-` that was reused verbatim; physical-only items (transaction-consistency classes, DB inventory, actor/role/permission) get empty `upstream`.
-4. Update `work/pipeline-progress.json`: mark the `define-requirements` phase `completed`
+2. Incorporate corrections, then write the four output files (the example maps were written in Step 3b)
+3. **Write back to the traceability graph** (@docs/design.md §1.5): locate `work/traceability.json` or create it as `{ "schema_version": 1, "nodes": [] }` if absent, then append one node per requirement, and one per rule and example of Step 3b: `RULE-` with `upstream: ["FR-…"]` (plus the `FEAT-` when there is one), `EX-` with `upstream: ["RULE-…"]`. Allocate every new `FR-`/`NFR-` as the highest of that prefix already in the graph + 1 (§1.5 rule 4) — product's `define-nfr` mints `NFR-` as well, and a product run resumed after this handoff will continue from what it finds, so numbering from this skill's own reports produces one ID with two meanings — `FR-` nodes (`type: "requirement"`, `upstream: ["FEAT-…"]`, empty `upstream` when elicited fresh) and architect-originated `NFR-` nodes (`type: "nfr"`). Do **not** duplicate a product `NFR-` that was reused verbatim; physical-only items (transaction-consistency classes, DB inventory, actor/role/permission) get empty `upstream`.
+4. **Check the chain so far** — `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/example_chain.py" <project_dir>` exits 0 (every example names a rule, every rule has both kinds of example or cites the `OQ-` that explains why not, every `RULE-` / `EX-` is in the graph). Fix the maps, not the check.
+5. Update `work/pipeline-progress.json`: mark the `define-requirements` phase `completed`
 
 ## Output
 
@@ -136,6 +151,7 @@ Write to `reports/00_requirements/`:
 | `reports/00_requirements/requirements-definition.md` | Business context, scope, FR/NFR classification table, priorities, actor list | Always |
 | `reports/00_requirements/data-transaction-requirements.md` | DB inventory, transaction requirements matrix, consistency level assessment | Always |
 | `reports/00_requirements/scalardb-applicability.md` | Decision tree result (Mermaid) per business process — ScalarDB / ScalarDB Saga / neither — XA comparison table, rationale; for each Saga candidate the participants of its steps and the documented facts about every external one (step 5a) | Unless `--no-scalardb` |
+| `reports/00_requirements/examples/example-map-{fr}.md`, `reports/00_requirements/examples/index.md` | One example map per mapped `FR-` (`{fr}` is the lower-cased id, e.g. `fr-003`): rules, examples, questions, size verdict; the index lists each with its rule, example and open-question counts. Read by `design-aggregate`, `generate-test-specs`, `generate-acceptance-tests` and `export-backlog` exactly as they read product's maps | When Step 3b mapped at least one requirement |
 | `reports/00_requirements/open-questions.md` | **A view rendered from the store**, not a second source (@rules/open-questions.md §6): the `work/context.md` § Open Questions rows a reader of these requirements needs, in the §6 row shape — `OQ-` ID, question, status (`answered`/`deferred`/`unasked`/`external`), answer (free-text answers verbatim), options offered, owner, downstream impact, asked-at. Write the store first, then render this; never edit it as the source, and never let it carry a row the store lacks. Note at the top which rows came across the product handoff, so a reader can tell what this run raised from what it inherited | Always |
 
 Write all document content in the language configured in `work/pipeline-progress.json` (`options.output_language`). YAML frontmatter keys remain in English regardless of the output language.
@@ -159,13 +175,14 @@ Mermaid diagrams (applicability decision tree, context diagram) follow @rules/me
 
 ## Completion Criteria
 
-1. All four output files written (three when `--no-scalardb`)
+1. All four output files written (three when `--no-scalardb`), plus an example map for every requirement Step 3b selected
 2. Every FR/NFR has an ID, priority, and data consistency requirement
 3. Numeric NFR targets (latency, throughput, RPO/RTO) are either filled in or listed in `open-questions.md` with a status explaining why they are still open — no interactive run leaves a `TBD` that was never asked, and every `TBD` in an artifact carries its `OQ-` ID
 4. Every business process in the transaction matrix has a consistency level with a reason
 5. Scalar product applicability verdict recorded per business process with rationale (unless `--no-scalardb`)
 6. `work/pipeline-progress.json` updated with phase status `completed`
-7. `work/traceability.json` updated with `FR-`/`NFR-` nodes; every `FR-` derived from product carries its `FEAT-` upstream and no product `NFR-` is re-numbered (@docs/design.md §1.5)
+7. `example_chain.py` exits 0 on the project
+8. `work/traceability.json` updated with `FR-`/`NFR-`/`RULE-`/`EX-` nodes; every `FR-` derived from product carries its `FEAT-` upstream and no product `NFR-` is re-numbered (@docs/design.md §1.5)
 
 ## Related Skills
 
@@ -174,4 +191,6 @@ Mermaid diagrams (applicability decision tree, context diagram) follow @rules/me
 | /architect:start | Orchestrator — runs this skill first on the greenfield path; uses `scalardb-applicability.md` for the ScalarDB usage decision |
 | /architect:investigate | Optional upstream on the legacy path — its outputs are auto-detected as inputs |
 | /architect:analyze | Downstream — refines actors and ubiquitous language from the requirements baseline |
+| /product:example-map | Sibling — the same method per `FEAT-`; its maps are reused here, never re-mapped |
+| /architect:design-aggregate, /architect:generate-test-specs | Downstream — the `RULE-` entries become invariant candidates and `Rule:` blocks, the `EX-` entries invariant examples and scenarios |
 | /architect:select-scalardb-edition | Downstream — makes the final ScalarDB edition decision based on the applicability recommendation |

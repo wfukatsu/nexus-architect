@@ -517,13 +517,14 @@ def check_id_prefix_registry():
     check("every skill that appends to the graph declares a prefix", not missing_decl,
           missing_decl)
 
-    # Distinct within a manifest; NFR- is the one deliberate cross-manifest claim (§1.5).
+    # Distinct within a manifest; NFR-, RULE- and EX- are the deliberate cross-manifest claims (§1.5):
+    # one meaning, one graph, allocated max + 1 by whichever skill mints next.
     dupes = {p: c for p, c in claims.items()
              if len({(pl, n) for pl, n in c}) > 1 and len({pl for pl, _ in c}) == 1}
     check("no two skills in one manifest claim the same prefix", not dupes, dupes)
     crossing = sorted(p for p, c in claims.items() if len({pl for pl, _ in c}) > 1)
-    check("NFR- is the only prefix both manifests claim — the §1.5 carry-over",
-          crossing == ["NFR-"], crossing)
+    check("NFR-, RULE- and EX- are the only prefixes both manifests claim — the §1.5 carry-over",
+          crossing == ["EX-", "NFR-", "RULE-"], crossing)
 
     # The three that had none, and the edge that closes the journey->feature chain.
     for name, prefix in (("research-landscape", "MKT-"), ("generate-ui-mock", "SCR-"),

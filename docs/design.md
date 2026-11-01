@@ -103,7 +103,10 @@ every graph-writing skill declares one, that its SKILL.md actually uses it, and 
 skills within a manifest claim the same prefix. The table above lists only the prefixes that
 cross the plugin boundary; the registry lists all of them. `NFR-` is deliberately claimed by
 both manifests — that is the §1.5 carry-over rule (product `NFR-` IDs are reused verbatim,
-never re-numbered), not a collision.
+never re-numbered), not a collision. `RULE-` and `EX-` are claimed by both for the same reason:
+`/product:example-map` maps a `FEAT-`, `define-requirements` Step 3b maps an `FR-` the product did
+not map, and both write the one graph, allocating `max + 1` (rule 4). A feature product mapped is
+never mapped again.
 
 ### 1.4 Designed Gaps (product does **not** supply these)
 

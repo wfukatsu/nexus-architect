@@ -52,8 +52,9 @@ Generate, per service:
   edited here.
 - **A coverage record** — `reports/07_test-specs/acceptance-test-coverage.md`, **one section per
   service, updated in place** on a later `--service` run: per feature, scenarios bound / total,
-  `RULE-` and `EX-` reached (or, when the project has no example map, the manifest tags the
-  scenarios carry — `@INV-`, `@STM-`, `@BDD-`), undefined steps and why, the driver, which
+  `RULE-` and `EX-` reached, each by its ID (or, when the project has no example map, the
+  manifest tags the scenarios carry — `@example=<AGG>.<INV>.<kind>`, `@STM-`; tag forms in
+  `generate-test-specs` § Gherkin Tags), undefined steps and why, the driver, which
   scenarios are tagged `@wip` and why, and which features were **out of scope** for this
   service (they drive aggregates another service owns) with their counts.
 
@@ -91,7 +92,7 @@ Generate, per service:
 | reports/06_implementation/api-contract-map.json | Recommended for `--driver=api` | /architect:generate-api-code — which handler each `When` reaches |
 | reports/06_implementation/repository-interfaces-spec.md | Required for `--driver=application` | /architect:design-implementation — the ports the Fakes implement |
 | reports/03_design/aggregates/aggregate-manifest.json | Recommended | /architect:design-aggregate — examples and value-object rules for the fixture layer |
-| reports/02_spec/examples/ | Recommended | /product:example-map — to report `RULE-` / `EX-` reach |
+| reports/02_spec/examples/, reports/00_requirements/examples/ | Recommended | /product:example-map, /architect:define-requirements — to report `RULE-` / `EX-` reach |
 
 ## Steps
 
@@ -116,7 +117,9 @@ Generate, per service:
 6. **Wire the build** — `acceptanceTest` task on the JUnit Platform, `@wip` excluded via
    `cucumber.filter.tags`, `failOnNoMatchingTests = true`; run it and verify the bound scenarios
    execute (a non-`@wip` scenario that fails on existing code is a finding, not a test to weaken).
-7. **Report** — `acceptance-test-coverage.md` as above; delegate step-class generation per feature
+7. **Report** — `acceptance-test-coverage.md` as above, then run
+   `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/example_chain.py" <project_dir>`: an error is a broken
+   tag the record cannot account for, a `CHAIN-141` warning an ID the record forgot to mention; delegate step-class generation per feature
    to sonnet sub-agents in parallel when features share no steps.
 
 `--dry-run` reports the inventory and the binding plan, writing nothing.

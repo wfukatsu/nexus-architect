@@ -76,8 +76,9 @@
 
 | 手法 | 状況 | 場所 | 成果物 |
 |------|------|------|--------|
-| Example Mapping | ◎ | `/product:example-map` | `reports/02_spec/examples/example-map-{feat}.md`（`RULE-`, `EX-`） |
+| Example Mapping | ◎ | `/product:example-map`（`FEAT-` ごと）、`/architect:define-requirements` Step 3b（product が扱っていない `FR-` ごと） | `reports/02_spec/examples/example-map-{feat}.md`、`reports/00_requirements/examples/example-map-{fr}.md`（`RULE-`, `EX-`。グラフは 1 つ） |
 | Specification by Example / BDD | ◎ | `/architect:generate-test-specs`（シナリオ）、`/architect:generate-acceptance-tests`（実行可能化） | `reports/07_test-specs/bdd-scenarios/` — `RULE-` / `EX-` からの `Rule:` / `Scenario:`。Cucumber ステップ定義と `reports/07_test-specs/acceptance-test-coverage.md` |
+| 例 → シナリオ → テストの追跡 | ◎ | `tools/lib/example_chain.py`。`define-requirements`、`/product:example-map`、`generate-test-specs`、`generate-acceptance-tests`、`verify-implementation` が実行 | すべての `RULE-` / `EX-` を、マップからグラフ、Gherkin のタグ、受け入れテストの記録までたどる。不変条件ごとにプロパティテストまでたどる。ゲートのテスト先行の記録があることを確かめる（`CHAIN-` コード。ゲートでは `VER-4xx`） |
 | 受入基準 | ◎ | `/architect:export-backlog`, `/architect:define-requirements` | `RULE-` からの Issue 受入基準・FR 受入基準 |
 | 契約テスト | ◎ | `/architect:generate-contract-tests` | `generated/{service}/src/test/java/**/contract/` |
 | プロパティベーステスト | ◎ | `/architect:generate-test-specs`, `/architect:generate-scalardb-code` | `reports/07_test-specs/property-test-specs.md`。不変条件ごとの jqwik プロパティ |
@@ -92,7 +93,7 @@ DDD モデルを実行可能にするプラクティスについて、ツール�
 
 | 手法 | 状況 | 場所 | 成果物 |
 |------|------|------|--------|
-| Red → Green → Refactor（テストファースト、履歴から検証可能） | ◎ | `/architect:implement-backlog` Step 5、`rules/tdd-workflow.md` §2 | 作業ブランチ上のユニットごとの `test:` → `feat:` → `refactor:` コミット列。順序は `reports/09_verification/quality-gate.json`（`test_first`）に記録 |
+| Red → Green → Refactor（テストファースト、履歴から検証可能） | ◎ | `/architect:implement-backlog` Step 5、`rules/tdd-workflow.md` §2 | 作業ブランチ上のユニットごとの `test:` → `feat:` → `refactor:` コミット列。順序は `reports/09_verification/quality-gate.json`（`test_first`）に記録。`generated/` に生成したコードはテストファーストではなく、記録は `not-applicable` で、代わりの証拠はミューテーションスコア（`rules/tdd-workflow.md` §5） |
 | 二重ループ（外側 ATDD、内側 TDD） | ◎ | `/architect:generate-acceptance-tests`（外側ループのテスト）、`/architect:implement-backlog` Step 5、`rules/tdd-workflow.md` §3 | 外側ループを担った受入レベルのテストを Issue の進捗コメントに明記。`@wip` シナリオは通したアイテムが外す |
 | Walking skeleton | ◎ | `/product:define-features`（Must 行）、`/architect:export-backlog`（新サービスごとに `walking-skeleton` Issue を 1 件、順序の先頭に）、`/architect:implement-backlog`（最初に実装する） | ユーザーストーリーマップの Must 行。`walking-skeleton` Issue |
 | テストダブル — リポジトリポートごとの Fake、注入される Clock / ID 生成器 | ◎ | `/architect:design-implementation`（仕様化）、`/architect:generate-scalardb-code`（生成）、`/architect:generate-contract-tests`（ArchUnit で強制） | `generated/{service}/src/test/java/**/fakes/`、`reports/06_implementation/repository-interfaces-spec.md` |

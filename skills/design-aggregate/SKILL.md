@@ -83,7 +83,7 @@ The modeling method, the seven well-formedness rules and the transaction-boundar
 | reports/01_analysis/data-model-analysis.md | Optional | /architect:analyze-data-model — existing tables and their foreign keys are the evidence of implicit boundaries |
 | reports/04_stories/domain-story-{domain}.md | Optional | /architect:create-domain-story — work items are aggregate candidates, activities are commands |
 | reports/02_spec/feature-list.md | Optional | /product:define-features — `FEAT-` commands map to aggregate commands |
-| reports/02_spec/examples/example-map-{feat}.md | Optional | /product:example-map — `RULE-` entries are invariant candidates, `EX-` entries their first concrete examples |
+| reports/02_spec/examples/example-map-{feat}.md, reports/00_requirements/examples/example-map-{fr}.md | Optional | /product:example-map, /architect:define-requirements Step 3b — `RULE-` entries are invariant candidates, `EX-` entries their first concrete examples; an invariant that carries a rule cites its `RULE-` |
 | reports/03_design/scalardb-transaction.md | Optional | /architect:design-scalardb — when it already exists, its TX- entries fix each command's consistency class |
 
 With none of these present, ask the user to name the aggregates and describe what must always be

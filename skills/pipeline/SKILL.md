@@ -214,11 +214,40 @@ work/context.md structure:
 
 Conforms to the schema defined in @skills/common/progress-registry.md.
 
+## After the Run: the DDD → BDD → TDD Hand-off
+
+The automated run stops at the design. The rest of the chain — the agreed examples becoming
+scenarios, the scenarios becoming executable tests, the tests driving the code — is the extension
+tier and the backlog-delivery pipeline, run individually on purpose. So that stopping here is never
+mistaken for being done, the final message carries:
+
+1. **The example-map state.** Run `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/example_chain.py"
+   <project_dir>` and report its summary. When the project has no example map under
+   `reports/02_spec/examples/` or `reports/00_requirements/examples/`, say so first: the scenarios
+   the next steps produce would derive from the design manifests rather than from examples anyone
+   agreed to, and `/architect:define-requirements` (Step 3b) or `/product:example-map` closes that
+   before any test is specified.
+2. **The next commands, in order**, each with the one line of what it produces, leaving out what
+   the run's conditions exclude (no API surface, no ScalarDB):
+
+   | # | Command | Produces |
+   |---|---------|----------|
+   | 1 | `/architect:design-implementation` | implementation specs, the layering style, the Fakes per port |
+   | 2 | `/architect:generate-test-specs` | Gherkin from the examples, property specs per invariant, contract specs |
+   | 3 | `/architect:generate-acceptance-tests` | the executable outer loop (`acceptanceTest`, `@wip` until each item lands) |
+   | 4 | `/architect:export-backlog` → `/architect:deliver-backlog` | Issues whose acceptance criteria are the `RULE-` entries, implemented test-first, `test:` → `feat:` → `refactor:` |
+   | 5 | `/architect:verify-implementation --gate` | the eight-stage gate, the test-first record and the chain check |
+
+   The code generators (`generate-scalardb-code`, `generate-api-code`, …) are the alternative to
+   row 4 for a draft under `generated/`; say that their output is not test-first
+   (@rules/tdd-workflow.md §5).
+
 ## Completion Criteria
 
 1. All phases are either completed or skipped
 2. `reports/00_summary/full-report.html` has been generated
 3. pipeline-progress.json status is "completed"
+4. The final message carries the example-map state and the next commands (§ After the Run)
 
 ## Related Skills
 

@@ -188,6 +188,10 @@ Against `work/traceability.json` and the test specs: every `FR-` in scope reacha
 acceptance criterion reachable to at least one test; every REST `operationId` and GraphQL resolver
 field coordinate covered by a contract test.
 A requirement with no implementation and an implementation with no requirement are both findings.
+Run `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/example_chain.py" <project_dir> --json` and record
+each error as a `VER-4xx` finding (`major`), citing its `CHAIN-` code — an agreed example that
+never became a scenario, or an invariant with no property test, is an acceptance criterion
+believed met rather than shown met. Its warnings are `info`, and its summary goes in the report.
 
 ### Step 7 — Quality gate (`--gate` only)
 
@@ -207,7 +211,8 @@ otherwise), records coverage per changed file and surviving mutants by file:line
 `--item` — reads the working branch's log for the item to record the test-first sequence per unit
 (@rules/tdd-workflow.md §6): `test:` before `feat:`, the failing tests named in the Red commit body,
 and which acceptance-level test carried the outer loop. The record is reported, never a verdict; without `--item` and a working branch it is
-`not-applicable`. A surviving mutant on an invariant line is a stage-2 failure unless it is recorded
+`not-applicable`, written as `{"status": "not-applicable", "reason": …}` and never left out, with
+the mutation score named as the substitute evidence (@rules/tdd-workflow.md §5). A surviving mutant on an invariant line is a stage-2 failure unless it is recorded
 as `equivalent` with evidence (§Test quality). When the API layer has not been generated, stage 3
 and stage 7 are `not-applicable`, the contract map's unmapped operations are `info` with reason
 `api-layer-absent`, and Step 3's "operation with no handler = critical" does not apply — it is

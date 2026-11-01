@@ -100,6 +100,14 @@ developed test-first, and the gap is reported as such.
   them, and the SQLite-backed harness in `samples/scalardb-transaction-tests` shows the shape.
 - **Refactor-only items** (no behaviour change): the existing tests are the red/green guard; the
   item is one `refactor:` series, and the gate's `test-after` count is `not-applicable`.
+- **Code the generators emit into `generated/`** (`generate-scalardb-code`, `generate-api-code`,
+  `generate-graphql-code`, `generate-acceptance-tests`) is written tests-and-code together, in one
+  pass, so it has no order to verify. It is a draft, not merge-bound code: the gate records its
+  `test_first` as `not-applicable` with that reason, and the evidence that its tests can fail at
+  all is the stage-2 **mutation score** on `domain/` and the invariant survivors — a test that
+  kills no mutant was born green. Code reaches the project's real source tree test-first only
+  through `implement-backlog` (§2), which is the toolkit's one TDD path; lifting generated code
+  into the tree by hand reopens the question for every unit lifted.
 - **Characterization tests on a legacy tree** (`/architect:generate-characterization-tests`) are
   written *after* the code by definition — they fix current behaviour, not intended behaviour — and
   are recorded as `characterization`, never as `test-after`.
