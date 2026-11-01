@@ -59,6 +59,8 @@ For anything the materials do not cover, you are asked across the following five
 
 > **Numeric targets (latency, throughput, RPO, RTO) are always confirmed.** If they cannot be obtained, they are recorded as `TBD` together with the question that must be answered.
 
+After classification, each High-priority functional requirement that product did not already map goes through **Example Mapping** (Step 3b): its business rules, and for every rule one concrete case that passes and one that is rejected, with real values. You are asked once whether to map the Mid and Low requirements too; under `--auto` only the High ones are mapped and that question is recorded `unasked`. Business rules and edge cases already written in your input materials (validation rules, limits, policies) are presented as candidates rather than asked from scratch, so including them shortens this stage. These examples become the Gherkin scenarios and the acceptance criteria downstream.
+
 ## 4. Inputs Relevant to the Scalar Product Applicability Assessment
 
 Unless `--no-scalardb` is given, Scalar product applicability (ScalarDB / ScalarDB Saga / neither, per business process) is assessed using:

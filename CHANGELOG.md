@@ -22,10 +22,13 @@ all four plugins (`product`, `architect`, `scalardb`, `infra`) are released toge
   traceability graph, the Gherkin tags and the acceptance record, every invariant to a property
   test, and checks that the gate's unit stage carries a `test_first` record whose outer loop names
   an existing scenario. Run by `define-requirements`, `/product:example-map`,
-  `generate-test-specs`, `generate-acceptance-tests`, and by `verify-implementation`, which turns
-  its errors into `VER-4xx` findings. Contract suite `tools/lib/example_chain.test.py`; the
-  ec-monolith reference set now passes it too. On the ec-monolith run with its agreed example map
-  put back, it reports all 8 rules and 20 examples as never reaching a scenario.
+  `generate-test-specs`, `generate-acceptance-tests`, the pipeline's final message, and by
+  `verify-implementation`, which turns its errors into `VER-4xx` findings (the gate-record checks
+  after it writes the gate result). Contract suite `tools/lib/example_chain.test.py`; the
+  ec-monolith reference set now passes it too. A link whose artifact is absent is skipped, not
+  passed — only scenarios with no example map earn a warning of their own. Staging the reference
+  set's example map beside the ec-monolith pipeline run's own scenarios, it reports all 8 rules and
+  20 examples as never reaching a scenario.
 - **`generate-test-specs` § Gherkin Tags** fixes one form per join key (`@RULE-`, `@EX-`,
   `@example=<AGG>.<INV>.<kind>`); `generate-acceptance-tests` no longer names an `@INV-` form
   nothing emitted.
@@ -38,6 +41,9 @@ all four plugins (`product`, `architect`, `scalardb`, `infra`) are released toge
   `generated/` is not test-first: its `test_first` record is `not-applicable` with that reason and
   never absent, the mutation score is the substitute evidence, and `implement-backlog` is the one
   TDD path into the real source tree.
+- **Docs synced to the chain.** README, getting-started, the input-requirements guide, the command
+  catalogue, the artifact map, AGENTS.md's handoff table and `docs/design.md` §1.3 / §7 describe
+  Step 3b, the second example-map location, the chain check and the generated-code exemption.
 
 ## [0.51.2] - 2026-11-01
 

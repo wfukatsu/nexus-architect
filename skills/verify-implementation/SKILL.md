@@ -192,6 +192,8 @@ Run `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/example_chain.py" <project_dir> --
 each error as a `VER-4xx` finding (`major`), citing its `CHAIN-` code — an agreed example that
 never became a scenario, or an invariant with no property test, is an acceptance criterion
 believed met rather than shown met. Its warnings are `info`, and its summary goes in the report.
+At this step it reads the previous run's `quality-gate.json`, if any — the gate-record checks
+(`CHAIN-15x`) are therefore judged after Step 7 writes this run's, not here.
 
 ### Step 7 — Quality gate (`--gate` only)
 
@@ -199,7 +201,10 @@ Run the eight stages of @rules/ai-code-quality-gate.md, using axes 1–4 above a
 delegated `ASEC-` findings as stage 7. Execute stages 1–6 as real commands **from a clean build
 state** (`./gradlew clean` first or `--rerun-tasks` per task — an UP-TO-DATE task exits 0 having run
 nothing) and record exit codes and the counts the gate's own run produced.
-Write `reports/09_verification/quality-gate.{json,md}`.
+Write `reports/09_verification/quality-gate.{json,md}`, then run the example-chain check of Step 6
+once more: only now does it see this run's gate result, and a `CHAIN-151` / `CHAIN-152` error (no
+`test_first` record, or an outer loop naming no scenario) is a `VER-4xx` finding added to both
+outputs before Step 8.
 
 Never report a stage as passed without its evidence, and never omit a stage without its reason.
 For stage 2, when `reports/03_design/aggregates/aggregate-manifest.json` exists, join each invariant

@@ -38,7 +38,7 @@ here disagrees with them, trust them.
 
 | Location | Producer | What it is |
 |----------|----------|------------|
-| `reports/00_requirements/` | `define-requirements` | FR/NFR, data and transaction requirements, ScalarDB applicability, Open Questions view |
+| `reports/00_requirements/` | `define-requirements` | FR/NFR, data and transaction requirements, ScalarDB applicability, Open Questions view; `examples/` holds the example maps (`RULE-`, `EX-`) for requirements product did not map |
 | `reports/before/{project}/` | `investigate`, `analyze-ui` | As-is technology, structure, debt, UI inventory |
 | `reports/01_analysis/` | `analyze`, `analyze-data-model` | Ubiquitous language, actors, domain-code mapping, current data model |
 | `reports/02_evaluation/` | `evaluate-mmi`, `evaluate-ddd`, `evaluate-ux`, `integrate-evaluations` | Scores and the unified improvement plan |

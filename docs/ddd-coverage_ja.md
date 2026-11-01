@@ -78,7 +78,7 @@
 |------|------|------|--------|
 | Example Mapping | ◎ | `/product:example-map`（`FEAT-` ごと）、`/architect:define-requirements` Step 3b（product が扱っていない `FR-` ごと） | `reports/02_spec/examples/example-map-{feat}.md`、`reports/00_requirements/examples/example-map-{fr}.md`（`RULE-`, `EX-`。グラフは 1 つ） |
 | Specification by Example / BDD | ◎ | `/architect:generate-test-specs`（シナリオ）、`/architect:generate-acceptance-tests`（実行可能化） | `reports/07_test-specs/bdd-scenarios/` — `RULE-` / `EX-` からの `Rule:` / `Scenario:`。Cucumber ステップ定義と `reports/07_test-specs/acceptance-test-coverage.md` |
-| 例 → シナリオ → テストの追跡 | ◎ | `tools/lib/example_chain.py`。`define-requirements`、`/product:example-map`、`generate-test-specs`、`generate-acceptance-tests`、`verify-implementation` が実行 | すべての `RULE-` / `EX-` を、マップからグラフ、Gherkin のタグ、受け入れテストの記録までたどる。不変条件ごとにプロパティテストまでたどる。ゲートのテスト先行の記録があることを確かめる（`CHAIN-` コード。ゲートでは `VER-4xx`） |
+| 例 → シナリオ → テストの追跡 | ◎ | `tools/lib/example_chain.py`。`define-requirements`、`/product:example-map`、`/architect:pipeline`（最後のメッセージ）、`generate-test-specs`、`generate-acceptance-tests`、`verify-implementation` が実行 | すべての `RULE-` / `EX-` を、マップからグラフ、Gherkin のタグ、受け入れテストの記録までたどる。不変条件ごとにプロパティテストまでたどる。ゲートのテスト先行の記録があることを確かめる（`CHAIN-` コード。ゲートでは `VER-4xx`） |
 | 受入基準 | ◎ | `/architect:export-backlog`, `/architect:define-requirements` | `RULE-` からの Issue 受入基準・FR 受入基準 |
 | 契約テスト | ◎ | `/architect:generate-contract-tests` | `generated/{service}/src/test/java/**/contract/` |
 | プロパティベーステスト | ◎ | `/architect:generate-test-specs`, `/architect:generate-scalardb-code` | `reports/07_test-specs/property-test-specs.md`。不変条件ごとの jqwik プロパティ |
