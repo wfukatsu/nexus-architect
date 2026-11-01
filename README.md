@@ -309,8 +309,9 @@ an API reference, full-text search, and a landing page built from the pipeline s
 docs/docs-site.md. For one self-contained file instead of a site, `tools/build-report.py` renders
 the whole report tree into `reports/00_summary/full-report.html` (architect projects) or
 `reports/report/full-report.html` (product projects, opening with the validation status) with
-Mermaid inlined — that is what `/architect:report` and `/product:report` run, so the report is
-generated rather than re-authored per run.
+Mermaid inlined, plus `full-report.md` beside it — the same report as Markdown, for a Git host,
+an editor or a diff — and that is what `/architect:report` and `/product:report` run, so the
+report is generated rather than re-authored per run.
 
 **C. Frontend** — `/product:generate-frontend` (offered by `/product:start` after the UI mocks) emits
 a runnable React + Storybook scaffold under `generated/frontend/`.

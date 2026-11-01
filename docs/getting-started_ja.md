@@ -308,10 +308,11 @@ generated/        # 生成コード（Java、K8sマニフェスト等）
 work/             # パイプライン状態
 ```
 
-統合HTMLレポート：
+統合レポート（同じビルドから HTML と Markdown の両方）：
 ```bash
 /architect:report
 # -> reports/00_summary/full-report.html
+# -> reports/00_summary/full-report.md   （Git ホスティング上でも表示できる。Mermaid はフェンスのまま）
 ```
 
 レポートの冒頭には、エグゼクティブサマリーが入ります。元になるのは、`reports/review/review-synthesis.json` と

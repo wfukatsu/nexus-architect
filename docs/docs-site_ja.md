@@ -27,6 +27,7 @@ tools/docs-site.sh clean           # 生成物を削除
 | `reports/**/openapi/*.yaml` | Blume の OpenAPI リファレンス `/api/<service>` | オペレーションごとに 1 ページ、検索対象 |
 | `reports/**/asyncapi/*.yaml` | Blume の AsyncAPI リファレンス `/events/<name>` | |
 | `reports/00_summary/full-report.html` | `/full-report.html` としてそのまま配信 | |
+| `reports/**/full-report.md` | 取り込まない | HTML レポートの Markdown 版。各文書はすでに個別のページになっている |
 | `work/pipeline-progress.json` | ランディングページ: オプション、全フェーズのステータスと出力へのリンク | |
 
 レポート間リンク（`reports/03_design/context-map.md`、`../01_analysis/x.md#anchor`）はサイトの

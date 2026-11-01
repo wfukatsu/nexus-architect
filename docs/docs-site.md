@@ -27,6 +27,7 @@ otherwise to the repository root. The first run installs Blume into `tools/docs-
 | `reports/**/openapi/*.yaml` | Blume's OpenAPI reference at `/api/<service>` | one page per operation, in search |
 | `reports/**/asyncapi/*.yaml` | Blume's AsyncAPI reference at `/events/<name>` | |
 | `reports/00_summary/full-report.html` | served as-is at `/full-report.html` | |
+| `reports/**/full-report.md` | not staged | the HTML report's Markdown twin; every document already has its own page |
 | `work/pipeline-progress.json` | the landing page: options, every phase with its status and links to its outputs | |
 
 Cross-report links (`reports/03_design/context-map.md`, `../01_analysis/x.md#anchor`) are rewritten

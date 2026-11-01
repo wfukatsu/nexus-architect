@@ -322,6 +322,7 @@ phases:
     depends_on: [review-synthesizer]
     outputs:
       - reports/00_summary/full-report.html
+      - reports/00_summary/full-report.md
     model: haiku
 
   review-report:

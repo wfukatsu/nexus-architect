@@ -1,6 +1,6 @@
 ---
 description: |
-  Compile all Markdown reports into a consolidated HTML report.
+  Compile all reports into one consolidated report, as HTML and Markdown.
 allowed-tools:
   - Bash(python3 ${CLAUDE_PLUGIN_ROOT}/tools/build-report.py *)
   - 'Bash(python3 "${CLAUDE_PLUGIN_ROOT}/tools/build-report.py" *)'
@@ -14,7 +14,9 @@ plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Rea
 
 ## Desired Outcome
 
-Generate a consolidated HTML report from all Markdown files under reports/.
+Generate a consolidated report from all Markdown files under reports/, in two forms from one
+build: `full-report.html` to read in a browser, and `full-report.md` beside it to read where HTML
+is not rendered — a Git host, an editor, a diff, another model's context.
 
 ## Features
 
@@ -24,6 +26,9 @@ Generate a consolidated HTML report from all Markdown files under reports/.
 - Section structure organized by phase
 - Light/dark theme support
 - Responsive design (mobile and print friendly)
+- The Markdown twin: the same documents in the same order with the same anchors, each document
+  as its own Markdown (Mermaid fences verbatim, so a Git host renders them), the executive
+  summary as pipe tables, frontmatter carrying `title`, `schema_version` and `skill`
 
 ## Execution
 
@@ -40,6 +45,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/tools/build-report.py" <project_dir> --layout arc
 # --layout architect  always passed: a project handed off from /product:* holds both report
 #                     trees, and this skill's deliverable is the architect report
 # --output PATH       write somewhere other than reports/00_summary/full-report.html
+#                     (the .md goes beside it; a PATH ending in .md names the Markdown)
 # --mermaid-js PATH   inline this copy of mermaid.min.js instead of the resolved default
 ```
 
@@ -54,7 +60,7 @@ Steps:
    case run `pip install -r requirements.txt` and retry.
 2. **Record what it printed.** One line: the article count, the number of Mermaid blocks
    embedded, the byte size, whether Mermaid was inlined or left to the CDN, and the output
-   path. Report those numbers to the user rather than re-describing the report's contents.
+   path — and a second line with the Markdown's size and path. Report those numbers to the user rather than re-describing the report's contents.
    A line starting `build-report: warning:` names keys the review synthesis does not carry:
    the report was written, but its executive summary has `?` or empty cells there. Pass the
    line on as it is, and leave `review-synthesis.json` alone — its shape is
@@ -121,3 +127,4 @@ Output language and frontmatter: @rules/output-conventions.md.
 | File | Content |
 |------|---------|
 | `reports/00_summary/full-report.html` | Consolidated HTML report |
+| `reports/00_summary/full-report.md` | The same report as Markdown, from the same build |

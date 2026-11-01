@@ -228,7 +228,7 @@ phases:
     depends_on: [define-nfr]
     optional: true
     implemented: true
-    outputs: [reports/report/full-report.html]
+    outputs: [reports/report/full-report.html, reports/report/full-report.md]
     model: sonnet
 
   # ---- Phase 6: Adaptation (on demand) ----

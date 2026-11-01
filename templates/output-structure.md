@@ -22,7 +22,8 @@ reports/
 │   ├── ui-components.md
 │   └── ui-design-system-extract.md
 ├── 00_summary/                    # report
-│   └── full-report.html
+│   ├── full-report.html
+│   └── full-report.md             # the same report as Markdown, same build
 ├── 01_analysis/                   # analyze, analyze-data-model
 │   ├── system-overview.md
 │   ├── ubiquitous-language.md

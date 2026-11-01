@@ -690,6 +690,61 @@ try:
     check("a store headed `OQ-###` is read like one headed `ID`",
           "3 unique OQ- IDs" in oq_summary, re.sub(r"<[^>]+>", " ", oq_summary)[-300:])
 
+    # ------------------------------------------------------------- Markdown twin
+    print("Every run writes full-report.md beside the HTML, from the same build")
+
+    md_out = os.path.splitext(out)[0] + ".md"
+    check("the Markdown is written beside the HTML under the same name", os.path.exists(md_out))
+    md = open(md_out, encoding="utf-8").read() if os.path.exists(md_out) else ""
+    check("the run says where the Markdown went", md_out in proc.stdout, proc.stdout.strip())
+    check("it opens with frontmatter carrying title, schema_version and skill",
+          md.startswith("---\n") and all(k in md.split("\n---\n", 1)[0]
+                                          for k in ("title:", "schema_version: 1", 'skill: "report"')))
+    check("the body has no H1 — the frontmatter title is the report's",
+          not re.search(r"^# ", md.split("\n---\n", 1)[-1], re.M))
+    md_ids = re.findall(r'^<a id="([^"]+)"></a>$', md, re.M)
+    check("every article of the HTML has its anchor in the Markdown",
+          expected <= set(md_ids), "missing %s" % sorted(expected - set(md_ids)))
+    check("the section anchors are the HTML's", set(h2_ids) <= set(md_ids),
+          "missing %s" % sorted(set(h2_ids) - set(md_ids)))
+    check("documents come in the HTML's order",
+          [i for i in md_ids if i in expected] == [i for i in ids if i in expected],
+          "%s vs %s" % ([i for i in md_ids if i in expected], ids))
+    check("a Mermaid fence is kept verbatim, not escaped",
+          "```mermaid\n%s\n```" % MERMAID_SRC in md)
+    check("one Mermaid fence per Mermaid block of the HTML", md.count("```mermaid") == len(blocks),
+          "%d vs %d" % (md.count("```mermaid"), len(blocks)))
+    check("braces in prose survive", "`order-{tenant}-svc`" in md and "`{max: 3}`" in md)
+    check("an inter-report link becomes the same in-page anchor as in the HTML",
+          "[the data model](#data-model)" in md)
+    check("a document's own table stays a pipe table", "| Order  | order_id |" in md)
+    check("a Gherkin feature is a gherkin fence", "```gherkin\nFeature: Place an order" in md)
+    check("document headings move down under the article title as in the HTML",
+          "#### Context" in md and "### System Overview" in md)
+    check("no HTML block element of the builder leaks into the Markdown",
+          not re.search(r"<(article|section|div|table|pre|nav|span)\b", md),
+          re.findall(r"<(?:article|section|div|table|pre|nav|span)\b[^>]*>", md)[:3])
+    check("the table of contents links every section",
+          all("](#%s)" % sid in md for sid in h2_ids))
+
+    ja_md_path = os.path.splitext(ja_out)[0] + ".md"
+    ja_md = open(ja_md_path, encoding="utf-8").read() if os.path.exists(ja_md_path) else ""
+    check("a Japanese project's Markdown carries the Japanese chrome",
+          "## 目次" in ja_md and "## 分析（Analysis）" in ja_md and 'output_language: "ja"' in ja_md)
+
+    pr_md = os.path.join(pr_dir, "reports", "report", "full-report.md")
+    pr_md_text = open(pr_md, encoding="utf-8").read() if os.path.exists(pr_md) else ""
+    check("a product project writes reports/report/full-report.md", bool(pr_md_text))
+    check("the product Markdown opens with the validation status",
+          'layout: "product"' in pr_md_text and '<a id="summary"></a>' in pr_md_text
+          and pr_md_text.find('<a id="summary"></a>') < pr_md_text.find('<a id="core"></a>'))
+
+    as_md = os.path.join(tmp, "named.md")
+    named = run(en_dir, as_md)
+    check("an --output ending in .md names the Markdown, the HTML goes beside it",
+          named.returncode == 0 and os.path.exists(as_md)
+          and os.path.exists(os.path.join(tmp, "named.html")), named.stderr.strip())
+
     # ------------------------------------------------------------------ failure mode
     print("A directory that is not a project is refused, not half-rendered")
 
