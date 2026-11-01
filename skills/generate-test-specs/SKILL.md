@@ -1,7 +1,7 @@
 ---
 description: |
-  Generate BDD scenarios, contract test, unit test, property-based test, integration test, and
-  performance test specifications. Requires output from design-implementation as a prerequisite.
+  Specify the tests before the code: Gherkin scenarios from the example maps, and contract, unit,
+  property-per-invariant, integration and performance tests. Runs after design-implementation.
 model: sonnet
 ---
 

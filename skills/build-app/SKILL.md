@@ -1,7 +1,7 @@
 ---
 description: |
-  Build a complete ScalarDB application from a domain description. Generates schema, config, Java
-  service code, and a runnable scaffold for the chosen interface combination.
+  Build a complete ScalarDB application from a domain description: schema, configuration, Java
+  service code and a runnable scaffold.
 model: sonnet
 ---
 

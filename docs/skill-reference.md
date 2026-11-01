@@ -134,7 +134,7 @@ merges).
 
 | Command | Model | Description |
 |---------|-------|-------------|
-| `/architect:report` | haiku | Markdown to HTML consolidated report, built by `tools/build-report.py` rather than authored |
+| `/architect:report` | haiku | Consolidated report as HTML and as Markdown (`full-report.html` + `full-report.md`), built by `tools/build-report.py` rather than authored |
 | `/architect:review-report` | sonnet | Review the quality of the generated HTML report (completeness, score accuracy, Mermaid syntax) |
 | `/architect:render-mermaid` | haiku | Mermaid to PNG/SVG + syntax fix |
 | `/architect:estimate-cost` | sonnet | Infrastructure, license, and operational costs |
@@ -233,7 +233,7 @@ Phase order and the `mvp`/`core-only`/`ux-to-spec`/`full` profiles are defined i
 | `/product:define-nfr` | sonnet | 5. Quality & NFR | Turn SLOs into measurable NFRs (availability, latency p95/p99, ...) |
 | `/product:design-architecture` | opus | 4/5. Synthesis | Runtime architecture diagrams (container/critical-path/deployment) + technology fitness (Kong / ScalarDB / ScalarDB Analytics / ScalarDB Saga / ScalarDL) with Adopt/Conditional/Reject rationale |
 | `/product:review` | opus | R. Review & Report | Review product artifacts (consistency, traceability, extensibility, strategy) |
-| `/product:report` | sonnet | R. Review & Report | Consolidate artifacts into one self-contained HTML report (validation status first) |
+| `/product:report` | sonnet | R. Review & Report | Consolidate artifacts into one self-contained HTML report plus its Markdown twin (validation status first) |
 | `/product:report-status` | haiku | R. Review & Report | Terminal dashboard for product-pipeline progress: phase tree with status (`stale` once an upstream phase changed after it finished), declared-output completion, gate verdict + open assumptions, per-phase cost, next-command action menu — the Product view of `tools/nexus-status.sh`; `generate-frontend` is tracked in its Code Generation view |
 | `/product:adapt-change` | opus | 6. Adaptation | Re-propagation engine: compute affected scope from a change and re-run only impacted skills |
 

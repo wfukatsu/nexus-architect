@@ -1,7 +1,7 @@
 ---
 description: |
-  Generate a complete ScalarDB starter project for any of the 6 interface combinations. Produces
-  build.gradle, config, schema, service class, docker-compose, and README.
+  Generate a runnable ScalarDB starter project for any of the six interface combinations: build,
+  config, schema, service class, docker-compose and README.
 model: sonnet
 ---
 

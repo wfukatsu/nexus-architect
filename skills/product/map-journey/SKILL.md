@@ -1,8 +1,7 @@
 ---
 description: |
-  Map each primary persona's customer journey as a stages × layers grid — touchpoints, actions,
-  verbatim emotions, pains, opportunities — with Moments of Truth flagged, yielding a prioritized
-  opportunity list.
+  Map each primary persona's customer journey (touchpoints, actions, emotions, pains, Moments of
+  Truth) into a prioritized list of opportunities.
 argument-hint: '[--auto] [--lang=ja|en]'
 model: sonnet
 ---

@@ -1,8 +1,7 @@
 ---
 description: |
-  Generate navigable HTML UI mocks for the key screens, driven by the domain stories and styled by
-  the active design system, at lo or mid fidelity, after comparing 2–3 solution approaches per
-  priority job. Use after create-domain-story and design-system.
+  Generate navigable HTML UI mocks of the key screens from the domain stories and the design system,
+  after comparing 2 to 3 approaches per priority job.
 argument-hint: '[--fidelity=lo|mid] [--auto] [--lang=ja|en]'
 model: sonnet
 ---

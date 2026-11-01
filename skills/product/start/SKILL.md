@@ -1,7 +1,7 @@
 ---
 description: |
-  Interactively start product-direction design. Determines scope, runs the validation-driven
-  pipeline in dependency order, and gates on the riskiest assumptions before deep design.
+  Interactive entry point for product direction: picks the scope, runs the validation-driven product
+  pipeline in order, and gates on the riskiest assumptions before deep design.
 argument-hint: '[target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--lang=ja|en]'
 model: inherit
 ---

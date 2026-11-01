@@ -1,8 +1,7 @@
 ---
 description: |
-  Design the logical API surface in three API-Led layers — System APIs (CRUD over entities), Process
-  APIs (business-flow orchestration), Experience APIs (per-channel) — maximizing reuse, with a
-  dependency graph and per-API OpenAPI sketches.
+  Design the logical API surface in three API-led layers (system, process, experience) for reuse,
+  with a dependency graph and per-API OpenAPI sketches.
 argument-hint: '[--auto] [--lang=ja|en]'
 model: opus
 ---

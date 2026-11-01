@@ -1,8 +1,7 @@
 ---
 description: |
-  Re-propagation engine for change. Takes a change, computes the affected scope from
-  work/traceability.json (downstream transitive closure → opus judgment → human confirm), re-runs
-  ONLY the affected skills, and checks coherence. Minimal re-run, reversible.
+  Propagate a change: find the affected artifacts through the traceability graph, confirm them with
+  the user, rerun only those skills and check coherence.
 argument-hint: '--change="<text>" [--type=constraint|market|competitor|tech|regulation] [--auto] [--lang=ja|en]'
 model: opus
 ---

@@ -1,9 +1,7 @@
 ---
 description: |
-  Search ScalarDB / ScalarDL documentation for specific topics. Answers from the version-pinned OKF
-  knowledge bundle first, falling back to the official online docs. Use when a ScalarDB/ScalarDL
-  question needs an authoritative or version-specific answer that the local rules/references do not
-  cover.
+  Answer ScalarDB / ScalarDL questions that need an authoritative or version-specific source, from
+  the version-pinned knowledge bundle first, then the official docs.
 model: sonnet
 ---
 

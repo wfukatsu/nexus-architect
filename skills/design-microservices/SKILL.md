@@ -1,7 +1,7 @@
 ---
 description: |
-  Design target microservices architecture and transformation plan. Requires redesign output as a
-  prerequisite.
+  Design the target microservice architecture and the step-by-step transformation plan from the
+  current system. Runs after redesign.
 model: opus
 ---
 

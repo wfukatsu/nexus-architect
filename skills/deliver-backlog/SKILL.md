@@ -1,8 +1,7 @@
 ---
 description: |
-  Drive each Issue under an Epic through implement → review → human approval → merge, in order,
-  resuming from backlog-manifest.json and stopping at every human gate. Use to deliver a backlog
-  created by /architect:export-backlog.
+  Drive each Issue of an Epic through implement, review, human approval and merge, resuming where it
+  stopped and pausing at every human gate.
 argument-hint: '[--epic=<id>] [--issue=<id>] [--from=implement|review|merge] [--auto] [--yes-merge] [--max-fix-rounds=N] [--export] [--dry-run] [--lang=en|ja]'
 model: sonnet
 disable-model-invocation: true

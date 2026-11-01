@@ -1,8 +1,7 @@
 ---
 description: |
-  Design positioning (Dunford 5-component canvas), the touchpoint × device × timing matrix, and the
-  motivation/retention loop (Fogg + Hook + Kano delighter refresh) in one document. Claims customer
-  value, not features; avoids dark patterns.
+  Design positioning (Dunford canvas), the touchpoint x device x timing matrix and the retention
+  loop (Fogg, Hook, Kano), claiming customer value without dark patterns.
 argument-hint: '[--auto] [--lang=ja|en]'
 model: opus
 ---

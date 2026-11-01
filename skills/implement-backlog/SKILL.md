@@ -1,8 +1,7 @@
 ---
 description: |
-  Implement a backlog item (Issue / Sub-Epic / Epic) created by /architect:export-backlog in the
-  project's real source tree, test-first, consistent with its parent Epic and sibling items, and
-  update the docs for the changed surface. With no item, picks the items flagged status::doing.
+  Implement a backlog item test-first in the project's real source tree, consistent with its Epic
+  and siblings, and update the docs it changes.
 argument-hint: '[item] [--epic=<id>] [--build-context] [--review-epic[=<id>]] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja]'
 model: sonnet
 disable-model-invocation: true

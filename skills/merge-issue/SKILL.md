@@ -1,8 +1,7 @@
 ---
 description: |
-  Merge the PR/MR raised for a backlog Issue after the user approved it — preflight (approvals, CI,
-  conflicts), explicit confirmation, merge via glab / gh — then close the Issue and roll status up
-  to Sub-Epic and Epic. Use after /architect:review-issue.
+  Merge an approved Issue's PR/MR after preflight (approvals, CI, conflicts) and confirmation, then
+  close the Issue and roll status up.
 argument-hint: '[item|mr|pr] [--strategy=merge|squash|rebase] [--delete-branch] [--yes-merge] [--dry-run] [--auto] [--lang=en|ja]'
 model: opus
 disable-model-invocation: true

@@ -1,8 +1,7 @@
 ---
 description: |
-  Build a design system — DTCG design tokens, a component inventory and usage guidelines — from
-  positioning and personas, or import an existing one (Tailwind / DTCG / Figma Tokens / CSS theme).
-  Reusable across runs; feeds generate-ui-mock.
+  Build a design system (DTCG tokens, component inventory, usage guidelines) from positioning and
+  personas, or import one from Tailwind, DTCG, Figma Tokens or CSS.
 argument-hint: '[--name=<id>] [--import=<path>] [--fidelity=lo|mid] [--auto] [--lang=ja|en]'
 model: opus
 ---

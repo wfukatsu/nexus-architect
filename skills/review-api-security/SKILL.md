@@ -1,8 +1,7 @@
 ---
 description: |
-  Review the API surface against OWASP API Security Top 10, tenant isolation and
-  transaction-boundary security. Runs as one perspective of the parallel design review, or against
-  implemented source as the security stage of the quality gate.
+  Review an API against the OWASP API Security Top 10, tenant isolation and transaction-boundary
+  security, as a design-review perspective or on code in the quality gate.
 argument-hint: '[--mode=design|code] [--source-root=<path>] [--scope=changed|service|repo]'
 model: opus
 ---

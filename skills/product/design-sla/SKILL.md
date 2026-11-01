@@ -1,7 +1,7 @@
 ---
 description: |
-  Set service-level targets from customer expectations — per-service SLI/SLO/SLA with error budgets
-  and criticality tiers, where SLO = SLA − buffer.
+  Set per-service SLIs, SLOs and SLAs with error budgets and criticality tiers from customer
+  expectations.
 argument-hint: '[--auto] [--lang=ja|en]'
 model: sonnet
 ---

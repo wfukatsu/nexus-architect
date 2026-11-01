@@ -1,8 +1,7 @@
 ---
 description: |
-  Create persona-anchored domain stories (Domain Storytelling): actors from personas, activities
-  from job stories ordered by the journey — the happy-path flow the UI mocks render. Use after
-  map-journey, before generate-ui-mock.
+  Write persona-anchored domain stories: actors from personas, activities from job stories in
+  journey order, the happy path the UI mocks render.
 argument-hint: '[--persona=<PER>] [--job=<JOB>] [--domain=<CTX>] [--mode=story|event-storming] [--auto] [--lang=ja|en]'
 model: opus
 ---

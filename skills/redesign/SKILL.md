@@ -1,8 +1,7 @@
 ---
 description: |
-  Redesign bounded contexts, define aggregates, generate context maps, and open the Architecture
-  Decision Record log every later design skill appends to. Requires integrate-evaluations output as
-  a prerequisite.
+  Redesign bounded contexts and aggregates for the target system, draw the context map, and open the
+  ADR log later design skills append to. Runs after integrate-evaluations.
 model: opus
 ---
 

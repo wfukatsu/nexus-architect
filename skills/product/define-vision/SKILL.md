@@ -1,8 +1,7 @@
 ---
 description: |
-  Define the product core — Vision / Mission / Values — through dialogue, as a Product Vision Board
-  plus an Amazon-style PR-FAQ. Research market/competitors as needed and feed it back. Entry point
-  of the product pipeline.
+  Define the product's vision, mission and values with the user, as a Product Vision Board and an
+  Amazon-style PR-FAQ. First step of the product pipeline.
 argument-hint: '[target] [--input=<file|dir>] [--auto] [--lang=ja|en] [--no-research]'
 model: opus
 ---

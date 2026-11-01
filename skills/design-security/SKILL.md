@@ -1,7 +1,7 @@
 ---
 description: |
-  Design authentication, authorization, secrets management, network security, and the tenant
-  isolation model, mapped to OWASP API Security Top 10.
+  Design authentication, authorization, secrets, network security and tenant isolation, mapped to
+  the OWASP API Security Top 10.
 model: sonnet
 ---
 

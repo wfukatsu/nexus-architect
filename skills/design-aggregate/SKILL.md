@@ -1,8 +1,7 @@
 ---
 description: |
-  Design the tactical model of each bounded context through facilitated dialogue — aggregates with
-  root, entities, value objects, invariants, commands and domain events — plus the Domain Event
-  Catalog. Use after redesign, before design-state-machine and the data-layer and API design.
+  Design each bounded context's tactical model with the user: aggregates, entities, value objects,
+  invariants with examples, commands and events, plus the Domain Event Catalog. Runs after redesign.
 argument-hint: '[--aggregate=<name>] [--context=<name>] [--auto] [--lang=en|ja]'
 model: opus
 ---

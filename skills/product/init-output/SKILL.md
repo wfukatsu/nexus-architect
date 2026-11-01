@@ -1,7 +1,6 @@
 ---
 description: |
-  Initialize the product-direction output tree, pipeline progress file, and the traceability graph
-  used by adapt-change.
+  Create the product output tree, progress file and traceability graph for a new product project.
 argument-hint: '[project_name]'
 model: sonnet
 ---

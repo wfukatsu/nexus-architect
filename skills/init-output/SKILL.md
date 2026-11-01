@@ -1,6 +1,6 @@
 ---
 description: |
-  Initialize output directories and pipeline-progress.json.
+  Create the architect output directories and work/pipeline-progress.json for a new project.
 argument-hint: '[project_name]'
 model: haiku
 ---

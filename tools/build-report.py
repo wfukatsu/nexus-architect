@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Build the consolidated HTML report for a nexus-architect project.
+"""Build the consolidated report for a nexus-architect project — HTML, and Markdown beside it.
 
 This is the engine behind `/architect:report` and `/product:report`. It reads the
 Markdown a pipeline run already wrote under `<project>/reports/`, plus the pipeline
 progress registry, the Open Questions store in `work/context.md` and (architect) the
 review synthesis JSON, and emits one self-contained HTML file: Mermaid inlined where a
-local copy of the library is available, no network request needed to read it.
+local copy of the library is available, no network request needed to read it. The same run
+writes `full-report.md` beside it (tools/lib/report_markdown.py): the documents' own Markdown
+in the same order with the same anchors, the summary as pipe tables, Mermaid fences verbatim.
 
 Nothing here is authored by a model at run time. The report is a deterministic
 rendering of files on disk, so re-running it after a phase re-ran is cheap and the
@@ -35,7 +37,7 @@ empty tree is architect. The skills pass `--layout` explicitly rather than rely 
 or holds nothing renderable. The `<h2 id>`s are the canonical section identifiers of
 `skills/report/SKILL.md` / `skills/product/report/SKILL.md` § Input Sources.
 
-architect — output `reports/00_summary/full-report.html`
+architect — output `reports/00_summary/full-report.html` (+ `.md`)
 
     id               source
     ---------------- --------------------------------------------------------------
@@ -52,7 +54,7 @@ architect — output `reports/00_summary/full-report.html`
     review           reports/review/ plus the per-perspective table built from
                      reports/review/individual/*.json
 
-product — output `reports/report/full-report.html`
+product — output `reports/report/full-report.html` (+ `.md`)
 
     id               source
     ---------------- --------------------------------------------------------------
@@ -93,6 +95,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import report_audience  # noqa: E402 — tools/lib, beside this script
+import report_markdown  # noqa: E402
 
 try:
     import markdown
@@ -620,6 +623,10 @@ class ReportBuilder:
         # cannot collide with the <section>/<h2> that carries the same id.
         self.ids_seen = {"summary", *self.section_ids}
         self.articles = []
+        # The Markdown of each article, keyed by its anchor — full-report.md replaces the
+        # article's HTML with it (tools/lib/report_markdown.py).
+        self.md_articles = {}
+        self.markdown_doc = None
 
     # ------------------------------------------------------------------ helpers
     def t(self, key):
@@ -654,6 +661,8 @@ class ReportBuilder:
 
         stem = self.register_id(norm_stem(path))
         relpath = os.path.relpath(path, self.project_dir).replace(os.sep, "/")
+        self.md_articles[stem] = report_markdown.article(
+            stem, title, relpath, report_markdown.restore_fences(body_protected, fences))
         mermaid_count = sum(1 for lang, _ in fences if lang.strip().lower() == "mermaid")
         self.mermaid_count += mermaid_count
         self.article_count += 1
@@ -698,6 +707,8 @@ class ReportBuilder:
         relpath = os.path.relpath(path, self.project_dir)
         art_id = self.register_id("feature-%s" % stem)
         self.article_count += 1
+        self.md_articles[art_id] = report_markdown.feature(
+            art_id, heading, relpath.replace(os.sep, "/"), text)
         article = (
             '<article class="doc" id="%s"><h3 class="doc-title">%s'
             '<span class="src">%s</span></h3>'
@@ -1180,6 +1191,13 @@ class ReportBuilder:
         doc_title = "%s — %s" % (project_name, self.t(self.title_key))
         meta_html = self.header_meta(progress, target_path, now)
 
+        self.markdown_doc = report_markdown.document(
+            {"title": doc_title, "schema_version": 1, "skill": "report", "layout": self.layout,
+             "generated_at": now, "output_language": self.lang},
+            meta_html, self.t("toc"),
+            [("summary", self.t(self.summary_key), [])] + sections_toc,
+            summary_html, body_sections, self.md_articles)
+
         html_doc = f"""<!DOCTYPE html>
 <html lang="{self.lang}">
 <head>
@@ -1529,9 +1547,9 @@ def resolve_language(project_dir):
 def main(argv=None):
     parser = argparse.ArgumentParser(
         prog="build-report.py",
-        description="Build the consolidated HTML report for a nexus-architect project: "
-                    "reports/00_summary/full-report.html (architect layout) or "
-                    "reports/report/full-report.html (product layout).")
+        description="Build the consolidated report for a nexus-architect project, as HTML and "
+                    "as Markdown beside it: reports/00_summary/full-report.{html,md} (architect "
+                    "layout) or reports/report/full-report.{html,md} (product layout).")
     parser.add_argument("project_dir", nargs="?", default=".",
                         help="project root holding reports/ and work/ (default: cwd)")
     parser.add_argument("--output", default=None,
@@ -1555,6 +1573,12 @@ def main(argv=None):
     builder_cls = BUILDERS[layout]
     out_path = args.output or os.path.join(project_dir, *builder_cls.default_output)
     out_path = os.path.abspath(out_path)
+    # The Markdown twin sits beside the HTML under the same name; an --output ending in
+    # .md names the Markdown, and the HTML takes the .html beside it.
+    base, ext = os.path.splitext(out_path)
+    if ext.lower() == ".md":
+        out_path = base + ".html"
+    md_path = base + ".md"
     builder = builder_cls(project_dir, lang=args.lang or resolve_language(project_dir),
                           mermaid_js=args.mermaid_js, output_dir=os.path.dirname(out_path))
     html_doc, mermaid_src = builder.build()
@@ -1562,10 +1586,13 @@ def main(argv=None):
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(html_doc)
+    with open(md_path, "w", encoding="utf-8") as f:
+        f.write(builder.markdown_doc)
 
     print("build-report: %d articles, %d mermaid blocks, %d bytes, mermaid=%s, layout=%s -> %s"
           % (builder.article_count, builder.mermaid_count, os.path.getsize(out_path),
              mermaid_src or "cdn", layout, out_path))
+    print("build-report: markdown, %d bytes -> %s" % (os.path.getsize(md_path), md_path))
     return 0
 
 

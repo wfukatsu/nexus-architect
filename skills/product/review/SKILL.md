@@ -1,8 +1,7 @@
 ---
 description: |
-  Review the accumulated product artifacts through four lenses — consistency, traceability,
-  extensibility, and strategy — and return an actionable findings list (severity + location + fix).
-  Rerunnable, can run mid-pipeline.
+  Review the product artifacts for consistency, traceability, extensibility and strategy, returning
+  findings with severity, location and fix. Can run mid-pipeline.
 argument-hint: '[--auto] [--lang=ja|en]'
 model: opus
 ---

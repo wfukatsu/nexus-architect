@@ -1,8 +1,7 @@
 ---
 description: |
-  Turn the API contract into executable tests — OpenAPI or GraphQL validation, Problem Details
-  conformance, authorization and idempotency assertions, ArchUnit layering rules. Use after
-  generate-api-code, or after an item is implemented by hand.
+  Turn the API contract into executable tests: schema validation, Problem Details, authorization,
+  idempotency and ArchUnit layering rules.
 argument-hint: '[--service=<name>] [--out=<path>] [--stack=default|schemathesis|pact|archunit] [--confirm-versions|--no-confirm-versions] [--dry-run] [--auto] [--lang=en|ja]'
 model: sonnet
 disable-model-invocation: true

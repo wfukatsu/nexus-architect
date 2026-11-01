@@ -1,6 +1,6 @@
 ---
 description: |
-  Define RTO/RPO, backup strategies, failover design, and recovery procedures.
+  Set RTO and RPO, and design backups, failover and recovery procedures.
 model: sonnet
 ---
 

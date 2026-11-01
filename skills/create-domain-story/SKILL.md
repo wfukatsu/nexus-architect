@@ -1,8 +1,7 @@
 ---
 description: |
-  Create domain stories using Domain Storytelling technique to visualize business processes.
-  Recommended prerequisite: redesign output. Supports interactive facilitation or auto-generation
-  mode.
+  Write domain stories (Domain Storytelling) per domain, showing business processes as actors, work
+  objects and activities; facilitated or generated. Runs after redesign.
 argument-hint: '[--domain=<name>] [--mode=story|event-storming] [--auto]'
 model: opus
 ---

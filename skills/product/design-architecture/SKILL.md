@@ -1,8 +1,7 @@
 ---
 description: |
-  Synthesize bounded contexts, API layers, the data model and NFRs into a runtime architecture, then
-  assess Kong, ScalarDB, ScalarDB Analytics, ScalarDB Saga and ScalarDL with an
-  Adopt/Conditional/Reject decision each. Use after map-domains, design-api and define-nfr.
+  Combine contexts, API layers, the data model and NFRs into a runtime architecture, and decide
+  Adopt, Conditional or Reject for Kong, ScalarDB, ScalarDB Analytics and Saga, and ScalarDL.
 argument-hint: '[--auto] [--lang=ja|en]'
 model: opus
 ---

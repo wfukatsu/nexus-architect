@@ -1,9 +1,8 @@
 ---
 description: |
-  Generate REST/GraphQL/gRPC/AsyncAPI specifications as the project's single, verifiable API
-  contract — named schemas, every status code declared, RFC 9457 error responses, and per-operation
-  authorization, idempotency and timeout obligations. Requires design-microservices output as a
-  prerequisite.
+  Write the API contract (REST, GraphQL, gRPC or AsyncAPI): named schemas, every status code, RFC
+  9457 errors, and per-operation authorization, idempotency and timeouts. Runs after
+  design-microservices.
 model: opus
 ---
 

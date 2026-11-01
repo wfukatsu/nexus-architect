@@ -11,6 +11,7 @@ docs/ folder of its own and renders Mermaid only inside .mdx pages. This script 
     reports/**/openapi/*.yaml  -> specs/openapi/  (Blume's OpenAPI reference, /api)
     reports/**/asyncapi/*.yaml -> specs/asyncapi/ (Blume's AsyncAPI reference, /events)
     reports/00_summary/*.html  -> public/         (served as-is)
+    full-report.md             -> skipped         (the HTML report's Markdown twin)
     work/pipeline-progress.json -> docs/index.mdx (the landing page: phases, status, outputs)
 
 Numeric phase prefixes are stripped from path segments (01_analysis -> /analysis), so every
@@ -385,8 +386,11 @@ def sync(project: Path) -> int:
         shutil.rmtree(d, ignore_errors=True)
         d.mkdir(parents=True)
 
+    # full-report.md is the Markdown twin of full-report.html — every document again, in
+    # one page. The site already has each document as its own page and serves the HTML
+    # report as-is, so the twin would only duplicate both.
     files = sorted(p.relative_to(reports) for p in reports.rglob("*")
-                   if p.is_file() and not p.name.startswith("."))
+                   if p.is_file() and not p.name.startswith(".") and p.name != "full-report.md")
 
     manifest = {"project": load_json(project / "work" / "pipeline-progress.json")
                 .get("project_name") or project.name, "openapi": [], "asyncapi": []}

@@ -1,8 +1,7 @@
 ---
 description: |
-  Qualitative evaluation of Modularity Maturity Index across 4 axes: cohesion, coupling,
-  independence, reusability. Requires analyze output as a prerequisite. Can run in parallel with
-  evaluate-ddd.
+  Score modularity per module with the Modularity Maturity Index: cohesion, coupling, independence,
+  reusability. Runs after analyze, alongside evaluate-ddd.
 argument-hint: '[target_path]'
 model: sonnet
 ---

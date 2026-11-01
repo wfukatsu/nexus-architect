@@ -314,10 +314,11 @@ generated/        # Generated code (Java, K8s manifests, etc.)
 work/             # Pipeline state
 ```
 
-Consolidated HTML report:
+Consolidated report, as HTML and as Markdown from the same build:
 ```bash
 /architect:report
 # -> reports/00_summary/full-report.html
+# -> reports/00_summary/full-report.md   (renders on a Git host; Mermaid stays as fences)
 ```
 
 The report opens with an executive summary built from `reports/review/review-synthesis.json` and

@@ -1,8 +1,8 @@
 ---
 description: |
   Move an existing Oracle, MySQL or PostgreSQL database to ScalarDB: schema analysis, migration
-  documentation, stored procedure and trigger conversion to Java, AQ integration. Use for any
-  database-to-ScalarDB migration; routes to the engine-specific workflow.
+  documents, stored procedures and triggers converted to Java. Use for any database-to-ScalarDB
+  migration.
 model: sonnet
 ---
 # Command: migrate-database (Unified Migration Entry Point)

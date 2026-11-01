@@ -1,9 +1,7 @@
 ---
 description: |
-  Review existing infrastructure code or a design document against the OKF k8s/tf bundle and return
-  severity-ranked findings: ownership overlap, image digest continuity, secret exposure, multi-cloud
-  and environment parity. Use for "review this infrastructure", "IaC review", "look at this
-  Terraform".
+  Review infrastructure code or a design against the platform bundle: ownership overlap, image
+  digest continuity, secret exposure, cloud and environment parity. Use for "review this Terraform".
 argument-hint: '[target] [--env=<env>] [--cloud=<cloud>] [--round=<n>]'
 model: opus
 ---

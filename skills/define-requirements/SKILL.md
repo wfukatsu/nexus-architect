@@ -1,8 +1,8 @@
 ---
 description: |
-  Define system requirements through document intake and interactive elicitation: functional and
-  non-functional requirements, data and transaction requirements, and ScalarDB / ScalarDB Saga
-  applicability. Entry point of the greenfield path; also ingests product pipeline output.
+  Define requirements from documents and an interview: FR/NFR, data and transaction needs, an
+  example map per requirement, ScalarDB / Saga applicability. Greenfield entry point; also takes
+  over product pipeline output.
 argument-hint: '[target_path] [--input=<file|dir>] [--auto] [--no-scalardb]'
 model: opus
 ---

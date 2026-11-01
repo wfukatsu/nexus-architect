@@ -1,6 +1,7 @@
 ---
 description: |
-  Evaluate security posture including OWASP Top 10, access control, and zero-trust readiness.
+  Assess an existing system's security posture: OWASP Top 10, access control and zero-trust
+  readiness.
 argument-hint: '[target_path]'
 model: sonnet
 ---

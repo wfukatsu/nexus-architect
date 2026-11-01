@@ -1,8 +1,7 @@
 ---
 description: |
-  Consolidate all product artifacts into one self-contained HTML report (Mermaid inline) that leads
-  with a mandatory "Key Assumptions & Validation Status" section — gate verdict, open assumptions,
-  every TBD, and Open Questions — before any design content.
+  Consolidate the product artifacts into one report, as HTML and Markdown, opening with the key
+  assumptions and their validation status.
 argument-hint: '[--auto] [--lang=ja|en]'
 allowed-tools:
   - Bash(python3 ${CLAUDE_PLUGIN_ROOT}/tools/build-report.py *)
@@ -17,7 +16,7 @@ plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Rea
 
 ## Desired Outcome
 
-Produce one deliverable:
+Produce one report in two forms:
 
 1. **Full report** — `reports/report/full-report.html`:
    - **Leads with "Key Assumptions & Validation Status"** — the gate verdict, untested/open
@@ -28,6 +27,9 @@ Produce one deliverable:
    - Then a section per phase in pipeline order, each linking to its source file
    - Mermaid diagrams rendered inline; self-contained (inline CSS), no external assets beyond the
      Mermaid runtime
+2. **Its Markdown twin** — `reports/report/full-report.md`, written by the same run: the same
+   sections, documents and anchors, each document as its own Markdown with Mermaid fences
+   verbatim, the validation summary as pipe tables, for reading where HTML is not rendered
 
 ## Invocation
 
@@ -77,6 +79,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/tools/build-report.py" <project_dir> --layout pro
 # --layout product    always passed: a project that has already handed off to /architect:*
 #                     holds both report trees, and detection then prefers the architect layout
 # --output PATH       write somewhere other than reports/report/full-report.html
+#                     (the .md goes beside it; a PATH ending in .md names the Markdown)
 # --mermaid-js PATH   inline this copy of mermaid.min.js instead of the resolved default
 ```
 
@@ -94,7 +97,7 @@ Steps:
    case run `pip install -r requirements.txt` and retry.
 2. **Record what it printed.** One line: the article count, the number of Mermaid blocks
    embedded, the byte size, whether Mermaid was inlined or left to the CDN, the layout and
-   the output path. Report those numbers to the user rather than re-describing the report's
+   the output path — and a second line with the Markdown's size and path. Report those numbers to the user rather than re-describing the report's
    contents.
 3. **Stamp the phase** in `work/pipeline-progress.json` per @skills/common/progress-registry.md
    — `in_progress` before the run, then `completed` with `outputs` and a one-line `summary`
@@ -131,7 +134,8 @@ does not declare come after them in name order. Non-Markdown assets are never em
 
 ## Output
 
-`reports/report/full-report.html`, leading with validation status and consolidating all artifacts.
+`reports/report/full-report.html`, leading with validation status and consolidating all artifacts,
+and `reports/report/full-report.md`, the same report as Markdown from the same build.
 
 ## Reference Materials
 

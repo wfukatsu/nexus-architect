@@ -1,8 +1,7 @@
 ---
 description: |
-  Review Java code that uses ScalarDB for correctness and best practices. 16-check rubric covering
-  exception handling, transaction lifecycle, deprecated APIs, and 2PC patterns. For architectural
-  design review, use /architect:review-* instead.
+  Review Java code that uses ScalarDB against a 16-check rubric: exceptions, transaction lifecycle,
+  deprecated APIs, cross-service transactions. For design reviews, use architect:review-*.
 model: sonnet
 ---
 

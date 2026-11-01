@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.53.0] - 2026-11-01
+
+### Added
+- **`full-report.md` beside `full-report.html`.** `/architect:report` and `/product:report` now
+  write the consolidated report twice from one build: the HTML as before, and the same report as
+  Markdown for a Git host, an editor, a diff or another model's context. It carries the same
+  sections, documents and anchors in the same order; each document is its own Markdown with links
+  and headings transformed as in the HTML and every fence verbatim, so Mermaid renders wherever
+  Markdown does. The executive summary becomes pipe tables. Frontmatter carries `title`,
+  `schema_version` and `skill`, and the body has no H1, so both report hooks accept it. The HTML-to-Markdown step for the
+  builder's own chrome is `tools/lib/report_markdown.py`; `tools/build_report.test.py` gains the
+  checks. An `--output` ending in `.md` names the Markdown and puts the HTML beside it. Both
+  manifests declare the new output, and `tools/docs-site.sh` skips it, since every document
+  already has its own page there.
+
+### Changed
+- **Every skill description rewritten.** All 117 now say what the skill does in concrete words and
+  when to use it, without the repeated filler ("used as one perspective within the parallel review
+  system", "requires X output as a prerequisite"), capitalised warnings or Markdown. The listing
+  Claude Code caps shrank from 24,000 to 17,053 characters, and the part the model actually sees
+  (the 96 skills without `disable-model-invocation`) from 19,123 to 14,175. In a session with about
+  300 skills from other plugins, 21 of those 96 had been listed with no description at all — 8 of
+  the 11 `/scalardb:*` skills, the four migration skills, `/infra:design` and `/infra:implement`
+  among them.
+  `tools/docs_consistency.test.py` now also caps the model-visible part at 16,000, and
+  `docs/skill-authoring.md` states the shape.
+
 ## [0.52.0] - 2026-11-01
 
 ### Added

@@ -1,9 +1,7 @@
 ---
 description: |
-  Write Terraform, Kubernetes manifests, Helm and Kustomize and CI definitions from an agreed
-  infrastructure design into a real infrastructure repository. Use for "write the Terraform",
-  "create the manifests", "implement the CI". For scaffolding into generated/, use
-  /architect:generate-infra-code.
+  Write Terraform, Kubernetes, Helm, Kustomize and CI definitions from an agreed design into a real
+  infrastructure repository. For a scaffold under generated/, use architect:generate-infra-code.
 argument-hint: '[target] [--env=<env>] [--cloud=<cloud>] [--auto]'
 model: sonnet
 ---

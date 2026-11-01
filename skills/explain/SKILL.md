@@ -1,8 +1,7 @@
 ---
 description: |
-  Explain generated designs and code — architect and product reports, generated code, UI mocks —
-  grounded in the files; on request, teach the terms, functions and architecture/implementation
-  patterns they use.
+  Explain a generated design or code (reports, generated code, UI mocks) from its files, and on
+  request teach the terms, functions and patterns it uses.
 argument-hint: '[target] [--focus=overview|terms|code|patterns|all] [--level=beginner|intermediate|expert] [--save] [--lang=en|ja]'
 model: sonnet
 ---

@@ -505,6 +505,11 @@ KNOWN_KEYS = {
 # least-used skills lose their description, and with it what the model matches a request on.
 DESC_MAX = 300
 LISTING_MAX = 24000
+# A skill with `disable-model-invocation: true` is left out of the model's listing altogether
+# (its description is shown only in the slash-command menu), so only the others compete for the
+# cap. Measured in a session with ~300 skills from other plugins: 21 of this toolkit's 96
+# model-invocable skills were listed with no description. This keeps the 2026-11 rewrite's gain.
+MODEL_LISTING_MAX = 16000
 ANCHOR = "Shared files: a path written"
 AT_REF = r"@((?:rules|skills|templates|docs)/[A-Za-z0-9_./-]*[A-Za-z0-9])"
 
@@ -542,11 +547,13 @@ named = [path for path in sorted(all_skill_files)
 check("no SKILL.md states a `name` (the directory names the skill; `name` adds a bare alias)",
       not named, named)
 
-too_long, in_description, usage_drift, listing = [], [], [], 0
+too_long, in_description, usage_drift, listing, model_listing = [], [], [], 0, 0
 for cmd in CMDS:
     front, body = split_skill(os.path.join(skill_dir[cmd], "SKILL.md"))
     desc = description_of(front)
     listing += len(desc)
+    if not re.search(r"^disable-model-invocation:\s*true\s*$", front, re.M):
+        model_listing += len(desc)
     if not desc or len(desc) > DESC_MAX:
         too_long.append("%s: %d" % (cmd, len(desc)))
     if re.search(r"(^|\s)--[a-z]", desc) or cmd + " [" in desc:
@@ -559,6 +566,8 @@ check("no description carries flags or an invocation signature", not in_descript
       in_description)
 check("the descriptions together stay under %d characters (now %d)" % (LISTING_MAX, listing),
       listing <= LISTING_MAX)
+check("the descriptions the model sees stay under %d characters (now %d)"
+      % (MODEL_LISTING_MAX, model_listing), model_listing <= MODEL_LISTING_MAX)
 # `argument-hint` is shown at autocomplete and is not part of the skill's content, so the body
 # has to state the same signature for the model to know its own flags.
 check("a skill's argument-hint is also stated in its body", not usage_drift, usage_drift)

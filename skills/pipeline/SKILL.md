@@ -1,6 +1,7 @@
 ---
 description: |
-  Automated pipeline that executes all phases in dependency order.
+  Run every architect pipeline phase in dependency order, unattended, each as a sub-agent; questions
+  are recorded instead of asked.
 argument-hint: '[target_path] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]'
 model: sonnet
 disable-model-invocation: true
@@ -245,7 +246,7 @@ mistaken for being done, the final message carries:
 ## Completion Criteria
 
 1. All phases are either completed or skipped
-2. `reports/00_summary/full-report.html` has been generated
+2. `reports/00_summary/full-report.html` and `full-report.md` have been generated
 3. pipeline-progress.json status is "completed"
 4. The final message carries the example-map state and the next commands (§ After the Run)
 

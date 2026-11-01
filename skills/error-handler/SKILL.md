@@ -1,7 +1,6 @@
 ---
 description: |
-  Generate correct ScalarDB exception handling code with retry logic. Can also review existing code
-  for exception handling correctness.
+  Write or review ScalarDB exception handling with correct retry logic.
 model: sonnet
 ---
 

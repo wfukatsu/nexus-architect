@@ -1,8 +1,7 @@
 ---
 description: |
-  Show backlog delivery progress as an Epic → Sub-Epic → Issue tree — each item's status
-  (todo/doing/review/done/blocked) and its Implemented / Reviewed / Merged stages — on the terminal,
-  live or as a one-shot render.
+  Show backlog delivery on the terminal as an Epic, Sub-Epic and Issue tree with each item's status
+  and its implement, review and merge stages.
 argument-hint: '[--once] [--no-sync] [--exec] [--epic=<id>] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]'
 allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/tools/backlog-status.sh *)

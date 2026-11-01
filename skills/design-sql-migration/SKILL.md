@@ -1,8 +1,8 @@
 ---
 description: |
-  Design the migration of an existing system's SQL to ScalarDB statement by statement: inventory
-  every statement, run the vendored converter, and decide one route per statement in a validated
-  manifest. Extension tier, after investigate-db-design / investigate-db-live and design-scalardb.
+  Plan moving an application's SQL to ScalarDB statement by statement: inventory, convert, and
+  decide one route per statement in a validated manifest. Runs after the database investigation and
+  design-scalardb.
 argument-hint: '[target_path] [--source=oracle|postgres|mysql] [--app-root=<path>] [--sql-file=<path>] [--db-run=<path>] [--live-run=<path>] [--edition=community|enterprise_standard|enterprise_premium] [--storage=jdbc|cassandra] [--namespace=<name>] [--native-jdbc=postgresql|mysql|mariadb|sqlserver|oracle] [--auto] [--lang=en|ja]'
 model: opus
 ---

@@ -1,7 +1,7 @@
 ---
 description: |
-  Generic database design for non-ScalarDB projects. For projects not using ScalarDB. Do NOT use for
-  ScalarDB projects (use /architect:design-scalardb instead).
+  Design the database layer of a project that does not use ScalarDB: schema, keys, transactions and
+  read models. For ScalarDB projects, use design-scalardb.
 model: opus
 ---
 

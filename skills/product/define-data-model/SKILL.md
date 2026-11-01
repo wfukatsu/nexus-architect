@@ -1,8 +1,7 @@
 ---
 description: |
-  Derive the data model from UI mocks and features in two passes — Pass 1 reads explicit entities
-  from screens/forms/actions; Pass 2 uses a feature×entity CRUD matrix to surface implicit entities
-  (joins, history, audit, state machines) with recorded rationale. Outputs a Mermaid ER diagram.
+  Derive the data model from the UI mocks and features, including implicit entities (joins, history,
+  audit, lifecycle) found through a feature x entity CRUD matrix; outputs an ER diagram.
 argument-hint: '[--auto] [--lang=ja|en]'
 model: opus
 ---
