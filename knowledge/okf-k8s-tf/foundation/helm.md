@@ -5,9 +5,9 @@ description: Kubernetes 共通コンポーネントを chart と release で安�
 resource: "https://helm.sh/docs/"
 tags: [helm, kubernetes, charts, releases]
 generated: { by: codex/gpt-5, at: "2026-08-19T00:00:00+09:00" }
-verified: { by: "process:official-document-cross-check", at: "2026-11-01T00:00:00+09:00" }
+verified: { by: "process:official-document-cross-check", at: "2026-11-12T00:00:00+09:00" }
 status: stable
-stale_after: 2027-02-01
+stale_after: 2027-02-12
 sources:
   - { id: helm-intro, resource: "https://helm.sh/docs/intro/introduction/", title: Introduction to Helm, author: "team:helm" }
   - { id: helm-use, resource: "https://helm.sh/docs/intro/using_helm/", title: Using Helm, author: "team:helm" }
@@ -41,6 +41,7 @@ Chart は Kubernetes resource の versioned package、Release は特定 cluster/
 
 - CRD と controller/chart の upgrade ordering、変換 webhook、stored version、削除影響を事前確認する。
 - CRD は通常の release resource と lifecycle が異なる場合がある。chart uninstall が CRD/CR を残すかを確認する。
+- uninstall 後も残す resource は chart template の `helm.sh/resource-policy: keep` annotation で指定する。`helm uninstall --cascade orphan` は release manifest の resource 自体は削除し、その依存 resource（Deployment が作った ReplicaSet 等）だけを残す。[helm-use]
 - rollback で古い controller が新しい CR schema を読めるとは限らないため、DB/schema migration と同様に扱う。
 
 # Hooks
@@ -58,6 +59,8 @@ hook は install/upgrade/rollback の特定時点で Job 等を実行できる�
 3. test cluster で upgrade と failure/rollback を試験。
 4. `helm get values`、`helm history`、workload health を確認。[helm-use]
 5. orphan cluster-scoped resource と古い CRD を確認。
+
+Helm 3 以降、uninstall は release record も削除するため、uninstall した release は rollback できない（`--keep-history` で record を残した場合を除く）。[helm-use]
 
 # 確認事項
 

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checked_at": "2026-11-09T23:17:26Z",
+  "checked_at": "2026-11-11T23:19:31Z",
   "pages": {
     "https://argo-cd.readthedocs.io/en/stable/": {
       "title": "Argo CD - Declarative GitOps CD for Kubernetes",
@@ -698,8 +698,8 @@
       "cited_by": [
         "delivery/gitlab-cicd.md"
       ],
-      "sha256": "sha256:0654ad852b8a5d2dfb7a843f378338c8c6400a0385a49f54b96f597f272009c1",
-      "chars": 209336,
+      "sha256": "sha256:1e12bf26089757600e738c2eb9848984e216b2527615389b4d785036f4ef20a3",
+      "chars": 209565,
       "outline": [
         "# CI/CD YAML syntax reference",
         "## Keywords",
@@ -766,7 +766,7 @@
         "### Default variables",
         "### variables:expand"
       ],
-      "changed_at": "2026-11-09T23:17:26Z"
+      "changed_at": "2026-11-11T23:11:50Z"
     },
     "https://docs.sigstore.dev/cosign/signing/overview/": {
       "title": "Overview - SigstoreExpandCollapseExpandCollapse",
@@ -1315,6 +1315,35 @@
       ],
       "changed_at": null
     },
+    "https://kyverno.io/docs/guides/migration-to-cel/": {
+      "title": "Migrating to CEL Policies | Kyverno",
+      "source_ids": [
+        "kyverno-migration"
+      ],
+      "cited_by": [
+        "security/kyverno.md"
+      ],
+      "sha256": "sha256:b35a1629bffc8e523de34cb2924c79c2474bc847d0dbc2bce53270b636b09cc2",
+      "chars": 13893,
+      "outline": [
+        "# Migrating to CEL Policies",
+        "## Key Differences",
+        "## Policy Settings",
+        "## Validate Rule",
+        "## Mutate Rule",
+        "## Generate Rule",
+        "## Verify Images Rule",
+        "## CleanupPolicy",
+        "## PolicyException",
+        "## Context Variables",
+        "## Testing",
+        "# Test with a sample resource",
+        "## Detecting Legacy Policy Usage",
+        "## Troubleshooting",
+        "## Additional Resources"
+      ],
+      "changed_at": "2026-11-11T23:19:31Z"
+    },
     "https://kyverno.io/docs/guides/reports/": {
       "title": "Policy Reports | Kyverno",
       "source_ids": [
@@ -1479,6 +1508,25 @@
         "## Kyverno JSON Assertion"
       ],
       "changed_at": null
+    },
+    "https://release-1-19-0.kyverno.io/docs/policy-types/overview/": {
+      "title": "Overview | Kyverno",
+      "source_ids": [
+        "kyverno-overview-1-19"
+      ],
+      "cited_by": [
+        "security/kyverno.md"
+      ],
+      "sha256": "sha256:7617be64e56c13132e8f974a2a2d7745f51bbb9cbb1db698096234187dd0aa37",
+      "chars": 4076,
+      "outline": [
+        "# Overview",
+        "## Policy Types",
+        "## Supporting Resource Types",
+        "## Deprecated API Versions",
+        "## Deprecation Schedule for Legacy Types"
+      ],
+      "changed_at": "2026-11-11T23:19:31Z"
     }
   },
   "releases": {
@@ -1531,15 +1579,15 @@
       "drift_changed_at": null
     },
     "Beyla": {
-      "latest": "3.40.0",
-      "released": "2026-10-26",
+      "latest": "3.41.0",
+      "released": "2026-11-04",
       "source": "https://github.com/grafana/beyla/releases",
       "bundle_states": "",
       "cited_by": [
         "operations/observability.md"
       ],
       "drift": "",
-      "changed_at": "2026-10-31T20:48:14Z",
+      "changed_at": "2026-11-11T23:11:50Z",
       "drift_changed_at": null
     },
     "Cosign": {
@@ -1570,15 +1618,15 @@
       "drift_changed_at": "2026-09-28T06:00:00Z"
     },
     "External Secrets Operator": {
-      "latest": "2.14.0",
-      "released": "2026-10-23",
+      "latest": "2.15.0",
+      "released": "2026-11-10",
       "source": "https://github.com/external-secrets/external-secrets/releases",
       "bundle_states": "",
       "cited_by": [
         "secrets/external-secrets.md"
       ],
       "drift": "",
-      "changed_at": "2026-10-26T19:45:19Z",
+      "changed_at": "2026-11-11T23:11:50Z",
       "drift_changed_at": null
     },
     "GitLab Runner": {
@@ -1594,15 +1642,15 @@
       "drift_changed_at": null
     },
     "Grafana": {
-      "latest": "13.3.0",
-      "released": "2026-10-27",
+      "latest": "13.3.1",
+      "released": "2026-11-10",
       "source": "https://github.com/grafana/grafana/releases",
       "bundle_states": "",
       "cited_by": [
         "operations/observability.md"
       ],
       "drift": "",
-      "changed_at": "2026-10-31T20:48:14Z",
+      "changed_at": "2026-11-11T23:11:50Z",
       "drift_changed_at": null
     },
     "Helm": {
@@ -1668,15 +1716,15 @@
       "drift_changed_at": null
     },
     "OpenCost": {
-      "latest": "1.121.3",
-      "released": "2026-09-16",
+      "latest": "1.121.4",
+      "released": "2026-11-10",
       "source": "https://github.com/opencost/opencost/releases",
       "bundle_states": "",
       "cited_by": [
         "operations/observability.md"
       ],
       "drift": "",
-      "changed_at": null,
+      "changed_at": "2026-11-11T23:11:50Z",
       "drift_changed_at": null
     },
     "Prometheus": {
@@ -1716,8 +1764,8 @@
       "drift_changed_at": null
     },
     "Terraform": {
-      "latest": "1.17.1",
-      "released": "2026-10-28",
+      "latest": "1.17.2",
+      "released": "2026-11-11",
       "source": "https://github.com/hashicorp/terraform/releases",
       "bundle_states": "1.14.8",
       "cited_by": [
@@ -1725,7 +1773,7 @@
         "foundation/terraform.md"
       ],
       "drift": "minor",
-      "changed_at": "2026-10-31T20:48:14Z",
+      "changed_at": "2026-11-11T23:11:50Z",
       "drift_changed_at": "2026-09-28T06:00:00Z"
     },
     "Vault": {
@@ -1741,15 +1789,15 @@
       "drift_changed_at": null
     },
     "provider: aws": {
-      "latest": "6.72.0",
-      "released": "2026-11-04",
+      "latest": "6.73.0",
+      "released": "2026-11-11",
       "source": "https://registry.terraform.io/providers/hashicorp/aws",
       "bundle_states": "5.94.1",
       "cited_by": [
         "architecture/technology-stack.md"
       ],
       "drift": "major",
-      "changed_at": "2026-11-09T23:17:26Z",
+      "changed_at": "2026-11-11T23:11:50Z",
       "drift_changed_at": "2026-09-28T06:00:00Z"
     },
     "provider: azuread": {
@@ -1777,15 +1825,15 @@
       "drift_changed_at": "2026-09-28T06:00:00Z"
     },
     "provider: google": {
-      "latest": "8.10.0",
-      "released": "2026-11-03",
+      "latest": "8.11.0",
+      "released": "2026-11-10",
       "source": "https://registry.terraform.io/providers/hashicorp/google",
       "bundle_states": "6.44.0",
       "cited_by": [
         "architecture/technology-stack.md"
       ],
       "drift": "major",
-      "changed_at": "2026-11-09T23:17:26Z",
+      "changed_at": "2026-11-11T23:11:50Z",
       "drift_changed_at": "2026-09-28T06:00:00Z"
     },
     "provider: helm": {
@@ -1837,28 +1885,6 @@
       "drift_changed_at": "2026-09-28T06:00:00Z"
     }
   },
-  "pending": {
-    "architecture/design-build-checklist.md": [
-      "page changed 2026-11-09: https://docs.gitlab.com/ci/components/"
-    ],
-    "delivery/argocd.md": [
-      "page changed 2026-11-09: https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/",
-      "page changed 2026-11-09: https://argo-cd.readthedocs.io/en/stable/operator-manual/security/",
-      "page changed 2026-11-09: https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/"
-    ],
-    "delivery/gitlab-cicd.md": [
-      "page changed 2026-11-09: https://docs.gitlab.com/ci/components/",
-      "page changed 2026-11-09: https://docs.gitlab.com/ci/secrets/id_token_authentication/",
-      "page changed 2026-11-09: https://docs.gitlab.com/ci/yaml/"
-    ],
-    "foundation/helm.md": [
-      "page changed 2026-11-09: https://helm.sh/docs/intro/using_helm/"
-    ],
-    "security/kyverno.md": [
-      "page changed 2026-11-09: https://kyverno.io/docs/guides/reports/",
-      "page changed 2026-11-09: https://kyverno.io/docs/introduction/",
-      "page changed 2026-11-09: https://kyverno.io/docs/policy-types/overview/"
-    ]
-  },
-  "pending_as_of": "2026-11-09"
+  "pending": {},
+  "pending_as_of": "2026-11-11"
 }

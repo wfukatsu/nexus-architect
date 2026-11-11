@@ -5,11 +5,13 @@ description: Kubernetes admission、image verification、policy report を安全
 resource: "https://kyverno.io/docs/introduction/"
 tags: [kyverno, kubernetes, policy, admission, cosign]
 generated: { by: codex/gpt-5, at: "2026-08-19T00:00:00+09:00" }
-verified: { by: "process:official-document-cross-check", at: "2026-11-01T00:00:00+09:00" }
+verified: { by: "process:official-document-cross-check", at: "2026-11-12T00:00:00+09:00" }
 status: stable
 stale_after: 2026-12-01
 sources:
-  - { id: kyverno-overview, resource: "https://kyverno.io/docs/policy-types/overview/", title: Policy types overview, author: "team:kyverno", last_modified: 2026-08-01 }
+  - { id: kyverno-overview, resource: "https://kyverno.io/docs/policy-types/overview/", title: Policy types overview, author: "team:kyverno", last_modified: 2026-11-09 }
+  - { id: kyverno-overview-1-19, resource: "https://release-1-19-0.kyverno.io/docs/policy-types/overview/", title: "Policy types overview (Kyverno 1.19 docs)", author: "team:kyverno" }
+  - { id: kyverno-migration, resource: "https://kyverno.io/docs/guides/migration-to-cel/", title: Migrating to CEL Policies, author: "team:kyverno" }
   - { id: kyverno-validate, resource: "https://release-1-18-0.kyverno.io/docs/policy-types/cluster-policy/validate/", title: Validate rules, author: "team:kyverno" }
   - { id: kyverno-reports, resource: "https://kyverno.io/docs/guides/reports/", title: Policy reports, author: "team:kyverno" }
   - { id: infrastructure-repo, resource: "https://gitlab.com/scalar-labs/ai-driven-devops/ai-devops-project-template/aidd-infrastructure", title: aidd-infrastructure }
@@ -21,23 +23,26 @@ Terraform の Kyverno module が chart と ClusterPolicy 群を導入し、regis
 
 # 重要な非推奨情報
 
-Kyverno v1.18（2026年4月）で CEL ベースの `policies.kyverno.io/v1` の ValidatingPolicy、MutatingPolicy、GeneratingPolicy、DeletingPolicy、ImageValidatingPolicy が stable になり、従来型は critical fix only となった。v1.19（2026年8月）で従来型は正式に deprecated となり（full support の最終 release）、v1.20（2026年11月見込み）で removal される。[kyverno-overview]
+Kyverno v1.18（2026年4月）で CEL ベースの `policies.kyverno.io/v1` の ValidatingPolicy、MutatingPolicy、GeneratingPolicy、DeletingPolicy、ImageValidatingPolicy が stable になり、従来型は critical fix only となった。v1.19（2026年8月）で従来型は正式に deprecated となり（full support の最終 release）、v1.20（2026年11月見込み）で removal される。[kyverno-overview-1-19]
 
-- removal の対象は `kyverno.io/v1` の ClusterPolicy / Policy、`kyverno.io/v2` の CleanupPolicy、従来の `kyverno.io` PolicyException。PolicyException は `policies.kyverno.io/v1` へ移る。
-- v1.19 以降、従来型の作成・更新は admission warning を返し、`kyverno_deprecated_api_requests_total` metric で利用状況を追える。Kyverno CLI も同じ警告を出し、`--warnings-as-errors` で CI を失敗させられる。
-- v1.19 で CEL ベースの policy type は従来型と機能 parity に達した。PolicyReport / ClusterPolicyReport（`wgpolicyk8s.io/v1alpha2`）は継続される。
+- removal の対象は `kyverno.io/v1` の ClusterPolicy / Policy、`kyverno.io/v2` の CleanupPolicy、従来の `kyverno.io` PolicyException。PolicyException は `policies.kyverno.io/v1` へ移る。[kyverno-overview-1-19]
+- 2026-11-12 時点で v1.20.0 は rc.5（2026-11-11）まで公開され GA は未リリース、最新 stable は 1.19.2（2026-10-20）。一方 kyverno.io の最新ドキュメントは既に従来型の記載を落とし、CEL ベースの 5 type とその namespaced variant だけを policy type として掲げる（旧 release の reference は version selector から辿る）。[kyverno-overview]
+- v1.19 以降、従来型の作成・更新は admission warning を返し、`kyverno_deprecated_api_requests_total` metric（group/version/kind/field 別）で利用状況を追える。Kyverno CLI の `kyverno apply` / `kyverno test` も同じ警告を出し、`--warnings-as-errors` で CI を失敗させられる。[kyverno-migration]
+- `kyverno_deprecated_api_requests_total` は作成・更新の要求だけを数えるため、cluster に残っている従来型 policy は `kyverno_legacy_policies_total` gauge（group/kind 別、移行か削除が終わると 0）で数え、`sum(kyverno_legacy_policies_total) > 0` を alert にする。従来型が残ったまま install/upgrade/restart すると、`kyverno-pre` init container が error を log し、admission controller の Deployment に `LegacyPolicyPresent` warning event が出る。[kyverno-migration]
+- `kyverno migrate` は保存済み object を現在の storage version に書き換えるだけで、policy logic を type 間で変換しない。移行は migration guide の field 対応表に従って行う。ClusterPolicy の `validate.podSecurity`、`validate.allowExistingViolations`、`validate.failureActionOverrides`、`mutate.patchStrategicMerge`、`validate.manifests` には直接の対応が無い（順に、control ごとの `validations`、PolicyException、PolicyException、`patchType: ApplyConfiguration` / `JSONPatch` へ置き換え、manifests 検証は非対応）。[kyverno-overview][kyverno-migration]
+- v1.19 で CEL ベースの policy type は従来型と機能 parity に達した。PolicyReport / ClusterPolicyReport（`wgpolicyk8s.io/v1alpha2`）は継続される。[kyverno-overview-1-19]
 
 対象リポジトリは現時点で `ClusterPolicy` を使用しているため、以下を早急に行う。
 
 1. 利用 chart/Kyverno version と v1.20 の実際の release 日を再確認。
-2. policy inventory と対応する新 policy type を作成。
-3. test cluster で evaluation/report/admission behavior を比較。
+2. policy inventory と対応する新 policy type を作成。CEL へ直接写せない rule（`podSecurity` 等）は設計し直す。
+3. test cluster で evaluation/report/admission behavior を比較。既存の Kyverno CLI test はそのまま流用でき、Chainsaw test は policy type と status の assertion を書き換える。[kyverno-migration]
 4. Audit で並行観測してから切替。CI では Kyverno CLI の `--warnings-as-errors` で従来型の新規追加を止める。
-5. Terraform state/resource と CRD の移行順を定義。
+5. Terraform state/resource と CRD の移行順を定義し、`kyverno_legacy_policies_total` が 0 になったことを確認してから v1.20 へ上げる。
 
 # Policy 設計
 
-- validate: 必須 label、resource limit、Pod security、禁止 field 等を検証。
+- validate: 必須 label、resource limit、Pod security、禁止 field 等を検証。CEL 型には ClusterPolicy の `podSecurity` rule に相当する一括指定が無く、Pod security の各 control を個別の `validations` として書く。[kyverno-migration]
 - mutate: default を補完する。ただし入力が暗黙に変わるため、重要 security field は validate を優先。
 - generate: namespace ごとの NetworkPolicy/RBAC 等を配布。ownership と同期/削除を設計。
 - image verification: Cosign identity、issuer、attestation、repository を検証。
@@ -46,7 +51,7 @@ policy は小さく単一目的にし、対象 kind/namespace/user/service accou
 
 # Audit から Enforce
 
-validate failure action は Audit なら resource を許可し report、Enforce なら admission を拒否する。[kyverno-validate]
+validate failure action は Audit なら resource を許可し report、Enforce なら admission を拒否する。[kyverno-validate] CEL ベースの ValidatingPolicy では同じ切替を `validationActions`（`Audit` / `Deny`、警告だけ返す `Warn`）で行う。[kyverno-reports][kyverno-migration]
 
 1. Audit で既存違反と false positive を収集。
 2. policy report を owner/severity/期限付き backlog に変換。
@@ -58,7 +63,7 @@ validate failure action は Audit なら resource を許可し report、Enforce 
 
 PolicyReport は現在の resource に対する評価結果であり、過去の拒否履歴ではない。blocked admission の調査には Event、execution metric、audit log を併用する。[kyverno-reports]
 
-- report の pass/fail/error/skip を収集し、policy/namespace/owner で可視化する。
+- report の pass/fail/warn/error/skip を収集し、policy/namespace/owner で可視化する（reports controller の `--allowedResults` の既定はこの 5 種で、絞ると etcd 使用量を減らせる）。[kyverno-reports]
 - background scan の権限と対象を確認する。
 - report 消失を historical compliance の消失と理解し、必要なら外部保存する。
 
@@ -79,6 +84,6 @@ PolicyReport は現在の resource に対する評価結果であり、過去の
 
 # 確認事項
 
-- 対象実装は ClusterPolicy を使っている。2026-11-01 時点の最新 stable は 2026-10-20 リリースの Kyverno 1.19.2 で、従来型を removal する v1.20（2026年11月見込み）は未リリースである。1.19 が従来型を full support する最終系統であり、v1.20 へ上げる前に CEL ベースの policy type への移行を終える必要があるため、移行完了の期限と、それまで 1.19 系に留める判断を決める。v1.20 の release 後に本書を再確認する（`stale_after` を 2026-12-01 に置いているのはそのため）。[kyverno-overview]
+- 対象実装は ClusterPolicy を使っている。2026-11-12 時点の最新 stable は 2026-10-20 リリースの Kyverno 1.19.2 で、従来型を removal する v1.20（2026年11月見込み）は rc.5（2026-11-11）まで公開済みだが GA は未リリースである。1.19 が従来型を full support する最終系統であり、v1.20 へ上げる前に CEL ベースの policy type への移行を終える必要があるため、移行完了の期限と、それまで 1.19 系に留める判断を決める。v1.20 の release 後に本書を再確認する（`stale_after` を 2026-12-01 に置いているのはそのため）。[kyverno-overview-1-19]
 - 対象実装が利用する chart/Kyverno の version（対象実装の記述からは特定できない）と、`kyverno_deprecated_api_requests_total` による従来型の利用状況を確認する。
 - PolicyReport / ClusterPolicyReport（`wgpolicyk8s.io/v1alpha2`）は Stable として継続されるが、Kyverno 1.15 以降は `openreports.io/v1alpha1` による report（alpha、controller の `--openreportsEnabled` で有効化）が代替として提供され、公式はこれを将来 `wgpolicyk8s` を deprecate して openreports.io に一本化する第一歩と位置付けている。report を読む dashboard・外部保存・CI の連携先が API group の切替に追従できるかを確認する。[kyverno-reports]
