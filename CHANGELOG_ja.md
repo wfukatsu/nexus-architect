@@ -7,6 +7,34 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.53.1] - 2026-11-12
+
+### Changed
+- **Kyverno の指針: 従来型の非推奨スケジュールと CEL への移行。** 同梱の Kubernetes/Terraform バンドルの
+  `security/kyverno.md` を、kyverno.io のドキュメント再構成を受けて再検証した。Policy types overview は
+  CEL ベースの type だけを掲げる構成になったため、`ClusterPolicy` / `Policy` の非推奨スケジュール
+  （1.18 で stable、1.19 で deprecated、1.20 で削除）は同ページの 1.19 版を出典に追加して引用し直した。
+  移行ガイド（Migrating to CEL Policies）を 2 つ目の出典として追加し、その内容を反映した。
+  `kyverno_legacy_policies_total` gauge とその alert、`kyverno-pre` の `LegacyPolicyPresent` event、
+  `kyverno migrate` は形を変換するだけで policy logic は変換しないこと、CEL に直接の対応が無い rule
+  （`validate.podSecurity`・`allowExistingViolations`・`failureActionOverrides`・
+  `mutate.patchStrategicMerge`・`validate.manifests`）、書き換えが要る Chainsaw test、Audit から Enforce
+  への切替に相当する `validationActions`（`Audit` / `Deny` / `Warn`）、report の結果種別の `warn` である。
+  確認事項に 2026-11-12 時点の release 状況（最新 stable は 1.19.2、v1.20.0 は rc.5）を記録し、
+  `stale_after` は v1.20 GA 待ちのため 2026-12-01 のまま。
+- **Argo CD と Helm の指針。** `delivery/argocd.md` に Sync Phases and Waves の hook の注意点
+  （hook は毎回の sync で実行される、PreSync hook の credential は Application 外か低い wave の hook
+  Secret に置く、`ttlSecondsAfterFinished` でなく `hook-delete-policy` を使う、Job の exit 0 だけで
+  phase が成功になり長い migration は operation timeout にかかる、prune は wave の逆順で進む）、
+  設計上未認証の `/swagger-ui` と無効化する `server.disable.swagger.ui`、同じ commit で失敗した sync の
+  ための `syncPolicy.retry`、および rollback の記述の訂正（automated sync が有効な Application は
+  rollback できない。無効化して rollback し、再有効化すると Git が再適用される）を追記した。
+  `foundation/helm.md` に `helm.sh/resource-policy: keep` と `helm uninstall --cascade orphan`、
+  uninstall した release は `--keep-history` で record を残した場合を除き rollback できないことを追記した。
+  `delivery/gitlab-cicd.md` と `architecture/design-build-checklist.md` は再確認のみで日付以外は変更なし。
+  upstream の状態（`knowledge/okf-k8s-tf-upstream/`）は 2026-11-12（JST）の収集結果で、再検証待ちの
+  文書はない。
+
 ## [0.53.0] - 2026-11-01
 
 ### Added
