@@ -5,9 +5,9 @@ description: 再利用テンプレート、OIDC、Runner、セキュリティ検
 resource: "https://docs.gitlab.com/ci/"
 tags: [gitlab, cicd, runner, oidc, devsecops]
 generated: { by: codex/gpt-5, at: "2026-08-19T00:00:00+09:00" }
-verified: { by: "process:official-document-cross-check", at: "2026-11-01T00:00:00+09:00" }
+verified: { by: "process:official-document-cross-check", at: "2026-11-12T00:00:00+09:00" }
 status: stable
-stale_after: 2027-02-01
+stale_after: 2027-02-12
 sources:
   - { id: gitlab-yaml, resource: "https://docs.gitlab.com/ci/yaml/", title: CI/CD YAML syntax, author: "team:gitlab" }
   - { id: gitlab-components, resource: "https://docs.gitlab.com/ci/components/", title: CI/CD components, author: "team:gitlab" }
