@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.53.1] - 2026-11-12
+
+### Changed
+- **Kyverno guidance: the legacy-type deprecation schedule and the CEL migration.** The vendored
+  Kubernetes/Terraform bundle's `security/kyverno.md` was re-verified after kyverno.io restructured
+  its documentation: the Policy types overview now lists only the CEL-based types, so the
+  deprecation schedule for `ClusterPolicy` / `Policy` (stable in 1.18, deprecated in 1.19, removed
+  in 1.20) is now cited from the 1.19 edition of that page, added as a source. The migration guide
+  (Migrating to CEL Policies) is a second new source, and the document gains what it says: the
+  `kyverno_legacy_policies_total` gauge and an alert on it, the `LegacyPolicyPresent` event from
+  `kyverno-pre`, that `kyverno migrate` converts the shape and not the policy logic, the rules
+  with no CEL equivalent (`validate.podSecurity`, `allowExistingViolations`,
+  `failureActionOverrides`, `mutate.patchStrategicMerge`, `validate.manifests`), the Chainsaw
+  tests to rewrite, `validationActions` (`Audit` / `Deny` / `Warn`) as the CEL counterpart of
+  Audit-to-Enforce, and `warn` among the report results. The open question records the release
+  status on 2026-11-12 — 1.19.2 is the latest stable and v1.20.0 is at rc.5 — and `stale_after`
+  stays 2026-12-01 for the v1.20 GA.
+- **Argo CD and Helm guidance.** `delivery/argocd.md` gains the hook caveats from Sync Phases and
+  Waves (hooks run on every sync; a PreSync hook's credentials belong outside the Application or
+  in a lower-wave hook Secret; `hook-delete-policy` rather than `ttlSecondsAfterFinished`; a Job's
+  exit 0 alone passes the phase and a long migration hits the operation timeout; prune runs in
+  reverse wave order), `/swagger-ui` being unauthenticated by design with
+  `server.disable.swagger.ui` to turn it off, `syncPolicy.retry` for a sync that failed on the same
+  commit, and the corrected rollback statement: an Application with automated sync cannot be
+  rolled back — disable it, roll back, and re-enabling reapplies Git. `foundation/helm.md` gains
+  `helm.sh/resource-policy: keep` and `helm uninstall --cascade orphan`, and that an uninstalled
+  release cannot be rolled back unless `--keep-history` kept its record. `delivery/gitlab-cicd.md`
+  and `architecture/design-build-checklist.md` were re-verified and are unchanged apart from their
+  dates. The upstream state (`knowledge/okf-k8s-tf-upstream/`) is the 2026-11-12 (JST) collection
+  and no document awaits re-verification.
+
 ## [0.53.0] - 2026-11-01
 
 ### Added
