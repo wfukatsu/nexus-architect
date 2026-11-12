@@ -10,7 +10,7 @@ status: stable
 stale_after: 2026-12-01
 sources:
   - { id: kyverno-overview, resource: "https://kyverno.io/docs/policy-types/overview/", title: Policy types overview, author: "team:kyverno", last_modified: 2026-08-01 }
-  - { id: kyverno-validate, resource: "https://kyverno.io/docs/policy-types/cluster-policy/validate/", title: Validate rules, author: "team:kyverno" }
+  - { id: kyverno-validate, resource: "https://release-1-18-0.kyverno.io/docs/policy-types/cluster-policy/validate/", title: Validate rules, author: "team:kyverno" }
   - { id: kyverno-reports, resource: "https://kyverno.io/docs/guides/reports/", title: Policy reports, author: "team:kyverno" }
   - { id: infrastructure-repo, resource: "https://gitlab.com/scalar-labs/ai-driven-devops/ai-devops-project-template/aidd-infrastructure", title: aidd-infrastructure }
 ---
