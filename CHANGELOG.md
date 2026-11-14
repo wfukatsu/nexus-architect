@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.54.0] - 2026-11-14
+
+### Added
+- **Workflow profiles and execution depth for the architect pipeline** (#124, #132). The core
+  pipeline ran all 29 phases whatever the request; the product plugin already had `--profile`.
+  `skills/common/skill-dependencies.yaml` now carries two data tables: `profiles` — `full` (every
+  phase, the run made when none is named), `enterprise` (`full` at comprehensive depth), `poc`
+  (the shortest path to a target architecture and an API contract, two reviews), `analysis`
+  (investigation and evaluation only; what `--analyze-only` ran) — naming the backbone phases a
+  run executes, and `depths` — `minimal`, `standard`, `comprehensive` — naming the review
+  perspectives that feed `review-synthesizer`, the `optional_phases` mode (`none` / `evidence` /
+  `all`) over the six phases now marked `evidence_gated: true`, and whether a perspective spawns
+  independent reviewers. `/architect:pipeline` and `/architect:start` take `--profile` and
+  `--depth`; the pipeline's § Profile and Depth states how the phase set is resolved and recorded
+  (`options.profile`, `options.depth`), that phases outside the run are recorded `skipped` with
+  summary `outside profile <name>` / `depth <name>`, and that minimal depth's self-scored reviews
+  are the user's choice — recorded in options, not in `warnings`. `/architect:start` proposes a
+  profile from the request in its initialization question batch, and the three Option sections
+  follow the depth. Every profile runs the required dependencies of what it lists, which
+  `tools/lib/pipeline_status_data.test.py` pins.
+- **The dashboard reads the profile.** `/architect:report-status` resolves `options.profile` /
+  `options.depth` against the manifest: phases outside the run are excluded as `profile` or
+  `depth`, with the reason in the detail pane and `profile … · depth …` in the header (en/ja); an
+  unknown name is a warning that excludes nothing; the manual extension tier is never touched;
+  an excluded dependency never blocks its dependent.
+
+### Changed
+- `skills/common/subagent-model.test.py` reads the manifest's `phases:` block only — it took the
+  new profile names for skill directories.
+- Documentation: the progress-registry options table (`profile`, `depth`), both skill catalogues,
+  README § Profiles and Depth, AGENTS.md (one sentence), `docs/test-suites.md`.
+
 ## [0.53.1] - 2026-11-12
 
 ### Changed
