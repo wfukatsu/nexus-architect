@@ -7,6 +7,25 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.60.2] - 2026-11-15
+
+v0.53.1..v0.60.0 のレビュー（tracking #158）からさらに 2 件、#150 と #151 を修正（PR #161）。
+
+### Fixed
+- **ワークショップの `collect` がストアを優先する**（#150）。`tools/lib/workshop_sheet.py collect` は、
+  ストアで既に `answered` の行を書き換え（ルールでは古いシートはストアに取って代わられる）、実行ごとに
+  `QUESTION_ANSWERED` を再度追記し、`|` をエスケープせずに書くため、パイプを含む回答で以降の列がずれていた。
+  その間に回答済みになった行は `superseded` として報告して触らず（`overwrite=true` でシートを優先）、
+  実際に変わった行だけを記録し、パイプは `\|` として保存する（`open_questions.escape_cell`、`split_cells`
+  が `|` に戻す）。
+- **除外フェーズが古いスタンプを引き継がない**（#151）。実行の profile・depth・`skip_phases` の外にある
+  フェーズが記録済みの `in_progress` / `awaiting_approval` / `revising` を保持して現在のフェーズとして表示され、
+  除外理由（"outside profile poc"、"depth minimal"）を summary に持つ `skipped` は profile を広げた後も skipped
+  のままで、`resume_point` は何を指していてもそのまま通していた。`tools/lib/pipeline_status_data.py` は、
+  除外下の live な status を警告付きで `skipped` として表示し、除外理由が成り立たなくなった skip を `pending`
+  として読み直し、除外フェーズや存在しないフェーズを指す resume point を警告付きで落とす。レジストリ契約、
+  `/architect:pipeline`、`/architect:start` に規則を記した。
+
 ## [0.60.1] - 2026-11-15
 
 v0.53.1..v0.60.0 のレビュー（tracking #158）で 12 件の欠陥と差分が見つかった。このリリースは、データを失うか
