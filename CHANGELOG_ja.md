@@ -7,6 +7,25 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.59.0] - 2026-11-14
+
+### Added
+- **複数チームでのバックログ納品**（#129、#141-#142）。契約は `skills/common/backlog-claims.md`、
+  ツールは `tools/lib/backlog_claims.py`。**claim**（`reports/backlog/claims.json`）は誰がいつから、
+  どのブランチと worktree で、どの統合ブランチに向けて Issue を持っているかを記録する — `claim` は他の人が
+  持っていれば保持者を名指しして exit 3、`steal=true` は奪って前の保持者を記録、`release` は理由付きで終える。
+  claim と release はすべて `ITEM_CLAIMED` / `ITEM_RELEASED` の監査イベント。**Issue ごとの worktree**
+  （`worktree add <item>` が `../<project>-worktrees/<item>` を `feat/<item>` で作り、既存ブランチは再利用、
+  `worktree remove` はブランチを残す）で、同じ Epic の 2 つの Issue が checkout を共有しない。
+  `/architect:deliver-backlog` は claim を読んで他の人が持つ Issue を外し（`--steal` で奪う）、順番が来た
+  Issue を claim し、`--parallel=N` で独立した Issue を各自の worktree（`--worktree-root`）の前景
+  サブエージェントとして 3 つずつ並列に進め、承認はまとめて問い、`--integration-branch=<name>` では
+  すべての PR/MR をそのブランチに向け、Epic の最後に統合ブランチ自身の PR/MR を既定ブランチへ送る
+  人のゲートを置く。`/architect:implement-backlog` は `--worktree-root` を受け取り、ソースルートを Issue の
+  worktree 内に解決する（reports と work はメインの checkout に残す）。`/architect:merge-issue` は
+  `--integration-branch` を受け取り、PR/MR の base を確認し、マージ後に claim を解放して worktree を消す。
+  `/architect:review-issue` は claim に統合ブランチがあればそれを base に PR/MR を出す。
+
 ## [0.58.0] - 2026-11-14
 
 ### Added

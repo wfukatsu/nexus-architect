@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.59.0] - 2026-11-14
+
+### Added
+- **Multi-team backlog delivery** (#129, #141-#142). `skills/common/backlog-claims.md` is the
+  contract and `tools/lib/backlog_claims.py` the tool: a **claim** (`reports/backlog/claims.json`)
+  records who holds an Issue, since when, on which branch, in which worktree and toward which
+  integration branch — `claim` exits 3 naming the holder when someone else has it, `steal=true`
+  takes it and records the previous holder, `release` ends it with a reason, every claim and
+  release an `ITEM_CLAIMED` / `ITEM_RELEASED` audit event; a **worktree per Issue** (`worktree
+  add <item>` under `../<project>-worktrees/<item>` on `feat/<item>`, an existing branch reused,
+  `worktree remove` keeping the branch) so two Issues of one Epic never share a checkout.
+  `/architect:deliver-backlog` reads the claims and drops Issues another person holds (`--steal`
+  takes them), claims each Issue as its turn comes, dispatches independent Issues with
+  `--parallel=N` as foreground sub-agents in their own worktrees (`--worktree-root`) three at a
+  time with the approvals asked in one batch, and with `--integration-branch=<name>` targets every
+  PR/MR at that branch and ends the Epic with the integration branch's own PR/MR into the default
+  branch as a final human gate. `/architect:implement-backlog` takes `--worktree-root` and resolves
+  the source root inside the Issue's worktree (reports and work stay in the main checkout);
+  `/architect:merge-issue` takes `--integration-branch`, checks the PR/MR's base, releases the
+  claim and removes the worktree after the merge; `/architect:review-issue` raises the PR/MR
+  against the claim's integration branch when one is recorded.
+
 ## [0.58.0] - 2026-11-14
 
 ### Added
