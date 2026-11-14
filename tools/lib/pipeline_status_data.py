@@ -118,6 +118,8 @@ PS_LABELS = {
         "optional": "optional", "rerunnable": "rerunnable", "standalone": "standalone",
         "gate_phase": "validation gate", "skipped_option": "excluded by skip_phases",
         "skipped_condition": "excluded by project options",
+        "skipped_profile": "outside profile %s", "skipped_depth": "not run at depth %s",
+        "profile": "profile", "depth": "depth",
         "backlog": "backlog", "issues_done": "%d/%d issues done",
         "total_cost": "total cost", "unassigned": "unassigned",
         "empty": "nothing to show", "unknown_phase": "unknown phase: %s",
@@ -186,6 +188,8 @@ PS_LABELS = {
         "optional": "任意", "rerunnable": "再実行可", "standalone": "独立実行",
         "gate_phase": "検証ゲート", "skipped_option": "skip_phases で除外",
         "skipped_condition": "プロジェクト設定で除外",
+        "skipped_profile": "プロファイル %s の対象外", "skipped_depth": "深度 %s では実行しない",
+        "profile": "プロファイル", "depth": "深度",
         "backlog": "バックログ", "issues_done": "Issue %d/%d 完了",
         "total_cost": "合計コスト", "unassigned": "未割当",
         "empty": "表示するものがありません", "unknown_phase": "存在しないフェーズ: %s",
@@ -597,6 +601,102 @@ def load_phase_manifest(plugin, root=None):
     return phases
 
 
+_section_cache = {}
+
+
+def load_manifest_section(plugin, key, root=None):
+    """A top-level mapping of the plugin's manifest other than `phases` — `profiles`,
+    `depths` — as {name: spec}, or {} when the manifest has none (the product manifest's
+    `profiles` are bare phase lists, which this returns as given)."""
+    root = root or plugin_root()
+    cache_key = (plugin, key, root)
+    if cache_key in _section_cache:
+        return _section_cache[cache_key]
+    path = os.path.join(root, PLUGINS[plugin]["manifest"])
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = parse_yaml(f.read())
+    except OSError:
+        data = {}
+    section = data.get(key)
+    section = section if isinstance(section, dict) else {}
+    _section_cache[cache_key] = section
+    return section
+
+
+def resolve_profile(plugin, options, root=None):
+    """(profile name, profile spec, depth name, depth spec, warnings) for a project's
+    `options.profile` / `options.depth`.
+
+    The depth is the option when set, else the profile's default, else nothing. A name the
+    manifest does not define is reported and treated as unset: a dashboard that hid phases
+    over a typo would mislead, so an unknown name excludes nothing.
+    """
+    profiles = load_manifest_section(plugin, "profiles", root)
+    depths = load_manifest_section(plugin, "depths", root)
+    warnings = []
+    name = options.get("profile")
+    profile = None
+    if name is not None:
+        profile = profiles.get(name) if isinstance(name, str) else None
+        if not isinstance(profile, dict):
+            warnings.append("options.profile %r is not a profile of the %s manifest; "
+                            "no phase excluded for it" % (name, plugin))
+            name, profile = None, None
+    depth_name = options.get("depth")
+    depth = None
+    if depth_name is not None:
+        depth = depths.get(depth_name) if isinstance(depth_name, str) else None
+        if not isinstance(depth, dict):
+            warnings.append("options.depth %r is not a depth of the %s manifest; "
+                            "the profile's default applies" % (depth_name, plugin))
+            depth_name, depth = None, None
+    if depth is None and profile is not None:
+        depth_name = profile.get("depth")
+        depth = depths.get(depth_name) if isinstance(depth_name, str) else None
+        if not isinstance(depth, dict):
+            warnings.append("profile %s names depth %r, which the %s manifest does not "
+                            "define" % (name, depth_name, plugin))
+            depth_name, depth = None, None
+    return name, profile, depth_name, depth, warnings
+
+
+def profile_exclusions(plugin, options, manifest, root=None):
+    """{phase: "profile" | "depth"} for the core phases a project's profile and depth leave out.
+
+    A profile names the backbone phases; the depth adds the evidence-gated optional phases
+    (`optional_phases: none` drops them) and the review perspectives (the union of every
+    depth's `review_perspectives` is what counts as one). The manual extension tier is
+    outside every profile and never touched.
+    """
+    name, profile, depth_name, depth, warnings = resolve_profile(plugin, options, root)
+    if profile is None and depth is None:
+        return {}, warnings
+    depths = load_manifest_section(plugin, "depths", root)
+    perspectives = set()
+    for spec in depths.values():
+        if isinstance(spec, dict):
+            perspectives |= set(_as_list(spec.get("review_perspectives")))
+    runs = set(_as_list(profile.get("phases"))) if profile else None
+    chosen = set(_as_list(depth.get("review_perspectives"))) if depth else None
+    optional_mode = depth.get("optional_phases") if depth else None
+    excluded = {}
+    for phase, spec in manifest.items():
+        if spec.get("tier") != "core":
+            continue
+        if phase in perspectives:
+            if runs is not None and "review-synthesizer" not in runs:
+                excluded[phase] = "profile"
+            elif chosen is not None and phase not in chosen:
+                excluded[phase] = "depth"
+        elif spec.get("evidence_gated"):
+            if optional_mode == "none":
+                excluded[phase] = "depth"
+        elif runs is not None and phase not in runs:
+            excluded[phase] = "profile"
+    return excluded, warnings
+
+
 def exclusive_phases(plugin, root=None):
     """The phase names only this plugin's manifest defines.
 
@@ -948,6 +1048,8 @@ def derive_phase(name, spec, entry, project_dir, options, project_name,
         excluded = "condition-error"
     elif name in _as_list(options.get("skip_phases")):
         excluded = "option"
+    elif name in (options.get("_profile_excluded") or {}):
+        excluded = options["_profile_excluded"][name]      # "profile" or "depth"
     elif not _conditions_ok(spec.get("conditions") or [], options):
         excluded = "condition"
 
@@ -1137,6 +1239,12 @@ def derive_all(project_dir, plugin=None, progress=None, section="pipeline"):
             project_dir, options)
     else:
         effective, canonical_errors, canonical_warnings = dict(options), [], []
+    # Which phases the project's profile and depth leave out, resolved once against the
+    # manifest and carried in `effective` like the derived conditions: private to the
+    # derivation, never reported back as a setting.
+    profile_excluded, profile_warnings = profile_exclusions(plugin, options, manifest)
+    effective["_profile_excluded"] = profile_excluded
+    canonical_warnings = list(canonical_warnings) + profile_warnings
     project_name = (progress or {}).get("project_name") or os.path.basename(
         os.path.abspath(project_dir))
     entries = ((progress or {}).get("phases") or {})

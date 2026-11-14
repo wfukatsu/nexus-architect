@@ -242,6 +242,26 @@ Design new systems from requirements through ScalarDB architecture to deployment
 requirements -> domain modeling -> ScalarDB design -> infra -> deploy
 ```
 
+### Profiles and Depth
+
+Not every run needs every phase. `/architect:pipeline` and `/architect:start` take a **profile**
+(which backbone phases run) and a **depth** (how much optional and review work they do), both
+defined as data in `skills/common/skill-dependencies.yaml`:
+
+| Profile | Runs | Default depth |
+|---------|------|---------------|
+| `full` (default) | every phase of the manifest | `standard` |
+| `enterprise` | every phase, every optional phase over every candidate, every review perspective | `comprehensive` |
+| `poc` | investigation, evaluation, redesign, target architecture, API contract; reviewed for consistency and risk only | `minimal` |
+| `analysis` | investigation and evaluation only, no redesign (`--analyze-only`) | `standard` |
+
+`--depth=minimal|standard|comprehensive` overrides the profile's default: `minimal` runs two
+review perspectives that score their own dimensions and no optional phase; `standard` runs all
+seven perspectives with independent reviewers and the optional phases the evidence calls for;
+`comprehensive` runs the optional phases over every candidate. `/architect:start` proposes a
+profile from the request; phases outside the run are recorded as skipped and shown as excluded by
+`/architect:report-status`.
+
 ### Code Generation & Delivery
 
 Code generation is a **manual extension tier**: `/architect:pipeline` and `/architect:start` stop at

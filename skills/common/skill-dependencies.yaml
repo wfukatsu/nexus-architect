@@ -45,6 +45,7 @@ phases:
     id_prefix: [UIS-, UIC-, UIF-]
     depends_on: [investigate]
     optional: true
+    evidence_gated: true
     outputs:
       - reports/before/{project}/ui-inventory.json
       - reports/before/{project}/ui-design-tokens.json
@@ -72,6 +73,7 @@ phases:
     category: analysis
     depends_on: [analyze]
     optional: true
+    evidence_gated: true
     outputs:
       - reports/01_analysis/data-model-analysis.md
       - reports/01_analysis/er-diagram-current.md
@@ -102,6 +104,7 @@ phases:
     # skipped with that reason (skills/pipeline/SKILL.md step 7) rather than scoring a UI it never read.
     depends_on: [analyze-ui, analyze]
     optional: true
+    evidence_gated: true
     parallel_with: [evaluate-mmi, evaluate-ddd]
     outputs:
       - reports/02_evaluation/ux-evaluation.json
@@ -148,6 +151,7 @@ phases:
     category: design
     depends_on: [redesign]
     optional: true
+    evidence_gated: true
     outputs:
       - reports/04_stories/domain-story-{domain}.md
     model: opus
@@ -159,6 +163,7 @@ phases:
     id_prefix: [AGG-]
     depends_on: [redesign]
     optional: true
+    evidence_gated: true
     outputs:
       - reports/03_design/aggregates/
       - reports/03_design/aggregates/aggregate-manifest.json
@@ -177,6 +182,7 @@ phases:
     # (tools/lib/pipeline_status_data.py, skills/pipeline/SKILL.md step 7) — it only orders.
     depends_on: [redesign, design-aggregate]
     optional: true
+    evidence_gated: true
     outputs:
       - reports/03_design/state-machines/
       - reports/03_design/state-machines/state-machine-manifest.json
@@ -334,3 +340,64 @@ phases:
       # measured on v2.1.294), and every pipeline phase runs as a sub-agent.
       - reports/review/quality-review.md
     model: sonnet
+
+# ----------------------------------------------------------------------------------------------
+# Profiles: which backbone phases a run executes. `--profile` on /architect:pipeline and
+# /architect:start; `full` when none is named. A profile lists the phases that are neither
+# optional nor a review perspective; the optional phases and the perspectives come from the depth
+# (below). Every phase a profile lists has its required dependencies in the same profile
+# (tools/lib/pipeline_status_data.test.py pins this), so no listed phase waits on one that will
+# never run. A phase of the manifest that the profile does not run is recorded `skipped` with
+# summary "outside profile <name>", which the dashboard shows as excluded. The greenfield path
+# drops the investigation and evaluation phases from whatever profile runs, as it always has.
+# The manual extension tier is outside every profile.
+profiles:
+  full:
+    description: Every phase of the manifest at standard depth — what the pipeline runs when no profile is named.
+    depth: standard
+    phases: [define-requirements, investigate, analyze, evaluate-mmi, evaluate-ddd, integrate-evaluations,
+             map-domains, redesign, design-microservices, design-scalardb, design-data-layer, design-api,
+             design-graphql, review-synthesizer, report, review-report]
+  enterprise:
+    description: The full run at comprehensive depth — every optional phase over every candidate, every review perspective with independent reviewers — for regulated or high-assurance work.
+    depth: comprehensive
+    phases: [define-requirements, investigate, analyze, evaluate-mmi, evaluate-ddd, integrate-evaluations,
+             map-domains, redesign, design-microservices, design-scalardb, design-data-layer, design-api,
+             design-graphql, review-synthesizer, report, review-report]
+  poc:
+    description: A proof of concept — the shortest path to a target architecture and an API contract, reviewed for consistency and risk only; no data-layer design, no optional phase.
+    depth: minimal
+    phases: [define-requirements, investigate, analyze, evaluate-mmi, evaluate-ddd, integrate-evaluations,
+             redesign, design-microservices, design-api, review-synthesizer, report]
+  analysis:
+    description: Investigation and evaluation of an existing system without redesign — the current state, its scores and the improvement plan (what --analyze-only runs).
+    depth: standard
+    phases: [investigate, analyze, evaluate-mmi, evaluate-ddd, integrate-evaluations, map-domains]
+
+# Depths: how much of the optional and review work a run does. `--depth` overrides the profile's
+# default. `optional_phases` governs the phases marked `evidence_gated: true` above — `none` skips
+# them (summary "depth minimal"), `evidence` runs each when the inputs show something to model
+# (skills/pipeline/SKILL.md step 7), `all` runs each over every candidate it finds, with no
+# narrowing. `review_perspectives` are the review phases that feed review-synthesizer; a listed
+# perspective whose conditions do not hold is still skipped by its conditions. With
+# `independent_reviewers: false` a perspective scores its dimensions itself instead of spawning
+# one sub-agent per dimension — the cheaper method the pipeline otherwise reserves for a budget
+# cap, here chosen by the user and therefore recorded in options, not in warnings.
+depths:
+  minimal:
+    description: Two review perspectives scoring their own dimensions, no optional phase.
+    optional_phases: none
+    review_perspectives: [review-consistency, review-risk]
+    independent_reviewers: false
+  standard:
+    description: Every review perspective with independent reviewers; optional phases where the evidence makes a case.
+    optional_phases: evidence
+    review_perspectives: [review-consistency, review-api-security, review-scalardb, review-data-integrity,
+                          review-operations, review-risk, review-business]
+    independent_reviewers: true
+  comprehensive:
+    description: Every review perspective with independent reviewers; every optional phase over every candidate.
+    optional_phases: all
+    review_perspectives: [review-consistency, review-api-security, review-scalardb, review-data-integrity,
+                          review-operations, review-risk, review-business]
+    independent_reviewers: true

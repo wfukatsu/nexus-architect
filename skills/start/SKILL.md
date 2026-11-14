@@ -3,7 +3,7 @@ description: |
   Interactive entry point for system architecture work: refactor a legacy application into services,
   or design a new system from requirements; picks the path from the project's state. To move a
   database to ScalarDB, use migrate-database.
-argument-hint: '[target_path]'
+argument-hint: '[target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive]'
 model: inherit
 ---
 
@@ -12,7 +12,7 @@ model: inherit
 Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
 plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
-**Usage:** `/architect:start [target_path]`
+**Usage:** `/architect:start [target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive]`
 
 ## Your Role
 
@@ -37,6 +37,31 @@ In the same batch, ask which reports open with the plain-language **ELI5 section
 @rules/eli5-summary.md — the reports written for engineers (default), every report, or none — and
 record it as `options.eli5` (`technical` / `all` / `off`). The frontmatter hook enforces the
 answer on every report write.
+
+## Profile and Depth
+
+How much of the pipeline this run executes is a decision, not a default: the manifest's `profiles`
+table names four runs and its `depths` table three amounts of optional and review work
+(@skills/common/skill-dependencies.yaml, after the phases; the rules for turning them into a phase
+set are @skills/pipeline/SKILL.md § Profile and Depth and apply here unchanged).
+
+- `--profile` / `--depth` given: honour them; a name the tables do not define is an error naming
+  the ones they do.
+- Otherwise **propose a profile from the request**, in the same `AskUserQuestion` batch as the
+  language and the other project-level preferences, with the four profiles as the options — each
+  label the profile's name and default depth, each description the manifest's `description` —
+  and the recommended one first: `poc` when the request is a proof of concept, a prototype or a
+  feasibility question; `analysis` when it asks for an assessment of the current system, its
+  scores or where to improve, and not for a redesign; `enterprise` when it names regulation, audit,
+  compliance or high assurance; `full` otherwise. The user picks "Other" to add `depth=<name>`.
+- Record `options.profile` and `options.depth` (the chosen or default depth, written out) in
+  `work/pipeline-progress.json` at initialization, with the language.
+
+The depth then settles the three Option sections below without a second question: at `minimal`
+none is offered — the optional phases are recorded `skipped` with summary `depth minimal`; at
+`comprehensive` none is asked either — each runs over every candidate without narrowing; at
+`standard` they are asked as written. Phases outside the profile are recorded `skipped` with
+summary `outside profile <name>` when their turn comes, never run and never asked about.
 
 ## Product Handoff Detection
 
@@ -150,7 +175,8 @@ rather than leaving the omission silent.
 ## Execution Flow
 
 1. Evaluate project context (read provided materials, inspect codebase, **run Product Handoff Detection**)
-2. Determine the path and relevant phases (product handoff → greenfield)
+2. Determine the path and relevant phases (product handoff → greenfield), narrowed to the profile
+   and depth (see Profile and Depth)
 3. Run `/architect:init-output` to initialize the output directory
 4. Execute skills in dependency order per `skill-dependencies.yaml` — a dialogue-driven phase
    inline, every other phase as a sub-agent on its manifest model (see Phase Execution) —

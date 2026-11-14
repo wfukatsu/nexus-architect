@@ -107,8 +107,9 @@ partition all 117.
 | **Multi-Cloud Infrastructure** `/infra:*` | `/infra:start` | Terraform / Kubernetes / Helm / Kustomize / Argo CD / GitLab CI / Cosign / Vault / ESO / Prometheus / Kyverno across AWS-Azure-GCP × local-test-staging-production, grounded in `okf-k8s-tf`. Skills under `skills/infra/`, rules under `rules/infra/` | 4 |
 | **Status & utility** | `/architect:report-status` | One dashboard (`tools/nexus-status.sh`; `Tab` cycles four views), `render-mermaid`, `update-knowledge`, `revise-knowledge`, `report-token-cost`, `investigate-db-design` (DDL/design documents), `investigate-db-live` (catalogs and statistics), `explain` (any generated artifact) | 7 |
 
-Which phases `/architect:pipeline` runs is the manifest's; which the dashboard files under Code
-Generation is `CODEGEN_PHASES` in `tools/lib/pipeline_status_data.py`.
+Which phases `/architect:pipeline` runs is the manifest's — narrowed by its `profiles` / `depths`
+tables (`--profile`, `--depth`); which the dashboard files under Code Generation is
+`CODEGEN_PHASES` in `tools/lib/pipeline_status_data.py`.
 
 ## Pipeline Dependencies
 

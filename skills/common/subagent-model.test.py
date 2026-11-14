@@ -116,7 +116,10 @@ for rel in sorted(ORCHESTRATORS):
 # Which architect phases are dialogue-driven is read off their signatures, and the orchestrator
 # names them: a phase added with `--auto` and not listed would silently run where it cannot ask.
 with open(os.path.join(ROOT, "skills", "common", "skill-dependencies.yaml"), encoding="utf-8") as fh:
-    phases = re.findall(r"^  ([a-z0-9-]+):\s*$", fh.read().split("\nphases:", 1)[1], re.M)
+    # The `phases:` block only — the `profiles:` and `depths:` tables that follow it key
+    # their entries the same way, and a profile name is not a skill directory.
+    block = re.split(r"^[a-z_]+:", fh.read().split("\nphases:", 1)[1], 1, re.M)[0]
+    phases = re.findall(r"^  ([a-z0-9-]+):\s*$", block, re.M)
 dialogue = set()
 for phase in phases:
     with open(os.path.join(ROOT, "skills", phase, "SKILL.md"), encoding="utf-8") as fh:

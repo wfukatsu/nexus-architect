@@ -14,8 +14,8 @@ For the inputs you should prepare before running each pipeline, see the
 
 | Command | Model | Description |
 |---------|-------|-------------|
-| `/architect:start` | inherit | Interactively start system analysis and design |
-| `/architect:pipeline` | sonnet | Automated pipeline execution (--resume-from, --rerun-from, --skip-{phase}, --no-scalardb, --lang); ends with the example-map state and the next commands of the DDD → BDD → TDD chain |
+| `/architect:start` | inherit | Interactively start system analysis and design; proposes a profile (--profile) and depth (--depth) from the request |
+| `/architect:pipeline` | sonnet | Automated pipeline execution (--profile, --depth, --resume-from, --rerun-from, --skip-{phase}, --no-scalardb, --lang); ends with the example-map state and the next commands of the DDD → BDD → TDD chain |
 
 ## Requirements
 
@@ -253,8 +253,8 @@ path by their router, so they are not slash commands and have no signature here.
 
 ```text
 # Orchestration & setup
-/architect:start [target_path]
-/architect:pipeline [target_path] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]
+/architect:start [target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive]
+/architect:pipeline [target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]
 /architect:init-output [project_name] [--reset]
 /product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--lang=ja|en]
 /product:init-output [project_name] [--reset]
