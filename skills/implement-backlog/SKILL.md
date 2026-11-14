@@ -82,7 +82,10 @@ The resolved root must satisfy two checks before any code is written:
   worktree of it included.
 
 **Worktree per Issue** (@skills/common/backlog-claims.md). Claim the Issue first — `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/backlog_claims.py" <project_dir> claim
-<item>`; exit 3 means someone else holds it: say who and stop. With `--worktree-root=<path>`, or
+<item>` (`by=<name>` when `git config user.name` is unset), then mirror it on the tracker: assign
+the Issue to yourself and add the `claim::<login>` label (GitHub `claim:<login>`); exit 3, or
+another login's `claim::` label already on the Issue, means someone else holds it: say who and
+stop. With `--worktree-root=<path>`, or
 when the claim already records a worktree, the code is written in the Issue's own checkout:
 `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/backlog_claims.py" <project_dir> worktree add <item> root=<path>` creates `<root>/<item>` on `feat/<item>` (or reuses the
 branch) and the source root above resolves **inside that worktree**; `reports/` and `work/` stay

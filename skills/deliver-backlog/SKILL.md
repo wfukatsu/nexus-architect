@@ -57,7 +57,7 @@ through the same implement → review → merge loop, with no special handling.
 - `--issue=<id>`: Deliver a single Issue (`I1.2.3` / `#<iid>` / URL) and stop.
 - `--from=implement|review|merge`: Force the re-entry stage for the current Issue (overrides the status-derived stage).
 - `--parallel=N`: Dispatch up to N independent Issues at once, each as a foreground sub-agent in its own worktree, three at a time (@skills/common/backlog-claims.md § Parallel delivery). Default 1.
-- `--steal`: Take Issues another person holds (their claim is released as `stolen`, the holder recorded). Without it, held Issues are skipped and named.
+- `--steal`: Take Issues another person holds (their claim is released as `stolen` with an `ITEM_RELEASED` event, the holder recorded, the tracker label and assignee moved). Without it, held Issues are skipped and named.
 - `--worktree-root=<path>`: Where each Issue's worktree is created (default `../<project>-worktrees`); passed through to `implement-backlog`. Implied by `--parallel`.
 - `--integration-branch=<name>`: Every Issue's PR/MR targets this branch instead of the default branch; the Epic ends with the integration branch's own PR/MR into the default branch as a final human gate.
 - `--auto`: Skip the interactive confirmations inside implement/review. Does **not** bypass the approval or merge gate unless `--yes-merge` is also set.
@@ -78,12 +78,18 @@ tell the user to run `/architect:export-backlog`. Verify tracker auth (`glab aut
 ### Step 1 — Scope
 Resolve the target Epic (`--epic`, else present the Epics and ask via AskUserQuestion). Enumerate its
 Issues in dependency order and form the working set — by default the not-done Issues
-(`status::todo`/`doing`/`review`; `blocked` included but flagged). Read the claims
-(`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/backlog_claims.py" <project_dir> list format=json`, @skills/common/backlog-claims.md): an Issue another person holds leaves
-the working set and is named with its holder, unless `--steal`. Present the ordered list and
-confirm before starting, unless `--auto`. With `--issue`, the working set is that single Issue.
-Claim each Issue as its turn comes — `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/backlog_claims.py" <project_dir> claim <item> [integration=<branch>] [steal=true]` — never
-all of them at the start, so a run that stops leaves nothing held that it did not touch.
+(`status::todo`/`doing`/`review`; `blocked` included but flagged). Read the claims — **the
+tracker first**: the Epic's Issues with their `claim::*` labels (`glab issue list --label` /
+`gh issue list --label`), then this checkout's file
+(`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/backlog_claims.py" <project_dir> list format=json`), merged per @skills/common/backlog-claims.md § Claims (a label by
+another login is held whatever the file says; a local claim whose label is gone is released
+`reason=tracker`). An Issue another person holds leaves the working set and is named with its
+holder, unless `--steal`. Present the ordered list and confirm before starting, unless `--auto`.
+With `--issue`, the working set is that single Issue. Claim each Issue as its turn comes —
+`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/backlog_claims.py" <project_dir> claim <item> [integration=<branch>] [steal=true]`, then assign the Issue and add
+its `claim::<login>` label on the tracker (`by=<name>` when `git config user.name` is unset; the
+tool refuses to record an unnamed holder) — never all of them at the start, so a run that stops
+leaves nothing held that it did not touch.
 
 ### Step 2 — Per-Issue delivery loop
 For each Issue in order (determine its current stage from `impl.status`/labels, or `--from`):
@@ -97,7 +103,9 @@ For each Issue in order (determine its current stage from `impl.status`/labels, 
   blockers) opens the PR/MR.
   - If review ends **blocked / non-converged** (`status::blocked`): **stop the loop.** Surface the
     Issue's "decision needed" note and ask the user how to proceed (skip this Issue / abort / change
-    approach). Do not spin or auto-advance.
+    approach). Do not spin or auto-advance. *Skip* or *abort* releases the Issue's claim
+    (`release <item> reason=blocked`) and removes its `claim::` label so a colleague can take it;
+    *change approach* keeps it.
 - **(c) approval gate (human — hard stop)** — With the PR/MR open, pause and ask the user to review
   and approve it. This is a hard stop by default. Continue only if `--yes-merge` (with `--auto`)
   pre-authorized it. Record the outcome in the audit log (@skills/common/progress-registry.md
@@ -112,11 +120,14 @@ For each Issue in order (determine its current stage from `impl.status`/labels, 
 - **(e) advance** — Move to the next Issue. The user may stop between Issues.
 
 With `--parallel=N`, stages (a) and (b) run for up to N Issues at once — only Issues with no
-`depends_on` between them and no shared files per the export's dependency notes — each as a
-foreground sub-agent (`model: sonnet`, `run_in_background: false`) given its Issue, its worktree
-root and the same flags, three at a time; the sub-agent stops at stage (c) and reports the open
-PR/MR. The orchestrator then asks for the approvals in one batch (one AskUserQuestion per PR/MR),
-runs (d) for each approved one, and only then dispatches the next Issues.
+`depends_on` between them and no shared files per the export's dependency notes — three at a
+time, each stage on its own tier: stage (a) as a foreground sub-agent (`model: sonnet`,
+`run_in_background: false`) given its Issue, its worktree root and the same flags, which returns
+when the Issue is implemented; then stage (b) for each returned Issue as a second foreground
+sub-agent on **`model: opus`** — `review-issue`'s own tier, which a sonnet wrapper would silently
+drop — which stops at stage (c) and reports the open PR/MR. The orchestrator then asks for the
+approvals in one batch (one AskUserQuestion per PR/MR), runs (d) for each approved one, and only
+then dispatches the next Issues.
 
 On `--dry-run`, walk the working set reporting the stage and the command that would run for each,
 with no side effects.
@@ -126,15 +137,19 @@ Stop when every Issue in the working set is `done`, is `blocked` awaiting a deci
 halts. With `--integration-branch`, when every Issue of the Epic is `done`, open the integration
 branch's PR/MR into the default branch, pause for approval (a hard stop, `GATE_APPROVED` /
 `GATE_REJECTED` in the audit log like stage (c)), merge it, and release the Epic's remaining
-claims. Print a summary: N/M Issues done, blocked list, Issues skipped as held by others, PR/MRs
-opened, merges completed, and the Epic's overall progress.
+claims. Print a summary: N/M Issues done, blocked list, Issues skipped as held by others, claims
+this run still holds (and the command that resumes each), PR/MRs opened, merges completed, and
+the Epic's overall progress.
 
 ## Error Handling
 
 - **No manifest**: stop (or run export with `--export`).
 - **A sub-skill fails or stops** (missing prereq, auth, blocked, declined confirmation): stop at that
   Issue, report the reason, and ask whether to continue with the next Issue — never auto-advance past
-  a failure.
+  a failure. When the user gives the Issue up (skip it, or abort the run), release its claim
+  (`release <item> reason=aborted`) and remove its `claim::` label; when they halt to resume
+  later, keep the claim and name it in the summary as held by them
+  (@skills/common/backlog-claims.md § Claims).
 - **Never auto-merge** without the approval gate (or an explicit `--yes-merge`).
 
 ## Completion Criteria
