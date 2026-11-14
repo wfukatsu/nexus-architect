@@ -213,11 +213,15 @@ same elicitation and hands the questions to that room as a sheet instead of aski
 5. The next run of the phase (with or without `--workshop`) finds the sheet and collects it:
    `… workshop_sheet.py <project_dir> collect <phase> plugin=<plugin>` writes each answer into
    its store row (`answered`, the answer, the role when signed), appends `QUESTION_ANSWERED` with
-   the signer as the actor, and prints what was answered and what is still pending. Substitute
+   the signer as the actor — once per row it changed — and prints what was answered, what the
+   store had already settled (`superseded`: the row was `answered` before the sheet came back,
+   so the sheet's value is not written; `overwrite=true` when the room's answer is the one that
+   should stand) and what is still pending. Substitute
    the answers at their `TBD (OQ-###)` placeholders (§6) and continue from the resume point. A
    question still pending stays `unasked` and the phase stays `awaiting_approval` — say so, name
    the role it waits on, and stop again rather than guess.
 
 The sheet is a view (§6): the store is updated from it, never the other way round, and a sheet
-whose questions were answered in-session meanwhile is simply superseded by the store. Under
+whose questions were answered in-session meanwhile is simply superseded by the store — the tool
+enforces this, so collecting the same sheet twice changes nothing the second time. Under
 `--auto` there is no workshop: `--auto --workshop` is an error, the two mean opposite things.

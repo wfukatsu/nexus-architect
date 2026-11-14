@@ -154,7 +154,10 @@ rather than from the phase's first question:
 `phase` is required; `step` and `note` are free text the skill chooses (its own step numbering).
 Written by `/architect:start` (and `/product:start`) when an inline phase moves between steps,
 cleared (set to `null`) when that phase completes; `/architect:report-status` shows it in the
-header. A sub-agent phase has no resume point: it either returns or it failed.
+header. A sub-agent phase has no resume point: it either returns or it failed. A resume point
+naming a phase outside the run's profile or depth (or no phase at all) is dropped by the readers
+with a warning — the run that set it had another profile — and `/architect:start` chooses its
+first phase as if none were set.
 
 ## Audit Log
 

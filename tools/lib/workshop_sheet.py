@@ -8,14 +8,18 @@ the sheet (tick an option, or write under Answer, and sign `Answered by:`); the 
 collects the answers into the store and the audit log and continues (rules/open-questions.md §9).
 
     python3 tools/lib/workshop_sheet.py <project_dir> render <phase> [ids=OQ-001,OQ-002] [plugin=…]
-    python3 tools/lib/workshop_sheet.py <project_dir> collect <phase> [plugin=…]
+    python3 tools/lib/workshop_sheet.py <project_dir> collect <phase> [plugin=…] [overwrite=true]
 
 `render` takes the listed ids, or every `unasked` / `deferred` row when none are listed, and
 appends one QUESTION_ASKED per question (detail names the sheet). `collect` reads the sheet,
 writes each answer into the store row (`answered`, the answer, the role when given), appends
-QUESTION_ANSWERED with the signer as actor, and prints JSON: {"answered": [...], "pending":
-[...], "sheet": path}. Exit 0; 1 when the store or the sheet is missing; 2 on a usage error.
-A question with no tick and no answer text stays pending — the phase stays `awaiting_approval`.
+QUESTION_ANSWERED with the signer as actor — once per row it changed — and prints JSON:
+{"answered": [...], "superseded": [...], "pending": [...], "sheet": path}. A row the store
+already holds `answered` is `superseded`: the store wins over the sheet (rules/open-questions.md
+§9), so collecting twice writes and logs nothing the second time; `overwrite=true` makes the
+sheet win. A `|` in an answer is stored as `\|`. Exit 0; 1 when the store or the sheet is
+missing; 2 on a usage error. A question with no tick and no answer text stays pending — the
+phase stays `awaiting_approval`.
 """
 import json
 import os
@@ -144,9 +148,9 @@ def write_answers(project_dir, answers):
             a = answers[cells[0]]
             cells = cells + [""] * (len(header) - len(cells))
             cells[header.index("status")] = "answered"
-            cells[header.index("answer")] = a["answer"]
+            cells[header.index("answer")] = Q.escape_cell(a["answer"])
             if a.get("role") and "role" in header:
-                cells[header.index("role")] = a["role"]
+                cells[header.index("role")] = Q.escape_cell(a["role"])
             line = "| " + " | ".join(cells) + " |"
             written.append(cells[0])
         out.append(line)
@@ -155,7 +159,7 @@ def write_answers(project_dir, answers):
     return written
 
 
-def collect(project_dir, phase, plugin=None):
+def collect(project_dir, phase, plugin=None, overwrite=False):
     path = sheet_path(project_dir, phase)
     if not os.path.isfile(path):
         raise FileNotFoundError("no sheet %s" % path)
@@ -164,7 +168,11 @@ def collect(project_dir, phase, plugin=None):
         raise FileNotFoundError("no work/context.md under %s" % project_dir)
     with open(path, encoding="utf-8") as fh:
         parsed = parse_sheet(fh.read())
-    answered = {qid: f for qid, f in parsed.items() if f["answer"]}
+    # The store wins over the sheet: a row answered meanwhile (in-session, or by an earlier
+    # collect of this very sheet) is not rewritten and not logged again.
+    settled = {r["id"] for r in rows if r["status_word"] == "answered"} if not overwrite else set()
+    answered = {qid: f for qid, f in parsed.items() if f["answer"] and qid not in settled}
+    superseded = [qid for qid, f in parsed.items() if f["answer"] and qid in settled]
     pending = [qid for qid, f in parsed.items() if not f["answer"]]
     written = write_answers(project_dir, answered) if answered else []
     if AUDIT is not None and written:
@@ -179,7 +187,7 @@ def collect(project_dir, phase, plugin=None):
     return {"answered": [{"id": qid, "answer": answered[qid]["answer"],
                           "answered_by": answered[qid]["answered_by"], "role": answered[qid]["role"]}
                          for qid in written],
-            "pending": pending, "sheet": os.path.relpath(path, project_dir)}
+            "superseded": superseded, "pending": pending, "sheet": os.path.relpath(path, project_dir)}
 
 
 def main(argv):
@@ -190,8 +198,8 @@ def main(argv):
     opts = {}
     for arg in argv[3:]:
         key, sep, value = arg.partition("=")
-        if not sep or key not in ("ids", "plugin"):
-            sys.stderr.write("workshop_sheet: expected ids= or plugin=, got %r\n" % arg)
+        if not sep or key not in ("ids", "plugin", "overwrite"):
+            sys.stderr.write("workshop_sheet: expected ids=, plugin= or overwrite=, got %r\n" % arg)
             return 2
         opts[key] = value
     if not os.path.isdir(project):
@@ -205,7 +213,8 @@ def main(argv):
                                         ensure_ascii=False) + "\n")
             return 0
         if verb == "collect":
-            sys.stdout.write(json.dumps(collect(project, phase, opts.get("plugin")),
+            sys.stdout.write(json.dumps(collect(project, phase, opts.get("plugin"),
+                                                opts.get("overwrite", "").lower() == "true"),
                                         ensure_ascii=False) + "\n")
             return 0
     except FileNotFoundError as exc:

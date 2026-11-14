@@ -109,8 +109,12 @@ greenfield path drops the investigation and evaluation phases from whatever prof
 always has. Every other core phase of the manifest is recorded `skipped` with summary
 `outside profile <name>` (or `depth <name>` for a perspective or an optional phase the depth
 dropped), at the moment it would otherwise have started, so the registry shows the run's shape
-and `/architect:report-status` files it as excluded rather than pending. A dependency that is
-outside the profile is satisfied for its dependents, like a conditional `skipped` one
+and `/architect:report-status` files it as excluded rather than pending. Those skips belong to the
+profile that made them: a later run under a wider profile reads a `skipped` whose summary names an
+exclusion that no longer holds as `pending` again and runs the phase, and a run under a narrower
+profile shows a phase recorded `in_progress` / `awaiting_approval` / `revising` outside it as
+skipped, with a warning naming the stale stamp (the dashboard applies both rules, `tools/lib/pipeline_status_data.py`).
+A dependency that is outside the profile is satisfied for its dependents, like a conditional `skipped` one
 (§ Conditional Dependency Resolution) — the manifest guarantees every listed phase has its required
 dependencies in the same profile, so this only ever concerns optional phases and perspectives.
 
