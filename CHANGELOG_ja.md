@@ -7,6 +7,31 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.61.0] - 2026-11-15
+
+0.58.0 の学習ループが自動実行でも閉じるようになった（#152、PR #165。v0.53.1..v0.60.0 のレビュー、tracking #158）。
+
+### Added
+- **`/architect:start` が `proposed` のまま残ったルールを決める**（実行開始時のステップ 3b）: 以前の
+  `/architect:pipeline` 実行や、共有ストアを使う別プロジェクトが提案して誰も決めていないルールを、
+  発生回数と根拠を添えてルールごとに 1 問ずつ利用者に問い、最初の設計フェーズの前に
+  `learned_rules.py decide` で記録する。受理したものはその実行から効く。`/architect:pipeline` の最終
+  メッセージは `proposed` のまま残したルールを列挙し、そのことを述べる。`rules/learned-rules.md` §3 に
+  2 つの決定時点を記した。
+- **読者を 3 スキル追加。** `redesign`・`design-aggregate`・`design-data-layer` が、
+  `design-microservices`・`design-api`・`design-scalardb`・`design-implementation` と同じく、決定の前に
+  自分のフェーズの受理済みルールを読む。§4 と README は 7 スキルすべてを挙げる。
+- **`learned_rules.py propose … phase=<skill>`** が `RULE_PROPOSED` イベントに提案したスキルを書く
+  （既定は `review-synthesizer`、`review-issue` は自分を渡す）。すべての提案を synthesizer に帰属させなくなった。
+
+### Changed
+- `review-synthesizer` のステップ 3b から「`--auto` のとき」を削除 — このスキルにそのフラグはなく、条項は
+  一度も効かなかった。`options.learnings`（オーケストレータの `--no-learnings`）が唯一のスイッチで、自動
+  実行も対話実行と同じように提案する。
+- 学習ルールストアへの書き込みは read-modify-write の間 `<store>.lock` を保持し、プロセスごとの一時
+  ファイル経由で書く。並列の提案者 — サブエージェントや、共有ストアを使う 2 プロジェクト — が id を
+  共有したりルールを失ったりしない（テストでは 12 並列）。
+
 ## [0.60.3] - 2026-11-15
 
 v0.53.1..v0.60.0 のレビューのドキュメント項目（#156、PR #163、tracking #158）: ルール・スキル・カタログが、
