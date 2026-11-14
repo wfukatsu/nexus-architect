@@ -7,6 +7,28 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.56.0] - 2026-11-14
+
+### Added
+- **決定の役割と、誰が何を承認したか**（#126、#136）。`docs/decision-roles.md` が 8 つの役割（product
+  owner、business sponsor、domain expert、architect、security、operations、legal、engineering lead）と、
+  それぞれが何を決め、どのゲートを承認するかを定める。Open Questions ストアに `Owner` の隣の `Role` 列を
+  追加 — 質問の回答を必要とする「席」であり、人だけではない（`rules/open-questions.md` §6。読み手は
+  ヘッダで列を探すので、8 列の既存ストアもそのまま読める）。`tools/lib/open_questions.py <project>
+  by=role|owner|status|phase` が「誰の回答待ちか」を一覧し、`/architect:report-status` に行を追加。
+  ADR に `deciders`・`approved_by`・`evidence` を追加（`rules/architecture-decision-records.md` §2）。
+  `schema_version: 2` では必須（`deciders` は常に、`approved_by` は `accepted` のとき）、どちらの版でも
+  形を検証し、版 1 の既存レコードはそのまま。`proposed` の昇格は `approved_by` を書く。
+- **ワークショップモード**（`rules/open-questions.md` §9、`tools/lib/workshop_sheet.py`）。
+  `define-requirements`・`design-aggregate`・`design-state-machine`・`/product:define-scope`・
+  `/product:validate-assumptions` の `--workshop` は、フェーズの質問をセッションではなく「部屋」に渡す。
+  質問をストアに記録し、チェックボックスの選択肢・役割・`Answer:` / `Answered by:` / `Role:` 行を持つ
+  `work/workshop/<phase>.md` に描き出し（質問ごとに `QUESTION_ASKED`）、フェーズを `awaiting_approval`
+  にして止まる。人はどのエディタでも回答して署名する。次の実行が各回答をストアの行と監査ログ
+  （署名者を actor とする `QUESTION_ANSWERED`）に集めて続行するか、未回答の質問が待つ役割を名指しして
+  再び止まる。`--auto --workshop` はエラー。
+- `/product:validate-assumptions` が `go` / `no-go` を `VERDICT_RECORDED` として記録する。
+
 ## [0.55.0] - 2026-11-14
 
 ### Added
