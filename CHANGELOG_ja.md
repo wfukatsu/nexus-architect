@@ -7,6 +7,38 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.62.0] - 2026-11-15
+
+0.59.0 の claim ライフサイクルを、複数の人が複数のマシンで使っても安全にした（#153、PR #167。v0.53.1..v0.60.0 の
+レビュー、tracking #158）。
+
+### Added
+- **他のマシンから見える事実は tracker。** claim は tracker 上に Issue の assignee と `claim::<login>` ラベル
+  （GitLab は scoped、GitHub は `claim:<login>`、`<login>` は `glab` / `gh` のサインインアカウント）として
+  ミラーされ、実行は Epic の `claim::*` ラベルをこの checkout の `reports/backlog/claims.json` より先に読む —
+  このファイルは gitignore 対象の `reports/` 配下にあり、マシンの外に出ることがなかった。他の login のラベルは
+  ファイルが何と言おうと保持中、ラベルが消えたローカル claim は `reason=tracker` で release、ラベルのない
+  ローカル claim は再ミラー。`deliver-backlog`（Step 1）・`implement-backlog`（claim とミラー）・`merge-issue`
+  （release とラベル削除）が、どのステップが何を書くかを述べる。`--dry-run` は何も書かない
+  （`skills/common/backlog-claims.md` § Claims）。
+- **あきらめたら release、一時停止なら保持。** ブロックされたレビューやサブスキルの失敗で利用者が Issue を
+  skip / abort すると、`deliver-backlog` は claim を release（`reason=aborted` / `blocked`）してラベルを外す。
+  halt なら claim を保持し、サマリーに再開コマンドとともに名指しする。
+- **`worktree add … [by=] [steal=true]`** は他の人が保持する Issue を拒否する（exit 3）。`steal=true` なら先に
+  claim を奪う — worktree は保持者のもの。
+
+### Changed
+- `tools/lib/backlog_claims.py` はすべての read-modify-write の間 `claims.json.lock` を保持し、プロセスごとの
+  一時ファイル経由で書く。1 つの item に 6 並列で claim すると保持者は 1 人、残り 5 つは exit 3。12 item に
+  12 並列ならすべて記録される。
+- steal は奪う側の `ITEM_CLAIMED` の前に、保持者の claim を `ITEM_RELEASED` イベント（`detail` = `stolen from
+  <holder>`）付きで release する。
+- `git config user.name` も `by=` もないときは usage error（exit 2） — `unknown` という保持者は作らない
+  （名前のない人全員が 1 人の保持者になってしまう）。
+- `--parallel` では `deliver-backlog` がステージ (b) の `review-issue` を、sonnet の実装サブエージェントが
+  戻った後に独立した `model: opus` サブエージェントで実行する。内側で走らせるとレビューのティアが黙って
+  落ちていた。
+
 ## [0.61.0] - 2026-11-15
 
 0.58.0 の学習ループが自動実行でも閉じるようになった（#152、PR #165。v0.53.1..v0.60.0 のレビュー、tracking #158）。
