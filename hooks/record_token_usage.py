@@ -226,28 +226,48 @@ def audit_module():
 
 
 def record_phase_events(cwd, data, prog, first_run):
-    """Append the PHASE_* audit events for the registry transitions since the last firing.
+    """The PHASE_* audit events for the registry transitions since the last firing, and the
+    checkpoint moved forward.
 
     The checkpoint lives in the ledger (`_progress.statuses`, {phase: status}) so one lock
     covers both; the baseline firing records the statuses and emits nothing, like
-    `completed_seen`. Any failure here is swallowed: the audit log is evidence, not a gate.
+    `completed_seen`. A registry that could not be read (`data is None`: a torn read while a
+    skill rewrites it, a parse error) moves nothing and emits nothing — a checkpoint reset to
+    empty would re-emit every phase on the next firing. The events are returned, not appended:
+    the caller appends them after the ledger is saved, so an event never precedes its
+    checkpoint. Any failure here is swallowed: the audit log is evidence, not a gate.
     """
     audit = audit_module()
-    if audit is None:
-        return
+    if audit is None or data is None:
+        return []
     try:
         after = audit.registry_statuses(data)
         before = prog.get("statuses") if isinstance(prog.get("statuses"), dict) else None
+        events = []
         if not first_run and before is not None:
-            audit.append_events(cwd, audit.diff_registry(
-                before, after, actor=audit.actor_name(cwd), source="hook"))
+            events = audit.diff_registry(before, after, actor=audit.actor_name(cwd), source="hook")
         prog["statuses"] = {name: entry["status"] for name, entry in after.items()}
+        return events
+    except Exception:
+        return []
+
+
+def append_phase_events(cwd, events):
+    audit = audit_module()
+    if audit is None or not events:
+        return
+    try:
+        audit.append_events(cwd, events)
     except Exception:
         pass
 
 
 def read_progress(progress_path):
-    data = load_json(progress_path) or {}
+    """(project name, in-progress keys, completed keys, registry) — the registry is None when
+    the file could not be read or is not an object, so callers can tell unreadable from empty."""
+    data = load_json(progress_path)
+    if not isinstance(data, dict):
+        return "", [], [], None
     phases = data.get("phases", {}) or {}
     shared = shared_phase_names()
 
@@ -448,7 +468,7 @@ def main():
         # --- decide attribution ---
         project, in_progress, completed, progress_data = read_progress(progress_path)
         prog = ledger.setdefault("_progress", {"completed_seen": []})
-        record_phase_events(cwd, progress_data, prog, first_run)
+        phase_events = record_phase_events(cwd, progress_data, prog, first_run)
         if first_run:
             # Baseline: phases already completed before tracking started must not
             # receive a retroactive flush.
@@ -500,6 +520,7 @@ def main():
         if project and not ledger.get("project_name"):
             ledger["project_name"] = project
         save_json(ledger_path, ledger)
+        append_phase_events(cwd, phase_events)
 
         # --- append-only audit record (only when something happened) ---
         if not usage_is_zero_by_model(delta) or flushed_pending:

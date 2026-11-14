@@ -37,7 +37,10 @@ default), every report, or none — and record it as `options.eli5` (`technical`
 ## Workflow Selection
 
 - Pick a profile (or honor `--profile`): `mvp` (vision + scope + validate — the smallest useful
-  direction), `core-only`, `ux-to-spec`, `full`.
+  direction), `core-only`, `ux-to-spec`, `full`. Record it as `options.product_profile` in
+  `work/pipeline-progress.json` — its own key, because `options.profile` is the architect run's
+  (@skills/common/progress-registry.md § Options); a registry from before 0.60.1 holds the product
+  profile under `profile`, which readers still accept.
 - **Implementation status**: all phases in the dependency manifest are implemented (`implemented:
   true`). Should a phase ever be marked `implemented: false`, tell the user it is not yet available
   and skip it (do not fabricate its output).

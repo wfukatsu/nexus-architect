@@ -11,16 +11,17 @@ releases the claim after the merge (skills/common/backlog-claims.md).
     python3 tools/lib/backlog_claims.py <project_dir> release <item> [by=…] [reason=…]
     python3 tools/lib/backlog_claims.py <project_dir> list [active=true|false] [format=text|json]
     python3 tools/lib/backlog_claims.py <project_dir> worktree add <item> [root=…] [branch=…] [base=…]
-    python3 tools/lib/backlog_claims.py <project_dir> worktree remove <item>
+    python3 tools/lib/backlog_claims.py <project_dir> worktree remove <item> [force=true]
 
 `claim` exits 3 when another person holds the item (the holder is printed) unless `steal=true`,
 which records the previous holder in the new claim's `stolen_from`. The default `by` is
 `git config user.name`. `worktree add` creates `<root>/<item>` (`root` defaults to
 `../<project>-worktrees`) on `branch` (default `feat/<item>`), from `base` (default the current
 branch of the project) — a new branch, or the existing one when it already exists — and records
-the path and branch on the item's claim. Every claim, release and worktree is an audit event
-(ITEM_CLAIMED / ITEM_RELEASED). Exit 0; 1 when the project is not a git repository or git fails;
-2 on a usage error; 3 on a contested claim.
+the path and branch on the item's claim. `worktree remove` refuses a checkout with modified or
+untracked files (they are listed; `force=true` discards them) and keeps the branch. Every claim,
+release and worktree is an audit event (ITEM_CLAIMED / ITEM_RELEASED). Exit 0; 1 when the project
+is not a git repository or git fails; 2 on a usage error; 3 on a contested claim or a dirty worktree.
 """
 import json
 import os
@@ -37,6 +38,14 @@ except Exception:  # pragma: no cover
 
 CLAIMS = os.path.join("reports", "backlog", "claims.json")
 ITEM_RE = re.compile(r"^[A-Za-z0-9#][A-Za-z0-9._#-]*$")
+
+
+class Dirty(Exception):
+    """The worktree has uncommitted work; `changes` are the `git status --porcelain` lines."""
+
+    def __init__(self, worktree, changes):
+        super().__init__(worktree)
+        self.worktree, self.changes = worktree, changes
 
 
 class Contested(Exception):
@@ -197,13 +206,22 @@ def worktree_add(project_dir, item, root=None, branch=None, base=None):
     return {"item": item, "worktree": path, "branch": branch, "base": base}
 
 
-def worktree_remove(project_dir, item):
+def worktree_remove(project_dir, item, force=False):
+    """Remove the item's worktree, keeping its branch. Uncommitted work is never discarded
+    silently: a checkout with modified or untracked files raises `Dirty` unless `force`."""
     data = load(project_dir)
     current = active(data, item) or next(
         (c for c in reversed(data["claims"]) if c["item"] == item and c.get("worktree")), None)
     if not current or not current.get("worktree"):
         raise KeyError(item)
-    result = _git(project_dir, "worktree", "remove", "--force", current["worktree"])
+    if not force and os.path.isdir(current["worktree"]):
+        status = _git(current["worktree"], "status", "--porcelain", "--untracked-files=all")
+        if status.returncode != 0:
+            raise OSError((status.stderr or status.stdout).strip())
+        changes = [line for line in status.stdout.splitlines() if line.strip()]
+        if changes:
+            raise Dirty(current["worktree"], changes)
+    result = _git(project_dir, "worktree", "remove", *(["--force"] if force else []), current["worktree"])
     if result.returncode != 0:
         raise OSError((result.stderr or result.stdout).strip())
     current["worktree"] = None
@@ -264,9 +282,15 @@ def main(argv):
                 sys.stdout.write(json.dumps(worktree_add(project, argv[3], kv.get("root"), kv.get("branch"),
                                                          kv.get("base"))) + "\n")
             else:
-                sys.stdout.write(json.dumps(worktree_remove(project, argv[3])) + "\n")
+                kv = _kv(argv[4:], ("force",))
+                sys.stdout.write(json.dumps(worktree_remove(project, argv[3],
+                                                            kv.get("force", "").lower() == "true")) + "\n")
             return 0
         raise ValueError("verb must be claim, release, list or worktree")
+    except Dirty as exc:
+        sys.stderr.write("backlog_claims: %s has uncommitted work (force=true to discard it):\n  %s\n" % (
+            exc.worktree, "\n  ".join(exc.changes)))
+        return 3
     except Contested as exc:
         sys.stderr.write("backlog_claims: %s is held by %s since %s (steal=true to take it)\n" % (
             argv[2], exc.holder["claimed_by"], exc.holder["claimed_at"]))

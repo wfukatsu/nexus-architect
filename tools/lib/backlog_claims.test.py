@@ -98,6 +98,17 @@ def main():
               C.listing(repo)[0]["worktree"] == wt["worktree"] and C.listing(repo)[0]["branch"] == "feat/I1.2.3")
         check("git knows the worktree", wt["worktree"] in git(repo, "worktree", "list").stdout)
         with open(os.path.join(wt["worktree"], "f.txt"), "w") as fh:
+            fh.write("draft\n")
+        try:
+            C.worktree_remove(repo, "I1.2.3")
+            check("a worktree with uncommitted work is refused", False)
+        except C.Dirty as exc:
+            check("a worktree with uncommitted work is refused, naming the files",
+                  exc.changes == ["?? f.txt"] and os.path.isfile(os.path.join(wt["worktree"], "f.txt")), exc.changes)
+        r = cli(repo, "worktree", "remove", "I1.2.3")
+        check("the refusal exits 3 and lists the files", r.returncode == 3 and "f.txt" in r.stderr
+              and os.path.isdir(wt["worktree"]), (r.returncode, r.stderr))
+        with open(os.path.join(wt["worktree"], "f.txt"), "w") as fh:
             fh.write("w\n")
         git(wt["worktree"], "add", "-A")
         git(wt["worktree"], "commit", "-qm", "work")
@@ -112,6 +123,12 @@ def main():
         wt3 = C.worktree_add(repo, "#42", root=os.path.join(root, "custom"), base="main")
         check("a #iid item gets a filesystem-safe directory and branch",
               wt3["worktree"].endswith("issue-42") and wt3["branch"] == "feat/issue-42")
+        with open(os.path.join(wt3["worktree"], "scratch.txt"), "w") as fh:
+            fh.write("x\n")
+        C.claim(repo, "#42", by="Erin", worktree=wt3["worktree"])
+        check("force=true discards uncommitted work on request",
+              C.worktree_remove(repo, "#42", force=True)["removed"] and not os.path.exists(wt3["worktree"]))
+        C.release(repo, "#42", by="Erin", reason="done")
         try:
             C.worktree_add(os.path.join(root, "notrepo"), "I1")
             check("a non-repository is an error", False)

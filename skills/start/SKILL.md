@@ -46,7 +46,9 @@ table names four runs and its `depths` table three amounts of optional and revie
 set are @skills/pipeline/SKILL.md § Profile and Depth and apply here unchanged).
 
 - `--profile` / `--depth` given: honour them; a name the tables do not define is an error naming
-  the ones they do.
+  the ones they do. On a product handoff the registry may hold the product run's profile under
+  `options.profile` (a registry from before 0.60.1; today it is `options.product_profile`): that
+  is not an architect profile — ask or default as below and record the architect's own.
 - Otherwise **propose a profile from the request**, in the same `AskUserQuestion` batch as the
   language and the other project-level preferences, with the four profiles as the options — each
   label the profile's name and default depth, each description the manifest's `description` —

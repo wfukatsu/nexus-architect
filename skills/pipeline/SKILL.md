@@ -89,15 +89,21 @@ Resolve them before the first phase starts:
 
 - **Profile.** `--profile=<name>` when given; `--analyze-only` is `--profile=analysis`; a
   profile already in `options.profile` on a resumed run; otherwise `full`. A name the table does
-  not define is an error naming the four it does — never a silent `full`.
+  not define is an error naming the four it does — never a silent `full`. One exception: a
+  `profile` naming a **product** profile (`mvp`, `core-only`, `ux-to-spec`) is the product run's
+  record from before 0.60.1 (today it writes `options.product_profile`), not an architect choice
+  — treat it as unset, resolve the architect profile as above and record it, leaving the product
+  value readable as `product_profile`.
 - **Depth.** `--depth=<name>` when given, else the profile's `depth`. A `--depth` the table does
   not define is an error likewise.
 - Record both as `options.profile` and `options.depth` in `work/pipeline-progress.json` before
   `init-output` returns, so the dashboard and the token-usage hook read the same run you do.
 
 Then the phase set is: the profile's `phases`, plus the `evidence_gated` optional phases the
-depth's `optional_phases` admits, plus — when `review-synthesizer` is in the profile — the depth's
-`review_perspectives`. `define-requirements` is listed by the profile and follows the path as
+depth's `optional_phases` admits **whose dependencies the profile runs** (`design-aggregate`,
+`design-state-machine` and `create-domain-story` depend on `redesign`, so `analysis` never runs
+them at any depth; they are recorded `skipped` with summary `outside profile analysis`), plus —
+when `review-synthesizer` is in the profile — the depth's `review_perspectives`. `define-requirements` is listed by the profile and follows the path as
 before (the greenfield entry; on the legacy path only when documents were supplied), and the
 greenfield path drops the investigation and evaluation phases from whatever profile runs, as it
 always has. Every other core phase of the manifest is recorded `skipped` with summary

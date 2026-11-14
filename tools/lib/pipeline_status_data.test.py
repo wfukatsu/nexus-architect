@@ -1031,6 +1031,40 @@ def check_profiles(root):
           st["phases"]["review-consistency"]["excluded"] == "profile"
           and st["phases"]["review-synthesizer"]["excluded"] == "profile"
           and not st["phases"]["map-domains"]["excluded"])
+    check("analysis: an evidence-gated phase whose dependency the profile skips is outside the "
+          "profile at standard depth (design-aggregate -> redesign; state-machine -> aggregate)",
+          all(st["phases"][n]["excluded"] == "profile"
+              for n in ("design-aggregate", "design-state-machine", "create-domain-story")),
+          {n: st["phases"][n]["excluded"] for n in ("design-aggregate", "design-state-machine",
+                                                    "create-domain-story")})
+    check("analysis: an evidence-gated phase whose dependencies the profile runs stays admitted",
+          not any(st["phases"][n]["excluded"] for n in ("analyze-ui", "analyze-data-model", "evaluate-ux")),
+          {n: st["phases"][n]["excluded"] for n in ("analyze-ui", "analyze-data-model", "evaluate-ux")})
+    # One registry, two pipelines: the product run's profile is `options.product_profile`
+    # (before 0.60.1 it was `profile`), never an architect profile, never a warning.
+    check("a product profile under the legacy shared key is not an architect profile and not a warning",
+          P.resolve_profile("architect", {"profile": "mvp"})[0] is None
+          and P.resolve_profile("architect", {"profile": "mvp"})[4] == [],
+          P.resolve_profile("architect", {"profile": "mvp"}))
+    st = project({"profile": "mvp"}, "handoff")
+    check("a handoff registry excludes nothing and warns nothing for the architect",
+          not st["warnings"] and not any(p["excluded"] in ("profile", "depth") for p in st["phases"].values()),
+          st["warnings"])
+    check("the product manifest's bare-list profile resolves for the product run, from its own key "
+          "or the legacy one, with no depth",
+          P.resolve_profile("product", {"product_profile": "mvp"})[1] == {
+              "phases": ["define-vision", "define-scope", "validate-assumptions"]}
+          and P.resolve_profile("product", {"profile": "full"})[0] == "full"
+          and P.resolve_profile("product", {"profile": "full"})[2:] == (None, None, []),
+          P.resolve_profile("product", {"profile": "full"}))
+    check("an architect profile is not the product run's",
+          P.profile_option("product", {"profile": "enterprise"}) == ("product_profile", None)
+          and P.resolve_profile("product", {"profile": "enterprise"})[4] == [])
+    check("a product name the product manifest lacks is still reported, under its key",
+          P.resolve_profile("product", {"product_profile": "huge"})[4]
+          == ["options.product_profile 'huge' is not a profile of the product manifest; no phase excluded for it"])
+    check("the product run excludes nothing on the dashboard (no tier partition, no depths)",
+          P.profile_exclusions("product", {"product_profile": "mvp"}, P.load_phase_manifest("product"))[0] == {})
     st = project({"profile": "nope", "depth": 7}, "bad")
     check("an unknown profile and a non-string depth exclude nothing and are reported",
           not any(p["excluded"] in ("profile", "depth") for p in st["phases"].values())

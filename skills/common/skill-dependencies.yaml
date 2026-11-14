@@ -343,11 +343,13 @@ phases:
 
 # ----------------------------------------------------------------------------------------------
 # Profiles: which backbone phases a run executes. `--profile` on /architect:pipeline and
-# /architect:start; `full` when none is named. A profile lists the phases that are neither
-# optional nor a review perspective; the optional phases and the perspectives come from the depth
-# (below). Every phase a profile lists has its required dependencies in the same profile
+# /architect:start; `full` when none is named. A profile lists the backbone phases — the
+# evidence-gated optional phases and the review perspectives are the depth's (below), and
+# `define-requirements`, optional only because the legacy path has no documents for it, is listed
+# by every profile. Every phase a profile lists has its required dependencies in the same profile
 # (tools/lib/pipeline_status_data.test.py pins this), so no listed phase waits on one that will
-# never run. A phase of the manifest that the profile does not run is recorded `skipped` with
+# never run; an evidence-gated phase whose dependency the profile does not run (design-aggregate
+# under `analysis`) is outside the profile at every depth. A phase of the manifest that the profile does not run is recorded `skipped` with
 # summary "outside profile <name>", which the dashboard shows as excluded. The greenfield path
 # drops the investigation and evaluation phases from whatever profile runs, as it always has.
 # The manual extension tier is outside every profile.

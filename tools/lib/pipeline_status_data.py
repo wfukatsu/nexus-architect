@@ -649,25 +649,53 @@ def load_manifest_section(plugin, key, root=None):
     return section
 
 
+PROFILE_OPTION = {"architect": "profile", "product": "product_profile"}
+
+
+def profile_option(plugin, options, root=None):
+    """(option key, profile name) a plugin's run reads its profile from.
+
+    The architect run records `options.profile`, the product run `options.product_profile`
+    (skills/common/progress-registry.md § Options). Before 0.60.1 the product run wrote its
+    profile under `profile` too, so a `profile` naming a product profile is read as the product
+    run's when `product_profile` is absent — and, for the architect manifest, as not an architect
+    profile at all (unset, no warning): it is the other pipeline's record, not a typo.
+    """
+    key = PROFILE_OPTION.get(plugin, "profile")
+    name = options.get(key)
+    if plugin == "product" and name is None:
+        legacy = options.get("profile")
+        if isinstance(legacy, str) and legacy in load_manifest_section("product", "profiles", root):
+            return "profile", legacy
+    return key, name
+
+
 def resolve_profile(plugin, options, root=None):
     """(profile name, profile spec, depth name, depth spec, warnings) for a project's
-    `options.profile` / `options.depth`.
+    profile option (`profile_option`) and `options.depth`.
 
     The depth is the option when set, else the profile's default, else nothing. A name the
     manifest does not define is reported and treated as unset: a dashboard that hid phases
-    over a typo would mislead, so an unknown name excludes nothing.
+    over a typo would mislead, so an unknown name excludes nothing. The product manifest's
+    profiles are bare phase lists; they resolve to `{"phases": [...]}` with no depth.
     """
     profiles = load_manifest_section(plugin, "profiles", root)
     depths = load_manifest_section(plugin, "depths", root)
     warnings = []
-    name = options.get("profile")
+    key, name = profile_option(plugin, options, root)
     profile = None
     if name is not None:
         profile = profiles.get(name) if isinstance(name, str) else None
+        if isinstance(profile, list):
+            profile = {"phases": profile}
         if not isinstance(profile, dict):
-            warnings.append("options.profile %r is not a profile of the %s manifest; "
-                            "no phase excluded for it" % (name, plugin))
-            name, profile = None, None
+            other = "product" if plugin == "architect" else "architect"
+            if key == "profile" and isinstance(name, str) and name in load_manifest_section(other, "profiles", root):
+                name, profile = None, None      # the other pipeline's profile under the shared key
+            else:
+                warnings.append("options.%s %r is not a profile of the %s manifest; "
+                                "no phase excluded for it" % (key, name, plugin))
+                name, profile = None, None
     depth_name = options.get("depth")
     depth = None
     if depth_name is not None:
@@ -676,7 +704,7 @@ def resolve_profile(plugin, options, root=None):
             warnings.append("options.depth %r is not a depth of the %s manifest; "
                             "the profile's default applies" % (depth_name, plugin))
             depth_name, depth = None, None
-    if depth is None and profile is not None:
+    if depth is None and profile is not None and profile.get("depth") is not None:
         depth_name = profile.get("depth")
         depth = depths.get(depth_name) if isinstance(depth_name, str) else None
         if not isinstance(depth, dict):
@@ -691,11 +719,14 @@ def profile_exclusions(plugin, options, manifest, root=None):
 
     A profile names the backbone phases; the depth adds the evidence-gated optional phases
     (`optional_phases: none` drops them) and the review perspectives (the union of every
-    depth's `review_perspectives` is what counts as one). The manual extension tier is
-    outside every profile and never touched.
+    depth's `review_perspectives` is what counts as one). An evidence-gated phase whose
+    dependencies the profile does not run (`design-aggregate` under `analysis`, which has no
+    `redesign`) is outside the profile too, whatever the depth says. The manual extension tier
+    is outside every profile and never touched. The product manifest has no `tier` partition
+    and no depths, so its profile resolves but excludes nothing here.
     """
     name, profile, depth_name, depth, warnings = resolve_profile(plugin, options, root)
-    if profile is None and depth is None:
+    if (profile is None and depth is None) or plugin != "architect":
         return {}, warnings
     depths = load_manifest_section(plugin, "depths", root)
     perspectives = set()
@@ -715,11 +746,28 @@ def profile_exclusions(plugin, options, manifest, root=None):
             elif chosen is not None and phase not in chosen:
                 excluded[phase] = "depth"
         elif spec.get("evidence_gated"):
-            if optional_mode == "none":
+            if runs is not None and not _dependencies_in_profile(phase, manifest, runs):
+                excluded[phase] = "profile"
+            elif optional_mode == "none":
                 excluded[phase] = "depth"
         elif runs is not None and phase not in runs:
             excluded[phase] = "profile"
     return excluded, warnings
+
+
+def _dependencies_in_profile(phase, manifest, runs, _seen=None):
+    """True when every manifest dependency of `phase` is a phase the profile runs, or an
+    evidence-gated phase whose own dependencies are (`design-state-machine` → `design-aggregate`
+    → `redesign`). A dependency outside the manifest is not this profile's concern."""
+    seen = _seen or set()
+    for dep in _as_list((manifest.get(phase) or {}).get("depends_on")):
+        if dep not in manifest or dep in runs or dep in seen:
+            continue
+        if manifest[dep].get("evidence_gated"):
+            if _dependencies_in_profile(dep, manifest, runs, seen | {phase}):
+                continue
+        return False
+    return True
 
 
 def exclusive_phases(plugin, root=None):

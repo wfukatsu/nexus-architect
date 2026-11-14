@@ -185,10 +185,15 @@ def check_project(project):
                                  if isinstance(kv[1], (str, bool, int)))[:200] if isinstance(options, dict) else type(options).__name__))
     try:
         import pipeline_status_data as P
-        _, _, _, _, warnings = P.resolve_profile("architect", options if isinstance(options, dict) else {})
+        opts = options if isinstance(options, dict) else {}
+        warnings = []
+        for plugin in ("architect", "product"):     # each pipeline reads its own key (profile_option)
+            warnings += P.resolve_profile(plugin, opts)[4]
         out.append(finding("project", "warn" if warnings else "ok", "profile and depth are manifest names",
-                           "; ".join(warnings) if warnings else "%s / %s" % (
-                               (options or {}).get("profile", "full"), (options or {}).get("depth", "default"))))
+                           "; ".join(warnings) if warnings else "%s / %s%s" % (
+                               opts.get("profile", "full"), opts.get("depth", "default"),
+                               (", product %s" % P.profile_option("product", opts)[1])
+                               if P.profile_option("product", opts)[1] else "")))
         phases = progress.get("phases") if isinstance(progress, dict) else None
         if isinstance(phases, dict):
             unknown = [n for n, e in phases.items()
