@@ -10,7 +10,7 @@ Nexus Architect の主な変更点を記録します。
 ## [0.59.0] - 2026-11-14
 
 ### Added
-- **複数チームでのバックログ納品**（#129、#141-#142）。契約は `skills/common/backlog-claims.md`、
+- **複数チームでのバックログ納品**（#129、#142）。契約は `skills/common/backlog-claims.md`、
   ツールは `tools/lib/backlog_claims.py`。**claim**（`reports/backlog/claims.json`）は誰がいつから、
   どのブランチと worktree で、どの統合ブランチに向けて Issue を持っているかを記録する — `claim` は他の人が
   持っていれば保持者を名指しして exit 3、`steal=true` は奪って前の保持者を記録、`release` は理由付きで終える。

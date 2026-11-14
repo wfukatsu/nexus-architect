@@ -97,6 +97,7 @@
         "./skills/estimate-token-cost",
         "./skills/report-token-cost",
         "./skills/report-status",
+        "./skills/doctor",
         "./skills/update-knowledge",
         "./skills/revise-knowledge",
         "./skills/explain",

@@ -1,6 +1,6 @@
 # Nexus Architect
 
-System architecture toolkit for Claude Code, Codex and Omnigent. Claude Code uses this repository as four plugins with 117 skills; Codex and Omnigent use the same skill files. One entry document, `AGENTS.md`, serves all three runtimes (`CLAUDE.md` is a stub that imports it).
+System architecture toolkit for Claude Code, Codex and Omnigent. Claude Code uses this repository as four plugins with 118 skills; Codex and Omnigent use the same skill files. One entry document, `AGENTS.md`, serves all three runtimes (`CLAUDE.md` is a stub that imports it).
 
 - **product** (28 skills) — Product direction: validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
 - **architect** (69 skills) — Legacy refactoring, greenfield design, database investigation and migration, consulting deliverables
@@ -55,7 +55,11 @@ In a Claude Code session, type any command to confirm:
 /scalardb:model
 ```
 
-If the skills are recognized, the installation is successful.
+If the skills are recognized, the installation is successful. `/architect:doctor` then checks the
+rest: the installed plugins at the repository's version, the hooks, the two knowledge bundles and
+their freshness, and — given a project — the files the skills read (`tools/doctor.sh` outside a
+session). Kiro, Copilot and Cursor are not supported; what each would need is
+`docs/runtimes-assessment.md`.
 
 ### If you have many skills installed
 
@@ -167,13 +171,13 @@ Claude Code continues to use the plugin metadata and slash commands unchanged, a
 
 ## Commands
 
-**117 slash commands across four plugins.** The full catalogue — every command with its model, its
+**118 slash commands across four plugins.** The full catalogue — every command with its model, its
 prerequisites and its complete flag signature — lives in one place:
 
 > **[docs/skill-reference.md](docs/skill-reference.md)** · [日本語](docs/skill-reference_ja.md)
 
 It is the single source of truth; this table is the map of which group does what, and the counts
-partition all 117.
+partition all 118.
 
 | Group | Start here | What it does | n |
 |-------|-----------|--------------|---|
@@ -185,7 +189,7 @@ partition all 117.
 | **Database Migration** | `/architect:migrate-database` | Oracle / MySQL / PostgreSQL → ScalarDB: schema extraction, analysis, SP/trigger conversion — see [Database Migration Guide](docs/database-migration.md) | 4 |
 | **ScalarDB Development** `/scalardb:*` | `/scalardb:build-app` | Schema modeling, configuration, scaffolding, CRUD/JDBC patterns, exception handling, code review, migration advice — see [ScalarDB Development Guide](docs/scalardb-development.md) | 11 |
 | **Multi-Cloud Infrastructure** `/infra:*` | `/infra:start` | Terraform / Kubernetes / Helm / Kustomize / Argo CD / GitLab CI / Cosign / Vault / ESO / Prometheus / Kyverno across AWS-Azure-GCP × local-test-staging-production, grounded in the vendored `okf-k8s-tf` bundle — see [Multi-Cloud Infrastructure Guide](docs/infrastructure.md) | 4 |
-| **Status & utility** | `/architect:report-status` | One terminal dashboard (`tools/nexus-status.sh`) whose `Tab` cycles four views — Product, Architect, Code Generation, Backlog Delivery — plus `render-mermaid`, `update-knowledge` and `revise-knowledge`. Recorded spend: `/architect:report-token-cost`; standalone database investigation from design documents or live catalogs; `explain` to understand — and learn from — any generated design or code | 7 |
+| **Status & utility** | `/architect:report-status` | One terminal dashboard (`tools/nexus-status.sh`) whose `Tab` cycles four views — Product, Architect, Code Generation, Backlog Delivery — plus `render-mermaid`, `update-knowledge` and `revise-knowledge`. Recorded spend: `/architect:report-token-cost`; standalone database investigation from design documents or live catalogs; `explain` to understand — and learn from — any generated design or code; `doctor` for install and project health | 8 |
 
 ## Workflows
 
