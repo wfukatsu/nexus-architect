@@ -2,7 +2,7 @@
 description: |
   Run every architect pipeline phase in dependency order, unattended, each as a sub-agent; questions
   are recorded instead of asked.
-argument-hint: '[target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]'
+argument-hint: '[target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive] [--no-learnings] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]'
 model: sonnet
 disable-model-invocation: true
 ---
@@ -12,7 +12,7 @@ disable-model-invocation: true
 Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
 plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
-**Usage:** `/architect:pipeline [target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]`
+**Usage:** `/architect:pipeline [target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive] [--no-learnings] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]`
 
 ## Expected Outcome
 
@@ -226,6 +226,7 @@ the questions are in `work/context.md` § Open Questions as `unasked` when it en
 
 - `--profile=full|enterprise|poc|analysis`: Which backbone phases run — the manifest's `profiles` table (§ Profile and Depth); default `full`
 - `--depth=minimal|standard|comprehensive`: How much optional and review work runs — the manifest's `depths` table; default the profile's
+- `--no-learnings`: Record `options.learnings: false`, so `review-synthesizer` proposes no learned rules (@rules/learned-rules.md §2). Otherwise its proposals stay `proposed` — this run has nobody to accept them — and the final message lists them for `/architect:start`
 - `--skip-{phase}`: Skip the specified phase
 - `--resume-from=phase-N`: Resume from the specified phase (completed phases are skipped; an `awaiting_approval` phase is left for `/architect:start`)
 - `--rerun-from=phase-N`: Reset all phases from the specified phase onward to "pending" and re-execute

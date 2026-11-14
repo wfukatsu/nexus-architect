@@ -66,6 +66,7 @@ target architecture — whichever runs second completes the catalog.
 | reports/03_design/domain-event-catalog.json | Optional | /architect:design-aggregate — the events whose consumer side this skill completes |
 | reports/03_domain/architecture.md | Optional | /product:design-architecture — when present, treat its `ARCH-` runtime/deployment views as the **candidate architecture to refine** (confirm or override each element with a recorded reason), not as something to re-derive from scratch (@docs/design.md §1.3) |
 | reports/03_domain/tech-stack-fitness.md | Optional | /product:design-architecture — Adopt/Conditional/Reject verdicts inform platform-technology placement |
+| `work/learned-rules.json` | Optional | the accepted learned rules for this phase (`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/learned_rules.py" <project_dir> list scope=design-microservices`, @rules/learned-rules.md §4) — apply each and cite its `LR-` in the decision it shaped |
 
 ## Output
 

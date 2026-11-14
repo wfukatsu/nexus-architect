@@ -140,7 +140,10 @@ raw record. For each `[B]`/`[S]` finding (skip pure `[Q]`), generalize it into a
   `anti-pattern` it prevents, `rationale`, a short code/So-What example, `severity` pattern, and
   `occurrences` (Issue refs, first-seen).
 Group entries by category and keep the top recurring rules near the top. This file is local-only
-(no remote write), so it is updated even on `--dry-run`. When a blocker fix in Step 4 also
+(no remote write), so it is updated even on `--dry-run`. A lesson that generalizes beyond this
+backlog — a contract, data-model or transaction rule any project would want — is proposed to the
+learned-rules store as well (@rules/learned-rules.md §2, `finding=` the Issue), so the design
+skills of the next project read it. When a blocker fix in Step 4 also
 establishes a cross-cutting decision, record that in `shared-context/decisions.md` as well.
 
 ### Step 4 — Blocker auto-fix loop (bounded)

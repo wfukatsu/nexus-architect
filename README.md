@@ -386,6 +386,14 @@ what waits on whom. The dialogue phases (`define-requirements`, `design-aggregat
 sign, the phase waits as `awaiting_approval`, and the next run collects the answers into the store
 and the audit log (`rules/open-questions.md` §9).
 
+What the reviews keep finding becomes rules the next design reads: `review-synthesizer` proposes
+a learned rule from each recurring finding, a person accepts or rejects it (`/architect:start`
+asks; `/architect:pipeline` leaves it proposed), and `design-microservices`, `design-api`,
+`design-scalardb` and `design-implementation` read the accepted rules for their phase and cite
+them in the decisions they shape. The store is `work/learned-rules.json`, or one file shared across
+projects through `options.learned_rules_path` (`rules/learned-rules.md`; `--no-learnings` turns
+the proposals off).
+
 ### ScalarDB Application Development
 
 Build ScalarDB applications with guided schema design, code generation, and code review.

@@ -45,6 +45,21 @@ Once the verdict is written, record it in the audit log (@skills/common/progress
 § Audit Log): `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/audit_log.py" <project_dir> VERDICT_RECORDED phase=review-synthesizer plugin=architect
 ref=reports/review/review-synthesis.json detail=<PASS|CONDITIONAL_PASS|FAIL>`.
 
+## Step 3b: Propose Learned Rules
+
+For each finding that recurs — raised by two or more perspectives, matching a rule already on
+file, or P0/P1 — propose a learned rule (@rules/learned-rules.md §2), one command per finding,
+phrased as the guardrail and not as the finding:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/learned_rules.py" <project_dir> propose rule="<guardrail>" scope=<phase,phase> category=<category> anti_pattern="<…>" rationale="<…>" finding=<SYN-id>
+```
+
+The tool deduplicates on the sentence and records an occurrence when the rule is already on file.
+Skip this step, and say so in the output, under `--auto` or when `options.learnings` is `false`.
+List the ids it proposed in the output: an interactive orchestrator puts them to the user to
+accept or reject; the automated one leaves them `proposed`.
+
 ## Step 4: Report Generation
 
 ### JSON Output (`reports/review/review-synthesis.json`)
