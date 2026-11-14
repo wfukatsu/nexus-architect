@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.60.0] - 2026-11-14
+
+### Added
+- **`/architect:doctor`** (#130, #144). One screen that says whether what you are about to run is
+  what you think it is: the repository (marketplace, one version across the four plugins, every
+  registered skill with a `SKILL.md`, the hooks' scripts, `claim.sh`), the tools (`bash`, `git`,
+  `python3` required; `gh`, `glab`, `claude`, `rtk` optional), the installed Claude Code plugins
+  against the repository's version — a session serves the installed copy, so a newer checkout is
+  the most common surprise — the two knowledge bundles populated and inside their `stale_after`
+  dates, and, for a project, the registry's options, profile and depth, every phase status, the
+  phases awaiting approval, the Open Questions store, the audit log, the learned rules and the
+  claims. One line per check, `ok` / `warn` / `FAIL`, exit 1 on a failure, nothing written
+  (`tools/doctor.sh` outside a session). 118 commands.
+- **`docs/runtimes-assessment.md`**: what Kiro, GitHub Copilot and Cursor state about skills,
+  hooks and sub-agents, what follows for this toolkit's files, what could not be verified, and the
+  five measurements that would precede any promise of support. Nothing was executed on those
+  runtimes; `AGENTS.md` keeps naming three.
+
+### Changed
+- AGENTS.md's Tool Priority section is one sentence, to stay under Codex's 32 KiB budget.
+- The 0.59.0 entry cites #142 (it said #141-#142).
+
 ## [0.59.0] - 2026-11-14
 
 ### Added
