@@ -46,6 +46,8 @@
 | `profile` | `full` \| `enterprise` \| `poc` \| `analysis` | Which backbone phases the architect run executes — a name from the `profiles` table of `skills/common/skill-dependencies.yaml`; absent → `full`. The dashboard files the phases outside it as excluded ("outside profile …"). The product pipeline records its own `profile` (`mvp` / `core-only` / `ux-to-spec` / `full`) in this same key, so the value is read with `workflow_type` / the phase's `plugin` in mind |
 | `depth` | `minimal` \| `standard` \| `comprehensive` | How much optional and review work the architect run does — a name from the manifest's `depths` table; absent → the profile's default. Governs the evidence-gated optional phases, the review perspectives and whether a perspective spawns independent reviewers |
 | `layering_style` | `ddd` \| `clean` | Project default for `/architect:design-implementation --layering` — DDD application services, or Clean Architecture Use Case / Interactor / Presenter naming. The canonical record is `layering_style` in the frontmatter of `reports/06_implementation/api-layer-spec.md`, which the generators read; this option only seeds it |
+| `learned_rules_path` | path, optional | A learned-rules store shared across projects (@rules/learned-rules.md §1), absolute or relative to the project; absent → `work/learned-rules.json` |
+| `learnings` | `true` \| `false` | Whether `review-synthesizer` proposes learned rules; `false` is what `--no-learnings` records. Absent → `true` |
 | `quality_gate` | object, optional | Project overrides for the stage-2 test-quality thresholds of @rules/ai-code-quality-gate.md §Test quality — e.g. `{ "coverage": { "domain": { "line": 90, "branch": 80 }, "other": { "line": 70 } }, "mutation": { "threshold": 80 } }`. Absent → the rule's defaults; a build-file rule wins over both |
 
 ## Phase Fields
@@ -164,7 +166,7 @@ happened and who did it. Writer: `tools/lib/audit_log.py` (library and command l
 |-------|---------|
 | `ts` | ISO8601 UTC |
 | `event` | One of the taxonomy below |
-| `category` | `phase` / `gate` / `question` / `decision` / `delivery`, derived from the event |
+| `category` | `phase` / `gate` / `question` / `decision` / `delivery` / `learning`, derived from the event |
 | `phase` | The phase (or backlog item id) the event belongs to, or null |
 | `plugin` | `product` / `architect` when known |
 | `actor` | `git config user.name` of the project — never the email — or the value passed as `actor=` |
@@ -180,6 +182,7 @@ happened and who did it. Writer: `tools/lib/audit_log.py` (library and command l
 | `ADR_RECORDED` | The five skills that write ADRs, per `rules/architecture-decision-records.md` §4 | A record was appended (`ref` = its `ADR-`) |
 | `VERDICT_RECORDED` | `review-synthesizer` | The quality-gate verdict was written (`detail` = `PASS` / `CONDITIONAL_PASS` / `FAIL`) |
 | `PR_OPENED` / `PR_MERGED` | `review-issue` (Step 5), `merge-issue` (Step 3) | The PR/MR was raised or merged (`ref` = its URL) |
+| `RULE_PROPOSED` / `RULE_ACCEPTED` / `RULE_REJECTED` | `tools/lib/learned_rules.py`, run by `review-synthesizer` (propose) and `/architect:start` (decide) | A learned rule was proposed from a recurring finding, or a person decided it (`ref` = its `LR-`, `rules/learned-rules.md`) |
 
 A skill appends with one positional command, no flags:
 

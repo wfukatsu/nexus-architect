@@ -253,8 +253,8 @@ path by their router, so they are not slash commands and have no signature here.
 
 ```text
 # Orchestration & setup
-/architect:start [target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive]
-/architect:pipeline [target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]
+/architect:start [target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive] [--no-learnings]
+/architect:pipeline [target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive] [--no-learnings] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]
 /architect:init-output [project_name] [--reset]
 /product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--lang=ja|en]
 /product:init-output [project_name] [--reset]

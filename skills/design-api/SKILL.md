@@ -132,6 +132,7 @@ defects that surface much later and much more expensively.
 | reports/03_design/state-machines/state-machine-manifest.json | Optional | /architect:design-state-machine — transitions become operations, `reject` matrix cells become registered problem types (409/422), `ignore` cells become the idempotency contract (@rules/state-modeling.md §8) |
 | reports/04_quality/sla.md | Optional | /product:design-sla — per-operation timeout and retry budgets derive from the SLOs (`SLO-`) |
 | reports/03_domain/api-design.md | Optional | /product:design-api — when present, use the logical API-Led surface (`API-` System/Process/Experience layers) as the starting inventory to be made physical (protocols, specs), keeping `API-` ID traceability (@docs/design.md §1.3) |
+| `work/learned-rules.json` | Optional | the accepted learned rules for this phase (`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/learned_rules.py" <project_dir> list scope=design-api`, @rules/learned-rules.md §4) — apply each and cite its `LR-` in the decision it shaped |
 
 ## Output
 

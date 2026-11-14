@@ -217,6 +217,7 @@ service has applied its own retries, so the specification says where retry lives
 | reports/03_design/api-specifications/graphql/resolver-contracts.md | Required when GraphQL is selected | /architect:design-graphql |
 | reports/03_design/aggregates/aggregate-manifest.json | Optional | /architect:design-aggregate — the domain layer skeleton: root, interior entities, value objects, factory, specifications, one repository interface per aggregate |
 | reports/02_evaluation/ | Recommended | integrate-evaluations |
+| `work/learned-rules.json` | Optional | the accepted learned rules for this phase (`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/learned_rules.py" <project_dir> list scope=design-implementation`, @rules/learned-rules.md §4) — apply each and cite its `LR-` in the decision it shaped |
 
 ## Output
 

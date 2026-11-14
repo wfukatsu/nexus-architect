@@ -3,7 +3,7 @@ description: |
   Interactive entry point for system architecture work: refactor a legacy application into services,
   or design a new system from requirements; picks the path from the project's state. To move a
   database to ScalarDB, use migrate-database.
-argument-hint: '[target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive]'
+argument-hint: '[target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive] [--no-learnings]'
 model: inherit
 ---
 
@@ -12,7 +12,7 @@ model: inherit
 Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
 plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
-**Usage:** `/architect:start [target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive]`
+**Usage:** `/architect:start [target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive] [--no-learnings]`
 
 ## Your Role
 
@@ -55,7 +55,9 @@ set are @skills/pipeline/SKILL.md § Profile and Depth and apply here unchanged)
   scores or where to improve, and not for a redesign; `enterprise` when it names regulation, audit,
   compliance or high assurance; `full` otherwise. The user picks "Other" to add `depth=<name>`.
 - Record `options.profile` and `options.depth` (the chosen or default depth, written out) in
-  `work/pipeline-progress.json` at initialization, with the language.
+  `work/pipeline-progress.json` at initialization, with the language — and `options.learnings:
+  false` when `--no-learnings` was given, which stops `review-synthesizer` proposing learned
+  rules (@rules/learned-rules.md).
 
 The depth then settles the three Option sections below without a second question: at `minimal`
 none is offered — the optional phases are recorded `skipped` with summary `depth minimal`; at
@@ -283,7 +285,11 @@ placeholder — a section has to be rewritten — stamp the phase `revising` whi
 when the answers are in does the phase become `completed`. What the user defers stays `deferred`
 with its owner. A question left `unasked` at the end of an interactive run is a defect. Each
 question asked, answered or deferred is also an audit-log event (@rules/open-questions.md §6);
-the status stamps become events on their own through the token-usage hook.
+the status stamps become events on their own through the token-usage hook. When the phase is
+`review-synthesizer` and it returned proposed `LR-` ids, put each to the user in the same batch —
+accept, reject, or "Other" with a rewording — and record each answer with
+`learned_rules.py decide` (@rules/learned-rules.md §3); an accepted rule is in force for every
+design skill of the next run.
 
 **A session can end on a question.** On resume, a phase found `awaiting_approval` is asked
 again from its recorded questions — never skipped as done, never rerun from scratch — and an

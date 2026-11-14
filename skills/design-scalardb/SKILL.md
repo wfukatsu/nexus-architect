@@ -114,6 +114,7 @@ Edition comparison and version support: @rules/scalardb-edition-profiles.md
 | reports/03_design/aggregates/aggregate-manifest.json | Optional | /architect:design-aggregate — the aggregate as OCC scope and partition-key unit, interior entities and value objects as one aggregate's tables/columns, one repository per root |
 | reports/03_design/state-machines/state-machine-manifest.json | Optional | /architect:design-state-machine — the state column and its OCC scope, the transition history store, and the per-transition consistency class that fixes which transitions sit in one transaction (@rules/state-modeling.md §5–6) |
 | reports/04_quality/nfr.md | Optional | /product:define-nfr — read-latency and reporting targets for the Read Model / CQRS / Event Sourcing decision; absent (pure-architect path), take them from `requirements-definition.md`'s NFR table, and ask what neither states (@rules/open-questions.md) — never assume a target. Under `--auto` on the legacy path, where neither file exists and nothing can be asked, decide the row from the access paths and contention evidence the reports carry, mark the row `assumed`, and record one `unasked` `OQ-` carrying the target that would have been asked — the decision is revisited when it is answered |
+| `work/learned-rules.json` | Optional | the accepted learned rules for this phase (`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/learned_rules.py" <project_dir> list scope=design-scalardb`, @rules/learned-rules.md §4) — apply each and cite its `LR-` in the decision it shaped |
 
 ## Available Resources
 
