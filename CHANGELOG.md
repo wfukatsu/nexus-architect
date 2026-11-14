@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.62.0] - 2026-11-15
+
+The claim lifecycle of 0.59.0, made safe for several people on several machines (#153, PR #167;
+from the review of v0.53.1..v0.60.0, tracking #158).
+
+### Added
+- **The tracker is the fact other machines see.** A claim is mirrored on the tracker as the
+  Issue's assignee plus a `claim::<login>` label (GitLab scoped; GitHub `claim:<login>`; `<login>`
+  the account `glab` / `gh` is signed in as), and a run reads the Epic's `claim::*` labels before
+  this checkout's `reports/backlog/claims.json` — which sits under the git-ignored `reports/` and
+  therefore never left the machine. Another login's label is held whatever the file says; a local
+  claim whose label is gone is released `reason=tracker`; a local claim with no label is
+  re-mirrored. `deliver-backlog` (Step 1), `implement-backlog` (claim + mirror) and `merge-issue`
+  (release + remove the label) say which step writes what; `--dry-run` writes nothing
+  (`skills/common/backlog-claims.md` § Claims).
+- **Release on giving up, keep on pause.** `deliver-backlog` releases the claim (`reason=aborted` /
+  `blocked`) and removes the label when the user skips or aborts an Issue at a blocked review or a
+  failed sub-skill; a halt keeps the claim, and the summary names it with the command that resumes
+  it.
+- **`worktree add … [by=] [steal=true]`** refuses an Issue another person holds (exit 3) unless
+  `steal=true`, which takes the claim first — a worktree is the holder's.
+
+### Changed
+- `tools/lib/backlog_claims.py` holds `claims.json.lock` around every read-modify-write and writes
+  through a per-process temp file: six concurrent claims on one item leave one holder and five
+  exit 3; twelve on twelve items all land.
+- A steal releases the holder's claim with an `ITEM_RELEASED` event (`detail` = `stolen from
+  <holder>`) before the taker's `ITEM_CLAIMED`.
+- No `git config user.name` and no `by=` is a usage error (exit 2) — never a holder called
+  `unknown`, which would have made every unnamed person one holder.
+- Under `--parallel`, `deliver-backlog` runs stage (b) `review-issue` in its own `model: opus`
+  sub-agent after the sonnet implementer returns, instead of inside it, where the review's tier
+  was silently dropped.
+
 ## [0.61.0] - 2026-11-15
 
 The learning loop of 0.58.0 closes for automated runs (#152, PR #165; from the review of
