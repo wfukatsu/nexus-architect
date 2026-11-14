@@ -1,0 +1,10 @@
+{
+  "phase_completion.failed": {"max": 0},
+  "report_validity.failures": {"max": 0},
+  "adrs.errors": {"max": 0},
+  "adrs.records": {"min": 8},
+  "open_questions.total": {"min": 20},
+  "quality_gate.verdict": {"in": ["PASS", "CONDITIONAL_PASS", "FAIL"]},
+  "cost.total_usd": {"max": 60},
+  "duration.wall_clock_s": {"max": 21600}
+}

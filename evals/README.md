@@ -58,3 +58,63 @@ each has a prompt naming no slash command, one plugin tag, a typed grader, and a
 grader naming skills that plugin registers; and every plugin has at least one case.
 
 Results are written to `evals/results/`, which is git-ignored.
+
+## Outcome evals
+
+The trigger cases above ask whether the right skill fired. The outcome evals ask what a run
+left behind, and read the project directory only — never the transcript — so a run of this
+toolkit, a rerun after a skill change, and a run of another toolkit on the same brief are
+scored by one yardstick.
+
+```bash
+tools/eval-outcomes.sh list                                   # the tasks
+tools/eval-outcomes.sh grade <project_dir> [<task>]           # free: score a project that already ran
+tools/eval-outcomes.sh run ec-monolith-legacy                 # paid: stage, run the pipeline, grade
+tools/eval-outcomes.sh run greenfield-brief --model opus      # any `claude -p` option follows
+```
+
+A task is `outcomes/<task>/`: `task.json` (the input directory, the commands, the thresholds
+file), `task.md` (the brief, what each threshold means, the reference run's numbers) and
+`expected.json` (`{"<metric>.<field>": {"min" | "max" | "in" | "equals": …}}`). Two ship:
+`ec-monolith-legacy` (the sample monolith through `--profile=full`) and `greenfield-brief` (a
+one-page brief through `define-requirements` and `--profile=poc`).
+
+The graders are `tools/lib/outcome_graders.py`, one per question a reader of the run would ask:
+
+| metric | reads | answers |
+|--------|-------|---------|
+| `requirement_coverage` | `work/traceability.json` | the share of `FR-`/`NFR-` nodes some later node cites, the uncovered ones, dangling upstream ids |
+| `open_questions` | `work/context.md` § Open Questions | rows by status; `unasked` is what the run never asked |
+| `adrs` | `reports/03_design/adr/` | records, validator errors, accepted records naming an approver |
+| `report_validity` | `reports/**/*.md` | failures of the two output validators (frontmatter and ELI5, Mermaid) |
+| `quality_gate` | `reports/09_verification/quality-gate.json` | verdict, stages by status, unit tests, mutation score, blocking ids |
+| `test_results` | `generated/**/test-results/<suite>/*.xml` | pass rate per JUnit suite (`test`, `contractTest`, `acceptanceTest`, …) |
+| `phase_completion` | `work/pipeline-progress.json` | phases by status, the profile, warnings |
+| `cost` | `work/token-usage.json` | USD total and per phase (the hook records them) |
+| `duration` | the registry's stamps | wall clock from the first `started_at` to the last `completed_at`, phase time summed |
+| `human_effort` | `work/audit/events.jsonl` | questions asked / answered / deferred, gates rejected, phases revised — the review rounds |
+
+An input that does not exist is **not measured**, never a zero that reads as a result; a
+threshold over an unmeasured metric is listed as unmeasured, and the verdict is PASS when no
+measured threshold fails. `grade` exits 0 on PASS, 1 on FAIL, 2 on a usage error.
+
+### Comparing with another toolkit (the AI-DLC protocol)
+
+1. **Same brief, same model, same harness.** Give the other toolkit `greenfield-brief/brief.md`
+   (or the sample monolith) and ask it for the same deliverables the task's commands ask for:
+   requirements, architecture, API contract, review. Run both on the same model and the same
+   Claude Code version; record them in the write-up.
+2. **Same yardstick.** Grade both output directories with `tools/eval-outcomes.sh grade <dir>
+   <task>`. The graders read the shapes this toolkit writes; another toolkit's output is
+   comparable on a metric only when it holds that shape — `cost`, `duration` and `test_results`
+   need only a token ledger, timestamps and JUnit XML; `requirement_coverage`, `open_questions`
+   and `adrs` need the traceability graph, the store and the ADR directory. A metric the other
+   run cannot be measured on is **reported as not comparable**, not scored against it.
+3. **Say which numbers are comparable.** The write-up carries the scorecards side by side, the
+   list of comparable metrics, and what was converted (a toolkit that records questions in
+   another shape and was mapped onto the store by hand says so).
+4. **Run more than once.** A single run is a sample; the trigger cases taught that (3/3, 3/3,
+   then 2/3). Three runs per side before a claim.
+
+Results of `run` land under `evals/results/outcomes-<task>-<timestamp>/` with the scratch project,
+the transcript, `scorecard.json` and `scorecard.txt`; the directory is git-ignored.

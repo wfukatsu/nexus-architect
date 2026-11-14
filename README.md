@@ -372,6 +372,10 @@ waits on a person is `awaiting_approval` in `work/pipeline-progress.json` and is
 resume, never skipped; the registry's `resume_point` says where an interrupted dialogue phase
 continues. `python3 tools/lib/audit_log.py <project> list tail=20` reads the log;
 `skills/common/progress-registry.md` § Audit Log is the contract.
+`tools/eval-outcomes.sh grade <project>` scores what a run produced — requirement coverage,
+unasked questions, ADRs, report validity, the quality gate, test pass rates, cost, wall clock and
+review rounds — against a task's thresholds, and `run <task>` does the whole paid run on a frozen
+brief (`evals/README.md` § Outcome evals, with the protocol for comparing another toolkit).
 
 Questions belong to roles, not only to whoever is typing: each Open Question carries a `Role`
 (`docs/decision-roles.md` — product owner, architect, operations, …), each ADR names its

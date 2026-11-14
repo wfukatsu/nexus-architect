@@ -1,0 +1,11 @@
+{
+  "requirement_coverage.value": {"min": 0.8},
+  "requirement_coverage.requirements": {"min": 8},
+  "phase_completion.failed": {"max": 0},
+  "report_validity.failures": {"max": 0},
+  "adrs.errors": {"max": 0},
+  "adrs.records": {"min": 3},
+  "open_questions.total": {"min": 5},
+  "cost.total_usd": {"max": 25},
+  "duration.wall_clock_s": {"max": 7200}
+}
