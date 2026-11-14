@@ -1,0 +1,8 @@
+{
+  "title": "Legacy refactoring of the ec-monolith sample, full profile",
+  "input": "samples/ec-monolith",
+  "commands": [
+    "/architect:pipeline . --profile=full --lang=en"
+  ],
+  "expected": "expected.json"
+}

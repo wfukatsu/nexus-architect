@@ -1,0 +1,9 @@
+{
+  "title": "Greenfield design from a one-page brief, poc profile",
+  "input": "evals/outcomes/greenfield-brief",
+  "commands": [
+    "/architect:define-requirements --input=brief.md --auto",
+    "/architect:pipeline . --profile=poc --lang=en"
+  ],
+  "expected": "expected.json"
+}

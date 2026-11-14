@@ -78,6 +78,37 @@ for case in cases:
 
 check(covered == set(OWNED), f"no case for: {sorted(set(OWNED) - covered)}")
 
+# The outcome tasks (evals/README.md § Outcome evals): each names an input that exists, at least one
+# command that is a slash command of a registered plugin, and thresholds over metrics the graders
+# define, so `tools/eval-outcomes.sh run` cannot start a paid run on a task that cannot be graded.
+sys.path.insert(0, str(ROOT / "tools" / "lib"))
+import outcome_graders  # noqa: E402
+
+METRICS = {g.__name__ for g in outcome_graders.GRADERS}
+tasks = sorted(p.parent for p in (EVALS / "outcomes").glob("*/task.json"))
+check(tasks, "no outcome task under evals/outcomes/")
+for task in tasks:
+    rel = task.relative_to(ROOT)
+    spec = json.loads((task / "task.json").read_text(encoding="utf-8"))
+    check(spec.get("title"), f"{rel}/task.json has no title")
+    check((ROOT / str(spec.get("input", ""))).is_dir(), f"{rel}/task.json input does not exist: {spec.get('input')}")
+    commands = spec.get("commands") or []
+    check(commands and all(re.match(r"^/(architect|product|scalardb|infra):[a-z0-9-]+", c) for c in commands),
+          f"{rel}/task.json commands must be slash commands of a plugin: {commands}")
+    for c in commands:
+        plugin, skill = re.match(r"^/([a-z]+):([a-z0-9-]+)", c).groups()
+        registered = {path.rsplit("/", 1)[-1] for path in OWNED.get(plugin, ())}
+        check(skill in registered, f"{rel}/task.json: {plugin} registers no skill named {skill}")
+    check((task / "task.md").is_file(), f"{rel} has no task.md")
+    expected_path = task / str(spec.get("expected", "expected.json"))
+    check(expected_path.is_file(), f"{rel}: thresholds file missing: {expected_path.name}")
+    if expected_path.is_file():
+        expected = json.loads(expected_path.read_text(encoding="utf-8"))
+        for dotted, rule in expected.items():
+            check(dotted.split(".")[0] in METRICS, f"{rel}/{expected_path.name}: {dotted} names no grader")
+            check(isinstance(rule, dict) and set(rule) & {"min", "max", "in", "equals"},
+                  f"{rel}/{expected_path.name}: {dotted} has no min/max/in/equals rule")
+
 if failures:
     print(f"FAIL: {len(failures)} of {checks} checks")
     for message in failures:
