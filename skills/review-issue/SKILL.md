@@ -189,6 +189,7 @@ If the verdict has `[B]` blockers and `--no-fix` is not set (and the verdict is 
   `/architect:capture-followup <title> --queue-only`, and its queue entry is named in the PR/MR
   body — surfacing it in prose alone leaves it undeliverable. GitLab: `glab mr create -s <branch> -t <base> --title … --description …`;
   GitHub: `gh pr create --base <base> --head <branch> --title … --body …`.
+- Record it: `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/audit_log.py" <project_dir> PR_OPENED phase=<issue id> ref=<pr/mr url> detail="round <n>"` (@skills/common/progress-registry.md § Audit Log).
 - Gate creation on user confirmation unless `--auto`. On `--dry-run`, stop after Step 3b (the
   review doc and the local knowledge-base update still happen) with no fixes, comments, or PR/MR —
   report what would happen.

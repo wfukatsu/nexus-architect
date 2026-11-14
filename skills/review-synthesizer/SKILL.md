@@ -7,6 +7,9 @@ model: sonnet
 
 # Review Synthesis
 
+Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
+plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
+
 ## Expected Outcome
 
 Receive JSON outputs from multiple review perspectives and produce a consolidated review report.
@@ -37,6 +40,10 @@ Determined based on thresholds in `${CLAUDE_PLUGIN_ROOT}/skills/review-registry.
 - **PASS**: aggregate >= 3.5, critical: 0, major <= 3, all perspectives >= 3.0
 - **CONDITIONAL PASS**: aggregate >= 2.5, critical <= 2 (with mitigations), major <= 8
 - **FAIL**: Below the above thresholds
+
+Once the verdict is written, record it in the audit log (@skills/common/progress-registry.md
+§ Audit Log): `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/audit_log.py" <project_dir> VERDICT_RECORDED phase=review-synthesizer plugin=architect
+ref=reports/review/review-synthesis.json detail=<PASS|CONDITIONAL_PASS|FAIL>`.
 
 ## Step 4: Report Generation
 

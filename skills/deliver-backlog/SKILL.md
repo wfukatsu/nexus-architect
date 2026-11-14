@@ -92,7 +92,10 @@ For each Issue in order (determine its current stage from `impl.status`/labels, 
     approach). Do not spin or auto-advance.
 - **(c) approval gate (human — hard stop)** — With the PR/MR open, pause and ask the user to review
   and approve it. This is a hard stop by default. Continue only if `--yes-merge` (with `--auto`)
-  pre-authorized it.
+  pre-authorized it. Record the outcome in the audit log (@skills/common/progress-registry.md
+  § Audit Log): `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/audit_log.py" <project_dir> GATE_APPROVED phase=<issue id> ref=<pr/mr url>` on approval, `GATE_REJECTED`
+  with the reason in `detail=` when the user sends it back, `GATE_SKIPPED detail="--yes-merge"`
+  when it was pre-authorized.
 - **(d) merge** — After approval, run `/architect:merge-issue <issue>`, **passing `--yes-merge`
   through** when the user pre-authorized it (otherwise merge-issue's own confirmation gate applies;
   its preflight always runs either way). The post-merge roll-up updates Sub-Epic/Epic status; a

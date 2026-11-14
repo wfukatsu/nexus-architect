@@ -1044,6 +1044,50 @@ def check_profiles(root):
           and P.resolve_profile("architect", {})[2] is None)
 
 
+def check_human_gate(root):
+    """`awaiting_approval` / `revising` (skills/common/progress-registry.md § Status Values)
+    and the top-level `resume_point`."""
+    print("human-gate statuses and the resume point")
+    d = os.path.join(root, "gate")
+    write(os.path.join(d, "work", "pipeline-progress.json"), json.dumps({
+        "phases": {
+            "investigate": {"status": "completed", "plugin": "architect"},
+            "analyze": {"status": "awaiting_approval", "plugin": "architect"},
+            "evaluate-mmi": {"status": "revising", "plugin": "architect"},
+        },
+        "resume_point": {"phase": "analyze", "step": "3", "note": "actor matrix"},
+    }))
+    st = P.derive_all(d)
+    ph = st["phases"]
+    check("both statuses are recorded statuses the registry wins on",
+          ph["analyze"]["status"] == "awaiting_approval" and ph["analyze"]["source"] == "progress"
+          and ph["evaluate-mmi"]["status"] == "revising", (ph["analyze"]["status"], ph["analyze"]["source"]))
+    check("an awaiting phase blocks its dependents and is not runnable",
+          "analyze" in ph["map-domains"]["blocked_by"] and not ph["analyze"]["runnable"]
+          and not ph["evaluate-mmi"]["runnable"], ph["map-domains"]["blocked_by"])
+    check("the awaiting phases are listed for the header", st["awaiting"] == ["analyze"], st["awaiting"])
+    check("a revising phase is the current one", st["current"] == "evaluate-mmi", st["current"])
+    check("the resume point is carried through",
+          st["resume_point"] == {"phase": "analyze", "step": "3", "note": "actor matrix"}
+          and P.resume_text(st["resume_point"]) == "analyze · step 3 · actor matrix",
+          st["resume_point"])
+    check("the status cell shortens awaiting_approval only",
+          P.status_label("awaiting_approval") == "awaiting" and P.status_label("revising") == "revising")
+    check("glyphs and styles cover both statuses in both glyph sets",
+          all(k in P.PHASE_GLYPHS_UNICODE and k in P.PHASE_GLYPHS_ASCII and k in P.PHASE_STYLE
+              for k in ("awaiting_approval", "revising")))
+    check("the summary counts them as outstanding, not done",
+          st["summary"]["by_status"]["awaiting_approval"] == 1
+          and st["summary"]["by_status"]["revising"] == 1
+          and st["summary"]["completed"] == 1 + st["summary"]["by_status"]["skipped"],
+          st["summary"])
+    write(os.path.join(d, "work", "pipeline-progress.json"), json.dumps({
+        "phases": {}, "resume_point": "analyze step 3"}))
+    st = P.derive_all(d)
+    check("a resume point that is not a dict naming a phase is dropped",
+          st["resume_point"] is None and st["awaiting"] == [], st["resume_point"])
+
+
 def run(root, plugin=None):
     state = P.derive_all(root, plugin=plugin)
     phases = state["phases"]
@@ -1337,6 +1381,7 @@ def main():
         check_shared_phase_names(root)
         check_hostile_inputs(root)
         check_profiles(root)
+        check_human_gate(root)
     if cleanup:
         shutil.rmtree(cleanup, ignore_errors=True)
     print("%d failure(s)" % FAILURES)

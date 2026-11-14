@@ -67,9 +67,15 @@
 |--------|---------|
 | pending | Not yet executed |
 | in_progress | Currently running |
+| awaiting_approval | Outputs written; a person's answer or approval is pending — the questions the phase recorded are not yet put to the user, or its skill asked for approval of what it wrote. Blocks dependents like `in_progress`; is never runnable; on resume it is **asked again, never skipped**. Written by interactive orchestrators only — `/architect:pipeline` has nobody to ask and never writes it |
+| revising | A phase that had reached `awaiting_approval` or `completed` being reworked in place after a rejection or an answer that changes its output. Attributed tokens like `in_progress`; ends in `completed` (or `failed`). Distinct from `--rerun-from`, which resets to `pending` |
 | completed | Finished successfully |
 | failed | Execution failed |
-| skipped | Skipped (condition not met or user-specified) |
+| skipped | Skipped (condition not met, outside the profile or depth, or user-specified) |
+
+Every transition out of `pending` is also an event in the audit log (§ Audit Log), appended by
+the token-usage hook when it sees the registry change — the orchestrator writes the status, the
+hook writes the history.
 
 ## The `in_progress` Contract
 
@@ -127,6 +133,62 @@ orchestrator:
 - `--rerun-from=phase-N`: Reset all phases from phase-N onward to pending and re-execute
 - Natural resume: Completed phases are automatically skipped (idempotent) — subject to the
   ambiguous-name confirmation above
+- A phase found `awaiting_approval` is neither skipped nor rerun: an interactive orchestrator
+  puts its recorded questions (or its approval) to the user again and then stamps it; a
+  non-interactive one leaves it as it is and names it in the final message
+
+## Resume Point
+
+A dialogue-driven phase runs in steps, and a session can end between two of them. The registry
+carries one top-level `resume_point` so the next session continues where the last stopped
+rather than from the phase's first question:
+
+```json
+"resume_point": { "phase": "define-requirements", "step": "3b", "note": "example map for FR-004",
+                  "updated_at": "2026-11-14T09:12:00Z" }
+```
+
+`phase` is required; `step` and `note` are free text the skill chooses (its own step numbering).
+Written by `/architect:start` (and `/product:start`) when an inline phase moves between steps,
+cleared (set to `null`) when that phase completes; `/architect:report-status` shows it in the
+header. A sub-agent phase has no resume point: it either returns or it failed.
+
+## Audit Log
+
+`work/audit/events.jsonl` is the project's append-only history — one JSON object per line, never
+rewritten, both pipelines in one file. The registry says where a run is; the audit log says what
+happened and who did it. Writer: `tools/lib/audit_log.py` (library and command line); reader:
+`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/audit_log.py" <project_dir> list [tail=N] [event=…] [phase=…]`.
+
+| Field | Meaning |
+|-------|---------|
+| `ts` | ISO8601 UTC |
+| `event` | One of the taxonomy below |
+| `category` | `phase` / `gate` / `question` / `decision` / `delivery`, derived from the event |
+| `phase` | The phase (or backlog item id) the event belongs to, or null |
+| `plugin` | `product` / `architect` when known |
+| `actor` | `git config user.name` of the project — never the email — or the value passed as `actor=` |
+| `ref` | What the event points at: an `OQ-` / `ADR-` id, a PR/MR URL, a verdict file |
+| `detail` | One line of free text |
+| `source` | `hook` (the registry transition the token-usage hook observed) or `skill` |
+
+| Event | Written by | When |
+|-------|------------|------|
+| `PHASE_STARTED` / `PHASE_COMPLETED` / `PHASE_FAILED` / `PHASE_SKIPPED` / `PHASE_AWAITING_APPROVAL` / `PHASE_REVISING` | `hooks/record_token_usage.py` | A phase's `status` changed to that value since the hook last fired (its first firing on a project baselines and emits nothing). Runtimes without hooks run the hook by hand after stamping the registry, as they run the report validators |
+| `GATE_APPROVED` / `GATE_REJECTED` / `GATE_SKIPPED` | `deliver-backlog` (stage c), `merge-issue` (Step 2), `capture-followup` (Step 3) | The user approved or rejected at the gate; `GATE_SKIPPED` when `--yes-merge` / `--auto` pre-authorised it, with the flag in `detail` |
+| `QUESTION_ASKED` / `QUESTION_ANSWERED` / `QUESTION_DEFERRED` | Every skill that asks, per `rules/open-questions.md` §6 | A question was put to the user (`ref` = its `OQ-`), answered, or left `deferred` / `unasked` / `external` |
+| `ADR_RECORDED` | The five skills that write ADRs, per `rules/architecture-decision-records.md` §4 | A record was appended (`ref` = its `ADR-`) |
+| `VERDICT_RECORDED` | `review-synthesizer` | The quality-gate verdict was written (`detail` = `PASS` / `CONDITIONAL_PASS` / `FAIL`) |
+| `PR_OPENED` / `PR_MERGED` | `review-issue` (Step 5), `merge-issue` (Step 3) | The PR/MR was raised or merged (`ref` = its URL) |
+
+A skill appends with one positional command, no flags:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/audit_log.py" <project_dir> GATE_APPROVED phase=E1-I3 ref=<pr-url> detail="reviewed in session"
+```
+
+An unknown event name exits 2 and appends nothing. The log is evidence, never a gate: a failed
+append is reported in the skill's output and the run continues.
 
 Reset semantics follow the same additive rule: `--rerun-from` resets only the phases
 **your** manifest defines.

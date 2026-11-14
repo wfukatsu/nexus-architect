@@ -183,7 +183,8 @@ rather than leaving the omission silent.
    recording each phase
    in `work/pipeline-progress.json` **twice**: `status: "in_progress"` with
    `plugin: "architect"` and `started_at` *before* invoking the skill, then `completed` /
-   `failed` with `completed_at`, `outputs` and `summary` after it returns
+   `failed` with `completed_at`, `outputs` and `summary` after it returns — or
+   `awaiting_approval` when it returned questions, until they are answered (see Phase Execution)
    (@skills/common/progress-registry.md). The pre-write is what makes
    `/architect:report-status` show the phase as running and what attributes its token cost
    to it; `plugin` is what keeps that attribution off the product pipeline's phase of the
@@ -272,11 +273,24 @@ When a call comes back as launched rather than finished:
   is already in the phase's output: say so and change nothing.
 
 **Then ask what the phase could not.** This run is interactive even where a phase was not: when a
-sub-agent returns `OQ-` IDs, put those questions to the user before the next phase starts — one
+sub-agent returns `OQ-` IDs, stamp the phase `awaiting_approval` (not `completed`: its outputs
+are written but a person's answer is pending — @skills/common/progress-registry.md § Status
+Values), then put those questions to the user before the next phase starts — one
 `AskUserQuestion` batch, reusing the recorded options (@rules/open-questions.md §7). Update each
 entry in place in `work/context.md` § Open Questions, substitute the answer at every `TBD (OQ-###)`
-the phase wrote, and re-render any view that shows it. What the user defers stays `deferred` with
-its owner. A question left `unasked` at the end of an interactive run is a defect.
+the phase wrote, and re-render any view that shows it; when an answer changes more than a
+placeholder — a section has to be rewritten — stamp the phase `revising` while you do it. Only
+when the answers are in does the phase become `completed`. What the user defers stays `deferred`
+with its owner. A question left `unasked` at the end of an interactive run is a defect. Each
+question asked, answered or deferred is also an audit-log event (@rules/open-questions.md §6);
+the status stamps become events on their own through the token-usage hook.
+
+**A session can end on a question.** On resume, a phase found `awaiting_approval` is asked
+again from its recorded questions — never skipped as done, never rerun from scratch — and an
+inline dialogue phase continues from the registry's `resume_point` (§ Resume Point of the
+registry contract): write it when such a phase moves between its steps (`phase`, the skill's own
+`step`, a one-line `note`), clear it when the phase completes, and read it before choosing the
+first phase of a resumed run.
 
 The order is: ask, write the answers in, and only then start a phase that depends on the one that
 asked. A dependent launched while its questions are still open reads the placeholder, or the

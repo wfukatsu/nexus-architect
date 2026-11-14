@@ -211,7 +211,7 @@ class PipelineView(S.BaseView):
             if phase["declared"] else ""
         right = "%s %s %s %s %s %s" % (
             P.output_bar(phase), D.pad(counts, 5, "r"), D.pad(marks, 1),
-            D.pad("%s %s" % (P.PG[status], status), 13),
+            D.pad("%s %s" % (P.PG[status], P.status_label(status)), 13),
             D.pad(activity, 7),
             D.pad(D.money(phase["cost_usd"]) if phase["cost_usd"] else "", 7, "r"))
         left_w = min(self.name_w, max(10, width - D.dw(right) - 2))
@@ -268,6 +268,13 @@ class PipelineView(S.BaseView):
         if failed:
             lines.append(("%s %s: %s" % (P.PG["failed"], T["failed_phases"],
                                          ", ".join(failed)), "alert"))
+        if state["awaiting"]:
+            lines.append(("%s %s: %s" % (P.PG["awaiting_approval"], T["awaiting_phases"],
+                                         ", ".join(state["awaiting"])), "warn"))
+        rp = state["resume_point"]
+        if rp:
+            lines.append(("%s %s: %s" % (P.PG["current"], T["resume_at"], P.resume_text(rp)),
+                          "head"))
 
         gate = state["gate"]
         if gate:

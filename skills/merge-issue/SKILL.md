@@ -77,7 +77,12 @@ Check, and stop with a clear reason if any fails:
 Present the PR/MR title + URL, the base branch, the merge strategy (`--strategy`, default project
 default), and whether the source branch will be deleted (`--delete-branch`). Get an explicit
 go-ahead — skipped only when `--yes-merge` was passed (still print what is about to merge). On
-`--dry-run`, stop here and report what would be merged.
+`--dry-run`, stop here and report what would be merged. Record the gate in the audit log
+(@skills/common/progress-registry.md § Audit Log): `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/audit_log.py" <project_dir> GATE_APPROVED phase=<issue id>
+ref=<pr/mr url>` on the go-ahead, `GATE_REJECTED` with the reason in `detail=` on a refusal,
+`GATE_SKIPPED detail="--yes-merge"` when pre-authorized — unless `/architect:deliver-backlog`
+already recorded this gate for the same PR/MR in this run (it passes `--yes-merge` through), in
+which case record nothing twice.
 
 Also read the Issue's **acceptance-criteria checkboxes** (per @skills/common/backlog-checklists.md)
 and list any still `[ ]` here. This is a *reporting* item, not a preflight check — it does not block
@@ -90,7 +95,8 @@ merge comment, so the deferral stays deliverable.
 ### Step 3 — Execute the merge
 - GitLab: `glab mr merge <iid> [--squash|--rebase] [--remove-source-branch] [--yes]`.
 - GitHub: `gh pr merge <number> [--squash|--merge|--rebase] [--delete-branch]`.
-Capture the merge commit SHA / result.
+Capture the merge commit SHA / result, and record it: `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/audit_log.py" <project_dir> PR_MERGED phase=<issue id>
+ref=<pr/mr url> detail=<merge commit sha>`.
 
 ### Step 4 — Post-merge roll-up
 Child task-list boxes render **implementation state** and are ticked upstream by

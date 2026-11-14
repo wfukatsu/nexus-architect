@@ -206,7 +206,10 @@ Creating remote work items is outward-facing and hard to reverse. Present a conc
 each entry's title, target parent (with its remote URL), and the labels to be attached — and
 **ask for explicit approval** via AskUserQuestion before any create call (`--auto` adopts the
 queue without asking). On `--dry-run`, stop here and report what *would* be created; the queue
-file keeps any Step 1 append, but no remote write and no manifest change happens.
+file keeps any Step 1 append, but no remote write and no manifest change happens. Record the
+answer in the audit log (@skills/common/progress-registry.md § Audit Log): `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/audit_log.py" <project_dir> GATE_APPROVED
+phase=<parent id> ref=reports/backlog/followup-queue.md detail="<n> entries"` on approval,
+`GATE_REJECTED` on a refusal, `GATE_SKIPPED detail="--auto"` when adopted without asking.
 
 ### Step 4 — Create and link (idempotent)
 For each approved `queued` entry (skip any that already carries a created URL):
