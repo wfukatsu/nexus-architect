@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.58.0] - 2026-11-14
+
+### Added
+- **The learning loop** (#128, #140). What the reviews keep finding becomes rules the next design
+  reads. `rules/learned-rules.md` defines the store — `work/learned-rules.json`, or one file
+  shared across projects through `options.learned_rules_path` — with `LR-###` rules carrying a
+  scope of phases, a category from the `review-knowledge.md` vocabulary, the guardrail sentence,
+  anti-pattern and rationale, one origin per proposal and an occurrence count; every write is
+  additive, a rule is only ever `rejected`, never deleted. `tools/lib/learned_rules.py` is the
+  writer: `propose` deduplicates on the sentence (the same rule again is an occurrence with a
+  widened scope, a rejected one proposed again a new id), `decide` records who accepted or
+  rejected and why, `list scope=<phase>` returns the accepted rules a skill reads, `render`
+  writes the Markdown view. `review-synthesizer` (Step 3b) proposes a rule from each recurring
+  finding — two or more perspectives, a rule already on file, or P0/P1 — unless `--auto` or
+  `options.learnings: false`; `review-issue` proposes its generalizable lessons too.
+  `/architect:start` puts a synthesizer run's proposals to the user to accept or reject;
+  `/architect:pipeline` leaves them proposed and lists them; both take `--no-learnings`.
+  `design-microservices`, `design-api`, `design-scalardb` and `design-implementation` read the
+  accepted rules for their phase before deciding and cite the `LR-` in the decision it shaped.
+  `RULE_PROPOSED` / `RULE_ACCEPTED` / `RULE_REJECTED` join the audit taxonomy as its `learning`
+  category.
+
 ## [0.57.0] - 2026-11-14
 
 ### Added
