@@ -85,6 +85,7 @@ The modeling method, the seven well-formedness rules and the transaction-boundar
 | reports/02_spec/feature-list.md | Optional | /product:define-features — `FEAT-` commands map to aggregate commands |
 | reports/02_spec/examples/example-map-{feat}.md, reports/00_requirements/examples/example-map-{fr}.md | Optional | /product:example-map, /architect:define-requirements Step 3b — `RULE-` entries are invariant candidates, `EX-` entries their first concrete examples; an invariant that carries a rule cites its `RULE-` |
 | reports/03_design/scalardb-transaction.md | Optional | /architect:design-scalardb — when it already exists, its TX- entries fix each command's consistency class |
+| `work/learned-rules.json` | Optional | the accepted learned rules for this phase (`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/learned_rules.py" <project_dir> list scope=design-aggregate`, @rules/learned-rules.md §4) — apply each and cite its `LR-` in the decision it shaped |
 
 With none of these present, ask the user to name the aggregates and describe what must always be
 true of each; do not derive an aggregate from a table name.

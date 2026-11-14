@@ -56,9 +56,10 @@ python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/learned_rules.py" <project_dir> propose
 ```
 
 The tool deduplicates on the sentence and records an occurrence when the rule is already on file.
-Skip this step, and say so in the output, under `--auto` or when `options.learnings` is `false`.
-List the ids it proposed in the output: an interactive orchestrator puts them to the user to
-accept or reject; the automated one leaves them `proposed`.
+Skip this step, and say so in the output, when `options.learnings` is `false` — the only switch;
+this skill takes no `--auto`. List the ids it proposed in the output: an interactive orchestrator
+puts them to the user to accept or reject; the automated one leaves them `proposed` for the next
+`/architect:start` to decide (@rules/learned-rules.md §3).
 
 ## Step 4: Report Generation
 

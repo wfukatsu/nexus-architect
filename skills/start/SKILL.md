@@ -186,6 +186,13 @@ rather than leaving the omission silent.
 2. Determine the path and relevant phases (product handoff → greenfield), narrowed to the profile
    and depth (see Profile and Depth)
 3. Run `/architect:init-output` to initialize the output directory
+3b. **Decide the learned rules left `proposed`** (unless `options.learnings` is `false`):
+   `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/learned_rules.py" <project_dir> list status=proposed format=json`
+   lists what an earlier `/architect:pipeline` run, or another project on a shared store, proposed
+   and nobody decided. Put each to the user — one `AskUserQuestion` per rule, accept / reject /
+   "Other" with a rewording, the rule's `occurrences` and `rationale` in the description — and
+   record each with `learned_rules.py decide` (@rules/learned-rules.md §3) before the first design
+   phase, so what is accepted is in force for this run. Nothing proposed: say so in one line
 4. Execute skills in dependency order per `skill-dependencies.yaml` — a dialogue-driven phase
    inline, every other phase as a sub-agent on its manifest model (see Phase Execution) —
    recording each phase

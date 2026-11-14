@@ -30,6 +30,7 @@ Generic data layer design for projects not using ScalarDB:
 | reports/03_design/aggregates/aggregate-manifest.json | Optional | /architect:design-aggregate — the aggregate as the concurrency scope and the unit one transaction writes, one repository per root |
 | reports/03_design/state-machines/state-machine-manifest.json | Optional | /architect:design-state-machine — the state column, its concurrency scope, and whether transition history is recorded (@rules/state-modeling.md §6) |
 | reports/04_quality/nfr.md | Optional | /product:define-nfr — read-latency and reporting targets for the Read Model / CQRS / Event Sourcing decision; absent, take them from `requirements-definition.md`'s NFR table, and ask what neither states (@rules/open-questions.md) |
+| `work/learned-rules.json` | Optional | the accepted learned rules for this phase (`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/learned_rules.py" <project_dir> list scope=design-data-layer`, @rules/learned-rules.md §4) — apply each and cite its `LR-` in the decision it shaped |
 
 ## Output
 

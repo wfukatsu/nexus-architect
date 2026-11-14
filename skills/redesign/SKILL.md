@@ -54,6 +54,7 @@ list is its interior.
 | reports/02_evaluation/unified-improvement-plan.md | Required | /architect:integrate-evaluations |
 | reports/01_analysis/ubiquitous-language.md | Recommended | /architect:analyze |
 | reports/03_domain/bounded-contexts.md | Optional | /product:map-domains — the product-side Canvas per `CTX-`; keep the `CTX-` id and say what changed when a boundary moves |
+| `work/learned-rules.json` | Optional | the accepted learned rules for this phase (`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/learned_rules.py" <project_dir> list scope=redesign`, @rules/learned-rules.md §4) — apply each and cite its `LR-` in the decision it shaped |
 
 ## Output
 

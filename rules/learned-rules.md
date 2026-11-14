@@ -37,32 +37,42 @@ python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/learned_rules.py" <project_dir> propose
 
 The tool deduplicates on the sentence, so phrase the rule as a rule, not as the finding ("every
 non-2xx response is a registered problem type", not "confirmOrder returns an ad-hoc 500"). A
-proposal is a `RULE_PROPOSED` audit event. Under `--auto`, or when `options.learnings` is
-`false` (`--no-learnings` on the orchestrators), the synthesizer proposes nothing and says so.
+proposal is a `RULE_PROPOSED` audit event whose `phase` is the proposing skill (`phase=`,
+`review-synthesizer` by default). The one switch is `options.learnings`: when it is `false`
+(`--no-learnings` on the orchestrators) the synthesizer proposes nothing and says so; an automated
+run proposes as an interactive one does — what differs is who decides (§3).
 
 `review-issue` keeps its own catalogue for the backlog (its Step 3b); a lesson there that
 generalizes beyond this backlog — a contract, a data-model or a transaction rule any project
-would want — is proposed here as well, with the Issue as `finding=`.
+would want — is proposed here as well, with the Issue as `finding=` and `phase=review-issue`.
+Writes hold a lock on `<store>.lock`, so parallel proposers — sub-agents, or two projects on one
+shared store — never share an id or lose a rule.
 
 ## 3. Deciding — a person
 
 A proposed rule is a question for the architect (or the role its category belongs to,
-@docs/decision-roles.md). `/architect:start` puts the proposals a synthesizer run returned to the
-user with the phase's other questions — one `AskUserQuestion` per rule, accept or reject, "Other"
-carrying a rewording — and records each:
+@docs/decision-roles.md). `/architect:start` decides them at two moments — **at the start of a
+run**, before the first design phase, for every rule the store holds `proposed` (what an earlier
+`/architect:pipeline` run or another project on a shared store left behind), and **after its own
+`review-synthesizer` phase**, for the ids that phase returned — with the phase's other questions:
+one `AskUserQuestion` per rule, accept or reject, "Other" carrying a rewording; and records each:
 
 ```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/learned_rules.py" <project_dir> list status=proposed format=json
 python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/learned_rules.py" <project_dir> decide LR-003 accepted by="<name>" reason="<why>"
 ```
 
 A decision is a `RULE_ACCEPTED` / `RULE_REJECTED` audit event. `/architect:pipeline` has nobody
-to ask: proposals stay `proposed` and are listed in its final message. A rejected rule proposed
+to ask: its proposals stay `proposed`, its final message lists them, and the next
+`/architect:start` on the project (or on any project sharing the store) decides them before it
+designs anything — that is what closes the loop for automated runs. A rejected rule proposed
 again becomes a new id — the rejection is a decision about that sentence, not a ban on the topic.
 
 ## 4. Reading — the design skills
 
-`design-microservices`, `design-api`, `design-scalardb` / `design-data-layer` and
-`design-implementation` read the accepted rules for their phase before deciding anything:
+`redesign`, `design-aggregate`, `design-microservices`, `design-api`, `design-scalardb` /
+`design-data-layer` and `design-implementation` read the accepted rules for their phase before
+deciding anything (each names the store in its Prerequisites):
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/learned_rules.py" <project_dir> list scope=<this phase>
