@@ -7,6 +7,35 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.54.0] - 2026-11-14
+
+### Added
+- **architect パイプラインのワークフロープロファイルと実行深度**（#124、#132）。コアパイプラインは依頼の
+  内容にかかわらず 29 フェーズすべてを実行していた（product プラグインには既に `--profile` があった）。
+  `skills/common/skill-dependencies.yaml` に 2 つのデータ表を追加した。`profiles` は実行する基幹フェーズを
+  名指しする — `full`（全フェーズ。指定が無いときの実行）、`enterprise`（`full` を comprehensive 深度で）、
+  `poc`（目標アーキテクチャと API 契約までの最短経路、レビュー 2 観点）、`analysis`（調査と評価のみ。
+  `--analyze-only` が実行していたもの）。`depths` は `minimal` / `standard` / `comprehensive` で、
+  `review-synthesizer` に入るレビュー観点、`evidence_gated: true` を付けた 6 つの任意フェーズに対する
+  `optional_phases` モード（`none` / `evidence` / `all`）、観点が独立レビュアーを起動するかを決める。
+  `/architect:pipeline` と `/architect:start` は `--profile` と `--depth` を受け取る。pipeline の
+  § Profile and Depth に、フェーズ集合の解決と記録（`options.profile`、`options.depth`）、実行対象外の
+  フェーズを summary `outside profile <name>` / `depth <name>` の `skipped` として記録すること、minimal 深度で
+  レビュー観点が自分で採点するのは利用者の選択であり `warnings` ではなく options に記録することを書いた。
+  `/architect:start` は初期化時の質問バッチで依頼文からプロファイルを提案し、3 つの Option 節は深度に従う。
+  どのプロファイルも、列挙したフェーズの必須依存を同じプロファイル内で実行することを
+  `tools/lib/pipeline_status_data.test.py` が固定する。
+- **ダッシュボードがプロファイルを読む。** `/architect:report-status` は `options.profile` / `options.depth` を
+  manifest に対して解決し、実行対象外のフェーズを `profile` または `depth` として除外表示する（詳細欄に理由、
+  ヘッダに `profile … · depth …`、日英）。未定義の名前は警告を出して何も除外しない。手動拡張ティアには
+  触れない。除外された依存先が依存元をブロックすることはない。
+
+### Changed
+- `skills/common/subagent-model.test.py` は manifest の `phases:` ブロックだけを読む（追加したプロファイル名を
+  スキルディレクトリとして読んでいた）。
+- ドキュメント: 進捗レジストリの options 表（`profile`、`depth`）、両言語のスキルカタログ、README
+  § Profiles and Depth、AGENTS.md（1 文）、`docs/test-suites.md`。
+
 ## [0.53.1] - 2026-11-12
 
 ### Changed
