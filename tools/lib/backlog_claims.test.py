@@ -82,14 +82,23 @@ def main():
         except ValueError:
             check("an item id that is not an id is refused", True)
         events = [(e["event"], e["phase"], e["actor"]) for e in A.read_events(repo)]
-        check("claims and releases are audit events",
-              events == [("ITEM_CLAIMED", "I1.2.3", "Alice Dev"), ("ITEM_CLAIMED", "I1.2.3", "Bob Dev"),
+        check("claims and releases are audit events; a steal releases the holder's claim first",
+              events == [("ITEM_CLAIMED", "I1.2.3", "Alice Dev"), ("ITEM_RELEASED", "I1.2.3", "Bob Dev"),
+                         ("ITEM_CLAIMED", "I1.2.3", "Bob Dev"),
                          ("ITEM_CLAIMED", "I1.2.4", "Alice Dev"), ("ITEM_RELEASED", "I1.2.4", "Alice Dev")], events)
+        check("the steal's release names the previous holder",
+              A.read_events(repo, event="ITEM_RELEASED")[0]["detail"] == "stolen from Alice Dev")
         check("the text listing shows the integration branch and state",
               "I1.2.3" in C.render_text(C.listing(repo)) and "-> integration/E1" in C.render_text(C.listing(repo, False)))
 
         print("worktrees")
-        wt = C.worktree_add(repo, "I1.2.3")
+        try:
+            C.worktree_add(repo, "I1.2.3")          # Alice (git user.name) on Bob's Issue
+            check("a worktree on an Issue another person holds is refused", False)
+        except C.Contested as exc:
+            check("a worktree on an Issue another person holds is refused", exc.holder["claimed_by"] == "Bob Dev")
+        check("the refusal exits 3 on the command line", cli(repo, "worktree", "add", "I1.2.3").returncode == 3)
+        wt = C.worktree_add(repo, "I1.2.3", by="Bob Dev")
         check("a worktree is created under ../<project>-worktrees/<item> on feat/<item> from the current branch",
               os.path.realpath(wt["worktree"]) == os.path.realpath(os.path.join(root, "proj-worktrees", "I1.2.3"))
               and wt["branch"] == "feat/I1.2.3"
@@ -116,7 +125,10 @@ def main():
         check("remove deletes the worktree directory but keeps the branch and its commit",
               removed["removed"] and not os.path.exists(wt["worktree"])
               and git(repo, "show-ref", "--verify", "--quiet", "refs/heads/feat/I1.2.3").returncode == 0)
-        wt2 = C.worktree_add(repo, "I1.2.3", root=os.path.join(root, "custom"))
+        wt2 = C.worktree_add(repo, "I1.2.3", root=os.path.join(root, "custom"), steal=True)
+        check("steal=true on worktree add takes the claim first",
+              C.listing(repo)[0]["claimed_by"] == "Alice Dev" and C.listing(repo)[0]["stolen_from"] == "Bob Dev"
+              and C.listing(repo)[0]["worktree"] == wt2["worktree"], C.listing(repo))
         check("an existing branch is checked out rather than recreated, under a custom root",
               os.path.realpath(wt2["worktree"]) == os.path.realpath(os.path.join(root, "custom", "I1.2.3"))
               and os.path.isfile(os.path.join(wt2["worktree"], "f.txt")))
@@ -153,6 +165,33 @@ def main():
               and subprocess.run([sys.executable, os.path.join(HERE, "backlog_claims.py")], capture_output=True).returncode == 2)
         check("a non-repository exits 1 on worktree add",
               cli(os.path.join(root), "worktree", "add", "I1").returncode == 1)
+
+        print("locking and identity")
+        procs = [subprocess.Popen([sys.executable, os.path.join(HERE, "backlog_claims.py"), repo, "claim",
+                                   "P%d" % i, "by=Worker%d" % i], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                 for i in range(12)]
+        outs = [p.communicate() for p in procs]
+        held = {c["item"] for c in C.listing(repo)}
+        check("twelve concurrent claims on twelve items all land",
+              all(p.returncode == 0 for p in procs) and {"P%d" % i for i in range(12)} <= held, [o[1] for o in outs if o[1]])
+        procs = [subprocess.Popen([sys.executable, os.path.join(HERE, "backlog_claims.py"), repo, "claim",
+                                   "RACE", "by=Racer%d" % i], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                 for i in range(6)]
+        codes = [p.wait() for p in procs]
+        check("six concurrent claims on one item: exactly one wins, the rest exit 3",
+              sorted(codes) == [0, 3, 3, 3, 3, 3] and len([c for c in C.listing(repo) if c["item"] == "RACE"]) == 1, codes)
+        check("no temp file is left behind",
+              not [f for f in os.listdir(os.path.join(repo, "reports", "backlog")) if ".tmp" in f])
+        git(repo, "config", "user.name", "")
+        try:
+            C.claim(repo, "I9.9")
+            check("no git user.name and no by= is refused, never recorded as unknown", False)
+        except ValueError:
+            check("no git user.name and no by= is refused, never recorded as unknown", True)
+        r = cli(repo, "claim", "I9.9")
+        check("the refusal exits 2 and names by=", r.returncode == 2 and "by=" in r.stderr, r.stderr)
+        check("by= still works without a configured name", cli(repo, "claim", "I9.9", "by=Zed").returncode == 0)
+        git(repo, "config", "user.name", "Alice Dev")
     finally:
         shutil.rmtree(root, ignore_errors=True)
     print("%d failure(s)" % FAILURES)

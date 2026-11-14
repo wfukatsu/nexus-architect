@@ -10,19 +10,29 @@ releases the claim after the merge (skills/common/backlog-claims.md).
     python3 tools/lib/backlog_claims.py <project_dir> claim <item> [by=…] [branch=…] [worktree=…] [integration=…] [steal=true]
     python3 tools/lib/backlog_claims.py <project_dir> release <item> [by=…] [reason=…]
     python3 tools/lib/backlog_claims.py <project_dir> list [active=true|false] [format=text|json]
-    python3 tools/lib/backlog_claims.py <project_dir> worktree add <item> [root=…] [branch=…] [base=…]
+    python3 tools/lib/backlog_claims.py <project_dir> worktree add <item> [root=…] [branch=…] [base=…] [by=…] [steal=true]
     python3 tools/lib/backlog_claims.py <project_dir> worktree remove <item> [force=true]
 
 `claim` exits 3 when another person holds the item (the holder is printed) unless `steal=true`,
-which records the previous holder in the new claim's `stolen_from`. The default `by` is
-`git config user.name`. `worktree add` creates `<root>/<item>` (`root` defaults to
-`../<project>-worktrees`) on `branch` (default `feat/<item>`), from `base` (default the current
-branch of the project) — a new branch, or the existing one when it already exists — and records
-the path and branch on the item's claim. `worktree remove` refuses a checkout with modified or
-untracked files (they are listed; `force=true` discards them) and keeps the branch. Every claim,
-release and worktree is an audit event (ITEM_CLAIMED / ITEM_RELEASED). Exit 0; 1 when the project
-is not a git repository or git fails; 2 on a usage error; 3 on a contested claim or a dirty worktree.
+which releases the holder's claim as `stolen` (an ITEM_RELEASED event naming the taker) and
+records the previous holder in the new claim's `stolen_from`. The default `by` is
+`git config user.name`; with none set, `by=` is required (exit 2) — a claim by "unknown" would
+make every unnamed person one holder. `worktree add` creates `<root>/<item>` (`root` defaults to
+`../<project>-worktrees`; a `#42` item becomes `issue-42`) on `branch` (default `feat/<item>`),
+from `base` (default the current branch of the project) — a new branch, or the existing one when
+it already exists — and records the path and branch on the item's claim; when another person
+holds the item it exits 3 like `claim`, unless `steal=true`. `worktree remove` refuses a checkout
+with modified or untracked files (they are listed; `force=true` discards them) and keeps the
+branch. Every write holds `claims.json.lock` around read-modify-write and goes through a
+per-process temp file, so two claimers of one item never both win. Every claim, release and
+worktree is an audit event (ITEM_CLAIMED / ITEM_RELEASED). Exit 0; 1 when the project is not a
+git repository or git fails; 2 on a usage error; 3 on a contested claim or a dirty worktree.
+
+The file is this checkout's record; the tracker (assignee + `claim::<login>` label) is the fact
+other machines see — skills/common/backlog-claims.md says which skill writes which.
 """
+import contextlib
+import fcntl
 import json
 import os
 import re
@@ -73,10 +83,23 @@ def load(project_dir):
     return data
 
 
+@contextlib.contextmanager
+def locked(project_dir):
+    """Hold `claims.json.lock` for a read-modify-write of the claims file."""
+    path = claims_path(project_dir)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path + ".lock", "a") as lock:
+        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+
+
 def save(project_dir, data):
     path = claims_path(project_dir)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    tmp = path + ".tmp"
+    tmp = "%s.%d.tmp" % (path, os.getpid())
     with open(tmp, "w", encoding="utf-8") as fh:
         json.dump(data, fh, ensure_ascii=False, indent=2)
         fh.write("\n")
@@ -84,10 +107,14 @@ def save(project_dir, data):
 
 
 def actor(project_dir, by=None):
+    """`by`, else `git config user.name`; never a placeholder — one "unknown" holding every
+    unnamed person's Issues would defeat the claim."""
     if by:
         return by
     name = AUDIT.actor_name(project_dir) if AUDIT else None
-    return name or "unknown"
+    if not name:
+        raise ValueError("git config user.name is not set here; pass by=<name>")
+    return name
 
 
 def active(data, item):
@@ -107,45 +134,49 @@ def claim(project_dir, item, by=None, branch=None, worktree=None, integration=No
     if not ITEM_RE.match(item or ""):
         raise ValueError("item must be a backlog id such as I1.2.3 or #42")
     who = actor(project_dir, by)
-    data = load(project_dir)
-    current = active(data, item)
-    stolen_from = None
-    if current and current["claimed_by"] != who:
-        if not steal:
-            raise Contested(current)
-        current["released_at"] = now_iso()
-        current["released_by"] = who
-        current["reason"] = "stolen"
-        stolen_from = current["claimed_by"]
-    elif current:
-        # The same person again: refresh what they told us, keep the claim.
-        for key, value in (("branch", branch), ("worktree", worktree), ("integration_branch", integration)):
-            if value:
-                current[key] = value
-        current["updated_at"] = now_iso()
+    with locked(project_dir):
+        data = load(project_dir)
+        current = active(data, item)
+        stolen_from = None
+        if current and current["claimed_by"] != who:
+            if not steal:
+                raise Contested(current)
+            current["released_at"] = now_iso()
+            current["released_by"] = who
+            current["reason"] = "stolen"
+            stolen_from = current["claimed_by"]
+        elif current:
+            # The same person again: refresh what they told us, keep the claim.
+            for key, value in (("branch", branch), ("worktree", worktree), ("integration_branch", integration)):
+                if value:
+                    current[key] = value
+            current["updated_at"] = now_iso()
+            save(project_dir, data)
+            return current, False
+        record = {"item": item, "claimed_by": who, "claimed_at": now_iso(), "updated_at": now_iso(),
+                  "branch": branch or None, "worktree": worktree or None,
+                  "integration_branch": integration or None, "stolen_from": stolen_from,
+                  "released_at": None, "released_by": None, "reason": None}
+        data["claims"].append(record)
         save(project_dir, data)
-        return current, False
-    record = {"item": item, "claimed_by": who, "claimed_at": now_iso(), "updated_at": now_iso(),
-              "branch": branch or None, "worktree": worktree or None,
-              "integration_branch": integration or None, "stolen_from": stolen_from,
-              "released_at": None, "released_by": None, "reason": None}
-    data["claims"].append(record)
-    save(project_dir, data)
+    if stolen_from:
+        _audit(project_dir, "ITEM_RELEASED", item, who, "stolen from %s" % stolen_from)
     _audit(project_dir, "ITEM_CLAIMED", item, who,
            "stolen from %s" % stolen_from if stolen_from else (branch or "claimed"))
     return record, True
 
 
 def release(project_dir, item, by=None, reason=None):
-    data = load(project_dir)
-    current = active(data, item)
-    if current is None:
-        raise KeyError(item)
     who = actor(project_dir, by)
-    current["released_at"] = now_iso()
-    current["released_by"] = who
-    current["reason"] = (reason or "").strip() or "released"
-    save(project_dir, data)
+    with locked(project_dir):
+        data = load(project_dir)
+        current = active(data, item)
+        if current is None:
+            raise KeyError(item)
+        current["released_at"] = now_iso()
+        current["released_by"] = who
+        current["reason"] = (reason or "").strip() or "released"
+        save(project_dir, data)
     _audit(project_dir, "ITEM_RELEASED", item, who, current["reason"])
     return current
 
@@ -176,7 +207,19 @@ def _branch_exists(project_dir, branch):
     return _git(project_dir, "show-ref", "--verify", "--quiet", "refs/heads/%s" % branch).returncode == 0
 
 
-def worktree_add(project_dir, item, root=None, branch=None, base=None):
+def worktree_add(project_dir, item, root=None, branch=None, base=None, by=None, steal=False):
+    """Create the item's worktree and record it on the item's claim.
+
+    An item another person holds is refused (`Contested`, exit 3) unless `steal`, which takes
+    the claim first — a worktree is where the work happens, so it is the holder's. An item
+    nobody holds gets its worktree without a claim being made (the claim is the skill's step)."""
+    holder = active(load(project_dir), item) if os.path.isfile(claims_path(project_dir)) else None
+    if holder is not None:
+        who = actor(project_dir, by)
+        if holder["claimed_by"] != who:
+            if not steal:
+                raise Contested(holder)
+            claim(project_dir, item, by=who, steal=True)
     if not ITEM_RE.match(item or ""):
         raise ValueError("item must be a backlog id such as I1.2.3 or #42")
     top = _git(project_dir, "rev-parse", "--show-toplevel")
@@ -198,11 +241,12 @@ def worktree_add(project_dir, item, root=None, branch=None, base=None):
         result = _git(project_dir, "worktree", "add", "-b", branch, path, base)
     if result.returncode != 0:
         raise OSError((result.stderr or result.stdout).strip())
-    data = load(project_dir)
-    current = active(data, item)
-    if current:
-        current["worktree"], current["branch"], current["updated_at"] = path, branch, now_iso()
-        save(project_dir, data)
+    with locked(project_dir):
+        data = load(project_dir)
+        current = active(data, item)
+        if current:
+            current["worktree"], current["branch"], current["updated_at"] = path, branch, now_iso()
+            save(project_dir, data)
     return {"item": item, "worktree": path, "branch": branch, "base": base}
 
 
@@ -224,9 +268,14 @@ def worktree_remove(project_dir, item, force=False):
     result = _git(project_dir, "worktree", "remove", *(["--force"] if force else []), current["worktree"])
     if result.returncode != 0:
         raise OSError((result.stderr or result.stdout).strip())
-    current["worktree"] = None
-    current["updated_at"] = now_iso()
-    save(project_dir, data)
+    with locked(project_dir):
+        data = load(project_dir)
+        current = active(data, item) or next(
+            (c for c in reversed(data["claims"]) if c["item"] == item and c.get("worktree")), None)
+        if current:
+            current["worktree"] = None
+            current["updated_at"] = now_iso()
+            save(project_dir, data)
     return {"item": item, "removed": True}
 
 
@@ -278,9 +327,10 @@ def main(argv):
             if len(argv) < 4 or argv[2] not in ("add", "remove"):
                 raise ValueError("worktree needs add|remove <item>")
             if argv[2] == "add":
-                kv = _kv(argv[4:], ("root", "branch", "base"))
+                kv = _kv(argv[4:], ("root", "branch", "base", "by", "steal"))
                 sys.stdout.write(json.dumps(worktree_add(project, argv[3], kv.get("root"), kv.get("branch"),
-                                                         kv.get("base"))) + "\n")
+                                                         kv.get("base"), kv.get("by"),
+                                                         kv.get("steal", "").lower() == "true")) + "\n")
             else:
                 kv = _kv(argv[4:], ("force",))
                 sys.stdout.write(json.dumps(worktree_remove(project, argv[3],
@@ -293,7 +343,7 @@ def main(argv):
         return 3
     except Contested as exc:
         sys.stderr.write("backlog_claims: %s is held by %s since %s (steal=true to take it)\n" % (
-            argv[2], exc.holder["claimed_by"], exc.holder["claimed_at"]))
+            exc.holder["item"], exc.holder["claimed_by"], exc.holder["claimed_at"]))
         return 3
     except KeyError as exc:
         sys.stderr.write("backlog_claims: no active claim on %s\n" % exc.args[0])

@@ -101,7 +101,8 @@ merge comment, so the deferral stays deliverable.
 - GitHub: `gh pr merge <number> [--squash|--merge|--rebase] [--delete-branch]`.
 Capture the merge commit SHA / result, and record it: `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/audit_log.py" <project_dir> PR_MERGED phase=<issue id>
 ref=<pr/mr url> detail=<merge commit sha>`. Release the Issue's claim — `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/backlog_claims.py" <project_dir> release <item>
-reason=merged` (@skills/common/backlog-claims.md) — and, when the claim records a worktree,
+reason=merged` (@skills/common/backlog-claims.md), remove the Issue's `claim::` label on the
+tracker (the assignee stays as history) — and, when the claim records a worktree,
 remove it (`worktree remove <item>`; the branch stays). The removal exits 3 and lists the files
 when the checkout still has uncommitted or untracked work: leave the worktree, report the files,
 and let the user decide — never pass `force=true` on their behalf.
