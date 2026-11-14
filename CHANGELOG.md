@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.60.2] - 2026-11-15
+
+Two more defects from the review of v0.53.1..v0.60.0 (tracking #158): #150 and #151, PR #161.
+
+### Fixed
+- **Workshop `collect` respects the store** (#150). `tools/lib/workshop_sheet.py collect` rewrote
+  rows the store already held `answered` (the rule says the store supersedes a stale sheet),
+  appended `QUESTION_ANSWERED` again on every run, and wrote `|` unescaped so an answer with a
+  pipe shifted the row's later cells. Rows answered meanwhile are now reported `superseded` and
+  left alone (`overwrite=true` makes the sheet win), only rows actually changed are logged, and a
+  pipe is stored as `\|` (`open_questions.escape_cell`; `split_cells` reads it back as `|`).
+- **Excluded phases shed stale stamps** (#151). A phase outside the run's profile, depth or
+  `skip_phases` kept a recorded `in_progress` / `awaiting_approval` / `revising` and was shown as
+  the current phase; a `skipped` whose summary named an exclusion ("outside profile poc", "depth
+  minimal") stayed skipped after the profile widened; `resume_point` was passed through whatever it
+  named. `tools/lib/pipeline_status_data.py` now shows a live status under an exclusion as
+  `skipped` with a warning naming the stamp, reads such a skip as `pending` again once the
+  exclusion no longer holds, and drops a resume point naming an excluded phase or no phase, with a
+  warning. The registry contract, `/architect:pipeline` and `/architect:start` state the rules.
+
 ## [0.60.1] - 2026-11-15
 
 A review of v0.53.1..v0.60.0 (tracking #158) found twelve defects and gaps; this release fixes the
