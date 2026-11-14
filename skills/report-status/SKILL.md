@@ -6,6 +6,8 @@ argument-hint: '[--once] [--view=product|architect|codegen|backlog] [--group=cor
 allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh *)
   - 'Bash("${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh" *)'
+  - Bash(python3 ${CLAUDE_PLUGIN_ROOT}/tools/lib/open_questions.py *)
+  - 'Bash(python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/open_questions.py" *)'
 model: haiku
 disable-model-invocation: true
 ---
@@ -59,6 +61,7 @@ One script does the whole job: `${CLAUDE_PLUGIN_ROOT}/tools/nexus-status.sh`.
 | report file | `... --md[=PATH]` | Also write Markdown (default `reports/pipeline-status.md`, or `reports/codegen-status.md` for `--view=codegen`) |
 | custom poll interval | `... --watch=SEC` | Live dashboard re-checking the inputs every SEC seconds (default 10; `--live` is the same flag) |
 | display fixes | `... --ascii`, `--glyphs=auto\|ascii\|unicode`, `--ambiguous-width=2`, `--color\|--no-color`, `--lang=ja\|en`, `--width=N`, `--debug` | Same semantics as `tools/token-cost-report.sh` — see that skill's "When the bars look wrong" table |
+| who is waited on | `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/open_questions.py" <project_dir> by=role` (also `by=owner\|status\|phase`, `status=all`, `format=json`) | The open questions of `work/context.md` grouped by decision role (@docs/decision-roles.md) — run it when the tree shows a phase `awaiting_approval`, so the answer names whose answer it waits on |
 
 Exit codes: `0` rendered, `1` no project (or the view's input file is missing), `2` bad
 usage — an unknown option, and also an unknown `--phase`, which is reported with the

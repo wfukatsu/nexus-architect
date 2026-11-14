@@ -2,7 +2,7 @@
 description: |
   Model the lifecycle of aggregates with the user: states, events, guarded transitions, the state x
   event matrix and each transition's consistency class. Runs after redesign.
-argument-hint: '[--aggregate=<name>] [--auto] [--lang=en|ja]'
+argument-hint: '[--aggregate=<name>] [--auto] [--workshop] [--lang=en|ja]'
 model: opus
 ---
 
@@ -33,13 +33,14 @@ The modeling method, the seven well-formedness rules and the concurrency contrac
 ## Invocation
 
 ```
-/architect:design-state-machine [--aggregate=<name>] [--auto] [--lang=en|ja]
+/architect:design-state-machine [--aggregate=<name>] [--auto] [--workshop] [--lang=en|ja]
 ```
 
 - `--aggregate` — Model this aggregate only (e.g. `Order`, `Reservation`). Selected interactively
   when omitted.
 - `--auto` — Skip facilitation and derive the models from existing reports. Lower fidelity; this is
   the mode `/architect:pipeline` uses.
+- `--workshop` — Hand the questions this phase would ask to a room instead of the session: they are recorded in the store, rendered to `work/workshop/<phase>.md`, the phase is stamped `awaiting_approval` and the run stops; the next run collects the sheet and continues (@rules/open-questions.md §9). Not with `--auto`.
 - `--lang` — Output language for the generated documents. Defaults to
   `options.output_language` in `work/pipeline-progress.json`.
 

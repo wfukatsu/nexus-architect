@@ -97,8 +97,9 @@ def validate_record(name, text):
         errors.append("%s: id must match ADR-###" % name)
     elif match and _number(record_id) != int(match.group(1)):
         errors.append("%s: id %s does not match the number in the file name" % (name, record_id))
-    if str(data.get("schema_version")) != "1":
-        errors.append("%s: schema_version must be 1" % name)
+    schema = str(data.get("schema_version"))
+    if schema not in ("1", "2"):
+        errors.append("%s: schema_version must be 1 or 2" % name)
     for key in ("title", "skill"):
         if not _text(data.get(key)):
             errors.append("%s: %s is required" % (name, key))
@@ -127,6 +128,24 @@ def validate_record(name, text):
                 errors.append("%s: supersedes entry %r is not an ADR id" % (name, old))
             elif _number(old) == _number(record_id):
                 errors.append("%s: supersedes itself" % name)
+    # Who decided and who approved (rules/architecture-decision-records.md §2, docs/decision-roles.md).
+    # Required at schema_version 2; a schema_version 1 record predates the fields and may omit
+    # them, but what it does carry must be well-formed.
+    for key in ("deciders", "approved_by", "evidence"):
+        value = data.get(key)
+        if value is None or value == "":
+            if schema == "2" and key == "deciders":
+                errors.append("%s: deciders is required at schema_version 2 — who took the "
+                              "decision (roles or names, docs/decision-roles.md)" % name)
+            continue
+        if isinstance(value, str):
+            value = [value]
+            data[key] = value
+        if not isinstance(value, list) or not value or not all(_text(v) for v in value):
+            errors.append("%s: %s must be a non-empty list of names" % (name, key))
+    if schema == "2" and data.get("status") == "accepted" and not data.get("approved_by"):
+        errors.append("%s: status accepted requires approved_by — a proposed record is promoted "
+                      "by whoever answered its question, and the record says who" % name)
     body = text[text.find("\n---", 3) + 4:]
     for heading in HEADINGS:
         if not re.search(r"^%s\s*$" % re.escape(heading), body, re.M):

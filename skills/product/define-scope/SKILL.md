@@ -2,7 +2,7 @@
 description: |
   Decide product scope, what it will and will not do, from normalized constraints using MoSCoW and
   RICE, anchored to the success metrics.
-argument-hint: '[--constraints=<file|text>] [--input=<file|dir>] [--auto] [--lang=ja|en]'
+argument-hint: '[--constraints=<file|text>] [--input=<file|dir>] [--auto] [--workshop] [--lang=ja|en]'
 model: sonnet
 ---
 
@@ -11,7 +11,7 @@ model: sonnet
 Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
 plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
-**Usage:** `/product:define-scope [--constraints=<file|text>] [--input=<file|dir>] [--auto] [--lang=ja|en]`
+**Usage:** `/product:define-scope [--constraints=<file|text>] [--input=<file|dir>] [--auto] [--workshop] [--lang=ja|en]`
 
 ## Desired Outcome
 
@@ -27,7 +27,7 @@ Produce two deliverables:
 ## Invocation
 
 ```
-/product:define-scope [--constraints=<file|text>] [--input=<file|dir>]... [--auto] [--lang=ja|en]
+/product:define-scope [--constraints=<file|text>] [--input=<file|dir>]... [--auto] [--workshop] [--lang=ja|en]
 ```
 
 | Argument/Flag | Required | Description |
@@ -35,6 +35,7 @@ Produce two deliverables:
 | `--constraints=<file\|text>` | Recommended | Budget / deadline / tech / legal / org constraints |
 | `--input=<file\|dir>` | Optional, repeatable | Additional source material |
 | `--auto` | Optional | Skip elicitation; unknowns → `TBD`, recorded `unasked` with the options that would have been offered (@rules/open-questions.md §5) |
+| `--workshop` | Optional | Hand the questions this phase would ask to a room instead of the session: they are recorded in the store, rendered to `work/workshop/<phase>.md`, the phase is stamped `awaiting_approval` and the run stops; the next run collects the sheet and continues (@rules/open-questions.md §9). Not with `--auto`. |
 | `--lang` | Optional | Override output language |
 
 ## Decision Criteria

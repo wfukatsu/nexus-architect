@@ -2,7 +2,7 @@
 description: |
   Validation gate: extract the riskiest assumptions, attach the cheapest test and a kill threshold
   to each, and return Go or No-Go. Rerun as evidence arrives.
-argument-hint: '[--auto] [--lang=ja|en]'
+argument-hint: '[--auto] [--workshop] [--lang=ja|en]'
 model: opus
 ---
 
@@ -28,12 +28,13 @@ Produce two deliverables and a gate verdict:
 ## Invocation
 
 ```
-/product:validate-assumptions [--auto] [--lang=ja|en]
+/product:validate-assumptions [--auto] [--workshop] [--lang=ja|en]
 ```
 
 | Argument/Flag | Required | Description |
 |---------------|----------|-------------|
 | `--auto` | Optional | Generate without elicitation; record gaps as `TBD` |
+| `--workshop` | Optional | Hand the questions this phase would ask to a room instead of the session: they are recorded in the store, rendered to `work/workshop/<phase>.md`, the phase is stamped `awaiting_approval` and the run stops; the next run collects the sheet and continues (@rules/open-questions.md §9). Not with `--auto`. The business sponsor's go / no-go belongs on this sheet |
 | `--lang` | Optional | Override output language |
 
 ## Decision Criteria
@@ -66,7 +67,11 @@ Produce two deliverables and a gate verdict:
 4. **Plan** — for each top assumption assign the cheapest credible test and a kill/pivot
    threshold. Apply `@rules/product/assumption-validation.md`.
 5. **Verdict** — compute `go` / `no-go`; write it (and `open_assumptions`) to
-   `pipeline-progress.json` → `gates`.
+   `pipeline-progress.json` → `gates`, and record it in the audit log:
+   `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/audit_log.py" <project_dir> VERDICT_RECORDED
+   phase=validate-assumptions plugin=product ref=reports/00_core/validation-plan.md detail=<go|no-go>`
+   (@skills/common/progress-registry.md § Audit Log; the business sponsor who confirms it is
+   `GATE_APPROVED` / `GATE_REJECTED` with the same `ref`, per @docs/decision-roles.md).
 6. **Append traceability** — add `ASM-` nodes to `work/traceability.json` with upstream
    `VIS-`/`SCP-`/`NSM-`/revenue references (so `adapt-change` can re-open the gate).
 7. **Record** — write both files; append the verdict to `work/context.md`.
