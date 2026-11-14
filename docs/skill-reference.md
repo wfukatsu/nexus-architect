@@ -260,7 +260,7 @@ path by their router, so they are not slash commands and have no signature here.
 /product:init-output [project_name] [--reset]
 
 # Requirements, investigation, analysis, evaluation
-/architect:define-requirements [target_path] [--input=<file|dir>] [--auto] [--no-scalardb]
+/architect:define-requirements [target_path] [--input=<file|dir>] [--auto] [--workshop] [--no-scalardb]
 /architect:investigate [target_path]
 /architect:investigate-security [target_path]
 /architect:investigate-db-design [input_path] [--product=<id>] [--schema=<name>] [--target-id=<id>] [--version=<version>] [--lang=ja|en]
@@ -277,8 +277,8 @@ path by their router, so they are not slash commands and have no signature here.
 /architect:map-domains
 /architect:redesign
 /architect:create-domain-story [--domain=<name>] [--mode=story|event-storming] [--auto]
-/architect:design-aggregate [--aggregate=<name>] [--context=<name>] [--auto] [--lang=en|ja]
-/architect:design-state-machine [--aggregate=<name>] [--auto] [--lang=en|ja]
+/architect:design-aggregate [--aggregate=<name>] [--context=<name>] [--auto] [--workshop] [--lang=en|ja]
+/architect:design-state-machine [--aggregate=<name>] [--auto] [--workshop] [--lang=en|ja]
 /architect:design-microservices
 /architect:select-scalardb-edition
 /architect:design-scalardb
@@ -371,8 +371,8 @@ path by their router, so they are not slash commands and have no signature here.
 /product:define-success-metrics [--auto] [--lang=ja|en]
 /product:research-landscape [target] [--input=<file|dir>] [--auto] [--lang=ja|en] [--no-research]
 /product:design-revenue [--input=<file|dir>] [--auto] [--lang=ja|en]
-/product:define-scope [--constraints=<file|text>] [--input=<file|dir>] [--auto] [--lang=ja|en]
-/product:validate-assumptions [--auto] [--lang=ja|en]
+/product:define-scope [--constraints=<file|text>] [--input=<file|dir>] [--auto] [--workshop] [--lang=ja|en]
+/product:validate-assumptions [--auto] [--workshop] [--lang=ja|en]
 /product:generate-persona [--input=<file|dir>] [--auto] [--lang=ja|en]
 /product:map-journey [--auto] [--lang=ja|en]
 /product:design-positioning [--auto] [--lang=ja|en]

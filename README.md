@@ -373,6 +373,15 @@ resume, never skipped; the registry's `resume_point` says where an interrupted d
 continues. `python3 tools/lib/audit_log.py <project> list tail=20` reads the log;
 `skills/common/progress-registry.md` § Audit Log is the contract.
 
+Questions belong to roles, not only to whoever is typing: each Open Question carries a `Role`
+(`docs/decision-roles.md` — product owner, architect, operations, …), each ADR names its
+`deciders` and `approved_by`, and `python3 tools/lib/open_questions.py <project> by=role` lists
+what waits on whom. The dialogue phases (`define-requirements`, `design-aggregate`,
+`design-state-machine`, `/product:define-scope`, `/product:validate-assumptions`) take
+`--workshop`: the questions go to a sheet under `work/workshop/` that several people answer and
+sign, the phase waits as `awaiting_approval`, and the next run collects the answers into the store
+and the audit log (`rules/open-questions.md` §9).
+
 ### ScalarDB Application Development
 
 Build ScalarDB applications with guided schema design, code generation, and code review.

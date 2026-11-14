@@ -3,7 +3,7 @@ description: |
   Define requirements from documents and an interview: FR/NFR, data and transaction needs, an
   example map per requirement, ScalarDB / Saga applicability. Greenfield entry point; also takes
   over product pipeline output.
-argument-hint: '[target_path] [--input=<file|dir>] [--auto] [--no-scalardb]'
+argument-hint: '[target_path] [--input=<file|dir>] [--auto] [--workshop] [--no-scalardb]'
 model: opus
 ---
 
@@ -12,7 +12,7 @@ model: opus
 Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
 plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
-**Usage:** `/architect:define-requirements [target_path] [--input=<file|dir>] [--auto] [--no-scalardb]`
+**Usage:** `/architect:define-requirements [target_path] [--input=<file|dir>] [--auto] [--workshop] [--no-scalardb]`
 
 Accepts additional input documents (RFP, meeting notes, existing design docs) via --input.
 
@@ -31,7 +31,7 @@ Every requirement carries an ID (`FR-xxx` / `NFR-xxx`), a priority, and a data c
 ## Invocation
 
 ```
-/architect:define-requirements [target_path] [--input=<file|dir>]... [--auto] [--no-scalardb]
+/architect:define-requirements [target_path] [--input=<file|dir>]... [--auto] [--workshop] [--no-scalardb]
 ```
 
 | Argument/Flag | Required | Description |
@@ -39,6 +39,7 @@ Every requirement carries an ID (`FR-xxx` / `NFR-xxx`), a priority, and a data c
 | `target_path` | Optional | Existing codebase to reference (brownfield-style requirements definition) |
 | `--input=<file\|dir>` | Optional, repeatable | Additional input documents: RFP, meeting notes, existing design docs, business flow diagrams. Read as text/Markdown/PDF |
 | `--auto` | Optional | Skip elicitation; generate from input documents and existing artifacts only. Unknown items become `TBD` and are recorded in Open Questions as `unasked`, carrying the question and the options that would have been offered (@rules/open-questions.md §5). Error if combined with no inputs at all |
+| `--workshop` | Optional | Hand the questions this phase would ask to a room instead of the session: they are recorded in the store, rendered to `work/workshop/<phase>.md`, the phase is stamped `awaiting_approval` and the run stops; the next run collects the sheet and continues (@rules/open-questions.md §9). Not with `--auto`. |
 | `--no-scalardb` | Optional | Skip the Scalar product applicability assessment (Step 4) |
 
 ## Decision Criteria

@@ -26,13 +26,13 @@ def check(label, condition, detail=""):
 
 
 def record(rid="ADR-001", status="accepted", upstream="[CTX-001, NFR-002]", supersedes="[]",
-           body=None, skill="redesign", decided="2026-08-29", schema="1"):
+           body=None, skill="redesign", decided="2026-08-29", schema="1", extra=""):
     body = body if body is not None else (
         "\n## Context\n\nforces\n\n## Decision\n\nWe will.\n\n"
         "## Alternatives considered\n\n| A | why |\n|---|---|\n\n## Consequences\n\nnone\n")
     return ("---\nid: %s\ntitle: \"A decision\"\nstatus: %s\nskill: %s\ndecided_at: \"%s\"\n"
-            "upstream: %s\nsupersedes: %s\nschema_version: %s\n---\n%s"
-            % (rid, status, skill, decided, upstream, supersedes, schema, body))
+            "upstream: %s\nsupersedes: %s\nschema_version: %s\n%s---\n%s"
+            % (rid, status, skill, decided, upstream, supersedes, schema, extra, body))
 
 
 def index(*ids):
@@ -129,5 +129,25 @@ finally:
     shutil.rmtree(tmp, ignore_errors=True)
 
 print()
+print("Deciders and approvers (schema_version 2, docs/decision-roles.md)")
+v2 = {"adr-001-a.md": record(schema="2", extra="deciders: [architect, product owner]\napproved_by: [\"A. Owner\"]\n")}
+check("a v2 record with deciders and approved_by passes", errors_of(v2, index("ADR-001")) == [],
+      errors_of(v2, index("ADR-001")))
+errs = errors_of({"adr-001-a.md": record(schema="2")}, index("ADR-001"))
+check("v2 without deciders is rejected", any("deciders is required" in e for e in errs), errs)
+errs = errors_of({"adr-001-a.md": record(schema="2", extra="deciders: [architect]\n")}, index("ADR-001"))
+check("v2 accepted without approved_by is rejected", any("requires approved_by" in e for e in errs), errs)
+prop = {"adr-001-a.md": record(schema="2", status="proposed", extra="deciders: [architect]\n")}
+check("v2 proposed needs no approver yet", errors_of(prop, index("ADR-001")) == [],
+      errors_of(prop, index("ADR-001")))
+check("a v1 record without the fields still passes", errors_of(ok, index("ADR-001")) == [])
+errs = errors_of({"adr-001-a.md": record(extra="deciders: []\n")}, index("ADR-001"))
+check("an empty deciders list is malformed at any schema", any("non-empty list" in e for e in errs), errs)
+one = {"adr-001-a.md": record(schema="2", extra="deciders: architect\napproved_by: A. Owner\nevidence: reports/x.md\n")}
+check("a bare scalar is read as a one-item list", errors_of(one, index("ADR-001")) == [],
+      errors_of(one, index("ADR-001")))
+errs = errors_of({"adr-001-a.md": record(schema="3")}, index("ADR-001"))
+check("schema_version 3 is unknown", any("schema_version must be 1 or 2" in e for e in errs), errs)
+
 print("%d check(s), %d failure(s)" % (checks, failures))
 sys.exit(1 if failures else 0)

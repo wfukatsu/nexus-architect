@@ -50,7 +50,10 @@ skill: redesign
 decided_at: "2026-08-28"
 upstream: [CTX-002, AGG-002, NFR-004]
 supersedes: []
-schema_version: 1
+deciders: [architect, domain expert]
+approved_by: ["Dana Architect"]
+evidence: [OQ-014, reports/02_evaluation/ddd-tactical-architecture-evaluation.md]
+schema_version: 2
 ---
 
 ## Context
@@ -83,6 +86,10 @@ Field contracts:
 | `decided_at` | ISO 8601 date the decision was **taken** — for a record written retroactively (the deciding skill ran before ADRs existed), the date of the document that took it, with the Context section saying the record was written later |
 | `upstream` | **Non-empty.** What drove the decision: traceability nodes — a `CTX-`, `FR-`, `NFR-`, `TECH-`, `ARCH-` or another `ADR-` — **that exist in the graph when the record is written** (a `redesign` record cannot cite an `AGG-`, which `design-aggregate` mints later; name the context and the requirement instead). On the legacy path, where `investigate` / `analyze` / `evaluate-*` mint no nodes, cite the report that states the finding as a `reports/...` path (`.md`, or the `.json` of a review finding), optionally with a `#anchor` in any script — Japanese headings included (no whitespace or comma; the anchor is **not** resolved against the document's headings, so name the section in the Context section too). An answered `OQ-` from `work/context.md` is also a valid driver — it is checked against the store, not the graph. Do not pad with a node that did not drive the decision just to have an id. A decision that cites nothing is a preference, not a record |
 | `supersedes` | `ADR-` ids this record replaces; every one must exist and carry `status: superseded` |
+| `deciders` | **Required at `schema_version: 2`.** Who took the decision: roles from @docs/decision-roles.md (`architect`, `domain expert`, `product owner`, …) or names. A facilitated phase names the people in the room; an automated run names the role the decision belongs to |
+| `approved_by` | Who accepted it — names, or roles when the project maps roles to people in `work/context.md` § Decisions. **Required when `status` is `accepted` at `schema_version: 2`**; absent on `proposed`. The skill that promotes a `proposed` record (the one whose answered `OQ-` settles it) writes this field with the answerer — the one case where another skill edits a record beyond `status` |
+| `evidence` | Optional. What the deciders looked at: `OQ-` ids, `reports/` paths, a measurement. Not the drivers (`upstream`), the facts weighed |
+| `schema_version` | `2` for a record written from 0.56.0 on, which carries `deciders` and `approved_by`; `1` for an earlier record, which may omit them. The validator accepts both and checks the fields whichever version carries them |
 
 Body headings are fixed — `Context`, `Decision`, `Alternatives considered`, `Consequences` — so
 the index can be regenerated and reviewers know where to look. Write the body in the project's
@@ -93,8 +100,10 @@ the index can be regenerated and reviewers know where to look. Write the body in
 `reports/03_design/adr/index.md` is a **view** regenerated from the frontmatter whenever a record
 is added or changed — never edited as a source. One row per record, in ID order:
 
-| ID | Title | Status | Skill | Decided | Upstream |
-|----|-------|--------|-------|---------|----------|
+| ID | Title | Status | Skill | Decided | Deciders | Approved by | Upstream |
+|----|-------|--------|-------|---------|----------|-------------|----------|
+
+(An index regenerated over `schema_version: 1` records leaves the two new cells empty.)
 
 The validator checks every record appears in the index and the index names no record that does not
 exist. The index is a `reports/` Markdown file, so it carries the standard frontmatter
@@ -128,7 +137,8 @@ Open Questions store already follow:
   which the validator checks, is still non-empty.
 - **Never rewrite another skill's record.** A later skill that disagrees writes a new record with
   `supersedes: [ADR-old]` and sets the old one's `status: superseded` — the only field another
-  skill may touch. The same restraint applies to another skill's *design document*: when a record
+  skill may touch, apart from the promotion of a `proposed` record (`status: accepted` plus
+  `approved_by`, §2) by the skill whose answered question settled it. The same restraint applies to another skill's *design document*: when a record
   contradicts one (the document rests on a fact the record corrects), say so under Consequences
   naming the document and the skill that owns it — that is a `review-consistency` finding and a
   re-run of the owning skill, not an edit from here.

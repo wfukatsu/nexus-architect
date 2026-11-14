@@ -135,12 +135,17 @@ One row per question:
 | Owner | Who must answer — required for `deferred` / `unasked` / `external` |
 | Impact | Which downstream phases / IDs are blocked or are proceeding on an assumption |
 | Asked at | ISO8601, when it was put to the user |
+| Role | The decision role whose answer the question needs — one of @docs/decision-roles.md (`product owner`, `architect`, `operations`, …). `Owner` is the person, `Role` the seat; a question with an owner and no role is a question nobody can route when the owner leaves |
 
 The store's table opens with exactly this header, and every row follows its column order:
 
 ```
-| ID | Question | Status | Answer | Options offered | Owner | Impact | Asked at |
+| ID | Question | Status | Answer | Options offered | Owner | Impact | Asked at | Role |
 ```
+
+A store written before the `Role` column existed has eight columns; the first skill that writes
+to it appends `| Role |` to the header and an empty cell to every existing row rather than
+starting a second table. Readers find columns by the header, so both shapes read.
 
 The first column is headed `ID`, not `OQ-###`: the report builder and the UI views find the table
 by that cell, and a store headed otherwise read as empty — a report whose summary said "0 open
@@ -185,3 +190,34 @@ Codex and the omnigent loader have no `AskUserQuestion` tool. They present the i
 a numbered list, followed by an explicit "or type your own answer" line, and wait for the reply — a
 typed answer matching no number is a free-text answer and is recorded per §4. See `AGENTS.md`
 § Runtimes.
+
+## 9. Workshop mode — several people answer
+
+`AskUserQuestion` reaches one person in one session. The questions of a requirements, scope,
+aggregate or validation phase belong to a room — the product owner, a domain expert, the
+architect, operations — who are rarely the one typing. A skill that offers `--workshop` runs the
+same elicitation and hands the questions to that room as a sheet instead of asking the session:
+
+1. Derive the questions and their options exactly as §2–§3 say, and record each in the store
+   (§6) with status `unasked`, its options, its `Owner` and its `Role`.
+2. Render the sheet: `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/workshop_sheet.py" <project_dir>
+   render <phase> ids=OQ-###,OQ-### plugin=<plugin>` writes `work/workshop/<phase>.md` — one
+   section per question with its role, tick-box options and `Answer:` / `Answered by:` / `Role:`
+   lines — and appends one `QUESTION_ASKED` per question to the audit log.
+3. Stamp the phase `awaiting_approval` in `work/pipeline-progress.json`, write the resume point
+   (@skills/common/progress-registry.md § Resume Point), tell the user where the sheet is and who
+   it is for (`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/open_questions.py" <project_dir> by=role`
+   lists it), and **stop**. Nothing downstream starts on a `TBD` the room has not seen.
+4. People answer in the sheet — tick one option, or write under `Answer:`, and sign
+   `Answered by:` — in any editor, in any order, over any number of days.
+5. The next run of the phase (with or without `--workshop`) finds the sheet and collects it:
+   `… workshop_sheet.py <project_dir> collect <phase> plugin=<plugin>` writes each answer into
+   its store row (`answered`, the answer, the role when signed), appends `QUESTION_ANSWERED` with
+   the signer as the actor, and prints what was answered and what is still pending. Substitute
+   the answers at their `TBD (OQ-###)` placeholders (§6) and continue from the resume point. A
+   question still pending stays `unasked` and the phase stays `awaiting_approval` — say so, name
+   the role it waits on, and stop again rather than guess.
+
+The sheet is a view (§6): the store is updated from it, never the other way round, and a sheet
+whose questions were answered in-session meanwhile is simply superseded by the store. Under
+`--auto` there is no workshop: `--auto --workshop` is an error, the two mean opposite things.

@@ -2,7 +2,7 @@
 description: |
   Design each bounded context's tactical model with the user: aggregates, entities, value objects,
   invariants with examples, commands and events, plus the Domain Event Catalog. Runs after redesign.
-argument-hint: '[--aggregate=<name>] [--context=<name>] [--auto] [--lang=en|ja]'
+argument-hint: '[--aggregate=<name>] [--context=<name>] [--auto] [--workshop] [--lang=en|ja]'
 model: opus
 ---
 
@@ -38,7 +38,7 @@ The modeling method, the seven well-formedness rules and the transaction-boundar
 ## Invocation
 
 ```
-/architect:design-aggregate [--aggregate=<name>] [--context=<name>] [--auto] [--lang=en|ja]
+/architect:design-aggregate [--aggregate=<name>] [--context=<name>] [--auto] [--workshop] [--lang=en|ja]
 ```
 
 - `--aggregate` — Model this aggregate only (e.g. `Order`, `Reservation`). Selected interactively
@@ -46,6 +46,7 @@ The modeling method, the seven well-formedness rules and the transaction-boundar
 - `--context` — Restrict the candidate list to one bounded context (e.g. `Ordering`).
 - `--auto` — Skip facilitation and derive the models from existing reports. Lower fidelity; this is
   the mode `/architect:pipeline` uses.
+- `--workshop` — Hand the questions this phase would ask to a room instead of the session: they are recorded in the store, rendered to `work/workshop/<phase>.md`, the phase is stamped `awaiting_approval` and the run stops; the next run collects the sheet and continues (@rules/open-questions.md §9). Not with `--auto`.
 - `--lang` — Output language for the generated documents. Defaults to
   `options.output_language` in `work/pipeline-progress.json`.
 

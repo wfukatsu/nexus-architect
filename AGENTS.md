@@ -259,7 +259,8 @@ session context small — do not load ScalarDB rules for non-ScalarDB work.
 | product ↔ architect integration | docs/design.md | Touching the handoff (§1) or `adapt-change` (§7) |
 | product skill rules | rules/product/*.md (20 files) | Editing a `/product:*` skill, or `create-domain-story --mode=event-storming`; each SKILL.md names the one it needs — never load the set |
 | infra skill rules | rules/infra/*.md (environments, multi-cloud) | Editing an `/infra:*` skill, or a question on the four environments or the portability boundary |
-| Open Questions protocol | rules/open-questions.md | Any point where a skill would write `TBD` |
+| Open Questions protocol | rules/open-questions.md | Any point where a skill would write `TBD`; §9 for `--workshop` |
+| Decision roles | docs/decision-roles.md | Setting an Open Question's `Role`, an ADR's `deciders` / `approved_by`, or asking who approves a gate |
 | Output conventions | rules/output-conventions.md | Writing or changing what a skill emits under `reports/` |
 | ELI5 summary | rules/eli5-summary.md | Writing a report for engineers — the plain-language section it opens with, and `options.eli5` |
 | Token pricing & usage | rules/token-pricing.md | Estimating run cost, or reading `work/token-usage.json` |
