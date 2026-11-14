@@ -11,17 +11,24 @@ Store: `work/learned-rules.json` in the project, or the path `options.learned_ru
 the toolkit on many projects accumulates each lesson once. Every write is additive; a rule is
 never deleted, only `rejected`.
 
-    python3 tools/lib/learned_rules.py <project_dir> propose rule="…" scope=design-api,design-scalardb category=api-contract [anti_pattern="…"] [rationale="…"] [finding=SYN-004] [by=review-synthesizer]
+    python3 tools/lib/learned_rules.py <project_dir> propose rule="…" scope=design-api,design-scalardb category=api-contract [anti_pattern="…"] [rationale="…"] [finding=SYN-004] [by=review-synthesizer] [phase=review-synthesizer]
     python3 tools/lib/learned_rules.py <project_dir> decide LR-001 accepted|rejected [by="Dana Architect"] [reason="…"]
     python3 tools/lib/learned_rules.py <project_dir> list [scope=<phase>] [status=accepted|proposed|rejected|all] [format=text|json]
     python3 tools/lib/learned_rules.py <project_dir> render
 
 `propose` deduplicates on the rule text (case- and whitespace-insensitive): a rule already on
-file gains an occurrence and the finding as another origin instead of a second id. Each
-proposal and decision is an audit event (RULE_PROPOSED / RULE_ACCEPTED / RULE_REJECTED).
-`render` writes the Markdown view `work/learned-rules.md`. Exit 0; 1 when a store the options
-name cannot be read; 2 on a usage error (unknown id, bad status, missing field).
+file gains an occurrence and the finding as another origin instead of a second id; a rule that
+was `rejected` is not matched, so the same sentence proposed again is a new id — the rejection
+was a decision about that proposal, not a ban on the topic. Each proposal and decision is an
+audit event (RULE_PROPOSED / RULE_ACCEPTED / RULE_REJECTED); `phase=` names the proposing skill
+on the event (`review-synthesizer` by default, `review-issue` for a backlog lesson). Every write
+holds a lock on `<store>.lock` around read-modify-write, so parallel proposers (sub-agents, two
+projects on one shared store) never hand out one id twice or lose each other's rules. `render`
+writes the Markdown view `work/learned-rules.md`. Exit 0; 1 when a store the options name cannot
+be read; 2 on a usage error (unknown id, bad status, missing field).
 """
+import contextlib
+import fcntl
 import json
 import os
 import re
@@ -83,9 +90,21 @@ def load(path):
     return data
 
 
+@contextlib.contextmanager
+def locked(path):
+    """Hold `<store>.lock` for a read-modify-write of the store; the lock file is left in place."""
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    with open(path + ".lock", "a") as lock:
+        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+
+
 def save(path, data):
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    tmp = path + ".tmp"
+    tmp = "%s.%d.tmp" % (path, os.getpid())
     with open(tmp, "w", encoding="utf-8") as fh:
         json.dump(data, fh, ensure_ascii=False, indent=2)
         fh.write("\n")
@@ -101,19 +120,21 @@ def _next_id(rules):
     return "LR-%03d" % (max(numbers) + 1 if numbers else 1)
 
 
-def _audit(project_dir, event, rule, by, detail):
+def _audit(project_dir, event, rule, by, detail, phase=None):
     if AUDIT is None:
         return
     try:
-        AUDIT.append_event(project_dir, event, phase="review-synthesizer" if event == "RULE_PROPOSED" else None,
-                           ref=rule["id"], actor=by, detail=detail)
+        AUDIT.append_event(project_dir, event, phase=phase, ref=rule["id"], actor=by, detail=detail)
     except Exception:
         pass
 
 
 def propose(project_dir, rule, scope, category, anti_pattern=None, rationale=None, finding=None,
-            by="review-synthesizer", path=None):
-    """Add a proposed rule, or an occurrence of the rule already on file. Returns (rule, created)."""
+            by="review-synthesizer", path=None, phase=None):
+    """Add a proposed rule, or an occurrence of the rule already on file. Returns (rule, created).
+
+    `phase` is the proposing skill, written on the RULE_PROPOSED event (defaults to `by` when that
+    is a skill name, else `review-synthesizer`)."""
     if not normalize(rule):
         raise ValueError("rule= is required")
     scope = [s.strip() for s in (scope.split(",") if isinstance(scope, str) else scope) if s.strip()]
@@ -121,30 +142,32 @@ def propose(project_dir, rule, scope, category, anti_pattern=None, rationale=Non
         raise ValueError("scope= must name at least one phase")
     if category not in CATEGORIES:
         raise ValueError("category must be one of %s" % ", ".join(CATEGORIES))
+    phase = phase or "review-synthesizer"
     path = path or store_path(project_dir)
-    data = load(path)
     origin = {"finding": finding or None, "project": project_name(project_dir), "at": now_iso()}
-    for existing in data["rules"]:
-        if normalize(existing.get("rule")) == normalize(rule) and existing.get("status") != "rejected":
-            existing["occurrences"] = int(existing.get("occurrences") or 0) + 1
-            existing.setdefault("origin", []).append(origin)
-            for s in scope:
-                if s not in existing.setdefault("scope", []):
-                    existing["scope"].append(s)
-            save(path, data)
-            _audit(project_dir, "RULE_PROPOSED", existing, by,
-                   "occurrence %d of %s" % (existing["occurrences"], existing["id"]))
-            return existing, False
-    record = {
-        "id": _next_id(data["rules"]), "status": "proposed", "scope": scope, "category": category,
-        "rule": rule.strip(), "anti_pattern": (anti_pattern or "").strip() or None,
-        "rationale": (rationale or "").strip() or None, "origin": [origin], "occurrences": 1,
-        "proposed_at": origin["at"], "proposed_by": by, "decided_at": None, "decided_by": None,
-        "decision_reason": None,
-    }
-    data["rules"].append(record)
-    save(path, data)
-    _audit(project_dir, "RULE_PROPOSED", record, by, record["rule"])
+    with locked(path):
+        data = load(path)
+        for existing in data["rules"]:
+            if normalize(existing.get("rule")) == normalize(rule) and existing.get("status") != "rejected":
+                existing["occurrences"] = int(existing.get("occurrences") or 0) + 1
+                existing.setdefault("origin", []).append(origin)
+                for s in scope:
+                    if s not in existing.setdefault("scope", []):
+                        existing["scope"].append(s)
+                save(path, data)
+                _audit(project_dir, "RULE_PROPOSED", existing, by,
+                       "occurrence %d of %s" % (existing["occurrences"], existing["id"]), phase=phase)
+                return existing, False
+        record = {
+            "id": _next_id(data["rules"]), "status": "proposed", "scope": scope, "category": category,
+            "rule": rule.strip(), "anti_pattern": (anti_pattern or "").strip() or None,
+            "rationale": (rationale or "").strip() or None, "origin": [origin], "occurrences": 1,
+            "proposed_at": origin["at"], "proposed_by": by, "decided_at": None, "decided_by": None,
+            "decision_reason": None,
+        }
+        data["rules"].append(record)
+        save(path, data)
+    _audit(project_dir, "RULE_PROPOSED", record, by, record["rule"], phase=phase)
     return record, True
 
 
@@ -152,15 +175,16 @@ def decide(project_dir, rule_id, status, by=None, reason=None, path=None):
     if status not in DECISION_EVENT:
         raise ValueError("status must be accepted or rejected")
     path = path or store_path(project_dir)
-    data = load(path)
-    record = next((r for r in data["rules"] if r.get("id") == rule_id), None)
-    if record is None:
-        raise KeyError(rule_id)
-    record["status"] = status
-    record["decided_at"] = now_iso()
-    record["decided_by"] = by or (AUDIT.actor_name(project_dir) if AUDIT else None)
-    record["decision_reason"] = (reason or "").strip() or None
-    save(path, data)
+    with locked(path):
+        data = load(path)
+        record = next((r for r in data["rules"] if r.get("id") == rule_id), None)
+        if record is None:
+            raise KeyError(rule_id)
+        record["status"] = status
+        record["decided_at"] = now_iso()
+        record["decided_by"] = by or (AUDIT.actor_name(project_dir) if AUDIT else None)
+        record["decision_reason"] = (reason or "").strip() or None
+        save(path, data)
     _audit(project_dir, DECISION_EVENT[status], record, record["decided_by"], reason or record["rule"])
     return record
 
@@ -240,13 +264,14 @@ def main(argv):
         return 2
     try:
         if verb == "propose":
-            kv = _kv(argv[2:], ("rule", "scope", "category", "anti_pattern", "rationale", "finding", "by"))
+            kv = _kv(argv[2:], ("rule", "scope", "category", "anti_pattern", "rationale", "finding", "by", "phase"))
             for required in ("rule", "scope", "category"):
                 if required not in kv:
                     raise ValueError("%s= is required" % required)
             record, created = propose(project, kv["rule"], kv["scope"], kv["category"],
                                       kv.get("anti_pattern"), kv.get("rationale"), kv.get("finding"),
-                                      kv.get("by") or "review-synthesizer")
+                                      kv.get("by") or kv.get("phase") or "review-synthesizer",
+                                      phase=kv.get("phase"))
             sys.stdout.write(json.dumps({"id": record["id"], "created": created,
                                          "occurrences": record["occurrences"], "status": record["status"]}) + "\n")
             return 0

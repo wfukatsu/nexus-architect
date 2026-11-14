@@ -188,7 +188,7 @@ happened and who did it. Writer: `tools/lib/audit_log.py` (library and command l
 | `VERDICT_RECORDED` | `review-synthesizer` (`detail` = `PASS` / `CONDITIONAL_PASS` / `FAIL`), `/product:validate-assumptions` (`detail` = `go` / `no-go`) | A verdict was written: the design quality gate, or the validation gate |
 | `PR_OPENED` / `PR_MERGED` | `review-issue` (Step 5), `merge-issue` (Step 3) | The PR/MR was raised or merged (`ref` = its URL) |
 | `ITEM_CLAIMED` / `ITEM_RELEASED` | `tools/lib/backlog_claims.py`, run by `deliver-backlog`, `implement-backlog` and `merge-issue` | A backlog Issue was claimed by a person (stolen included, the previous holder in `detail`) or released (`reason` in `detail`); `skills/common/backlog-claims.md` |
-| `RULE_PROPOSED` / `RULE_ACCEPTED` / `RULE_REJECTED` | `tools/lib/learned_rules.py`, run by `review-synthesizer` and `review-issue` (propose — the event's `phase` is `review-synthesizer` whichever ran it) and `/architect:start` (decide) | A learned rule was proposed from a recurring finding, or a person decided it (`ref` = its `LR-`, `rules/learned-rules.md`) |
+| `RULE_PROPOSED` / `RULE_ACCEPTED` / `RULE_REJECTED` | `tools/lib/learned_rules.py`, run by `review-synthesizer` and `review-issue` (propose; `phase=` names the proposer) and `/architect:start` (decide — the ids its synthesizer returned, and at the start of a run everything still `proposed`) | A learned rule was proposed from a recurring finding, or a person decided it (`ref` = its `LR-`, `rules/learned-rules.md`) |
 
 A skill appends with one positional command, no flags:
 

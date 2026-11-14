@@ -392,9 +392,11 @@ and the audit log (`rules/open-questions.md` §9).
 
 What the reviews keep finding becomes rules the next design reads: `review-synthesizer` proposes
 a learned rule from each recurring finding, a person accepts or rejects it (`/architect:start`
-asks; `/architect:pipeline` leaves it proposed), and `design-microservices`, `design-api`,
-`design-scalardb` and `design-implementation` read the accepted rules for their phase and cite
-them in the decisions they shape. The store is `work/learned-rules.json`, or one file shared across
+asks — at the start of a run for everything still proposed, and after its own synthesis;
+`/architect:pipeline` leaves its proposals for the next `start`), and `redesign`,
+`design-aggregate`, `design-microservices`, `design-api`, `design-scalardb` / `design-data-layer`
+and `design-implementation` read the accepted rules for their phase and cite them in the
+decisions they shape. The store is `work/learned-rules.json`, or one file shared across
 projects through `options.learned_rules_path` (`rules/learned-rules.md`; `--no-learnings` turns
 the proposals off).
 

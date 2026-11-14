@@ -312,6 +312,10 @@ mistaken for being done, the final message carries:
    The code generators (`generate-scalardb-code`, `generate-api-code`, …) are the alternative to
    row 4 for a draft under `generated/`; say that their output is not test-first
    (@rules/tdd-workflow.md §5).
+3. **The learned rules left `proposed`** — `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/learned_rules.py"
+   <project_dir> list status=proposed` — each with its id and sentence, and that the next
+   `/architect:start` on this project decides them before it designs anything
+   (@rules/learned-rules.md §3). Nothing proposed, or `options.learnings` false: one line saying so.
 
 ## Completion Criteria
 

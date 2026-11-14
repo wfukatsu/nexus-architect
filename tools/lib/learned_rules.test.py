@@ -135,6 +135,31 @@ def main():
               and r.stdout.count("\n") == 4 and "LR-001 [accepted]" in r.stdout and "LR-004 [accepted]" in r.stdout, r.stdout)
         r = cli(proj, "list", "status=all", "format=json")
         check("list json over every rule", r.returncode == 0 and len(json.loads(r.stdout)) == 4)
+        r = cli(proj, "propose", "rule=Outbox before any cross-service event.", "scope=design-microservices",
+                "category=transaction", "finding=#42", "phase=review-issue")
+        ev = A.read_events(proj, event="RULE_PROPOSED")[-1]
+        check("phase= names the proposing skill on the event, and is the default proposer",
+              r.returncode == 0 and ev["phase"] == "review-issue" and ev["actor"] == "review-issue"
+              and json.loads(r.stdout)["id"] == "LR-005", ev)
+        check("without phase= the event names review-synthesizer",
+              A.read_events(proj, event="RULE_PROPOSED")[0]["phase"] == "review-synthesizer")
+        r = cli(proj, "list", "status=proposed", "format=json")
+        check("list status=proposed is what start decides at the start of a run",
+              r.returncode == 0 and [x["id"] for x in json.loads(r.stdout)] == ["LR-003", "LR-005"], r.stdout)
+        # Parallel proposers share one store: every rule lands, no id twice (the lock).
+        procs = [subprocess.Popen([sys.executable, os.path.join(HERE, "learned_rules.py"), proj, "propose",
+                                   "rule=Parallel rule number %d is kept." % i, "scope=design-api",
+                                   "category=process"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                 for i in range(12)]
+        outs = [p.communicate() for p in procs]
+        ids = [json.loads(o[0])["id"] for o in outs if o[0].strip()]
+        store = L.load(L.store_path(proj))
+        check("twelve concurrent proposals all land with twelve distinct ids",
+              all(p.returncode == 0 for p in procs) and len(set(ids)) == 12
+              and len(store["rules"]) == 5 + 12 and len({r["id"] for r in store["rules"]}) == 17,
+              (sorted(ids), [o[1] for o in outs if o[1]]))
+        check("no temp file is left behind",
+              not [f for f in os.listdir(os.path.dirname(L.store_path(proj))) if ".tmp" in f])
         check("render prints the view path", cli(proj, "render").stdout.strip() == "work/learned-rules.md")
         check("usage errors exit 2", cli(proj, "propose", "rule=x").returncode == 2
               and cli(proj, "decide", "LR-404", "accepted").returncode == 2
