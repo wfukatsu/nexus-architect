@@ -43,7 +43,7 @@ and no hooks: everything it needs is below.
 **Omnigent** calls the loader, which resolves a command to its file, prints a translation
 preamble and emits the body with `${CLAUDE_PLUGIN_ROOT}` expanded to the absolute root (`bash
 tools/omnigent/load-skill.sh architect:investigate`; `--list` enumerates; see
-`tools/omnigent/README.md`; its README says how parallel `Agent(...)` bodies are dispatched).
+`tools/omnigent/README.md`). Kiro, Copilot and Cursor: `docs/runtimes-assessment.md`, unmeasured.
 
 **Command → file.** `/architect:<name>` and `/scalardb:<name>` → `skills/<name>/SKILL.md` (one flat
 tree; a bare `<name>` resolves there too); `/product:<name>` → `skills/product/<name>/SKILL.md`;
@@ -77,7 +77,7 @@ the manifest's `model`; elsewhere run the phases in manifest order on the sessio
 ## Repository Mechanics
 
 This repo is not an application — it is a **plugin marketplace** whose product is a corpus of
-~120 skill instruction files (117 registered as commands, plus the ten nested migration
+~120 skill instruction files (118 registered as commands, plus the ten nested migration
 sub-skills). There is no build step; "developing" here means editing skills, rules and hooks.
 The authoring rules, with the measurements behind them, are `docs/skill-authoring.md`. In brief:
 
@@ -89,10 +89,10 @@ The authoring rules, with the measurements behind them, are `docs/skill-authorin
 
 ## Command Reference
 
-**117 slash commands across four plugins.** The catalogue — every command with its model,
+**118 slash commands across four plugins.** The catalogue — every command with its model,
 prerequisites and full flag signature — is `docs/skill-reference.md` (`_ja` for Japanese), read on
 demand and deliberately not imported here. This table maps *which group does what*; the counts
-partition all 117.
+partition all 118.
 
 | Group | Entry point | What it does | n |
 |-------|-------------|--------------|---|
@@ -104,7 +104,7 @@ partition all 117.
 | **Database Migration** | `/architect:migrate-database` | Oracle / MySQL / PostgreSQL → ScalarDB: schema extraction, analysis, SP/trigger conversion (the router delegates to nested sub-skills) | 4 |
 | **ScalarDB Development** `/scalardb:*` | `/scalardb:build-app` | Schema modeling, configuration, scaffolding, CRUD/JDBC patterns, exception handling, code review, migration advice | 11 |
 | **Multi-Cloud Infrastructure** `/infra:*` | `/infra:start` | Terraform / Kubernetes / Helm / Kustomize / Argo CD / GitLab CI / Cosign / Vault / ESO / Prometheus / Kyverno across AWS-Azure-GCP × local-test-staging-production, grounded in `okf-k8s-tf`. Skills under `skills/infra/`, rules under `rules/infra/` | 4 |
-| **Status & utility** | `/architect:report-status` | One dashboard (`tools/nexus-status.sh`; `Tab` cycles four views), `render-mermaid`, `update-knowledge`, `revise-knowledge`, `report-token-cost`, `investigate-db-design` (DDL/design documents), `investigate-db-live` (catalogs and statistics), `explain` (any generated artifact) | 7 |
+| **Status & utility** | `/architect:report-status` | One dashboard (`tools/nexus-status.sh`; `Tab` cycles four views), `render-mermaid`, `update-knowledge`, `revise-knowledge`, `report-token-cost`, `investigate-db-design` (DDL/design documents), `investigate-db-live` (catalogs and statistics), `explain` (any generated artifact), `doctor` (install and project health) | 8 |
 
 Which phases `/architect:pipeline` runs is the manifest's — narrowed by its `profiles` / `depths`
 tables (`--profile`, `--depth`); which the dashboard files under Code Generation is
@@ -145,7 +145,7 @@ status dashboard renders as its own group, so the two are edited together.
 The extension tier is **not** everything outside the manifest. Three further groups sit outside
 both, none run by `/architect:pipeline`: orchestration and setup (`start`, `pipeline`,
 `init-output`); status and utility (`report-status`, `render-mermaid`, `update-knowledge`,
-`revise-knowledge`, `investigate-db-design`, `investigate-db-live`, `explain`); and two pipelines
+`revise-knowledge`, `investigate-db-design`, `investigate-db-live`, `explain`, `doctor`); and two pipelines
 in their own right — **Backlog Delivery** (`deliver-backlog`, `export-backlog`,
 `implement-backlog`, `review-issue`, `merge-issue`, `capture-followup`, `report-backlog-status`)
 and **Database Migration** (`migrate-database`, `migrate-oracle`, `migrate-mysql`,
@@ -236,10 +236,8 @@ and frontmatter: `rules/output-conventions.md`. In brief:
 
 ## Tool Priority
 
-1. **Serena MCP** (`get_symbols_overview`, `find_symbol`) — structural understanding
-2. **Glob/Grep** — file discovery and pattern search
-3. **Read** — targeted file reading
-4. **Agent (sub-agent)** — large-scale exploration across many files
+Serena MCP (`get_symbols_overview`, `find_symbol`) for structure, Glob/Grep for discovery, Read for
+targeted reading, a sub-agent for sweeps across many files.
 
 ## Rules & References
 

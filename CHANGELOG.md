@@ -10,7 +10,7 @@ all four plugins (`product`, `architect`, `scalardb`, `infra`) are released toge
 ## [0.59.0] - 2026-11-14
 
 ### Added
-- **Multi-team backlog delivery** (#129, #141-#142). `skills/common/backlog-claims.md` is the
+- **Multi-team backlog delivery** (#129, #142). `skills/common/backlog-claims.md` is the
   contract and `tools/lib/backlog_claims.py` the tool: a **claim** (`reports/backlog/claims.json`)
   records who holds an Issue, since when, on which branch, in which worktree and toward which
   integration branch — `claim` exits 3 naming the holder when someone else has it, `steal=true`
