@@ -7,6 +7,27 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.57.0] - 2026-11-14
+
+### Added
+- **アウトカム Eval**（#127、#138）。Eval は「正しいスキルが発火したか」だけを測っていたが、実行が何を
+  生み出したかも測るようになった。`tools/lib/outcome_graders.py` はプロジェクトディレクトリだけを読み
+  （トランスクリプトは読まない）、10 の指標を出す: `work/traceability.json` 上の要件カバレッジ（未到達と
+  宙に浮いた ID を名指し）、状態別の Open Questions（`unasked` は実行が一度も聞かなかったもの）、ADR の
+  件数・検証エラー・承認者、全レポートの 2 つの出力バリデータ通過、品質ゲートの判定とステージ、JUnit の
+  スイート別合格率、プロファイル付きのフェーズ状態、フェーズ別コスト、レジストリの時刻からの壁時計と
+  フェーズ時間、監査ログからの人的労力（質問・却下されたゲート・手直し）。存在しない入力は「未計測」で
+  あり、決して 0 ではない。しきい値はタスクの `expected.json`（`<metric>.<field>` に対する `min` /
+  `max` / `in` / `equals`）に置き、未計測のしきい値は列挙され、計測済みのしきい値に失敗が無ければ PASS。
+  `tools/eval-outcomes.sh grade <project> [<task>]` は実行済みプロジェクト（このツールキットでも、同じ
+  ブリーフを与えた他のツールキットでも）を採点し、`run <task>` は固定タスクをステージして `claude -p`
+  でコマンドを実行し、結果を `evals/results/` に採点する。`evals/outcomes/` に 2 タスク:
+  `ec-monolith-legacy`（サンプルのモノリスを `--profile=full` で。しきい値は 2026-11-01 の参照実行から）
+  と `greenfield-brief`（図書館予約の 1 ページのブリーフを `define-requirements` と `--profile=poc` で。
+  他のツールキットに渡すタスク）。`evals/README.md` § Outcome evals に比較プロトコル: 同じブリーフ・
+  モデル・ハーネス、同じ物差し、相手側で計測できない指標は「比較不能」と報告、主張の前に複数回実行。
+  `evals/evals.test.py` がタスクの読込可能性を保つ。
+
 ## [0.56.0] - 2026-11-14
 
 ### Added

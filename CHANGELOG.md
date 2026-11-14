@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.57.0] - 2026-11-14
+
+### Added
+- **Outcome evals** (#127, #138). The evals measured whether the right skill fired; they now also
+  measure what a run produced. `tools/lib/outcome_graders.py` reads a project directory — never
+  the transcript — for ten metrics: requirement coverage over `work/traceability.json` (uncovered
+  and dangling ids named), open questions by status (`unasked` is what the run never asked), ADR
+  records, validator errors and approvers, every report through the two output validators, the
+  quality-gate verdict and stages, JUnit pass rates per suite, phases by status with the profile,
+  cost per phase, wall clock and phase time from the registry's stamps, and human effort from the
+  audit log (questions, rejected gates, revisions). An input that does not exist is not measured,
+  never a zero. Thresholds live in a task's `expected.json` (`min` / `max` / `in` / `equals`
+  over `<metric>.<field>`); an unmeasured threshold is listed, and the verdict is PASS when no
+  measured one fails. `tools/eval-outcomes.sh grade <project> [<task>]` scores a project that
+  already ran — this toolkit's or another's on the same brief — and `run <task>` stages a frozen
+  task, runs its commands with `claude -p` and grades the result into `evals/results/`. Two tasks
+  ship under `evals/outcomes/`: `ec-monolith-legacy` (the sample monolith at `--profile=full`,
+  thresholds from the 2026-11-01 reference run) and `greenfield-brief` (a one-page library
+  reservation brief through `define-requirements` and `--profile=poc`, the task to hand to
+  another toolkit). `evals/README.md` § Outcome evals states the comparison protocol: same brief,
+  model and harness; one yardstick; metrics the other run cannot be measured on reported as not
+  comparable; more than one run before a claim. `evals/evals.test.py` keeps the tasks loadable.
+
 ## [0.56.0] - 2026-11-14
 
 ### Added
