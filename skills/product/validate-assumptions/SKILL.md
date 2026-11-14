@@ -34,7 +34,7 @@ Produce two deliverables and a gate verdict:
 | Argument/Flag | Required | Description |
 |---------------|----------|-------------|
 | `--auto` | Optional | Generate without elicitation; record gaps as `TBD` |
-| `--workshop` | Optional | Hand the questions this phase would ask to a room instead of the session: they are recorded in the store, rendered to `work/workshop/<phase>.md`, the phase is stamped `awaiting_approval` and the run stops; the next run collects the sheet and continues (@rules/open-questions.md §9). Not with `--auto`. The business sponsor's go / no-go belongs on this sheet |
+| `--workshop` | Optional | Hand the questions this phase would ask to a room instead of the session: they are recorded in the store, rendered to `work/workshop/<phase>.md`, the phase is stamped `awaiting_approval` and the run stops; the next run collects the sheet and continues (@rules/open-questions.md §9). `--auto --workshop` is an error: the two mean opposite things. The business sponsor's go / no-go belongs on this sheet |
 | `--lang` | Optional | Override output language |
 
 ## Decision Criteria

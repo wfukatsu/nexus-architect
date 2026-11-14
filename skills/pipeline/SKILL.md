@@ -70,9 +70,13 @@ part of the automated run.
    `awaiting_approval` or `revising`, which are the interactive orchestrator's: this run has
    nobody to ask, and a phase found `awaiting_approval` from an earlier interactive run is left
    as it is, not run and not skipped, and named in the final message for `/architect:start` to
-   settle. Each stamp becomes a `PHASE_*` event in `work/audit/events.jsonl` through the
-   token-usage hook (@skills/common/progress-registry.md § Audit Log) — do not append phase
-   events yourself; the gate, question and verdict events are the phases' own. The pre-write
+   settle. Under Claude Code each stamp becomes a `PHASE_*` event in `work/audit/events.jsonl`
+   through the token-usage hook (@skills/common/progress-registry.md § Audit Log) — do not
+   append phase events yourself there. On a runtime without hooks (Codex, Omnigent) nothing
+   observes the registry, so append the event yourself right after each stamp:
+   `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/audit_log.py" <project_dir> PHASE_STARTED phase=<name> plugin=architect`
+   and `PHASE_COMPLETED` / `PHASE_FAILED` / `PHASE_SKIPPED` on return. The gate, question and
+   verdict events are the phases' own on every runtime. The pre-write
    is the only signal that a phase is running while it runs — `/architect:report-status`
    renders it, and the token-usage hook attributes cost to whatever is `in_progress`,
    using `plugin` to keep the two pipelines' spend separable under the four phase names

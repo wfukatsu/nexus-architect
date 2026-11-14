@@ -164,7 +164,8 @@ first phase as if none were set.
 `work/audit/events.jsonl` is the project's append-only history — one JSON object per line, never
 rewritten, both pipelines in one file. The registry says where a run is; the audit log says what
 happened and who did it. Writer: `tools/lib/audit_log.py` (library and command line); reader:
-`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/audit_log.py" <project_dir> list [tail=N] [event=…] [phase=…]`.
+`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/audit_log.py" <project_dir> list [tail=N] [event=…] [phase=…]`
+(`tail=N` keeps the last N events; `0` or absent keeps them all).
 
 | Field | Meaning |
 |-------|---------|
@@ -180,14 +181,14 @@ happened and who did it. Writer: `tools/lib/audit_log.py` (library and command l
 
 | Event | Written by | When |
 |-------|------------|------|
-| `PHASE_STARTED` / `PHASE_COMPLETED` / `PHASE_FAILED` / `PHASE_SKIPPED` / `PHASE_AWAITING_APPROVAL` / `PHASE_REVISING` | `hooks/record_token_usage.py` | A phase's `status` changed to that value since the hook last fired (its first firing on a project baselines and emits nothing). Runtimes without hooks run the hook by hand after stamping the registry, as they run the report validators |
-| `GATE_APPROVED` / `GATE_REJECTED` / `GATE_SKIPPED` | `deliver-backlog` (stage c), `merge-issue` (Step 2), `capture-followup` (Step 3) | The user approved or rejected at the gate; `GATE_SKIPPED` when `--yes-merge` / `--auto` pre-authorised it, with the flag in `detail` |
-| `QUESTION_ASKED` / `QUESTION_ANSWERED` / `QUESTION_DEFERRED` | Every skill that asks, per `rules/open-questions.md` §6 | A question was put to the user (`ref` = its `OQ-`), answered, or left `deferred` / `unasked` / `external` |
-| `ADR_RECORDED` | The five skills that write ADRs, per `rules/architecture-decision-records.md` §4 | A record was appended (`ref` = its `ADR-`) |
-| `VERDICT_RECORDED` | `review-synthesizer` | The quality-gate verdict was written (`detail` = `PASS` / `CONDITIONAL_PASS` / `FAIL`) |
+| `PHASE_STARTED` / `PHASE_COMPLETED` / `PHASE_FAILED` / `PHASE_SKIPPED` / `PHASE_AWAITING_APPROVAL` / `PHASE_REVISING` | `hooks/record_token_usage.py` under Claude Code (`source: hook`); on a runtime without hooks (Codex, Omnigent) the orchestrator itself, right after each registry stamp, with the command below (`source: skill`) — the hook reads a Claude Code payload from stdin and does nothing when run by hand | A phase's `status` changed to that value since the hook last fired (its first firing on a project baselines and emits nothing) |
+| `GATE_APPROVED` / `GATE_REJECTED` / `GATE_SKIPPED` | `deliver-backlog` (stage c), `merge-issue` (Step 2), `capture-followup` (Step 3), `/product:validate-assumptions` (the go / no-go) | The user approved or rejected at the gate; `GATE_SKIPPED` when `--yes-merge` / `--auto` pre-authorised it, with the flag in `detail` |
+| `QUESTION_ASKED` / `QUESTION_ANSWERED` / `QUESTION_DEFERRED` | Every skill that asks, per `rules/open-questions.md` §6; `tools/lib/workshop_sheet.py` (`render` → `QUESTION_ASKED` naming the sheet, `collect` → `QUESTION_ANSWERED` with the signer as actor, §9) | A question was put to the user (`ref` = its `OQ-`), answered, or left `deferred` / `unasked` / `external` |
+| `ADR_RECORDED` | The five skills that write ADRs (`redesign`, `design-microservices`, `design-scalardb`, `design-data-layer`, `design-api`), per `rules/architecture-decision-records.md` §4 | A record was appended (`ref` = its `ADR-`) |
+| `VERDICT_RECORDED` | `review-synthesizer` (`detail` = `PASS` / `CONDITIONAL_PASS` / `FAIL`), `/product:validate-assumptions` (`detail` = `go` / `no-go`) | A verdict was written: the design quality gate, or the validation gate |
 | `PR_OPENED` / `PR_MERGED` | `review-issue` (Step 5), `merge-issue` (Step 3) | The PR/MR was raised or merged (`ref` = its URL) |
 | `ITEM_CLAIMED` / `ITEM_RELEASED` | `tools/lib/backlog_claims.py`, run by `deliver-backlog`, `implement-backlog` and `merge-issue` | A backlog Issue was claimed by a person (stolen included, the previous holder in `detail`) or released (`reason` in `detail`); `skills/common/backlog-claims.md` |
-| `RULE_PROPOSED` / `RULE_ACCEPTED` / `RULE_REJECTED` | `tools/lib/learned_rules.py`, run by `review-synthesizer` (propose) and `/architect:start` (decide) | A learned rule was proposed from a recurring finding, or a person decided it (`ref` = its `LR-`, `rules/learned-rules.md`) |
+| `RULE_PROPOSED` / `RULE_ACCEPTED` / `RULE_REJECTED` | `tools/lib/learned_rules.py`, run by `review-synthesizer` and `review-issue` (propose — the event's `phase` is `review-synthesizer` whichever ran it) and `/architect:start` (decide) | A learned rule was proposed from a recurring finding, or a person decided it (`ref` = its `LR-`, `rules/learned-rules.md`) |
 
 A skill appends with one positional command, no flags:
 

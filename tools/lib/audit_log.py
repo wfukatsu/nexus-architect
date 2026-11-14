@@ -19,12 +19,16 @@ Command line (positional, key=value — no `--flags`, so a skill can quote the i
     python3 tools/lib/audit_log.py <project_dir> <EVENT> [phase=…] [plugin=…] [ref=…] [detail=…] [actor=…]
     python3 tools/lib/audit_log.py <project_dir> list [tail=N] [event=…] [phase=…]
 
+`list` prints the matching events, oldest first; `tail=N` keeps the last N (`0`, the default, keeps
+them all; anything but a whole number is a usage error, exit 2).
+
 Exit 0 on success, 2 on a usage error (unknown event, missing directory). The actor defaults
 to `git config user.name` of the project (never the email); pass actor=… to override.
 """
 import fcntl
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -146,8 +150,9 @@ def read_events(project_dir, tail=None, event=None, phase=None):
         if phase and rec.get("phase") != phase:
             continue
         out.append(rec)
-    if tail:
-        out = out[-int(tail):]
+    tail = int(tail or 0)
+    if tail > 0:
+        out = out[-tail:]
     return out
 
 
@@ -212,6 +217,9 @@ def main(argv):
         sys.stderr.write("audit_log: %s\n" % exc)
         return 2
     if verb == "list":
+        if not re.fullmatch(r"\d+", fields.get("tail", "0")):
+            sys.stderr.write("audit_log: tail must be a whole number, got %r\n" % fields["tail"])
+            return 2
         for rec in read_events(project_dir, tail=fields.get("tail"), event=fields.get("event"),
                                phase=fields.get("phase")):
             sys.stdout.write(json.dumps(rec, ensure_ascii=False) + "\n")

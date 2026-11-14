@@ -113,6 +113,11 @@ def main():
         check("the same status again is not a new event", rerun == [])
 
         print("command line")
+        r = cli(project, "list", "tail=abc")
+        check("list tail=abc is a usage error, exit 2", r.returncode == 2 and "whole number" in r.stderr, (r.returncode, r.stderr))
+        r = cli(project, "list", "tail=0")
+        check("list tail=0 prints every event", r.returncode == 0
+              and len([l for l in r.stdout.splitlines() if l.strip()]) == len(A.read_events(project)), r.stdout)
         r = cli(project, "PR_OPENED", "phase=E1-I3", "ref=https://x/pr/2", "detail=round 1")
         check("an event is appended and echoed", r.returncode == 0
               and json.loads(r.stdout)["event"] == "PR_OPENED"

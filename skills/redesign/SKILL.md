@@ -70,7 +70,10 @@ Output language and frontmatter: @rules/output-conventions.md.
 
 This skill **opens** the ADR log; `design-microservices`, `design-scalardb` / `design-data-layer`
 and `design-api` append to it. The record shape, the fixed body headings, the index and the
-additive contract are @rules/architecture-decision-records.md — read it before writing one.
+additive contract are @rules/architecture-decision-records.md — read it before writing one. A
+record written today is `schema_version: 2`: it names who decided in `deciders` and, once
+`accepted`, who approved in `approved_by` (the rule's §2, roles per @docs/decision-roles.md), and
+each one is followed by an `ADR_RECORDED` audit event (§4).
 
 What earns a record here: every bounded-context boundary that differs from the current code
 (a context split, merged, or renamed with a changed meaning), and every context relationship

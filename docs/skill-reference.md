@@ -164,7 +164,7 @@ merges).
 | `/scalardb:jdbc-ops` | sonnet | JDBC/SQL operation patterns guide |
 | `/scalardb:local-env` | sonnet | Docker Compose local environment setup |
 | `/scalardb:docs` | sonnet | ScalarDB documentation search |
-| `/scalardb:build-app` | opus | Build complete application from domain requirements |
+| `/scalardb:build-app` | sonnet | Build complete application from domain requirements |
 | `/scalardb:review-code` | sonnet | Java code review (16 check categories) |
 | `/scalardb:migrate` | sonnet | Migration advisor (Core/Cluster, CRUD/JDBC, 1PC/2PC) |
 
