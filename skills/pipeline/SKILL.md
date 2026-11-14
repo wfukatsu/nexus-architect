@@ -66,7 +66,13 @@ part of the automated run.
 8. Record progress in `work/pipeline-progress.json` **twice per phase**: set
    `status: "in_progress"` with `plugin: "architect"` and `started_at` *before* invoking
    the skill (all of them at once for a parallel group), then `completed` / `failed` /
-   `skipped` with `completed_at`, `outputs` and `summary` once it returns. The pre-write
+   `skipped` with `completed_at`, `outputs` and `summary` once it returns — never
+   `awaiting_approval` or `revising`, which are the interactive orchestrator's: this run has
+   nobody to ask, and a phase found `awaiting_approval` from an earlier interactive run is left
+   as it is, not run and not skipped, and named in the final message for `/architect:start` to
+   settle. Each stamp becomes a `PHASE_*` event in `work/audit/events.jsonl` through the
+   token-usage hook (@skills/common/progress-registry.md § Audit Log) — do not append phase
+   events yourself; the gate, question and verdict events are the phases' own. The pre-write
    is the only signal that a phase is running while it runs — `/architect:report-status`
    renders it, and the token-usage hook attributes cost to whatever is `in_progress`,
    using `plugin` to keep the two pipelines' spend separable under the four phase names
@@ -221,7 +227,7 @@ the questions are in `work/context.md` § Open Questions as `unasked` when it en
 - `--profile=full|enterprise|poc|analysis`: Which backbone phases run — the manifest's `profiles` table (§ Profile and Depth); default `full`
 - `--depth=minimal|standard|comprehensive`: How much optional and review work runs — the manifest's `depths` table; default the profile's
 - `--skip-{phase}`: Skip the specified phase
-- `--resume-from=phase-N`: Resume from the specified phase (completed phases are skipped)
+- `--resume-from=phase-N`: Resume from the specified phase (completed phases are skipped; an `awaiting_approval` phase is left for `/architect:start`)
 - `--rerun-from=phase-N`: Reset all phases from the specified phase onward to "pending" and re-execute
 - `--analyze-only`: Execute analysis phases only — the same as `--profile=analysis`
 - `--no-scalardb`: Skip all ScalarDB-related skills

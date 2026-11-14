@@ -219,6 +219,46 @@ with tempfile.TemporaryDirectory() as tmp:
     check("outside a pipeline project the recorder writes no marker",
           recorder_markers() == ["record_token_usage-toolu_R"], recorder_markers())
 
+    # The audit log (skills/common/progress-registry.md § Audit Log): the recorder appends one
+    # PHASE_* event per registry status transition it observes between two firings, nothing on
+    # the baseline firing (toolu_R above saw an empty registry), and never twice for one change.
+    audit = os.path.join(proj, "work", "audit", "events.jsonl")
+
+    def registry(phases):
+        with open(os.path.join(proj, "work", "pipeline-progress.json"), "w") as fh:
+            json.dump({"phases": phases}, fh)
+
+    def events():
+        if not os.path.exists(audit):
+            return []
+        with open(audit, encoding="utf-8") as fh:
+            return [json.loads(l) for l in fh if l.strip()]
+
+    check("the baseline firing emits no audit event", events() == [], events())
+    registry({"investigate": {"status": "in_progress", "plugin": "architect"}})
+    fire("record_token_usage.py", "toolu_A1", ("python3",), ctx)
+    got = [(e["event"], e["phase"], e["plugin"], e["source"]) for e in events()]
+    check("a phase entering in_progress is a PHASE_STARTED event from the hook",
+          got == [("PHASE_STARTED", "investigate", "architect", "hook")], got)
+    fire("record_token_usage.py", "toolu_A2", ("python3",), ctx)
+    check("an unchanged registry adds nothing", len(events()) == 1, events())
+    registry({"investigate": {"status": "completed", "plugin": "architect"},
+              "analyze": {"status": "awaiting_approval", "plugin": "architect"},
+              "report": {"status": "pending"}})
+    fire("record_token_usage.py", "toolu_A3", ("python3",), dict(ctx, hook_event_name="Stop"))
+    got = [(e["event"], e["phase"]) for e in events()[1:]]
+    check("completed and awaiting_approval are events; pending is not",
+          got == [("PHASE_AWAITING_APPROVAL", "analyze"), ("PHASE_COMPLETED", "investigate")], got)
+    check("every event carries the fixed field set",
+          all(list(e) == ["ts", "event", "category", "phase", "plugin", "actor", "ref", "detail",
+                          "source"] for e in events()), events()[-1])
+    with open(os.path.join(proj, "work", "token-usage.json"), encoding="utf-8") as fh:
+        ledger = json.load(fh)
+    check("the checkpoint lives in the ledger",
+          ledger["_progress"]["statuses"] == {"investigate": "completed",
+                                              "analyze": "awaiting_approval", "report": "pending"},
+          ledger["_progress"].get("statuses"))
+
 print()
 print("%d check(s), %d failure(s)" % (checks, failures))
 sys.exit(1 if failures else 0)

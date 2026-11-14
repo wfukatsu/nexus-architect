@@ -22,9 +22,16 @@ and keys phases by bare name, so an un-namespaced bucket would merge the
 product and architect spend on the same-named phase into one number neither
 tab could claim. Every other name is recorded bare, as before.
 
-Artifacts (both under work/, git-ignored):
+A `revising` phase is attributed like an `in_progress` one (the rework is spending);
+an `awaiting_approval` phase is not (nothing runs while a human decides).
+
+Artifacts (all under work/, git-ignored):
   - token-usage.json   aggregated per-phase / per-model usage + USD cost
-  - token-usage.jsonl  append-only audit log, one record per firing
+  - token-usage.jsonl  append-only record of this hook's firings
+  - audit/events.jsonl the project audit log (tools/lib/audit_log.py): this hook appends
+                       one PHASE_* event per registry status transition it observes between
+                       two firings, from the `_progress.statuses` checkpoint in the ledger.
+                       The first firing baselines and emits nothing.
 
 Design rules:
   - NEVER fail the session: any error -> exit 0 (set NEXUS_TOKEN_DEBUG=1 to
@@ -207,6 +214,38 @@ def phase_key(name, plugin, shared):
     return "%s:%s" % (plugin, name) if plugin and name in shared else name
 
 
+def audit_module():
+    """tools/lib/audit_log when reachable, else None — never a reason to fail the session."""
+    try:
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                        "..", "tools", "lib"))
+        import audit_log
+        return audit_log
+    except Exception:
+        return None
+
+
+def record_phase_events(cwd, data, prog, first_run):
+    """Append the PHASE_* audit events for the registry transitions since the last firing.
+
+    The checkpoint lives in the ledger (`_progress.statuses`, {phase: status}) so one lock
+    covers both; the baseline firing records the statuses and emits nothing, like
+    `completed_seen`. Any failure here is swallowed: the audit log is evidence, not a gate.
+    """
+    audit = audit_module()
+    if audit is None:
+        return
+    try:
+        after = audit.registry_statuses(data)
+        before = prog.get("statuses") if isinstance(prog.get("statuses"), dict) else None
+        if not first_run and before is not None:
+            audit.append_events(cwd, audit.diff_registry(
+                before, after, actor=audit.actor_name(cwd), source="hook"))
+        prog["statuses"] = {name: entry["status"] for name, entry in after.items()}
+    except Exception:
+        pass
+
+
 def read_progress(progress_path):
     data = load_json(progress_path) or {}
     phases = data.get("phases", {}) or {}
@@ -218,10 +257,10 @@ def read_progress(progress_path):
         return phase_key(name, plugin if plugin in ("product", "architect") else None, shared)
 
     in_progress = sorted(key(n) for n, p in phases.items()
-                         if isinstance(p, dict) and p.get("status") == "in_progress")
+                         if isinstance(p, dict) and p.get("status") in ("in_progress", "revising"))
     completed = sorted(key(n) for n, p in phases.items()
                        if isinstance(p, dict) and p.get("status") == "completed")
-    return data.get("project_name", ""), in_progress, completed
+    return data.get("project_name", ""), in_progress, completed, data
 
 
 def parse_new_usage(text, recent_ids):
@@ -407,8 +446,9 @@ def main():
             tstate["recent_ids"] = (tstate.get("recent_ids", []) + new_ids)[-RECENT_IDS_KEEP:]
 
         # --- decide attribution ---
-        project, in_progress, completed = read_progress(progress_path)
+        project, in_progress, completed, progress_data = read_progress(progress_path)
         prog = ledger.setdefault("_progress", {"completed_seen": []})
+        record_phase_events(cwd, progress_data, prog, first_run)
         if first_run:
             # Baseline: phases already completed before tracking started must not
             # receive a retroactive flush.

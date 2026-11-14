@@ -42,7 +42,8 @@ def derive():
 
 DIM, BOLD, CYAN, GREEN, YELLOW, RED, MAGENTA = "2", "1", "36", "32", "33", "31", "35"
 STATUS_ANSI = {"pending": DIM, "in_progress": YELLOW, "completed": GREEN,
-               "failed": RED, "skipped": DIM, "stale": MAGENTA}
+               "failed": RED, "skipped": DIM, "stale": MAGENTA,
+               "awaiting_approval": YELLOW, "revising": YELLOW}
 
 
 def c(code, text):
@@ -149,6 +150,13 @@ def header_lines(state):
         line.append(T["ago"] % P.rel_time(s["latest_activity"]))
     if line:
         lines.append(c(CYAN, (" %s " % D.G["sep"]).join(line)))
+    # A run paused on a person belongs in the headline, like a failure.
+    if state.get("awaiting"):
+        lines.append(c(YELLOW, "%s %s: %s" % (P.PG["awaiting_approval"], T["awaiting_phases"],
+                                              ", ".join(state["awaiting"]))))
+    if state.get("resume_point"):
+        lines.append(c(BOLD, "%s %s: %s" % (P.PG["current"], T["resume_at"],
+                                            P.resume_text(state["resume_point"]))))
 
     gate = state["gate"]
     if gate:
@@ -207,7 +215,7 @@ def render_text(state):
             lines.append(c(BOLD, "%s  %s" % (D.pad(D.clip(name, name_w), name_w),
                                              D.pad(counts, 6, "r"))))
             continue
-        status_txt = "%s %s" % (P.PG[status], status)
+        status_txt = "%s %s" % (P.PG[status], P.status_label(status))
         lines.append("%s  %s %s %s %s %s %s" % (
             D.pad(D.clip(name, name_w), name_w),
             P.output_bar(phase),
@@ -276,6 +284,7 @@ def render_json(state):
         "filters": {"group": TIER, "phase": PHASE_FILTER},
         "summary": state["summary"], "gate": state["gate"],
         "current": state["current"], "next": state["next"],
+        "awaiting": state.get("awaiting") or [], "resume_point": state.get("resume_point"),
         "backlog": {"issues_done": backlog[0], "issues_total": backlog[1]}
         if backlog else None,
         "errors": state["errors"], "warnings": state["warnings"],

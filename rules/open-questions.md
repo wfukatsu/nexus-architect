@@ -157,6 +157,12 @@ Rules:
 - **A user answer that contradicts an input document or an upstream artifact wins** — but the
   contradiction is recorded in the entry (what the document said, what the user answered) and
   surfaced to the artifact that carried the old value. Never overwrite it silently.
+- **Every question is also an event in the audit log** (@skills/common/progress-registry.md
+  § Audit Log), so who answered what, and when, survives outside the store: when a question is
+  put to the user, `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/audit_log.py" <project_dir> QUESTION_ASKED phase=<phase> ref=OQ-###`; when its row becomes
+  `answered`, `QUESTION_ANSWERED` with the answer in `detail=`; when it is recorded `deferred`,
+  `external` or `unasked`, `QUESTION_DEFERRED` with the status and owner in `detail=`. One
+  command per question, after the store write; a batch of questions is a batch of commands.
 
 ## 7. Carrying questions forward
 

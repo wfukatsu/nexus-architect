@@ -132,6 +132,10 @@ Open Questions store already follow:
   contradicts one (the document rests on a fact the record corrects), say so under Consequences
   naming the document and the skill that owns it — that is a `review-consistency` finding and a
   re-run of the owning skill, not an edit from here.
+- **Every record is an event.** After appending the node, record it in the audit log
+  (@skills/common/progress-registry.md § Audit Log): `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/audit_log.py" <project_dir> ADR_RECORDED phase=<skill>
+  plugin=architect ref=ADR-### detail="<title>"`; a superseding record is a second
+  `ADR_RECORDED` naming the old id in `detail=`, never an edit of the first event.
 - **The prefix is registered once.** `redesign` declares `id_prefix: [ADR-]` in
   `skills/common/skill-dependencies.yaml` because it is the first skill in the pipeline that
   writes one; the other four append under that registration. This is the same shape as `NFR-`

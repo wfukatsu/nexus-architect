@@ -364,6 +364,15 @@ explained too. It is read-only and can be run at any point.
   frontmatter. The architect report (`/architect:report`) leaves that directory out. The product
   report and the documentation site include it, under *Other*.
 
+The project also keeps an **audit log**, `work/audit/events.jsonl`: one JSON line per event,
+append-only — every phase start and end (from the token-usage hook), every human gate approved,
+rejected or pre-authorised, every question asked and answered, every ADR, every review verdict,
+every PR opened and merged, each with the git user name of whoever acted. A phase whose output
+waits on a person is `awaiting_approval` in `work/pipeline-progress.json` and is asked again on
+resume, never skipped; the registry's `resume_point` says where an interrupted dialogue phase
+continues. `python3 tools/lib/audit_log.py <project> list tail=20` reads the log;
+`skills/common/progress-registry.md` § Audit Log is the contract.
+
 ### ScalarDB Application Development
 
 Build ScalarDB applications with guided schema design, code generation, and code review.

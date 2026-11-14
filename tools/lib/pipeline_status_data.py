@@ -52,7 +52,27 @@ from api_style_decisions import MAX_DOCUMENT_BYTES, validate_document  # noqa: E
 from graphql_design_manifest import load_and_validate  # noqa: E402
 import token_cost_data as D  # noqa: E402  (display helpers + load_json/parse_ts)
 
-PHASE_STATUSES = ["pending", "in_progress", "completed", "failed", "skipped"]
+# `awaiting_approval` and `revising` are the two human-gate statuses of
+# skills/common/progress-registry.md: outputs written and a person's answer or approval
+# pending, and a phase being reworked after one. Both block dependents; neither is runnable.
+PHASE_STATUSES = ["pending", "in_progress", "awaiting_approval", "revising", "completed",
+                  "failed", "skipped"]
+# The status word as the 13-column status cell shows it.
+STATUS_SHORT = {"awaiting_approval": "awaiting"}
+
+
+def status_label(status):
+    return STATUS_SHORT.get(status, status)
+
+
+def resume_text(rp):
+    """One line for a resume point: `phase · step 3 · note`."""
+    parts = [str(rp.get("phase"))]
+    if rp.get("step") not in (None, ""):
+        parts.append("step %s" % rp["step"])
+    if rp.get("note"):
+        parts.append(str(rp["note"]))
+    return " · ".join(parts)
 
 # `stale` is not a registry status — no skill ever writes it. It is derived (see
 # mark_stale) and shown in the status column in place of `completed`, so the displayed
@@ -64,14 +84,17 @@ DISPLAY_STATUSES = PHASE_STATUSES + [STALE]
 # the ASCII table engages automatically in ASCII mode.
 PHASE_GLYPHS_UNICODE = {"pending": "○", "in_progress": "◐", "completed": "●",
                         "failed": "✗", "skipped": "–", "current": "▶", "drift": "↯",
-                        "active": "•", "gate": "G", "stale": "↺"}
+                        "active": "•", "gate": "G", "stale": "↺",
+                        "awaiting_approval": "◇", "revising": "↻"}
 PHASE_GLYPHS_ASCII = {"pending": "o", "in_progress": "~", "completed": "*",
                       "failed": "x", "skipped": "-", "current": ">", "drift": "!",
-                      "active": ".", "gate": "G", "stale": "@"}
+                      "active": ".", "gate": "G", "stale": "@",
+                      "awaiting_approval": "?", "revising": "r"}
 PG = PHASE_GLYPHS_ASCII if D.ASCII_ONLY else PHASE_GLYPHS_UNICODE
 
 PHASE_STYLE = {"pending": "dim", "in_progress": "warn", "completed": "accent",
-               "failed": "alert", "skipped": "dim", "stale": "warn"}
+               "failed": "alert", "skipped": "dim", "stale": "warn",
+               "awaiting_approval": "warn", "revising": "warn"}
 
 # A phase counts as "running now" when the project produced tokens or wrote one of its
 # outputs within this many seconds.
@@ -124,6 +147,7 @@ PS_LABELS = {
         "total_cost": "total cost", "unassigned": "unassigned",
         "empty": "nothing to show", "unknown_phase": "unknown phase: %s",
         "filter": "filter", "failed_phases": "failed",
+        "awaiting_phases": "awaiting approval", "resume_at": "resume at",
         "no_match": "no phase matches %s", "clear_filter": "press f to clear it",
         "known_phases": "phases in the %s pipeline: %s",
         "no_extension_tier": "the product pipeline has no manual extension tier",
@@ -194,6 +218,7 @@ PS_LABELS = {
         "total_cost": "合計コスト", "unassigned": "未割当",
         "empty": "表示するものがありません", "unknown_phase": "存在しないフェーズ: %s",
         "filter": "フィルタ", "failed_phases": "失敗",
+        "awaiting_phases": "承認待ち", "resume_at": "再開位置",
         "no_match": "%s に一致するフェーズはありません", "clear_filter": "f で解除",
         "known_phases": "%s パイプラインのフェーズ: %s",
         "no_extension_tier": "product パイプラインに手動拡張ティアはありません",
@@ -772,6 +797,9 @@ def normalize_progress(progress):
         value = progress.get(key)
         out[key] = [str(v) for v in value] if isinstance(value, list) else (
             [str(value)] if value else [])
+    # The resume point (progress-registry.md § Resume Point): a dict naming a phase, or nothing.
+    rp = progress.get("resume_point")
+    out["resume_point"] = rp if isinstance(rp, dict) and isinstance(rp.get("phase"), str) else None
     return out
 
 
@@ -1322,7 +1350,11 @@ def derive_all(project_dir, plugin=None, progress=None, section="pipeline"):
         "unassigned_cost_usd": unassigned_cost,
         "latest_activity": latest_activity or None,
     }
-    current = next((s["name"] for s in countable if s["status"] == "in_progress"), None)
+    current = next((s["name"] for s in countable
+                    if s["status"] in ("in_progress", "revising")), None)
+    # What waits on a person: the registry's human-gate status, surfaced in the header so a
+    # run paused on a question is never read as merely slow.
+    awaiting = [s["name"] for s in phases.values() if s["status"] == "awaiting_approval"]
     # The suggested next phase prefers the required path: an optional phase (a greenfield
     # entry point, an on-demand skill) is runnable from the start and would otherwise
     # always win, which is not what "what do I run next" means mid-pipeline.
@@ -1347,7 +1379,8 @@ def derive_all(project_dir, plugin=None, progress=None, section="pipeline"):
         # is what dependency and staleness answers were computed against.
         "phases": visible, "all_phases": phases,
         "groups": groups, "summary": summary,
-        "current": current, "next": nxt, "stale": stale,
+        "current": current, "next": nxt, "stale": stale, "awaiting": awaiting,
+        "resume_point": (progress or {}).get("resume_point"),
         "gate": read_gate(progress) if section == "pipeline" else None,
         "errors": list((progress or {}).get("errors") or []) + canonical_errors,
         "warnings": list((progress or {}).get("warnings") or []) + canonical_warnings,
