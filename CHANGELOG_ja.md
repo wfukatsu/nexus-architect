@@ -7,6 +7,33 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.60.3] - 2026-11-15
+
+v0.53.1..v0.60.0 のレビューのドキュメント項目（#156、PR #163、tracking #158）: ルール・スキル・カタログが、
+0.54.0–0.60.0 のコードがしないことを約束していたり、誤って説明していた箇所。
+
+### Changed
+- **フックのないランタイムでの `PHASE_*` イベント。** `skills/common/progress-registry.md` § Audit Log は
+  Codex と Omnigent に「フックを手で実行する」と書いていたが、フックは標準入力の Claude Code ペイロードを
+  読むもので、手で実行しても何も出さない。オーケストレータがレジストリへのスタンプ直後に自分でイベントを
+  追記する — `/architect:pipeline` のステップ 8 にコマンドを、AGENTS.md のランタイム表に行を加えた。
+- **監査イベントの書き手表**に `/product:validate-assumptions`（`GATE_*` と `go` / `no-go` の
+  `VERDICT_RECORDED`）、`tools/lib/workshop_sheet.py`（`render` で `QUESTION_ASKED`、`collect` で
+  `QUESTION_ANSWERED`）、`RULE_PROPOSED` の提案者としての `review-issue`（どちらが実行してもイベントの
+  `phase` は `review-synthesizer`。#152 まで）、ADR を書く 5 スキルの名前を載せた。
+- **ADR を書く 5 スキル**（`redesign`・`design-microservices`・`design-scalardb`・`design-data-layer`・
+  `design-api`）が、ルールを指すだけでなく `schema_version: 2`・`deciders`・`approved_by`・`ADR_RECORDED`
+  イベントを自分で述べる。
+- **`--workshop` を持つ 5 スキル**が `--auto --workshop` はエラーだと述べる（「`--auto` とは併用しない」だった）。
+- **Usage 行の規則**（AGENTS.md、`docs/skill-authoring.md`）を `tools/docs_consistency.test.py` が実際に
+  強制する内容に揃えた: シグネチャを本文に再掲する — `**Usage:**` 行か呼び出しのコードブロック（26 スキルは
+  コードブロック）。
+- **件数。** AGENTS.md と README の utility 行は n = 8 に合わせて 8 コマンドを列挙する — `report-token-cost`
+  は extension tier。AGENTS.md は Codex の 32,768 バイト予算に対して 32,737 バイト。
+- `tools/lib/audit_log.py list tail=` は整数でなければ usage error（exit 2）。`0` か省略で全件（文書化）。
+  `tools/lib/outcome_graders.py` は受け付ける `equals` しきい値を docstring に載せた。`/scalardb:build-app`
+  は両カタログで `SKILL.md` どおり `sonnet`。
+
 ## [0.60.2] - 2026-11-15
 
 v0.53.1..v0.60.0 のレビュー（tracking #158）からさらに 2 件、#150 と #151 を修正（PR #161）。

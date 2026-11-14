@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.60.3] - 2026-11-15
+
+The documentation items of the v0.53.1..v0.60.0 review (#156, PR #163; tracking #158): places where
+a rule, a skill or a catalogue promised something the 0.54.0–0.60.0 code does not do, or described
+it wrongly.
+
+### Changed
+- **`PHASE_*` events on runtimes without hooks.** `skills/common/progress-registry.md` § Audit Log
+  said Codex and Omnigent "run the hook by hand"; the hook reads a Claude Code payload from stdin
+  and emits nothing when run that way. The orchestrator now appends the event itself right after
+  each registry stamp — `/architect:pipeline` step 8 gives the command, and the AGENTS.md runtime
+  table has a row for it.
+- **The audit-event writer table** names `/product:validate-assumptions` (`GATE_*` and
+  `VERDICT_RECORDED` with `go` / `no-go`), `tools/lib/workshop_sheet.py` (`QUESTION_ASKED` on
+  `render`, `QUESTION_ANSWERED` on `collect`), `review-issue` as a `RULE_PROPOSED` proposer (the
+  event's `phase` is `review-synthesizer` whichever ran it, until #152), and the five ADR writers.
+- **The five ADR-writing skills** (`redesign`, `design-microservices`, `design-scalardb`,
+  `design-data-layer`, `design-api`) state `schema_version: 2`, `deciders`, `approved_by` and the
+  `ADR_RECORDED` event themselves instead of only pointing at the rule.
+- **The five `--workshop` skills** say `--auto --workshop` is an error (was "Not with `--auto`").
+- **The Usage-line rule** in AGENTS.md and `docs/skill-authoring.md` states what
+  `tools/docs_consistency.test.py` enforces: the signature restated in the body, as a `**Usage:**`
+  line or the invocation code block (26 skills use the block).
+- **Counts.** AGENTS.md and README list eight utility commands for n = 8 — `report-token-cost`
+  belongs to the extension tier. AGENTS.md is 32,737 bytes of the 32,768-byte Codex budget.
+- `tools/lib/audit_log.py list tail=` must be a whole number (a usage error, exit 2, otherwise;
+  `0` or absent keeps every event, now documented). `tools/lib/outcome_graders.py` lists the
+  `equals` threshold it accepts. `/scalardb:build-app` is `sonnet` in both catalogues, as its
+  `SKILL.md` says.
+
 ## [0.60.2] - 2026-11-15
 
 Two more defects from the review of v0.53.1..v0.60.0 (tracking #158): #150 and #151, PR #161.
