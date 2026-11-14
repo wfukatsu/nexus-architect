@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.60.1] - 2026-11-15
+
+A review of v0.53.1..v0.60.0 (tracking #158) found twelve defects and gaps; this release fixes the
+four that lose data or change existing behaviour (#146–#149, PR #159).
+
+### Fixed
+- **`options.profile` no longer collides between the two pipelines** (#146). `/product:init-output`
+  wrote `"profile": "full"` and the product manifest's profiles are bare phase lists, so every
+  product project warned "not a profile of the product manifest" on the dashboard and in
+  `/architect:doctor`, and a handoff registry holding `mvp` read as an unknown architect profile.
+  The product run now records `options.product_profile`; `profile_option` in
+  `tools/lib/pipeline_status_data.py` still reads the legacy spelling as the product's, and an
+  architect read of a product name is unset, not a warning. Bare-list profiles resolve to
+  `{"phases": [...]}` with no depth. Doctor resolves both pipelines.
+- **`analysis` (`--analyze-only`) no longer admits design phases that depend on `redesign`**
+  (#147). `profile_exclusions` excluded an evidence-gated phase only by depth, so
+  `design-aggregate`, `design-state-machine` and `create-domain-story` stayed runnable at standard
+  depth with no redesign to build on. A gated phase whose dependency the profile does not run
+  (transitively through other gated phases) is now outside the profile at every depth; `poc`
+  still drops them as `depth`. The manifest comment and both orchestrators say so.
+- **`worktree remove` refuses a checkout with uncommitted work** (#148). It ran
+  `git worktree remove --force` and `merge-issue` calls it after every merge, so unsaved work in
+  the Issue's worktree was discarded silently. It now runs `git status --porcelain` first and exits
+  3 listing the files; `force=true` discards them, and `merge-issue` never passes it on its own.
+- **An unreadable registry no longer duplicates `PHASE_*` audit events** (#149).
+  `hooks/record_token_usage.py` read a torn or unparsable `work/pipeline-progress.json` as empty,
+  reset the checkpoint to `{}` and re-emitted every phase on the next firing. An unreadable
+  registry now keeps the checkpoint and emits nothing, and the events are appended after the
+  ledger is saved so none precedes its checkpoint.
+
 ## [0.60.0] - 2026-11-14
 
 ### Added

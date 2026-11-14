@@ -7,6 +7,35 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.60.1] - 2026-11-15
+
+v0.53.1..v0.60.0 のレビュー（tracking #158）で 12 件の欠陥と差分が見つかった。このリリースは、データを失うか
+既存の挙動を変える 4 件（#146–#149、PR #159）を修正する。
+
+### Fixed
+- **`options.profile` が 2 つのパイプラインで衝突しなくなった**（#146）。`/product:init-output` は
+  `"profile": "full"` を書き、product manifest の profiles は素のフェーズ配列なので、すべての product
+  プロジェクトでダッシュボードと `/architect:doctor` が「product manifest の profile ではない」と警告し、
+  handoff 後のレジストリにある `mvp` は未知の architect profile として読まれていた。product の実行は
+  `options.product_profile` に記録するようにし、`tools/lib/pipeline_status_data.py` の `profile_option`
+  は旧来の綴りも product のものとして読む。architect 側が product の名前を読んだときは未設定扱いで、
+  警告しない。配列形の profile は depth なしの `{"phases": [...]}` に解決する。doctor は両パイプラインを
+  解決する。
+- **`analysis`（`--analyze-only`）が `redesign` に依存する設計フェーズを通さなくなった**（#147）。
+  `profile_exclusions` は evidence-gated フェーズを depth でしか除外しなかったため、`design-aggregate`・
+  `design-state-machine`・`create-domain-story` が、土台になる redesign がないまま standard depth で
+  実行対象に残っていた。依存先（他の gated フェーズを経由した推移的なものも含む）を profile が実行しない
+  gated フェーズは、どの depth でも profile の外になる。`poc` では引き続き `depth` として外れる。
+  manifest のコメントと 2 つのオーケストレータにも記した。
+- **`worktree remove` が未コミットの作業を含む checkout を拒否する**（#148）。`git worktree remove --force`
+  を実行しており、`merge-issue` がマージごとに呼ぶため、Issue の worktree にある未保存の作業が黙って
+  消えていた。先に `git status --porcelain` を実行し、ファイルを列挙して exit 3 で止まる。`force=true`
+  なら破棄するが、`merge-issue` は自分では渡さない。
+- **読めないレジストリで `PHASE_*` 監査イベントが重複しなくなった**（#149）。`hooks/record_token_usage.py`
+  は書き込み途中や解析不能な `work/pipeline-progress.json` を空として読み、checkpoint を `{}` に戻して
+  次の発火で全フェーズを再発火していた。読めないレジストリでは checkpoint を保ち、何も出さない。イベントは
+  台帳の保存後に追記するので、checkpoint より先に書かれることがない。
+
 ## [0.60.0] - 2026-11-14
 
 ### Added
