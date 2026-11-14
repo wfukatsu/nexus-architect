@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.56.0] - 2026-11-14
+
+### Added
+- **Decision roles, and who approved what** (#126, #136). `docs/decision-roles.md` names eight
+  roles (product owner, business sponsor, domain expert, architect, security, operations, legal,
+  engineering lead), what each decides and which gate each approves. The Open Questions store
+  gains a `Role` column beside `Owner` — the seat whose answer a question needs, not only the
+  person (`rules/open-questions.md` §6; readers find columns by header, so older eight-column
+  stores still read) — and `tools/lib/open_questions.py <project> by=role|owner|status|phase`
+  lists what waits on whom, with a row in `/architect:report-status`. ADRs gain `deciders`,
+  `approved_by` and `evidence` (`rules/architecture-decision-records.md` §2): required at
+  `schema_version: 2` (`deciders` always, `approved_by` when `accepted`), validated at either
+  version, version 1 records untouched; promoting a `proposed` record writes `approved_by`.
+- **Workshop mode** (`rules/open-questions.md` §9, `tools/lib/workshop_sheet.py`). `--workshop`
+  on `define-requirements`, `design-aggregate`, `design-state-machine`, `/product:define-scope`
+  and `/product:validate-assumptions` hands the phase's questions to a room instead of the
+  session: the questions are recorded in the store, rendered to `work/workshop/<phase>.md` with
+  tick-box options, the role and `Answer:` / `Answered by:` / `Role:` lines (one `QUESTION_ASKED`
+  each), the phase is stamped `awaiting_approval` and the run stops; people answer and sign in
+  any editor; the next run collects each answer into its store row and the audit log
+  (`QUESTION_ANSWERED` with the signer as actor) and continues, or stops again naming the role a
+  pending question waits on. `--auto --workshop` is an error.
+- `/product:validate-assumptions` records its `go` / `no-go` as `VERDICT_RECORDED`.
+
 ## [0.55.0] - 2026-11-14
 
 ### Added
