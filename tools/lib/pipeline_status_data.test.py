@@ -914,6 +914,136 @@ def check_hostile_inputs(root):
           state["summary"])
 
 
+def check_profiles(root):
+    """The `profiles` / `depths` tables of the architect manifest, and the dashboard's reading
+    of a project's `options.profile` / `options.depth` (skills/pipeline/SKILL.md § Profile and
+    Depth)."""
+    print("profiles and depths")
+    manifest = P.load_phase_manifest("architect")
+    core = {n for n, s in manifest.items() if s["tier"] == "core"}
+    profiles = P.load_manifest_section("architect", "profiles")
+    depths = P.load_manifest_section("architect", "depths")
+    check("the four profiles are defined",
+          set(profiles) == {"full", "enterprise", "poc", "analysis"}, sorted(profiles))
+    check("the three depths are defined",
+          set(depths) == {"minimal", "standard", "comprehensive"}, sorted(depths))
+    check("the product manifest keeps its bare-list profiles readable",
+          P.load_manifest_section("product", "profiles").get("mvp") == [
+              "define-vision", "define-scope", "validate-assumptions"])
+    check("a section the manifest lacks is an empty mapping",
+          P.load_manifest_section("product", "depths") == {})
+
+    perspectives = set()
+    for name, spec in depths.items():
+        listed = set(P._as_list(spec.get("review_perspectives")))
+        perspectives |= listed
+        check("depth %s names review phases only" % name,
+              listed and all(manifest[p]["category"] == "review" for p in listed
+                             if p in manifest) and listed <= core, sorted(listed))
+        check("depth %s has a description, an optional_phases mode and the reviewer flag" % name,
+              spec.get("description") and spec.get("optional_phases") in ("none", "evidence", "all")
+              and isinstance(spec.get("independent_reviewers"), bool), spec)
+    review_phases = {n for n in core if manifest[n]["category"] == "review"
+                     and n != "review-synthesizer"}
+    check("standard and comprehensive run every review perspective",
+          set(depths["standard"]["review_perspectives"]) == review_phases
+          and set(depths["comprehensive"]["review_perspectives"]) == review_phases,
+          sorted(review_phases))
+    check("minimal keeps the consistency and the adversarial perspective",
+          {"review-consistency", "review-risk"} <= set(depths["minimal"]["review_perspectives"]))
+    gated = {n for n in core if manifest[n].get("evidence_gated")}
+    optional = {n for n in core if manifest[n].get("optional")}
+    check("every evidence-gated phase is optional, and every optional phase but the "
+          "greenfield entry is evidence-gated",
+          gated <= optional and optional - gated == {"define-requirements"},
+          sorted(optional ^ gated))
+
+    backbone = core - gated - perspectives
+    for name, spec in profiles.items():
+        phases = P._as_list(spec.get("phases"))
+        check("profile %s names core phases only" % name, set(phases) <= core,
+              sorted(set(phases) - core))
+        check("profile %s lists backbone phases only — optional phases and perspectives "
+              "are the depth's" % name, set(phases) <= backbone,
+              sorted(set(phases) - backbone))
+        check("profile %s names a defined depth and carries a description" % name,
+              spec.get("depth") in depths and bool(spec.get("description")), spec.get("depth"))
+        # The guarantee the pipeline relies on: no listed phase waits on a phase the
+        # profile never runs. Optional and conditional dependencies may be absent (they
+        # are satisfied when skipped); a required, unconditional one must be listed.
+        unmet = sorted(
+            (ph, dep) for ph in phases for dep in manifest[ph]["depends_on"]
+            if dep in manifest and dep not in phases and dep in backbone
+            and not manifest[dep]["conditions"] and not manifest[dep].get("optional"))
+        check("profile %s runs every required dependency of what it lists" % name,
+              not unmet, unmet)
+    check("full runs the whole backbone", set(profiles["full"]["phases"]) == backbone,
+          sorted(backbone ^ set(profiles["full"]["phases"])))
+    check("enterprise is full at comprehensive depth",
+          set(profiles["enterprise"]["phases"]) == backbone
+          and profiles["enterprise"]["depth"] == "comprehensive")
+    check("poc ends in a report without a data-layer design",
+          "report" in profiles["poc"]["phases"]
+          and not {"design-scalardb", "design-data-layer"} & set(profiles["poc"]["phases"])
+          and profiles["poc"]["depth"] == "minimal")
+    check("analysis stops before redesign and runs no review",
+          not {"redesign", "review-synthesizer", "report"} & set(profiles["analysis"]["phases"])
+          and "integrate-evaluations" in profiles["analysis"]["phases"])
+
+    def project(options, name):
+        d = os.path.join(root, "profile-" + name)
+        write(os.path.join(d, "work", "pipeline-progress.json"),
+              json.dumps({"phases": {}, "options": options}))
+        return P.derive_all(d)
+
+    st = project({"profile": "poc"}, "poc")
+    ph = st["phases"]
+    check("poc: a backbone phase outside the profile is excluded as such",
+          ph["design-scalardb"]["excluded"] == "profile"
+          and ph["design-scalardb"]["status"] == "skipped", ph["design-scalardb"]["excluded"])
+    check("poc: minimal depth drops an evidence-gated phase and a perspective as depth",
+          ph["design-aggregate"]["excluded"] == "depth"
+          and ph["review-operations"]["excluded"] == "depth", ph["review-operations"])
+    check("poc: what the profile runs is not excluded",
+          not any(ph[n]["excluded"] for n in ("investigate", "redesign", "design-api",
+                                             "review-consistency", "review-risk", "report")))
+    check("poc: the excluded dependency does not block its dependent",
+          "design-scalardb" not in ph["review-synthesizer"]["blocked_by"]
+          and "design-aggregate" not in ph["design-state-machine"]["blocked_by"])
+    check("poc: the manual extension tier is untouched",
+          not ph["design-infrastructure"]["excluded"])
+    check("the private exclusion map is not reported as an option",
+          "_profile_excluded" not in st["options"] and st["options"] == {"profile": "poc"},
+          st["options"])
+    check("no warning for a defined profile", not st["warnings"], st["warnings"])
+
+    st = project({"profile": "full", "depth": "minimal"}, "full-min")
+    ph = st["phases"]
+    check("--depth overrides the profile's default",
+          ph["review-business"]["excluded"] == "depth" and ph["analyze-ui"]["excluded"] == "depth"
+          and not ph["design-scalardb"]["excluded"], ph["review-business"]["excluded"])
+    st = project({"profile": "full"}, "full")
+    check("full at its default depth excludes nothing",
+          not any(p["excluded"] == "profile" or p["excluded"] == "depth"
+                  for p in st["phases"].values()))
+    st = project({"profile": "analysis"}, "analysis")
+    check("analysis: every perspective and the synthesizer are outside the profile",
+          st["phases"]["review-consistency"]["excluded"] == "profile"
+          and st["phases"]["review-synthesizer"]["excluded"] == "profile"
+          and not st["phases"]["map-domains"]["excluded"])
+    st = project({"profile": "nope", "depth": 7}, "bad")
+    check("an unknown profile and a non-string depth exclude nothing and are reported",
+          not any(p["excluded"] in ("profile", "depth") for p in st["phases"].values())
+          and len(st["warnings"]) == 2, st["warnings"])
+    st = project({"depth": "comprehensive"}, "depth-only")
+    check("a depth without a profile excludes nothing at comprehensive",
+          not any(p["excluded"] for p in st["phases"].values()
+                  if p["tier"] == "core" and not p["conditions"]), )
+    check("resolve_profile falls back to the profile's depth",
+          P.resolve_profile("architect", {"profile": "poc"})[2] == "minimal"
+          and P.resolve_profile("architect", {})[2] is None)
+
+
 def run(root, plugin=None):
     state = P.derive_all(root, plugin=plugin)
     phases = state["phases"]
@@ -1206,6 +1336,7 @@ def main():
         check_graphql_condition(root)
         check_shared_phase_names(root)
         check_hostile_inputs(root)
+        check_profiles(root)
     if cleanup:
         shutil.rmtree(cleanup, ignore_errors=True)
     print("%d failure(s)" % FAILURES)

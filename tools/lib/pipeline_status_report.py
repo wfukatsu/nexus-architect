@@ -167,6 +167,11 @@ def header_lines(state):
         lines.append(c(DIM, "%s %s" % (T["backlog"],
                                        T["issues_done"] % (backlog[0], backlog[1]))))
     meta = []
+    options = state["options"] or {}
+    if options.get("profile") or options.get("depth"):
+        depth_name = P.resolve_profile(state["plugin"], options)[2]
+        meta.append("%s %s" % (T["profile"], options.get("profile") or "-"))
+        meta.append("%s %s" % (T["depth"], depth_name or options.get("depth") or "-"))
     if s["total_cost_usd"]:
         meta.append("%s %s" % (T["total_cost"], D.money(s["total_cost_usd"])))
     if state["updated_at"]:

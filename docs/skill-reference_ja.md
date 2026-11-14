@@ -14,8 +14,8 @@
 
 | コマンド | モデル | 説明 |
 |---------|-------|------|
-| `/architect:start` | inherit | インタラクティブにシステム分析と設計を開始 |
-| `/architect:pipeline` | sonnet | 自動パイプライン実行（--resume-from、--rerun-from、--skip-{phase}、--no-scalardb、--lang）。最後に、例のマップの状態と DDD → BDD → TDD の連鎖の次のコマンドを示す |
+| `/architect:start` | inherit | インタラクティブにシステム分析と設計を開始。依頼文からプロファイル（--profile）と深度（--depth）を提案する |
+| `/architect:pipeline` | sonnet | 自動パイプライン実行（--profile、--depth、--resume-from、--rerun-from、--skip-{phase}、--no-scalardb、--lang）。最後に、例のマップの状態と DDD → BDD → TDD の連鎖の次のコマンドを示す |
 
 ## 要件定義
 
@@ -253,8 +253,8 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 
 ```text
 # Orchestration & setup
-/architect:start [target_path]
-/architect:pipeline [target_path] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]
+/architect:start [target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive]
+/architect:pipeline [target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]
 /architect:init-output [project_name] [--reset]
 /product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--lang=ja|en]
 /product:init-output [project_name] [--reset]

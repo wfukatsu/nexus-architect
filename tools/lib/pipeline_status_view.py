@@ -279,6 +279,11 @@ class PipelineView(S.BaseView):
             lines.append(("%s %s: %s%s" % (P.PG["gate"], label, gate["verdict"], note),
                           "accent" if gate["verdict"] == "go" else "warn"))
         meta = []
+        options = state["options"] or {}
+        if options.get("profile") or options.get("depth"):
+            _, _, depth_name, _, _ = P.resolve_profile(state["plugin"], options)
+            meta.append("%s %s" % (T["profile"], options.get("profile") or "-"))
+            meta.append("%s %s" % (T["depth"], depth_name or options.get("depth") or "-"))
         if self.backlog:
             meta.append("%s %s" % (T["backlog"],
                                    T["issues_done"] % (self.backlog[0],
@@ -330,8 +335,18 @@ class PipelineView(S.BaseView):
                              "shared-name": "drift_shared"}.get(
                                  phase["drift"], "drift_present")], "warn"))
         if phase["excluded"]:
-            lines.append((T["skipped_option"] if phase["excluded"] == "option"
-                          else T["skipped_condition"], "dim"))
+            options = self.state["options"] or {}
+            if phase["excluded"] == "option":
+                reason = T["skipped_option"]
+            elif phase["excluded"] == "profile":
+                reason = T["skipped_profile"] % options.get("profile", "-")
+            elif phase["excluded"] == "depth":
+                reason = T["skipped_depth"] % (
+                    options.get("depth") or P.resolve_profile(
+                        self.state["plugin"], options)[2] or "-")
+            else:
+                reason = T["skipped_condition"]
+            lines.append((reason, "dim"))
         flags = [T[k] for k in ("optional", "rerunnable", "standalone")
                  if phase[k]]
         if phase["gate"]:

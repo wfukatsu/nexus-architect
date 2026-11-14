@@ -2,7 +2,7 @@
 description: |
   Run every architect pipeline phase in dependency order, unattended, each as a sub-agent; questions
   are recorded instead of asked.
-argument-hint: '[target_path] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]'
+argument-hint: '[target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]'
 model: sonnet
 disable-model-invocation: true
 ---
@@ -12,14 +12,15 @@ disable-model-invocation: true
 Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
 plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
-**Usage:** `/architect:pipeline [target_path] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]`
+**Usage:** `/architect:pipeline [target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]`
 
 ## Expected Outcome
 
 Complete the core architecture analysis and design pipeline for the target project:
 investigation through evaluation, redesign, target architecture, data/API design, the
-5-perspective review, and the consolidated HTML report. The final deliverables are the
-reports under reports/ produced by the phases in the dependency manifest.
+multi-perspective review, and the consolidated HTML report — as much of it as the run's
+**profile** and **depth** select (§ Profile and Depth). The final deliverables are the reports
+under reports/ produced by the phases in the dependency manifest.
 
 ## Available Skills
 
@@ -32,7 +33,9 @@ part of the automated run.
 
 ## Execution Strategy
 
-1. Load the dependency graph from `skill-dependencies.yaml`
+1. Load the dependency graph from `skill-dependencies.yaml`, and with it the `profiles` and
+   `depths` tables; resolve this run's profile and depth (§ Profile and Depth) and record them
+   as `options.profile` and `options.depth`
 2. Initialize output directories with `/architect:init-output`
 3. **Product handoff detection** — glob the same set `define-requirements` ingests: `reports/00_core/`, `reports/01_ux/`, `reports/02_spec/`, `reports/03_domain/`, `reports/04_quality/` and `work/traceability.json`. Keep the two sets identical — a run that stopped early (`--profile=mvp` writes only `reports/00_core/`) is still a handoff. Match **files**, not directories: `/product:init-output` creates `reports/01_ux/domain-stories/` and `reports/02_spec/ui-mocks/` empty, so a directory test passes on any initialized product project. If product artifacts exist, run `define-requirements` first with them as inputs (the product→architect handoff, @docs/design.md §1); it auto-detects and carries product IDs forward. Otherwise run the standard greenfield/legacy entry.
 4. Execute each phase **as a sub-agent**, never inline, and verify its output before proceeding to
@@ -45,7 +48,9 @@ part of the automated run.
    `reports/03_design/api-style-decisions.json`. Before that artifact exists, a legacy
    `options.api_style_graphql` is only a compatibility fallback. Invalid canonical JSON is a
    blocking error and must never be interpreted as REST-only.
-7. Phases the manifest marks `optional: true` may be skipped without failing the run. Three of them
+7. Phases the manifest marks `optional: true` may be skipped without failing the run; the ones
+   marked `evidence_gated: true` follow the depth's `optional_phases` (§ Profile and Depth) — at
+   `none` they are recorded `skipped` with summary `depth <name>` before anything is read. Three of them
    are dialogue-driven (`create-domain-story`, `design-aggregate`, `design-state-machine`) and an automated run has
    nobody to facilitate with: invoke those with `--auto` and record what that mode had to assume. `analyze-ui` and
    `evaluate-ux` run with `--auto` too, and `evaluate-ux` never with `--base-url`: an automated run
@@ -69,6 +74,48 @@ part of the automated run.
    or reset an entry that is not this manifest's — including under `--rerun-from`
    (@skills/common/progress-registry.md § One Registry, Two Pipelines)
 9. Accumulate findings in `work/context.md` between phases
+
+## Profile and Depth
+
+Which phases a run executes is the manifest's `profiles` table; how much optional and review
+work it does is its `depths` table (@skills/common/skill-dependencies.yaml, after the phases).
+Resolve them before the first phase starts:
+
+- **Profile.** `--profile=<name>` when given; `--analyze-only` is `--profile=analysis`; a
+  profile already in `options.profile` on a resumed run; otherwise `full`. A name the table does
+  not define is an error naming the four it does — never a silent `full`.
+- **Depth.** `--depth=<name>` when given, else the profile's `depth`. A `--depth` the table does
+  not define is an error likewise.
+- Record both as `options.profile` and `options.depth` in `work/pipeline-progress.json` before
+  `init-output` returns, so the dashboard and the token-usage hook read the same run you do.
+
+Then the phase set is: the profile's `phases`, plus the `evidence_gated` optional phases the
+depth's `optional_phases` admits, plus — when `review-synthesizer` is in the profile — the depth's
+`review_perspectives`. `define-requirements` is listed by the profile and follows the path as
+before (the greenfield entry; on the legacy path only when documents were supplied), and the
+greenfield path drops the investigation and evaluation phases from whatever profile runs, as it
+always has. Every other core phase of the manifest is recorded `skipped` with summary
+`outside profile <name>` (or `depth <name>` for a perspective or an optional phase the depth
+dropped), at the moment it would otherwise have started, so the registry shows the run's shape
+and `/architect:report-status` files it as excluded rather than pending. A dependency that is
+outside the profile is satisfied for its dependents, like a conditional `skipped` one
+(§ Conditional Dependency Resolution) — the manifest guarantees every listed phase has its required
+dependencies in the same profile, so this only ever concerns optional phases and perspectives.
+
+The depth's other two keys change how a phase runs, not whether:
+
+- `optional_phases: evidence` is step 7 as written; `all` runs each evidence-gated phase over
+  every candidate it finds — pass no `--domain` / `--context` / `--aggregate` narrowing and tell
+  the phase in its prompt to cover every bounded context, every context's aggregates and every
+  aggregate with a lifecycle rather than the ones the evidence makes a case for.
+- `independent_reviewers: false` (depth `minimal`) tells each review perspective, in its prompt,
+  to score its dimensions itself instead of spawning one sub-agent per dimension. This is the
+  cheaper method § Phase Execution otherwise reserves for a run short of budget — chosen here by
+  the user, so it is recorded in `options.depth` and said in the final message, **not** added to
+  `warnings`, which stay the record of what the run did below the depth it was asked for.
+
+`--skip-{phase}` still removes a phase from whatever the profile selected, and `--rerun-from` /
+`--resume-from` work within it.
 
 ## Phase Execution
 
@@ -171,10 +218,12 @@ the questions are in `work/context.md` § Open Questions as `unasked` when it en
 
 ## Command-Line Options
 
+- `--profile=full|enterprise|poc|analysis`: Which backbone phases run — the manifest's `profiles` table (§ Profile and Depth); default `full`
+- `--depth=minimal|standard|comprehensive`: How much optional and review work runs — the manifest's `depths` table; default the profile's
 - `--skip-{phase}`: Skip the specified phase
 - `--resume-from=phase-N`: Resume from the specified phase (completed phases are skipped)
 - `--rerun-from=phase-N`: Reset all phases from the specified phase onward to "pending" and re-execute
-- `--analyze-only`: Execute analysis phases only
+- `--analyze-only`: Execute analysis phases only — the same as `--profile=analysis`
 - `--no-scalardb`: Skip all ScalarDB-related skills
 - `--lang=en|ja`: Set the output language (default: en). Stored in pipeline-progress.json options.output_language
 - The plain-language ELI5 section (@rules/eli5-summary.md) follows pipeline-progress.json `options.eli5`, default `technical`; there is no flag — set the option before running
@@ -245,8 +294,8 @@ mistaken for being done, the final message carries:
 
 ## Completion Criteria
 
-1. All phases are either completed or skipped
-2. `reports/00_summary/full-report.html` and `full-report.md` have been generated
+1. All phases are either completed or skipped — the ones outside the profile or depth recorded `skipped` with that summary
+2. `reports/00_summary/full-report.html` and `full-report.md` have been generated (profiles that run `report`; `analysis` ends at `integrate-evaluations` and `map-domains`)
 3. pipeline-progress.json status is "completed"
 4. The final message carries the example-map state and the next commands (§ After the Run)
 
