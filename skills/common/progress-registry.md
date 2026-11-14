@@ -182,6 +182,7 @@ happened and who did it. Writer: `tools/lib/audit_log.py` (library and command l
 | `ADR_RECORDED` | The five skills that write ADRs, per `rules/architecture-decision-records.md` §4 | A record was appended (`ref` = its `ADR-`) |
 | `VERDICT_RECORDED` | `review-synthesizer` | The quality-gate verdict was written (`detail` = `PASS` / `CONDITIONAL_PASS` / `FAIL`) |
 | `PR_OPENED` / `PR_MERGED` | `review-issue` (Step 5), `merge-issue` (Step 3) | The PR/MR was raised or merged (`ref` = its URL) |
+| `ITEM_CLAIMED` / `ITEM_RELEASED` | `tools/lib/backlog_claims.py`, run by `deliver-backlog`, `implement-backlog` and `merge-issue` | A backlog Issue was claimed by a person (stolen included, the previous holder in `detail`) or released (`reason` in `detail`); `skills/common/backlog-claims.md` |
 | `RULE_PROPOSED` / `RULE_ACCEPTED` / `RULE_REJECTED` | `tools/lib/learned_rules.py`, run by `review-synthesizer` (propose) and `/architect:start` (decide) | A learned rule was proposed from a recurring finding, or a person decided it (`ref` = its `LR-`, `rules/learned-rules.md`) |
 
 A skill appends with one positional command, no flags:

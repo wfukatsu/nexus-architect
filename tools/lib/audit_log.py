@@ -40,7 +40,7 @@ EVENTS = {
     "gate": ("GATE_APPROVED", "GATE_REJECTED", "GATE_SKIPPED"),
     "question": ("QUESTION_ASKED", "QUESTION_ANSWERED", "QUESTION_DEFERRED"),
     "decision": ("ADR_RECORDED", "VERDICT_RECORDED"),
-    "delivery": ("PR_OPENED", "PR_MERGED"),
+    "delivery": ("PR_OPENED", "PR_MERGED", "ITEM_CLAIMED", "ITEM_RELEASED"),
     "learning": ("RULE_PROPOSED", "RULE_ACCEPTED", "RULE_REJECTED"),
 }
 CATEGORY = {event: category for category, events in EVENTS.items() for event in events}

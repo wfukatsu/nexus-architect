@@ -320,10 +320,10 @@ path by their router, so they are not slash commands and have no signature here.
 
 # Backlog delivery
 /architect:export-backlog [--target=gitlab|github] [--project=<path>|--repo=<owner/name>] [--group=<gitlab-group>] [--dry-run] [--update] [--lang=en|ja]
-/architect:deliver-backlog [--epic=<id>] [--issue=<id>] [--from=implement|review|merge] [--auto] [--yes-merge] [--max-fix-rounds=N] [--export] [--dry-run] [--lang=en|ja]
-/architect:implement-backlog [item] [--epic=<id>] [--build-context] [--review-epic[=<id>]] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja]
+/architect:deliver-backlog [--epic=<id>] [--issue=<id>] [--from=implement|review|merge] [--parallel=N] [--steal] [--worktree-root=<path>] [--integration-branch=<name>] [--auto] [--yes-merge] [--max-fix-rounds=N] [--export] [--dry-run] [--lang=en|ja]
+/architect:implement-backlog [item] [--epic=<id>] [--build-context] [--review-epic[=<id>]] [--out=<path>] [--worktree-root=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja]
 /architect:review-issue [item] [--epic=<id>] [--max-fix-rounds=N] [--base=<branch>] [--no-fix] [--dry-run] [--auto] [--lang=en|ja]
-/architect:merge-issue [item|mr|pr] [--strategy=merge|squash|rebase] [--delete-branch] [--yes-merge] [--dry-run] [--auto] [--lang=en|ja]
+/architect:merge-issue [item|mr|pr] [--strategy=merge|squash|rebase] [--delete-branch] [--integration-branch=<name>] [--yes-merge] [--dry-run] [--auto] [--lang=en|ja]
 /architect:capture-followup [title] [--parent=<local_id|#iid>] [--from=<file|issue-ref>] [--queue-only] [--flush] [--dry-run] [--auto] [--lang=en|ja]
 /architect:report-backlog-status [--once] [--no-sync] [--exec] [--epic=<id>] [--json] [--md] [--ascii] [--ambiguous-width=2] [--lang=ja|en]
 
