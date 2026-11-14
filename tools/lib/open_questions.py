@@ -28,7 +28,13 @@ def split_cells(line):
         s = s[1:]
     if s.endswith("|"):
         s = s[:-1]
-    return [c.strip() for c in re.split(r"(?<!\\)\|", s)]
+    return [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", s)]
+
+
+def escape_cell(text):
+    """A cell value safe for the store's Markdown table: `|` becomes `\\|`, which `split_cells`
+    reads back as `|`."""
+    return (text or "").replace("\\|", "|").replace("|", "\\|")
 
 
 def status_word(raw):

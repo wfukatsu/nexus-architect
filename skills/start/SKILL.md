@@ -65,7 +65,11 @@ The depth then settles the three Option sections below without a second question
 none is offered — the optional phases are recorded `skipped` with summary `depth minimal`; at
 `comprehensive` none is asked either — each runs over every candidate without narrowing; at
 `standard` they are asked as written. Phases outside the profile are recorded `skipped` with
-summary `outside profile <name>` when their turn comes, never run and never asked about.
+summary `outside profile <name>` when their turn comes, never run and never asked about. On a
+resumed run whose profile widened, a `skipped` carrying such a summary for a phase the profile
+now includes is pending again — run it; one whose profile narrowed leaves a live status
+(`in_progress` / `awaiting_approval`) on a phase now outside it — stamp it `skipped` with the
+summary rather than resume it, and treat a `resume_point` naming it as cleared.
 
 ## Product Handoff Detection
 

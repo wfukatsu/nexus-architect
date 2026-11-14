@@ -1120,6 +1120,53 @@ def check_human_gate(root):
     st = P.derive_all(d)
     check("a resume point that is not a dict naming a phase is dropped",
           st["resume_point"] is None and st["awaiting"] == [], st["resume_point"])
+    # A profile's exclusions beat stale stamps from a run with another profile (#151).
+    write(os.path.join(d, "work", "pipeline-progress.json"), json.dumps({
+        "options": {"profile": "poc"},
+        "phases": {
+            "redesign": {"status": "completed", "plugin": "architect"},
+            "design-data-layer": {"status": "in_progress", "plugin": "architect"},
+            "design-aggregate": {"status": "awaiting_approval", "plugin": "architect"},
+        },
+        "resume_point": {"phase": "design-data-layer", "step": "2"},
+    }))
+    st = P.derive_all(d)
+    ph = st["phases"]
+    check("a live status on a phase outside the profile is shown as skipped, not current",
+          ph["design-data-layer"]["status"] == "skipped" and ph["design-data-layer"]["excluded"] == "profile"
+          and ph["design-data-layer"]["excluded_live"] == "in_progress"
+          and ph["design-aggregate"]["status"] == "skipped" and ph["design-aggregate"]["excluded"] == "depth"
+          and st["current"] is None and st["awaiting"] == [], (ph["design-data-layer"]["status"], st["current"]))
+    check("the overridden stamps are warnings",
+          [w for w in st["warnings"] if "design-data-layer is recorded in_progress" in w]
+          and [w for w in st["warnings"] if "design-aggregate is recorded awaiting_approval" in w], st["warnings"])
+    check("a resume point into an excluded phase is dropped with a warning",
+          st["resume_point"] is None
+          and any("resume_point names design-data-layer" in w for w in st["warnings"]), st["warnings"])
+    check("the next phase is inside the profile", st["next"] and not ph[st["next"]]["excluded"], st["next"])
+    write(os.path.join(d, "work", "pipeline-progress.json"), json.dumps({
+        "options": {"profile": "full", "scalardb_enabled": False},
+        "phases": {
+            "redesign": {"status": "completed", "plugin": "architect"},
+            "design-microservices": {"status": "completed", "plugin": "architect"},
+            "design-data-layer": {"status": "skipped", "plugin": "architect", "summary": "outside profile poc"},
+            "design-aggregate": {"status": "skipped", "plugin": "architect", "summary": "depth minimal"},
+            "analyze-ui": {"status": "skipped", "plugin": "architect", "summary": "no presentation layer"},
+        },
+        "resume_point": {"phase": "no-such-phase"},
+    }))
+    st = P.derive_all(d)
+    ph = st["phases"]
+    check("a skip recorded for a profile or depth that no longer applies is pending again",
+          ph["design-data-layer"]["status"] == "pending" and ph["design-data-layer"]["stale_skip"]
+          and ph["design-aggregate"]["status"] == "pending", (ph["design-data-layer"]["status"], ph["design-aggregate"]["status"]))
+    check("a skip with its own reason stays skipped",
+          ph["analyze-ui"]["status"] == "skipped" and not ph["analyze-ui"]["stale_skip"], ph["analyze-ui"]["status"])
+    check("the re-derived phase is runnable when its dependencies are met",
+          ph["design-data-layer"]["runnable"] or ph["design-data-layer"]["blocked_by"], ph["design-data-layer"]["blocked_by"])
+    check("a resume point naming no phase is dropped with a warning",
+          st["resume_point"] is None and any("resume_point names no-such-phase" in w for w in st["warnings"]),
+          st["warnings"])
 
 
 def run(root, plugin=None):

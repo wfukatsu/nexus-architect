@@ -55,6 +55,7 @@ import token_cost_data as D  # noqa: E402  (display helpers + load_json/parse_ts
 # `awaiting_approval` and `revising` are the two human-gate statuses of
 # skills/common/progress-registry.md: outputs written and a person's answer or approval
 # pending, and a phase being reworked after one. Both block dependents; neither is runnable.
+LIVE_STATUSES = ("in_progress", "awaiting_approval", "revising")
 PHASE_STATUSES = ["pending", "in_progress", "awaiting_approval", "revising", "completed",
                   "failed", "skipped"]
 # The status word as the 13-column status cell shows it.
@@ -1134,6 +1135,18 @@ def derive_phase(name, spec, entry, project_dir, options, project_name,
     # it ran, so they outrank an entry still sitting at the default. Every other recorded
     # status is a statement some skill actually made, and keeps its authority.
     unstamped = recorded == "pending" and written > 0
+    # Two exceptions, both the profile's (skills/pipeline/SKILL.md § Profile and Depth):
+    # a phase the run excludes cannot be running — a live status under an exclusion is a
+    # stamp from a run with another profile, shown as skipped and reported; and a `skipped`
+    # whose summary names an exclusion ("outside profile poc", "depth minimal") that no
+    # longer holds is the old profile's record, not this one's, so the phase is pending again.
+    excluded_live = (recorded if recorded in LIVE_STATUSES
+                     and excluded in ("profile", "depth", "option") else None)
+    reason = "%s %s" % ((entry or {}).get("summary") or "", (entry or {}).get("note") or "")
+    stale_skip = (recorded == "skipped" and not excluded
+                  and re.search(r"\b(outside profile|depth)\s+\S", reason) is not None)
+    if excluded_live or stale_skip:
+        recorded = None
 
     # A handful of phase names live in both manifests (`map-domains`, `design-api`,
     # `create-domain-story`, `report`) and the registry keys phases by bare name, so a
@@ -1202,6 +1215,8 @@ def derive_phase(name, spec, entry, project_dir, options, project_name,
         "depends_on": list(spec.get("depends_on") or []),
         "conditions": list(spec.get("conditions") or []),
         "status": status, "source": source, "excluded": excluded, "drift": drift,
+        # The live status an exclusion overrode, and whether a recorded skip was re-derived.
+        "excluded_live": excluded_live, "stale_skip": stale_skip,
         # `stale` and the display status are filled in by mark_stale, once every phase's
         # timestamp is known.
         "stale": False, "stale_by": [], "stale_inherited": [], "stale_at": None,
@@ -1332,6 +1347,25 @@ def derive_all(project_dir, plugin=None, progress=None, section="pipeline"):
     for name in order_phases(manifest):
         phases[name] = derive_phase(name, manifest[name], entries.get(name), project_dir,
                                     effective, project_name, costs, activity, now, plugin)
+        st = phases[name]
+        if st["excluded_live"]:
+            canonical_warnings.append(
+                "%s is recorded %s but is outside this run's %s; shown as skipped — "
+                "a stamp from a run with another profile or depth" % (name, st["excluded_live"], st["excluded"]))
+    # The resume point names a phase to continue; one outside this run's profile, or not a
+    # phase at all, would resume into work the run never does.
+    resume_point = (progress or {}).get("resume_point")
+    if isinstance(resume_point, dict) and isinstance(resume_point.get("phase"), str):
+        target = phases.get(resume_point["phase"])
+        if target is None and resume_point["phase"] not in entries:
+            canonical_warnings.append("resume_point names %s, which is not a phase; dropped" % resume_point["phase"])
+            resume_point = None
+        elif target is not None and target["excluded"] in ("profile", "depth", "option"):
+            canonical_warnings.append("resume_point names %s, which is outside this run's %s; dropped"
+                                      % (resume_point["phase"], target["excluded"]))
+            resume_point = None
+    else:
+        resume_point = None
 
     # Registry entries for phases this plugin's manifest does not know (hand-written or
     # renamed) are still shown, so nothing recorded is silently dropped — except the ones
@@ -1428,7 +1462,7 @@ def derive_all(project_dir, plugin=None, progress=None, section="pipeline"):
         "phases": visible, "all_phases": phases,
         "groups": groups, "summary": summary,
         "current": current, "next": nxt, "stale": stale, "awaiting": awaiting,
-        "resume_point": (progress or {}).get("resume_point"),
+        "resume_point": resume_point,
         "gate": read_gate(progress) if section == "pipeline" else None,
         "errors": list((progress or {}).get("errors") or []) + canonical_errors,
         "warnings": list((progress or {}).get("warnings") or []) + canonical_warnings,

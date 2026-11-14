@@ -107,14 +107,40 @@ def main():
               store)
         full = open(os.path.join(proj, "work", "context.md"), encoding="utf-8").read()
         check("the rest of the file is untouched", full.startswith("# Context\n") and full.rstrip().endswith("## Decisions"))
+        rows_before = dict(store)
         events = A.read_events(proj, event="QUESTION_ANSWERED")
         check("QUESTION_ANSWERED carries the signer as actor and the answer as detail",
               [(e["ref"], e["actor"], e["detail"]) for e in events]
               == [("OQ-002", A.actor_name(proj), "eu"),
                   ("OQ-003", "Dana Architect", "per-tenant, with the tenant id as partition key")], events)
         again = W.collect(proj, "define-requirements")
-        check("collecting again answers the same rows again and keeps the pending one",
-              [a["id"] for a in again["answered"]] == ["OQ-002", "OQ-003"] and again["pending"] == ["OQ-004"])
+        check("collecting again writes nothing: the store's answered rows supersede the sheet",
+              again["answered"] == [] and again["superseded"] == ["OQ-002", "OQ-003"]
+              and again["pending"] == ["OQ-004"], again)
+        check("and logs nothing again", len(A.read_events(proj, event="QUESTION_ANSWERED")) == 2)
+        # The store wins over a stale sheet: an answer given in-session is not overwritten.
+        sheet = os.path.join(proj, "work", "workshop", "define-requirements.md")
+        text = open(sheet, encoding="utf-8").read().replace(
+            "Answer:\n\nAnswered by:\n\nRole:\n\n## OQ-003",
+            "Answer: us-east | us-west\n\nAnswered by:\n\nRole:\n\n## OQ-003")
+        assert "us-east | us-west" in text
+        open(sheet, "w", encoding="utf-8").write(text)
+        again = W.collect(proj, "define-requirements")
+        rows, _ = Q.read_store(proj)
+        store = {r["id"]: r for r in rows}
+        check("a stale sheet does not overwrite an answered row",
+              "OQ-002" in again["superseded"] and store["OQ-002"]["answer"] == "eu", store["OQ-002"])
+        forced = W.collect(proj, "define-requirements", overwrite=True)
+        rows, _ = Q.read_store(proj)
+        store = {r["id"]: r for r in rows}
+        check("overwrite=true makes the sheet win, and a '|' in the answer stays one cell",
+              [a["id"] for a in forced["answered"]] == ["OQ-002", "OQ-003"]
+              and store["OQ-002"]["answer"] == "us-east | us-west"
+              and store["OQ-002"]["owner"] == rows_before["OQ-002"]["owner"]
+              and store["OQ-002"]["impact"] == rows_before["OQ-002"]["impact"], store["OQ-002"])
+        line = next(l for l in open(os.path.join(proj, "work", "context.md"), encoding="utf-8")
+                    if l.startswith("| OQ-002"))
+        check("the pipe is escaped in the file", "us-east \\| us-west" in line, line)
 
         print("command line")
         r = cli(proj, "render", "evaluate-ux", "ids=OQ-004")
@@ -126,6 +152,9 @@ def main():
         check("a missing sheet exits 1", cli(proj, "collect", "nope").returncode == 1)
         check("a bad verb or argument exits 2", cli(proj, "fold", "x").returncode == 2
               and cli(proj, "render", "x", "--ids=OQ-001").returncode == 2)
+        r = cli(proj, "collect", "define-requirements", "overwrite=true")
+        check("overwrite=true is accepted on the command line", r.returncode == 0
+              and json.loads(r.stdout)["superseded"] == [], r.stderr)
         check("too few arguments prints usage and exits 2", cli(proj, "render").returncode == 2)
         check("a project without a store exits 1",
               cli(os.path.join(root), "render", "x").returncode == 1)
