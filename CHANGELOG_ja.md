@@ -7,6 +7,25 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.58.0] - 2026-11-14
+
+### Added
+- **学習ループ**（#128、#140）。レビューが繰り返し見つけるものが、次の設計が読むルールになる。
+  `rules/learned-rules.md` がストアを定める — `work/learned-rules.json`、または
+  `options.learned_rules_path` で指すプロジェクト横断の 1 ファイル — `LR-###` のルールは適用フェーズの
+  scope、`review-knowledge.md` と同じ語彙の category、ガードレールの一文、anti-pattern と rationale、
+  提案ごとの origin、出現回数を持つ。書き込みはすべて追記で、ルールは `rejected` になるだけで削除されない。
+  `tools/lib/learned_rules.py` が唯一の書き手: `propose` は文で重複排除し（同じルールは scope を広げた
+  出現 1 回、却下済みを再提案すれば新 ID）、`decide` は誰がなぜ受理・却下したかを記録し、
+  `list scope=<phase>` はスキルが読む受理済みルールを返し、`render` は Markdown ビューを書く。
+  `review-synthesizer`（Step 3b）は繰り返す指摘 — 2 観点以上、既存ルールに一致、P0/P1 — からルールを
+  提案する（`--auto` または `options.learnings: false` では提案しない）。`review-issue` も一般化できる教訓を
+  提案する。`/architect:start` は synthesizer の提案を利用者に受理・却下で問い、`/architect:pipeline` は
+  `proposed` のまま残して列挙する。両方に `--no-learnings`。`design-microservices`・`design-api`・
+  `design-scalardb`・`design-implementation` は判断の前に自フェーズの受理済みルールを読み、形作った判断で
+  その `LR-` を引用する。`RULE_PROPOSED` / `RULE_ACCEPTED` / `RULE_REJECTED` が監査語彙の `learning`
+  カテゴリとして加わる。
+
 ## [0.57.0] - 2026-11-14
 
 ### Added
