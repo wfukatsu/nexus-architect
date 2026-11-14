@@ -150,8 +150,10 @@ The decisions this skill makes that a later phase depends on — the ScalarDB ed
 `reports/03_design/adr/adr-NNN-<slug>.md` under @rules/architecture-decision-records.md: allocate
 `ADR-` as `max + 1` over `work/traceability.json` and the directory (`redesign` registers the
 prefix; this skill appends), cite what drove the decision in `upstream` — typically `AGG-` / `STM-` / `NFR-` / `TECH-` nodes, or `reports/` paths on the legacy path, per the rule's §2 (never
-empty), list the alternatives rejected, append one `{ "type": "decision" }` node per record to
-the graph, regenerate `index.md`, and run
+empty), name who decided in `deciders` and — once `accepted` — who approved in `approved_by`
+(`schema_version: 2`, the rule's §2 and @docs/decision-roles.md), list the alternatives rejected,
+append one `{ "type": "decision" }` node per record to the graph, regenerate `index.md`, append
+`ADR_RECORDED` to the audit log (the rule's §4), and run
 `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/adr_records.py" <project_dir>` before completing. A
 record you disagree with is superseded by a new one, never edited.
 

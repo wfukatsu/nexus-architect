@@ -163,7 +163,7 @@
 | `/scalardb:jdbc-ops` | sonnet | JDBC/SQL操作パターンガイド |
 | `/scalardb:local-env` | sonnet | Docker Composeローカル環境セットアップ |
 | `/scalardb:docs` | sonnet | ScalarDBドキュメント検索 |
-| `/scalardb:build-app` | opus | ドメイン要件から完全なアプリケーションを構築 |
+| `/scalardb:build-app` | sonnet | ドメイン要件から完全なアプリケーションを構築 |
 | `/scalardb:review-code` | sonnet | Javaコードレビュー（16のチェックカテゴリ） |
 | `/scalardb:migrate` | sonnet | 移行アドバイザー（Core/Cluster、CRUD/JDBC、1PC/2PC） |
 

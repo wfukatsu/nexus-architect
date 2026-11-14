@@ -35,7 +35,7 @@ Produce two deliverables:
 | `--constraints=<file\|text>` | Recommended | Budget / deadline / tech / legal / org constraints |
 | `--input=<file\|dir>` | Optional, repeatable | Additional source material |
 | `--auto` | Optional | Skip elicitation; unknowns → `TBD`, recorded `unasked` with the options that would have been offered (@rules/open-questions.md §5) |
-| `--workshop` | Optional | Hand the questions this phase would ask to a room instead of the session: they are recorded in the store, rendered to `work/workshop/<phase>.md`, the phase is stamped `awaiting_approval` and the run stops; the next run collects the sheet and continues (@rules/open-questions.md §9). Not with `--auto`. |
+| `--workshop` | Optional | Hand the questions this phase would ask to a room instead of the session: they are recorded in the store, rendered to `work/workshop/<phase>.md`, the phase is stamped `awaiting_approval` and the run stops; the next run collects the sheet and continues (@rules/open-questions.md §9). `--auto --workshop` is an error: the two mean opposite things. |
 | `--lang` | Optional | Override output language |
 
 ## Decision Criteria

@@ -20,7 +20,7 @@ toolkit on the same brief are scored by the same yardstick (evals/README.md § O
 
 Each metric is {"measured": bool, ...}; an input that does not exist is "not measured",
 never a crash and never a zero that reads as a result. Thresholds (expected.json) are
-`{"<metric>.<field>": {"min": x} | {"max": x} | {"in": [..]}}`; a threshold over an
+`{"<metric>.<field>": {"min": x} | {"max": x} | {"in": [..]} | {"equals": x}}`; a threshold over an
 unmeasured metric is reported as unmeasured, and the verdict is PASS when no measured
 threshold fails.
 

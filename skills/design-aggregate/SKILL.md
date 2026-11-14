@@ -46,7 +46,7 @@ The modeling method, the seven well-formedness rules and the transaction-boundar
 - `--context` — Restrict the candidate list to one bounded context (e.g. `Ordering`).
 - `--auto` — Skip facilitation and derive the models from existing reports. Lower fidelity; this is
   the mode `/architect:pipeline` uses.
-- `--workshop` — Hand the questions this phase would ask to a room instead of the session: they are recorded in the store, rendered to `work/workshop/<phase>.md`, the phase is stamped `awaiting_approval` and the run stops; the next run collects the sheet and continues (@rules/open-questions.md §9). Not with `--auto`.
+- `--workshop` — Hand the questions this phase would ask to a room instead of the session: they are recorded in the store, rendered to `work/workshop/<phase>.md`, the phase is stamped `awaiting_approval` and the run stops; the next run collects the sheet and continues (@rules/open-questions.md §9). `--auto --workshop` is an error: the two mean opposite things.
 - `--lang` — Output language for the generated documents. Defaults to
   `options.output_language` in `work/pipeline-progress.json`.
 
