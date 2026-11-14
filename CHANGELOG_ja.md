@@ -7,6 +7,27 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.60.0] - 2026-11-14
+
+### Added
+- **`/architect:doctor`**（#130、#144）。これから実行するものが思っているとおりかを 1 画面で示す:
+  リポジトリ（marketplace、4 プラグインの版が揃っているか、登録スキルすべてに `SKILL.md` があるか、
+  フックのスクリプト、`claim.sh`）、ツール（`bash`・`git`・`python3` は必須、`gh`・`glab`・`claude`・`rtk`
+  は任意）、インストール済みの Claude Code プラグインとリポジトリの版の比較 — セッションが使うのは
+  インストール済みの複製なので、新しい checkout が最もよくある驚きになる — 2 つの知識バンドルが揃っていて
+  `stale_after` を過ぎていないか、プロジェクトではレジストリの options・profile・depth、全フェーズの
+  status、承認待ちのフェーズ、Open Questions ストア、監査ログ、学習ルール、claim。チェックごとに 1 行、
+  `ok` / `warn` / `FAIL`、失敗があれば exit 1、何も書かない（セッション外では `tools/doctor.sh`）。
+  コマンドは 118 に。
+- **`docs/runtimes-assessment.md`**: Kiro・GitHub Copilot・Cursor がスキル・フック・サブエージェントに
+  ついて文書で述べていること、このツールキットのファイルにとって何が帰結するか、確認できなかったこと、
+  対応を約束する前に行う 5 つの計測。これらのランタイムでは何も実行していない。`AGENTS.md` は引き続き
+  3 つのランタイムを挙げる。
+
+### Changed
+- AGENTS.md の Tool Priority 節を 1 文に縮め、Codex の 32 KiB 予算内に収めた。
+- 0.59.0 の項の PR 参照を #142 に訂正（#141-#142 と書いていた）。
+
 ## [0.59.0] - 2026-11-14
 
 ### Added
