@@ -43,8 +43,10 @@ on `feat/<item>` from the project's current branch — a new branch, or the exis
 records both on the claim. The Issue's code is written there; the project's `reports/` and
 `work/` stay where they are (the shared-context pack, the manifest, the registry and the audit
 log are read and written by absolute path from the main checkout, never copied into a worktree).
-`worktree remove <item>` deletes the checkout and keeps the branch. A linked worktree is inside
-the repository for the purposes of `implement-backlog`'s Output Location checks.
+`worktree remove <item>` deletes the checkout and keeps the branch — and refuses (exit 3, the
+files listed) while the checkout has modified or untracked files, so a run never discards work
+that was not committed; `force=true` discards it, and only a person says so. A linked worktree
+is inside the repository for the purposes of `implement-backlog`'s Output Location checks.
 
 ## Integration branch
 

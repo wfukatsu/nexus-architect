@@ -258,6 +258,29 @@ with tempfile.TemporaryDirectory() as tmp:
           ledger["_progress"]["statuses"] == {"investigate": "completed",
                                               "analyze": "awaiting_approval", "report": "pending"},
           ledger["_progress"].get("statuses"))
+    # A registry the hook cannot read — a torn read while a skill rewrites it — moves no
+    # checkpoint and emits nothing; the firing after it, on unchanged statuses, emits nothing
+    # either (a checkpoint reset to empty would have re-emitted every phase).
+    with open(os.path.join(proj, "work", "pipeline-progress.json"), "w") as fh:
+        fh.write('{"phases": {"investigate": {"status": "comp')
+    fire("record_token_usage.py", "toolu_A4", ("python3",), ctx)
+    before = len(events())
+    registry({"investigate": {"status": "completed", "plugin": "architect"},
+              "analyze": {"status": "awaiting_approval", "plugin": "architect"},
+              "report": {"status": "pending"}})
+    fire("record_token_usage.py", "toolu_A5", ("python3",), ctx)
+    with open(os.path.join(proj, "work", "token-usage.json"), encoding="utf-8") as fh:
+        ledger = json.load(fh)
+    check("an unreadable registry keeps the checkpoint and re-emits nothing afterwards",
+          before == 3 and len(events()) == 3
+          and ledger["_progress"]["statuses"]["investigate"] == "completed", (before, len(events())))
+    registry({"investigate": {"status": "completed", "plugin": "architect"},
+              "analyze": {"status": "completed", "plugin": "architect"},
+              "report": {"status": "in_progress", "plugin": "architect"}})
+    fire("record_token_usage.py", "toolu_A6", ("python3",), ctx)
+    got = [(e["event"], e["phase"]) for e in events()[3:]]
+    check("recording resumes from the kept checkpoint",
+          got == [("PHASE_COMPLETED", "analyze"), ("PHASE_STARTED", "report")], got)
 
 print()
 print("%d check(s), %d failure(s)" % (checks, failures))

@@ -56,7 +56,7 @@ it and merge into what is there; only `--reset` replaces, and only after a backu
    ```json
    {
      "schema_version": 1,
-     "options": { "output_language": "en", "confirm_versions": true, "eli5": "technical", "no_research": false, "profile": "full", "design_system": null, "frontend": null },
+     "options": { "output_language": "en", "confirm_versions": true, "eli5": "technical", "no_research": false, "product_profile": "full", "design_system": null, "frontend": null },
      "phases": {
        "define-vision": { "status": "pending", "plugin": "product", "started_at": null, "completed_at": null, "updated_at": null, "note": null, "outputs": [] }
      },
