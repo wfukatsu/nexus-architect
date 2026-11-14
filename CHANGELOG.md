@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.61.0] - 2026-11-15
+
+The learning loop of 0.58.0 closes for automated runs (#152, PR #165; from the review of
+v0.53.1..v0.60.0, tracking #158).
+
+### Added
+- **`/architect:start` decides the rules left `proposed`** at the start of a run (step 3b): what
+  an earlier `/architect:pipeline` run, or another project on a shared store, proposed and nobody
+  decided is put to the user — one question per rule, with its occurrences and rationale — and
+  recorded with `learned_rules.py decide` before the first design phase, so what is accepted is
+  in force for this run. `/architect:pipeline`'s final message lists what it left `proposed` and
+  says so. `rules/learned-rules.md` §3 describes the two decision moments.
+- **Three more readers.** `redesign`, `design-aggregate` and `design-data-layer` read the
+  accepted rules for their phase before deciding anything, as `design-microservices`,
+  `design-api`, `design-scalardb` and `design-implementation` already did; §4 and the README name
+  all seven.
+- **`learned_rules.py propose … phase=<skill>`** writes the proposing skill on the `RULE_PROPOSED`
+  event (`review-synthesizer` by default; `review-issue` passes its own), instead of attributing
+  every proposal to the synthesizer.
+
+### Changed
+- `review-synthesizer` Step 3b no longer says "under `--auto`" — the skill has no such flag, so the
+  clause never fired; `options.learnings` (`--no-learnings` on the orchestrators) is the only
+  switch, and an automated run proposes exactly as an interactive one does.
+- Every write to the learned-rules store holds `<store>.lock` around read-modify-write and goes
+  through a per-process temp file, so parallel proposers — sub-agents, or two projects on one
+  shared store — never share an id or lose a rule (twelve concurrent proposals in the test).
+
 ## [0.60.3] - 2026-11-15
 
 The documentation items of the v0.53.1..v0.60.0 review (#156, PR #163; tracking #158): places where
