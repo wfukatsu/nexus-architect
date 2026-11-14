@@ -185,7 +185,9 @@ If the verdict has `[B]` blockers and `--no-fix` is not set (and the verdict is 
   the section from live state if the item predates it). Edit bodies in
   place (flip markers only). If criteria remain unticked, say so in the PR/MR body rather than
   opening it as if the Issue were complete.
-- Push the working branch. Open a PR/MR that links and closes the Issue (`Closes #<iid>`), with a
+- Push the working branch. Open a PR/MR that links and closes the Issue (`Closes #<iid>`) — against
+  `--base` when given, else the `integration_branch` the Issue's claim records
+  (`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/backlog_claims.py" <project_dir> list format=json`, @skills/common/backlog-claims.md), else the default branch — with a
   body assembled from the Issue, the review summary, the acceptance-criteria checklist, and any
   remaining `[S]`/`[Q]` notes. An `[S]`/`[Q]` finding that warrants its own work item (too large
   for this Issue, or deliberately deferred) is additionally queued via

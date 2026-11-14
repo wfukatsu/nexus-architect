@@ -43,8 +43,7 @@ and no hooks: everything it needs is below.
 **Omnigent** calls the loader, which resolves a command to its file, prints a translation
 preamble and emits the body with `${CLAUDE_PLUGIN_ROOT}` expanded to the absolute root (`bash
 tools/omnigent/load-skill.sh architect:investigate`; `--list` enumerates; see
-`tools/omnigent/README.md`). Parallel `Agent(...)` bodies are dispatched by the orchestrator
-(`sys_session_send`), never by `sys_call_async`, which runs a local Python tool.
+`tools/omnigent/README.md`; its README says how parallel `Agent(...)` bodies are dispatched).
 
 **Command → file.** `/architect:<name>` and `/scalardb:<name>` → `skills/<name>/SKILL.md` (one flat
 tree; a bare `<name>` resolves there too); `/product:<name>` → `skills/product/<name>/SKILL.md`;
@@ -101,7 +100,7 @@ partition all 117.
 | **Orchestration & setup** | `/architect:start`, `/architect:pipeline` | Interactive or automated execution of the architect core pipeline, plus `init-output` | 3 |
 | **Core pipeline** `/architect:*` | run by the orchestrators | requirements → investigate → analyze → evaluate → redesign → design → review → report. Phases, order, outputs and models are the manifest's: `skills/common/skill-dependencies.yaml` | 29 |
 | **Extension tier** | invoked individually | Implementation specs, code generation (REST / GraphQL / ScalarDB / contract, acceptance and characterization tests / IaC / docs), verification and the quality gate, infrastructure / security / observability / DR design, cost estimation, SQL migration to ScalarDB. Enumerated under Pipeline Dependencies | 24 |
-| **Backlog Delivery** | `/architect:deliver-backlog` | export → implement → review → merge over GitLab/GitHub work items. Writes **merge-bound code into the project's real source tree**, never `generated/`, and stops at every human gate | 7 |
+| **Backlog Delivery** | `/architect:deliver-backlog` | export → implement → review → merge over GitLab/GitHub work items. Writes **merge-bound code into the project's real source tree**, never `generated/`, stops at every human gate; claims and per-Issue worktrees for several people at once (`skills/common/backlog-claims.md`) | 7 |
 | **Database Migration** | `/architect:migrate-database` | Oracle / MySQL / PostgreSQL → ScalarDB: schema extraction, analysis, SP/trigger conversion (the router delegates to nested sub-skills) | 4 |
 | **ScalarDB Development** `/scalardb:*` | `/scalardb:build-app` | Schema modeling, configuration, scaffolding, CRUD/JDBC patterns, exception handling, code review, migration advice | 11 |
 | **Multi-Cloud Infrastructure** `/infra:*` | `/infra:start` | Terraform / Kubernetes / Helm / Kustomize / Argo CD / GitLab CI / Cosign / Vault / ESO / Prometheus / Kyverno across AWS-Azure-GCP × local-test-staging-production, grounded in `okf-k8s-tf`. Skills under `skills/infra/`, rules under `rules/infra/` | 4 |

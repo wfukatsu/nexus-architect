@@ -2,7 +2,7 @@
 description: |
   Merge an approved Issue's PR/MR after preflight (approvals, CI, conflicts) and confirmation, then
   close the Issue and roll status up.
-argument-hint: '[item|mr|pr] [--strategy=merge|squash|rebase] [--delete-branch] [--yes-merge] [--dry-run] [--auto] [--lang=en|ja]'
+argument-hint: '[item|mr|pr] [--strategy=merge|squash|rebase] [--delete-branch] [--integration-branch=<name>] [--yes-merge] [--dry-run] [--auto] [--lang=en|ja]'
 model: opus
 disable-model-invocation: true
 ---
@@ -12,7 +12,7 @@ disable-model-invocation: true
 Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
 plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
-**Usage:** `/architect:merge-issue [item|mr|pr] [--strategy=merge|squash|rebase] [--delete-branch] [--yes-merge] [--dry-run] [--auto] [--lang=en|ja]`
+**Usage:** `/architect:merge-issue [item|mr|pr] [--strategy=merge|squash|rebase] [--delete-branch] [--integration-branch=<name>] [--yes-merge] [--dry-run] [--auto] [--lang=en|ja]`
 
 ## Desired Outcome
 
@@ -73,6 +73,10 @@ Check, and stop with a clear reason if any fails:
 - **CI / pipeline is green** if the project runs one (`glab ci status` / `gh pr checks`).
 - **No merge conflicts** and the branch is **up to date** with base (offer to rebase/update, but do
   not merge through a conflict).
+- **The base is the right one** — with `--integration-branch=<name>` (or an `integration_branch`
+  on the Issue's claim, `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/backlog_claims.py" <project_dir> list format=json`), the PR/MR targets that branch, not the default
+  branch; a PR/MR raised against the wrong base is sent back to `review-issue --base=<name>`, not
+  retargeted here.
 ### Step 2 — Confirmation gate (required)
 Present the PR/MR title + URL, the base branch, the merge strategy (`--strategy`, default project
 default), and whether the source branch will be deleted (`--delete-branch`). Get an explicit
@@ -96,7 +100,9 @@ merge comment, so the deferral stays deliverable.
 - GitLab: `glab mr merge <iid> [--squash|--rebase] [--remove-source-branch] [--yes]`.
 - GitHub: `gh pr merge <number> [--squash|--merge|--rebase] [--delete-branch]`.
 Capture the merge commit SHA / result, and record it: `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/audit_log.py" <project_dir> PR_MERGED phase=<issue id>
-ref=<pr/mr url> detail=<merge commit sha>`.
+ref=<pr/mr url> detail=<merge commit sha>`. Release the Issue's claim — `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/backlog_claims.py" <project_dir> release <item>
+reason=merged` (@skills/common/backlog-claims.md) — and, when the claim records a worktree,
+remove it (`worktree remove <item>`; the branch stays).
 
 ### Step 4 — Post-merge roll-up
 Child task-list boxes render **implementation state** and are ticked upstream by

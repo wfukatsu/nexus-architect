@@ -2,7 +2,7 @@
 description: |
   Implement a backlog item test-first in the project's real source tree, consistent with its Epic
   and siblings, and update the docs it changes.
-argument-hint: '[item] [--epic=<id>] [--build-context] [--review-epic[=<id>]] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja]'
+argument-hint: '[item] [--epic=<id>] [--build-context] [--review-epic[=<id>]] [--out=<path>] [--worktree-root=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja]'
 model: sonnet
 disable-model-invocation: true
 ---
@@ -12,7 +12,7 @@ disable-model-invocation: true
 Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
 plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
-**Usage:** `/architect:implement-backlog [item] [--epic=<id>] [--build-context] [--review-epic[=<id>]] [--out=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja]`
+**Usage:** `/architect:implement-backlog [item] [--epic=<id>] [--build-context] [--review-epic[=<id>]] [--out=<path>] [--worktree-root=<path>] [--confirm-versions|--no-confirm-versions] [--refresh-versions] [--dry-run] [--auto] [--lang=en|ja]`
 
 Runs as a thin orchestrator that delegates heavy steps to model-tiered sub-agents
 (haiku/sonnet/opus) to minimize token cost.
@@ -78,7 +78,16 @@ The resolved root must satisfy two checks before any code is written:
   downstream review → PR/MR → merge chain would break on an empty commit; stop and report the
   matching rule (`git check-ignore -v <source_root>`) rather than writing code into it. Any other
   exit status is a git error — surface it instead of assuming the path is safe.
-- **Inside the repo** — the root resolves within the target project's git worktree.
+- **Inside the repo** — the root resolves within the target project's git worktree, a linked
+  worktree of it included.
+
+**Worktree per Issue** (@skills/common/backlog-claims.md). Claim the Issue first — `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/backlog_claims.py" <project_dir> claim
+<item>`; exit 3 means someone else holds it: say who and stop. With `--worktree-root=<path>`, or
+when the claim already records a worktree, the code is written in the Issue's own checkout:
+`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/backlog_claims.py" <project_dir> worktree add <item> root=<path>` creates `<root>/<item>` on `feat/<item>` (or reuses the
+branch) and the source root above resolves **inside that worktree**; `reports/` and `work/` stay
+in the main checkout and are read and written by absolute path. Without the flag and without a
+recorded worktree, the main checkout is the worktree, as before.
 
 Record the resolved root as a `source_root` decision in `shared-context/decisions.md` the first time
 it is established. Pass `--out=generated/<service>/` explicitly when the intent genuinely is

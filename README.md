@@ -394,6 +394,12 @@ them in the decisions they shape. The store is `work/learned-rules.json`, or one
 projects through `options.learned_rules_path` (`rules/learned-rules.md`; `--no-learnings` turns
 the proposals off).
 
+Several people can deliver one Epic at once: `/architect:deliver-backlog` claims each Issue as it
+starts it and skips what someone else holds (`--steal` takes it, naming the previous holder),
+`--parallel=N` runs independent Issues in their own worktrees (`--worktree-root`), and
+`--integration-branch=<name>` collects the Epic's merges behind one final approval before the
+default branch sees them (`skills/common/backlog-claims.md`, `tools/lib/backlog_claims.py`).
+
 ### ScalarDB Application Development
 
 Build ScalarDB applications with guided schema design, code generation, and code review.

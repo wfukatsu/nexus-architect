@@ -2,7 +2,7 @@
 description: |
   Drive each Issue of an Epic through implement, review, human approval and merge, resuming where it
   stopped and pausing at every human gate.
-argument-hint: '[--epic=<id>] [--issue=<id>] [--from=implement|review|merge] [--auto] [--yes-merge] [--max-fix-rounds=N] [--export] [--dry-run] [--lang=en|ja]'
+argument-hint: '[--epic=<id>] [--issue=<id>] [--from=implement|review|merge] [--parallel=N] [--steal] [--worktree-root=<path>] [--integration-branch=<name>] [--auto] [--yes-merge] [--max-fix-rounds=N] [--export] [--dry-run] [--lang=en|ja]'
 model: sonnet
 disable-model-invocation: true
 ---
@@ -12,7 +12,7 @@ disable-model-invocation: true
 Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
 plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
-**Usage:** `/architect:deliver-backlog [--epic=<id>] [--issue=<id>] [--from=implement|review|merge] [--auto] [--yes-merge] [--max-fix-rounds=N] [--export] [--dry-run] [--lang=en|ja]`
+**Usage:** `/architect:deliver-backlog [--epic=<id>] [--issue=<id>] [--from=implement|review|merge] [--parallel=N] [--steal] [--worktree-root=<path>] [--integration-branch=<name>] [--auto] [--yes-merge] [--max-fix-rounds=N] [--export] [--dry-run] [--lang=en|ja]`
 
 ## Expected Outcome
 
@@ -56,6 +56,10 @@ through the same implement → review → merge loop, with no special handling.
 - `--epic=<id>`: Deliver the Issues under this Epic. If omitted, the target Epic is chosen interactively.
 - `--issue=<id>`: Deliver a single Issue (`I1.2.3` / `#<iid>` / URL) and stop.
 - `--from=implement|review|merge`: Force the re-entry stage for the current Issue (overrides the status-derived stage).
+- `--parallel=N`: Dispatch up to N independent Issues at once, each as a foreground sub-agent in its own worktree, three at a time (@skills/common/backlog-claims.md § Parallel delivery). Default 1.
+- `--steal`: Take Issues another person holds (their claim is released as `stolen`, the holder recorded). Without it, held Issues are skipped and named.
+- `--worktree-root=<path>`: Where each Issue's worktree is created (default `../<project>-worktrees`); passed through to `implement-backlog`. Implied by `--parallel`.
+- `--integration-branch=<name>`: Every Issue's PR/MR targets this branch instead of the default branch; the Epic ends with the integration branch's own PR/MR into the default branch as a final human gate.
 - `--auto`: Skip the interactive confirmations inside implement/review. Does **not** bypass the approval or merge gate unless `--yes-merge` is also set.
 - `--yes-merge`: Pre-authorize the PR/MR approval + merge gate; passed through to `/architect:merge-issue` (use only when you intend unattended merges).
 - `--max-fix-rounds=N`: Passed through to `review-issue` for the blocker auto-fix loop (default from that skill).
@@ -74,8 +78,12 @@ tell the user to run `/architect:export-backlog`. Verify tracker auth (`glab aut
 ### Step 1 — Scope
 Resolve the target Epic (`--epic`, else present the Epics and ask via AskUserQuestion). Enumerate its
 Issues in dependency order and form the working set — by default the not-done Issues
-(`status::todo`/`doing`/`review`; `blocked` included but flagged). Present the ordered list and
+(`status::todo`/`doing`/`review`; `blocked` included but flagged). Read the claims
+(`python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/backlog_claims.py" <project_dir> list format=json`, @skills/common/backlog-claims.md): an Issue another person holds leaves
+the working set and is named with its holder, unless `--steal`. Present the ordered list and
 confirm before starting, unless `--auto`. With `--issue`, the working set is that single Issue.
+Claim each Issue as its turn comes — `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/backlog_claims.py" <project_dir> claim <item> [integration=<branch>] [steal=true]` — never
+all of them at the start, so a run that stops leaves nothing held that it did not touch.
 
 ### Step 2 — Per-Issue delivery loop
 For each Issue in order (determine its current stage from `impl.status`/labels, or `--from`):
@@ -98,17 +106,28 @@ For each Issue in order (determine its current stage from `impl.status`/labels, 
   when it was pre-authorized.
 - **(d) merge** — After approval, run `/architect:merge-issue <issue>`, **passing `--yes-merge`
   through** when the user pre-authorized it (otherwise merge-issue's own confirmation gate applies;
-  its preflight always runs either way). The post-merge roll-up updates Sub-Epic/Epic status; a
-  completed Sub-Epic triggers the whole-Epic review.
+  its preflight always runs either way), and `--integration-branch` when the Epic uses one. The
+  post-merge roll-up updates Sub-Epic/Epic status; a completed Sub-Epic triggers the whole-Epic
+  review. `merge-issue` releases the Issue's claim.
 - **(e) advance** — Move to the next Issue. The user may stop between Issues.
+
+With `--parallel=N`, stages (a) and (b) run for up to N Issues at once — only Issues with no
+`depends_on` between them and no shared files per the export's dependency notes — each as a
+foreground sub-agent (`model: sonnet`, `run_in_background: false`) given its Issue, its worktree
+root and the same flags, three at a time; the sub-agent stops at stage (c) and reports the open
+PR/MR. The orchestrator then asks for the approvals in one batch (one AskUserQuestion per PR/MR),
+runs (d) for each approved one, and only then dispatches the next Issues.
 
 On `--dry-run`, walk the working set reporting the stage and the command that would run for each,
 with no side effects.
 
 ### Step 3 — Completion
 Stop when every Issue in the working set is `done`, is `blocked` awaiting a decision, or the user
-halts. Print a summary: N/M Issues done, blocked list, PR/MRs opened, merges completed, and the
-Epic's overall progress.
+halts. With `--integration-branch`, when every Issue of the Epic is `done`, open the integration
+branch's PR/MR into the default branch, pause for approval (a hard stop, `GATE_APPROVED` /
+`GATE_REJECTED` in the audit log like stage (c)), merge it, and release the Epic's remaining
+claims. Print a summary: N/M Issues done, blocked list, Issues skipped as held by others, PR/MRs
+opened, merges completed, and the Epic's overall progress.
 
 ## Error Handling
 
