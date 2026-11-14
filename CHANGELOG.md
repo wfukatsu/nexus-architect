@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.55.0] - 2026-11-14
+
+### Added
+- **The project audit log** (#125, #134). `work/audit/events.jsonl` is an append-only history of
+  the run — one JSON line per event, both pipelines in one file, never rewritten — beside the
+  registry that says where the run is. `tools/lib/audit_log.py` is the library and the command
+  line (`python3 tools/lib/audit_log.py <project> <EVENT> phase=… ref=… detail=…`; `list tail=N`
+  reads it); the actor is `git config user.name`, never the email. The taxonomy has sixteen events
+  in five categories: `PHASE_STARTED / COMPLETED / FAILED / SKIPPED / AWAITING_APPROVAL /
+  REVISING`, `GATE_APPROVED / REJECTED / SKIPPED`, `QUESTION_ASKED / ANSWERED / DEFERRED`,
+  `ADR_RECORDED`, `VERDICT_RECORDED`, `PR_OPENED / PR_MERGED`; an unknown event exits 2 and
+  appends nothing. `hooks/record_token_usage.py`, which already watches the registry, appends
+  one `PHASE_*` event per status transition it observes between two firings (its baseline
+  firing emits nothing); the skills that own a gate append the rest — `deliver-backlog`,
+  `merge-issue` and `capture-followup` the `GATE_*` events, `review-issue` and `merge-issue` the
+  PR events, `review-synthesizer` the verdict, every asking skill the question events per
+  `rules/open-questions.md` §6, every ADR writer `ADR_RECORDED` per
+  `rules/architecture-decision-records.md` §4. The contract is
+  `skills/common/progress-registry.md` § Audit Log.
+- **Two human-gate statuses and a resume point.** `awaiting_approval` — outputs written, a
+  person's answer or approval pending; blocks dependents, is never runnable, and on resume is
+  asked again, never skipped — and `revising`, a phase reworked after a rejection or an answer
+  (attributed tokens like `in_progress`). `/architect:start` stamps them around the questions a
+  sub-agent phase returns; `/architect:pipeline` never writes either and leaves an awaiting phase
+  for `start`, naming it in its final message. The registry's top-level `resume_point` (`phase`,
+  `step`, `note`) says where an interrupted dialogue phase continues; `start` writes it between
+  steps and clears it on completion. `/architect:report-status` renders both statuses, an
+  "awaiting approval" header line and the resume point (en/ja), and reports them in `--json`.
+
+### Changed
+- README documents the audit log; the AGENTS.md hooks bullet names it; `docs/test-suites.md`
+  gains the `tools/lib/audit_log.test.py` row and the recorder's and dashboard's new checks.
+
 ## [0.54.0] - 2026-11-14
 
 ### Added

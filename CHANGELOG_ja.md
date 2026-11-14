@@ -7,6 +7,36 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.55.0] - 2026-11-14
+
+### Added
+- **プロジェクトの監査ログ**（#125、#134）。`work/audit/events.jsonl` は実行の履歴を追記専用で持つ —
+  1 行 1 イベントの JSON、両パイプラインで 1 ファイル、書き換えない — 「いまどこか」を示すレジストリの
+  隣に「何が起きて誰が決めたか」を置く。`tools/lib/audit_log.py` がライブラリ兼コマンドライン
+  （`python3 tools/lib/audit_log.py <project> <EVENT> phase=… ref=… detail=…`、`list tail=N` で読む）。
+  actor は `git config user.name` で、メールは読まない。語彙は 5 カテゴリ 16 種: `PHASE_STARTED /
+  COMPLETED / FAILED / SKIPPED / AWAITING_APPROVAL / REVISING`、`GATE_APPROVED / REJECTED / SKIPPED`、
+  `QUESTION_ASKED / ANSWERED / DEFERRED`、`ADR_RECORDED`、`VERDICT_RECORDED`、`PR_OPENED / PR_MERGED`。
+  未知のイベントは exit 2 で何も追記しない。レジストリを既に監視している `hooks/record_token_usage.py`
+  が、2 回の起動の間に観測した status 遷移ごとに 1 件の `PHASE_*` イベントを追記する（初回の起動は
+  ベースラインのみ）。残りはゲートを持つスキルが書く — `deliver-backlog`・`merge-issue`・
+  `capture-followup` が `GATE_*`、`review-issue` と `merge-issue` が PR イベント、`review-synthesizer` が
+  判定、質問するすべてのスキルが `rules/open-questions.md` §6 に従って質問イベント、ADR を書くすべての
+  スキルが `rules/architecture-decision-records.md` §4 に従って `ADR_RECORDED`。契約は
+  `skills/common/progress-registry.md` § Audit Log。
+- **人のゲートを表す 2 つの status と再開位置。** `awaiting_approval` — 成果物は書かれ、人の回答か承認を
+  待っている。依存先をブロックし、runnable にはならず、再開時はもう一度聞く（スキップしない） — と
+  `revising`（却下や回答を受けた手直し中。トークンは `in_progress` と同様に帰属）。`/architect:start` は
+  サブエージェントのフェーズが返した質問の前後でこれらを押す。`/architect:pipeline` はどちらも書かず、
+  見つけた `awaiting_approval` はそのまま残して最終メッセージで `start` に委ねる。レジストリのトップレベル
+  `resume_point`（`phase`・`step`・`note`）は中断した対話フェーズの続きを示し、`start` が step 間で書き、
+  完了時に消す。`/architect:report-status` は両 status、「承認待ち」のヘッダ行、再開位置を日英で表示し、
+  `--json` にも出す。
+
+### Changed
+- README に監査ログの説明、AGENTS.md のフック項目に名前を追加。`docs/test-suites.md` に
+  `tools/lib/audit_log.test.py` の行と、recorder・ダッシュボードの新しいチェックを追加。
+
 ## [0.54.0] - 2026-11-14
 
 ### Added
