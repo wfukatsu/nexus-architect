@@ -111,6 +111,28 @@ def main():
         rerun = A.diff_registry({"investigate": "completed"},
                                 {"investigate": {"status": "completed", "plugin": None}})
         check("the same status again is not a new event", rerun == [])
+        stamped = A.registry_statuses({"phases": {
+            "analyze": {"status": "completed", "plugin": "architect",
+                        "started_at": "2026-02-01T09:00:00Z", "completed_at": "2026-02-01T09:40:00Z"},
+            "redesign": {"status": "in_progress", "started_at": "2026-02-01T09:41:00+00:00"},
+            "design-api": {"status": "awaiting_approval", "started_at": "2026-02-01T10:00:00Z",
+                           "updated_at": "2026-02-01T10:30:00Z"},
+            "report": {"status": "skipped", "completed_at": "not a time"},
+        }})
+        check("registry_statuses carries the stamps, an unparseable one as None",
+              stamped["analyze"]["completed_at"] == "2026-02-01T09:40:00Z"
+              and stamped["redesign"]["completed_at"] is None and stamped["report"]["completed_at"] is None, stamped)
+        got = [(e["event"], e["phase"], e["ts"]) for e in
+               A.diff_registry({"analyze": "pending", "design-api": "in_progress"}, stamped, ts="2026-03-01T00:00:00+00:00")]
+        check("events are dated by the registry's stamp for their status, the hook's clock only without one",
+              got == [("PHASE_STARTED", "analyze", "2026-02-01T09:00:00Z"),
+                      ("PHASE_COMPLETED", "analyze", "2026-02-01T09:40:00Z"),
+                      ("PHASE_AWAITING_APPROVAL", "design-api", "2026-02-01T10:30:00Z"),
+                      ("PHASE_STARTED", "redesign", "2026-02-01T09:41:00+00:00"),
+                      ("PHASE_SKIPPED", "report", "2026-03-01T00:00:00+00:00")], got)
+        check("a phase the checkpoint already saw running gets no reconstructed start",
+              [e["event"] for e in A.diff_registry({"analyze": "in_progress"}, {"analyze": stamped["analyze"]})]
+              == ["PHASE_COMPLETED"])
 
         print("command line")
         r = cli(project, "list", "tail=abc")

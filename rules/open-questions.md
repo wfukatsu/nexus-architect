@@ -144,7 +144,7 @@ The store's table opens with exactly this header, and every row follows its colu
 ```
 
 A store written before the `Role` column existed has eight columns; the first skill that writes
-to it appends `| Role |` to the header and an empty cell to every existing row rather than
+to it (or `workshop_sheet.py collect`, when a signed role arrives) appends `| Role |` to the header and an empty cell to every existing row rather than
 starting a second table. Readers find columns by the header, so both shapes read.
 
 The first column is headed `ID`, not `OQ-###`: the report builder and the UI views find the table

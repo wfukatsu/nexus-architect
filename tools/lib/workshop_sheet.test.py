@@ -142,6 +142,30 @@ def main():
                     if l.startswith("| OQ-002"))
         check("the pipe is escaped in the file", "us-east \\| us-west" in line, line)
 
+        print("a store from before the Role column")
+        old = os.path.join(root, "old")
+        os.makedirs(os.path.join(old, "work"))
+        with open(os.path.join(old, "work", "context.md"), "w", encoding="utf-8") as fh:
+            fh.write("# Context\n\n## Open Questions\n\n"
+                     "| ID | Question | Status | Answer | Options offered | Owner | Impact | Asked at |\n"
+                     "|----|----------|--------|--------|-----------------|-------|--------|----------|\n"
+                     "| OQ-001 | Grace period? | answered | 15 min | 5 / 15 / 30 | PO | FR-003 | 2026-01-01 |\n"
+                     "| OQ-002 | Which region? | unasked | | eu / us | Ops lead | design-infrastructure | |\n\n## Decisions\n")
+        path_old, _ = W.render(old, "define-requirements")
+        text = open(path_old, encoding="utf-8").read().replace(
+            "Answer:\n\nAnswered by:\n\nRole:", "Answer: eu\n\nAnswered by: Ops Lead\n\nRole: operations", 1)
+        with open(path_old, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        W.collect(old, "define-requirements")
+        rows, _ = Q.read_store(old)
+        store = {r["id"]: r for r in rows}
+        lines = open(os.path.join(old, "work", "context.md"), encoding="utf-8").read().splitlines()
+        check("collect appends the Role column and keeps the role instead of dropping it",
+              store["OQ-002"]["role"] == "operations" and store["OQ-002"]["answer"] == "eu"
+              and store["OQ-001"].get("role", "") == "" and lines[4].endswith("| Asked at | Role |")
+              and lines[5].count("|") == 10 and all(l.count("|") == 10 for l in lines[6:8])
+              and lines[-1] == "## Decisions", lines[4:8])
+
         print("command line")
         r = cli(proj, "render", "evaluate-ux", "ids=OQ-004")
         check("render prints the sheet and the questions", r.returncode == 0
