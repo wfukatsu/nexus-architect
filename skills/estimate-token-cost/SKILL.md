@@ -32,6 +32,16 @@ agent itself*.
   the `record_token_usage.py` hook during real runs (per-phase, per-model billed tokens
   and USD). Use it to calibrate or replace a-priori numbers.
 
+## Progress Registry
+
+Before the first step, record `estimate-token-cost` in the project's `work/pipeline-progress.json` as
+`in_progress` (`plugin: architect`, `started_at`); at the end, `completed` (or `failed`) with
+`outputs` and a one-line `summary` (@skills/common/progress-registry.md § The `in_progress`
+Contract). The status dashboard, the token-usage ledger and the audit log read nothing else: a
+phase that skips the first write has its spend recorded as `_unassigned` and never shows as
+running. A project without the registry (`/architect:init-output` never ran) gets none from this
+skill; the hooks are inert there.
+
 ## Acceptance Criteria
 
 Gather (via AskUserQuestion, or infer from the target when possible):

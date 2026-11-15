@@ -43,6 +43,16 @@ Written automatically by the hook (@rules/token-pricing.md); never edited manual
 If `work/token-usage.json` does not exist, the project was never initialized
 (`/architect:init-output`) or no run has been recorded yet — say so instead of estimating.
 
+## Progress Registry
+
+Before the first step, record `report-token-cost` in the project's `work/pipeline-progress.json` as
+`in_progress` (`plugin: architect`, `started_at`); at the end, `completed` (or `failed`) with
+`outputs` and a one-line `summary` (@skills/common/progress-registry.md § The `in_progress`
+Contract). The status dashboard, the token-usage ledger and the audit log read nothing else: a
+phase that skips the first write has its spend recorded as `_unassigned` and never shows as
+running. A project without the registry (`/architect:init-output` never ran) gets none from this
+skill; the hooks are inert there.
+
 ## Execution
 
 One script does the whole job: `${CLAUDE_PLUGIN_ROOT}/tools/token-cost-report.sh`.

@@ -37,7 +37,11 @@ execution:
    run, where every phase is a sub-agent, would otherwise record only the orchestrator's turns.
 3. **Attribution** (in priority order):
    1. Phases marked `in_progress` in `pipeline-progress.json` (parallel phases joined
-      with `+`) — the pipeline-orchestrated case.
+      with `+`) — the pipeline-orchestrated case. A bucket is the bare phase name except
+      for the four names both manifests define (`map-domains`, `design-api`,
+      `create-domain-story`, `report`), which carry their entry's `plugin` as a prefix:
+      `architect:design-api+design-scalardb` is one bucket for two parallel phases, one
+      of them a shared name.
    2. Phases that **newly transitioned to `completed`** since the last checkpoint —
       they receive the pending bucket plus the current delta. This covers the standard
       single-skill flow, where skills only write `"completed"` at the end: tokens spent

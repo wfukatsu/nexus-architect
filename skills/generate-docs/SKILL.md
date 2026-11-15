@@ -121,6 +121,16 @@ Verified by round-trip: under this rule, remove → re-insert reproduces the fil
 repeated cycles do not drift. The whole marker contract above is asserted as behaviour by
 `skills/generate-docs/marker-mechanics.test.py` — run it after changing these rules.
 
+## Progress Registry
+
+Before the first step, record `generate-docs` in the project's `work/pipeline-progress.json` as
+`in_progress` (`plugin: architect`, `started_at`); at the end, `completed` (or `failed`) with
+`outputs` and a one-line `summary` (@skills/common/progress-registry.md § The `in_progress`
+Contract). The status dashboard, the token-usage ledger and the audit log read nothing else: a
+phase that skips the first write has its spend recorded as `_unassigned` and never shows as
+running. A project without the registry (`/architect:init-output` never ran) gets none from this
+skill; the hooks are inert there.
+
 ## Sub-Agent Execution & Model Assignment
 
 A **thin orchestrator (sonnet)** delegating to sub-agents (Agent tool; see

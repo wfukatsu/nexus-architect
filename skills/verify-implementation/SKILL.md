@@ -72,6 +72,16 @@ bundle (@rules/okf-knowledge-bundle.md), not against memory — retryability, av
 mechanisms, and config keys differ by version and edition. Cite the concept `resource` URL when a
 finding depends on documented behavior.
 
+## Progress Registry
+
+Before the first step, record `verify-implementation` in the project's `work/pipeline-progress.json` as
+`in_progress` (`plugin: architect`, `started_at`); at the end, `completed` (or `failed`) with
+`outputs` and a one-line `summary` (@skills/common/progress-registry.md § The `in_progress`
+Contract). The status dashboard, the token-usage ledger and the audit log read nothing else: a
+phase that skips the first write has its spend recorded as `_unassigned` and never shows as
+running. A project without the registry (`/architect:init-output` never ran) gets none from this
+skill; the hooks are inert there.
+
 ## Steps
 
 ### Step 1 — Resolve scope and inputs

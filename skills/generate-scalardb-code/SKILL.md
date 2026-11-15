@@ -76,6 +76,16 @@ table for confirmation per `--confirm-versions` / `--no-confirm-versions` /
 `/architect:generate-docs` then picks the pins up from the emitted build files when it writes the
 service docs, so do not hand-write a competing table inside its marked sections.
 
+## Progress Registry
+
+Before the first step, record `generate-scalardb-code` in the project's `work/pipeline-progress.json` as
+`in_progress` (`plugin: architect`, `started_at`); at the end, `completed` (or `failed`) with
+`outputs` and a one-line `summary` (@skills/common/progress-registry.md § The `in_progress`
+Contract). The status dashboard, the token-usage ledger and the audit log read nothing else: a
+phase that skips the first write has its spend recorded as `_unassigned` and never shows as
+running. A project without the registry (`/architect:init-output` never ran) gets none from this
+skill; the hooks are inert there.
+
 ## Acceptance Criteria
 
 - Fully compliant with patterns in @rules/scalardb-coding-patterns.md

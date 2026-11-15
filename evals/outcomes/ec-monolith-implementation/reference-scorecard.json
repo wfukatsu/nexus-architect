@@ -1,0 +1,331 @@
+{
+  "project": "evals/results/outcomes-ec-monolith-implementation-2026-11-15T12-12-24Z/project",
+  "graded_at": "2026-11-15T18:08:56+00:00",
+  "metrics": {
+    "requirement_coverage": {
+      "measured": false,
+      "reason": "no FR-/NFR- node in the graph",
+      "nodes": 24
+    },
+    "open_questions": {
+      "measured": true,
+      "total": 48,
+      "by_status": {
+        "unasked": 48
+      },
+      "unasked": 48,
+      "answered": 0,
+      "open": 48
+    },
+    "adrs": {
+      "measured": true,
+      "records": 17,
+      "errors": 0,
+      "error_lines": [],
+      "accepted": 0,
+      "accepted_with_approver": 0
+    },
+    "report_validity": {
+      "measured": true,
+      "files": 78,
+      "failures": 0,
+      "frontmatter_failures": [],
+      "mermaid_failures": []
+    },
+    "quality_gate": {
+      "measured": true,
+      "verdict": "FAIL",
+      "stages": 9,
+      "by_status": {
+        "passed": 5,
+        "failed": 4
+      },
+      "passed": 5,
+      "failed": 4,
+      "skipped": 0,
+      "unit_tests_run": 967,
+      "unit_tests_passed": 962,
+      "mutation_score": 98,
+      "blocking": [
+        "VER-101",
+        "VER-103",
+        "VER-110",
+        "VER-111"
+      ]
+    },
+    "test_results": {
+      "measured": true,
+      "suites": {
+        "acceptanceTest": {
+          "tests": 81,
+          "failures": 2,
+          "errors": 0,
+          "skipped": 21,
+          "pass_rate": 0.9667
+        },
+        "contractTest": {
+          "tests": 806,
+          "failures": 2,
+          "errors": 0,
+          "skipped": 0,
+          "pass_rate": 0.9975
+        },
+        "integrationTest": {
+          "tests": 102,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 2,
+          "pass_rate": 0.99
+        },
+        "test": {
+          "tests": 967,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 4,
+          "pass_rate": 0.999
+        }
+      },
+      "tests": 1956,
+      "pass_rate": 0.9969
+    },
+    "phase_completion": {
+      "measured": true,
+      "phases": 34,
+      "by_status": {
+        "skipped": 6,
+        "completed": 28
+      },
+      "completed": 28,
+      "failed": 0,
+      "skipped": 6,
+      "profile": "full",
+      "warnings": 4
+    },
+    "cost": {
+      "measured": true,
+      "total_usd": 187.3892,
+      "unassigned_usd": 17.0063,
+      "per_phase_usd": {
+        "investigate": 1.7246,
+        "analyze": 4.1991,
+        "analyze-data-model+evaluate-ddd+evaluate-mmi": 0.4637,
+        "architect:map-domains+integrate-evaluations": 2.3362,
+        "redesign": 2.8011,
+        "architect:create-domain-story+design-aggregate": 6.167,
+        "design-microservices+design-state-machine": 7.4898,
+        "architect:design-api+design-scalardb": 14.1451,
+        "review-api-security+review-consistency+review-scalardb": 11.4443,
+        "review-business+review-operations+review-risk": 12.3721,
+        "review-synthesizer": 0.1199,
+        "architect:report": 0.2657,
+        "review-report": 0.5828,
+        "_unassigned": 17.0063,
+        "design-implementation": 10.1413,
+        "generate-scalardb-code": 43.7116,
+        "generate-api-code": 28.9477,
+        "generate-contract-tests": 15.6524,
+        "generate-acceptance-tests": 7.8185
+      }
+    },
+    "duration": {
+      "measured": true,
+      "wall_clock_s": 16998,
+      "phase_time_s": 18409,
+      "per_phase_s": {
+        "define-requirements": 0,
+        "investigate": 145,
+        "analyze-ui": 0,
+        "analyze": 326,
+        "analyze-data-model": 78,
+        "evaluate-mmi": 78,
+        "evaluate-ddd": 78,
+        "evaluate-ux": 0,
+        "integrate-evaluations": 177,
+        "redesign": 418,
+        "map-domains": 177,
+        "create-domain-story": 707,
+        "design-aggregate": 707,
+        "design-state-machine": 644,
+        "design-microservices": 644,
+        "design-scalardb": 1202,
+        "design-data-layer": 0,
+        "design-api": 1202,
+        "design-graphql": 0,
+        "review-consistency": 357,
+        "review-api-security": 357,
+        "review-scalardb": 357,
+        "review-data-integrity": 0,
+        "review-operations": 364,
+        "review-risk": 364,
+        "review-business": 364,
+        "review-synthesizer": 155,
+        "report": 31,
+        "review-report": 54,
+        "design-implementation": 745,
+        "generate-scalardb-code": 4167,
+        "generate-api-code": 1541,
+        "generate-contract-tests": 2157,
+        "generate-acceptance-tests": 813
+      }
+    },
+    "human_effort": {
+      "measured": true,
+      "events": 122,
+      "questions_asked": 0,
+      "questions_answered": 0,
+      "questions_deferred": 35,
+      "gates_approved": 0,
+      "gates_rejected": 0,
+      "revisions": 0,
+      "review_rounds": 0,
+      "by_event": {
+        "QUESTION_DEFERRED": 35,
+        "PHASE_STARTED": 28,
+        "PHASE_COMPLETED": 30,
+        "ADR_RECORDED": 17,
+        "PHASE_SKIPPED": 1,
+        "VERDICT_RECORDED": 1,
+        "RULE_PROPOSED": 10
+      }
+    }
+  },
+  "thresholds": {
+    "verdict": "PASS",
+    "failed": 0,
+    "checks": [
+      {
+        "metric": "phase_completion.failed",
+        "rule": {
+          "max": 0
+        },
+        "value": 0,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "report_validity.failures",
+        "rule": {
+          "max": 0
+        },
+        "value": 0,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "adrs.errors",
+        "rule": {
+          "max": 0
+        },
+        "value": 0,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "adrs.records",
+        "rule": {
+          "min": 12
+        },
+        "value": 17,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "open_questions.total",
+        "rule": {
+          "min": 30
+        },
+        "value": 48,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "quality_gate.verdict",
+        "rule": {
+          "in": [
+            "PASS",
+            "CONDITIONAL_PASS",
+            "FAIL"
+          ]
+        },
+        "value": "FAIL",
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "quality_gate.stages",
+        "rule": {
+          "min": 8
+        },
+        "value": 9,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "quality_gate.unit_tests_run",
+        "rule": {
+          "min": 500
+        },
+        "value": 967,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "test_results.tests",
+        "rule": {
+          "min": 1000
+        },
+        "value": 1956,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "test_results.pass_rate",
+        "rule": {
+          "min": 0.95
+        },
+        "value": 0.9969,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "cost.total_usd",
+        "rule": {
+          "max": 240
+        },
+        "value": 187.3892,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "duration.wall_clock_s",
+        "rule": {
+          "max": 43200
+        },
+        "value": 16998,
+        "status": "pass",
+        "error": null
+      }
+    ],
+    "unmeasured": []
+  },
+  "task": "ec-monolith-implementation",
+  "run_started": "2026-11-15T12:12:35Z",
+  "run_finished": "2026-11-15T17:15:40Z",
+  "input_sha256": {
+    "pinned": "27bd8b90fea6cb0da9640711a97b2acb906f74e527782173c63e1ed1c942f464",
+    "actual": "27bd8b90fea6cb0da9640711a97b2acb906f74e527782173c63e1ed1c942f464",
+    "matches": true
+  },
+  "claude_options": "--permission-mode bypassPermissions --max-budget-usd 60",
+  "note": "The 2026-11-15 run of tools/eval-outcomes.sh run ec-monolith-implementation on samples/ec-monolith (toolkit 0.65.2), eight claude -p sessions, graded with the thresholds set from it; the committed example of a runner scorecard. The project directory is git-ignored and local to the machine that ran it.",
+  "reference_run": {
+    "date": "2026-11-15",
+    "method": "tools/eval-outcomes.sh run, one claude -p session per command, --max-budget-usd 60",
+    "not_from_runner": false,
+    "toolkit_version": "0.65.2",
+    "caveats": [
+      "The pipeline session ran at the USD 60 session cap and narrowed its method to fit: review-risk read fewer primary files per reviewer, evaluate-mmi and evaluate-ddd scored their axes without per-axis sub-agents, review-report ran one scripted pass; see metrics.phase_completion.warnings.",
+      "generate-test-specs and verify-implementation did not stamp the registry (Issue #181), so their spend (USD 17.01) is in cost.unassigned_usd and they are not among the completed phases."
+    ]
+  }
+}

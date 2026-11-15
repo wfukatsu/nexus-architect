@@ -116,6 +116,16 @@ the `.feature` file's header comment says so — the chain check then warns that
 agreed with anyone, which is the true state of the project, not a defect of this skill. The
 `Kind` words and the tag keys stay English whatever the output language; the step text follows it.
 
+## Progress Registry
+
+Before the first step, record `generate-test-specs` in the project's `work/pipeline-progress.json` as
+`in_progress` (`plugin: architect`, `started_at`); at the end, `completed` (or `failed`) with
+`outputs` and a one-line `summary` (@skills/common/progress-registry.md § The `in_progress`
+Contract). The status dashboard, the token-usage ledger and the audit log read nothing else: a
+phase that skips the first write has its spend recorded as `_unassigned` and never shows as
+running. A project without the registry (`/architect:init-output` never ran) gets none from this
+skill; the hooks are inert there.
+
 ## Acceptance Criteria
 
 - Every aggregate's CRUD operations are covered by at least one BDD scenario

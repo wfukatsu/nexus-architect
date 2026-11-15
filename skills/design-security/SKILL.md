@@ -75,6 +75,16 @@ against rather than a blank page. Detail in @rules/api-security-checks.md.
 | reports/03_design/api-specifications/ | Recommended | /architect:design-api — the operations the authorization rules bind to |
 | reports/03_design/target-architecture.md | Recommended | /architect:design-microservices |
 
+## Progress Registry
+
+Before the first step, record `design-security` in the project's `work/pipeline-progress.json` as
+`in_progress` (`plugin: architect`, `started_at`); at the end, `completed` (or `failed`) with
+`outputs` and a one-line `summary` (@skills/common/progress-registry.md § The `in_progress`
+Contract). The status dashboard, the token-usage ledger and the audit log read nothing else: a
+phase that skips the first write has its spend recorded as `_unassigned` and never shows as
+running. A project without the registry (`/architect:init-output` never ran) gets none from this
+skill; the hooks are inert there.
+
 ## Output
 
 Output language and frontmatter: @rules/output-conventions.md.

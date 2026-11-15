@@ -77,7 +77,12 @@ tools/eval-outcomes.sh run greenfield-brief --permission-mode bypassPermissions 
 A headless `claude -p` run stops at its first permission prompt, so `run` needs
 `--permission-mode bypassPermissions` (or `--dangerously-skip-permissions`) after the task name;
 the scratch project under `evals/results/` is the only thing the run writes to. Every other
-`claude -p` option passes through the same way.
+`claude -p` option passes through the same way, and `run` records them in the scorecard as
+`claude_options`. `--max-budget-usd` caps each session, not the run: the full pipeline alone costs
+about USD 65 on `samples/ec-monolith` at list price, and under a lower cap it degrades its method
+to fit — narrower reviewer reads, no per-axis sub-agents — and says so under `warnings` in the
+registry (the 2026-11-15 reference run of `ec-monolith-implementation` did, at USD 60), so give
+the pipeline session USD 100 or more.
 
 A task is `outcomes/<task>/`: `task.json` (the input directory, its `input_sha256` — the
 fingerprint `tools/lib/outcome_graders.py fingerprint <dir>` prints, so a changed input is
@@ -90,7 +95,8 @@ committed example of a scorecard. Three ship: `ec-monolith-legacy` (the sample m
 phase by hand rather than by `run` — `reference_run.not_from_runner` says so, and its cost and
 duration are not a `run` baseline), `ec-monolith-implementation`
 (the same input through the pipeline, the codegen chain and `verify-implementation --gate` — the
-task that measures `quality_gate` and `test_results`; its runner run is pending) and
+task that measures `quality_gate` and `test_results`; its reference scorecard grades the
+2026-11-15 `run`: eight sessions, 4 h 43 min, USD 187 at list price) and
 `greenfield-brief` (a one-page brief through `define-requirements` and `--profile=poc`).
 
 The graders are `tools/lib/outcome_graders.py`, one per question a reader of the run would ask:
