@@ -292,7 +292,15 @@ def build_project(root, language):
         "target_path": "./scratch",
         "options": {"scalardb_enabled": True, "workflow_type": "greenfield",
                     "output_language": language},
-        "phases": {},
+        # Two phases the run did not run, as /architect:pipeline records them — the summary
+        # names them with their reason; a completed phase is not listed.
+        "phases": {
+            "investigate": {"status": "completed", "plugin": "architect"},
+            "analyze-ui": {"status": "skipped", "plugin": "architect",
+                           "summary": "no presentation layer: REST-only Spring Boot"},
+            "review-risk": {"status": "failed", "plugin": "architect",
+                            "summary": "budget exhausted after perspective 2 of 3"},
+        },
     }, indent=2))
     write(os.path.join(root, "work", "context.md"),
           "## Open Questions\n\n"
@@ -422,6 +430,15 @@ try:
     # --- missing review synthesis --------------------------------------------
     check("the summary says the review has not been run",
           "review-synthesis.json" in doc and "has not been run" in doc)
+
+    # --- phases not run ---------------------------------------------------------
+    check("the summary lists the skipped and failed phases with their reasons",
+          "Phases not run" in summary
+          and "<code>analyze-ui</code></td><td>skipped</td><td>no presentation layer: REST-only Spring Boot" in summary
+          and "<code>review-risk</code></td><td>failed</td><td>budget exhausted" in summary,
+          summary[-1200:])
+    check("a completed phase is not among them",
+          "<code>investigate</code>" not in summary.split("Phases not run", 1)[1].split("</table>", 1)[0])
 
     # --- language -------------------------------------------------------------
     check('<html lang="en"> for an English project', '<html lang="en">' in doc)

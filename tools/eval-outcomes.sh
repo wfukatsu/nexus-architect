@@ -11,7 +11,8 @@
 # the thresholds mean), expected.json (the thresholds tools/lib/outcome_graders.py applies) and,
 # when a run exists, reference-scorecard.json. `run` stages the task's input as a scratch
 # project (warning when its fingerprint is not the pinned one), stages the architect plugin the
-# way tools/eval-plugin.sh does, runs each command with `claude -p` in that project, then grades
+# way tools/eval-plugin.sh does, makes the scratch project its own git repository (one commit
+# holding the input), runs each command with `claude -p` in that project, then grades
 # it; the scorecard lands in evals/results/outcomes-<task>-<timestamp>/ (git-ignored) next to the
 # scratch project's work/. A headless run needs `--permission-mode bypassPermissions` (or
 # `--dangerously-skip-permissions`) after the task name, or it stalls on the first prompt; the
@@ -29,7 +30,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TASKS="$ROOT/evals/outcomes"
 GRADER="$ROOT/tools/lib/outcome_graders.py"
 
-usage() { sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 2; }
+usage() { sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 2; }
 
 task_field() {  # task_field <task> <key> -> value (strings) or lines (lists)
   python3 - "$TASKS/$1/task.json" "$2" <<'PY'
@@ -84,6 +85,16 @@ case "$cmd" in
     PROJECT="$OUT/project"
     rsync -a --exclude reports --exclude generated --exclude work --exclude build --exclude .gradle \
       "$ROOT/$input/" "$PROJECT/"
+    # The scratch project is its own repository: a skill that reads `git log` or `git status`
+    # (verify-implementation's test-first record, implement-backlog's git-ignore gate) must see
+    # the project, not this toolkit's history, which is what a directory under evals/results/
+    # would otherwise resolve to. The input's own .gitignore is left as it is (it is part of the
+    # fingerprint); the run's outputs are ignored through .git/info/exclude, the way a project
+    # ignores reports/, generated/ and work/ (AGENTS.md § Output Conventions).
+    (cd "$PROJECT" && git init -q && printf 'reports/\ngenerated/\nwork/\n' >> .git/info/exclude \
+      && git add -A \
+      && git -c user.name=nexus-outcome-runner -c user.email=outcome-runner@localhost \
+           commit -q -m "input: $task ($input @ ${actual:0:12})")
     # The architect plugin, staged as tools/eval-plugin.sh stages it, so the commands below reach
     # `/architect:*` as an installed user's do and the installed copies stay out of the measurement.
     STAGE="$(mktemp -d "${TMPDIR:-/tmp}/nexus-outcome-plugin.XXXXXX")"

@@ -119,6 +119,9 @@ The Executive Summary is built from `work/pipeline-progress.json`,
 "ELI5 digest" with a link to each document — omitted when no document carries one.
 When the review has not run — no `review-synthesis.json` — the report is still produced and
 the summary says so instead of carrying a quality gate verdict.
+The summary also lists the phases the registry records as `skipped` or `failed`, each with the
+reason the orchestrator wrote in its `summary`, so a reader can tell a phase that never ran from a
+report that is missing; nothing is listed when every phase ran.
 
 ## Output
 

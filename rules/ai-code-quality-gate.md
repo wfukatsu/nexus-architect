@@ -117,6 +117,14 @@ advisory.
 The same applies to a filtered test task that matched nothing: `--tests '*ContractTest'` with no
 matching class is a green task and an ungated build.
 
+**Every test class runs under exactly one task.** When the build declares `contractTest`,
+`integrationTest` or `acceptanceTest` beside `test`, each task selects its own package or name
+pattern and `test` excludes those packages — otherwise one suite is counted twice across stages
+and a class meant for one task fails under another: a JUnit Platform `@Suite` class swept up by
+`contractTest` or `integrationTest` ends in `NoTestsDiscoveredException`, a red stage for a build
+configuration defect, not for the code under test (seen on the 2026-11-15 ec-monolith run, which
+ran 806 contract tests twice and failed stages 3 and 4 on the acceptance suite's selector).
+
 ## Test quality: coverage and mutation score
 
 A passing suite proves the tests do not fail. It does not prove they would fail if the code were
@@ -187,7 +195,7 @@ the versions are looked up per @rules/dependency-versions.md rather than recalle
 | Build | `./gradlew build -x test` | `npm run build` |
 | Unit | `./gradlew test jacocoTestCoverageVerification` | `npm test -- --coverage` (thresholds in the coverage config) |
 | Mutation (domain, part of stage 2) | `./gradlew pitest` scoped to the touched `domain/` packages | `npx stryker run` scoped the same way |
-| Contract | `./gradlew test --tests '*ContractTest'` (OpenAPI validator and/or GraphQlTester) | project's contract suite |
+| Contract | `./gradlew contractTest` when the project declares that task, else `./gradlew test --tests '*ContractTest'` (OpenAPI validator and/or GraphQlTester) | project's contract suite |
 | Integration | `./gradlew integrationTest` (SQLite-backed in-process engine, `*IT`) | `npm run test:integration` |
 | Acceptance (part of stage 4 when the project has a BDD runner) | `./gradlew acceptanceTest` (Cucumber-JVM over `bdd-scenarios/`) | `npm run test:acceptance` |
 | Characterization (legacy path, part of stage 4) | `./gradlew characterizationTest` | `npm run test:characterization` |

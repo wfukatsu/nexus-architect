@@ -194,6 +194,16 @@ UI = {
         "本レポートには品質ゲート判定が含まれません。"
         "<code>/architect:review-synthesizer</code> を実行してから再生成してください。",
     ),
+    "h_phases_not_run": ("Phases not run", "実行されなかったフェーズ"),
+    "phases_not_run_note": (
+        "Recorded in <code>work/pipeline-progress.json</code>: a skipped phase was outside the "
+        "profile or depth, or its condition was not met; a failed one stopped. "
+        "Their reports are absent from this document.",
+        "<code>work/pipeline-progress.json</code> の記録: skipped はプロファイル・深さの対象外か"
+        "条件未成立、failed は中断。これらのフェーズのレポートは本書に含まれない。",
+    ),
+    "col_phase": ("Phase", "フェーズ"),
+    "col_reason": ("Reason", "理由"),
     "h_perspective_scores": ("Scores by perspective", "観点別スコア"),
     "h_gate_conditions": ("Quality gate conditions", "品質ゲート判定条件"),
     "col_verdict": ("Verdict", "判定"),
@@ -971,6 +981,32 @@ class ReportBuilder:
         return '<h3>%s</h3><div class="eli5-digest">%s</div>' % (
             html.escape(self.t("h_eli5_digest")), items)
 
+    def phases_not_run(self, progress):
+        """The registry's `skipped` and `failed` phases with the reason each recorded — or an
+        empty string when every phase ran. The sections below are built from the directories
+        that exist, so without this a reader cannot tell a phase that never ran from one
+        whose report is missing (the 2026-11-15 ec-monolith-implementation run skipped six
+        and said so only in the registry)."""
+        phases = progress.get("phases", {}) or {}
+        rows = []
+        for name in sorted(phases):
+            entry = phases[name]
+            if not isinstance(entry, dict) or entry.get("status") not in ("skipped", "failed"):
+                continue
+            reason = entry.get("summary") or entry.get("note") or entry.get("reason") or ""
+            rows.append(
+                '<tr><td><code>%s</code></td><td>%s</td><td>%s</td></tr>'
+                % (html.escape(str(name)), html.escape(str(entry["status"])),
+                   html.escape(str(reason)) or "-"))
+        if not rows:
+            return ""
+        return (
+            '<h3>%s</h3><table class="score-table"><thead><tr><th>%s</th><th>%s</th>'
+            '<th>%s</th></tr></thead><tbody>%s</tbody></table><p class="note">%s</p>'
+            % (html.escape(self.t("h_phases_not_run")), html.escape(self.t("col_phase")),
+               html.escape(self.t("col_status")), html.escape(self.t("col_reason")),
+               "".join(rows), self.t("phases_not_run_note")))
+
     def summary_section(self, progress, synthesis, oq_counts):
         options = progress.get("options", {}) or {}
         lede = self.t("summary_lede") % {
@@ -987,9 +1023,10 @@ class ReportBuilder:
                 "<h2>%s</h2>"
                 '<div class="verdict-banner warn"><div class="verdict-label">%s</div>'
                 '<div class="verdict-value">—</div></div>'
-                '<p class="lede">%s</p><p class="note">%s</p>%s</section>'
+                '<p class="lede">%s</p><p class="note">%s</p>%s%s</section>'
                 % (html.escape(self.t("sec_summary")), html.escape(self.t("verdict_label")),
-                   lede, self.t("review_not_run"), self.eli5_digest()))
+                   lede, self.t("review_not_run"), self.phases_not_run(progress),
+                   self.eli5_digest()))
 
         verdict = synthesis.get("verdict", "?")
         agg = synthesis.get("aggregate_score")
@@ -1072,6 +1109,7 @@ class ReportBuilder:
   <table class="score-table"><thead><tr><th>{html.escape(self.t('col_status'))}</th>
   <th>{html.escape(self.t('col_count'))}</th></tr></thead><tbody>{oq_rows}</tbody></table>
   <p class="note">{oq_note}</p>
+  {self.phases_not_run(progress)}
   {self.eli5_digest()}
 </section>
 """.strip()

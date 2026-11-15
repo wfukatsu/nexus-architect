@@ -76,7 +76,10 @@ tools/eval-outcomes.sh run greenfield-brief --permission-mode bypassPermissions 
 
 A headless `claude -p` run stops at its first permission prompt, so `run` needs
 `--permission-mode bypassPermissions` (or `--dangerously-skip-permissions`) after the task name;
-the scratch project under `evals/results/` is the only thing the run writes to. Every other
+the scratch project under `evals/results/` is the only thing the run writes to, and it is its own
+git repository (one commit holding the input), so a skill that reads `git log` or `git status` —
+`verify-implementation`'s test-first record, `implement-backlog`'s git-ignore gate — sees the
+project and not this toolkit's history. Every other
 `claude -p` option passes through the same way, and `run` records them in the scorecard as
 `claude_options`. `--max-budget-usd` caps each session, not the run: the full pipeline alone costs
 about USD 65 on `samples/ec-monolith` at list price, and under a lower cap it degrades its method
