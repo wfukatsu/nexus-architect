@@ -265,6 +265,8 @@ def main():
           rendered == render_markdown(approved_native, "ja")
           and "canonical_source: reports/03_design/api-style-decisions.json" in rendered
           and "source_sha256:" in rendered)
+    check("Markdown projection opts out of the ELI5 section as a non-prose table view",
+          "\neli5: false\n" in rendered, rendered[:300])
     check("Markdown projection exposes every canonical decision field",
           all(("`%s`" % field) in rendered for field in (
               "consumers", "operations", "security_model", "control_evidence", "rationale",

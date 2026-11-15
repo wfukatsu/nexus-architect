@@ -283,6 +283,29 @@ def read_progress(progress_path):
     return data.get("project_name", ""), in_progress, completed, data
 
 
+def transcript_files(transcript, agent_transcript=None):
+    """The session transcript plus every sub-agent transcript beside it.
+
+    Claude Code writes a sub-agent's turns to `<dir>/<session>/subagents/agent-<id>.jsonl`, where
+    `<session>` is the session transcript's basename without `.jsonl`, not to the session
+    transcript. /architect:pipeline runs every phase as a sub-agent, so a ledger reading the session
+    transcript alone records only the orchestrator's turns. The SubagentStop payload names the
+    transcript that just finished as `agent_transcript_path`; it is included even when it sits
+    elsewhere.
+    """
+    files = [transcript]
+    stem, _ = os.path.splitext(transcript)
+    folder = os.path.join(stem, "subagents")
+    try:
+        names = sorted(os.listdir(folder))
+    except OSError:
+        names = []
+    files.extend(os.path.join(folder, n) for n in names if n.endswith(".jsonl"))
+    if agent_transcript and agent_transcript not in files:
+        files.append(agent_transcript)
+    return [f for f in files if os.path.isfile(f)]
+
+
 def parse_new_usage(text, recent_ids):
     """Sum usage per model from newly appended assistant lines.
 
@@ -448,22 +471,26 @@ def main():
                 "_transcripts": {},
             }
 
-        # --- read the new transcript bytes (offset keyed by transcript path) ---
-        tstate = ledger.setdefault("_transcripts", {}).setdefault(
-            transcript, {"offset": 0, "recent_ids": []}
-        )
-        size = os.path.getsize(transcript)
-        if size < tstate.get("offset", 0):  # rotated/truncated -> restart
-            tstate["offset"] = 0
-            tstate["recent_ids"] = []
-        with open(transcript, "r", encoding="utf-8", errors="replace") as f:
-            f.seek(tstate.get("offset", 0))
-            new_text = f.read()
-            tstate["offset"] = f.tell()
-
-        per_model, new_ids = parse_new_usage(new_text, tstate.get("recent_ids", []))
-        if new_ids:
-            tstate["recent_ids"] = (tstate.get("recent_ids", []) + new_ids)[-RECENT_IDS_KEEP:]
+        # --- read the new transcript bytes (offset and recent ids keyed by transcript path) ---
+        # The session transcript and the sub-agent transcripts beside it (transcript_files).
+        per_model = {}
+        for path in transcript_files(transcript, ev.get("agent_transcript_path")):
+            tstate = ledger.setdefault("_transcripts", {}).setdefault(
+                path, {"offset": 0, "recent_ids": []}
+            )
+            size = os.path.getsize(path)
+            if size < tstate.get("offset", 0):  # rotated/truncated -> restart
+                tstate["offset"] = 0
+                tstate["recent_ids"] = []
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
+                f.seek(tstate.get("offset", 0))
+                new_text = f.read()
+                tstate["offset"] = f.tell()
+            found, new_ids = parse_new_usage(new_text, tstate.get("recent_ids", []))
+            for model, usage in found.items():
+                add_usage(per_model.setdefault(model, zero_usage()), usage)
+            if new_ids:
+                tstate["recent_ids"] = (tstate.get("recent_ids", []) + new_ids)[-RECENT_IDS_KEEP:]
 
         # --- decide attribution ---
         project, in_progress, completed, progress_data = read_progress(progress_path)

@@ -107,7 +107,9 @@ PY
     while IFS= read -r command; do
       [ -n "$command" ] || continue
       echo "== claude -p '$command'"
-      (cd "$PROJECT" && claude -p "$command" --plugin-dir "$STAGE" "$@") | tee -a "$OUT/transcript.txt"
+      # stdin from /dev/null: `claude -p` reads a non-TTY stdin into its prompt, so without it the
+      # first session swallows the rest of the command list and runs every command in one session.
+      (cd "$PROJECT" && claude -p "$command" --plugin-dir "$STAGE" "$@" < /dev/null) | tee -a "$OUT/transcript.txt"
     done < <(task_field "$task" commands)
     finished="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     python3 "$GRADER" "$PROJECT" "expected=$TASKS/$task/expected.json" "out=$OUT/scorecard.json" \

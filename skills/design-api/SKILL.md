@@ -139,7 +139,7 @@ defects that surface much later and much more expensively.
 | File | Content |
 |------|---------|
 | `reports/03_design/api-style-decisions.json` | Canonical decisions keyed by stable `surface_id`, including required boolean `scalardb_backed` and the ScalarDB native-exposure approval/control fields |
-| `reports/03_design/api-style-decisions.md` | Generated human-readable projection of every canonical field, including rationale, rejected alternatives, security/control evidence and requirement traces; never authored separately |
+| `reports/03_design/api-style-decisions.md` | Generated human-readable projection of every canonical field, including rationale, rejected alternatives, security/control evidence and requirement traces; never authored separately. Its frontmatter carries `eli5: false` (a table view; the plain-language account is `api-design.md`'s ELI5 section) |
 | `reports/03_design/api-specifications/openapi/` | REST API specifications — one per service |
 | `reports/03_design/api-specifications/graphql/` | GraphQL operation inventory here; detailed SDL and resolver/security/loading contracts from `/architect:design-graphql` |
 | `reports/03_design/api-specifications/grpc/` | Protobuf definitions — only when `api-style-decisions.json` adopts gRPC for a surface |

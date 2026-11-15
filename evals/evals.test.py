@@ -120,6 +120,13 @@ for task in tasks:
               and not str(card.get("project", "")).startswith("/"),
               f"{rel}/reference-scorecard.json must be a graded scorecard with a relative project path")
 
+# The runner issues each command in its own `claude -p`. A non-TTY stdin is read into the prompt, so
+# the call must not inherit the loop's stdin, or the first session swallows the rest of the list.
+runner = (ROOT / "tools" / "eval-outcomes.sh").read_text(encoding="utf-8")
+invocation = re.search(r'^.*claude -p "\$command".*$', runner, re.M)
+check(invocation is not None and "< /dev/null" in invocation.group(0),
+      'tools/eval-outcomes.sh: the `claude -p "$command"` call must redirect stdin from /dev/null')
+
 if failures:
     print(f"FAIL: {len(failures)} of {checks} checks")
     for message in failures:

@@ -219,6 +219,35 @@ with tempfile.TemporaryDirectory() as tmp:
     check("outside a pipeline project the recorder writes no marker",
           recorder_markers() == ["record_token_usage-toolu_R"], recorder_markers())
 
+    # Usage comes from the session transcript and from the sub-agent transcripts Claude Code
+    # writes beside it (<dir>/<session>/subagents/agent-*.jsonl); one message id counts once, and
+    # every file is read from where the previous firing left it.
+    def turn(mid, model, out, read=0):
+        return json.dumps({"type": "assistant", "message": {"id": mid, "model": model, "usage": {
+            "input_tokens": 1, "output_tokens": out, "cache_read_input_tokens": read}}}) + "\n"
+
+    with open(transcript, "a") as fh:
+        fh.write(turn("m1", "claude-sonnet-5-5", 100) + turn("m1", "claude-sonnet-5-5", 100))
+    sub = os.path.join(tmp, "transcript", "subagents")
+    os.makedirs(sub)
+    agent = os.path.join(sub, "agent-a1.jsonl")
+    with open(agent, "w") as fh:
+        fh.write(turn("m2", "claude-opus-5-5", 1000, 50000))
+    fire("record_token_usage.py", "toolu_U1", ("python3",), ctx)
+    with open(os.path.join(proj, "work", "token-usage.json"), encoding="utf-8") as fh:
+        ledger = json.load(fh)
+    check("sub-agent transcripts are read, and one message id counts once",
+          ledger["totals"]["output_tokens"] == 1100
+          and ledger["totals"]["cache_read_input_tokens"] == 50000
+          and set(ledger["_transcripts"]) == {transcript, agent}, ledger["totals"])
+    with open(agent, "a") as fh:
+        fh.write(turn("m3", "claude-opus-5-5", 10))
+    fire("record_token_usage.py", "toolu_U2", ("python3",), ctx)
+    with open(os.path.join(proj, "work", "token-usage.json"), encoding="utf-8") as fh:
+        ledger = json.load(fh)
+    check("a sub-agent transcript is read from where the last firing stopped",
+          ledger["totals"]["output_tokens"] == 1110, ledger["totals"])
+
     # The audit log (skills/common/progress-registry.md § Audit Log): the recorder appends one
     # PHASE_* event per registry status transition it observes between two firings, nothing on
     # the baseline firing (toolu_R above saw an empty registry), and never twice for one change.

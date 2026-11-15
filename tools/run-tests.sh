@@ -43,7 +43,10 @@ while IFS= read -r suite; do
 "
   found=$((found + 1))
 done < <(find . \( -name '*.test.py' -o -name '*.test.sh' \) \
-  -not -path '*/__pycache__/*' -not -path './.git/*' | sed 's|^\./||' | sort)
+  -not -path '*/__pycache__/*' -not -path './.git/*' -not -path './evals/results/*' \
+  | sed 's|^\./||' | sort)
+# evals/results/ is skipped: an outcome run stages a copy of its input there (git-ignored), and the
+# copy of samples/ec-monolith/reference-set.test.py inside it is not a suite of this repository.
 
 if [ "$found" -eq 0 ]; then
   echo "run-tests: no suites found — discovery is broken, not the repository" >&2
