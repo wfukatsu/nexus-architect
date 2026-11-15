@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.66.1] - 2026-11-16
+
+Three more findings from the 2026-11-15 `ec-monolith-implementation` reference run, none of them
+about the budget (Issues #186–#188, PR #189).
+
+### Fixed
+- **The consolidated report names the phases that did not run.** `tools/build-report.py` adds a
+  "Phases not run" table to the executive summary from the registry's `skipped` / `failed`
+  entries, each with the reason the orchestrator recorded, in the HTML and the Markdown output and
+  in the output language; nothing when every phase ran. The report is built from the directories
+  that exist, so the run's six skipped phases had been visible only in
+  `work/pipeline-progress.json`. `tools/build_report.test.py` guards it. (#186)
+- **`tools/eval-outcomes.sh run` makes the scratch project its own git repository**: `git init`,
+  `reports/` / `generated/` / `work/` ignored through `.git/info/exclude` so the input's
+  `.gitignore` (part of the fingerprint) stays untouched, one commit holding the input under a local
+  runner identity. `verify-implementation` had reported the test-first record as not-applicable
+  because the directory's git history was this toolkit's. (#187)
+- **One test class, one Gradle task.** `rules/ai-code-quality-gate.md` makes stage 3
+  `./gradlew contractTest` when the project declares that task and states that every test class
+  runs under exactly one task; `generate-contract-tests` step 7 excludes the contract package from
+  `test` and the acceptance package from `contractTest`; `generate-acceptance-tests` step 6 has
+  `test`, `integrationTest` and `contractTest` exclude the acceptance package and runs each once to
+  prove it. The run had counted 806 contract tests twice and failed gate stages 3 and 4 on the
+  acceptance `@Suite`'s `NoTestsDiscoveredException`. (#188)
+
 ## [0.66.0] - 2026-11-16
 
 The first valid runner run of the `ec-monolith-implementation` outcome task — eight `claude -p`
