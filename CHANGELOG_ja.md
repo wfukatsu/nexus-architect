@@ -7,6 +7,30 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.66.1] - 2026-11-16
+
+2026-11-15 の `ec-monolith-implementation` 参照実行で見つかった、予算とは無関係の所見 3 件の修正
+（Issue #186–#188、PR #189）。
+
+### Fixed
+- **統合レポートが実行されなかったフェーズを示す。** `tools/build-report.py` がエグゼクティブサマリに
+  「実行されなかったフェーズ」表を追加し、レジストリの `skipped` / `failed` 項目をオーケストレータが記録した
+  理由とともに、HTML と Markdown の両方に出力言語で載せる。全フェーズが実行されたときは何も出さない。
+  レポートは存在するディレクトリから組み立てるため、参照実行でスキップされた 6 フェーズは
+  `work/pipeline-progress.json` でしか分からなかった。`tools/build_report.test.py` が検証する。(#186)
+- **`tools/eval-outcomes.sh run` がスクラッチプロジェクトを独立した git リポジトリにする。** `git init` し、
+  `reports/` / `generated/` / `work/` を `.git/info/exclude` で無視（入力の `.gitignore` は指紋の一部なので
+  触らない）、入力を 1 コミットとしてランナーのローカル識別子で記録する。`verify-implementation` は
+  「このディレクトリの git 履歴はプラグインリポジトリのもの」として test-first 記録を not-applicable に
+  していた。(#187)
+- **テストクラス 1 つは Gradle タスク 1 つで走る。** `rules/ai-code-quality-gate.md` のステージ 3 は
+  プロジェクトが `contractTest` を宣言していればそれを使い、「各テストクラスはちょうど 1 つのタスクで走る」
+  と明記。`generate-contract-tests` のステップ 7 は contract パッケージを `test` から、acceptance
+  パッケージを `contractTest` から除外し、`generate-acceptance-tests` のステップ 6 は `test` /
+  `integrationTest` / `contractTest` から acceptance パッケージを除外して各タスクを 1 回ずつ走らせて
+  確かめる。参照実行では contract テスト 806 本が二重に数えられ、acceptance の `@Suite` が
+  `NoTestsDiscoveredException` でゲートのステージ 3 と 4 を赤にしていた。(#188)
+
 ## [0.66.0] - 2026-11-16
 
 アウトカムタスク `ec-monolith-implementation` の初めて有効なランナー実行（`claude -p` 8 セッション、4 時間 43 分、
