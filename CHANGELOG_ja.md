@@ -7,6 +7,22 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.68.1] - 2026-11-16
+
+0.68.0 のテンプレート欠落を横展開で点検: 技術スキルのテンプレートがさらに 4 つ ELI5 セクションなしで始まって
+いたのを修正し、スイートが全テンプレートを検査するようにした（Issue #198、PR #199）。
+
+### Fixed
+- **`evaluate-ddd`**（評価ファイル 2 つ。ステップ 4 がルールを名指し）、**`design-state-machine`**
+  （状態モデル）、**`design-sql-migration`**（設計ビュー）— 出力テンプレートが `## ELI5` で始まる。
+  パイプラインのサブエージェントはテンプレートを写し、フロントマターフックの差し戻しに応じないことが
+  あるため、セクションをテンプレート自体に置く。
+
+### Added
+- **`tools/docs_consistency.test.py`** — フロントマターの skill が `TECHNICAL_REPORT_SKILLS` にある
+  ```markdown テンプレートはすべて、題名の次の見出しが `## ELI5` であること。ADR テンプレート
+  （`decided_at`）と `eli5: false` の opt-out は対象外。0.68.0 ではちょうど 4 つを名指しする。
+
 ## [0.68.0] - 2026-11-16
 
 最後まで残っていた手作業の参照値がなくなった。`ec-monolith-legacy` は初回ランナー実行のスコアカードを

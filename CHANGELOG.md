@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.68.1] - 2026-11-16
+
+The sweep after 0.68.0's template gap: four more technical-skill templates opened without the ELI5
+section, and the suite now checks every one (Issue #198, PR #199).
+
+### Fixed
+- **`evaluate-ddd`** (both evaluation files, and step 4 names the rule), **`design-state-machine`**
+  (the state model), **`design-sql-migration`** (the design view) — the output templates open with
+  `## ELI5`. A pipeline sub-agent copies the template, and the frontmatter hook's rejection has been
+  seen to go unanswered there, so the section sits in the template itself.
+
+### Added
+- **`tools/docs_consistency.test.py`** — every ```markdown template whose frontmatter names a skill
+  in `TECHNICAL_REPORT_SKILLS` has `## ELI5` as its first section heading, after the title if any;
+  an ADR template (`decided_at`) and an `eli5: false` opt-out are exempt. On 0.68.0 it names
+  exactly the four.
+
 ## [0.68.0] - 2026-11-16
 
 The last by-hand reference is gone: `ec-monolith-legacy` now ships the scorecard of its first
