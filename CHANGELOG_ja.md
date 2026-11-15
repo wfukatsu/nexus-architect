@@ -7,6 +7,29 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.65.2] - 2026-11-15
+
+アウトカムタスク `ec-monolith-implementation` の初回有償実行で見つかった不具合の修正（Issue #176–#178）。
+その実行は 8 コマンドを載せた `claude -p` を 1 回だけ発行し、費用を 20 分の 1 に記録し、毎回同じレポート 1 件で
+失敗していた。スコアカードは参照値にならない。
+
+### Fixed
+- **`tools/eval-outcomes.sh run`** は各 `claude -p` の stdin を `/dev/null` から取る。`claude -p` は TTY でない
+  stdin をプロンプトに読み込むため、最初のセッションがコマンド一覧の残りを飲み込んで全コマンドを自分で実行
+  しようとし、`disable-model-invocation` の 4 スキルを拒否し、`quality_gate` と `test_results` が未計測のまま
+  だった。`evals/evals.test.py` がリダイレクトを検証する。(#176)
+- **`hooks/record_token_usage.py`** は Claude Code がセッション transcript の隣に書くサブエージェントの
+  transcript（`<transcript dir>/<session>/subagents/agent-*.jsonl`、および SubagentStop の
+  `agent_transcript_path`）をファイルごとのオフセットと recent ids で読む。`/architect:pipeline` は全フェーズを
+  サブエージェントで走らせるため、パイプラインの台帳はオーケストレータの分しか記録していなかった（その実行で
+  記録 USD 2.68 に対し請求 57.79。修正後の hook で 35 ファイルを再集計すると 57.79）。`rules/token-pricing.md`
+  の「サブエージェントも同じ transcript に入る」という記述を訂正。(#177)
+- **`reports/03_design/api-style-decisions.md`** に `eli5: false` を付ける（`rules/eli5-summary.md` §1 が
+  技術スキルの非散文出力に与えるオプトアウト）。`design-api` が JSON から描画する表ビューを frontmatter hook が
+  落とさなくなる。ec-monolith の 2 つのスコアカードの唯一の `report_validity` 失敗だった。(#178)
+- **`tools/run-tests.sh`** は `evals/results/` を除外する。アウトカム実行はサンプルのコピーをそこに置き、
+  `samples/ec-monolith/reference-set.test.py` のコピーがスイートとして走って失敗していた。
+
 ## [0.65.1] - 2026-11-15
 
 0.60.1–0.65.0 のリリースに対するドキュメントの最新化（`/document-release`。出荷したコードとドキュメントを独立に

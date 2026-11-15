@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.65.2] - 2026-11-15
+
+Fixes from the first paid run of the `ec-monolith-implementation` outcome task (Issues #176–#178).
+That run issued one `claude -p` carrying all eight commands, recorded a twentieth of its cost, and
+failed one report on every run; its scorecard is not a reference.
+
+### Fixed
+- **`tools/eval-outcomes.sh run`** takes each `claude -p`'s stdin from `/dev/null`. `claude -p`
+  reads a non-TTY stdin into its prompt, so the first session had swallowed the rest of the command
+  list and run every command itself — refusing the four `disable-model-invocation` skills, leaving
+  `quality_gate` and `test_results` unmeasured. `evals/evals.test.py` asserts the redirect. (#176)
+- **`hooks/record_token_usage.py`** reads the sub-agent transcripts Claude Code writes beside the
+  session transcript (`<transcript dir>/<session>/subagents/agent-*.jsonl`, plus SubagentStop's
+  `agent_transcript_path`), each with its own offset and recent ids. `/architect:pipeline` runs every
+  phase as a sub-agent, so a pipeline ledger had recorded only the orchestrator's turns: USD 2.68
+  recorded against 57.79 billed on that run; re-ledgering its 35 transcripts with the fixed hook gives
+  57.79. `rules/token-pricing.md` no longer says sub-agent turns land in the same transcript. (#177)
+- **`reports/03_design/api-style-decisions.md`** carries `eli5: false` — the opt-out
+  `rules/eli5-summary.md` §1 gives a technical skill's non-prose output — so the frontmatter hook no
+  longer rejects the table view `design-api` renders from the JSON; it was the single
+  `report_validity` failure of both ec-monolith scorecards. (#178)
+- **`tools/run-tests.sh`** skips `evals/results/`: an outcome run stages a copy of its sample there,
+  and the copy of `samples/ec-monolith/reference-set.test.py` ran — and failed — as a suite.
+
 ## [0.65.1] - 2026-11-15
 
 A documentation pass over the 0.60.1–0.65.0 releases (`/document-release`, with an independent
