@@ -150,6 +150,12 @@ skill; the hooks are inert there.
    JUnit 6 is the known case — with `contractTest` depending on the ArchUnit task so one name
    still covers both)
    (@rules/ai-code-quality-gate.md stage 3), pinning versions per @rules/dependency-versions.md.
+   A class runs under exactly one task: when `contractTest` exists, `test` excludes the contract
+   package (`exclude '**/contract/**'`, or a separate source set), the stage-3 command the report
+   names is `./gradlew contractTest`, and the acceptance package, when it exists, is excluded from
+   `contractTest` the same way — a suite class swept up by the wrong task fails it with
+   `NoTestsDiscoveredException` (@rules/ai-code-quality-gate.md § Every test class runs under
+   exactly one task).
 8. **Report** — operations covered, operations with no example, assertions skipped and why, and
    the run's counts and exit code as they were. A red suite is not a failed run of this skill:
    the skill completes, the failures are listed with their cause (code defect fixed, contract

@@ -126,6 +126,11 @@ skill; the hooks are inert there.
 6. **Wire the build** — `acceptanceTest` task on the JUnit Platform, `@wip` excluded via
    `cucumber.filter.tags`, `failOnNoMatchingTests = true`; run it and verify the bound scenarios
    execute (a non-`@wip` scenario that fails on existing code is a finding, not a test to weaken).
+   The suite class is selected by `acceptanceTest` alone: `test`, `integrationTest` and
+   `contractTest` exclude the acceptance package (`exclude '**/acceptance/**'`), and the skill
+   runs each of those tasks once to prove it — a `@Suite` class another task sweeps up fails
+   that task with `NoTestsDiscoveredException` and turns a configuration defect into a red
+   gate stage (@rules/ai-code-quality-gate.md § Every test class runs under exactly one task).
 7. **Report** — `acceptance-test-coverage.md` as above, then run
    `python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/example_chain.py" <project_dir>`: an error is a broken
    tag the record cannot account for, a `CHAIN-141` warning an ID the record forgot to mention; delegate step-class generation per feature
