@@ -1,7 +1,7 @@
 ---
 description: |
   Create the product output tree, progress file and traceability graph for a new product project.
-argument-hint: '[project_name]'
+argument-hint: '[project_name] [--reset]'
 model: sonnet
 ---
 
@@ -10,7 +10,7 @@ model: sonnet
 Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
 plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
-**Usage:** `/product:init-output [project_name]`
+**Usage:** `/product:init-output [project_name] [--reset]`
 
 Use --reset to reinitialize.
 

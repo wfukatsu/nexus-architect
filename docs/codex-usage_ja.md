@@ -88,6 +88,15 @@ hooks/validate-mermaid.sh reports/before/example/codebase-structure.md
 
 どちらの hook も Claude Code の stdin JSON 形式を引き続き受け付けるため、Claude Code 互換性は維持されます。
 
+3 つ目の hook `hooks/record_token_usage.py` は Claude Code のペイロードを stdin から読むもので、手で実行しても
+何もしません。Codex では `work/pipeline-progress.json` を観測するものがないため、フェーズにスタンプを打ったら
+対応する監査イベントを自分で追記してください（`skills/common/progress-registry.md` § Audit Log）。
+
+```bash
+python3 tools/lib/audit_log.py <project_dir> PHASE_STARTED phase=investigate plugin=architect
+python3 tools/lib/audit_log.py <project_dir> PHASE_COMPLETED phase=investigate plugin=architect
+```
+
 ## Claude Code 互換性
 
 Claude Code での使い方はこれまで通りです。

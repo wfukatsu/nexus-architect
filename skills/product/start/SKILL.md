@@ -2,7 +2,7 @@
 description: |
   Interactive entry point for product direction: picks the scope, runs the validation-driven product
   pipeline in order, and gates on the riskiest assumptions before deep design.
-argument-hint: '[target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--lang=ja|en]'
+argument-hint: '[target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--import=<path>] [--lang=ja|en]'
 model: inherit
 ---
 
@@ -11,7 +11,7 @@ model: inherit
 Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
 plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
-**Usage:** `/product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--lang=ja|en]`
+**Usage:** `/product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--import=<path>] [--lang=ja|en]`
 
 ## Your Role
 

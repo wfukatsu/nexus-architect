@@ -12,6 +12,9 @@ pip install -r requirements.txt
 
 # Mermaid CLI（任意、図のレンダリング用）
 npm install -g @mermaid-js/mermaid-cli
+
+# インストールの確認（セッション内では /architect:doctor --checkout=<この checkout>）
+tools/doctor.sh
 ```
 
 ## 基本的な使い方
@@ -263,6 +266,11 @@ Storybook スキャフォールドまで）。
 停止し、`reports/backlog/backlog-manifest.json` から再開します。進捗はトラッカー上に
 `status::*` ラベル・進捗コメント・チェックボックスとして現れます — 受入基準は実装・検証された
 時点で、親のタスクリストのボックスは子が実際にマージされた時点でチェックされます。
+
+複数人で 1 つの Epic を進めるとき: 各 Issue は着手時に claim されます（トラッカーの assignee と
+`claim::<login>` ラベル。他の人が保持する Issue は `--steal` で引き取る）。`--parallel=N` は独立した
+Issue をそれぞれの worktree（`--worktree-root`）で実行し、`--integration-branch=<name>` は Epic の
+マージを最後の 1 回の承認の後ろにまとめます（`skills/common/backlog-claims.md`）。
 
 前提: 対象プロジェクトに対して `gh` または `glab` が認証済みであること。
 

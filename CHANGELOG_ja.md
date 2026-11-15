@@ -7,6 +7,38 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.65.1] - 2026-11-15
+
+0.60.1–0.65.0 のリリースに対するドキュメントの最新化（`/document-release`。出荷したコードとドキュメントを独立に
+照合するレビュー付き）を単独でリリース。スキルやツールの挙動は変えていない。frontmatter のシグネチャを 2 つ補完。
+
+### Changed
+- **README** が出荷したものを述べる: `/architect:doctor` は checkout と比較し（`--checkout`）、`enabledPlugins`・
+  フック登録・バンドルの pin を確認する。`analysis` プロファイルは `redesign` に依存する設計フェーズを除外し、
+  プロファイルを広げれば skipped のフェーズを拾い直す。product パイプラインのプロファイルは
+  `options.product_profile`。監査イベントの時刻はレジストリのスタンプ。アウトカム eval はしきい値を検証し、
+  必須なのに測れない指標を失敗とし、`compare` で 2 つの実行を並べ、入力を pin する。タスクは 3 つで、参照
+  スコアカードをコミット済み。ワークショップは回答済みの行を保つ。claim は tracker にミラーされ、Issue を
+  あきらめたら release、worktree は保持者のもの。プラグインの件数を訂正（architect 75、infra の項目を追加）。
+- **`docs/codex-usage.md`（+ ja）と `tools/omnigent/README.md`** に、フックのないランタイムが `PHASE_*` 監査
+  イベントを自分で追記する方法を記した（`PHASE_STARTED` / `PHASE_COMPLETED` というイベント名で、レジストリの
+  status 語ではない）。AGENTS.md のランタイム表も同じ名前を挙げる。
+- **`docs/getting-started.md`（+ ja）**は `tools/doctor.sh` でのインストール確認と、バックログ納品の複数人向け
+  フラグを説明する。**`docs/skill-reference.md`（+ ja）**の `deliver-backlog`・`implement-backlog`・`merge-issue`
+  の行は claim・worktree・tracker ラベルを挙げる。**`docs/test-suites.md`** の監査ログ・claim・hooks・学習
+  ルール・pipeline status・ワークショップ・Open Questions の各スイートの行は、いま守っている内容を述べる。
+- **`evals/README.md`**: コミット済みの参照スコアカードは `run` ではなく手動実行を採点したものだと明記。トリガー
+  ケースは 6 ではなく 7。**`skills/common/backlog-claims.md`** にツールの動詞（`list active=`、claim の
+  `worktree=` キー、`worktree add` の `by=` / `steal=true`）、ロックファイル `claims.json.lock`、`#42` →
+  `issue-42` のブランチ名を載せた。
+- manifest の `profiles` コメントは `define-requirements` がすべてのプロファイルにあるとは言わない（`analysis`
+  には greenfield の入口がない）。
+
+### Fixed
+- `/product:start` が `--import=<path>`（本文が既に受け付けていたデザインシステムの取り込み）を、
+  `/architect:init-output` / `/product:init-output` が `--reset` を `argument-hint` で宣言する。カタログの
+  シグネチャには既に載っていた。
+
 ## [0.65.0] - 2026-11-15
 
 #157 のうち 2 項目 — Issue #125 と #126 が求め、0.55.0 / 0.56.0 が届けなかったもの — を、仕様判断なしに正しさが

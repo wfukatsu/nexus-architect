@@ -68,7 +68,7 @@ translated in `docs/codex-usage.md` § Runtime Paths.
 | `Skill` | the tool | open the named `SKILL.md` and follow it | the loader |
 | `model:` frontmatter, `disable-model-invocation`, `allowed-tools` | honoured as measured | ignored — choose an equivalent session model (opus: architecture, strategy, risk; sonnet: analysis, generation, reviews; haiku: templating) | ignore, or map the tier per dispatch |
 | the two report hooks | fire on Write/Edit under `reports/` | run by hand after every report write: `hooks/validate-frontmatter.sh <file>`, `hooks/validate-mermaid.sh <file>`; non-zero means fix before continuing | the same |
-| `PHASE_*` audit events | the token-usage hook | after each registry stamp: `tools/lib/audit_log.py <project> PHASE_<STATUS> phase=<name>` | the same |
+| `PHASE_*` audit events | the token-usage hook | after each registry stamp: `tools/lib/audit_log.py <project> PHASE_STARTED|PHASE_COMPLETED phase=<name>` | the same |
 | `TodoWrite`, `ExitPlanMode` | the tools | a local todo file if needed; ignore | ignore |
 
 `/architect:pipeline` is non-interactive on every runtime: a question a phase would ask is

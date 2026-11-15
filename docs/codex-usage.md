@@ -88,6 +88,16 @@ hooks/validate-mermaid.sh reports/before/example/codebase-structure.md
 
 Both hooks still accept Claude Code hook JSON on stdin, so Claude Code compatibility is preserved.
 
+The third hook, `hooks/record_token_usage.py`, reads a Claude Code payload from stdin and does
+nothing when run by hand, so under Codex nothing observes `work/pipeline-progress.json`. When a
+run stamps a phase there, append the matching audit event yourself
+(`skills/common/progress-registry.md` § Audit Log):
+
+```bash
+python3 tools/lib/audit_log.py <project_dir> PHASE_STARTED phase=investigate plugin=architect
+python3 tools/lib/audit_log.py <project_dir> PHASE_COMPLETED phase=investigate plugin=architect
+```
+
 ## Claude Code Compatibility
 
 The Claude Code path is unchanged:

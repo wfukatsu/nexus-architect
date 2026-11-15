@@ -68,4 +68,8 @@ POSIX `bash` + coreutils (`find`, `grep`, `sed`, `basename`, `dirname`) and `git
 detection (with a non-git fallback). No additional language runtime is required to run the
 loader or the tests. The validation hooks referenced by `AGENTS.md`
 (`hooks/validate-frontmatter.sh`, `hooks/validate-mermaid.sh`) use `python3`/`jq` exactly
-as they already do under Claude Code; the loader itself does not.
+as they already do under Claude Code; the loader itself does not. The token-usage hook has no
+hand-run mode, so an orchestrator that stamps `work/pipeline-progress.json` appends the `PHASE_*`
+audit events itself — `python3 tools/lib/audit_log.py <project_dir> PHASE_STARTED phase=<name>` before a
+phase and `PHASE_COMPLETED` / `PHASE_FAILED` / `PHASE_SKIPPED` after it (the event names, not the
+registry's status words; `skills/common/progress-registry.md` § Audit Log).

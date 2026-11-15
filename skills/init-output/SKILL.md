@@ -1,7 +1,7 @@
 ---
 description: |
   Create the architect output directories and work/pipeline-progress.json for a new project.
-argument-hint: '[project_name]'
+argument-hint: '[project_name] [--reset]'
 model: haiku
 ---
 
@@ -10,7 +10,7 @@ model: haiku
 Shared files: a path written `@rules/…`, `@skills/…`, `@templates/…` or `@docs/…` is relative to the
 plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Read it from there.
 
-**Usage:** `/architect:init-output [project_name]`
+**Usage:** `/architect:init-output [project_name] [--reset]`
 
 Use --reset to reinitialize.
 

@@ -12,6 +12,9 @@ pip install -r requirements.txt
 
 # Mermaid CLI (optional, for diagram rendering)
 npm install -g @mermaid-js/mermaid-cli
+
+# Check the install (in a session: /architect:doctor --checkout=<this checkout>)
+tools/doctor.sh
 ```
 
 ## Basic Usage
@@ -266,6 +269,11 @@ It writes into the project's **real source tree** and drives each Issue to a mer
 blocker decisions) and resumes from `reports/backlog/backlog-manifest.json`. Progress shows up on the
 tracker as `status::*` labels, progress comments, and ticked checkboxes — acceptance criteria as they
 are implemented and verified, and a parent's task-list box when its child merges.
+
+Several people on one Epic: each Issue is claimed as it starts (the tracker's assignee plus a
+`claim::<login>` label; `--steal` takes one another person holds), `--parallel=N` runs independent
+Issues in their own worktrees under `--worktree-root`, and `--integration-branch=<name>` collects
+the Epic's merges behind one final approval (`skills/common/backlog-claims.md`).
 
 Prerequisites: `gh` or `glab` authenticated for the target project.
 
