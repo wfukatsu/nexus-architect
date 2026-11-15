@@ -156,19 +156,35 @@ def read_events(project_dir, tail=None, event=None, phase=None):
     return out
 
 
+STAMPS = ("started_at", "completed_at", "updated_at")
+# Which registry stamp dates each status's event; the hook's own clock is the fallback.
+STATUS_STAMP = {"in_progress": "started_at", "completed": "completed_at", "failed": "completed_at",
+                "skipped": "completed_at", "awaiting_approval": "updated_at", "revising": "updated_at"}
+_ISO = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})?$")
+
+
+def _stamp(entry, key):
+    value = entry.get(key) if isinstance(entry, dict) else None
+    return value if isinstance(value, str) and _ISO.match(value) else None
+
+
 def registry_statuses(progress):
-    """{phase: {"status", "plugin"}} from a loaded registry, tolerating loose shapes."""
+    """{phase: {"status", "plugin", "started_at", "completed_at", "updated_at"}} from a loaded
+    registry, tolerating loose shapes; a stamp that is not an ISO 8601 time reads as None."""
     phases = (progress or {}).get("phases") if isinstance(progress, dict) else None
     out = {}
     for name, entry in (phases or {}).items():
         if isinstance(entry, dict):
             status, plugin = entry.get("status"), entry.get("plugin")
         elif isinstance(entry, str):
-            status, plugin = entry, None
+            status, plugin, entry = entry, None, {}
         else:
             continue
         if isinstance(status, str):
-            out[name] = {"status": status, "plugin": plugin if isinstance(plugin, str) else None}
+            record = {"status": status, "plugin": plugin if isinstance(plugin, str) else None}
+            for key in STAMPS:
+                record[key] = _stamp(entry, key)
+            out[name] = record
     return out
 
 
@@ -178,17 +194,31 @@ def diff_registry(before, after, actor=None, source="hook", ts=None):
     `before` is {phase: status} (a checkpoint); `after` is registry_statuses(). A phase whose
     status is unchanged, or that moved to `pending`, emits nothing. A phase that re-enters a
     status it already left (a rerun) emits again — that is a new occurrence.
+
+    Each event is dated by the registry's own stamp for its status (`started_at` for
+    `in_progress`, `completed_at` for `completed` / `failed` / `skipped`, `updated_at` for the
+    human-gate statuses) and by `ts` — the hook's clock — only when the entry carries none: the
+    log records when the phase changed, not when the hook happened to look. A phase the
+    checkpoint never saw running that is now past running (`completed`, `failed`,
+    `awaiting_approval`, `revising`) and carries a `started_at` emits its PHASE_STARTED first,
+    dated by that stamp — the transition the hook missed between two firings.
     """
     events = []
     for name in sorted(after):
-        status = after[name]["status"]
+        entry = after[name]
+        status = entry["status"]
         if before.get(name) == status:
             continue
         event = STATUS_EVENT.get(status)
         if not event:
             continue
-        events.append(make_event(event, phase=name, plugin=after[name]["plugin"],
-                                 actor=actor, source=source, ts=ts))
+        plugin = entry.get("plugin")
+        if (before.get(name) in (None, "pending") and status in ("completed", "failed", "awaiting_approval", "revising")
+                and entry.get("started_at")):
+            events.append(make_event("PHASE_STARTED", phase=name, plugin=plugin, actor=actor, source=source,
+                                     ts=entry["started_at"]))
+        when = entry.get(STATUS_STAMP.get(status, "")) or ts
+        events.append(make_event(event, phase=name, plugin=plugin, actor=actor, source=source, ts=when))
     return events
 
 

@@ -17,7 +17,8 @@ QUESTION_ANSWERED with the signer as actor — once per row it changed — and p
 {"answered": [...], "superseded": [...], "pending": [...], "sheet": path}. A row the store
 already holds `answered` is `superseded`: the store wins over the sheet (rules/open-questions.md
 §9), so collecting twice writes and logs nothing the second time; `overwrite=true` makes the
-sheet win. A `|` in an answer is stored as `\|`. Exit 0; 1 when the store or the sheet is
+sheet win. A `|` in an answer is stored as `\\|`. A store without a Role column gains one when a
+signed role arrives, so no role is dropped. Exit 0; 1 when the store or the sheet is
 missing; 2 on a usage error. A question with no tick and no answer text stays pending — the
 phase stays `awaiting_approval`.
 """
@@ -135,15 +136,29 @@ def parse_sheet(text):
 
 
 def write_answers(project_dir, answers):
-    """Set Status / Answer (/ Role) on each store row in place; returns the ids written."""
+    """Set Status / Answer (/ Role) on each store row in place; returns the ids written.
+
+    A store from before the Role column (eight columns) gains the column when a signed role
+    arrives — `| Role |` on the header, a separator cell, an empty cell on every other row of the
+    table — as rules/open-questions.md §6 asks of the first writer that needs it."""
     path = os.path.join(project_dir, Q.STORE)
     with open(path, encoding="utf-8") as fh:
         lines = fh.read().splitlines()
-    header, written, out = None, [], []
+    need_role = any(a.get("role") for a in answers.values())
+    header, written, out, in_table, add_role = None, [], [], False, False
     for line in lines:
-        cells = Q.split_cells(line) if line.lstrip().startswith("|") else None
+        is_row = line.lstrip().startswith("|")
+        cells = Q.split_cells(line) if is_row else None
         if cells and cells[0].strip("`").lower() in Q.ID_HEADERS:
             header = ["id"] + [c.strip("`").lower() for c in cells[1:]]
+            in_table, add_role = True, need_role and "role" not in header
+            if add_role:
+                header.append("role")
+                line = line.rstrip() + " Role |"
+        elif in_table and not is_row:
+            in_table = False
+        elif in_table and add_role and cells and set("".join(cells)) <= set("-: "):
+            line = line.rstrip() + "---|"                    # the separator row
         elif header and cells and cells[0] in answers and "status" in header and "answer" in header:
             a = answers[cells[0]]
             cells = cells + [""] * (len(header) - len(cells))
@@ -153,6 +168,8 @@ def write_answers(project_dir, answers):
                 cells[header.index("role")] = Q.escape_cell(a["role"])
             line = "| " + " | ".join(cells) + " |"
             written.append(cells[0])
+        elif in_table and add_role and cells:
+            line = line.rstrip() + "  |"                     # an empty Role cell on every other row
         out.append(line)
     with open(path, "w", encoding="utf-8") as fh:
         fh.write("\n".join(out) + ("\n" if lines else ""))
