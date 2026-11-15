@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.63.0] - 2026-11-15
+
+`/architect:doctor` compares against a checkout and checks what #130 asked for (#155, PR #169; from
+the review of v0.53.1..v0.60.0, tracking #158).
+
+### Added
+- **`--checkout=<path>`** (`checkout=` on `tools/doctor.sh`): the checkout the installed plugins are
+  compared against. Without it the doctor uses the current or project directory when that is a
+  checkout of this marketplace, else the copy it runs from — which under the slash command is the
+  installed copy itself, so the "a newer checkout exists" case could never show; the report now
+  says what it compared against (`compared against …`, `checkout_source` in JSON) and the skill
+  asks for the path when that is the user's question. A `checkout=` that is not a checkout exits 2.
+- **New checks.** Each plugin enabled in `~/.claude/settings.json` `enabledPlugins` (disabled or
+  unlisted warns); the installed copy's `hooks.json` registering the checkout's hooks with every
+  script present (`hooks registered (<plugin> <version>)`); every hook script in the repository
+  invoking `claim.sh`, the once-per-tool-call guard; the ScalarDB/ScalarDL bundle's pin — tag or
+  commit, its date, each product's `latest_version` — with a pin older than 180 days a warning
+  naming `tools/update-okf-bundle.sh`; the project's `reports/` / `work/` / `generated/` layout.
+
+### Fixed
+- The learned-rules check reads the store `options.learned_rules_path` names (a missing shared
+  store warns) instead of always `work/learned-rules.json`; a non-UTF-8 byte in the audit log is a
+  malformed line, not a crash.
+
 ## [0.62.0] - 2026-11-15
 
 The claim lifecycle of 0.59.0, made safe for several people on several machines (#153, PR #167;

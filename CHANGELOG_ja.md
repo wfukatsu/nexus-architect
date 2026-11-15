@@ -7,6 +7,28 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.63.0] - 2026-11-15
+
+`/architect:doctor` が checkout と比較し、#130 が求めたチェックを行う（#155、PR #169。v0.53.1..v0.60.0 の
+レビュー、tracking #158）。
+
+### Added
+- **`--checkout=<path>`**（`tools/doctor.sh` では `checkout=`）: インストール済みプラグインの比較対象となる
+  checkout。省略時は、カレントまたはプロジェクトディレクトリがこの marketplace の checkout ならそれ、そうでなければ
+  doctor 自身が走っている複製 — スラッシュコマンドではインストール済みの複製そのものなので、「新しい checkout が
+  ある」は決して検出できなかった。レポートは何と比較したかを述べ（`compared against …`、JSON では
+  `checkout_source`）、それが利用者の問いならスキルはパスを尋ねる。checkout でないパスの `checkout=` は exit 2。
+- **新しいチェック。** 各プラグインが `~/.claude/settings.json` の `enabledPlugins` で有効か（無効・未記載は警告）、
+  インストール済みの複製の `hooks.json` が checkout のフックをすべて登録しスクリプトが揃っているか
+  （`hooks registered (<plugin> <version>)`）、リポジトリのすべてのフックスクリプトが 1 ツール呼び出しにつき 1 回の
+  ガード `claim.sh` を呼ぶか、ScalarDB/ScalarDL バンドルの pin — タグかコミット、その日付、各製品の
+  `latest_version` — で 180 日より古い pin は `tools/update-okf-bundle.sh` を挙げて警告、プロジェクトの
+  `reports/` / `work/` / `generated/` レイアウト。
+
+### Fixed
+- 学習ルールのチェックは常に `work/learned-rules.json` ではなく `options.learned_rules_path` が指すストアを読む
+  （共有ストアがなければ警告）。監査ログの非 UTF-8 バイトはクラッシュではなく malformed line。
+
 ## [0.62.0] - 2026-11-15
 
 0.59.0 の claim ライフサイクルを、複数の人が複数のマシンで使っても安全にした（#153、PR #167。v0.53.1..v0.60.0 の
