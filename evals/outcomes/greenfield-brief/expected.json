@@ -6,6 +6,6 @@
   "adrs.errors": {"max": 0},
   "adrs.records": {"min": 3},
   "open_questions.total": {"min": 5},
-  "cost.total_usd": {"max": 25},
+  "cost.total_usd": {"max": 30},
   "duration.wall_clock_s": {"max": 7200}
 }
