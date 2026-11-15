@@ -94,9 +94,9 @@ the pin is updated — the commands, the thresholds file), `task.md` (the brief,
 means, the reference run's numbers), `expected.json` (`{"<metric>.<field>": {"min" | "max" | "in" |
 "equals": …, "required": true|false}}`) and, once a run exists, `reference-scorecard.json` — the
 committed example of a scorecard. Three ship: `ec-monolith-legacy` (the sample monolith through
-`--profile=full`; its reference scorecard grades the 2026-11-01 run, which was driven phase by
-phase by hand rather than by `run` — `reference_run.not_from_runner` says so, and its cost and
-duration are not a `run` baseline), `ec-monolith-implementation`
+`--profile=full`; its reference scorecard grades the first runner run of 2026-11-15 — 23 phases,
+46 open questions, 20 ADRs, USD 71.55 in 75 minutes — which replaced the by-hand 2026-11-01 card),
+`ec-monolith-implementation`
 (the same input through the pipeline, the codegen chain and `verify-implementation --gate` — the
 task that measures `quality_gate` and `test_results`; its reference scorecard grades the
 2026-11-15 `run`: eight sessions, 4 h 43 min, USD 187 at list price) and
@@ -151,6 +151,6 @@ PASS, 1 on FAIL, 2 on a usage error.
 Results of `run` land under `evals/results/outcomes-<task>-<timestamp>/` with the scratch project,
 the transcript, `scorecard.json` and `scorecard.txt`; the directory is git-ignored. A run worth
 keeping as the task's reference is copied to `outcomes/<task>/reference-scorecard.json` with its
-`project` path made relative and a `reference_run` note on how it was produced (the one
-`ec-monolith-legacy` ships was graded from a by-hand run, not from `run`; the first runner run
-replaces it).
+`project` path made relative and a `reference_run` note on how it was produced — `method`, `toolkit_version`, `caveats`;
+`not_from_runner: true` marks a card graded from a run `run` did not drive (none ships that way any
+more: every task's card is a runner run).

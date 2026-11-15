@@ -23,7 +23,7 @@
     "required": false
   },
   "cost.total_usd": {
-    "max": 60
+    "max": 90
   },
   "duration.wall_clock_s": {
     "max": 21600

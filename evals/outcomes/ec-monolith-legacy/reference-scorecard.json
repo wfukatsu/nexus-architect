@@ -1,184 +1,129 @@
 {
-  "project": "samples/ec-monolith",
-  "graded_at": "2026-11-15T00:10:37+00:00",
+  "project": "evals/results/outcomes-ec-monolith-legacy-2026-11-15T21-51-32Z/project",
+  "graded_at": "2026-11-15T23:10:09+00:00",
   "metrics": {
     "requirement_coverage": {
       "measured": false,
       "reason": "no FR-/NFR- node in the graph",
-      "nodes": 26
+      "nodes": 25
     },
     "open_questions": {
       "measured": true,
-      "total": 88,
+      "total": 46,
       "by_status": {
-        "unasked": 88
+        "unasked": 46
       },
-      "unasked": 88,
+      "unasked": 46,
       "answered": 0,
-      "open": 88
+      "open": 46
     },
     "adrs": {
       "measured": true,
-      "records": 19,
+      "records": 20,
       "errors": 0,
       "error_lines": [],
-      "accepted": 16,
+      "accepted": 0,
       "accepted_with_approver": 0
     },
     "report_validity": {
       "measured": true,
-      "files": 77,
+      "files": 65,
       "failures": 1,
       "frontmatter_failures": [
-        "reports/03_design/api-style-decisions.md"
+        "reports/02_evaluation/mmi-by-module.md"
       ],
       "mermaid_failures": []
     },
     "quality_gate": {
-      "measured": true,
-      "verdict": "FAIL",
-      "stages": 8,
-      "by_status": {
-        "passed": 2,
-        "failed": 6
-      },
-      "passed": 2,
-      "failed": 6,
-      "skipped": 0,
-      "unit_tests_run": 226,
-      "unit_tests_passed": 226,
-      "mutation_score": 81,
-      "blocking": [
-        "jacoco:com.example.ec.order.domain.model:BRANCH",
-        "jacoco:com.example.ec.order.application.tx:LINE",
-        "jacoco:com.example.ec.order.application.tx:BRANCH",
-        "jacoco:com.example.ec.order.infrastructure.id:LINE",
-        "VER-101",
-        "VER-102",
-        "VER-103",
-        "VER-104",
-        "VER-105",
-        "VER-106",
-        "CVE-2025-14813",
-        "CVE-2026-8763",
-        "CVE-2026-13506",
-        "CVE-2026-5598",
-        "ASEC-101",
-        "ASEC-301",
-        "VER-201"
-      ]
+      "measured": false,
+      "reason": "no reports/09_verification/quality-gate.json"
     },
     "test_results": {
-      "measured": true,
-      "suites": {
-        "characterizationTest": {
-          "tests": 36,
-          "failures": 0,
-          "errors": 0,
-          "skipped": 0,
-          "pass_rate": 1.0
-        },
-        "acceptanceTest": {
-          "tests": 24,
-          "failures": 2,
-          "errors": 0,
-          "skipped": 0,
-          "pass_rate": 0.9167
-        },
-        "contractTest": {
-          "tests": 149,
-          "failures": 7,
-          "errors": 0,
-          "skipped": 0,
-          "pass_rate": 0.953
-        },
-        "integrationTest": {
-          "tests": 38,
-          "failures": 0,
-          "errors": 0,
-          "skipped": 0,
-          "pass_rate": 1.0
-        },
-        "test": {
-          "tests": 226,
-          "failures": 0,
-          "errors": 0,
-          "skipped": 0,
-          "pass_rate": 1.0
-        }
-      },
-      "tests": 473,
-      "pass_rate": 0.981
+      "measured": false,
+      "reason": "no generated/**/test-results/<suite>/*.xml"
     },
     "phase_completion": {
       "measured": true,
-      "phases": 38,
+      "phases": 29,
       "by_status": {
         "skipped": 6,
-        "completed": 32
+        "completed": 23
       },
-      "completed": 32,
+      "completed": 23,
       "failed": 0,
       "skipped": 6,
-      "profile": null,
-      "warnings": 8
+      "profile": "full",
+      "warnings": 1
     },
     "cost": {
       "measured": true,
-      "total_usd": 39.2418,
-      "unassigned_usd": 2.9359,
+      "total_usd": 71.5517,
+      "unassigned_usd": null,
       "per_phase_usd": {
-        "generate-api-code": 29.604,
-        "generate-contract-tests": 1.5421,
-        "generate-acceptance-tests": 1.211,
-        "generate-docs+verify-implementation": 2.0339,
-        "generate-docs": 0.37,
-        "verify-implementation": 1.5449,
-        "_unassigned": 2.9359
+        "investigate": 2.9616,
+        "analyze": 4.3557,
+        "architect:map-domains+evaluate-ddd+evaluate-mmi": 3.5344,
+        "analyze-data-model+integrate-evaluations": 1.7381,
+        "redesign": 3.5944,
+        "architect:create-domain-story+design-aggregate": 7.233,
+        "design-microservices+design-state-machine": 11.6454,
+        "architect:design-api+design-scalardb": 16.4381,
+        "review-api-security+review-consistency+review-scalardb": 11.8474,
+        "review-business+review-operations+review-risk": 7.2097,
+        "review-synthesizer": 0.2512,
+        "architect:report": 0.5933,
+        "review-report": 0.1494
       }
     },
     "duration": {
       "measured": true,
-      "wall_clock_s": 12977,
-      "phase_time_s": 17844,
+      "wall_clock_s": 4506,
+      "phase_time_s": 8766,
       "per_phase_s": {
-        "investigate": 157,
-        "analyze": 303,
-        "analyze-data-model": 135,
-        "evaluate-mmi": 97,
-        "evaluate-ddd": 103,
-        "integrate-evaluations": 103,
-        "redesign": 300,
-        "map-domains": 165,
-        "create-domain-story": 288,
-        "design-aggregate": 532,
-        "design-state-machine": 363,
-        "design-microservices": 482,
-        "design-scalardb": 908,
-        "design-api": 1166,
-        "review-consistency": 578,
-        "review-api-security": 617,
-        "review-scalardb": 512,
-        "review-operations": 238,
-        "review-risk": 644,
-        "review-business": 263,
-        "review-synthesizer": 236,
-        "report": 7,
-        "review-report": 146,
-        "design-implementation": 1102,
-        "generate-characterization-tests": 739,
-        "generate-test-specs": 776,
-        "generate-scalardb-code": 2100,
-        "generate-api-code": 2021,
-        "generate-contract-tests": 1035,
-        "generate-acceptance-tests": 622,
-        "generate-docs": 309,
-        "verify-implementation": 797
+        "investigate": 143,
+        "analyze": 364,
+        "analyze-data-model": 95,
+        "evaluate-mmi": 177,
+        "evaluate-ddd": 177,
+        "integrate-evaluations": 93,
+        "redesign": 430,
+        "map-domains": 177,
+        "create-domain-story": 550,
+        "design-aggregate": 550,
+        "design-state-machine": 524,
+        "design-microservices": 524,
+        "design-scalardb": 1190,
+        "design-api": 1190,
+        "review-consistency": 406,
+        "review-api-security": 407,
+        "review-scalardb": 407,
+        "review-operations": 368,
+        "review-risk": 368,
+        "review-business": 368,
+        "review-synthesizer": 169,
+        "report": 32,
+        "review-report": 57
       }
     },
     "human_effort": {
-      "measured": false,
-      "reason": "no audit events"
+      "measured": true,
+      "events": 107,
+      "questions_asked": 0,
+      "questions_answered": 0,
+      "questions_deferred": 25,
+      "gates_approved": 0,
+      "gates_rejected": 0,
+      "revisions": 0,
+      "review_rounds": 0,
+      "by_event": {
+        "PHASE_STARTED": 22,
+        "PHASE_SKIPPED": 5,
+        "PHASE_COMPLETED": 23,
+        "QUESTION_DEFERRED": 25,
+        "ADR_RECORDED": 20,
+        "VERDICT_RECORDED": 1,
+        "RULE_PROPOSED": 11
+      }
     }
   },
   "thresholds": {
@@ -217,7 +162,7 @@
         "rule": {
           "min": 8
         },
-        "value": 19,
+        "value": 20,
         "status": "pass",
         "error": null
       },
@@ -226,7 +171,7 @@
         "rule": {
           "min": 20
         },
-        "value": 88,
+        "value": 46,
         "status": "pass",
         "error": null
       },
@@ -240,16 +185,16 @@
           ],
           "required": false
         },
-        "value": "FAIL",
-        "status": "pass",
+        "value": null,
+        "status": "unmeasured",
         "error": null
       },
       {
         "metric": "cost.total_usd",
         "rule": {
-          "max": 60
+          "max": 90
         },
-        "value": 39.2418,
+        "value": 71.5517,
         "status": "pass",
         "error": null
       },
@@ -258,17 +203,34 @@
         "rule": {
           "max": 21600
         },
-        "value": 12977,
+        "value": 4506,
         "status": "pass",
         "error": null
       }
     ],
-    "unmeasured": []
+    "unmeasured": [
+      "quality_gate.verdict"
+    ]
   },
-  "note": "The 2026-11-01 run of /architect:pipeline on samples/ec-monolith, graded with the task's thresholds on 2026-11-15 from the run's git-ignored outputs; the committed example of what a scorecard looks like.",
+  "task": "ec-monolith-legacy",
+  "run_started": "2026-11-15T21:51:44Z",
+  "run_finished": "2026-11-15T23:07:47Z",
+  "claude_options": "--permission-mode bypassPermissions --max-budget-usd 120",
+  "input_sha256": {
+    "pinned": "27bd8b90fea6cb0da9640711a97b2acb906f74e527782173c63e1ed1c942f464",
+    "actual": "27bd8b90fea6cb0da9640711a97b2acb906f74e527782173c63e1ed1c942f464",
+    "matches": true
+  },
+  "note": "The 2026-11-15 run of tools/eval-outcomes.sh run ec-monolith-legacy (toolkit 0.67.0), one claude -p session, graded with the task's thresholds; the committed example of a runner scorecard for this task, replacing the by-hand 2026-11-01 card. The project directory is git-ignored and local to the machine that ran it.",
   "reference_run": {
-    "date": "2026-11-01",
-    "method": "phase by phase, by hand, on the manifest models",
-    "not_from_runner": true
+    "date": "2026-11-15",
+    "method": "tools/eval-outcomes.sh run, one claude -p session for the pipeline, --max-budget-usd 120",
+    "not_from_runner": false,
+    "toolkit_version": "0.67.0",
+    "caveats": [
+      "report_validity.failures = 1: reports/02_evaluation/mmi-by-module.md has no ELI5 section, the template gap of Issue #194, fixed in the release that registered this card; the file is otherwise valid.",
+      "The core pipeline only (29 manifest phases): quality_gate and test_results are unmeasured because the extension tier is not part of this task's command; the by-hand card measured them from a hand-driven codegen chain.",
+      "cost.total_usd 71.55 is the first legacy-path figure that includes every sub-agent session (the ledger missed them before 0.65.2); the by-hand card's 39.24 is not comparable."
+    ]
   }
 }
