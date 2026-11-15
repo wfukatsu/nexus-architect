@@ -7,6 +7,24 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.67.0] - 2026-11-16
+
+参照値のなかった最後のアウトカムタスク `greenfield-brief` に、初回ランナー実行の参照値を登録（Issue #191、
+PR #192）。これで 3 タスクすべてがランナー由来の `reference-scorecard.json` を持つ。
+
+### Added
+- **`evals/outcomes/greenfield-brief/reference-scorecard.json`** — ツールキット 0.66.1 での 2026-11-15 の実行
+  （`claude -p` 2 セッション、40 分、定価 USD 20.63）をタスクの閾値で採点したもの。9 項目すべて PASS:
+  要件カバレッジ 12/12、フェーズ 8 完了・21 スキップ・0 失敗、レポート 31 件で失敗 0、ADR 9 件、
+  Open Question 35 件（支店間の hold 優先度 OQ-004、「通知」の意味 OQ-011、期限切れ hold の保持 OQ-019 を
+  含む）。設計レビューの FAIL（3.34/5、ILS 境界の major 9 件）は設計の所見であり、フェーズの失敗ではない。
+  `reference_run.caveats` に depth `minimal` での自己採点レビューと `--auto` での英語既定を記録。`task.md`
+  に数値を記載。
+
+### Changed
+- **`greenfield-brief` のコスト閾値** 25 → 30 USD。実測 20.63 では余裕が 2 割しかなく、他タスクより薄かった。
+  他の閾値は据え置き。
+
 ## [0.66.1] - 2026-11-16
 
 2026-11-15 の `ec-monolith-implementation` 参照実行で見つかった、予算とは無関係の所見 3 件の修正
