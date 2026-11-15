@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.68.0] - 2026-11-16
+
+The last by-hand reference is gone: `ec-monolith-legacy` now ships the scorecard of its first
+runner run (Issue #195, PR #196), and the one report that run got wrong is a template gap closed
+in the same release (Issue #194).
+
+### Added
+- **`evals/outcomes/ec-monolith-legacy/reference-scorecard.json`** — the 2026-11-15 run on toolkit
+  0.67.0 (one `claude -p` session under `--max-budget-usd 120`, 75 min, USD 71.55 at list price)
+  graded with the task's thresholds: 23 phases completed / 6 skipped / 0 failed, 20 ADRs, 46 open
+  questions, 65 reports with 1 failure. It replaces the by-hand 2026-11-01 card, whose USD 39.24
+  missed every sub-agent session and whose quality-gate line came from a hand-driven codegen
+  chain. `reference_run.caveats` says why `report_validity.failures` reads 1; `task.md` and
+  `evals/README.md` carry the numbers.
+
+### Changed
+- **`ec-monolith-legacy` cost threshold** 60 → 90 USD: the old cap was set from the incomplete
+  ledger; the measured 71.55 with a quarter of headroom matches the other tasks.
+
+### Fixed
+- **`evaluate-mmi`** — both output templates (`mmi-by-module.md`, `mmi-overview.md`) open with
+  the `## ELI5` section and step 4 names `rules/eli5-summary.md`. The per-module template opened
+  straight with the score table, and the pipeline's sub-agent followed it literally: the run's one
+  invalid report (#194).
+
 ## [0.67.0] - 2026-11-16
 
 The last outcome task without a reference gets one: `greenfield-brief`'s first runner run
