@@ -232,7 +232,9 @@ Maturity classification:
 - 40-60  → Needs Improvement (Major refactoring required)
 - 0-40   → Immature (Fundamental redesign required)
 
-Output language and frontmatter: @rules/output-conventions.md.
+Output language and frontmatter: @rules/output-conventions.md. Both files are technical reports:
+each opens with a `## ELI5` section right after its title (@rules/eli5-summary.md); the
+frontmatter hook rejects a file without one, and the per-module file is no exception.
 
 **`reports/02_evaluation/mmi-by-module.md`** — Per-module 4-axis score table:
 
@@ -248,6 +250,10 @@ input_files:
 ---
 
 # MMI Per-Module Evaluation
+
+## ELI5
+
+[The picture, what it means, what is asked — @rules/eli5-summary.md]
 
 | Module | Cohesion | Coupling | Independence | Reusability | MMI | Maturity |
 |--------|----------|----------|--------------|-------------|-----|----------|
@@ -278,6 +284,10 @@ input_files:
 ---
 
 # MMI Evaluation Overview
+
+## ELI5
+
+[The picture, what it means, what is asked — @rules/eli5-summary.md]
 
 ## Summary
 
