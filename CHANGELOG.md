@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.65.0] - 2026-11-15
+
+Two items of #157 — what Issues #125 and #126 asked for and 0.55.0 / 0.56.0 did not deliver —
+chosen because they fix correctness without a product decision (PR #173; tracking #158). The rest
+of #157 is closed with its reasons.
+
+### Changed
+- **`PHASE_*` audit events are dated by the registry, not by the hook.** `diff_registry` takes
+  each event's `ts` from the registry's stamp for its status — `started_at` for `in_progress`,
+  `completed_at` for `completed` / `failed` / `skipped`, `updated_at` for `awaiting_approval` /
+  `revising` — and falls back to the hook's clock only when the entry carries none; a phase that
+  went from `pending` past `in_progress` between two firings gets the `PHASE_STARTED` the hook
+  missed, reconstructed from `started_at`. `registry_statuses` carries the stamps (an unparseable
+  one as `null`). The hook itself is unchanged.
+- **`workshop_sheet.py collect` keeps the role on an eight-column store.** When a signed role
+  arrives and the store has no Role column, the column is appended — `| Role |` on the header, a
+  separator cell, an empty cell on every other row of the table — instead of the role being
+  dropped silently; `rules/open-questions.md` §6 names the tool among the first writers.
+
 ## [0.64.0] - 2026-11-15
 
 The outcome evals of 0.57.0 measure what they claim (#154, PR #171; from the review of

@@ -7,6 +7,22 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.65.0] - 2026-11-15
+
+#157 のうち 2 項目 — Issue #125 と #126 が求め、0.55.0 / 0.56.0 が届けなかったもの — を、仕様判断なしに正しさが
+上がるものとして選んだ（PR #173、tracking #158）。#157 の残りは理由を添えてクローズ。
+
+### Changed
+- **`PHASE_*` 監査イベントの時刻はフックではなくレジストリから。** `diff_registry` は各イベントの `ts` を、その
+  status に対応するレジストリのスタンプから取る — `in_progress` は `started_at`、`completed` / `failed` / `skipped`
+  は `completed_at`、`awaiting_approval` / `revising` は `updated_at` — エントリにスタンプがないときだけフックの
+  時計に戻る。2 回の発火の間に `pending` から `in_progress` を通り越したフェーズには、フックが見逃した
+  `PHASE_STARTED` を `started_at` から復元する。`registry_statuses` はスタンプを運ぶ（解析できないものは `null`）。
+  フック自体は変更なし。
+- **`workshop_sheet.py collect` が 8 列のストアでも役割を保つ。** 署名された役割が届き、ストアに Role 列が
+  ないときは列を追加する — ヘッダに `| Role |`、区切り行にセル、表の他の行に空セル — 役割を黙って落とさない。
+  `rules/open-questions.md` §6 はこのツールを最初の書き手の一つとして挙げる。
+
 ## [0.64.0] - 2026-11-15
 
 0.57.0 のアウトカム eval が、測ると言ったものを測るようになった（#154、PR #171。v0.53.1..v0.60.0 のレビュー、
