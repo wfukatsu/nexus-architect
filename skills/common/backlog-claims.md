@@ -22,6 +22,12 @@ and a run reads the tracker before the file (§ Claims).
 | `stolen_from` | The previous holder when the claim was taken with `steal=true` |
 | `released_at`, `released_by`, `reason` | Set when the claim ends: `merged`, `stolen`, or the reason given |
 
+The tool's verbs: `claim <item> [by=] [branch=] [worktree=] [integration=] [steal=true]`,
+`release <item> [by=] [reason=]`, `list [active=true|false] [format=text|json]` (`active=false`
+lists released claims too), `worktree add` / `worktree remove` (below). Every write holds
+`reports/backlog/claims.json.lock` around its read-modify-write, so two runs on one checkout never
+lose each other's claims; the lock file stays in place.
+
 Rules:
 
 - **Claim before starting, and mirror it.** `/architect:deliver-backlog` claims each Issue as it
@@ -59,10 +65,11 @@ Rules:
 
 ## Worktrees
 
-`worktree add <item> [root=<path>] [branch=<name>] [base=<branch>]` creates
+`worktree add <item> [root=<path>] [branch=<name>] [base=<branch>] [by=<name>] [steal=true]` creates
 `<root>/<item>` (`root` defaults to `../<project>-worktrees`, `--worktree-root` on the skills)
 on `feat/<item>` from the project's current branch — a new branch, or the existing one — and
-records both on the claim. The Issue's code is written there; the project's `reports/` and
+records both on the claim; a `#42` item becomes `issue-42` in both the directory and the branch
+(`feat/issue-42`). The Issue's code is written there; the project's `reports/` and
 `work/` stay where they are (the shared-context pack, the manifest, the registry and the audit
 log are read and written by absolute path from the main checkout, never copied into a worktree).
 `worktree remove <item>` deletes the checkout and keeps the branch — and refuses (exit 3, the

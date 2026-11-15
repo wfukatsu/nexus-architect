@@ -3,8 +3,9 @@
 System architecture toolkit for Claude Code, Codex and Omnigent. Claude Code uses this repository as four plugins with 118 skills; Codex and Omnigent use the same skill files. One entry document, `AGENTS.md`, serves all three runtimes (`CLAUDE.md` is a stub that imports it).
 
 - **product** (28 skills) — Product direction: validation-driven, dialogue-based pipeline from product vision to SLA/NFR; hands off to architect for system implementation design
-- **architect** (69 skills) — Legacy refactoring, greenfield design, database investigation and migration, consulting deliverables
+- **architect** (75 skills) — Legacy refactoring, greenfield design, database investigation and migration, backlog delivery, consulting deliverables
 - **scalardb** (11 skills) — ScalarDB application development toolkit
+- **infra** (4 skills) — Multi-cloud (AWS / Azure / GCP) × four-environment infrastructure: design, implementation and review of Terraform / Kubernetes / GitOps
 
 ## Installation
 
@@ -56,9 +57,10 @@ In a Claude Code session, type any command to confirm:
 ```
 
 If the skills are recognized, the installation is successful. `/architect:doctor` then checks the
-rest: the installed plugins at the repository's version, the hooks, the two knowledge bundles and
-their freshness, and — given a project — the files the skills read (`tools/doctor.sh` outside a
-session). Kiro, Copilot and Cursor are not supported; what each would need is
+rest: the installed plugins at a checkout's version (`--checkout=<path>`, or the checkout it is run
+in; without either it says it compared the installed copy with itself), enabled, with their hooks
+registered and guarded, the two knowledge bundles, their pin and freshness, and — given a project —
+the files the skills read (`tools/doctor.sh` outside a session). Kiro, Copilot and Cursor are not supported; what each would need is
 `docs/runtimes-assessment.md`.
 
 ### If you have many skills installed
@@ -257,14 +259,16 @@ defined as data in `skills/common/skill-dependencies.yaml`:
 | `full` (default) | every phase of the manifest | `standard` |
 | `enterprise` | every phase, every optional phase over every candidate, every review perspective | `comprehensive` |
 | `poc` | investigation, evaluation, redesign, target architecture, API contract; reviewed for consistency and risk only | `minimal` |
-| `analysis` | investigation and evaluation only, no redesign (`--analyze-only`) | `standard` |
+| `analysis` | investigation and evaluation only — no redesign, and none of the optional design phases that depend on it (`--analyze-only`) | `standard` |
 
 `--depth=minimal|standard|comprehensive` overrides the profile's default: `minimal` runs two
 review perspectives that score their own dimensions and no optional phase; `standard` runs all
 seven perspectives with independent reviewers and the optional phases the evidence calls for;
 `comprehensive` runs the optional phases over every candidate. `/architect:start` proposes a
 profile from the request; phases outside the run are recorded as skipped and shown as excluded by
-`/architect:report-status`.
+`/architect:report-status`, and a later run under a wider profile picks them up again. The product
+pipeline's own `--profile` (`mvp`, `core-only`, `ux-to-spec`, `full`) is recorded apart, as
+`options.product_profile`, so a product → architect handoff never reads one as the other.
 
 ### Code Generation & Delivery
 
@@ -369,17 +373,23 @@ explained too. It is read-only and can be run at any point.
   report and the documentation site include it, under *Other*.
 
 The project also keeps an **audit log**, `work/audit/events.jsonl`: one JSON line per event,
-append-only — every phase start and end (from the token-usage hook), every human gate approved,
+append-only — every phase start and end (from the token-usage hook, dated by the registry's own
+stamps), every human gate approved,
 rejected or pre-authorised, every question asked and answered, every ADR, every review verdict,
 every PR opened and merged, each with the git user name of whoever acted. A phase whose output
 waits on a person is `awaiting_approval` in `work/pipeline-progress.json` and is asked again on
 resume, never skipped; the registry's `resume_point` says where an interrupted dialogue phase
 continues. `python3 tools/lib/audit_log.py <project> list tail=20` reads the log;
 `skills/common/progress-registry.md` § Audit Log is the contract.
-`tools/eval-outcomes.sh grade <project>` scores what a run produced — requirement coverage,
-unasked questions, ADRs, report validity, the quality gate, test pass rates, cost, wall clock and
-review rounds — against a task's thresholds, and `run <task>` does the whole paid run on a frozen
-brief (`evals/README.md` § Outcome evals, with the protocol for comparing another toolkit).
+`tools/eval-outcomes.sh grade <project>` scores what a run produced — requirement coverage
+(design-tier citations only), unasked questions, ADRs, report validity, the quality gate, test pass
+rates, cost, wall clock and review rounds — against a task's thresholds (validated first; an
+unmeasured metric fails unless its rule says `"required": false`), `compare <a> <b>` puts two runs
+side by side marking what is not comparable, and `run <task> --permission-mode bypassPermissions`
+does the whole paid run on a pinned input. Three tasks ship — the pipeline on the sample monolith,
+the same through code generation and the quality gate, and a greenfield brief — the first with a
+committed reference scorecard (`evals/README.md` § Outcome evals, with the protocol for comparing
+another toolkit).
 
 Questions belong to roles, not only to whoever is typing: each Open Question carries a `Role`
 (`docs/decision-roles.md` — product owner, architect, operations, …), each ADR names its
@@ -388,7 +398,7 @@ what waits on whom. The dialogue phases (`define-requirements`, `design-aggregat
 `design-state-machine`, `/product:define-scope`, `/product:validate-assumptions`) take
 `--workshop`: the questions go to a sheet under `work/workshop/` that several people answer and
 sign, the phase waits as `awaiting_approval`, and the next run collects the answers into the store
-and the audit log (`rules/open-questions.md` §9).
+(a row answered meanwhile is kept, not overwritten) and the audit log (`rules/open-questions.md` §9).
 
 What the reviews keep finding becomes rules the next design reads: `review-synthesizer` proposes
 a learned rule from each recurring finding, a person accepts or rejects it (`/architect:start`
@@ -401,10 +411,13 @@ projects through `options.learned_rules_path` (`rules/learned-rules.md`; `--no-l
 the proposals off).
 
 Several people can deliver one Epic at once: `/architect:deliver-backlog` claims each Issue as it
-starts it and skips what someone else holds (`--steal` takes it, naming the previous holder),
-`--parallel=N` runs independent Issues in their own worktrees (`--worktree-root`), and
-`--integration-branch=<name>` collects the Epic's merges behind one final approval before the
-default branch sees them (`skills/common/backlog-claims.md`, `tools/lib/backlog_claims.py`).
+starts it — on the tracker, as the assignee plus a `claim::<login>` label other machines see, and
+in this checkout's `claims.json` — skips what someone else holds (`--steal` takes it, naming the
+previous holder), releases an Issue the user gives up and keeps one they merely pause,
+`--parallel=N` runs independent Issues in their own worktrees (`--worktree-root`; a worktree is
+the holder's, and removing one with uncommitted work is refused), and `--integration-branch=<name>`
+collects the Epic's merges behind one final approval before the default branch sees them
+(`skills/common/backlog-claims.md`, `tools/lib/backlog_claims.py`).
 
 ### ScalarDB Application Development
 

@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.65.1] - 2026-11-15
+
+A documentation pass over the 0.60.1–0.65.0 releases (`/document-release`, with an independent
+review of the docs against the shipped code), released on its own. No skill or tool changed
+behaviour; two frontmatter signatures were completed.
+
+### Changed
+- **README** describes what shipped: `/architect:doctor` compares against a checkout
+  (`--checkout`) and checks `enabledPlugins`, hook registration and the bundle pin; the `analysis`
+  profile excludes the design phases that depend on `redesign` and a widened profile picks skipped
+  phases up again; the product pipeline's profile is `options.product_profile`; audit events are
+  dated by the registry's stamps; the outcome evals validate thresholds, fail unmeasured required
+  metrics, `compare` two runs and pin their inputs, with three tasks and a committed reference
+  scorecard; the workshop keeps answered rows; claims are mirrored on the tracker, released when an
+  Issue is given up, and worktrees are the holder's. Plugin counts corrected (architect 75, and the
+  infra plugin's bullet added).
+- **`docs/codex-usage.md` (+ ja) and `tools/omnigent/README.md`** say how a runtime without hooks
+  appends the `PHASE_*` audit events itself (`PHASE_STARTED` / `PHASE_COMPLETED`, the event names,
+  not the registry's status words); AGENTS.md's runtime table names them the same way.
+- **`docs/getting-started.md` (+ ja)** verifies the install with `tools/doctor.sh` and describes the
+  multi-team flags of backlog delivery; **`docs/skill-reference.md` (+ ja)** rows for
+  `deliver-backlog`, `implement-backlog` and `merge-issue` name claims, worktrees and the tracker
+  label; **`docs/test-suites.md`** rows for the audit log, claims, hooks, learned rules,
+  pipeline status, workshop and Open Questions suites describe what those suites now guard.
+- **`evals/README.md`**: the committed reference scorecard was graded from a by-hand run, not from
+  `run`, and says so; seven trigger cases, not six. **`skills/common/backlog-claims.md`** lists the
+  tool's verbs (`list active=`, the `worktree=` claim key, `by=` / `steal=true` on `worktree add`),
+  the `claims.json.lock` lock file and the `#42` → `issue-42` branch name.
+- The manifest's `profiles` comment no longer claims `define-requirements` is in every profile
+  (`analysis` has no greenfield entry).
+
+### Fixed
+- `/product:start` declares `--import=<path>` (the design-system import its body already took) and
+  `/architect:init-output` / `/product:init-output` declare `--reset` in their `argument-hint`, as
+  the catalogue's signature block already did.
+
 ## [0.65.0] - 2026-11-15
 
 Two items of #157 — what Issues #125 and #126 asked for and 0.55.0 / 0.56.0 did not deliver —

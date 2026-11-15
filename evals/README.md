@@ -14,7 +14,7 @@ One plugin per run, because a case is a statement about one plugin: with only `p
 `product:start` is the right answer to a product idea; with all four it would compete with
 `architect:start` and the case would be measuring something else.
 
-Each run is a full Claude session on your own credential. All six cases at three runs each cost
+Each run is a full Claude session on your own credential. All seven cases at three runs each cost
 about USD 3.3 on Opus (measured 2026-10-08, Claude Code v2.1.294); `--model sonnet` and `--runs 1`
 make an iteration loop cheaper. That is why this is **not** in CI: it needs a credential and it
 spends money on every push. Run it when a `description` changes — that field is what decides
@@ -86,7 +86,9 @@ the pin is updated — the commands, the thresholds file), `task.md` (the brief,
 means, the reference run's numbers), `expected.json` (`{"<metric>.<field>": {"min" | "max" | "in" |
 "equals": …, "required": true|false}}`) and, once a run exists, `reference-scorecard.json` — the
 committed example of a scorecard. Three ship: `ec-monolith-legacy` (the sample monolith through
-`--profile=full`; its reference scorecard is the 2026-11-01 run), `ec-monolith-implementation`
+`--profile=full`; its reference scorecard grades the 2026-11-01 run, which was driven phase by
+phase by hand rather than by `run` — `reference_run.not_from_runner` says so, and its cost and
+duration are not a `run` baseline), `ec-monolith-implementation`
 (the same input through the pipeline, the codegen chain and `verify-implementation --gate` — the
 task that measures `quality_gate` and `test_results`; its runner run is pending) and
 `greenfield-brief` (a one-page brief through `define-requirements` and `--profile=poc`).
@@ -139,4 +141,6 @@ PASS, 1 on FAIL, 2 on a usage error.
 Results of `run` land under `evals/results/outcomes-<task>-<timestamp>/` with the scratch project,
 the transcript, `scorecard.json` and `scorecard.txt`; the directory is git-ignored. A run worth
 keeping as the task's reference is copied to `outcomes/<task>/reference-scorecard.json` with its
-`project` path made relative, as `ec-monolith-legacy`'s was.
+`project` path made relative and a `reference_run` note on how it was produced (the one
+`ec-monolith-legacy` ships was graded from a by-hand run, not from `run`; the first runner run
+replaces it).

@@ -97,10 +97,10 @@
 | コマンド | モデル | 説明 |
 |---------|-------|------|
 | `/architect:export-backlog` | opus | レポート → GitLab / GitHub 上の Epic（What/Why）/ Sub-Epic（What/Key Results）/ Issue（How）。レビュー優先の計画 + 承認ゲートを経て冪等に作成。新サービスごとに `walking-skeleton` Issue を 1 件、順序の先頭に。受入基準は、フィーチャーまたは要件の例のマップの `RULE-` |
-| `/architect:deliver-backlog` | sonnet | Epic 配下の Issue ごとに 実装 → レビュー → 承認 → マージ を統括。`backlog-manifest.json` から再開し、人間のゲートで必ず停止 |
-| `/architect:implement-backlog` | sonnet | 1アイテムを Epic 整合的に作業ブランチ上でテストファーストで実装 — 単位ごとに `test:`（失敗を確認）→ `feat:` → `refactor:`、外側ループはアイテムのシナリオ（`rules/tdd-workflow.md`）。Step 5b で `generate-docs` を実行してドキュメントを同じ PR/MR に載せ、Step 5c で品質ゲートを実行 |
+| `/architect:deliver-backlog` | sonnet | Epic 配下の Issue ごとに 実装 → レビュー → 承認 → マージ を統括。`backlog-manifest.json` から再開し、人間のゲートで必ず停止。各 Issue を claim（tracker の assignee と `claim::<login>` ラベル、この checkout の `claims.json`）し、他の人が保持する Issue は `--steal` がなければ飛ばし、利用者があきらめた Issue は release、`--parallel` では独立した Issue を各自の worktree で実行、`--integration-branch` で Epic をまとめる |
+| `/architect:implement-backlog` | sonnet | 1アイテムを Epic 整合的に作業ブランチ上でテストファーストで実装 — 単位ごとに `test:`（失敗を確認）→ `feat:` → `refactor:`、外側ループはアイテムのシナリオ（`rules/tdd-workflow.md`）。Step 5b で `generate-docs` を実行してドキュメントを同じ PR/MR に載せ、Step 5c で品質ゲートを実行。先に Issue を claim（tracker にもミラー）し、`--worktree-root` では Issue 専用の worktree で作業 |
 | `/architect:review-issue` | opus | Epic 全体の整合レビュー、ブロッカー自動修正ループ（回数上限あり。各修正は再現テストの後にコミット）、PR/MR 作成と承認への引き継ぎ |
-| `/architect:merge-issue` | opus | マージ前プリフライトと明示的な確認、マージ、Issue クローズ、Sub-Epic/Epic へのロールアップ |
+| `/architect:merge-issue` | opus | マージ前プリフライトと明示的な確認、マージ、Issue クローズ、Sub-Epic/Epic へのロールアップ。Issue の claim と tracker ラベルを release し、worktree を削除（未コミットの作業があれば拒否） |
 | `/architect:capture-followup` | sonnet | デリバリー中に発見した後続タスクをキューに捕捉し、承認後に対応中の Sub-Epic/Epic へ紐付く Issue として起票(`F` 番台のマニフェストノード) |
 | `/architect:report-backlog-status` | haiku | バックログデリバリーのターミナルダッシュボード: Epic/Sub-Epic/Issue ツリーにデリバリー状態と I/R/M ステージを表示、トラッカー同期と次コマンド生成のアクションメニュー付き(`tools/backlog-status.sh` をラップ) |
 
@@ -257,7 +257,7 @@ SLA/非機能要件までを導出する検証駆動パイプラインで、シ�
 /architect:start [target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive] [--no-learnings]
 /architect:pipeline [target_path] [--profile=full|enterprise|poc|analysis] [--depth=minimal|standard|comprehensive] [--no-learnings] [--skip-{phase}] [--resume-from=phase-N] [--rerun-from=phase-N] [--analyze-only] [--no-scalardb] [--lang=en|ja]
 /architect:init-output [project_name] [--reset]
-/product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--lang=ja|en]
+/product:start [target] [--auto] [--profile=mvp|core-only|ux-to-spec|full] [--frontend|--no-frontend] [--import=<path>] [--lang=ja|en]
 /product:init-output [project_name] [--reset]
 
 # Requirements, investigation, analysis, evaluation
