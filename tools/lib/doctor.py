@@ -1,23 +1,31 @@
 #!/usr/bin/env python3
 """The doctor: is this install of the toolkit healthy, and is this project readable?
 
-    python3 tools/lib/doctor.py [project_dir] [format=text|json]
+    python3 tools/lib/doctor.py [project_dir] [checkout=<path>] [format=text|json]
 
 Checks, each `ok`, `warn` or `FAIL` with one line of detail:
 
   repository   marketplace.json parses, the four plugins share one version, every registered
                skill directory holds a SKILL.md, hooks.json parses and names scripts that exist
-               and run, hooks/claim.sh is present
+               and run, hooks/claim.sh is present and every hook script invokes it
   tools        bash, git, python3 present; gh, glab, claude, rtk reported when absent (warn)
   install      the four plugins in ~/.claude/plugins/installed_plugins.json, their installed
-               version against the repository's — a session serves the installed copy, so a
-               newer checkout is a warning worth knowing
-  bundles      knowledge/okf-scalardb-scalardl/okf populated (the submodule), knowledge/okf-k8s-tf
+               version against the checkout's (below), each enabled in ~/.claude/settings.json
+               `enabledPlugins`, the installed copy's hooks.json naming the same scripts as the
+               checkout's with every script present
+  bundles      knowledge/okf-scalardb-scalardl/okf populated (the submodule), its pin (tag or
+               commit, commit date; older than 180 days is a warning), knowledge/okf-k8s-tf
                present with its documents' stale_after dates not past
   project      (when a directory is given, or the current one holds work/pipeline-progress.json)
-               the registry parses with object options and a known profile / depth, the Open
-               Questions store is headed `ID`, the audit log, learned rules and claims parse,
+               reports/ and work/ present, the registry parses with object options and a known
+               profile / depth, the Open Questions store is headed `ID`, the audit log, the
+               learned rules (at options.learned_rules_path when set) and the claims parse,
                phases awaiting approval are listed
+
+The checkout the install is compared against is `checkout=<path>` when given; else the current
+directory (or the project directory) when it is a checkout of this marketplace; else the copy
+this doctor runs from — under /architect:doctor that is the installed copy itself, so the
+"newer checkout" case cannot show, and the report says so (`checkout_source`).
 
 Exit 0 when nothing FAILed (warnings allowed), 1 otherwise, 2 on a usage error. Nothing is
 written. Wrapped by tools/doctor.sh and /architect:doctor.
@@ -29,7 +37,7 @@ import re
 import shutil
 import subprocess
 import sys
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
@@ -84,7 +92,42 @@ def check_repository(root):
         out.append(finding("repository", "FAIL", "hooks.json", str(exc)))
     out.append(finding("repository", "ok" if os.path.isfile(os.path.join(root, "hooks", "claim.sh")) else "FAIL",
                        "hooks/claim.sh present (the once-per-tool-call guard)"))
+    unguarded = []
+    for script in sorted(glob.glob(os.path.join(root, "hooks", "*.sh")) + glob.glob(os.path.join(root, "hooks", "*.py"))):
+        name = os.path.basename(script)
+        if name == "claim.sh" or name.endswith(".test.py") or name.endswith(".test.sh"):
+            continue
+        try:
+            with open(script, encoding="utf-8", errors="replace") as fh:
+                if "claim.sh" not in fh.read():
+                    unguarded.append(name)
+        except OSError:
+            unguarded.append(name)
+    out.append(finding("repository", "FAIL" if unguarded else "ok", "every hook script invokes claim.sh",
+                       "unguarded: %s — four plugins load each hook, so one copy per tool call must act"
+                       % unguarded if unguarded else "all guarded"))
     return out, next(iter(versions)) if len(versions) == 1 else None
+
+
+def is_checkout(path):
+    """A checkout of this marketplace: `.claude-plugin/marketplace.json` naming it, with the four plugins."""
+    try:
+        market = _load_json(os.path.join(path, ".claude-plugin", "marketplace.json"))
+    except (OSError, ValueError, TypeError):
+        return False
+    names = {p.get("name") for p in market.get("plugins", []) if isinstance(p, dict)}
+    return market.get("name") == "nexus-architect" and set(PLUGINS) <= names
+
+
+def resolve_checkout(checkout=None, project=None, cwd=None):
+    """(root, source): the checkout the install is compared against — the argument, a detected
+    checkout (the current or the project directory), or the copy this doctor runs from."""
+    if checkout:
+        return os.path.abspath(checkout), "argument"
+    for candidate in (cwd or os.getcwd(), project):
+        if candidate and is_checkout(candidate):
+            return os.path.abspath(candidate), "detected"
+    return ROOT, "self"
 
 
 # ---------------------------------------------------------------------------------- tools
@@ -104,7 +147,12 @@ def check_tools():
 
 
 # -------------------------------------------------------------------------------- install
-def check_install(repo_version, home=None):
+def _hook_scripts(root):
+    hooks = _load_json(os.path.join(root, "hooks", "hooks.json"))
+    return set(re.findall(r"\$\{CLAUDE_PLUGIN_ROOT\}/(hooks/[A-Za-z0-9_./-]+)", json.dumps(hooks)))
+
+
+def check_install(repo_version, home=None, root=None, checkout_source="self"):
     out = []
     home = home or os.path.expanduser("~")
     path = os.path.join(home, ".claude", "plugins", "installed_plugins.json")
@@ -116,6 +164,15 @@ def check_install(repo_version, home=None):
     except (OSError, ValueError) as exc:
         return [finding("install", "warn", "installed_plugins.json", str(exc))]
     entries = data.get("plugins", data) if isinstance(data, dict) else {}
+    try:
+        enabled = _load_json(os.path.join(home, ".claude", "settings.json")).get("enabledPlugins")
+    except (OSError, ValueError, AttributeError):
+        enabled = None
+    compared = ("the checkout %s" % root if checkout_source != "self" else
+                "the copy this doctor runs from (%s) — under /architect:doctor that is the installed copy "
+                "itself; pass checkout=<path> to compare with a checkout" % root)
+    out.append(finding("install", "ok", "compared against", compared))
+    install_paths = []
     for p in PLUGINS:
         key = "%s@nexus-architect" % p
         value = entries.get(key) if isinstance(entries, dict) else None
@@ -124,12 +181,50 @@ def check_install(repo_version, home=None):
             continue
         records = value if isinstance(value, list) else [value]
         versions = sorted({str(r.get("version")) for r in records if isinstance(r, dict)})
+        install_paths += [r.get("installPath") for r in records if isinstance(r, dict) and r.get("installPath")]
         if repo_version and versions and versions != [str(repo_version)]:
-            out.append(finding("install", "warn", key, "installed %s, repository %s — a session serves the "
+            out.append(finding("install", "warn", key, "installed %s, checkout %s — a session serves the "
                                "installed copy; update the plugin (or point a run at the checkout) before "
                                "expecting the newer skills" % (", ".join(versions), repo_version)))
         else:
             out.append(finding("install", "ok", key, "installed %s" % ", ".join(versions)))
+        if isinstance(enabled, dict):
+            state = enabled.get(key)
+            if state is False:
+                out.append(finding("install", "warn", "%s enabled" % key, "installed but disabled in "
+                                   "~/.claude/settings.json enabledPlugins — its commands and hooks do not load"))
+            elif state is None:
+                out.append(finding("install", "warn", "%s enabled" % key, "not in ~/.claude/settings.json "
+                                   "enabledPlugins — enable it under /plugin"))
+            else:
+                out.append(finding("install", "ok", "%s enabled" % key))
+    # Hook registration: the installed copy must register the same hooks as the checkout, and
+    # the scripts they name must exist there — the hooks a session runs are the installed ones.
+    if install_paths and root:
+        try:
+            expected = _hook_scripts(root)
+        except (OSError, ValueError) as exc:
+            expected, err = set(), str(exc)
+        for install_path in sorted(set(install_paths)):
+            if not os.path.isdir(install_path):
+                out.append(finding("install", "warn", "hooks registered (%s)" % os.path.basename(
+                    os.path.dirname(install_path)), "install path missing: %s" % install_path))
+                continue
+            try:
+                installed = _hook_scripts(install_path)
+            except (OSError, ValueError) as exc:
+                out.append(finding("install", "warn", "hooks registered (%s)" % install_path, str(exc)))
+                continue
+            missing = sorted(expected - installed)
+            absent = sorted(s for s in installed if not os.path.isfile(os.path.join(install_path, s)))
+            label = "hooks registered (%s %s)" % (os.path.basename(os.path.dirname(install_path)),
+                                                 os.path.basename(install_path))
+            if missing or absent:
+                out.append(finding("install", "warn", label, "; ".join(filter(None, [
+                    "not registered: %s" % missing if missing else "",
+                    "script missing: %s" % absent if absent else ""]))))
+            else:
+                out.append(finding("install", "ok", label, ", ".join(sorted(os.path.basename(s) for s in installed))))
     return out
 
 
@@ -151,6 +246,39 @@ def _stale_after_dates(bundle_dir):
     return dates
 
 
+def _scalardb_pin(bundle_dir, today, max_age_days=180):
+    """The submodule's pin — tag or commit and its date — and the products' latest versions; a
+    pin older than `max_age_days` is a warning (the bundle is version-pinned on purpose, but a
+    half-year-old pin has usually missed a release)."""
+    def git(*args):
+        try:
+            out = subprocess.run(["git", "-C", bundle_dir] + list(args), capture_output=True, text=True, timeout=10)
+            return out.stdout.strip() if out.returncode == 0 else ""
+        except (OSError, subprocess.SubprocessError):
+            return ""
+    pin = git("describe", "--tags", "--always") or "not a git checkout"
+    when = git("log", "-1", "--format=%cs")
+    products = []
+    for idx in sorted(glob.glob(os.path.join(bundle_dir, "okf", "products", "*", "index.md"))):
+        try:
+            with open(idx, encoding="utf-8") as fh:
+                m = re.search(r"^latest_version:\s*'?([^'\n]+)'?", fh.read(4000), re.M)
+        except OSError:
+            m = None
+        if m:
+            products.append("%s %s" % (os.path.basename(os.path.dirname(idx)), m.group(1).strip()))
+    detail = "%s (%s)%s" % (pin, when or "date unknown", ("; " + ", ".join(products)) if products else "")
+    stale = False
+    if when:
+        try:
+            stale = (today - date.fromisoformat(when)).days > max_age_days
+        except ValueError:
+            stale = False
+    return finding("bundles", "warn" if stale else "ok", "ScalarDB/ScalarDL bundle pin",
+                   detail + (" — older than %d days: tools/update-okf-bundle.sh status, then update" % max_age_days
+                             if stale else ""))
+
+
 def check_bundles(root, today=None):
     out = []
     today = today or date.today()
@@ -158,6 +286,8 @@ def check_bundles(root, today=None):
     populated = os.path.isdir(scalardb) and any(os.scandir(scalardb))
     out.append(finding("bundles", "ok" if populated else "FAIL", "ScalarDB/ScalarDL bundle populated",
                        scalardb if populated else "empty — run tools/update-okf-bundle.sh ensure (git submodule)"))
+    if populated:
+        out.append(_scalardb_pin(os.path.dirname(scalardb), today))
     k8s = os.path.join(root, "knowledge", "okf-k8s-tf")
     if not os.path.isdir(k8s):
         out.append(finding("bundles", "FAIL", "Kubernetes/Terraform bundle present", k8s))
@@ -179,6 +309,10 @@ def check_project(project):
         progress = _load_json(reg)
     except (OSError, ValueError) as exc:
         return [finding("project", "FAIL", "work/pipeline-progress.json", str(exc))]
+    present = [d for d in ("reports", "work", "generated") if os.path.isdir(os.path.join(project, d))]
+    out.append(finding("project", "ok" if "reports" in present else "warn", "output layout",
+                       "%s present" % ", ".join(present) + ("" if "reports" in present else
+                                                             " — no reports/ yet: run /architect:init-output or a first phase")))
     options = progress.get("options") if isinstance(progress, dict) else None
     out.append(finding("project", "ok" if isinstance(options, dict) else "FAIL", "options is an object",
                        ", ".join("%s=%s" % kv for kv in sorted((options or {}).items())
@@ -222,51 +356,71 @@ def check_project(project):
     audit = os.path.join(project, "work", "audit", "events.jsonl")
     if os.path.isfile(audit):
         bad = total = 0
-        with open(audit, encoding="utf-8") as fh:
-            for line in fh:
-                if not line.strip():
-                    continue
-                total += 1
-                try:
-                    json.loads(line)
-                except ValueError:
-                    bad += 1
-        out.append(finding("project", "warn" if bad else "ok", "audit log parses",
-                           "%d events%s" % (total, (", %d malformed lines" % bad) if bad else "")))
-    for label, rel, loader in (("learned rules", os.path.join("work", "learned-rules.json"), "learned_rules"),
-                               ("claims", os.path.join("reports", "backlog", "claims.json"), "backlog_claims")):
-        path = os.path.join(project, rel)
+        try:
+            with open(audit, encoding="utf-8", errors="replace") as fh:
+                for line in fh:
+                    if not line.strip():
+                        continue
+                    total += 1
+                    try:
+                        json.loads(line)
+                    except ValueError:
+                        bad += 1
+            out.append(finding("project", "warn" if bad else "ok", "audit log parses",
+                               "%d events%s" % (total, (", %d malformed lines" % bad) if bad else "")))
+        except OSError as exc:
+            out.append(finding("project", "warn", "audit log parses", str(exc)))
+    try:
+        import learned_rules as LR
+        rules_path = LR.store_path(project)
+    except Exception:
+        rules_path = os.path.join(project, "work", "learned-rules.json")
+    for label, path, loader in (("learned rules", rules_path, "learned_rules"),
+                                ("claims", os.path.join(project, "reports", "backlog", "claims.json"), "backlog_claims")):
         if not os.path.isfile(path):
+            if label == "learned rules" and os.path.normpath(path) != os.path.normpath(
+                    os.path.join(project, "work", "learned-rules.json")):
+                out.append(finding("project", "warn", "learned rules store parses",
+                                   "options.learned_rules_path names %s, which does not exist" % path))
             continue
         try:
             module = __import__(loader)
             data = module.load(path) if loader == "learned_rules" else module.load(project)
             count = len(data.get("rules", data.get("claims", [])))
-            out.append(finding("project", "ok", "%s store parses" % label, "%d entries" % count))
+            where = (" (shared: %s)" % path) if label == "learned rules" and os.path.normpath(path) != os.path.normpath(
+                os.path.join(project, "work", "learned-rules.json")) else ""
+            out.append(finding("project", "ok", "%s store parses" % label, "%d entries%s" % (count, where)))
         except Exception as exc:
             out.append(finding("project", "FAIL", "%s store parses" % label, str(exc)))
     return out
 
 
-def run(project=None, root=ROOT, home=None, today=None):
+def run(project=None, root=None, home=None, today=None, checkout=None, cwd=None):
     findings = []
+    source = "argument"
+    if root is None:
+        root, source = resolve_checkout(checkout, project, cwd)
     repo, version = check_repository(root)
     findings += repo
     findings += check_tools()
-    findings += check_install(version, home)
+    findings += check_install(version, home, root, source)
     findings += check_bundles(root, today)
-    if project is None and os.path.isfile(os.path.join(os.getcwd(), "work", "pipeline-progress.json")):
-        project = os.getcwd()
+    if project is None and os.path.isfile(os.path.join(cwd or os.getcwd(), "work", "pipeline-progress.json")):
+        project = cwd or os.getcwd()
     if project is not None:
         findings += check_project(project)
-    return {"root": root, "version": version, "project": os.path.abspath(project) if project else None,
+    return {"root": root, "checkout_source": source, "version": version,
+            "project": os.path.abspath(project) if project else None,
             "findings": findings,
             "failures": sum(1 for f in findings if f["status"] == "FAIL"),
             "warnings": sum(1 for f in findings if f["status"] == "warn")}
 
 
 def render_text(report):
-    lines = ["nexus-architect doctor — %s (%s)" % (report["root"], report["version"] or "version unknown")]
+    lines = ["nexus-architect doctor — %s (%s%s)" % (
+        report["root"], report["version"] or "version unknown",
+        {"argument": ", checkout=", "detected": ", checkout detected here", "self": ", the copy running the doctor"}
+        .get(report.get("checkout_source"), ""))]
     section = None
     for f in report["findings"]:
         if f["section"] != section:
@@ -278,10 +432,12 @@ def render_text(report):
 
 
 def main(argv):
-    project, fmt = None, "text"
+    project, fmt, checkout = None, "text", None
     for arg in argv:
         if arg.startswith("format="):
             fmt = arg.split("=", 1)[1]
+        elif arg.startswith("checkout="):
+            checkout = arg.split("=", 1)[1]
         elif arg.startswith("-"):
             sys.stderr.write(__doc__)
             return 2
@@ -296,7 +452,10 @@ def main(argv):
     if fmt not in ("text", "json"):
         sys.stderr.write("doctor: format must be text or json\n")
         return 2
-    report = run(project)
+    if checkout is not None and not is_checkout(checkout):
+        sys.stderr.write("doctor: checkout=%s is not a checkout of the nexus-architect marketplace\n" % checkout)
+        return 2
+    report = run(project, checkout=checkout)
     sys.stdout.write((json.dumps(report, ensure_ascii=False, indent=2) if fmt == "json"
                       else render_text(report)) + "\n")
     return 1 if report["failures"] else 0
