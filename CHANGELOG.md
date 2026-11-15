@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.67.0] - 2026-11-16
+
+The last outcome task without a reference gets one: `greenfield-brief`'s first runner run
+(Issue #191, PR #192). All three outcome tasks now ship a runner-derived `reference-scorecard.json`.
+
+### Added
+- **`evals/outcomes/greenfield-brief/reference-scorecard.json`** — the 2026-11-15 run on toolkit
+  0.66.1 (two `claude -p` sessions, 40 min, USD 20.63 at list price) graded with the task's
+  thresholds, PASS on all nine: requirement coverage 12 of 12, 8 phases completed / 21 skipped /
+  0 failed, 31 reports with 0 failures, 9 ADRs, 35 open questions — OQ-004 hold priority between
+  branches, OQ-011 what "notified" means, OQ-019 retention of expired holds among them. The design
+  review's FAIL (3.34 / 5, nine majors at the ILS boundary) is the design's finding, not a failed
+  phase. `reference_run.caveats` records the `minimal`-depth self-scored reviews and the English
+  default under `--auto`; `task.md` carries the numbers.
+
+### Changed
+- **`greenfield-brief` cost threshold** 25 → 30 USD: the measured 20.63 left one fifth of headroom,
+  less than the other tasks carry. Every other threshold is unchanged.
+
 ## [0.66.1] - 2026-11-16
 
 Three more findings from the 2026-11-15 `ec-monolith-implementation` reference run, none of them
