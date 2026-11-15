@@ -248,7 +248,9 @@ DDD maturity levels:
 - 40-60  → Weak alignment, significant refactoring required
 - 0-40   → Minimal DDD adoption
 
-Output language and frontmatter: @rules/output-conventions.md.
+Output language and frontmatter: @rules/output-conventions.md. Both files are technical reports:
+each opens with a `## ELI5` section right after its title (@rules/eli5-summary.md); the
+frontmatter hook rejects a file without one.
 
 **`reports/02_evaluation/ddd-strategic-evaluation.md`** — Strategic design evaluation (Task A result):
 
@@ -264,6 +266,10 @@ input_files:
 ---
 
 # DDD Strategic Design Evaluation
+
+## ELI5
+
+[The picture, what it means, what is asked — @rules/eli5-summary.md]
 
 ## Layer Score: <layer_avg>/5 (weighted contribution: <layer_weighted_contribution × 100>%)
 
@@ -298,6 +304,10 @@ input_files:
 ---
 
 # DDD Tactical Design and Architecture Evaluation
+
+## ELI5
+
+[The picture, what it means, what is asked — @rules/eli5-summary.md]
 
 ## Overall DDD Score: <DDD Score>% (<maturity level>)
 

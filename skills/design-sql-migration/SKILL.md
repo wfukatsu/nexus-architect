@@ -253,6 +253,10 @@ input_files:
   - reports/03_design/sql-migration/sql-migration-manifest.json
 ---
 
+## ELI5
+
+[The picture, what it means, what is asked — @rules/eli5-summary.md]
+
 ## Summary
 [statements by route and by converter status; target edition, storage, namespace; what is unproven]
 

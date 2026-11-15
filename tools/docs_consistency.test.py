@@ -697,6 +697,33 @@ check("no SKILL.md is over %d lines (%d files)" % (MAX_SKILL_LINES, len(skill_fi
 check("every exemption from the length ceiling is still over it",
       not (KEPT_WHOLE - long_ones), sorted(KEPT_WHOLE - long_ones))
 
+# A technical skill's Markdown template is what a sub-agent copies: when the template opens with
+# the score table, the report opens with the score table and the hook's rejection is the first
+# thing to say otherwise — which a pipeline sub-agent has been seen to ignore (0.68.0, #194). So
+# every ```markdown template carrying a technical `skill:` opens with `## ELI5` as its first
+# section heading, after the title if it has one; an ADR template (`decided_at`) and a declared
+# opt-out (`eli5: false`) are the exemptions rules/eli5-summary.md grants.
+_technical = set(report_audience.TECHNICAL_REPORT_SKILLS)
+unopened = []
+for rel in skill_files:
+    text = read(rel)
+    for m in re.finditer(r"```markdown\n(.*?)```", text, re.S):
+        block = m.group(1)
+        if not block.startswith("---\n") or "\n---\n" not in block:
+            continue
+        front, body = block[4:].split("\n---\n", 1)
+        skill = re.search(r"^skill:\s*\"?([\w-]+)", front, re.M)
+        if not skill or skill.group(1) not in _technical:
+            continue
+        if re.search(r"^decided_at:", front, re.M) or re.search(r"^eli5:\s*false", front, re.M):
+            continue
+        headings = [l for l in body.splitlines() if l.startswith("#")]
+        first_section = next((h for h in headings if not h.startswith("# ")), "")
+        if not first_section.startswith("## ELI5"):
+            unopened.append("%s:%d (%s) opens with %r" % (rel, text[:m.start()].count("\n") + 1,
+                                                          skill.group(1), first_section))
+check("every technical skill's Markdown template opens with `## ELI5`", not unopened, unopened)
+
 # What a skill hands to a reference file has to be there: a `${PLUGIN_ROOT}/...` path naming a file
 # (not a directory or a glob) is an instruction to read it.
 absent = []
