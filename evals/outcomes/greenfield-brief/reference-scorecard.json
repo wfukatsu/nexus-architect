@@ -1,0 +1,220 @@
+{
+  "project": "evals/results/outcomes-greenfield-brief-2026-11-15T19-35-29Z/project",
+  "graded_at": "2026-11-15T20:36:28+00:00",
+  "metrics": {
+    "requirement_coverage": {
+      "measured": true,
+      "value": 1.0,
+      "requirements": 12,
+      "covered": 12,
+      "uncovered": [],
+      "cited_only_by_requirement_tier": [],
+      "nodes": 43,
+      "dangling_upstream": []
+    },
+    "open_questions": {
+      "measured": true,
+      "total": 35,
+      "by_status": {
+        "unasked": 35
+      },
+      "unasked": 35,
+      "answered": 0,
+      "open": 35
+    },
+    "adrs": {
+      "measured": true,
+      "records": 9,
+      "errors": 0,
+      "error_lines": [],
+      "accepted": 0,
+      "accepted_with_approver": 0
+    },
+    "report_validity": {
+      "measured": true,
+      "files": 31,
+      "failures": 0,
+      "frontmatter_failures": [],
+      "mermaid_failures": []
+    },
+    "quality_gate": {
+      "measured": false,
+      "reason": "no reports/09_verification/quality-gate.json"
+    },
+    "test_results": {
+      "measured": false,
+      "reason": "no generated/**/test-results/<suite>/*.xml"
+    },
+    "phase_completion": {
+      "measured": true,
+      "phases": 29,
+      "by_status": {
+        "completed": 8,
+        "skipped": 21
+      },
+      "completed": 8,
+      "failed": 0,
+      "skipped": 21,
+      "profile": "poc",
+      "warnings": 2
+    },
+    "cost": {
+      "measured": true,
+      "total_usd": 20.6305,
+      "unassigned_usd": 0.2261,
+      "per_phase_usd": {
+        "define-requirements": 5.3862,
+        "_unassigned": 0.2261,
+        "redesign": 4.9956,
+        "design-microservices": 3.5648,
+        "architect:design-api": 4.8375,
+        "review-consistency+review-risk": 1.2852,
+        "review-synthesizer": 0.2841,
+        "architect:report": 0.051
+      }
+    },
+    "duration": {
+      "measured": true,
+      "wall_clock_s": 2413,
+      "phase_time_s": 2461,
+      "per_phase_s": {
+        "define-requirements": 222,
+        "redesign": 438,
+        "design-microservices": 427,
+        "design-api": 893,
+        "review-consistency": 172,
+        "review-risk": 171,
+        "review-synthesizer": 109,
+        "report": 29
+      }
+    },
+    "human_effort": {
+      "measured": true,
+      "events": 85,
+      "questions_asked": 0,
+      "questions_answered": 0,
+      "questions_deferred": 32,
+      "gates_approved": 0,
+      "gates_rejected": 0,
+      "revisions": 0,
+      "review_rounds": 0,
+      "by_event": {
+        "QUESTION_DEFERRED": 32,
+        "PHASE_COMPLETED": 8,
+        "PHASE_SKIPPED": 21,
+        "PHASE_STARTED": 7,
+        "ADR_RECORDED": 9,
+        "VERDICT_RECORDED": 1,
+        "RULE_PROPOSED": 7
+      }
+    }
+  },
+  "thresholds": {
+    "verdict": "PASS",
+    "failed": 0,
+    "checks": [
+      {
+        "metric": "requirement_coverage.value",
+        "rule": {
+          "min": 0.8
+        },
+        "value": 1.0,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "requirement_coverage.requirements",
+        "rule": {
+          "min": 8
+        },
+        "value": 12,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "phase_completion.failed",
+        "rule": {
+          "max": 0
+        },
+        "value": 0,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "report_validity.failures",
+        "rule": {
+          "max": 0
+        },
+        "value": 0,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "adrs.errors",
+        "rule": {
+          "max": 0
+        },
+        "value": 0,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "adrs.records",
+        "rule": {
+          "min": 3
+        },
+        "value": 9,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "open_questions.total",
+        "rule": {
+          "min": 5
+        },
+        "value": 35,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "cost.total_usd",
+        "rule": {
+          "max": 30
+        },
+        "value": 20.6305,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "duration.wall_clock_s",
+        "rule": {
+          "max": 7200
+        },
+        "value": 2413,
+        "status": "pass",
+        "error": null
+      }
+    ],
+    "unmeasured": []
+  },
+  "task": "greenfield-brief",
+  "run_started": "2026-11-15T19:35:39Z",
+  "run_finished": "2026-11-15T20:22:17Z",
+  "input_sha256": {
+    "pinned": "dd00012a9ce85d53656fd6667af32eed770628abb1c89db3b88e4c328db021b3",
+    "actual": "dd00012a9ce85d53656fd6667af32eed770628abb1c89db3b88e4c328db021b3",
+    "matches": true
+  },
+  "claude_options": "--permission-mode bypassPermissions --max-budget-usd 40",
+  "note": "The 2026-11-15 run of tools/eval-outcomes.sh run greenfield-brief (toolkit 0.66.1), two claude -p sessions, graded with the task's thresholds; the committed example of a runner scorecard for this task. The project directory is git-ignored and local to the machine that ran it.",
+  "reference_run": {
+    "date": "2026-11-15",
+    "method": "tools/eval-outcomes.sh run, one claude -p session per command, --max-budget-usd 40",
+    "not_from_runner": false,
+    "toolkit_version": "0.66.1",
+    "caveats": [
+      "Depth minimal (the poc profile): review-consistency and review-risk scored their dimensions themselves instead of spawning independent reviewers, as the depth specifies; recorded under warnings.",
+      "output_language defaulted to en under --auto (no init-output registry; brief.md is in English)."
+    ]
+  }
+}

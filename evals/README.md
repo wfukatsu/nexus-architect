@@ -100,7 +100,8 @@ duration are not a `run` baseline), `ec-monolith-implementation`
 (the same input through the pipeline, the codegen chain and `verify-implementation --gate` — the
 task that measures `quality_gate` and `test_results`; its reference scorecard grades the
 2026-11-15 `run`: eight sessions, 4 h 43 min, USD 187 at list price) and
-`greenfield-brief` (a one-page brief through `define-requirements` and `--profile=poc`).
+`greenfield-brief` (a one-page brief through `define-requirements` and `--profile=poc`; its
+reference scorecard grades the 2026-11-15 `run`: two sessions, 40 min, USD 21 at list price).
 
 The graders are `tools/lib/outcome_graders.py`, one per question a reader of the run would ask:
 
