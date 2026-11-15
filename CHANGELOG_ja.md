@@ -7,6 +7,30 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.68.0] - 2026-11-16
+
+最後まで残っていた手作業の参照値がなくなった。`ec-monolith-legacy` は初回ランナー実行のスコアカードを
+参照値として持ち（Issue #195、PR #196）、その実行で唯一不正だったレポートはテンプレートの欠落として
+同じリリースで修正（Issue #194）。
+
+### Added
+- **`evals/outcomes/ec-monolith-legacy/reference-scorecard.json`** — ツールキット 0.67.0 での 2026-11-15 の実行
+  （`--max-budget-usd 120` の `claude -p` 1 セッション、75 分、定価 USD 71.55）をタスクの閾値で採点したもの:
+  フェーズ 23 完了・6 スキップ・0 失敗、ADR 20 件、Open Question 46 件、レポート 65 件で失敗 1。
+  手作業の 2026-11-01 のカード（USD 39.24 はサブエージェント分を取りこぼし、品質ゲートは手動のコード生成
+  連鎖の値）を置き換える。`report_validity.failures` が 1 である理由は `reference_run.caveats` に、
+  数値は `task.md` と `evals/README.md` に記載。
+
+### Changed
+- **`ec-monolith-legacy` のコスト閾値** 60 → 90 USD: 旧上限は不完全な台帳から決めたもの。実測 71.55 に
+  他タスクと同じ 4 分の 1 の余裕を持たせた。
+
+### Fixed
+- **`evaluate-mmi`** — 2 つの出力テンプレート（`mmi-by-module.md`、`mmi-overview.md`）が `## ELI5`
+  セクションで始まり、ステップ 4 が `rules/eli5-summary.md` を名指しする。モジュール別のテンプレートが
+  スコア表から始まっていたため、パイプラインのサブエージェントがそのまま従い、実行で唯一の不正レポートに
+  なっていた（#194）。
+
 ## [0.67.0] - 2026-11-16
 
 参照値のなかった最後のアウトカムタスク `greenfield-brief` に、初回ランナー実行の参照値を登録（Issue #191、
