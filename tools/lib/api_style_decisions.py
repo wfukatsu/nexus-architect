@@ -283,10 +283,13 @@ def render_markdown(document, language="en"):
     # `generated_at` would make an unchanged decision render differently on every run, and
     # this projection is asserted to be byte-stable. `source_sha256` identifies the exact
     # input it was rendered from, which is the stronger claim a timestamp only approximates.
+    # `eli5: false` is the opt-out of rules/eli5-summary.md §1: design-api writes technical
+    # reports, but this file is a table view of the JSON, not prose — the plain-language account
+    # of the API style choice is the ELI5 section of api-design.md.
     lines = [
         "---", "title: \"%s\"" % title, "schema_version: 1",
         "phase: \"Phase 3: Design\"",
-        "skill: design-api", "input_files:",
+        "skill: design-api", "eli5: false", "input_files:",
         "  - reports/03_design/api-style-decisions.json",
         "canonical_source: reports/03_design/api-style-decisions.json",
         "source_sha256: %s" % digest, "---", "", note, "",

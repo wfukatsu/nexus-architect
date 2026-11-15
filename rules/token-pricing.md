@@ -31,8 +31,10 @@ execution:
    sums billed tokens per model from each assistant turn (`input`, `output`,
    `cache_read`, the 5m/1h `cache_creation` split, and `web_search_requests`).
    Message ids are deduped **across chunk boundaries** (a single API response spans
-   multiple transcript lines sharing one `message.id`). Subagent turns land in the same
-   transcript and are captured.
+   multiple transcript lines sharing one `message.id`). Sub-agent turns are **not** in that
+   file: Claude Code writes each sub-agent to `<transcript dir>/<session>/subagents/agent-<id>.jsonl`,
+   and the hook reads those beside the session transcript, each with its own offset — a pipeline
+   run, where every phase is a sub-agent, would otherwise record only the orchestrator's turns.
 3. **Attribution** (in priority order):
    1. Phases marked `in_progress` in `pipeline-progress.json` (parallel phases joined
       with `+`) — the pipeline-orchestrated case.
