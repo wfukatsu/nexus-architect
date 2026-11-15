@@ -69,21 +69,33 @@ scored by one yardstick.
 ```bash
 tools/eval-outcomes.sh list                                   # the tasks
 tools/eval-outcomes.sh grade <project_dir> [<task>]           # free: score a project that already ran
-tools/eval-outcomes.sh run ec-monolith-legacy                 # paid: stage, run the pipeline, grade
-tools/eval-outcomes.sh run greenfield-brief --model opus      # any `claude -p` option follows
+tools/eval-outcomes.sh compare <a> <b> [<task>]               # free: two scorecards or projects side by side
+tools/eval-outcomes.sh run ec-monolith-legacy --permission-mode bypassPermissions   # paid
+tools/eval-outcomes.sh run greenfield-brief --permission-mode bypassPermissions --model opus
 ```
 
-A task is `outcomes/<task>/`: `task.json` (the input directory, the commands, the thresholds
-file), `task.md` (the brief, what each threshold means, the reference run's numbers) and
-`expected.json` (`{"<metric>.<field>": {"min" | "max" | "in" | "equals": …}}`). Two ship:
-`ec-monolith-legacy` (the sample monolith through `--profile=full`) and `greenfield-brief` (a
-one-page brief through `define-requirements` and `--profile=poc`).
+A headless `claude -p` run stops at its first permission prompt, so `run` needs
+`--permission-mode bypassPermissions` (or `--dangerously-skip-permissions`) after the task name;
+the scratch project under `evals/results/` is the only thing the run writes to. Every other
+`claude -p` option passes through the same way.
+
+A task is `outcomes/<task>/`: `task.json` (the input directory, its `input_sha256` — the
+fingerprint `tools/lib/outcome_graders.py fingerprint <dir>` prints, so a changed input is
+noticed: `run` warns and records both hashes in the scorecard, `evals/evals.test.py` fails until
+the pin is updated — the commands, the thresholds file), `task.md` (the brief, what each threshold
+means, the reference run's numbers), `expected.json` (`{"<metric>.<field>": {"min" | "max" | "in" |
+"equals": …, "required": true|false}}`) and, once a run exists, `reference-scorecard.json` — the
+committed example of a scorecard. Three ship: `ec-monolith-legacy` (the sample monolith through
+`--profile=full`; its reference scorecard is the 2026-11-01 run), `ec-monolith-implementation`
+(the same input through the pipeline, the codegen chain and `verify-implementation --gate` — the
+task that measures `quality_gate` and `test_results`; its runner run is pending) and
+`greenfield-brief` (a one-page brief through `define-requirements` and `--profile=poc`).
 
 The graders are `tools/lib/outcome_graders.py`, one per question a reader of the run would ask:
 
 | metric | reads | answers |
 |--------|-------|---------|
-| `requirement_coverage` | `work/traceability.json` | the share of `FR-`/`NFR-` nodes some later node cites, the uncovered ones, dangling upstream ids |
+| `requirement_coverage` | `work/traceability.json` | the share of `FR-`/`NFR-` nodes a **design-tier** node cites — a `RULE-`/`EX-` example citing its `FR-` is requirements work, not coverage, and is listed apart as `cited_only_by_requirement_tier` — the uncovered ones, dangling upstream ids |
 | `open_questions` | `work/context.md` § Open Questions | rows by status; `unasked` is what the run never asked |
 | `adrs` | `reports/03_design/adr/` | records, validator errors, accepted records naming an approver |
 | `report_validity` | `reports/**/*.md` | failures of the two output validators (frontmatter and ELI5, Mermaid) |
@@ -94,9 +106,14 @@ The graders are `tools/lib/outcome_graders.py`, one per question a reader of the
 | `duration` | the registry's stamps | wall clock from the first `started_at` to the last `completed_at`, phase time summed |
 | `human_effort` | `work/audit/events.jsonl` | questions asked / answered / deferred, gates rejected, phases revised — the review rounds |
 
-An input that does not exist is **not measured**, never a zero that reads as a result; a
-threshold over an unmeasured metric is listed as unmeasured, and the verdict is PASS when no
-measured threshold fails. `grade` exits 0 on PASS, 1 on FAIL, 2 on a usage error.
+An input that does not exist is **not measured**, never a zero that reads as a result. A
+threshold over an unmeasured metric **fails** — the run was expected to produce that artifact —
+unless the rule says `"required": false`, which lists it as unmeasured and moves on (the
+pipeline-only task marks `quality_gate.verdict` so, since no codegen runs there). A thresholds
+file with a misspelled key, a non-numeric bound or no comparison is refused before anything is
+graded (`validate_expected`, exit 2), and a value its rule cannot compare is a failed check
+carrying the error, never a traceback. The verdict is PASS when no check fails. `grade` exits 0 on
+PASS, 1 on FAIL, 2 on a usage error.
 
 ### Comparing with another toolkit (the AI-DLC protocol)
 
@@ -105,11 +122,14 @@ measured threshold fails. `grade` exits 0 on PASS, 1 on FAIL, 2 on a usage error
    requirements, architecture, API contract, review. Run both on the same model and the same
    Claude Code version; record them in the write-up.
 2. **Same yardstick.** Grade both output directories with `tools/eval-outcomes.sh grade <dir>
-   <task>`. The graders read the shapes this toolkit writes; another toolkit's output is
-   comparable on a metric only when it holds that shape — `cost`, `duration` and `test_results`
-   need only a token ledger, timestamps and JUnit XML; `requirement_coverage`, `open_questions`
-   and `adrs` need the traceability graph, the store and the ADR directory. A metric the other
-   run cannot be measured on is **reported as not comparable**, not scored against it.
+   <task>`, then put them side by side with `tools/eval-outcomes.sh compare <a> <b> <task>` (a
+   scorecard JSON or a project directory on each side): one row per headline field and per
+   threshold, with `not comparable` on every row one side did not measure. The graders read the
+   shapes this toolkit writes; another toolkit's output is comparable on a metric only when it
+   holds that shape — `cost`, `duration` and `test_results` need only a token ledger, timestamps
+   and JUnit XML; `requirement_coverage`, `open_questions` and `adrs` need the traceability graph,
+   the store and the ADR directory. A metric the other run cannot be measured on is **reported as
+   not comparable**, not scored against it.
 3. **Say which numbers are comparable.** The write-up carries the scorecards side by side, the
    list of comparable metrics, and what was converted (a toolkit that records questions in
    another shape and was mapped onto the store by hand says so).
@@ -117,4 +137,6 @@ measured threshold fails. `grade` exits 0 on PASS, 1 on FAIL, 2 on a usage error
    then 2/3). Three runs per side before a claim.
 
 Results of `run` land under `evals/results/outcomes-<task>-<timestamp>/` with the scratch project,
-the transcript, `scorecard.json` and `scorecard.txt`; the directory is git-ignored.
+the transcript, `scorecard.json` and `scorecard.txt`; the directory is git-ignored. A run worth
+keeping as the task's reference is copied to `outcomes/<task>/reference-scorecard.json` with its
+`project` path made relative, as `ec-monolith-legacy`'s was.

@@ -1,0 +1,42 @@
+{
+  "phase_completion.failed": {
+    "max": 0
+  },
+  "report_validity.failures": {
+    "max": 0
+  },
+  "adrs.errors": {
+    "max": 0
+  },
+  "adrs.records": {
+    "min": 8
+  },
+  "open_questions.total": {
+    "min": 20
+  },
+  "quality_gate.verdict": {
+    "in": [
+      "PASS",
+      "CONDITIONAL_PASS",
+      "FAIL"
+    ]
+  },
+  "quality_gate.stages": {
+    "min": 8
+  },
+  "quality_gate.unit_tests_run": {
+    "min": 50
+  },
+  "test_results.tests": {
+    "min": 100
+  },
+  "test_results.pass_rate": {
+    "min": 0.9
+  },
+  "cost.total_usd": {
+    "max": 120
+  },
+  "duration.wall_clock_s": {
+    "max": 43200
+  }
+}

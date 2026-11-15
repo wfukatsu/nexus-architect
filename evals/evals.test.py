@@ -92,6 +92,13 @@ for task in tasks:
     spec = json.loads((task / "task.json").read_text(encoding="utf-8"))
     check(spec.get("title"), f"{rel}/task.json has no title")
     check((ROOT / str(spec.get("input", ""))).is_dir(), f"{rel}/task.json input does not exist: {spec.get('input')}")
+    # The input is pinned: a changed fixture or brief must come with a new fingerprint, so the
+    # thresholds and the reference run are known to belong to what is there.
+    if (ROOT / str(spec.get("input", ""))).is_dir():
+        actual = outcome_graders.fingerprint(str(ROOT / str(spec["input"])))
+        check(spec.get("input_sha256") == actual,
+              f"{rel}/task.json input_sha256 is not the input's fingerprint ({actual[:12]}): run "
+              f"`python3 tools/lib/outcome_graders.py fingerprint {spec['input']}` and update it")
     commands = spec.get("commands") or []
     check(commands and all(re.match(r"^/(architect|product|scalardb|infra):[a-z0-9-]+", c) for c in commands),
           f"{rel}/task.json commands must be slash commands of a plugin: {commands}")
@@ -104,10 +111,14 @@ for task in tasks:
     check(expected_path.is_file(), f"{rel}: thresholds file missing: {expected_path.name}")
     if expected_path.is_file():
         expected = json.loads(expected_path.read_text(encoding="utf-8"))
-        for dotted, rule in expected.items():
-            check(dotted.split(".")[0] in METRICS, f"{rel}/{expected_path.name}: {dotted} names no grader")
-            check(isinstance(rule, dict) and set(rule) & {"min", "max", "in", "equals"},
-                  f"{rel}/{expected_path.name}: {dotted} has no min/max/in/equals rule")
+        for problem in outcome_graders.validate_expected(expected):
+            check(False, f"{rel}/{expected_path.name}: {problem}")
+    reference = task / "reference-scorecard.json"
+    if reference.is_file():
+        card = json.loads(reference.read_text(encoding="utf-8"))
+        check(isinstance(card.get("metrics"), dict) and isinstance(card.get("thresholds"), dict)
+              and not str(card.get("project", "")).startswith("/"),
+              f"{rel}/reference-scorecard.json must be a graded scorecard with a relative project path")
 
 if failures:
     print(f"FAIL: {len(failures)} of {checks} checks")

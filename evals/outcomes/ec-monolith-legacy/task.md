@@ -28,5 +28,10 @@ thresholded on the legacy path — `define-requirements` is optional there and t
 | cost | USD 39.24 |
 | wall clock | 12,977 s |
 
+`reference-scorecard.json` beside this file is that run graded with these thresholds on
+2026-11-15 — the committed example of a scorecard. It reads FAIL on one check,
+`report_validity.failures` (one of 77 reports fails a validator), which is the honest result; the
+quality-gate line is measured there only because that run went on through the codegen chain by
+hand, and the threshold is `"required": false` here because this task's single command does not.
 A rerun that scores above this on coverage or below it on cost is an improvement the numbers can
 show; a rerun that scores the same has at least not regressed.

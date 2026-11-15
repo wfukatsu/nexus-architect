@@ -6,7 +6,9 @@ These ask what the run left behind, reading the project directory only — never
 transcript — so a run of this toolkit, a rerun after a skill change, and a run of another
 toolkit on the same brief are scored by the same yardstick (evals/README.md § Outcome evals):
 
-  requirement_coverage  every FR-/NFR- node of work/traceability.json reached by a later node
+  requirement_coverage  every FR-/NFR- node of work/traceability.json cited by a design-tier
+                        node (a RULE-/EX- example node citing its FR- is requirements work, not
+                        coverage)
   open_questions        the store's rows by status; `unasked` is what the run never asked
   adrs                  records, validator errors, accepted records naming an approver
   report_validity       reports/**/*.md through the two output validators (CLI mode)
@@ -20,14 +22,27 @@ toolkit on the same brief are scored by the same yardstick (evals/README.md § O
 
 Each metric is {"measured": bool, ...}; an input that does not exist is "not measured",
 never a crash and never a zero that reads as a result. Thresholds (expected.json) are
-`{"<metric>.<field>": {"min": x} | {"max": x} | {"in": [..]} | {"equals": x}}`; a threshold over an
-unmeasured metric is reported as unmeasured, and the verdict is PASS when no measured
-threshold fails.
+`{"<metric>.<field>": {"min": x} | {"max": x} | {"in": [..]} | {"equals": x}, "required": bool}`
+— `validate_expected` rejects an unknown key, a non-numeric bound or a rule with no comparison
+before anything is graded (exit 2). A threshold over an unmeasured metric **fails** (the run was
+expected to produce that artifact) unless the rule says `"required": false`, in which case it is
+listed as unmeasured; a value of the wrong type for its rule is a failed check with the error in
+it, never a traceback. The verdict is PASS when no check fails.
 
     python3 tools/lib/outcome_graders.py <project_dir> [expected=<file>] [format=text|json] [out=<file>]
+    python3 tools/lib/outcome_graders.py compare <a> <b> [expected=<file>] [format=text|json]
+    python3 tools/lib/outcome_graders.py fingerprint <input_dir>
+
+`compare` puts two runs side by side — each a scorecard JSON written by `out=`, or a project
+directory graded on the spot — over the headline fields and the thresholds' fields, and says
+which are comparable (measured on both sides). `fingerprint` prints the sha256 over an input
+directory's files (paths and bytes, sorted; reports/, generated/, work/, build/, .gradle/ and the
+task's own task.json / task.md / expected.json left out) — what a task pins as `input_sha256` so a
+changed input is noticed.
 
 Exit 0 PASS (or no thresholds), 1 FAIL, 2 usage.
 """
+import hashlib
 import glob
 import json
 import os
@@ -47,6 +62,20 @@ PROGRESS = os.path.join("work", "pipeline-progress.json")
 LEDGER = os.path.join("work", "token-usage.json")
 GATE = os.path.join("reports", "09_verification", "quality-gate.json")
 REQUIREMENT_PREFIXES = ("FR-", "NFR-")
+# Citations from these nodes are requirements work (an example cites the rule it illustrates),
+# not design coverage; a node naming one of these skills, or carrying one of these prefixes
+# without a skill, does not cover a requirement.
+REQUIREMENT_TIER_PREFIXES = ("FR-", "NFR-", "RULE-", "EX-", "CHAIN-", "OQ-")
+REQUIREMENT_TIER_SKILLS = ("define-requirements", "example-map", "define-features", "define-scope",
+                           "define-nfr", "design-sla", "define-vision", "define-success-metrics")
+FINGERPRINT_EXCLUDE = ("reports", "generated", "work", "build", ".gradle", ".git", "node_modules")
+# A task whose input is its own directory must not fingerprint its own definition.
+FINGERPRINT_EXCLUDE_FILES = ("task.json", "task.md", "expected.json", "reference-scorecard.json")
+RULE_KEYS = ("min", "max", "in", "equals", "required")
+COMPARE_FIELDS = ("requirement_coverage.value", "open_questions.total", "open_questions.unasked",
+                  "adrs.records", "adrs.errors", "report_validity.failures", "quality_gate.verdict",
+                  "test_results.pass_rate", "phase_completion.failed", "cost.total_usd",
+                  "duration.wall_clock_s", "human_effort.review_rounds")
 
 
 def _load_json(path):
@@ -77,13 +106,17 @@ def requirement_coverage(project):
         return {"measured": False, "reason": "no %s" % GRAPH}
     ids = {n["id"] for n in nodes if isinstance(n, dict) and isinstance(n.get("id"), str)}
     requirements = sorted(i for i in ids if i.startswith(REQUIREMENT_PREFIXES))
-    referenced, dangling = set(), set()
+    referenced, requirement_tier, dangling = set(), set(), set()
     for n in nodes:
         if not isinstance(n, dict):
             continue
+        skill = n.get("skill")
+        node_id = n.get("id") if isinstance(n.get("id"), str) else ""
+        design_tier = not (skill in REQUIREMENT_TIER_SKILLS
+                           or (not skill and node_id.startswith(REQUIREMENT_TIER_PREFIXES)))
         for up in n.get("upstream") or []:
             if isinstance(up, str):
-                referenced.add(up)
+                (referenced if design_tier else requirement_tier).add(up)
                 if up not in ids:
                     dangling.add(up)
     if not requirements:
@@ -92,6 +125,8 @@ def requirement_coverage(project):
     return {"measured": True, "value": round(len(covered) / len(requirements), 4),
             "requirements": len(requirements), "covered": len(covered),
             "uncovered": [r for r in requirements if r not in referenced],
+            "cited_only_by_requirement_tier": [r for r in requirements
+                                               if r not in referenced and r in requirement_tier],
             "nodes": len(ids), "dangling_upstream": sorted(dangling)}
 
 
@@ -283,28 +318,137 @@ def _lookup(metrics, dotted):
     return value, True
 
 
+def validate_expected(expected):
+    """The problems with a thresholds file, as strings; an empty list means it is usable."""
+    if not isinstance(expected, dict):
+        return ["thresholds must be a JSON object of \"<metric>.<field>\": rule"]
+    graders = {g.__name__ for g in GRADERS}
+    problems = []
+    for dotted, rule in expected.items():
+        metric = dotted.split(".")[0]
+        if metric not in graders:
+            problems.append("%s: no grader named %s" % (dotted, metric))
+        if not isinstance(rule, dict):
+            problems.append("%s: the rule must be an object, got %s" % (dotted, type(rule).__name__))
+            continue
+        unknown = sorted(k for k in rule if k not in RULE_KEYS)
+        if unknown:
+            problems.append("%s: unknown key(s) %s — the keys are %s" % (dotted, unknown, ", ".join(RULE_KEYS)))
+        if not any(k in rule for k in ("min", "max", "in", "equals")):
+            problems.append("%s: no comparison (min, max, in or equals)" % dotted)
+        for bound in ("min", "max"):
+            if bound in rule and (isinstance(rule[bound], bool) or not isinstance(rule[bound], (int, float))):
+                problems.append("%s: %s must be a number, got %r" % (dotted, bound, rule[bound]))
+        if "in" in rule and not isinstance(rule["in"], list):
+            problems.append("%s: in must be a list, got %r" % (dotted, rule["in"]))
+        if "required" in rule and not isinstance(rule["required"], bool):
+            problems.append("%s: required must be true or false" % dotted)
+    return problems
+
+
+def _check(value, rule):
+    """(ok, error): the comparison, with a type mismatch reported instead of raised."""
+    try:
+        if "min" in rule and not (value >= rule["min"]):
+            return False, None
+        if "max" in rule and not (value <= rule["max"]):
+            return False, None
+        if "in" in rule and value not in rule["in"]:
+            return False, None
+        if "equals" in rule and value != rule["equals"]:
+            return False, None
+    except TypeError as exc:
+        return False, "cannot compare %r with the rule: %s" % (value, exc)
+    return True, None
+
+
 def evaluate(card, expected):
-    """Apply expected.json; returns {"verdict", "checks": [...], "unmeasured": [...]}."""
+    """Apply expected.json; returns {"verdict", "failed", "checks": [...], "unmeasured": [...]}.
+
+    An unmeasured metric under a threshold is a failed check — the run was expected to produce
+    the artifact — unless the rule carries "required": false, which lists it as unmeasured and
+    moves on. A comparison the value's type cannot satisfy is a failed check carrying the error."""
     checks, unmeasured, failed = [], [], 0
     for dotted, rule in (expected or {}).items():
+        rule = rule if isinstance(rule, dict) else {}
         value, measured = _lookup(card["metrics"], dotted)
         if not measured or value is None:
             unmeasured.append(dotted)
-            checks.append({"metric": dotted, "rule": rule, "value": value, "status": "unmeasured"})
+            required = rule.get("required", True)
+            failed += 1 if required else 0
+            checks.append({"metric": dotted, "rule": rule, "value": value,
+                           "status": "unmeasured" if not required else "fail",
+                           "error": None if not required else "not measured, and the threshold is required"})
             continue
-        ok = True
-        if "min" in rule and not (value >= rule["min"]):
-            ok = False
-        if "max" in rule and not (value <= rule["max"]):
-            ok = False
-        if "in" in rule and value not in rule["in"]:
-            ok = False
-        if "equals" in rule and value != rule["equals"]:
-            ok = False
+        ok, error = _check(value, rule)
         failed += 0 if ok else 1
-        checks.append({"metric": dotted, "rule": rule, "value": value, "status": "pass" if ok else "fail"})
+        checks.append({"metric": dotted, "rule": rule, "value": value,
+                       "status": "pass" if ok else "fail", "error": error})
     return {"verdict": "FAIL" if failed else "PASS", "failed": failed, "checks": checks,
             "unmeasured": unmeasured}
+
+
+# --------------------------------------------------------------------------- comparison
+def fingerprint(input_dir):
+    """sha256 over the input's files — relative path and bytes, sorted — minus the output and
+    build directories, so a task can pin the input it was written against."""
+    digest = hashlib.sha256()
+    for dirpath, dirnames, filenames in os.walk(input_dir):
+        dirnames[:] = sorted(d for d in dirnames if d not in FINGERPRINT_EXCLUDE)
+        for name in sorted(filenames):
+            if name in FINGERPRINT_EXCLUDE_FILES:
+                continue
+            path = os.path.join(dirpath, name)
+            rel = os.path.relpath(path, input_dir).replace(os.sep, "/")
+            digest.update(rel.encode("utf-8") + b"\0")
+            try:
+                with open(path, "rb") as fh:
+                    for chunk in iter(lambda: fh.read(65536), b""):
+                        digest.update(chunk)
+            except OSError:
+                digest.update(b"<unreadable>")
+            digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def _card_of(target):
+    """A scorecard from a scorecard JSON file or a project directory."""
+    if os.path.isdir(target):
+        return scorecard(target)
+    card = _load_json(target)
+    if not isinstance(card, dict) or not isinstance(card.get("metrics"), dict):
+        raise ValueError("%s is neither a project directory nor a scorecard" % target)
+    return card
+
+
+def compare(a, b, expected=None):
+    """Two scorecards side by side over the headline fields and the thresholds' fields."""
+    fields = list(COMPARE_FIELDS)
+    for dotted in (expected or {}):
+        if dotted not in fields:
+            fields.append(dotted)
+    rows = []
+    for dotted in fields:
+        va, ma = _lookup(a["metrics"], dotted)
+        vb, mb = _lookup(b["metrics"], dotted)
+        rows.append({"metric": dotted, "a": va if ma else None, "b": vb if mb else None,
+                     "comparable": bool(ma and mb and va is not None and vb is not None)})
+    return {"a": a.get("project"), "b": b.get("project"), "rows": rows,
+            "comparable": [r["metric"] for r in rows if r["comparable"]],
+            "not_comparable": [r["metric"] for r in rows if not r["comparable"]]}
+
+
+def render_compare(result):
+    lines = ["outcome comparison", "  A: %s" % result["a"], "  B: %s" % result["b"], "",
+             "  %-34s %-22s %-22s %s" % ("metric", "A", "B", "")]
+    for r in result["rows"]:
+        lines.append("  %-34s %-22s %-22s %s" % (
+            r["metric"], "-" if r["a"] is None else r["a"], "-" if r["b"] is None else r["b"],
+            "" if r["comparable"] else "not comparable"))
+    lines.append("")
+    lines.append("comparable: %d of %d — an unmeasured side is not a zero (evals/README.md § Comparing)"
+                 % (len(result["comparable"]), len(result["rows"])))
+    return "\n".join(lines)
 
 
 def render_text(card, result=None):
@@ -335,33 +479,74 @@ def render_text(card, result=None):
         lines.append("thresholds: %s (%d failed, %d unmeasured)" % (
             result["verdict"], result["failed"], len(result["unmeasured"])))
         for c in result["checks"]:
-            lines.append("  [%s] %s = %r vs %s" % (c["status"], c["metric"], c["value"], json.dumps(c["rule"])))
+            lines.append("  [%s] %s = %r vs %s%s" % (c["status"], c["metric"], c["value"], json.dumps(c["rule"]),
+                                                   (" — " + c["error"]) if c.get("error") else ""))
     return "\n".join(lines)
+
+
+def _load_expected(path):
+    expected = _load_json(path)
+    if not isinstance(expected, dict):
+        sys.stderr.write("outcome_graders: cannot read thresholds from %s\n" % path)
+        return None
+    problems = validate_expected(expected)
+    if problems:
+        sys.stderr.write("outcome_graders: %s is not a usable thresholds file:\n  %s\n" % (path, "\n  ".join(problems)))
+        return None
+    return expected
+
+
+def _opts(args, allowed):
+    opts = dict(allowed)
+    for arg in args:
+        key, sep, value = arg.partition("=")
+        if not sep or key not in opts:
+            raise ValueError("expected %s, got %r" % (", ".join(k + "=" for k in opts), arg))
+        opts[key] = value
+    if opts.get("format", "text") not in ("text", "json"):
+        raise ValueError("format must be text or json")
+    return opts
 
 
 def main(argv):
     if not argv:
         sys.stderr.write(__doc__)
         return 2
-    project = argv[0]
-    opts = {"expected": None, "format": "text", "out": None}
-    for arg in argv[1:]:
-        key, sep, value = arg.partition("=")
-        if not sep or key not in opts:
-            sys.stderr.write("outcome_graders: expected expected=, format= or out=, got %r\n" % arg)
+    if argv[0] == "fingerprint":
+        if len(argv) != 2 or not os.path.isdir(argv[1]):
+            sys.stderr.write("outcome_graders: fingerprint <input_dir>\n")
             return 2
-        opts[key] = value
+        sys.stdout.write(fingerprint(argv[1]) + "\n")
+        return 0
+    if argv[0] == "compare":
+        if len(argv) < 3:
+            sys.stderr.write("outcome_graders: compare <a> <b> [expected=<file>] [format=text|json]\n")
+            return 2
+        try:
+            opts = _opts(argv[3:], {"expected": None, "format": "text"})
+            expected = _load_expected(opts["expected"]) if opts["expected"] else {}
+            if expected is None:
+                return 2
+            result = compare(_card_of(argv[1]), _card_of(argv[2]), expected)
+        except ValueError as exc:
+            sys.stderr.write("outcome_graders: %s\n" % exc)
+            return 2
+        sys.stdout.write((json.dumps(result, ensure_ascii=False, indent=2) if opts["format"] == "json"
+                          else render_compare(result)) + "\n")
+        return 0
+    project = argv[0]
+    try:
+        opts = _opts(argv[1:], {"expected": None, "format": "text", "out": None})
+    except ValueError as exc:
+        sys.stderr.write("outcome_graders: %s\n" % exc)
+        return 2
     if not os.path.isdir(project):
         sys.stderr.write("outcome_graders: not a directory: %s\n" % project)
         return 2
-    if opts["format"] not in ("text", "json"):
-        sys.stderr.write("outcome_graders: format must be text or json\n")
-        return 2
     expected = None
     if opts["expected"]:
-        expected = _load_json(opts["expected"])
-        if not isinstance(expected, dict):
-            sys.stderr.write("outcome_graders: cannot read thresholds from %s\n" % opts["expected"])
+        expected = _load_expected(opts["expected"])
+        if expected is None:
             return 2
     card = scorecard(project)
     result = evaluate(card, expected) if expected is not None else None

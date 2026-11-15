@@ -4,5 +4,6 @@
   "commands": [
     "/architect:pipeline . --profile=full --lang=en"
   ],
-  "expected": "expected.json"
+  "expected": "expected.json",
+  "input_sha256": "27bd8b90fea6cb0da9640711a97b2acb906f74e527782173c63e1ed1c942f464"
 }

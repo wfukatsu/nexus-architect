@@ -1,0 +1,16 @@
+{
+  "title": "Legacy refactoring of the ec-monolith sample through code generation and the quality gate",
+  "input": "samples/ec-monolith",
+  "commands": [
+    "/architect:pipeline . --profile=full --lang=en",
+    "/architect:design-implementation --layering=ddd --auto",
+    "/architect:generate-test-specs --auto",
+    "/architect:generate-scalardb-code --auto",
+    "/architect:generate-api-code --auto",
+    "/architect:generate-contract-tests --auto",
+    "/architect:generate-acceptance-tests --auto",
+    "/architect:verify-implementation --gate --auto"
+  ],
+  "expected": "expected.json",
+  "input_sha256": "27bd8b90fea6cb0da9640711a97b2acb906f74e527782173c63e1ed1c942f464"
+}
