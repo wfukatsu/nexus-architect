@@ -7,6 +7,40 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.64.0] - 2026-11-15
+
+0.57.0 のアウトカム eval が、測ると言ったものを測るようになった（#154、PR #171。v0.53.1..v0.60.0 のレビュー、
+tracking #158）。新タスクの有料実行は別途。
+
+### Added
+- **`tools/eval-outcomes.sh compare <a> <b> [<task>]`** — 2 つのスコアカード（またはその場で採点するプロジェクト
+  ディレクトリ）を、主要な指標とタスクのしきい値について並べ、片側が測っていない行には `not comparable` を付ける。
+  `evals/README.md` の AI-DLC 比較プロトコルのステップ 2。
+- **入力の pin。** `tools/lib/outcome_graders.py fingerprint <dir>` はタスク入力の sha256（出力・ビルド
+  ディレクトリ・タスク自身のファイルは除く）。各 `task.json` が `input_sha256` として pin し、`run` は不一致を
+  警告して両方のハッシュをスコアカードに記録し、`evals/evals.test.py` は入力が変わったら新しい pin が来るまで
+  失敗する。
+- **タスク `ec-monolith-implementation`**: パイプラインの後に `design-implementation --layering=ddd`・
+  `generate-test-specs`・`generate-scalardb-code`・`generate-api-code`・`generate-contract-tests`・
+  `generate-acceptance-tests`・`verify-implementation --gate` をすべて `--auto` で — `quality_gate` と
+  `test_results` を測るタスクで、しきい値はすべて必須。`task.md` に 2026-11-01 の手動実行の参照値を載せた。
+  ランナーでの実行は未実施。
+- **`evals/outcomes/ec-monolith-legacy/reference-scorecard.json`**: 2026-11-01 の実行を 2026-11-15 に採点した、
+  スコアカードのコミット済みの例（`report_validity.failures` で FAIL: 77 レポート中 1 件）。
+
+### Changed
+- **しきい値を先に検証する。** `validate_expected` は未知のキー、素の値、未知の grader、数値でない境界、リストでない
+  `in`、真偽値でない `required`、比較のないルールを拒否し、採点の前に各問題を挙げて exit 2。値の型がルールと
+  比較できないときは、トレースバック（FAIL と同じ exit 1 で出ていた）ではなく、エラーを添えた失敗チェック。
+- **unmeasured は、任意でなければ失敗。** 測れていない指標へのしきい値は失敗する — 実行はその成果物を出すはず
+  だった — ただしルールが `"required": false` なら unmeasured として列挙する。`ec-monolith-legacy` は codegen を
+  走らせないので `quality_gate.verdict` をそう印し、空振りで通らなくなった。
+- **`requirement_coverage` は設計層の引用だけを数える。** `RULE-` / `EX-` / `CHAIN-` ノードや、`define-requirements`
+  ほか要件層スキルが書いたノードが自分の `FR-` を引用するのは要件の作業で、`cited_only_by_requirement_tier` として
+  別に列挙する。greenfield のカバレッジが設計の中身にかかわらず 1.0 近くになることはなくなった。
+- `evals/README.md` に、ヘッドレスの `run` にはタスク名の後に `--permission-mode bypassPermissions`（または
+  `--dangerously-skip-permissions`）が必要なこと、実行結果をタスクの参照にする手順を記した。
+
 ## [0.63.0] - 2026-11-15
 
 `/architect:doctor` が checkout と比較し、#130 が求めたチェックを行う（#155、PR #169。v0.53.1..v0.60.0 の
