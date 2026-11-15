@@ -273,6 +273,10 @@ input_files:
   - reports/01_analysis/ubiquitous-language.md
 ---
 
+## ELI5
+
+[The picture, what it means, what is asked — @rules/eli5-summary.md]
+
 ## Scope
 
 [Which aggregate, which bounded context, and what this lifecycle governs. Note the aggregates
