@@ -9,10 +9,10 @@
     "max": 0
   },
   "adrs.records": {
-    "min": 8
+    "min": 12
   },
   "open_questions.total": {
-    "min": 20
+    "min": 30
   },
   "quality_gate.verdict": {
     "in": [
@@ -25,16 +25,16 @@
     "min": 8
   },
   "quality_gate.unit_tests_run": {
-    "min": 50
+    "min": 500
   },
   "test_results.tests": {
-    "min": 100
+    "min": 1000
   },
   "test_results.pass_rate": {
-    "min": 0.9
+    "min": 0.95
   },
   "cost.total_usd": {
-    "max": 120
+    "max": 240
   },
   "duration.wall_clock_s": {
     "max": 43200

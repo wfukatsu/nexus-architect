@@ -25,6 +25,13 @@ plugin root, `${CLAUDE_PLUGIN_ROOT}` — not to the project being worked on. Rea
 All SKILL.md prose, rules and embedded prompts are **English**; the per-project `output_language`
 governs generated report content only.
 
+A skill that is a phase outside the pipeline manifests — the extension tier, `EXTENSION_PHASES` in
+`tools/lib/pipeline_status_data.py` — carries a `## Progress Registry` section telling it to record
+its own `in_progress` and `completed` in `work/pipeline-progress.json`
+(`skills/common/progress-registry.md` § The `in_progress` Contract). The orchestrators stamp the
+manifest phases; nobody stamps a skill invoked on its own, and the dashboard, the token ledger and
+the audit log read nothing else. `tools/lib/pipeline_status_data.test.py` checks the section is there.
+
 ### Frontmatter keys
 
 | Key | Rule | Why |

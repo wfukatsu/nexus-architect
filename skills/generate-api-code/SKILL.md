@@ -149,6 +149,16 @@ timeout configuration).
 | reports/08_infrastructure/security-design.md | Recommended | /architect:design-security — where each authorization check is enforced |
 | reports/07_test-specs/contract-test-specs.md | Recommended | /architect:generate-test-specs |
 
+## Progress Registry
+
+Before the first step, record `generate-api-code` in the project's `work/pipeline-progress.json` as
+`in_progress` (`plugin: architect`, `started_at`); at the end, `completed` (or `failed`) with
+`outputs` and a one-line `summary` (@skills/common/progress-registry.md § The `in_progress`
+Contract). The status dashboard, the token-usage ledger and the audit log read nothing else: a
+phase that skips the first write has its spend recorded as `_unassigned` and never shows as
+running. A project without the registry (`/architect:init-output` never ran) gets none from this
+skill; the hooks are inert there.
+
 ## Steps
 
 1. **Resolve the contract set and the output root.** `--out`, else `generated/{service}/`. Read every

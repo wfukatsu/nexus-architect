@@ -93,6 +93,16 @@ Generate, per service:
 | reports/03_design/aggregates/aggregate-manifest.json | Recommended | /architect:design-aggregate — examples and value-object rules for the fixture layer |
 | reports/02_spec/examples/, reports/00_requirements/examples/ | Recommended | /product:example-map, /architect:define-requirements — to report `RULE-` / `EX-` reach |
 
+## Progress Registry
+
+Before the first step, record `generate-acceptance-tests` in the project's `work/pipeline-progress.json` as
+`in_progress` (`plugin: architect`, `started_at`); at the end, `completed` (or `failed`) with
+`outputs` and a one-line `summary` (@skills/common/progress-registry.md § The `in_progress`
+Contract). The status dashboard, the token-usage ledger and the audit log read nothing else: a
+phase that skips the first write has its spend recorded as `_unassigned` and never shows as
+running. A project without the registry (`/architect:init-output` never ran) gets none from this
+skill; the hooks are inert there.
+
 ## Steps
 
 1. **Resolve scope, driver and output root** — `--service` / `--feature`, `--driver` (default per

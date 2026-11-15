@@ -132,6 +132,16 @@ Include `unmapped.spec_operations_without_handler` and
 `unmapped.handlers_without_spec_operation`. Derive scope from the complete GraphQL controller and
 runtime-wiring source tree; never claim coverage from generated files alone.
 
+## Progress Registry
+
+Before the first step, record `generate-graphql-code` in the project's `work/pipeline-progress.json` as
+`in_progress` (`plugin: architect`, `started_at`); at the end, `completed` (or `failed`) with
+`outputs` and a one-line `summary` (@skills/common/progress-registry.md § The `in_progress`
+Contract). The status dashboard, the token-usage ledger and the audit log read nothing else: a
+phase that skips the first write has its spend recorded as `_unassigned` and never shows as
+running. A project without the registry (`/architect:init-output` never ran) gets none from this
+skill; the hooks are inert there.
+
 ## Output
 
 | File | Content |

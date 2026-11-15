@@ -267,6 +267,24 @@ def check_extension_tier():
     check("every declared extension output is named in its SKILL.md", not undocumented,
           undocumented)
 
+    # Each extension phase stamps its own registry entry (progress-registry.md § The
+    # `in_progress` Contract): nothing else tells the dashboard, the token ledger or the audit
+    # log that it ran. The 2026-11-15 reference run of ec-monolith-implementation lost two
+    # sessions' spend to `_unassigned` because generate-test-specs and verify-implementation
+    # never said so, while five sibling skills stamped on their own initiative.
+    unstamped = []
+    for name in DOC_EXTENSION_TIER:
+        try:
+            with open(os.path.join(root, "skills", name, "SKILL.md"),
+                      encoding="utf-8") as fh:
+                body = fh.read()
+        except OSError:
+            continue
+        if "in_progress" not in body or "progress-registry.md" not in body:
+            unstamped.append(name)
+    check("every extension-tier SKILL.md records its phase in work/pipeline-progress.json",
+          not unstamped, unstamped)
+
 
 # ------------------------------------------------------- invalidation (stale) fixture
 # A finished stretch of the architect pipeline, written in dependency order an hour ago:

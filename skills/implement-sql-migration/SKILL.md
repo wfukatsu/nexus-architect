@@ -71,6 +71,16 @@ Implementing the `core_api` methods and the application-side skeletons is the ne
 | Java 17 and Gradle | Required for the build check | the environment |
 | `reports/03_design/aggregates/aggregate-manifest.json` | Optional | /architect:design-aggregate — which aggregate's transaction a rewritten write belongs to |
 
+## Progress Registry
+
+Before the first step, record `implement-sql-migration` in the project's `work/pipeline-progress.json` as
+`in_progress` (`plugin: architect`, `started_at`); at the end, `completed` (or `failed`) with
+`outputs` and a one-line `summary` (@skills/common/progress-registry.md § The `in_progress`
+Contract). The status dashboard, the token-usage ledger and the audit log read nothing else: a
+phase that skips the first write has its spend recorded as `_unassigned` and never shows as
+running. A project without the registry (`/architect:init-output` never ran) gets none from this
+skill; the hooks are inert there.
+
 ## Steps
 
 1. **Record progress.** Mark the phase `in_progress` in `work/pipeline-progress.json` (`plugin: architect`).

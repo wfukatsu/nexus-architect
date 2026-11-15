@@ -15,7 +15,10 @@
 # it; the scorecard lands in evals/results/outcomes-<task>-<timestamp>/ (git-ignored) next to the
 # scratch project's work/. A headless run needs `--permission-mode bypassPermissions` (or
 # `--dangerously-skip-permissions`) after the task name, or it stalls on the first prompt; the
-# scratch project is the only thing it writes to. `grade` scores a project that already ran —
+# scratch project is the only thing it writes to. `--max-budget-usd` caps each session, not the
+# run: the pipeline session alone costs about USD 65 on samples/ec-monolith at list price and
+# degrades its method under a lower cap, so give it USD 100 or more. The options passed are
+# recorded in the scorecard as `claude_options`. `grade` scores a project that already ran —
 # this toolkit's or another's on the same brief — with the task's thresholds when a task is
 # named; `compare` puts two scorecards (or project directories) side by side and says which
 # metrics are comparable (evals/README.md § Outcome evals). A run needs a Claude credential and
@@ -26,7 +29,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TASKS="$ROOT/evals/outcomes"
 GRADER="$ROOT/tools/lib/outcome_graders.py"
 
-usage() { sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 2; }
+usage() { sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 2; }
 
 task_field() {  # task_field <task> <key> -> value (strings) or lines (lists)
   python3 - "$TASKS/$1/task.json" "$2" <<'PY'
@@ -114,10 +117,11 @@ PY
     finished="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     python3 "$GRADER" "$PROJECT" "expected=$TASKS/$task/expected.json" "out=$OUT/scorecard.json" \
       | tee "$OUT/scorecard.txt" || true
-    python3 - "$OUT/scorecard.json" "$task" "$started" "$finished" "$pinned" "$actual" <<'PY'
+    python3 - "$OUT/scorecard.json" "$task" "$started" "$finished" "$pinned" "$actual" "$*" <<'PY'
 import json, sys
 card = json.load(open(sys.argv[1]))
 card["task"] = sys.argv[2]; card["run_started"] = sys.argv[3]; card["run_finished"] = sys.argv[4]
+card["claude_options"] = sys.argv[7]  # what `claude -p` was given after the task name: the budget cap, model, permissions
 card["input_sha256"] = {"pinned": sys.argv[5] or None, "actual": sys.argv[6], "matches": sys.argv[5] == sys.argv[6]}
 json.dump(card, open(sys.argv[1], "w"), ensure_ascii=False, indent=2)
 PY

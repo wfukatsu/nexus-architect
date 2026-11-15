@@ -76,6 +76,16 @@ This skill opens database connections, so it runs only when explicitly invoked.
 | ScalarDB with the migrated schema and the same data | Required for difftest | Schema Loader with `schema.json`, then `residual-runner load` |
 | The source database driver (`oracledb`, `psycopg`, `PyMySQL`) | Required for capture and difftest | the pins in `skills/common/database-investigation/adapters/<product>/requirements.txt` |
 
+## Progress Registry
+
+Before the first step, record `verify-sql-migration` in the project's `work/pipeline-progress.json` as
+`in_progress` (`plugin: architect`, `started_at`); at the end, `completed` (or `failed`) with
+`outputs` and a one-line `summary` (@skills/common/progress-registry.md § The `in_progress`
+Contract). The status dashboard, the token-usage ledger and the audit log read nothing else: a
+phase that skips the first write has its spend recorded as `_unassigned` and never shows as
+running. A project without the registry (`/architect:init-output` never ran) gets none from this
+skill; the hooks are inert there.
+
 ## Steps
 
 1. **Record progress** — `in_progress` in `work/pipeline-progress.json` (`plugin: architect`).
