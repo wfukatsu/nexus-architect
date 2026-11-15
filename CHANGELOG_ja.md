@@ -7,6 +7,40 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.66.0] - 2026-11-16
+
+アウトカムタスク `ec-monolith-implementation` の初めて有効なランナー実行（`claude -p` 8 セッション、4 時間 43 分、
+定価 USD 187.39）を参照値として登録し、その実行で見つかった問題を修正した（Issue #181–#183、PR #184）。
+
+### Added
+- **`evals/outcomes/ec-monolith-implementation/reference-scorecard.json`** — 2026-11-15 のランナー実行をこの
+  タスクの閾値で採点したもの。34 フェーズ（28 完了・6 スキップ）、Open Question 48 件、ADR 17 件、レポート 78
+  件で失敗 0、ゲートは 9 ステージ中 4 で FAIL（unit テスト 967 本、mutation 98%）、テスト 1956 本で合格率
+  99.69%、USD 187.39、16,998 秒。`reference_run.caveats` に pipeline セッションの予算による縮退と刻印のない
+  2 フェーズを記す。`task.md` はこの実行を中心に書き直し、2026-11-01 の手作業の実行は履歴として残す。(#183)
+- **`claude_options`** を `run` の全スコアカードに記録する。`tools/eval-outcomes.sh run` がタスク名の後ろに
+  渡したオプションで、参照値がどの予算上限・モデル・権限モードで走ったかを示す。(#182)
+
+### Changed
+- **拡張層の全スキルが自分のフェーズを `work/pipeline-progress.json` に刻印する。** `EXTENSION_PHASES` の
+  24 スキルの SKILL.md に `## Progress Registry` 節を置く（23 件を追加、`design-sql-migration` は既に記述済み）。
+  最初のステップの前に `in_progress`（`plugin`、`started_at` 付き）、終わりに `completed`（`outputs`、`summary`
+  付き）を書く。`skills/common/progress-registry.md` § The `in_progress` Contract のとおり。
+  `tools/lib/pipeline_status_data.test.py` が節の有無を検証する。参照実行では `generate-test-specs` と
+  `verify-implementation` が刻印せず、USD 17.01 が `_unassigned` に落ち、ダッシュボードには実行が見えなかった
+  一方、兄弟の 5 スキルは自発的に刻印していた。`docs/skill-authoring.md` に規則を記載。(#181)
+- **`ec-monolith-implementation` の閾値**を実測値から余裕を持たせて設定: コスト ≤ USD 240（旧 120 は台帳の
+  裏付けのない推定値）、ADR ≥ 12、Open Question ≥ 30、ゲート下の unit テスト ≥ 500、生成テスト ≥ 1000 本で
+  合格率 ≥ 0.95。(#183)
+- **`tools/eval-outcomes.sh`** と `evals/README.md` § Outcome evals に、`--max-budget-usd` は実行全体ではなく
+  セッションごとの上限であること、pipeline セッションだけで `samples/ec-monolith` では約 USD 65 かかること、
+  USD 60 では方法を縮めて収める（`review-risk` のレビュアーごとの一次ファイル削減、`evaluate-mmi` /
+  `evaluate-ddd` の軸別サブエージェント省略、`review-report` の 1 パス実行）うえで `warnings` に記録すること、
+  推奨は USD 100 以上であることを記載。(#182)
+- **`rules/token-pricing.md`** に台帳のバケット名を記載: 基本はフェーズ名そのままで、両マニフェストが定義する
+  4 つの名前だけ項目の `plugin` を接頭辞に付ける。`architect:design-api+design-scalardb` は並列 2 フェーズ
+  （片方が共有名）の 1 バケット。
+
 ## [0.65.2] - 2026-11-15
 
 アウトカムタスク `ec-monolith-implementation` の初回有償実行で見つかった不具合の修正（Issue #176–#178）。

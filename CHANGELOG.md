@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.66.0] - 2026-11-16
+
+The first valid runner run of the `ec-monolith-implementation` outcome task — eight `claude -p`
+sessions, 4 h 43 min, USD 187.39 at list price — becomes its reference, and what the run exposed
+is fixed (Issues #181–#183, PR #184).
+
+### Added
+- **`evals/outcomes/ec-monolith-implementation/reference-scorecard.json`** — the 2026-11-15 runner
+  run graded with the task's thresholds: 34 phases (28 completed, 6 skipped), 48 open questions,
+  17 ADRs, 78 reports with 0 failures, gate FAIL on 4 of 9 stages with 967 unit tests and
+  mutation 98 %, 1956 tests at 99.69 %, USD 187.39, 16,998 s. `reference_run.caveats` names the
+  pipeline session's budget degradation and the two unstamped phases; `task.md` is rewritten around
+  it, the 2026-11-01 by-hand run kept as history. (#183)
+- **`claude_options`** in every `run` scorecard: the options `tools/eval-outcomes.sh run` passed
+  after the task name, so a reference says which budget cap, model and permission mode it ran
+  under. (#182)
+
+### Changed
+- **Every extension-tier skill records its own phase** in `work/pipeline-progress.json` — a
+  `## Progress Registry` section in all 24 `EXTENSION_PHASES` SKILL.md files (23 added;
+  `design-sql-migration` already said so): `in_progress` with `plugin` and `started_at` before the
+  first step, `completed` with `outputs` and `summary` at the end, per
+  `skills/common/progress-registry.md` § The `in_progress` Contract.
+  `tools/lib/pipeline_status_data.test.py` checks the section is there. In the reference run
+  `generate-test-specs` and `verify-implementation` never stamped, so USD 17.01 landed in
+  `_unassigned` and the dashboard never saw them run, while five sibling skills stamped on their own
+  initiative. `docs/skill-authoring.md` states the rule. (#181)
+- **`ec-monolith-implementation` thresholds** set from the measured run with headroom: cost ≤ USD
+  240 (was 120, a guess with no ledger behind it), ADRs ≥ 12, open questions ≥ 30, unit tests
+  under the gate ≥ 500, generated tests ≥ 1000 at a pass rate ≥ 0.95. (#183)
+- **`tools/eval-outcomes.sh`** and `evals/README.md` § Outcome evals say that `--max-budget-usd`
+  caps each session, not the run, that the pipeline session alone costs about USD 65 on
+  `samples/ec-monolith`, and that under USD 60 it narrows its method to fit (fewer primary files
+  per reviewer in `review-risk`, no per-axis sub-agents in `evaluate-mmi` / `evaluate-ddd`, one
+  scripted pass in `review-report`) and records that under `warnings`; USD 100 or more is the
+  recommendation. (#182)
+- **`rules/token-pricing.md`** documents the ledger bucket names: the bare phase name, with the
+  entry's `plugin` as a prefix only on the four names both manifests define, so
+  `architect:design-api+design-scalardb` is one bucket for two parallel phases, one of them shared.
+
 ## [0.65.2] - 2026-11-15
 
 Fixes from the first paid run of the `ec-monolith-implementation` outcome task (Issues #176–#178).
