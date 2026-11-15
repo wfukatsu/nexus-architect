@@ -3,6 +3,9 @@ description: |
   Check the consolidated report for completeness, score accuracy, Mermaid syntax, language
   consistency and structure.
 model: sonnet
+allowed-tools:
+  - Bash(python3 ${CLAUDE_PLUGIN_ROOT}/tools/lib/report_review.py *)
+  - 'Bash(python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/report_review.py" *)'
 ---
 
 # Report Quality Review
@@ -83,267 +86,62 @@ Flag any sections that appear to be in the wrong language (heuristic: detect maj
 
 ## Execution Steps
 
-### Step 1: Load Reference Data
+The five dimensions are mechanical passes over a file of several megabytes — the consolidated
+report is the whole pipeline in one page — which no sub-agent can read. The measurement is a
+script, deterministic and free; the judgement is yours. Earlier versions spawned one reviewer per
+dimension; under `/architect:pipeline` the phase delegated nothing twice in a row and recorded
+that as a shortfall, which this method is not.
 
-Read the following files **before** spawning sub-agents:
+### Step 1: Measure
 
-1. `work/pipeline-progress.json` — list of completed phases and their outputs
-2. `reports/review/review-synthesis.json` — authoritative scores and finding IDs
-3. `reports/00_summary/full-report.html` — the report under review
-
-Extract and record:
-- All phases with `status: "completed"` and their `summary` fields
-- `weighted_score`, `verdict`, and per-perspective scores from review-synthesis.json
-- MMI scores from `mmi-overview.md` (read separately if not in synthesis)
-- The list of P1 finding IDs from `review-synthesis.md`
-
-### Step 2: Spawn Parallel Dimension Reviewers
-
-Issue all five Agent() calls in a **single message** so they run in parallel.
-Pass the extracted reference data inline in each prompt (do not ask sub-agents to re-read pipeline-progress.json).
-
-**Task A — Completeness**
-```
-Agent(
-  subagent_type: "general-purpose",
-  model: "sonnet",
-  description: "Report completeness check",
-  prompt: """
-You are reviewing whether reports/00_summary/full-report.html covers all pipeline phases.
-
-Completed phases (from pipeline-progress.json):
-<COMPLETED_PHASES>
-[List each phase name and its summary, one per line]
-</COMPLETED_PHASES>
-
-Read the HTML file at reports/00_summary/full-report.html.
-
-For each completed phase, check whether there is a corresponding section in the HTML.
-Also verify these key metrics appear somewhere in the HTML:
-- MMI system score
-- DDD composite score
-- Overall review verdict and weighted score
-- At least one Mermaid diagram
-
-Score 1-5: 5=All phases and metrics present, 4=1-2 minor omissions, 3=Missing one phase section, 2=Missing multiple phases, 1=Major content missing
-
-Return ONLY this JSON (no markdown fences):
-{
-  "name": "Completeness",
-  "weight": 0.30,
-  "score": <integer 1-5>,
-  "findings": [
-    {
-      "id": "RPT-1<NN>",
-      "severity": "critical|major|minor|info",
-      "location": "<html section or 'global'>",
-      "title": "<finding title>",
-      "description": "<what is missing and its impact>",
-      "recommendation": "<specific fix>"
-    }
-  ]
-}
-"""
-)
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/tools/lib/report_review.py" <project_dir> out=work/report-review.json
 ```
 
-**Task B — Score Accuracy**
-```
-Agent(
-  subagent_type: "general-purpose",
-  model: "sonnet",
-  description: "Report score accuracy check",
-  prompt: """
-You are cross-checking numerical scores in the HTML report against authoritative sources.
+The tool reads `reports/00_summary/full-report.html`, `work/pipeline-progress.json`,
+`reports/review/review-synthesis.json`, `mmi-overview.md` and the DDD evaluation, and prints one
+JSON document — per dimension, what it measured, the findings the measurements imply (`RPT-1xx` …
+`RPT-5xx`, each with severity, location, title, description, recommendation) and the score the
+scales below assign; then `weighted_score`, `verdict` and `by_severity`. Exit 1 means there is no
+report to review: record the phase `failed` with that reason and stop.
 
-Authoritative scores (from review-synthesis.json and mmi-overview.md):
-<SCORES>
-[List each score: "consistency: 76", "scalardb: 78", "operations: 62", "risk: 48", "business: 74", "weighted_total: 65.5", "verdict: FAIL", "mmi_system: 50.8", "ddd_score: 30.3", etc.]
-</SCORES>
+| Dimension | What is measured | Score 1–5 |
+|-----------|------------------|-----------|
+| Completeness | every `completed` phase with a Markdown output under `reports/` has a document (`<article class="doc" id="<stem>">`); MMI, DDD, aggregate score and verdict stand next to their labels; each domain story, aggregate and state machine file is a document with its diagram and (tactical models) its table | 5 all present; 4 one or two minor omissions (a metric, a diagram, a table); 3 one phase without a section; 2 two; 1 three or more |
+| Score Accuracy | each `perspective_scores` value within 120 characters of its name, the aggregate, the verdict string, every P0/P1 finding id | 5 all exact; 4 rounding only; 3 three or more rounded; 2 one score or id missing; 1 the verdict differs (critical) or several missing |
+| Mermaid Syntax | every `<pre class="mermaid">` block: `<code>` inside (major), empty (major), unknown type (major), single-dash arrows, non-ASCII node ids, unbalanced brackets and quotes (minor; brackets in flowcharts only) | 5 none; 4 one minor; 3 two or more minor; 2 one major; 1 two or more major |
+| Language Consistency | headings and paragraphs (code, `<pre>` and diagrams excluded) against `options.output_language`: a CJK share over 30 % is wrong under `en`, under 10 % wrong under `ja` | 5 none; 4 one or two paragraphs; 3 a heading or three paragraphs; 2 several headings or over ten paragraphs; 1 the majority |
+| Structural Integrity | every sidebar `href="#…"` has its `id`; every section and document is in the sidebar; every table has a header row; no `[TBD]` / `TODO` / `PLACEHOLDER` / `〇〇` / `＊＊＊`; a `TBD` without its `OQ-` id; a non-empty `<title>`; one `<h1>` | 5 none; 4 one minor; 3 two or more minor; 2 a broken link or no title; 1 two or more |
 
-P1 finding IDs that must appear in the HTML:
-<P1_IDS>
-[List each P1 finding ID, e.g. "RSK-002", "RSK-013", ...]
-</P1_IDS>
+Weighted score `0.30 A + 0.35 B + 0.15 C + 0.10 D + 0.10 E`, rounded to two places. Verdict: **PASS**
+at ≥ 4.0 with no critical finding; **PASS_WITH_WARNINGS** at ≥ 3.0 with none; **FAIL** below 3.0 or
+with any critical.
 
-Read the HTML file at reports/00_summary/full-report.html.
+### Step 2: Judge
 
-1. Find each score value in the HTML and compare to the authoritative value (tolerance: ±0.5).
-2. Check that every P1 finding ID appears somewhere in the HTML.
-3. Verify the overall verdict string (PASS / CONDITIONAL_PASS / FAIL) matches.
+Read `work/report-review.json`, then the parts of the report the findings point at (the HTML is
+too large to read whole; read the document or block a finding names). For each finding decide
+whether it stands, and whether its severity is right:
 
-Score 1-5: 5=All values exact, 4=Trivial rounding only, 3=1-2 minor discrepancies, 2=Score error >2pts or missing P1 ID, 1=Multiple major errors or wrong verdict
+- A phase the tool reports uncovered because its outputs were written **after** the report was
+  built (an extension-tier phase run later) is a stale report, not a missing section: the
+  recommendation is `/architect:report` again, and the finding stays major.
+- A document present but thin — a story without its activities, an aggregate whose invariant table
+  is empty — is what the tool cannot see. Open the document and add a Completeness finding when
+  the section would not let a reader reconstruct the model (`RPT-1<nn>`, numbered after the
+  tool's).
+- A `TBD` the tool counts as bare but which sits in a sentence that names its question two words
+  later is not a placeholder; drop the finding and say so under Minor / Info.
+- A Mermaid minor in a block that renders (a quote inside a label the tool miscounts) is dropped
+  the same way, with the block number.
 
-Return ONLY this JSON (no markdown fences):
-{
-  "name": "Score Accuracy",
-  "weight": 0.35,
-  "score": <integer 1-5>,
-  "findings": [
-    {
-      "id": "RPT-2<NN>",
-      "severity": "critical|major|minor|info",
-      "location": "<element or section in HTML>",
-      "title": "<discrepancy description>",
-      "description": "<expected value vs actual value found in HTML>",
-      "recommendation": "<fix>"
-    }
-  ]
-}
-"""
-)
-```
+Scores move only when a finding is dropped or added: recompute from the table above, never by
+feel. Record what you dropped and what you added; the JSON is the evidence and stays in `work/`.
 
-**Task C — Mermaid Syntax**
-```
-Agent(
-  subagent_type: "general-purpose",
-  model: "sonnet",
-  description: "Mermaid diagram syntax check",
-  prompt: """
-You are checking Mermaid diagram blocks in an HTML file for syntax errors.
+### Step 3: Verdict
 
-Read the HTML file at reports/00_summary/full-report.html.
-
-Extract all content inside <pre class="mermaid">...</pre> blocks (the tool wraps each in
-<div class="mermaid-wrap">). The content is HTML-escaped source; unescape it before checking.
-For each block, check for:
-1. Invalid arrow syntax (e.g. single-dash -> instead of -->)
-2. Non-ASCII characters in node IDs (only allowed in quoted labels)
-3. Unclosed brackets or quotes in node labels
-4. Empty or near-empty blocks (less than 2 lines of content)
-5. Unknown diagram type keyword in the first line
-6. A <code> tag inside the block (<pre class="mermaid"><code>): Mermaid reads innerHTML, so
-   the tag becomes diagram text and the diagram cannot render — a major error, score 1
-
-Score 1-5: 5=All diagrams syntactically valid, 4=1 minor issue, 3=2-3 minor issues, 2=1 major syntax error, 1=Multiple major errors
-
-Return ONLY this JSON (no markdown fences):
-{
-  "name": "Mermaid Syntax",
-  "weight": 0.15,
-  "score": <integer 1-5>,
-  "findings": [
-    {
-      "id": "RPT-3<NN>",
-      "severity": "critical|major|minor|info",
-      "location": "<first 3 lines of the problematic block>",
-      "title": "<syntax issue>",
-      "description": "<what is wrong and why it will fail to render>",
-      "recommendation": "<corrected syntax>"
-    }
-  ]
-}
-"""
-)
-```
-
-**Task D — Language Consistency**
-```
-Agent(
-  subagent_type: "general-purpose",
-  model: "sonnet",
-  description: "Report language consistency check",
-  prompt: """
-You are checking that an HTML report is written in the correct language.
-
-Configured output language: <OUTPUT_LANGUAGE>
-(ja = Japanese, en = English)
-
-Read the HTML file at reports/00_summary/full-report.html.
-
-Check that:
-1. Section headings are in the configured language
-2. Body text paragraphs are in the configured language
-3. Table cell content (non-technical) is in the configured language
-4. Code blocks, IDs, technical terms, and Mermaid node IDs may remain in English regardless
-
-For each paragraph or heading that appears to be in the wrong language, record a finding.
-
-Score 1-5: 5=Fully consistent, 4=1-2 sentences wrong language, 3=One section wrong language, 2=Multiple sections wrong language, 1=Majority in wrong language
-
-Return ONLY this JSON (no markdown fences):
-{
-  "name": "Language Consistency",
-  "weight": 0.10,
-  "score": <integer 1-5>,
-  "findings": [
-    {
-      "id": "RPT-4<NN>",
-      "severity": "critical|major|minor|info",
-      "location": "<section and element>",
-      "title": "<language issue>",
-      "description": "<what was found and what was expected>",
-      "recommendation": "<translation or fix>"
-    }
-  ]
-}
-"""
-)
-```
-
-**Task E — Structural Integrity**
-```
-Agent(
-  subagent_type: "general-purpose",
-  model: "sonnet",
-  description: "Report structural integrity check",
-  prompt: """
-You are checking the structural integrity of an HTML report.
-
-Read the HTML file at reports/00_summary/full-report.html.
-
-Check for:
-1. Every href="#<anchor>" in the sidebar nav has a matching id="<anchor>" in the document
-2. Every <section id="..."> is linked from the sidebar
-3. All <table> elements have a header row (<thead> or first <tr> with <th> elements)
-4. No placeholder text: "[TBD]", "TODO", "PLACEHOLDER", "〇〇", "＊＊＊" in visible text (a `TBD (OQ-…)` carrying its question ID and explained under Open Questions is intentional, not a placeholder)
-5. The <title> element is non-empty and descriptive
-6. The page has exactly one <h1> element (in the hero section)
-
-Score 1-5: 5=No structural issues, 4=1 minor issue, 3=2-3 minor issues, 2=Broken navigation link, 1=Multiple broken links or missing structure
-
-Return ONLY this JSON (no markdown fences):
-{
-  "name": "Structural Integrity",
-  "weight": 0.10,
-  "score": <integer 1-5>,
-  "findings": [
-    {
-      "id": "RPT-5<NN>",
-      "severity": "critical|major|minor|info",
-      "location": "<element or section>",
-      "title": "<structural issue>",
-      "description": "<what is broken>",
-      "recommendation": "<fix>"
-    }
-  ]
-}
-"""
-)
-```
-
-### Step 3: Compute Weighted Score and Determine Verdict
-
-After all five Tasks complete:
-
-```
-weighted_score = round(
-  0.30 × scoreA +
-  0.35 × scoreB +
-  0.15 × scoreC +
-  0.10 × scoreD +
-  0.10 × scoreE,
-  2
-)
-```
-
-Verdict thresholds (scale: 1–5):
-| Verdict | Condition |
-|---------|-----------|
-| **PASS** | weighted_score ≥ 4.0 AND no critical findings |
-| **PASS_WITH_WARNINGS** | weighted_score ≥ 3.0 AND critical = 0 |
-| **FAIL** | weighted_score < 3.0 OR any critical finding exists |
+The weighted score and verdict of the JSON, recomputed after Step 2's changes with the same
+formula and thresholds.
 
 ### Step 4: Write Output
 
@@ -363,6 +161,7 @@ input_files:
   - reports/00_summary/full-report.html
   - reports/review/review-synthesis.json
   - work/pipeline-progress.json
+  - work/report-review.json
 ---
 
 ## Overall Verdict: <PASS|PASS_WITH_WARNINGS|FAIL> (weighted score: X.X / 5.0)
@@ -377,6 +176,11 @@ input_files:
 | Language Consistency | 10% | X/5 | N |
 | Structural Integrity | 10% | X/5 | N |
 | **Weighted Total** | | **X.X/5** | |
+
+## Method
+
+[One line: measured by `tools/lib/report_review.py` (report size, blocks, tables, paragraphs counted),
+findings dropped or added in Step 2 and why]
 
 ## Critical / Major Findings
 
