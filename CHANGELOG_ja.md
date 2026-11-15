@@ -7,6 +7,28 @@ Nexus Architect の主な変更点を記録します。
 バージョン番号は `.claude-plugin/marketplace.json` のプラグインごとのバージョンを指し、
 4 つのプラグイン（`product`・`architect`・`scalardb`・`infra`）は同一の番号で一括リリースされます。
 
+## [0.69.0] - 2026-11-16
+
+`review-report` を委譲ではなく計測にした。5 つの次元レビュアーはそれぞれ 4 MB の統合レポートを読むよう
+指示されていたが、サブエージェントには読めない。そのため pipeline がこのフェーズに到達した 2 回とも自前で
+検査し、どの予算でも解消できない不足として記録していた（Issue #201、PR #202）。
+
+### Added
+- **`tools/lib/report_review.py <project> [out=<file>]`** — HTML、`work/pipeline-progress.json`、
+  `review-synthesis.json`、評価レポートから 5 次元を計測する: `reports/` 配下に Markdown 出力を持つ完了
+  フェーズごとの文書、ラベルの近くにある MMI / DDD / 総合スコア / 判定、各ドメインストーリー・集約・
+  状態機械の図と表、観点スコア・総合・判定・P0/P1 ID、全 Mermaid ブロック、`output_language` に対する
+  見出し・段落ごとの CJK 比率、サイドバーのアンカー、ヘッダなしの表、プレースホルダ、ID なしの `TBD`、
+  title、h1。所見は `RPT-1xx…5xx`（重大度・位置・推奨つき）、スコアはスキル自身の尺度、加重スコアと判定は
+  その閾値による。legacy の参照レポートではエージェント自身のレビュー（4.9、minor 1 件）を再現する。
+- **`tools/lib/report_review.test.py`** と `docs/test-suites.md` の行。
+
+### Changed
+- **`/architect:review-report`** — ステップ 1 でツールを実行（`allowed-tools`）、ステップ 2 はスクリプトに
+  できない判断（後続フェーズより前に作られたレポート、薄い文書、誤カウントの `TBD`）、ステップ 3 は同じ式で
+  再計算。レビューの `## Method` 行に計測内容と取り下げ・追加した所見を記す。5 つの `Agent()` プロンプトは
+  削除（419 → 223 行）、pipeline の「自前で検査した」警告もなくなる。
+
 ## [0.68.1] - 2026-11-16
 
 0.68.0 のテンプレート欠落を横展開で点検: 技術スキルのテンプレートがさらに 4 つ ELI5 セクションなしで始まって

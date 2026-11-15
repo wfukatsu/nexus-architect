@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.69.0] - 2026-11-16
+
+`review-report` measures instead of delegating: its five dimension reviewers were each told to
+read the 4 MB consolidated report, which no sub-agent can, so both pipeline runs that reached the
+phase did the checks themselves and recorded a shortfall no budget could repair (Issue #201,
+PR #202).
+
+### Added
+- **`tools/lib/report_review.py <project> [out=<file>]`** — the five dimensions measured from the
+  HTML, `work/pipeline-progress.json`, `review-synthesis.json` and the evaluation reports:
+  a document per completed phase with Markdown under `reports/`, MMI / DDD / aggregate / verdict
+  next to their labels, each story, aggregate and state machine with its diagram and table;
+  perspective scores, aggregate, verdict and P0/P1 ids; every Mermaid block; CJK share per heading
+  and paragraph against `output_language`; sidebar anchors, headless tables, placeholders, bare
+  `TBD`, title, h1. Findings `RPT-1xx…5xx` with severity, location and recommendation; scores by
+  the skill's own scales; weighted score and verdict by its thresholds. On the legacy reference it
+  reproduces the agent's review (4.9, one minor).
+- **`tools/lib/report_review.test.py`** and its row in `docs/test-suites.md`.
+
+### Changed
+- **`/architect:review-report`** — Step 1 runs the tool (`allowed-tools`), Step 2 is the judgement
+  a script cannot make (a report built before a later phase, a thin document, a miscounted `TBD`),
+  Step 3 recomputes with the same formula; the review's `## Method` line says what was measured
+  and what was dropped or added. The five `Agent()` prompts are gone (419 → 223 lines), and the
+  pipeline's "ran its checks itself" warning with them.
+
 ## [0.68.1] - 2026-11-16
 
 The sweep after 0.68.0's template gap: four more technical-skill templates opened without the ELI5
