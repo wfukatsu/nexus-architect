@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers refer to the per-plugin versions in `.claude-plugin/marketplace.json`;
 all four plugins (`product`, `architect`, `scalardb`, `infra`) are released together under one number.
 
+## [0.64.0] - 2026-11-15
+
+The outcome evals of 0.57.0 measure what they claim (#154, PR #171; from the review of
+v0.53.1..v0.60.0, tracking #158). The paid run of the new task is left for later.
+
+### Added
+- **`tools/eval-outcomes.sh compare <a> <b> [<task>]`** — two scorecards (or project directories
+  graded on the spot) side by side over the headline fields and the task's thresholds, with
+  `not comparable` on every row one side did not measure; step 2 of the AI-DLC protocol in
+  `evals/README.md`.
+- **Pinned inputs.** `tools/lib/outcome_graders.py fingerprint <dir>` is the sha256 over a task's
+  input (outputs, build directories and the task's own files left out); every `task.json` pins it
+  as `input_sha256`, `run` warns on a mismatch and records both hashes in the scorecard, and
+  `evals/evals.test.py` fails until a changed input comes with a new pin.
+- **Task `ec-monolith-implementation`**: the pipeline, then `design-implementation --layering=ddd`,
+  `generate-test-specs`, `generate-scalardb-code`, `generate-api-code`, `generate-contract-tests`,
+  `generate-acceptance-tests` and `verify-implementation --gate`, all `--auto` — the task that
+  measures `quality_gate` and `test_results`, every threshold required. Its `task.md` carries the
+  2026-11-01 by-hand reference; the runner run is pending.
+- **`evals/outcomes/ec-monolith-legacy/reference-scorecard.json`**: the 2026-11-01 run graded on
+  2026-11-15 — the committed example of a scorecard (it reads FAIL on `report_validity.failures`:
+  one of 77 reports).
+
+### Changed
+- **Thresholds are validated first.** `validate_expected` rejects an unknown key, a bare value, an
+  unknown grader, a non-numeric bound, a non-list `in`, a non-boolean `required` and a rule with no
+  comparison — exit 2 naming each, before anything is graded; a value its rule cannot compare is a
+  failed check carrying the error, never a traceback (it exited 1, the FAIL code, with a traceback).
+- **Unmeasured means failed unless optional.** A threshold over an unmeasured metric fails — the
+  run was expected to produce that artifact — unless the rule says `"required": false`;
+  `ec-monolith-legacy` marks `quality_gate.verdict` so, since no codegen runs there, instead of
+  passing vacuously.
+- **`requirement_coverage` counts design-tier citations only.** A `RULE-` / `EX-` / `CHAIN-` node,
+  or one written by `define-requirements` and the other requirements-tier skills, citing its `FR-`
+  is requirements work, listed apart as `cited_only_by_requirement_tier`; greenfield coverage no
+  longer reads near 1.0 whatever the design did.
+- `evals/README.md` says a headless `run` needs `--permission-mode bypassPermissions` (or
+  `--dangerously-skip-permissions`) after the task name, and how a run becomes a task's reference.
+
 ## [0.63.0] - 2026-11-15
 
 `/architect:doctor` compares against a checkout and checks what #130 asked for (#155, PR #169; from
