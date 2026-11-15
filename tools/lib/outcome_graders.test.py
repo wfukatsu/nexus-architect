@@ -75,6 +75,10 @@ def build(root):
         {"id": "NFR-001", "type": "nfr", "upstream": []},
         {"id": "CTX-001", "type": "context", "upstream": ["FR-001", "NFR-001", "FEAT-099"]},
         {"id": "ADR-001", "type": "decision", "upstream": ["FR-001"]},
+        # Requirements-tier citations: an example map's rule and example cite their FR-; that is
+        # requirements work, not design coverage, so FR-002 stays uncovered.
+        {"id": "RULE-001", "type": "rule", "skill": "define-requirements", "upstream": ["FR-002"]},
+        {"id": "EX-001", "type": "example", "upstream": ["RULE-001", "FR-002"]},
     ]}))
     write(os.path.join(root, "work", "context.md"),
           "## Open Questions\n\n| ID | Question | Status | Answer | Options offered | Owner | Impact | Asked at | Role |\n"
@@ -157,24 +161,71 @@ def main():
               he["questions_asked"] == 2 and he["questions_answered"] == 1 and he["questions_deferred"] == 1
               and he["gates_rejected"] == 1 and he["revisions"] == 2 and he["review_rounds"] == 3, he)
 
+        check("a requirement cited only by requirements-tier nodes is listed apart, not covered",
+              m["requirement_coverage"]["cited_only_by_requirement_tier"] == ["FR-002"]
+              and m["requirement_coverage"]["covered"] == 2, m["requirement_coverage"])
+
         print("thresholds")
         expected = {"requirement_coverage.value": {"min": 0.9}, "open_questions.unasked": {"max": 0},
                     "adrs.errors": {"max": 0}, "quality_gate.verdict": {"in": ["PASS", "CONDITIONAL_PASS"]},
                     "test_results.suites.contractTest.pass_rate": {"min": 1.0},
-                    "nonexistent.value": {"min": 1}, "cost.total_usd": {"max": 20}}
+                    "human_effort.nonexistent": {"min": 1, "required": False}, "cost.total_usd": {"max": 20}}
+        check("the thresholds file validates", G.validate_expected(expected) == [], G.validate_expected(expected))
         result = G.evaluate(card, expected)
         status = {c["metric"]: c["status"] for c in result["checks"]}
-        check("min, max, in and nested fields are applied; the unmeasured metric is listed, not failed",
+        check("min, max, in and nested fields are applied; an optional unmeasured metric is listed, not failed",
               result["verdict"] == "FAIL" and result["failed"] == 2
               and status["requirement_coverage.value"] == "fail" and status["open_questions.unasked"] == "fail"
               and status["adrs.errors"] == "pass" and status["quality_gate.verdict"] == "pass"
               and status["test_results.suites.contractTest.pass_rate"] == "pass"
-              and status["cost.total_usd"] == "pass" and result["unmeasured"] == ["nonexistent.value"], result)
-        check("no failing measured threshold is PASS even with unmeasured ones",
-              G.evaluate(card, {"nonexistent.value": {"min": 1}, "adrs.errors": {"max": 0}})["verdict"] == "PASS")
+              and status["cost.total_usd"] == "pass" and result["unmeasured"] == ["human_effort.nonexistent"], result)
+        check("no failing threshold is PASS even with an optional unmeasured one",
+              G.evaluate(card, {"human_effort.nonexistent": {"min": 1, "required": False}, "adrs.errors": {"max": 0}})["verdict"] == "PASS")
+        strict = G.evaluate(card, {"human_effort.nonexistent": {"min": 1}})
+        check("an unmeasured metric under a required threshold (the default) fails the run",
+              strict["verdict"] == "FAIL" and strict["checks"][0]["status"] == "fail"
+              and "not measured" in strict["checks"][0]["error"] and strict["unmeasured"] == ["human_effort.nonexistent"], strict)
+        typed = G.evaluate(card, {"quality_gate.verdict": {"min": 1}, "cost.total_usd": {"in": "cheap"}})
+        check("a rule the value's type cannot satisfy is a failed check carrying the error, not a traceback",
+              typed["verdict"] == "FAIL" and typed["failed"] == 2
+              and all(c["status"] == "fail" and c["error"] for c in typed["checks"]), typed)
+        problems = G.validate_expected({"quality_gate.verdict": {"minn": 1}, "cost.total_usd": 99,
+                                        "nope.x": {"min": "a"}, "adrs.errors": {"max": 0, "required": "yes"},
+                                        "adrs.records": {"in": 3}, "cost.unassigned_usd": {}})
+        check("validate_expected names an unknown key (and its missing comparison), a bare value, an unknown "
+              "grader, a non-numeric bound, a non-boolean required, a non-list in and an empty rule",
+              len(problems) == 8 and any("minn" in p for p in problems) and any("no grader" in p for p in problems)
+              and any("must be a number" in p for p in problems) and any("required must be" in p for p in problems)
+              and any("in must be a list" in p for p in problems) and any("no comparison" in p for p in problems), problems)
         text = G.render_text(card, result)
         check("the text scorecard names every metric and the verdict",
               all(n in text for n in ("requirement_coverage", "human_effort", "thresholds: FAIL")), text)
+
+        print("fingerprint and compare")
+        fp = G.fingerprint(proj)
+        write(os.path.join(proj, "work", "scratch.txt"), "x")
+        write(os.path.join(proj, "reports", "x.md"), "x")
+        check("the fingerprint ignores outputs and is stable", G.fingerprint(proj) == fp and len(fp) == 64)
+        write(os.path.join(proj, "src", "A.java"), "class A {}")
+        fp2 = G.fingerprint(proj)
+        write(os.path.join(proj, "task.json"), "{}")
+        check("a source change moves it; the task's own definition does not",
+              fp2 != fp and G.fingerprint(proj) == fp2)
+        os.remove(os.path.join(proj, "task.json"))
+        e2 = os.path.join(root, "e2")
+        os.makedirs(e2)
+        cmp = G.compare(card, G.scorecard(e2), expected)
+        rows = {r["metric"]: r for r in cmp["rows"]}
+        check("compare lists the headline fields and the thresholds, and marks a side's unmeasured as not comparable",
+              rows["cost.total_usd"]["a"] == 12.5 and rows["cost.total_usd"]["b"] is None
+              and not rows["cost.total_usd"]["comparable"] and "human_effort.nonexistent" in rows
+              and cmp["comparable"] == [], cmp["not_comparable"][:3])
+        both = G.compare(card, card, expected)
+        check("two measured sides are comparable on every measured field",
+              "cost.total_usd" in both["comparable"] and "quality_gate.verdict" in both["comparable"]
+              and "human_effort.nonexistent" in both["not_comparable"], both["comparable"])
+        check("the comparison text says how many rows are comparable",
+              "comparable: %d of %d" % (len(both["comparable"]), len(both["rows"])) in G.render_compare(both))
 
         print("empty project and command line")
         empty = os.path.join(root, "empty")
@@ -194,6 +245,22 @@ def main():
         r = subprocess.run([sys.executable, os.path.join(HERE, "outcome_graders.py"), proj],
                            capture_output=True, text=True)
         check("cli: no thresholds is exit 0 with the text card", r.returncode == 0 and "outcome scorecard" in r.stdout)
+        bad = os.path.join(root, "bad.json")
+        write(bad, json.dumps({"quality_gate.verdict": {"minn": 1}}))
+        r = subprocess.run([sys.executable, os.path.join(HERE, "outcome_graders.py"), proj, "expected=" + bad],
+                           capture_output=True, text=True)
+        check("cli: a thresholds file with an unknown key exits 2 naming it before grading",
+              r.returncode == 2 and "minn" in r.stderr, r.stderr)
+        r = subprocess.run([sys.executable, os.path.join(HERE, "outcome_graders.py"), "compare", out_path, proj,
+                            "expected=" + exp_path, "format=json"], capture_output=True, text=True)
+        check("cli: compare takes a scorecard file and a project directory",
+              r.returncode == 0 and json.loads(r.stdout)["comparable"] and "cost.total_usd" in json.loads(r.stdout)["comparable"], r.stderr)
+        r = subprocess.run([sys.executable, os.path.join(HERE, "outcome_graders.py"), "fingerprint", proj],
+                           capture_output=True, text=True)
+        check("cli: fingerprint prints the sha256", r.returncode == 0 and r.stdout.strip() == G.fingerprint(proj))
+        check("cli: compare with one side missing exits 2",
+              subprocess.run([sys.executable, os.path.join(HERE, "outcome_graders.py"), "compare", proj],
+                             capture_output=True).returncode == 2)
         check("cli: usage errors exit 2",
               subprocess.run([sys.executable, os.path.join(HERE, "outcome_graders.py"), proj, "--json"],
                              capture_output=True).returncode == 2

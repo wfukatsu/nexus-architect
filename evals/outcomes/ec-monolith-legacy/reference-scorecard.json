@@ -1,0 +1,274 @@
+{
+  "project": "samples/ec-monolith",
+  "graded_at": "2026-11-15T00:10:37+00:00",
+  "metrics": {
+    "requirement_coverage": {
+      "measured": false,
+      "reason": "no FR-/NFR- node in the graph",
+      "nodes": 26
+    },
+    "open_questions": {
+      "measured": true,
+      "total": 88,
+      "by_status": {
+        "unasked": 88
+      },
+      "unasked": 88,
+      "answered": 0,
+      "open": 88
+    },
+    "adrs": {
+      "measured": true,
+      "records": 19,
+      "errors": 0,
+      "error_lines": [],
+      "accepted": 16,
+      "accepted_with_approver": 0
+    },
+    "report_validity": {
+      "measured": true,
+      "files": 77,
+      "failures": 1,
+      "frontmatter_failures": [
+        "reports/03_design/api-style-decisions.md"
+      ],
+      "mermaid_failures": []
+    },
+    "quality_gate": {
+      "measured": true,
+      "verdict": "FAIL",
+      "stages": 8,
+      "by_status": {
+        "passed": 2,
+        "failed": 6
+      },
+      "passed": 2,
+      "failed": 6,
+      "skipped": 0,
+      "unit_tests_run": 226,
+      "unit_tests_passed": 226,
+      "mutation_score": 81,
+      "blocking": [
+        "jacoco:com.example.ec.order.domain.model:BRANCH",
+        "jacoco:com.example.ec.order.application.tx:LINE",
+        "jacoco:com.example.ec.order.application.tx:BRANCH",
+        "jacoco:com.example.ec.order.infrastructure.id:LINE",
+        "VER-101",
+        "VER-102",
+        "VER-103",
+        "VER-104",
+        "VER-105",
+        "VER-106",
+        "CVE-2025-14813",
+        "CVE-2026-8763",
+        "CVE-2026-13506",
+        "CVE-2026-5598",
+        "ASEC-101",
+        "ASEC-301",
+        "VER-201"
+      ]
+    },
+    "test_results": {
+      "measured": true,
+      "suites": {
+        "characterizationTest": {
+          "tests": 36,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "pass_rate": 1.0
+        },
+        "acceptanceTest": {
+          "tests": 24,
+          "failures": 2,
+          "errors": 0,
+          "skipped": 0,
+          "pass_rate": 0.9167
+        },
+        "contractTest": {
+          "tests": 149,
+          "failures": 7,
+          "errors": 0,
+          "skipped": 0,
+          "pass_rate": 0.953
+        },
+        "integrationTest": {
+          "tests": 38,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "pass_rate": 1.0
+        },
+        "test": {
+          "tests": 226,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "pass_rate": 1.0
+        }
+      },
+      "tests": 473,
+      "pass_rate": 0.981
+    },
+    "phase_completion": {
+      "measured": true,
+      "phases": 38,
+      "by_status": {
+        "skipped": 6,
+        "completed": 32
+      },
+      "completed": 32,
+      "failed": 0,
+      "skipped": 6,
+      "profile": null,
+      "warnings": 8
+    },
+    "cost": {
+      "measured": true,
+      "total_usd": 39.2418,
+      "unassigned_usd": 2.9359,
+      "per_phase_usd": {
+        "generate-api-code": 29.604,
+        "generate-contract-tests": 1.5421,
+        "generate-acceptance-tests": 1.211,
+        "generate-docs+verify-implementation": 2.0339,
+        "generate-docs": 0.37,
+        "verify-implementation": 1.5449,
+        "_unassigned": 2.9359
+      }
+    },
+    "duration": {
+      "measured": true,
+      "wall_clock_s": 12977,
+      "phase_time_s": 17844,
+      "per_phase_s": {
+        "investigate": 157,
+        "analyze": 303,
+        "analyze-data-model": 135,
+        "evaluate-mmi": 97,
+        "evaluate-ddd": 103,
+        "integrate-evaluations": 103,
+        "redesign": 300,
+        "map-domains": 165,
+        "create-domain-story": 288,
+        "design-aggregate": 532,
+        "design-state-machine": 363,
+        "design-microservices": 482,
+        "design-scalardb": 908,
+        "design-api": 1166,
+        "review-consistency": 578,
+        "review-api-security": 617,
+        "review-scalardb": 512,
+        "review-operations": 238,
+        "review-risk": 644,
+        "review-business": 263,
+        "review-synthesizer": 236,
+        "report": 7,
+        "review-report": 146,
+        "design-implementation": 1102,
+        "generate-characterization-tests": 739,
+        "generate-test-specs": 776,
+        "generate-scalardb-code": 2100,
+        "generate-api-code": 2021,
+        "generate-contract-tests": 1035,
+        "generate-acceptance-tests": 622,
+        "generate-docs": 309,
+        "verify-implementation": 797
+      }
+    },
+    "human_effort": {
+      "measured": false,
+      "reason": "no audit events"
+    }
+  },
+  "thresholds": {
+    "verdict": "FAIL",
+    "failed": 1,
+    "checks": [
+      {
+        "metric": "phase_completion.failed",
+        "rule": {
+          "max": 0
+        },
+        "value": 0,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "report_validity.failures",
+        "rule": {
+          "max": 0
+        },
+        "value": 1,
+        "status": "fail",
+        "error": null
+      },
+      {
+        "metric": "adrs.errors",
+        "rule": {
+          "max": 0
+        },
+        "value": 0,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "adrs.records",
+        "rule": {
+          "min": 8
+        },
+        "value": 19,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "open_questions.total",
+        "rule": {
+          "min": 20
+        },
+        "value": 88,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "quality_gate.verdict",
+        "rule": {
+          "in": [
+            "PASS",
+            "CONDITIONAL_PASS",
+            "FAIL"
+          ],
+          "required": false
+        },
+        "value": "FAIL",
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "cost.total_usd",
+        "rule": {
+          "max": 60
+        },
+        "value": 39.2418,
+        "status": "pass",
+        "error": null
+      },
+      {
+        "metric": "duration.wall_clock_s",
+        "rule": {
+          "max": 21600
+        },
+        "value": 12977,
+        "status": "pass",
+        "error": null
+      }
+    ],
+    "unmeasured": []
+  },
+  "note": "The 2026-11-01 run of /architect:pipeline on samples/ec-monolith, graded with the task's thresholds on 2026-11-15 from the run's git-ignored outputs; the committed example of what a scorecard looks like.",
+  "reference_run": {
+    "date": "2026-11-01",
+    "method": "phase by phase, by hand, on the manifest models",
+    "not_from_runner": true
+  }
+}

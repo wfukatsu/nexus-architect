@@ -3,18 +3,23 @@
 #
 #   tools/eval-outcomes.sh run <task> [claude -p options...]   # paid: a full pipeline run
 #   tools/eval-outcomes.sh grade <project_dir> [<task>]        # free: score an existing project
+#   tools/eval-outcomes.sh compare <a> <b> [<task>]            # free: two runs side by side
 #   tools/eval-outcomes.sh list
 #
 # A task is a directory under evals/outcomes/<task>/ holding task.json ({"title", "input",
-# "commands": [...], "expected": "expected.json"}), task.md (the brief and what the thresholds
-# mean) and expected.json (the thresholds tools/lib/outcome_graders.py applies). `run` stages
-# the task's input as a scratch project, stages the architect plugin the way tools/eval-plugin.sh
-# does, runs each command with `claude -p` in that project, then grades it; the scorecard lands in
-# evals/results/outcomes-<task>-<timestamp>/ (git-ignored) next to the scratch project's work/.
-# `grade` scores a project that already ran — this toolkit's or another's on the same brief — with
-# the task's thresholds when a task is named, so two runs are compared by one yardstick
-# (evals/README.md § Outcome evals). A run needs a Claude credential and costs money; nothing here
-# is part of CI.
+# "input_sha256", "commands": [...], "expected": "expected.json"}), task.md (the brief and what
+# the thresholds mean), expected.json (the thresholds tools/lib/outcome_graders.py applies) and,
+# when a run exists, reference-scorecard.json. `run` stages the task's input as a scratch
+# project (warning when its fingerprint is not the pinned one), stages the architect plugin the
+# way tools/eval-plugin.sh does, runs each command with `claude -p` in that project, then grades
+# it; the scorecard lands in evals/results/outcomes-<task>-<timestamp>/ (git-ignored) next to the
+# scratch project's work/. A headless run needs `--permission-mode bypassPermissions` (or
+# `--dangerously-skip-permissions`) after the task name, or it stalls on the first prompt; the
+# scratch project is the only thing it writes to. `grade` scores a project that already ran —
+# this toolkit's or another's on the same brief — with the task's thresholds when a task is
+# named; `compare` puts two scorecards (or project directories) side by side and says which
+# metrics are comparable (evals/README.md § Outcome evals). A run needs a Claude credential and
+# costs money; nothing here is part of CI.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -42,6 +47,15 @@ case "$cmd" in
       t="$(basename "$t")"; [ -f "$TASKS/$t/task.json" ] || continue
       printf '%-24s %s\n' "$t" "$(task_field "$t" title)"
     done ;;
+  compare)
+    a="${1:-}"; b="${2:-}"; task="${3:-}"
+    [ -n "$a" ] && [ -n "$b" ] && [ -e "$a" ] && [ -e "$b" ] || usage
+    if [ -n "$task" ]; then
+      [ -f "$TASKS/$task/expected.json" ] || { echo "no such task: $task" >&2; exit 2; }
+      python3 "$GRADER" compare "$a" "$b" "expected=$TASKS/$task/expected.json"
+    else
+      python3 "$GRADER" compare "$a" "$b"
+    fi ;;
   grade)
     project="${1:-}"; task="${2:-}"
     [ -n "$project" ] && [ -d "$project" ] || usage
@@ -56,6 +70,11 @@ case "$cmd" in
     [ -n "$task" ] && [ -f "$TASKS/$task/task.json" ] || usage
     input="$(task_field "$task" input)"
     [ -d "$ROOT/$input" ] || { echo "task input missing: $input" >&2; exit 2; }
+    pinned="$(task_field "$task" input_sha256)"
+    actual="$(python3 "$GRADER" fingerprint "$ROOT/$input")"
+    if [ -n "$pinned" ] && [ "$pinned" != "$actual" ]; then
+      echo "warning: $input is not the input this task was written against (pinned ${pinned:0:12}, actual ${actual:0:12}); the thresholds may not apply" >&2
+    fi
     stamp="$(date -u +%Y-%m-%dT%H-%M-%SZ)"
     OUT="$ROOT/evals/results/outcomes-$task-$stamp"
     mkdir -p "$OUT"
@@ -93,10 +112,11 @@ PY
     finished="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     python3 "$GRADER" "$PROJECT" "expected=$TASKS/$task/expected.json" "out=$OUT/scorecard.json" \
       | tee "$OUT/scorecard.txt" || true
-    python3 - "$OUT/scorecard.json" "$task" "$started" "$finished" <<'PY'
+    python3 - "$OUT/scorecard.json" "$task" "$started" "$finished" "$pinned" "$actual" <<'PY'
 import json, sys
 card = json.load(open(sys.argv[1]))
 card["task"] = sys.argv[2]; card["run_started"] = sys.argv[3]; card["run_finished"] = sys.argv[4]
+card["input_sha256"] = {"pinned": sys.argv[5] or None, "actual": sys.argv[6], "matches": sys.argv[5] == sys.argv[6]}
 json.dump(card, open(sys.argv[1], "w"), ensure_ascii=False, indent=2)
 PY
     echo "scorecard: $OUT/scorecard.json" ;;
